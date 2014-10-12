@@ -6,7 +6,7 @@
 void SaveWriter::SaveWorldState()
 {
   for( int i = 0; i < GetWorldObjectsCount(); i++ )
-  {
+  {    
     NodeHandle node = GetWorldObject( i );
     WriteString( GetName( node ));
     WriteVector3( GetLocalPosition( node ));

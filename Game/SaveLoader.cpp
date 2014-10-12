@@ -1,8 +1,6 @@
 #include "SaveLoader.h"
 #include "Level.h"
 
-
-
 void SaveLoader::RestoreWorldState()
 {
   for( int i = 0; i < GetWorldObjectsCount(); i++ )
