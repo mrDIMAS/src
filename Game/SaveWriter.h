@@ -2,18 +2,11 @@
 
 #include "Game.h"
 #include "ItemPlace.h"
+#include "TextFileStream.h"
 
-class SaveWriter
+class SaveWriter : public TextFileStream
 {
 private:
-  ofstream file;
-
-  void WriteString( string str );
-  void WriteFloat( float fl );
-  void WriteInteger( int i );
-  void WriteBoolean( bool b );
-  void WriteVector3( Vector3 v );
-  void WriteQuaternion( Quaternion q );
   void SavePlayerInventory();
   void SaveCurrentLevelStages();
   void SaveItemPlaces();

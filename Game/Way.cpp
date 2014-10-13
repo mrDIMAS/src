@@ -85,3 +85,31 @@ bool Way::IsEntering()
 {
   return entering;
 }
+
+NodeHandle Way::GetEnterZone()
+{
+  return enterZone;
+}
+
+void Way::DeserializeWith( TextFileStream & in )
+{
+  inside = in.ReadBoolean(  );
+  entering = in.ReadBoolean(  );
+  freeLook = in.ReadBoolean(  );
+}
+
+void Way::SerializeWith( TextFileStream & out )
+{
+  out.WriteString( GetName( enterZone ));
+  out.WriteBoolean( inside );
+  out.WriteBoolean( entering );
+  out.WriteBoolean( freeLook );
+}
+
+Way * Way::GetByObject( NodeHandle obj )
+{
+  for( auto way : all )
+    if( way->enterZone == obj )
+      return way;
+  return 0;
+}

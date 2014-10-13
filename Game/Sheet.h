@@ -16,4 +16,12 @@ public:
   static vector<Sheet*> sheets;
   static SoundHandle paperFlip;
   static FontHandle sheetFont;
+
+  static Sheet * Sheet::GetByObject( NodeHandle obj )
+  {
+    for( auto sheet : sheets )
+      if( sheet->node == obj )
+        return sheet;
+    return 0;
+  }
 };

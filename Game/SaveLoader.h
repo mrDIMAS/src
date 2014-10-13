@@ -1,18 +1,10 @@
 #pragma once
 
 #include "Game.h"
+#include "TextFileStream.h"
 
-class SaveLoader
+class SaveLoader : public TextFileStream
 {
-private:
-  ifstream file;
-
-  string ReadString( );
-  float ReadFloat();
-  int ReadInteger( );
-  bool ReadBoolean();
-  Vector3 ReadVector3(  );
-  Quaternion ReadQuaternion(  );
 public:
   SaveLoader( string fn );
   ~SaveLoader();

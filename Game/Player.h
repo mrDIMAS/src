@@ -10,6 +10,7 @@
 #include "Goal.h"
 #include "Way.h"
 #include "Locale.h"
+#include "TextFileStream.h"
 
 class Player : public Locale
 {
@@ -135,4 +136,7 @@ public:
   int keyUse;
 
   Flashlight * flashlight;
+
+  void SerializeWith( TextFileStream & out );
+  void DeserializeWith( TextFileStream & in );
 };

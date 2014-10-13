@@ -199,6 +199,10 @@ btTransform & SceneNode::CalculateGlobalTransform()
         body->setLinearVelocity( btVector3( 0, 0, 0 ));
         body->setAngularVelocity( btVector3( 0, 0, 0 ));
       }
+      else
+      {
+        globalTransform = body->getWorldTransform();
+      }
     }
     else // dont has parent
       globalTransform = body->getWorldTransform();

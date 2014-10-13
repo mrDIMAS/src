@@ -1,5 +1,6 @@
 #include "SaveLoader.h"
 #include "Level.h"
+#include "Way.h"
 
 void SaveLoader::RestoreWorldState()
 {
@@ -73,61 +74,23 @@ void SaveLoader::RestoreWorldState()
       ip->itemTypeCanBePlaced = placedType;
     }
   }
+  
+  int wayCount = ReadInteger();
+  for( int i = 0; i < wayCount; i++ )
+  {
+    Way * way = Way::GetByObject( FindByName( ReadString().c_str() ));
+    way->DeserializeWith( *this );
+  }
+
+  player->DeserializeWith( *this );
 }
 
 SaveLoader::~SaveLoader()
 {
-  file.close();
+
 }
 
-SaveLoader::SaveLoader( string fn )
+SaveLoader::SaveLoader( string fn ) : TextFileStream( fn.c_str() )
 {
-  file.open( fn );
-}
 
-Quaternion SaveLoader::ReadQuaternion()
-{
-  Quaternion q;
-  file >> q.x;
-  file >> q.y;
-  file >> q.z;
-  file >> q.w;
-  return q;
-}
-
-Vector3 SaveLoader::ReadVector3()
-{
-  Vector3 v;
-  file >> v.x;
-  file >> v.y;
-  file >> v.z;
-  return v;
-}
-
-bool SaveLoader::ReadBoolean()
-{
-  bool b;
-  file >> b;
-  return b;
-}
-
-int SaveLoader::ReadInteger()
-{
-  int i;
-  file >> i;
-  return i;
-}
-
-float SaveLoader::ReadFloat()
-{
-  float fl;
-  file >> fl;
-  return fl;
-}
-
-std::string SaveLoader::ReadString()
-{
-  string str;
-  file >> str;
-  return str;
 }

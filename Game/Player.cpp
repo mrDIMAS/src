@@ -825,3 +825,147 @@ bool Player::IsObjectHasNormalMass( NodeHandle node )
 {
   return GetMass( node ) > 0 && GetMass( node ) < 40;
 }
+
+void Player::DeserializeWith( TextFileStream & in )
+{
+  in.ReadBoolean( locked );
+  in.ReadBoolean( smoothCamera );
+  in.ReadFloat( runBobCoeff );
+  in.ReadFloat( damagePitchOffset );
+  in.ReadFloat( damagePitchOffsetTo );
+
+  int fsType; in.ReadInteger( fsType );
+  footstepsType = (FootstepsType)fsType;
+
+  in.ReadFloat( pitch );
+  in.ReadFloat( yaw );
+  in.ReadFloat( pitchTo );
+  in.ReadFloat( yawTo );
+  in.ReadVector3( speed );
+  in.ReadVector3( speedTo );   
+  in.ReadVector3( gravity );
+  in.ReadVector3( jumpTo );
+
+  string cwName; in.ReadString( cwName );
+  currentWay = Way::GetByObject( FindByName( cwName.c_str() ));
+  currentWay->Enter();
+
+  in.ReadBoolean( landed );
+  in.ReadFloat( stamina );
+  in.ReadFloat( life );
+  in.ReadFloat( maxLife );
+  in.ReadFloat( maxStamina );
+  in.ReadFloat( runSpeedMult );
+  in.ReadFloat( fov );
+  in.ReadFloat( runFOV );
+  in.ReadFloat( normalFOV );
+  in.ReadFloat( fovTo );
+  in.ReadFloat( cameraBobCoeff );
+
+  in.ReadVector3( cameraOffset );
+  in.ReadVector3( cameraBob );
+
+  in.ReadFloat( headHeight );
+
+  in.ReadBoolean( objectThrown );
+  in.ReadBoolean( dead );
+
+  in.ReadVector3( frameColor );
+  in.ReadString( placeDesc );
+
+  in.ReadBoolean( moved );
+
+  in.ReadInteger( placeDescTimer );
+
+  in.ReadFloat( staminaAlpha );
+  in.ReadFloat( healthAlpha );
+  in.ReadFloat( staminaAlphaTo );
+  in.ReadFloat( healthAlphaTo );
+
+  in.ReadBoolean( moved );
+  in.ReadBoolean( objectiveDone );
+
+  in.ReadString( pickedObjectDesc );
+
+  string sheetName; in.ReadString( sheetName );
+  sheetInHands = Sheet::GetByObject( FindByName( sheetName.c_str() ));    
+
+  in.ReadInteger( keyMoveForward );
+  in.ReadInteger( keyMoveBackward );
+  in.ReadInteger( keyStrafeLeft );
+  in.ReadInteger( keyStrafeRight );
+  in.ReadInteger( keyJump );
+  in.ReadInteger( keyFlashLight );
+  in.ReadInteger( keyRun );
+  in.ReadInteger( keyInventory );
+  in.ReadInteger( keyUse );
+}
+
+void Player::SerializeWith( TextFileStream & out )
+{
+  out.WriteBoolean( locked );
+  out.WriteBoolean( smoothCamera );
+  out.WriteFloat( runBobCoeff );
+  out.WriteFloat( damagePitchOffset );
+  out.WriteFloat( damagePitchOffsetTo );
+  out.WriteInteger((int)footstepsType );
+  out.WriteFloat( pitch );
+  out.WriteFloat( yaw );
+  out.WriteFloat( pitchTo );
+  out.WriteFloat( yawTo );
+  out.WriteVector3( speed );
+  out.WriteVector3( speedTo );   
+  out.WriteVector3( gravity );
+  out.WriteVector3( jumpTo );
+
+  out.WriteString( currentWay ? GetName( currentWay->GetEnterZone()) : "undefinedWay" );
+
+  out.WriteBoolean( landed );
+  out.WriteFloat( stamina );
+  out.WriteFloat( life );
+  out.WriteFloat( maxLife );
+  out.WriteFloat( maxStamina );
+  out.WriteFloat( runSpeedMult );
+  out.WriteFloat( fov );
+  out.WriteFloat( runFOV );
+  out.WriteFloat( normalFOV );
+  out.WriteFloat( fovTo );
+  out.WriteFloat( cameraBobCoeff );
+
+  out.WriteVector3( cameraOffset );
+  out.WriteVector3( cameraBob );
+
+  out.WriteFloat( headHeight );
+
+  out.WriteBoolean( objectThrown );
+  out.WriteBoolean( dead );
+
+  out.WriteVector3( frameColor );
+  out.WriteString( placeDesc );
+
+  out.WriteBoolean( moved );
+
+  out.WriteInteger( placeDescTimer );
+
+  out.WriteFloat( staminaAlpha );
+  out.WriteFloat( healthAlpha );
+  out.WriteFloat( staminaAlphaTo );
+  out.WriteFloat( healthAlphaTo );
+
+  out.WriteBoolean( moved );
+  out.WriteBoolean( objectiveDone );
+
+  out.WriteString( pickedObjectDesc );
+
+  out.WriteString( sheetInHands ? GetName( sheetInHands->node ) : "undefinedSheet" );
+
+  out.WriteInteger( keyMoveForward );
+  out.WriteInteger( keyMoveBackward );
+  out.WriteInteger( keyStrafeLeft );
+  out.WriteInteger( keyStrafeRight );
+  out.WriteInteger( keyJump );
+  out.WriteInteger( keyFlashLight );
+  out.WriteInteger( keyRun );
+  out.WriteInteger( keyInventory );
+  out.WriteInteger( keyUse );
+}

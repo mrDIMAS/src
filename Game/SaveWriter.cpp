@@ -1,7 +1,7 @@
 #include "SaveWriter.h"
 #include "Level.h"
-
-
+#include "Player.h"
+#include "Way.h"
 
 void SaveWriter::SaveWorldState()
 {
@@ -17,16 +17,25 @@ void SaveWriter::SaveWorldState()
   SavePlayerInventory();
   SaveCurrentLevelStages();
   SaveItemPlaces();
+
+  Unfreeze( player->body );
+
+  WriteInteger( Way::all.size() );
+  for( auto way : Way::all )
+    way->SerializeWith( *this );
+
+  // save player state
+  player->SerializeWith( *this );
 }
 
 SaveWriter::~SaveWriter()
 {
-  file.close();
+
 }
 
-SaveWriter::SaveWriter( string fn )
+SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str() )
 {
-  file.open( fn );
+
 }
 
 void SaveWriter::SaveItemPlaces()
@@ -64,41 +73,4 @@ void SaveWriter::SavePlayerInventory()
     // write object name for further identification
     WriteString( GetName( item->object ) );
   }
-}
-
-void SaveWriter::WriteQuaternion( Quaternion q )
-{
-  WriteFloat( q.x );
-  WriteFloat( q.y );
-  WriteFloat( q.z );
-  WriteFloat( q.w );
-  file << endl;
-}
-
-void SaveWriter::WriteVector3( Vector3 v )
-{
-  WriteFloat( v.x );
-  WriteFloat( v.y );
-  WriteFloat( v.z );
-  file << endl;
-}
-
-void SaveWriter::WriteBoolean( bool b )
-{
-  file << b << endl;
-}
-
-void SaveWriter::WriteInteger( int i )
-{
-  file << i << endl;
-}
-
-void SaveWriter::WriteFloat( float fl )
-{
-  file << fl << endl;
-}
-
-void SaveWriter::WriteString( string str )
-{
-  file << str << endl;
 }
