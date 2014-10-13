@@ -5,6 +5,8 @@
 
 void SaveWriter::SaveWorldState()
 {
+  Unfreeze( player->body );
+
   for( int i = 0; i < GetWorldObjectsCount(); i++ )
   {    
     NodeHandle node = GetWorldObject( i );
@@ -18,7 +20,7 @@ void SaveWriter::SaveWorldState()
   SaveCurrentLevelStages();
   SaveItemPlaces();
 
-  Unfreeze( player->body );
+
 
   WriteInteger( Way::all.size() );
   for( auto way : Way::all )
@@ -33,7 +35,7 @@ SaveWriter::~SaveWriter()
 
 }
 
-SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str() )
+SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str(), true )
 {
 
 }

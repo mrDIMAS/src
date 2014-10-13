@@ -256,6 +256,8 @@ int GetMaxAnisotropy()
   return caps.MaxAnisotropy;
 }
 
+
+
 bool Renderer::PointInBV( BoundingVolume bv, Vector3 point )
 {
   if( point.x > bv.min.x && point.x < bv.max.x &&
@@ -431,7 +433,8 @@ void Renderer::RenderWorld()
 
   const int subSteps = 4;
 
-  g_dynamicsWorld->stepSimulation ( timeStep, subSteps );
+  if( g_physicsEnabled )
+    g_dynamicsWorld->stepSimulation ( timeStep, subSteps );
 }
 
 void Renderer::LightmapRenderMeshByGroups()
@@ -537,6 +540,7 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
     return 0;
 
   case WM_DESTROY:
+    FreeRenderer();
     PostQuitMessage ( 0 );
     break;
 

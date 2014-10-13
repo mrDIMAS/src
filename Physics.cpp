@@ -5,6 +5,7 @@ btDefaultCollisionConfiguration * g_defaultCollision = 0;
 btCollisionDispatcher * g_collisionDispatcher = 0;
 btBroadphaseInterface * g_broadphase = 0;
 btSequentialImpulseConstraintSolver * g_solver = 0;
+bool g_physicsEnabled = true;
 
 void Physics::DestructWorld()
 {
@@ -18,6 +19,16 @@ void Physics::DestructWorld()
     delete g_collisionDispatcher;
   if( g_defaultCollision )
     delete g_defaultCollision;
+}
+
+void PausePhysics()
+{
+  g_physicsEnabled = false;
+}
+
+void ResumePhysics()
+{
+  g_physicsEnabled = true;
 }
 
 void Physics::CreateWorld()

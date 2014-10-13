@@ -292,6 +292,8 @@ API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////
+API void PausePhysics();
+API void ResumePhysics();
 API int GetContactCount( NodeHandle node );
 API Contact GetContact( NodeHandle node, int num );
 API void Freeze( NodeHandle node );

@@ -11,6 +11,7 @@
 #include "Valve.h"
 #include "Lift.h"
 #include "Locale.h"
+#include "TextFileStream.h"
 
 class Level : public Locale
 {
@@ -43,4 +44,6 @@ public:
   static LevelName currentLevelName;
   static void Change( LevelName levelId, bool continueFromSave = false );
   SoundHandle music;
+  virtual void SerializeWith( TextFileStream & out ) = 0;
+  virtual void DeserializeWith( TextFileStream & in ) = 0;
 };

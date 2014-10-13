@@ -9,13 +9,9 @@ void Ladder::LookAtTarget()
   player->pitchTo = ( player->pitchTo > 0 ? player->pitchTo : ( 360 + player->pitchTo) );
 }
 
-Ladder::Ladder( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint ) : Way( hBegin, hEnd, hEnterZone )
+Ladder::Ladder( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint ) 
+  : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint )
 {
-  beginLeavePoint = hBeginLeavePoint;
-  endLeavePoint = hEndLeavePoint;
-
-  leave = false;
-
   freeLook = true;
 }
 

@@ -19,9 +19,6 @@ public:
   NodeHandle strangeSoundZone;
   NodeHandle rocksFallZone;
   NodeHandle nextLevelLoadZone;
-
-  // States
-  int generatorBroken;
   
   // Entities
   NodeHandle rocks;
@@ -39,4 +36,14 @@ public:
   virtual void DoScenario();
   virtual void Show();
   virtual void Hide();
+
+  virtual void SerializeWith( TextFileStream & out ) final
+  {
+
+  }
+
+  virtual void DeserializeWith( TextFileStream & in ) final
+  {
+
+  }
 };

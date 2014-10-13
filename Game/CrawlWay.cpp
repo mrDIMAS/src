@@ -49,11 +49,10 @@ void CrawlWay::SetDirection( Direction direction )
 
 }
 
-CrawlWay::CrawlWay( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint ) : Way( hBegin, hEnd, hEnterZone )
+CrawlWay::CrawlWay( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint ) 
+  : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint )
 {
-  beginLeavePoint = hBeginLeavePoint;
-  endLeavePoint = hEndLeavePoint;
-  leave = false;
+
 }
 
 CrawlWay::~CrawlWay()

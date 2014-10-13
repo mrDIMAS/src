@@ -90,7 +90,7 @@ SaveLoader::~SaveLoader()
 
 }
 
-SaveLoader::SaveLoader( string fn ) : TextFileStream( fn.c_str() )
+SaveLoader::SaveLoader( string fn ) : TextFileStream( fn.c_str(), false )
 {
 
 }

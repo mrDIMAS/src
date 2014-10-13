@@ -60,10 +60,17 @@ public:
   float upLightOnRange[6];
 
   void CreatePowerUpSequence();
-
   void UpdatePowerupSequence();
 
-  
+  virtual void SerializeWith( TextFileStream & out ) final
+  {
+
+  }
+
+  virtual void DeserializeWith( TextFileStream & in ) final
+  {
+
+  }
 };
 
 

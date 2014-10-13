@@ -5,9 +5,6 @@
 class Ladder : public Way
 {
 private:
-  NodeHandle beginLeavePoint;
-  NodeHandle endLeavePoint;
-  bool leave;
   void DoLeave();
   FootstepsType footsteps;
 public:

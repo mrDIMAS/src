@@ -10,10 +10,12 @@ protected:
   NodeHandle end;
   NodeHandle enterZone;
   NodeHandle target;
+  NodeHandle beginLeavePoint;
+  NodeHandle endLeavePoint;
   bool inside;
   bool entering;
   bool freeLook;
-
+  bool leave;
 public:
   static vector<Way*> all;
 
@@ -23,7 +25,7 @@ public:
     Backward = 2,
   };
 
-  Way( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone );
+  Way( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint );
   virtual ~Way();
   bool IsEntering();
   bool IsPlayerInside();

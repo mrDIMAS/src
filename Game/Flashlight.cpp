@@ -113,3 +113,28 @@ Flashlight::Flashlight()
 
   on = true;
 }
+
+void Flashlight::DeserializeWith( TextFileStream & in )
+{
+  in.ReadFloat( maxCharge );
+  in.ReadFloat( charge );
+  in.ReadFloat( onRange );
+  in.ReadFloat( realRange );
+  in.ReadFloat( rangeDest );
+  in.ReadFloat( chargeWorkTimeSeconds );
+  in.ReadFloat( offTime );
+  in.ReadBoolean( on );
+  Switch();
+}
+
+void Flashlight::SerializeWith( TextFileStream & out )
+{
+  out.WriteFloat( maxCharge );
+  out.WriteFloat( charge );
+  out.WriteFloat( onRange );
+  out.WriteFloat( realRange );
+  out.WriteFloat( rangeDest );
+  out.WriteFloat( chargeWorkTimeSeconds );
+  out.WriteFloat( offTime );
+  out.WriteBoolean( on );
+}

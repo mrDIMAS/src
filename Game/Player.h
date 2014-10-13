@@ -137,6 +137,6 @@ public:
 
   Flashlight * flashlight;
 
-  void SerializeWith( TextFileStream & out );
-  void DeserializeWith( TextFileStream & in );
+  virtual void SerializeWith( TextFileStream & out ) final;
+  virtual void DeserializeWith( TextFileStream & in ) final;
 };

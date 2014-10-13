@@ -3,16 +3,19 @@
 
 vector<Way*> Way::all;
 
-Way::Way( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone )
+Way::Way( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint )
 {
   begin = hBegin;
   end = hEnd;
   enterZone = hEnterZone;
   target = hBegin;
+  beginLeavePoint = hBeginLeavePoint;
+  endLeavePoint = hEndLeavePoint;
 
   entering = false;
   inside = false;
   freeLook = false;
+  leave = false;
 
   all.push_back( this );
 }
@@ -96,6 +99,16 @@ void Way::DeserializeWith( TextFileStream & in )
   inside = in.ReadBoolean(  );
   entering = in.ReadBoolean(  );
   freeLook = in.ReadBoolean(  );
+  leave = in.ReadBoolean();
+  int targetNum = in.ReadInteger( );
+  if( targetNum == 0 )
+    target = begin;
+  if( targetNum == 1 )
+    target = end;
+  if( targetNum == 2 )
+    target = beginLeavePoint;
+  if( targetNum == 3 )
+    target = endLeavePoint;
 }
 
 void Way::SerializeWith( TextFileStream & out )
@@ -104,6 +117,17 @@ void Way::SerializeWith( TextFileStream & out )
   out.WriteBoolean( inside );
   out.WriteBoolean( entering );
   out.WriteBoolean( freeLook );
+  out.WriteBoolean( leave );
+  int targetNum = 0;
+  if( target == begin )
+    targetNum = 0;
+  if( target == end )
+    targetNum = 1;
+  if( target == beginLeavePoint )
+    targetNum = 2;
+  if( target == endLeavePoint )
+    targetNum = 3;
+  out.WriteInteger( targetNum );
 }
 
 Way * Way::GetByObject( NodeHandle obj )

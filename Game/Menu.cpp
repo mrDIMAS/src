@@ -53,6 +53,7 @@ void Menu::Show()
     currentLevel->Hide();
   visible = true;
   ShowCursor();
+  PausePhysics();
 }
 
 void Menu::Hide( )
@@ -68,6 +69,7 @@ void Menu::Hide( )
   buttonsXOffset = 0;
   HideCursor();
   PauseSoundSource( music );
+  ResumePhysics();
 }
 
 void Menu::Update( )

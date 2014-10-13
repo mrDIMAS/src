@@ -848,7 +848,8 @@ void Player::DeserializeWith( TextFileStream & in )
 
   string cwName; in.ReadString( cwName );
   currentWay = Way::GetByObject( FindByName( cwName.c_str() ));
-  currentWay->Enter();
+  if( currentWay )
+    Freeze( player->body );
 
   in.ReadBoolean( landed );
   in.ReadFloat( stamina );
@@ -899,6 +900,8 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadInteger( keyRun );
   in.ReadInteger( keyInventory );
   in.ReadInteger( keyUse );
+
+  flashlight->DeserializeWith( in );
 }
 
 void Player::SerializeWith( TextFileStream & out )
@@ -968,4 +971,6 @@ void Player::SerializeWith( TextFileStream & out )
   out.WriteInteger( keyRun );
   out.WriteInteger( keyInventory );
   out.WriteInteger( keyUse );
+
+  flashlight->SerializeWith( out );
 }
