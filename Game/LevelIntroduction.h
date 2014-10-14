@@ -18,12 +18,12 @@ public:
   virtual void Show();
   virtual void Hide();
 
-  virtual void SerializeWith( TextFileStream & out ) final
+  virtual void OnSerialize( TextFileStream & out ) final
   {
 
   }
 
-  virtual void DeserializeWith( TextFileStream & in ) final
+  virtual void OnDeserialize( TextFileStream & in ) final
   {
 
   }

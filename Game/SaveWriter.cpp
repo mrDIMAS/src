@@ -7,20 +7,12 @@ void SaveWriter::SaveWorldState()
 {
   Unfreeze( player->body );
 
-  for( int i = 0; i < GetWorldObjectsCount(); i++ )
-  {    
-    NodeHandle node = GetWorldObject( i );
-    WriteString( GetName( node ));
-    WriteVector3( GetLocalPosition( node ));
-    WriteQuaternion( GetLocalRotation( node ));
-    WriteBoolean( IsNodeVisible( node ));
-  }
+  if( currentLevel )
+    currentLevel->SerializeWith( *this );
 
   SavePlayerInventory();
   SaveCurrentLevelStages();
   SaveItemPlaces();
-
-
 
   WriteInteger( Way::all.size() );
   for( auto way : Way::all )

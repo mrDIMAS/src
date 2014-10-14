@@ -828,6 +828,8 @@ bool Player::IsObjectHasNormalMass( NodeHandle node )
 
 void Player::DeserializeWith( TextFileStream & in )
 {
+  SetPosition( body, in.ReadVector3() );
+
   in.ReadBoolean( locked );
   in.ReadBoolean( smoothCamera );
   in.ReadFloat( runBobCoeff );
@@ -906,6 +908,8 @@ void Player::DeserializeWith( TextFileStream & in )
 
 void Player::SerializeWith( TextFileStream & out )
 {
+  out.WriteVector3( GetPosition( body ));
+
   out.WriteBoolean( locked );
   out.WriteBoolean( smoothCamera );
   out.WriteFloat( runBobCoeff );

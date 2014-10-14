@@ -4,25 +4,8 @@
 
 void SaveLoader::RestoreWorldState()
 {
-  for( int i = 0; i < GetWorldObjectsCount(); i++ )
-  {
-    string nodeName = ReadString();
-    Vector3 position = ReadVector3();
-    Quaternion rotation = ReadQuaternion();
-    bool visible = ReadBoolean();
-
-    NodeHandle wo = GetWorldObject( i );
-
-    if( wo.IsValid() )
-    {
-      SetLocalPosition( wo, position );
-      SetLocalRotation( wo, rotation );
-      if( visible )
-        ShowNode( wo );
-      else
-        HideNode( wo );
-    }
-  }
+  if( currentLevel )
+    currentLevel->DeserializeWith( *this );
 
   int itemCount = ReadInteger();
 

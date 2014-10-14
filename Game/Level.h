@@ -24,6 +24,9 @@ private:
   vector<ItemPlace*> itemPlaces;
   vector<Valve*> valves;
   vector<Lift*> lifts;
+  
+  virtual void OnSerialize( TextFileStream & out ) = 0;
+  virtual void OnDeserialize( TextFileStream & in ) = 0;
 public:
   map<string, bool > stages;
   void AddItem( Item * item );
@@ -44,6 +47,37 @@ public:
   static LevelName currentLevelName;
   static void Change( LevelName levelId, bool continueFromSave = false );
   SoundHandle music;
-  virtual void SerializeWith( TextFileStream & out ) = 0;
-  virtual void DeserializeWith( TextFileStream & in ) = 0;
+
+  virtual void SerializeWith( TextFileStream & out ) final
+  {
+    int childCount = GetCountChildren( scene );
+    out.WriteInteger( childCount );
+    for( int i = 0; i < childCount; i++ )
+    {
+      NodeHandle node = GetChild( scene, i );
+      out.WriteString( GetName( node ));
+      out.WriteVector3( GetLocalPosition( node ));
+      out.WriteQuaternion( GetLocalRotation( node ));
+      out.WriteBoolean( IsNodeVisible( node ));
+    }
+    OnSerialize( out );
+  }
+
+  virtual void DeserializeWith( TextFileStream & in ) final
+  {
+    int childCount = in.ReadInteger( );
+    for( int i = 0; i < childCount; i++ )
+    {
+      string name = in.ReadString();
+      NodeHandle node = FindInObjectByName( scene, name.c_str() );
+      SetLocalPosition( node, in.ReadVector3() );
+      SetLocalRotation( node, in.ReadQuaternion() );
+      bool visible = in.ReadBoolean();
+      if( visible )
+        ShowNode( node );
+      else
+        HideNode( node );
+    }
+    OnDeserialize( in );
+  }
 };

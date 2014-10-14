@@ -63,13 +63,13 @@ public:
 
   LightAnimator * explosionFlashAnimator;
 
-  virtual void SerializeWith( TextFileStream & out ) final
+  virtual void OnSerialize( TextFileStream & out ) final
   {
     out.WriteBoolean( detonatorActivated );
     out.WriteFloat( beepSoundTiming );
   }
 
-  virtual void DeserializeWith( TextFileStream & in ) final
+  virtual void OnDeserialize( TextFileStream & in ) final
   {
     in.ReadBoolean( detonatorActivated );
     in.ReadFloat( beepSoundTiming );    
