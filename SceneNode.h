@@ -76,16 +76,7 @@ public:
   void SetLinearFactor( Vector3 lin );
   Vector3 GetPosition( );
   int GetContactCount( );
-  void SetBody( btRigidBody * theBody )
-  {
-    body = theBody;
-    body->activate ( true ); 
-    body->setWorldTransform ( globalTransform );
-    body->setFriction( 1 );
-    body->setUserPointer( this );
-    body->setRestitution( 0.0f );
-    g_dynamicsWorld->addRigidBody ( body ); 
-  }
+  void SetBody( btRigidBody * theBody );
   Contact GetContact( int num );
   void SetAnimationSequence( int begin, int end );
   void ApplyProperties( );

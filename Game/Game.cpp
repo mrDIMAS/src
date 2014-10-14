@@ -6,6 +6,11 @@
 #include "LightAnimator.h"
 #include "ScreenScreamer.h"
 #include "FPSCounter.h"
+#include "SaveWriter.h"
+#include "SaveLoader.h"
+
+int g_keyQuickSave = mi::Key::F6;
+int g_keyQuickLoad = mi::Key::F9;
 
 string localizationPath;
 bool g_showFPS = false;
@@ -159,13 +164,22 @@ void main( )
       currentLevel->DoScenario();
 
     fpsCounter.RegisterFrame();
-
+    
     if( g_showFPS )
       DrawGUIText( Format( "DIPs: %d\nTC: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 100, 100, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
 
     screamer->Update();
 
     RenderWorld( );
+
+    if( !menu->visible )
+    {
+      if( mi::KeyHit( (mi::Key)g_keyQuickSave ))
+        SaveWriter( "quickSave.save" ).SaveWorldState();
+
+      if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
+        SaveLoader( "quickSave.save" ).RestoreWorldState();
+    }
   }
 
   if( currentLevel )

@@ -5,8 +5,6 @@
 
 void SaveWriter::SaveWorldState()
 {
-  Unfreeze( player->body );
-
   if( currentLevel )
     currentLevel->SerializeWith( *this );
 

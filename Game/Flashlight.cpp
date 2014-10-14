@@ -11,7 +11,7 @@ void Flashlight::Update()
 
     float time = GetElapsedTimeInSeconds( chargeTimer );
 
-    charge = 1.0f - maxCharge * ( time + offTime ) / chargeWorkTimeSeconds;    
+    charge = 1.0f - maxCharge * ( time ) / chargeWorkTimeSeconds;    
     
     if( charge < 0.25f )
       charge = 0.25f;
@@ -124,7 +124,10 @@ void Flashlight::DeserializeWith( TextFileStream & in )
   in.ReadFloat( chargeWorkTimeSeconds );
   in.ReadFloat( offTime );
   in.ReadBoolean( on );
-  Switch();
+  if( on )
+    SwitchOn();
+  else
+    SwitchOff();
 }
 
 void Flashlight::SerializeWith( TextFileStream & out )

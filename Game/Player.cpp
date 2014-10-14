@@ -828,7 +828,7 @@ bool Player::IsObjectHasNormalMass( NodeHandle node )
 
 void Player::DeserializeWith( TextFileStream & in )
 {
-  SetPosition( body, in.ReadVector3() );
+  SetLocalPosition( body, in.ReadVector3() );
 
   in.ReadBoolean( locked );
   in.ReadBoolean( smoothCamera );
@@ -874,7 +874,6 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadBoolean( dead );
 
   in.ReadVector3( frameColor );
-  in.ReadString( placeDesc );
 
   in.ReadBoolean( moved );
 
@@ -887,8 +886,6 @@ void Player::DeserializeWith( TextFileStream & in )
 
   in.ReadBoolean( moved );
   in.ReadBoolean( objectiveDone );
-
-  in.ReadString( pickedObjectDesc );
 
   string sheetName; in.ReadString( sheetName );
   sheetInHands = Sheet::GetByObject( FindByName( sheetName.c_str() ));    
@@ -908,7 +905,7 @@ void Player::DeserializeWith( TextFileStream & in )
 
 void Player::SerializeWith( TextFileStream & out )
 {
-  out.WriteVector3( GetPosition( body ));
+  out.WriteVector3( GetLocalPosition( body ));
 
   out.WriteBoolean( locked );
   out.WriteBoolean( smoothCamera );
@@ -948,7 +945,6 @@ void Player::SerializeWith( TextFileStream & out )
   out.WriteBoolean( dead );
 
   out.WriteVector3( frameColor );
-  out.WriteString( placeDesc );
 
   out.WriteBoolean( moved );
 
@@ -961,8 +957,6 @@ void Player::SerializeWith( TextFileStream & out )
 
   out.WriteBoolean( moved );
   out.WriteBoolean( objectiveDone );
-
-  out.WriteString( pickedObjectDesc );
 
   out.WriteString( sheetInHands ? GetName( sheetInHands->node ) : "undefinedSheet" );
 

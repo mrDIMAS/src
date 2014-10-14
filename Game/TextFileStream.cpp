@@ -47,7 +47,7 @@ std::string TextFileStream::ReadString()
 
 void TextFileStream::ReadString( std::string & str )
 {
-  stream >> str;
+  getline( stream, str );
 }
 
 float TextFileStream::ReadFloat()
@@ -122,6 +122,7 @@ void TextFileStream::ReadQuaternion( Quaternion & q )
 
 TextFileStream::~TextFileStream()
 {
+  stream.flush();
   stream.close();
 }
 

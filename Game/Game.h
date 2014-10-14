@@ -81,6 +81,8 @@ extern string localizationPath;
 extern bool g_showFPS;
 extern LevelName g_initialLevel;
 extern bool g_continueGame;
+extern int g_keyQuickSave;
+extern int g_keyQuickLoad;
 static int scan2ascii( DWORD scancode, unsigned short * result )
 {
   static HKL layout=GetKeyboardLayout(0);

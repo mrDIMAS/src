@@ -1073,6 +1073,17 @@ void SceneNode::SetMass( float mass )
   }
 }
 
+void SceneNode::SetBody( btRigidBody * theBody )
+{
+  body = theBody;
+  body->activate ( true ); 
+  body->setWorldTransform ( globalTransform );
+  body->setFriction( 1 );
+  body->setUserPointer( this );
+  body->setRestitution( 0.0f );
+  g_dynamicsWorld->addRigidBody ( body );
+}
+
 ////////////////////////////////////////////////////
 // API Functions
 ////////////////////////////////////////////////////
