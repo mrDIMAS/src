@@ -5,20 +5,20 @@
 
 LevelMine::LevelMine()
 {
-  ParseFile( "data/lang/rus/mine.loc", loc );
+  LoadLocalization( "mine.loc" );
 
   scene = LoadScene( "data/maps/release/mine/mine.scene");
   
   SetPosition( player->body, GetPosition( FindInObjectByName( scene, "PlayerPosition" )));
 
-  player->SetObjective( loc[ "objective1" ]); 
+  player->SetObjective( localization.GetString( "objective1" )); 
 
-  AddSheet( new Sheet( FindByName( "Note1" ), loc[ "note1Desc" ], loc[ "note1" ] ) );
-  AddSheet( new Sheet( FindByName( "Note2" ), loc[ "note2Desc" ], loc[ "note2" ] ) );
-  AddSheet( new Sheet( FindByName( "Note3" ), loc[ "note3Desc" ], loc[ "note3" ] ) );  
-  AddSheet( new Sheet( FindByName( "Note4" ), loc[ "note4Desc" ], loc[ "note4" ] ) );
-  AddSheet( new Sheet( FindByName( "Note5" ), loc[ "note5Desc" ], loc[ "note5" ] ) );
-  AddSheet( new Sheet( FindByName( "Note6" ), loc[ "note6Desc" ], loc[ "note6" ] ) ); 
+  AddSheet( new Sheet( FindByName( "Note1" ), localization.GetString( "note1Desc" ), localization.GetString( "note1" ) ) );
+  AddSheet( new Sheet( FindByName( "Note2" ), localization.GetString( "note2Desc" ), localization.GetString( "note2" ) ) );
+  AddSheet( new Sheet( FindByName( "Note3" ), localization.GetString( "note3Desc" ), localization.GetString( "note3" ) ) );  
+  AddSheet( new Sheet( FindByName( "Note4" ), localization.GetString( "note4Desc" ), localization.GetString( "note4" ) ) );
+  AddSheet( new Sheet( FindByName( "Note5" ), localization.GetString( "note5Desc" ), localization.GetString( "note5" ) ) );
+  AddSheet( new Sheet( FindByName( "Note6" ), localization.GetString( "note6Desc" ), localization.GetString( "note6" ) ) ); 
 
   screamerZone = FindInObjectByName( scene, "Screamer1" );
   screamerZone2 = FindInObjectByName( scene, "Screamer2" );
@@ -44,7 +44,7 @@ LevelMine::LevelMine()
 
   explosionFlashAnimator = 0;
 
-  player->SetPlaceDescription( loc[ "placeDesc" ] );
+  player->SetPlaceDescription( localization.GetString( "placeDesc" ) );
 
   // Create detonator places
   AddItemPlace( detonatorPlace[0] = new ItemPlace( FindInObjectByName( scene, "DetonatorPlace1" ), Item::Explosives ));
@@ -143,7 +143,7 @@ void LevelMine::Hide()
 
 void LevelMine::DoScenario()
 {
-  if( Level::currentLevelName != LevelName::L2Mine )
+  if( Level::curLevelID != LevelName::L2Mine )
     return;
 
   ambSoundSet.DoRandomPlaying();
@@ -184,7 +184,7 @@ void LevelMine::DoScenario()
     {
       if( IsNodeInside( player->body, findItemsZone ))
       {
-        player->SetObjective( loc[ "objective2" ] );
+        player->SetObjective( localization.GetString( "objective2" ) );
 
         stages[ "FindObjectObjectiveSet" ] = true;
       }
@@ -206,7 +206,7 @@ void LevelMine::DoScenario()
 
     if( player->nearestPicked == detonator )
     {
-      DrawGUIText( loc[ "detonator" ].c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+      DrawGUIText( localization.GetString( "detonator" ), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
       if( mi::KeyHit( mi::E ) && readyExplosivesCount >= 4 && !detonatorActivated )
       {
@@ -286,7 +286,7 @@ void LevelMine::UpdateExplodeSequence()
         readyExplosivesCount++;
 
       if( readyExplosivesCount >= 4 )
-        player->SetObjective( loc[ "objective4" ] );
+        player->SetObjective( localization.GetString( "objective4" ) );
     }
   }
 
@@ -304,7 +304,7 @@ void LevelMine::UpdateExplodeSequence()
       {
         stages[ "FindObjectObjectiveSet" ] = true;
 
-        player->SetObjective( loc[ "objective3" ] );
+        player->SetObjective( localization.GetString( "objective3" ) );
       }
     }
   }

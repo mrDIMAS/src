@@ -9,9 +9,9 @@
 #include "LevelIntroduction.h"
 #include "SaveLoader.h"
 
-LevelName g_initialLevel;
+int g_initialLevel;
 Level * currentLevel = 0;
-LevelName Level::currentLevelName = LevelName::LUndefined;
+int Level::curLevelID = 0;
 
 Level::Level()
 {
@@ -48,6 +48,11 @@ Level::~Level()
     delete lift;
 }
 
+void Level::LoadLocalization( string fn )
+{
+  localization.ParseFile( localizationPath + fn );
+}
+
 void Level::Hide()
 {
   HideNode( scene );
@@ -58,21 +63,21 @@ void Level::Show()
   ShowNode( scene );
 }
 
-void Level::Change( LevelName levelId, bool continueFromSave )
+void Level::Change( int levelId, bool continueFromSave )
 {
-  Level::currentLevelName = levelId;
+  Level::curLevelID = levelId;
 
-  static LevelName lastLevel = LevelName::LUndefined;
+  static int lastLevel = 0;
 
-  if( lastLevel != Level::currentLevelName )    
+  if( lastLevel != Level::curLevelID )    
   {
-    DrawGUIText( menu->loc[ "loading" ].c_str(), GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 64, 128, 128, gui->font, Vector3( 255, 255, 0), 1 );
+    DrawGUIText( menu->loc.GetString( "loading" ), GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 64, 128, 128, gui->font, Vector3( 255, 255, 0), 1 );
     
     RenderWorld();
 
-    lastLevel = Level::currentLevelName; 
+    lastLevel = Level::curLevelID; 
 
-    if( !player && Level::currentLevelName != LevelName::L0Introduction )
+    if( !player && Level::curLevelID != LevelName::L0Introduction )
     {
       player = new Player();
     }
@@ -80,21 +85,21 @@ void Level::Change( LevelName levelId, bool continueFromSave )
     if( currentLevel )
       delete currentLevel;
 
-    if( Level::currentLevelName == LevelName::L0Introduction )
+    if( Level::curLevelID == LevelName::L0Introduction )
       currentLevel = new LevelIntroduction;
     else
       player->FreeHands();
 
-    if( Level::currentLevelName == LevelName::L1Arrival )
+    if( Level::curLevelID == LevelName::L1Arrival )
       currentLevel = new LevelArrival;
 
-    if( Level::currentLevelName == LevelName::L2Mine )
+    if( Level::curLevelID == LevelName::L2Mine )
       currentLevel = new LevelMine;
 
-    if( Level::currentLevelName == LevelName::L3ResearchFacility )
+    if( Level::curLevelID == LevelName::L3ResearchFacility )
       currentLevel = new LevelResearchFacility;
 
-    if( Level::currentLevelName == LevelName::LXTestingChamber )
+    if( Level::curLevelID == LevelName::LXTestingChamber )
       currentLevel = new TestingChamber;
 
     if( continueFromSave )
@@ -150,7 +155,7 @@ void Level::DeserializeWith( TextFileStream & in )
   int childCount = in.ReadInteger( );
   for( int i = 0; i < childCount; i++ )
   {
-    string name = in.ReadString();
+    string name = in.Readstring();
     NodeHandle node = FindInObjectByName( scene, name.c_str() );
     SetLocalPosition( node, in.ReadVector3() );
     SetLocalRotation( node, in.ReadQuaternion() );
@@ -170,7 +175,7 @@ void Level::SerializeWith( TextFileStream & out )
   for( int i = 0; i < childCount; i++ )
   {
     NodeHandle node = GetChild( scene, i );
-    out.WriteString( GetName( node ));
+    out.Writestring( GetName( node ));
     out.WriteVector3( GetLocalPosition( node ));
     out.WriteQuaternion( GetLocalRotation( node ));
     out.WriteBoolean( IsNodeVisible( node ));

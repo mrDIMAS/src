@@ -3,7 +3,7 @@
 
 
 
-void TextFileStream::WriteString( string str )
+void TextFileStream::Writestring( string str )
 {
   stream << str << endl;
 }
@@ -38,14 +38,14 @@ void TextFileStream::WriteQuaternion( Quaternion q )
   WriteFloat( q.w );
 }
 
-std::string TextFileStream::ReadString()
+string TextFileStream::Readstring()
 {
   string str;
   stream >> str;
   return str;
 }
 
-void TextFileStream::ReadString( std::string & str )
+void TextFileStream::Readstring( string & str )
 {
   getline( stream, str );
 }

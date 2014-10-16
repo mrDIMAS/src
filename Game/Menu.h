@@ -9,9 +9,9 @@
 #include "Player.h"
 #include <Windows.h>
 #include "List.h"
-#include "Locale.h"
+#include "Parser.h"
 
-class Menu : public Locale
+class Menu
 {
 public:
   enum class Page
@@ -29,7 +29,7 @@ public:
 
   void WriteFloat( ofstream & stream, string name, float value );
   void WriteInteger( ofstream & stream, string name, int value );
-  void WriteString( ofstream & stream, string name, string value );
+  void Writestring( ofstream & stream, string name, string value );
   void WriteProgressConfig();
   void WriteConfig();
   void SetPlayerControls();
@@ -68,6 +68,7 @@ public:
   SoundHandle pickSound;
   Page page;
   SoundHandle music;
+  Parser loc;
 
   NumericSlider * masterVolume;
   NumericSlider * musicVolume;

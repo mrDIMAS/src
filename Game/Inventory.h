@@ -2,6 +2,7 @@
 
 #include "Game.h"
 #include "Item.h"
+#include "Parser.h"
 
 class Inventory
 {
@@ -27,7 +28,7 @@ public:
  
   FontHandle font;
 
-  map<string,string> localization;
+  Parser localization;
 
   Inventory();
   void Update();

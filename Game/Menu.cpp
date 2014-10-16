@@ -12,7 +12,7 @@ bool g_continueGame = false;
 
 Menu::Menu( )
 {
-  LoadLocalizationFromFile( localizationPath + "menu.loc" );
+  loc.ParseFile( localizationPath + "menu.loc" );
 
   scene = LoadScene( "data/maps/menu/menu.scene" );
 
@@ -142,12 +142,12 @@ void Menu::Update( )
     if( !autosaveNotify )
     {
       if( currentLevel || canContinueGameFromLast )
-        continueGame = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 3.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc[ "continueButton" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );   
+        continueGame = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 3.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );   
       if( !currentLevel )
-        start = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc[ "startButton" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
-      options = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc[ "optionsButton" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
-      authors = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc[ "authorsButton" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
-      exit = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc[ "exitButton" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+        start = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+      options = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+      authors = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+      exit = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
     }
     else
     {
@@ -155,8 +155,8 @@ void Menu::Update( )
       int ntfY = GetResolutionHeight() / 2 - 64;
       int ntfW = GetResolutionWidth() - 800;
       DrawGUIRect( ntfX, ntfY, ntfW, 32, TextureHandle::Empty(), Vector3( 50, 0, 0 ), 200 );
-      DrawGUIText( loc["autosaveNotify"].c_str(), ntfX, ntfY, ntfW , 32, textFont, Vector3( 200, 0, 0 ), 1 );
-      GUIState ok = DrawGUIButton( GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 16, 128, 32, buttonImage, loc[ "okButton" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+      DrawGUIText( loc.GetString( "autosaveNotify" ), ntfX, ntfY, ntfW , 32, textFont, Vector3( 200, 0, 0 ), 1 );
+      GUIState ok = DrawGUIButton( GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 16, 128, 32, buttonImage, loc.GetString( "okButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
       if( ok.mouseLeftClicked )
         autosaveNotify = false;
     }
@@ -168,14 +168,14 @@ void Menu::Update( )
       int x = ( GetResolutionWidth() - w ) / 2;
       int y = ( GetResolutionHeight() - h ) / 2;
       DrawGUIRect( x, y, w, h, TextureHandle::Empty() );
-      DrawGUIText( loc["authorsText"].c_str(), x, y, w, h, gui->font, Vector3( 255, 127, 127 ), 1 );
+      DrawGUIText( loc.GetString( "authorsText" ), x, y, w, h, gui->font, Vector3( 255, 127, 127 ), 1 );
     }
 
     if( page == Page::Options ) // options window
     {
-      GUIState optionsCommon = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc[ "commonSettings" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
-      GUIState optionsKeys = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc[ "controls" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
-      GUIState optionsGraphics = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc[ "graphics" ].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+      GUIState optionsCommon = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "commonSettings" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+      GUIState optionsKeys = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "controls" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+      GUIState optionsGraphics = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "graphics" ), gui->font, Vector3( 0, 255, 0 ), 1 );
 
       if( optionsCommon.mouseLeftClicked )
         SetPage( Page::OptionsCommon );
@@ -196,17 +196,17 @@ void Menu::Update( )
       float buttonHeight = 32;
       float textX = x + buttonWidth * 1.5f;
 
-      mouseSensivity->Draw( x, y - 3.0f * buttonHeight, buttonImage, loc[ "mouseSens" ].c_str() );
+      mouseSensivity->Draw( x, y - 3.0f * buttonHeight, buttonImage, loc.GetString( "mouseSens" ));
       mouseSens = mouseSensivity->value / 100.0f;
 
       buttonWidth = 32;
 
-      masterVolume->Draw( x, y, buttonImage, loc["masterVolume"].c_str() );
+      masterVolume->Draw( x, y, buttonImage, loc.GetString( "masterVolume" ));
       SetMasterVolume( masterVolume->value / 100.0f );
 
       y = y + 1.5f * buttonHeight;
 
-      musicVolume->Draw( x, y, buttonImage, loc["musicVolume"].c_str() );
+      musicVolume->Draw( x, y, buttonImage, loc.GetString(  "musicVolume" ));
       SetVolume( music, musicVolume->value / 100.0f );
     }
 
@@ -216,7 +216,7 @@ void Menu::Update( )
       float y = GetResolutionHeight() - 2.5 * distBetweenButtons;
 
       // FXAA Options
-      fxaaButton->Draw( x, y, buttonImage, loc["fxaa"].c_str() );
+      fxaaButton->Draw( x, y, buttonImage, loc.GetString( "fxaa" ));
       if( fxaaButton->on )
         EnableFXAA();
       else
@@ -224,13 +224,13 @@ void Menu::Update( )
 
       y = GetResolutionHeight() - 2.0 * distBetweenButtons;
 
-      fpsButton->Draw( x, y, buttonImage, loc["showFPS"].c_str() );
+      fpsButton->Draw( x, y, buttonImage, loc.GetString( "showFPS" ));
 
       g_showFPS = fpsButton->on;
 
       y = GetResolutionHeight() - 2.0 * distBetweenButtons;
 
-      textureFiltering->Draw( x, y, buttonImage, loc["filtering"].c_str() );
+      textureFiltering->Draw( x, y, buttonImage, loc.GetString( "filtering" ));
 
       if( textureFiltering->GetCurrentValue() == 0 ) 
         SetTextureFiltering( TextureFilter::Anisotropic, GetMaxAnisotropy() );
@@ -244,43 +244,43 @@ void Menu::Update( )
       float y = GetResolutionHeight() - 2.5 * distBetweenButtons;
 
       // First column
-      wkMoveForward->Draw( x, y, smallButtonImage, loc["forward"].c_str() );
+      wkMoveForward->Draw( x, y, smallButtonImage, loc.GetString( "forward" ) );
 
       y += 32 * 1.1f;
-      wkMoveBackward->Draw( x, y, smallButtonImage, loc["backward"].c_str() );
+      wkMoveBackward->Draw( x, y, smallButtonImage, loc.GetString( "backward" ) );
 
       y += 32 * 1.1f;
-      wkStrafeLeft->Draw( x, y, smallButtonImage, loc["strafeLeft"].c_str() );
+      wkStrafeLeft->Draw( x, y, smallButtonImage, loc.GetString( "strafeLeft" ) );
 
       y += 32 * 1.1f;
-      wkStrafeRight->Draw( x, y, smallButtonImage, loc["strafeRight"].c_str() );
+      wkStrafeRight->Draw( x, y, smallButtonImage, loc.GetString( "strafeRight" ) );
 
       // Second column
       x += 150;
       y = GetResolutionHeight() - 2.5 * distBetweenButtons;
 
-      wkJump->Draw( x, y, smallButtonImage, loc["jump"].c_str() );
+      wkJump->Draw( x, y, smallButtonImage, loc.GetString( "jump" ) );
 
       y += 32 * 1.1f;
-      wkFlashLight->Draw( x, y, smallButtonImage, loc["flashLight"].c_str() );
+      wkFlashLight->Draw( x, y, smallButtonImage, loc.GetString( "flashLight" ) );
 
       y += 32 * 1.1f;
-      wkRun->Draw( x, y, smallButtonImage, loc["run"].c_str() );
+      wkRun->Draw( x, y, smallButtonImage, loc.GetString( "run" ) );
 
       y += 32 * 1.1f;
-      wkInventory->Draw( x, y, smallButtonImage, loc["inventory"].c_str() );
+      wkInventory->Draw( x, y, smallButtonImage, loc.GetString( "inventory" ) );
 
       // Third column
       x += 150;
       y = GetResolutionHeight() - 2.5 * distBetweenButtons;
 
-      wkUse->Draw( x, y, smallButtonImage, loc["use"].c_str() );
+      wkUse->Draw( x, y, smallButtonImage, loc.GetString( "use" ) );
 
       y += 32 * 1.1f;
-      wkQuickSave->Draw( x, y, smallButtonImage, loc["quickSave"].c_str() );
+      wkQuickSave->Draw( x, y, smallButtonImage, loc.GetString( "quickSave" ));
 
       y += 32 * 1.1f;
-      wkQuickLoad->Draw( x, y, smallButtonImage, loc["quickLoad"].c_str() );
+      wkQuickLoad->Draw( x, y, smallButtonImage, loc.GetString( "quickLoad" ) );
     }
 
     if( !startPressed && !returnToGameByEsc )
@@ -320,10 +320,10 @@ void Menu::Update( )
         if( !currentLevel )
         {
           // load last played game
-          map< string, string > values;
-          ParseFile( "progress.cfg", values );
+          Parser progress;
+          progress.ParseFile( "progress.cfg" );
 
-          continueLevelName = (LevelName)( atoi( values[ "lastLevel" ].c_str()) );
+          continueLevelName = (LevelName)( (int)progress.GetNumber( "lastLevel" ) );
         }
       }
 
@@ -399,27 +399,27 @@ void Menu::CreateSliders()
 void Menu::LoadConfig()
 {
   // Load config
-  map< string, string > config;
-  ParseFile( "config.cfg", config );
+  Parser config;
+  config.ParseFile( "config.cfg" );
 
-  if( config.size() )
+  if( !config.Empty() )
   {
-    masterVolume->value = atof( config[ "masterVolume" ].c_str() );
-    musicVolume->value = atof( config[ "musicVolume" ].c_str() );
-    mouseSensivity->value = atof( config[ "mouseSens" ].c_str() );
-    fxaaButton->on = atoi( config[ "masterVolume" ].c_str() );
+    masterVolume->value = config.GetNumber( "masterVolume" );
+    musicVolume->value = config.GetNumber( "musicVolume" );
+    mouseSensivity->value = config.GetNumber( "mouseSens" );
+    fxaaButton->on = config.GetNumber( "masterVolume" );
 
-    wkMoveForward->SetSelected( atoi( config[ "keyMoveForward" ].c_str() ));
-    wkMoveBackward->SetSelected( atoi( config[ "keyMoveBackward" ].c_str() ));
-    wkStrafeLeft->SetSelected( atoi( config[ "keyStrafeLeft" ].c_str() ));
-    wkStrafeRight->SetSelected( atoi( config[ "keyStrafeRight" ].c_str() ));
-    wkJump->SetSelected( atoi( config[ "keyJump" ].c_str() ));
-    wkRun->SetSelected( atoi( config[ "keyRun" ].c_str() ));
-    wkFlashLight->SetSelected( atoi( config[ "keyFlashLight" ].c_str() ));
-    wkInventory->SetSelected( atoi( config[ "keyInventory" ].c_str() ));
-    wkUse->SetSelected( atoi( config[ "keyUse" ].c_str() ));
-    wkQuickSave->SetSelected( g_keyQuickSave = atoi( config[ "keyQuickSave" ].c_str() ));
-    wkQuickLoad->SetSelected( g_keyQuickLoad = atoi( config[ "keyQuickLoad" ].c_str() ));
+    wkMoveForward->SetSelected( config.GetNumber( "keyMoveForward" ) );
+    wkMoveBackward->SetSelected( config.GetNumber( "keyMoveBackward" ) );
+    wkStrafeLeft->SetSelected( config.GetNumber( "keyStrafeLeft" ) );
+    wkStrafeRight->SetSelected( config.GetNumber( "keyStrafeRight" ) );
+    wkJump->SetSelected( config.GetNumber( "keyJump" ) );
+    wkRun->SetSelected( config.GetNumber( "keyRun" ) );
+    wkFlashLight->SetSelected( config.GetNumber( "keyFlashLight" ) );
+    wkInventory->SetSelected( config.GetNumber( "keyInventory" ) );
+    wkUse->SetSelected( config.GetNumber( "keyUse" ) );
+    wkQuickSave->SetSelected( g_keyQuickSave = config.GetNumber( "keyQuickSave" ) );
+    wkQuickLoad->SetSelected( g_keyQuickLoad = config.GetNumber( "keyQuickLoad" ) );
   }
 }
 
@@ -463,7 +463,7 @@ void Menu::WriteConfig()
   config.close();
 }
 
-void Menu::WriteString( ofstream & stream, string name, string value )
+void Menu::Writestring( ofstream & stream, string name, string value )
 {
   stream << name << "=\"" << value << "\";\n";
 }
@@ -482,8 +482,8 @@ void Menu::CreateLists()
 {
   textureFiltering = new List();
 
-  textureFiltering->AddValue( loc["anisotropic"].c_str() );
-  textureFiltering->AddValue( loc["trilinear"].c_str() );
+  textureFiltering->AddValue( loc.GetString( "anisotropic" ));
+  textureFiltering->AddValue( loc.GetString( "trilinear" ));
 }
 
 Menu::~Menu()
@@ -511,7 +511,7 @@ void Menu::WriteProgressConfig()
 {
   ofstream out( "progress.cfg" );
 
-  WriteInteger( out, "lastLevel", (int)Level::currentLevelName );
+  WriteInteger( out, "lastLevel", (int)Level::curLevelID );
   if( player )
     WriteFloat( out, "playerLife", player->life );
 

@@ -150,7 +150,7 @@ static const char * keyNames [] =
   "MEDIASELECT"
 };
 
-static std::string GetKeyName( unsigned int vk)
+static string GetKeyName( unsigned int vk)
 {
   if( vk < 0 )
     return " ";

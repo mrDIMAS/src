@@ -12,8 +12,9 @@
 #include "Lift.h"
 #include "Locale.h"
 #include "TextFileStream.h"
+#include "Parser.h"
 
-class Level : public Locale
+class Level
 {
 private:
   vector<Item*> items;
@@ -27,6 +28,8 @@ private:
   
   virtual void OnSerialize( TextFileStream & out ) = 0;
   virtual void OnDeserialize( TextFileStream & in ) = 0;
+protected:
+  Parser localization;
 public:
   map<string, bool > stages;
   void AddItem( Item * item );
@@ -37,6 +40,7 @@ public:
   void AddLadder( Ladder * ladder );
   void AddValve( Valve * valve );
   void AddLift( Lift * lift );
+  void LoadLocalization( string fn );
 
   explicit Level();
   virtual ~Level();
@@ -44,8 +48,8 @@ public:
   virtual void Hide();
   virtual void Show();
   NodeHandle scene;
-  static LevelName currentLevelName;
-  static void Change( LevelName levelId, bool continueFromSave = false );
+  static int curLevelID;
+  static void Change( int levelId, bool continueFromSave = false );
   SoundHandle music;
 
   virtual void SerializeWith( TextFileStream & out ) final;

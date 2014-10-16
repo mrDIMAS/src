@@ -9,10 +9,10 @@
 #include "Flashlight.h"
 #include "Goal.h"
 #include "Way.h"
-#include "Locale.h"
 #include "TextFileStream.h"
+#include "Parser.h"
 
-class Player : public Locale
+class Player
 {
 private:
   void LoadSounds();
@@ -32,6 +32,7 @@ private:
   void SetRockFootsteps();
   void SetDirtFootsteps();
   void SetMetalFootsteps();
+  Parser localization;
 public:
   explicit Player();
   virtual ~Player();

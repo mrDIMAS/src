@@ -4,7 +4,7 @@
 
 Inventory::Inventory()
 {  
-  ParseFile( "data/lang/rus/inventory.loc", localization );
+  localization.ParseFile( localizationPath + "inventory.loc" );
 
   backgroundTexture = GetTexture( "data/gui/inventory/background.png");
   cellTexture = GetTexture( "data/gui/inventory/cell.png" );
@@ -116,7 +116,7 @@ void Inventory::Update()
   int combineY = backgroundY + backgroundH;
   int descriptionY = combineY + 10;
   DrawGUIRect( backgroundX, combineY, backgroundW, combineH, backgroundTexture );
-  DrawGUIText( localization[ "desc" ].c_str(), backgroundX + 10, descriptionY, backgroundW, combineH, font, whiteColor, 0 );
+  DrawGUIText( localization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW, combineH, font, whiteColor, 0 );
   // draw item actions 
   int actionsW = 128;
   int actionsX = backgroundX + backgroundW;
@@ -129,10 +129,10 @@ void Inventory::Update()
   int buttonW = actionsW - 2 * buttonSpace;
   bool canCombine = ( combineItemFirst != 0 && combineItemSecond != 0 );
   int useAlpha = selected ? 255 : 60;
-  GUIState buttonUse = DrawGUIButton( buttonsX, buttonY, buttonW, buttonH, buttonTexture, localization[ "use" ].c_str(), font, whiteColor, 1, useAlpha );
-  GUIState buttonThrow = DrawGUIButton( buttonsX, buttonY + 1.2f * buttonH, buttonW, buttonH, buttonTexture, localization[ "throw" ].c_str(), font, whiteColor, 1, useAlpha );
+  GUIState buttonUse = DrawGUIButton( buttonsX, buttonY, buttonW, buttonH, buttonTexture, localization.GetString( "use" ), font, whiteColor, 1, useAlpha );
+  GUIState buttonThrow = DrawGUIButton( buttonsX, buttonY + 1.2f * buttonH, buttonW, buttonH, buttonTexture, localization.GetString( "throw" ), font, whiteColor, 1, useAlpha );
   int combineAlpha = canCombine ? 255 : 60;
-  GUIState buttonCombine = DrawGUIButton( buttonsX, buttonY + 2.4f * buttonH, buttonW, buttonH, buttonTexture, localization[ "combine" ].c_str(), font, whiteColor, 1, combineAlpha );
+  GUIState buttonCombine = DrawGUIButton( buttonsX, buttonY + 2.4f * buttonH, buttonW, buttonH, buttonTexture, localization.GetString( "combine" ), font, whiteColor, 1, combineAlpha );
   // draw combine items
   int combineBoxY = buttonY + 3.6f * buttonH;
   Vector3 combineColor1 = whiteColor;
@@ -190,7 +190,7 @@ void Inventory::Update()
     }
   }
   // characteristics
-  DrawGUIText( localization[ "characteristics" ].c_str(), actionsX + buttonSpace, combineBoxY + 2.2f * cellHeight, backgroundW, combineH, font, whiteColor, 0 );
+  DrawGUIText( localization.GetString( "characteristics" ), actionsX + buttonSpace, combineBoxY + 2.2f * cellHeight, backgroundW, combineH, font, whiteColor, 0 );
   // draw cells and item image
   bool combinePick = true;
   for( int cw = 0; cw < cellCountWidth; cw++ )

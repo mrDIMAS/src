@@ -113,7 +113,7 @@ void Way::DeserializeWith( TextFileStream & in )
 
 void Way::SerializeWith( TextFileStream & out )
 {
-  out.WriteString( GetName( enterZone ));
+  out.Writestring( GetName( enterZone ));
   out.WriteBoolean( inside );
   out.WriteBoolean( entering );
   out.WriteBoolean( freeLook );

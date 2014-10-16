@@ -35,10 +35,10 @@ void SaveWriter::SaveItemPlaces()
   WriteInteger( ItemPlace::all.size() );
   for( auto ip : ItemPlace::all )
   {
-    WriteString( GetName( ip->object ));
+    Writestring( GetName( ip->object ));
     WriteBoolean( ip->itemPlaced != 0 );
     if( ip->itemPlaced )
-      WriteString( GetName( ip->itemPlaced->object ));
+      Writestring( GetName( ip->itemPlaced->object ));
     WriteInteger( ip->GetPlaceType() );
   }
 }
@@ -49,7 +49,7 @@ void SaveWriter::SaveCurrentLevelStages()
 
   for( auto stage : currentLevel->stages )
   {
-    WriteString( stage.first );
+    Writestring( stage.first );
     WriteBoolean( stage.second );
   }
 }
@@ -63,6 +63,6 @@ void SaveWriter::SavePlayerInventory()
   for( auto item : player->inventory.items )
   {
     // write object name for further identification
-    WriteString( GetName( item->object ) );
+    Writestring( GetName( item->object ) );
   }
 }

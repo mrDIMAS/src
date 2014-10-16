@@ -16,14 +16,14 @@ public:
   void ReadBoolean( bool & b );
   void ReadInteger( int & i );
   void ReadFloat( float & f );
-  void ReadString( std::string & str );
+  void Readstring( string & str );
 
   Quaternion ReadQuaternion();
   Vector3 ReadVector3();
   bool ReadBoolean();
   int ReadInteger();
   float ReadFloat();
-  std::string ReadString();
+  string Readstring();
 
   // Write functions
   void WriteQuaternion( Quaternion q );
@@ -31,5 +31,5 @@ public:
   void WriteBoolean( bool b );
   void WriteInteger( int i );
   void WriteFloat( float fl );
-  void WriteString( string str );
+  void Writestring( string str );
 };

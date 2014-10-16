@@ -7,7 +7,7 @@ Player * player = 0;
 
 Player::Player()
 {
-  LoadLocalizationFromFile( localizationPath + "player.loc" );
+  localization.ParseFile( localizationPath + "player.loc" );
 
   // Stamina vars
   maxStamina = 100.0f;
@@ -192,14 +192,14 @@ void Player::AddItem( Item * itm )
 void Player::UpdateInventory()
 {
   if( mi::KeyHit( (mi::Key)keyInventory ) && !locked )
-    inventory.opened = 1 - inventory.opened;
+    inventory.opened = !inventory.opened;
 
   inventory.Update();
 }
 
 void Player::SetObjective( string text )
 {
-  string objectiveText = loc[ "currentObjective" ];
+  string objectiveText = localization.GetString( "currentObjective" );
   objectiveText += text;
 
   goal.SetText( objectiveText );
@@ -209,7 +209,7 @@ void Player::SetObjective( string text )
 
 void Player::CompleteObjective()
 {
-  SetObjective( loc[ "objectiveUnknown" ] );
+  SetObjective( localization.GetString( "objectiveUnknown" ));
 
   objectiveDone = true;
 }
@@ -272,7 +272,7 @@ void Player::UpdateMoving()
     if( cw->IsEnterPicked() )
     {
       if( !cw->IsPlayerInside() )
-        DrawTip( Format( loc["crawlIn"].c_str(), GetKeyName( keyUse )));
+        DrawTip( Format( localization.GetString( "crawlIn" ), GetKeyName( keyUse )));
 
       if( IsUseButtonHit() )
         cw->Enter();
@@ -285,7 +285,7 @@ void Player::UpdateMoving()
 
     if( door->IsPickedByPlayer() )
     {
-      DrawTip( Format( loc["openClose"].c_str(), GetKeyName( keyUse )));
+      DrawTip( Format( localization.GetString( "openClose" ), GetKeyName( keyUse )));
 
       if( IsUseButtonHit() )      
         door->SwitchState();
@@ -566,7 +566,7 @@ void Player::DrawSheetInHands()
 
     pickedObjectDesc = sheetInHands->desc;
 
-    pickedObjectDesc += loc[ "sheetOpen" ];
+    pickedObjectDesc += localization.GetString( "sheetOpen" );
 
     if( mi::MouseHit( mi::Right ))
     {
@@ -697,18 +697,18 @@ void Player::UpdatePicking()
       {
         pickedObjectDesc = itm->name;
 
-        pickedObjectDesc += Format( loc[ "itemPick" ].c_str(), GetKeyName( keyUse));
+        pickedObjectDesc += Format( localization.GetString( "itemPick" ), GetKeyName( keyUse));
       } 
       else if( sheet )
       {
         pickedObjectDesc = sheet->desc;
 
-        pickedObjectDesc += Format( loc[ "sheetPick" ].c_str(), GetKeyName( keyUse ));
+        pickedObjectDesc += Format( localization.GetString( "sheetPick" ), GetKeyName( keyUse ));
       }
       else
       {
         if( IsObjectHasNormalMass( picked ) && !IsNodeFrozen( picked ))
-          DrawTip( loc[ "objectPick" ] );
+          DrawTip( localization.GetString( "objectPick" ) );
       }
 
       if( mi::MouseDown( mi::Left ) && pitch < 70 )
@@ -722,7 +722,7 @@ void Player::UpdatePicking()
         }
         else
         {
-          DrawTip( loc[ "tooHeavy" ] );
+          DrawTip( localization.GetString( "tooHeavy" ) );
         }
       }
     }
@@ -849,7 +849,7 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadVector3( gravity );
   in.ReadVector3( jumpTo );
 
-  string cwName; in.ReadString( cwName );
+  string cwName; in.Readstring( cwName );
   currentWay = Way::GetByObject( FindByName( cwName.c_str() ));
   if( currentWay )
     Freeze( player->body );
@@ -888,7 +888,7 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadBoolean( moved );
   in.ReadBoolean( objectiveDone );
 
-  string sheetName; in.ReadString( sheetName );
+  string sheetName; in.Readstring( sheetName );
   sheetInHands = Sheet::GetByObject( FindByName( sheetName.c_str() ));    
 
   in.ReadInteger( keyMoveForward );
@@ -923,7 +923,7 @@ void Player::SerializeWith( TextFileStream & out )
   out.WriteVector3( gravity );
   out.WriteVector3( jumpTo );
 
-  out.WriteString( currentWay ? GetName( currentWay->GetEnterZone()) : "undefinedWay" );
+  out.Writestring( currentWay ? GetName( currentWay->GetEnterZone()) : "undefinedWay" );
 
   out.WriteBoolean( landed );
   out.WriteFloat( stamina );
@@ -959,7 +959,7 @@ void Player::SerializeWith( TextFileStream & out )
   out.WriteBoolean( moved );
   out.WriteBoolean( objectiveDone );
 
-  out.WriteString( sheetInHands ? GetName( sheetInHands->node ) : "undefinedSheet" );
+  out.Writestring( sheetInHands ? GetName( sheetInHands->node ) : "undefinedSheet" );
 
   out.WriteInteger( keyMoveForward );
   out.WriteInteger( keyMoveBackward );

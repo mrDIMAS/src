@@ -1,7 +1,7 @@
 #include "Item.h"
 
 vector<Item*> Item::Available;
-Locale Item::lang;
+Parser Item::loc;
 
 Item * Item::GetByObject( NodeHandle obj )
 {
@@ -19,28 +19,28 @@ void Item::SetType( int typ )
 
   if( type == Detonator )
   {
-    desc = lang.loc[ "detonatorDesc" ];
-    name = lang.loc[ "detonatorName" ];
+    desc = loc.GetString( "detonatorDesc" );
+    name = loc.GetString( "detonatorName" );
     img = GetTexture( "data/gui/inventory/items/detonator.png" );;
     combinesWith = 0;
     onCombineBecomes = 0;
 
-    content = lang.loc[ "detonatorContent" ];
-    contentType = lang.loc[ "detonatorContentType" ];
+    content = loc.GetString( "detonatorContent" );
+    contentType = loc.GetString( "detonatorContentType" );
   }
 
   if( type == FuelCanister )
   {
-    desc = lang.loc[ "fuelDesc" ];
-    name = lang.loc[ "fuelName" ];
+    desc = loc.GetString( "fuelDesc" );
+    name = loc.GetString( "fuelName" );
     img = GetTexture( "data/gui/inventory/items/fuel.png" );
     combinesWith = Flashlight;
     onCombineBecomes = Flashlight;
 
-    content = lang.loc[ "fuelContent" ];
+    content = loc.GetString( "fuelContent" );
     volume = content;
 
-    contentType = lang.loc[ "fuelContentType" ];
+    contentType = loc.GetString( "fuelContentType" );
   }
 
 
@@ -106,8 +106,8 @@ void Item::SetType( int typ )
 
 Item::Item( NodeHandle obj, int typ )
 {
-  if( !lang.loc.size() )
-    lang.LoadLocalizationFromFile( localizationPath + "items.loc" );
+  if( !loc.IsParsed() )
+    loc.ParseFile( localizationPath + "items.loc" );
 
   object = obj;     
   onCombineBecomes = 0;
@@ -115,10 +115,10 @@ Item::Item( NodeHandle obj, int typ )
 
   Available.push_back( this );
 
-  volume = Property( lang.loc["volume"] + "\n", "-" );
-  mass = Property( lang.loc["mass"] + "\n", "-" );
-  content = Property( lang.loc["content"] + "\n", "-" );
-  contentType = Property( lang.loc["contentType"] + "\n", "-" );
+  volume = Property( string( loc.GetString( "volume" )) + "\n", "-" );
+  mass = Property( string( loc.GetString( "mass" )) + "\n", "-" );
+  content = Property( string( loc.GetString( "content" )) + "\n", "-" );
+  contentType = Property( string( loc.GetString( "contentType" ))+ "\n", "-" );
 
   inInventory = false;
 
@@ -150,10 +150,10 @@ Item::Property::Property()
 Item::Property::Property( string description, string theValue )
 {
   desc = description;
-  SetStringValue( theValue );
+  SetstringValue( theValue );
 }
 
-void Item::Property::SetStringValue( string s )
+void Item::Property::SetstringValue( string s )
 {
   stringValue = s;
   floatValue = atof( s.c_str() );

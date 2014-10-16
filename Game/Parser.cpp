@@ -1,6 +1,11 @@
-#include "Game.h"
+#include "Parser.h"
 
-void ParseFile( string fn, map<string,string> & values)
+Parser::Parser(  )
+{
+  parsed = false;
+}
+
+void Parser::ParseFile( string fn )
 {
   FILE * file = 0;
 
@@ -78,4 +83,36 @@ void ParseFile( string fn, map<string,string> & values)
     if ( n >= str.size() )
       break;
   };
+
+  parsed = true;
+}
+
+bool Parser::Empty()
+{
+  return values.empty();
+}
+
+float Parser::GetNumber( string varName )
+{
+  auto iter = values.find( varName );
+
+  if( iter != values.end() )
+    return atof( iter->second.c_str() );
+
+  return 0.0f;
+}
+
+const char * Parser::GetString( string varName )
+{
+  auto iter = values.find( varName );
+
+  if( iter != values.end() )
+    return iter->second.c_str();
+
+  return "";
+}
+
+bool Parser::IsParsed()
+{
+  return parsed;
 }

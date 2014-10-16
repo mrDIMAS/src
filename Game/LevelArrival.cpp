@@ -6,14 +6,14 @@
 LevelArrival::LevelArrival( )
 {
   // Load localization
-  ParseFile( "data/lang/rus/arrival.loc", loc );
+  LoadLocalization( "arrival.loc" );
 
   // Load main scene
   scene = LoadScene( "data/maps/release/arrival/arrival.scene" );  
 
   //////////////////////////////////////////////////////////////////////////
   // Find and create all sheets
-  AddSheet( new Sheet( FindByName( "Note1" ), loc[ "note1Desc" ], loc[ "note1" ] ) );  
+  AddSheet( new Sheet( FindByName( "Note1" ), localization.GetString( "note1Desc" ), localization.GetString( "note1" )));  
 
   //////////////////////////////////////////////////////////////////////////
   // Find zones
@@ -35,8 +35,8 @@ LevelArrival::LevelArrival( )
 
   //////////////////////////////////////////////////////////////////////////
   // Player noticements
-  player->SetObjective( loc[ "objective1" ] );  
-  player->SetPlaceDescription( loc[ "placeDesc" ] );
+  player->SetObjective( localization.GetString( "objective1" ));  
+  player->SetPlaceDescription( localization.GetString( "placeDesc" ));
 
   SetPosition( player->body, GetPosition( FindByName("PlayerPosition")) + Vector3( 0, 1, 0 ));
 
@@ -100,7 +100,7 @@ void LevelArrival::Hide()
 
 void LevelArrival::DoScenario()
 {
-  if( Level::currentLevelName != LevelName::L1Arrival )
+  if( Level::curLevelID != LevelName::L1Arrival )
     return;
 
   ambSoundSet.DoRandomPlaying();
@@ -128,7 +128,7 @@ void LevelArrival::DoScenario()
  
       PlaySoundSource( explosionSound );    
 
-      player->SetObjective( loc[ "objective4" ] );
+      player->SetObjective( localization.GetString( "objective4" ) );
 
       music = CreateMusic( "data/sounds/fear.ogg" );
       PlaySoundSource( music );

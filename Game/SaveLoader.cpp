@@ -11,7 +11,7 @@ void SaveLoader::RestoreWorldState()
 
   for( int i = 0; i < itemCount; i++ )
   {
-    string itemName = ReadString();
+    string itemName = Readstring();
 
     NodeHandle itemObject = FindByName( itemName.c_str());
 
@@ -27,7 +27,7 @@ void SaveLoader::RestoreWorldState()
 
   for( int i = 0; i < countStages; i++ )
   {
-    string stageName = ReadString();
+    string stageName = Readstring();
     bool stageState = ReadBoolean();
     currentLevel->stages[ stageName ] = stageState;
   }
@@ -36,11 +36,11 @@ void SaveLoader::RestoreWorldState()
 
   for( int i = 0; i < countItemPlaces; i++ )
   {
-    string ipName = ReadString();
+    string ipName = Readstring();
     bool gotPlacedItem = ReadBoolean();
     string itemName;
     if( gotPlacedItem )
-      itemName = ReadString();
+      itemName = Readstring();
     int placedType = ReadInteger();
 
     ItemPlace * ip = ItemPlace::FindByObject( FindByName( ipName.c_str()) );
@@ -61,7 +61,7 @@ void SaveLoader::RestoreWorldState()
   int wayCount = ReadInteger();
   for( int i = 0; i < wayCount; i++ )
   {
-    Way * way = Way::GetByObject( FindByName( ReadString().c_str() ));
+    Way * way = Way::GetByObject( FindByName( Readstring().c_str() ));
     way->DeserializeWith( *this );
   }
 

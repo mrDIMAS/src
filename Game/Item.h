@@ -1,12 +1,12 @@
 #pragma  once
 
 #include "Game.h"
-#include "Locale.h"
+#include "Parser.h"
+
 class Item
 {
 public:
-  static Locale lang;
-
+  static Parser loc;
   class Property
   {
   private:
@@ -14,7 +14,7 @@ public:
 
     void SetFloatValue( float f );
 
-    void SetStringValue( string s );
+    void SetstringValue( string s );
     string stringValue;
     float floatValue;
     string formatted;
@@ -44,7 +44,7 @@ public:
 
     void operator=( const string & s )
     {
-      SetStringValue( s );
+      SetstringValue( s );
     }
 
     void operator=( const float & p )

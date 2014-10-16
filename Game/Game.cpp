@@ -37,15 +37,16 @@ NodeHandle CreateFog( NodeHandle obj, int density )
 
 void main( )
 {
-  map<string,string> values;
-  ParseFile( "mine.cfg", values );
+  Parser config;
+  config.ParseFile( "mine.cfg" );
 
-  int width = atoi( values["resW"].c_str() );
-  int height = atoi( values["resH"].c_str() );
-  int fullscreen = atoi( values["fullscreen"].c_str() );
-  g_initialLevel = (LevelName)atoi( values["levelNum"].c_str() );
-  g_showFPS = atoi( values["debugInfo"].c_str() );
-  localizationPath = values["languagePath"];
+  int width         = config.GetNumber( "resW" );
+  int height        = config.GetNumber( "resH" );
+  int fullscreen    = config.GetNumber( "fullscreen" );
+  g_initialLevel    = config.GetNumber( "levelNum" );
+  g_showFPS         = config.GetNumber( "debugInfo" );
+  localizationPath  = config.GetString( "languagePath" );
+
 #ifdef _DEBUG
   CreateRenderer( 1366, 768, 0 );
 #else

@@ -91,7 +91,7 @@ void LevelResearchFacility::Hide()
 
 void LevelResearchFacility::DoScenario()
 {
-  if( Level::currentLevelName != LevelName::L3ResearchFacility )
+  if( Level::curLevelID != LevelName::L3ResearchFacility )
     return;
 
   static int stateEnterSteamActivateZone = 0;

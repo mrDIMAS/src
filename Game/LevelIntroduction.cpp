@@ -60,6 +60,6 @@ LevelIntroduction::LevelIntroduction()
   textAlphaTo = 255.0f;
   textTimer = CreateTimer( );
   intro = true;
-  LoadLocalizationFromFile( localizationPath + "intro.loc" );
-  text = loc["intro"];
+  LoadLocalization( "intro.loc" );
+  text = localization.GetString( "intro" );
 }

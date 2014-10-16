@@ -5,12 +5,12 @@
 #pragma warning( disable:4244 )
 #pragma warning( disable:4305 )
 
+#include <string>
 #include "Engine.h"
 #include <math.h>
 #include <iostream>
 #include <vector>
 #include <map>
-#include <string>
 #include <algorithm>
 #include <stdarg.h>
 #include <fstream>
@@ -24,7 +24,7 @@ enum class FootstepsType
   Dirt
 };
 
-enum class LevelName
+enum LevelName
 {
   LUndefined = 0,
   L0Introduction = 1,
@@ -37,7 +37,7 @@ enum class LevelName
 };
 
 
-static std::string Format( const char * format, ... )
+static string Format( const char * format, ... )
 {
   char buffer[ 1024 ];
   va_list	argumentList;
@@ -57,6 +57,7 @@ static float frandom( float low, float high )
   return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
 }
 
+
 extern float mouseSens;
 
 class Item;
@@ -68,7 +69,6 @@ class Menu;
 class GUI;
 class ScreenScreamer;
 
-void ParseFile( string fn, map<string,string> & values);
 int CreateFog( int obj, int density = 3000 );
 
 extern Player * player;
@@ -79,7 +79,7 @@ extern ScreenScreamer * screamer;
 extern bool g_running;
 extern string localizationPath;
 extern bool g_showFPS;
-extern LevelName g_initialLevel;
+extern int g_initialLevel;
 extern bool g_continueGame;
 extern int g_keyQuickSave;
 extern int g_keyQuickLoad;
