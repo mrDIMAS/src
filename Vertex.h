@@ -23,4 +23,9 @@ public:
   float tx, ty;
   int color;
   Vertex2D( float x, float y, float z, float tx, float ty, int color = 0 );
+  Vertex2D( )
+  {
+    x = y = z = tx = ty = 0;
+    color = 0xFFFFFFFF;
+  }
 };

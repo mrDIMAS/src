@@ -56,14 +56,25 @@ public:
   };
 
 private:
-  IDirect3DVertexBuffer9 * vb;
-  IDirect3DVertexBuffer9 * lineVB;
+  IDirect3DVertexBuffer9 * vertexBuffer;
+  IDirect3DVertexBuffer9 * lineVertexBuffer;
   IDirect3DVertexDeclaration9 * lineDecl;
   IDirect3DVertexDeclaration9 * vertDecl;
   vector<ID3DXFont*> fonts;
   queue<Text> texts;
   queue<Rect> rects;
   queue<Line> lines;
+
+  int maxLineCount;
+  int sizeOfRectBytes;
+
+  D3DXMATRIX orthoMatrix;
+
+  void RenderLines();
+  void RenderRects();
+  void RenderTexts();
+  void RenderCursor();
+  void PrepareToDraw2D();
 public: 
   GUIRenderer();
   ~GUIRenderer();

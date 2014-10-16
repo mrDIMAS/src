@@ -8,8 +8,11 @@ GUIRenderer * g_guiRenderer = 0;
 
 GUIRenderer::GUIRenderer()
 {
-  g_device->CreateVertexBuffer( 6 * sizeof( Vertex2D ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ, D3DPOOL_DEFAULT, &vb, 0 );
-  g_device->CreateVertexBuffer( 2 * sizeof( LinePoint ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &lineVB, 0 );
+  int maxLineCount = 16536;
+
+  sizeOfRectBytes = 6 * sizeof( Vertex2D  );
+  g_device->CreateVertexBuffer( sizeOfRectBytes, D3DUSAGE_DYNAMIC, D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+  g_device->CreateVertexBuffer( maxLineCount * 2 * sizeof( LinePoint ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &lineVertexBuffer, 0 );
 
   D3DVERTEXELEMENT9 guivd[ ] =
   {
@@ -29,14 +32,17 @@ GUIRenderer::GUIRenderer()
   };
 
   g_device->CreateVertexDeclaration( linevd, &lineDecl ) ;
+
+  D3DVIEWPORT9 vp; g_device->GetViewport( &vp );
+  D3DXMatrixOrthoOffCenterLH ( &orthoMatrix, 0, vp.Width, vp.Height, 0, 0, 1024 );
 }
 
 GUIRenderer::~GUIRenderer()
 {
-  vb->Release();
+  vertexBuffer->Release();
   vertDecl->Release();
   lineDecl->Release();
-  lineVB->Release();
+  lineVertexBuffer->Release();
 
   for( size_t i = 0; i < fonts.size(); i++ )
     fonts.at( i )->Release();
@@ -90,90 +96,66 @@ void GUIRenderer::DrawWireBox( LinePoint min, LinePoint max )
 
 void GUIRenderer::RenderAllGUIElements()
 {
-  IDirect3DStateBlock9 * state;
-  g_device->CreateStateBlock( D3DSBT_ALL, &state );
-
-  D3DVIEWPORT9 vp; g_device->GetViewport( &vp );
-  D3DXMATRIX world; D3DXMatrixIdentity( &world ); 
-
-  g_device->SetTransform( D3DTS_WORLD, &world );
-  g_device->SetTransform( D3DTS_VIEW, &g_camera->view );  
+  // Set default shaders
   g_device->SetVertexShader( 0 );
   g_device->SetPixelShader( 0 );
 
+  // Set render states
   g_device->SetRenderState( D3DRS_LIGHTING, FALSE );
-  g_device->SetVertexDeclaration( lineDecl );
 
+  D3DXMATRIX identity; 
+  D3DXMatrixIdentity( &identity ); 
+
+  g_device->SetTransform( D3DTS_WORLD, &identity );
+
+  RenderLines();
+
+  g_device->SetTransform( D3DTS_VIEW, &identity );
+  RenderRects();  
+  RenderTexts();
+  RenderCursor();
+}
+
+void GUIRenderer::RenderLines()
+{
+  IDirect3DStateBlock9 * state;
+  g_device->CreateStateBlock( D3DSBT_ALL, &state );
+  g_device->SetTransform( D3DTS_VIEW, &g_camera->view );      
+
+  void * data = nullptr;
+  lineVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD );
+
+  int linesToRender = 0;
   while( !lines.empty() )
   {
     Line line = lines.front();
 
-    LinePoint points[ ] = { line.begin, line.end };
+    const int pointCount = 2;
 
-    void * data = 0;
-    lineVB->Lock( 0, 0, &data, D3DLOCK_DISCARD );
-    memcpy( data, points, sizeof( LinePoint ) * 2 );
-    lineVB->Unlock( );   
+    LinePoint points[ pointCount ];
+    points[ 0 ] = line.begin;
+    points[ 1 ] = line.end;
 
-    g_device->SetStreamSource( 0, lineVB, 0, sizeof( LinePoint ));
-    g_device->DrawPrimitive( D3DPT_LINELIST, 0, 1 );
+    int lineBytesCount = sizeof( LinePoint ) * pointCount;
+
+    memcpy( (char*)data + linesToRender * lineBytesCount, points, lineBytesCount );        
+
+    linesToRender++;
 
     lines.pop();
   }  
 
-
-  g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE );
-  g_device->SetRenderState ( D3DRS_ZENABLE, FALSE );
-  g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-  g_device->SetTransform( D3DTS_VIEW, &world );
-  D3DXMATRIX ortho; D3DXMatrixOrthoOffCenterLH ( &ortho, 0, vp.Width, vp.Height, 0, 0, 1024 );
-  g_device->SetTransform( D3DTS_PROJECTION, &ortho ); 
-
-
-  g_device->SetVertexDeclaration( vertDecl );
-
-  g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );  
-
-  g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-  g_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-  g_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA); 
-  g_device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-  g_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-  g_device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-  g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE,  D3DMCS_COLOR1 );
-
-
-  g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE );
-  g_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-  g_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-  g_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
-
-  while( !rects.empty() )
-  {
-    Rect rect = rects.front();
-
-    Vertex2D vertices[ ] = { Vertex2D( rect.x, rect.y, 0, 0, 0, rect.color ), Vertex2D( rect.x + rect.w, rect.y, 0, 1, 0, rect.color ), Vertex2D ( rect.x, rect.y + rect.h, 0, 0, 1, rect.color ),
-      Vertex2D( rect.x + rect.w, rect.y, 0, 1, 0, rect.color ), Vertex2D( rect.x + rect.w, rect.y + rect.h, 0, 1, 1, rect.color ), Vertex2D ( rect.x, rect.y + rect.h, 0, 0, 1, rect.color ) };
-
-    void * data = 0;
-    vb->Lock( 0, 0, &data, D3DLOCK_DISCARD );
-    memcpy( data, vertices, sizeof( Vertex2D ) * 6 );
-    vb->Unlock( );   
-
-    if( rect.texture )
-      rect.texture->Bind( 0 );
-    else
-      g_device->SetTexture( 0, 0 );
-
-    g_device->SetStreamSource( 0, vb, 0, sizeof( Vertex2D ));
-    g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
-
-    rects.pop();
-  }  
+  lineVertexBuffer->Unlock( );   
+  g_device->SetVertexDeclaration( lineDecl );
+  g_device->SetStreamSource( 0, lineVertexBuffer, 0, sizeof( LinePoint ));
+  g_device->DrawPrimitive( D3DPT_LINELIST, 0, linesToRender );
 
   state->Apply();
   state->Release();
+}
 
+void GUIRenderer::RenderTexts()
+{
   while( !texts.empty() )
   {
     Text & t = texts.front();
@@ -185,76 +167,113 @@ void GUIRenderer::RenderAllGUIElements()
     r.right = t.x + t.w;
     r.bottom = t.y + t.h;
 
-    t.font->DrawTextA( 0, t.text.c_str(), -1, &r, DT_WORDBREAK | t.textAlign, t.color );
+    t.font->DrawTextA( 0, t.text.c_str(), -1, &r, DT_WORDBREAK | DT_NOCLIP | t.textAlign, t.color );
 
     texts.pop();
   }
+}
 
-  // draw cursor :D
+void GUIRenderer::RenderRects()
+{
+  IDirect3DStateBlock9 * state;
+  g_device->CreateStateBlock( D3DSBT_ALL, &state );
+    
+  PrepareToDraw2D();  
 
-  if( g_cursor )
+  g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D ));
+
+  void * data = nullptr;
+  Vertex2D vertices[6];
+
+  while( !rects.empty() )
   {
-    IDirect3DStateBlock9 * state;
-    g_device->CreateStateBlock( D3DSBT_ALL, &state );
+    Rect rect = rects.front();
 
-    D3DVIEWPORT9 vp; g_device->GetViewport( &vp );
-    D3DXMATRIX world; D3DXMatrixIdentity( &world ); 
+    vertices[ 0 ] = Vertex2D( rect.x,           rect.y,           0, 0, 0, rect.color );
+    vertices[ 1 ] = Vertex2D( rect.x + rect.w,  rect.y,           0, 1, 0, rect.color );
+    vertices[ 2 ] = Vertex2D( rect.x,           rect.y + rect.h,  0, 0, 1, rect.color );
+    vertices[ 3 ] = Vertex2D( rect.x + rect.w,  rect.y,           0, 1, 0, rect.color );
+    vertices[ 4 ] = Vertex2D( rect.x + rect.w,  rect.y + rect.h,  0, 1, 1, rect.color );
+    vertices[ 5 ] = Vertex2D( rect.x,           rect.y + rect.h,  0, 0, 1, rect.color );
 
-    g_device->SetTransform( D3DTS_WORLD, &world );
-    g_device->SetTransform( D3DTS_VIEW, &g_camera->view );  
-    g_device->SetVertexShader( 0 );
-    g_device->SetPixelShader( 0 );
+    vertexBuffer->Lock( 0, 0, &data, 0 );
+    memcpy( data, vertices, sizeOfRectBytes );
+    vertexBuffer->Unlock( );   
 
-    g_device->SetRenderState( D3DRS_LIGHTING, FALSE );
+    if( rect.texture )
+      rect.texture->Bind( 0 );
+    
+    g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 
-    g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE );
-    g_device->SetRenderState ( D3DRS_ZENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    g_device->SetTexture( 0, 0 );
 
-    g_device->SetTransform( D3DTS_VIEW, &world );
-    D3DXMATRIX ortho; D3DXMatrixOrthoOffCenterLH ( &ortho, 0, vp.Width, vp.Height, 0, 0, 1024 );
-    g_device->SetTransform( D3DTS_PROJECTION, &ortho ); 
+    rects.pop();
+  }  
+  
+  state->Apply();
+  state->Release();
+}
 
-    g_device->SetVertexDeclaration( vertDecl );
+void GUIRenderer::PrepareToDraw2D()
+{
+  g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+  g_device->SetRenderState( D3DRS_ZENABLE, FALSE );
+  g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+  g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE);
+  g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+  g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA); 
+  g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_COLOR1 );
+  g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+  g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+  g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+  g_device->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD);
+  g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );  
 
-    g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );  
+  g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
+  g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE );
+  g_device->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
 
-    g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-    g_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-    g_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA); 
-    g_device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-    g_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-    g_device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-    g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE,  D3DMCS_COLOR1 );    
-    g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE );
-    g_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-    g_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-    g_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
+  g_device->SetTransform( D3DTS_PROJECTION, &orthoMatrix ); 
 
-    int x = mi::MouseX();
-    int y = mi::MouseY();
-    int w = g_cursor->w;
-    int h = g_cursor->h;
-    DWORD whiteColor = 0xFFFFFFFF;
+  g_device->SetVertexDeclaration( vertDecl );
+}
 
-    Vertex2D vertices[ ] = { Vertex2D( x, y, 0, 0, 0, whiteColor ), Vertex2D( x + w, y, 0, 1, 0, whiteColor ), Vertex2D ( x, y + h, 0, 0, 1, whiteColor ),
-      Vertex2D( x + w, y, 0, 1, 0, whiteColor ), Vertex2D( x + w, y + h, 0, 1, 1, whiteColor ), Vertex2D ( x, y + h, 0, 0, 1, whiteColor ) };
+void GUIRenderer::RenderCursor()
+{
+  IDirect3DStateBlock9 * state;
+  g_device->CreateStateBlock( D3DSBT_ALL, &state );
 
-    void * data = 0;
-    vb->Lock( 0, 0, &data, D3DLOCK_DISCARD );
-    memcpy( data, vertices, sizeof( Vertex2D ) * 6 );
-    vb->Unlock( );   
+  PrepareToDraw2D();  
 
-    if( g_cursor->tex && g_cursor->visible )
-    {
-      g_cursor->tex->Bind( 0 );
-      g_device->SetStreamSource( 0, vb, 0, sizeof( Vertex2D ));
-      g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
-    }
+  g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D ));
 
-    state->Apply();
-    state->Release();
+  int x = mi::MouseX();
+  int y = mi::MouseY();
+  int w = g_cursor->w;
+  int h = g_cursor->h;
+  int color = 0xFFFFFFFF;
+
+  Vertex2D vertices[6];
+  vertices[ 0 ] = Vertex2D( x,      y,      0, 0, 0, color );
+  vertices[ 1 ] = Vertex2D( x + w,  y,      0, 1, 0, color );
+  vertices[ 2 ] = Vertex2D( x,      y + h,  0, 0, 1, color );
+  vertices[ 3 ] = Vertex2D( x + w,  y,      0, 1, 0, color );
+  vertices[ 4 ] = Vertex2D( x + w,  y + h,  0, 1, 1, color );
+  vertices[ 5 ] = Vertex2D( x,      y + h,  0, 0, 1, color );
+
+  void * data = nullptr;
+  vertexBuffer->Lock( 0, 0, &data, 0 );
+  memcpy( data, vertices, sizeOfRectBytes );
+  vertexBuffer->Unlock( );   
+
+  if( g_cursor->tex && g_cursor->visible )
+  {
+    g_cursor->tex->Bind( 0 );
+    g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
   }
+
+  state->Apply();
+  state->Release();
 }
 
 GUIRenderer::Line::Line( const LinePoint & theBegin, const LinePoint & theEnd )

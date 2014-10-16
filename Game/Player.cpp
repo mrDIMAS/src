@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Menu.h"
 #include "Door.h"
+#include "utils.h"
 
 Player * player = 0;
 
@@ -271,7 +272,7 @@ void Player::UpdateMoving()
     if( cw->IsEnterPicked() )
     {
       if( !cw->IsPlayerInside() )
-        DrawTip( Format( loc["crawlIn"].c_str(), ScancodeToASCII( keyUse )));
+        DrawTip( Format( loc["crawlIn"].c_str(), GetKeyName( keyUse )));
 
       if( IsUseButtonHit() )
         cw->Enter();
@@ -284,7 +285,7 @@ void Player::UpdateMoving()
 
     if( door->IsPickedByPlayer() )
     {
-      DrawTip( Format( loc["openClose"].c_str(), ScancodeToASCII( keyUse )));
+      DrawTip( Format( loc["openClose"].c_str(), GetKeyName( keyUse )));
 
       if( IsUseButtonHit() )      
         door->SwitchState();
@@ -696,13 +697,13 @@ void Player::UpdatePicking()
       {
         pickedObjectDesc = itm->name;
 
-        pickedObjectDesc += Format( loc[ "itemPick" ].c_str(), ScancodeToASCII( keyUse));
+        pickedObjectDesc += Format( loc[ "itemPick" ].c_str(), GetKeyName( keyUse));
       } 
       else if( sheet )
       {
         pickedObjectDesc = sheet->desc;
 
-        pickedObjectDesc += Format( loc[ "sheetPick" ].c_str(), ScancodeToASCII( keyUse ));
+        pickedObjectDesc += Format( loc[ "sheetPick" ].c_str(), GetKeyName( keyUse ));
       }
       else
       {

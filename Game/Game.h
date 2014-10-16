@@ -83,31 +83,5 @@ extern LevelName g_initialLevel;
 extern bool g_continueGame;
 extern int g_keyQuickSave;
 extern int g_keyQuickLoad;
-static int scan2ascii( DWORD scancode, unsigned short * result )
-{
-  static HKL layout=GetKeyboardLayout(0);
-  static unsigned char State[256];
 
-  if (GetKeyboardState(State)==FALSE)
-    return 0;
 
-  UINT vk=MapVirtualKeyEx(scancode,1,layout);
-  return ToAsciiEx(vk,scancode,State,result,0,layout);
-}
-
-static char ScancodeToASCII( DWORD scancode )
-{
-  char result[2];
-
-  static HKL layout=GetKeyboardLayout(0);
-  static unsigned char State[256];
-
-  if (GetKeyboardState(State)==FALSE)
-    return 0;
-
-  UINT vk=MapVirtualKeyEx(scancode,1,layout);
-
-  ToAsciiEx(vk,scancode,State,(unsigned short*)result,0,layout);
-
-  return toupper( result[0] );
-}

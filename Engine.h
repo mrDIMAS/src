@@ -127,11 +127,19 @@ struct Contact
   }
 };
 
-struct GUIState
+class GUIState
 {
-  int mouseInside;
-  int mouseLeftClicked;
-  int mouseRightClicked;
+public:
+  bool mouseInside;
+  bool mouseLeftClicked;
+  bool mouseRightClicked;
+
+  GUIState()
+  {
+    mouseInside = false;
+    mouseLeftClicked = false;
+    mouseRightClicked = false;
+  }
 };
 
 struct LinePoint
@@ -573,6 +581,9 @@ typedef enum
   MAIL,
   MEDIASELECT,
 } Key;
+
+
+
 
 typedef enum 
 {

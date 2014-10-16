@@ -144,3 +144,36 @@ void Level::AddItemPlace( ItemPlace * ipc )
 {
   itemPlaces.push_back( ipc );
 }
+
+void Level::DeserializeWith( TextFileStream & in )
+{
+  int childCount = in.ReadInteger( );
+  for( int i = 0; i < childCount; i++ )
+  {
+    string name = in.ReadString();
+    NodeHandle node = FindInObjectByName( scene, name.c_str() );
+    SetLocalPosition( node, in.ReadVector3() );
+    SetLocalRotation( node, in.ReadQuaternion() );
+    bool visible = in.ReadBoolean();
+    if( visible )
+      ShowNode( node );
+    else
+      HideNode( node );
+  }
+  OnDeserialize( in );
+}
+
+void Level::SerializeWith( TextFileStream & out )
+{
+  int childCount = GetCountChildren( scene );
+  out.WriteInteger( childCount );
+  for( int i = 0; i < childCount; i++ )
+  {
+    NodeHandle node = GetChild( scene, i );
+    out.WriteString( GetName( node ));
+    out.WriteVector3( GetLocalPosition( node ));
+    out.WriteQuaternion( GetLocalRotation( node ));
+    out.WriteBoolean( IsNodeVisible( node ));
+  }
+  OnSerialize( out );
+}

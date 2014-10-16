@@ -132,11 +132,13 @@ void Menu::Update( )
 
     int mainButtonsX = buttonsXOffset + 20;
     int startOffsetIfInGame = currentLevel ? 0.5 * distBetweenButtons : 0;
-    GUIState continueGame; memset( &continueGame, 0, sizeof( continueGame ));
-    GUIState start; memset( &start, 0, sizeof( start ));
-    GUIState options; memset( &options, 0, sizeof( options ));
-    GUIState authors; memset( &authors, 0, sizeof( authors ));
-    GUIState exit;  memset( &exit, 0, sizeof( exit ));
+
+    GUIState continueGame; 
+    GUIState start; 
+    GUIState options;
+    GUIState authors;
+    GUIState exit;
+
     if( !autosaveNotify )
     {
       if( currentLevel || canContinueGameFromLast )
@@ -273,6 +275,12 @@ void Menu::Update( )
       y = GetResolutionHeight() - 2.5 * distBetweenButtons;
 
       wkUse->Draw( x, y, smallButtonImage, loc["use"].c_str() );
+
+      y += 32 * 1.1f;
+      wkQuickSave->Draw( x, y, smallButtonImage, loc["quickSave"].c_str() );
+
+      y += 32 * 1.1f;
+      wkQuickLoad->Draw( x, y, smallButtonImage, loc["quickLoad"].c_str() );
     }
 
     if( !startPressed && !returnToGameByEsc )
@@ -371,6 +379,8 @@ void Menu::CreateWaitKeys()
   wkRun = new WaitKeyButton();
   wkInventory = new WaitKeyButton();
   wkUse = new WaitKeyButton();
+  wkQuickLoad = new WaitKeyButton();
+  wkQuickSave = new WaitKeyButton();
 }
 
 void Menu::CreateRadioButtons()
@@ -408,6 +418,8 @@ void Menu::LoadConfig()
     wkFlashLight->SetSelected( atoi( config[ "keyFlashLight" ].c_str() ));
     wkInventory->SetSelected( atoi( config[ "keyInventory" ].c_str() ));
     wkUse->SetSelected( atoi( config[ "keyUse" ].c_str() ));
+    wkQuickSave->SetSelected( g_keyQuickSave = atoi( config[ "keyQuickSave" ].c_str() ));
+    wkQuickLoad->SetSelected( g_keyQuickLoad = atoi( config[ "keyQuickLoad" ].c_str() ));
   }
 }
 
@@ -445,6 +457,8 @@ void Menu::WriteConfig()
   WriteInteger( config, "keyRun", wkRun->selectedKey );
   WriteInteger( config, "keyInventory", wkInventory->selectedKey );
   WriteInteger( config, "keyUse", wkUse->selectedKey );
+  WriteInteger( config, "keyQuickSave", wkQuickSave->selectedKey );
+  WriteInteger( config, "keyQuickLoad", wkQuickLoad->selectedKey );
 
   config.close();
 }
@@ -489,6 +503,8 @@ Menu::~Menu()
   delete wkFlashLight;
   delete camera;
   delete wkUse;
+  delete wkQuickLoad;
+  delete wkQuickSave;
 }
 
 void Menu::WriteProgressConfig()

@@ -8,8 +8,9 @@
 #include "FPSCounter.h"
 #include "SaveWriter.h"
 #include "SaveLoader.h"
+#include "Utils.h"
 
-int g_keyQuickSave = mi::Key::F6;
+int g_keyQuickSave = mi::Key::F5;
 int g_keyQuickLoad = mi::Key::F9;
 
 string localizationPath;
@@ -18,86 +19,6 @@ bool g_showFPS = false;
 bool g_running = true;
 
 float mouseSens = 0.5f;
-
-void ParseFile( string fn, map<string,string> & values)
-{
-  FILE * file = 0;
-
-  fopen_s ( &file, fn.c_str(), "r" );
-
-  if ( !file )
-    return;
-
-  string str;
-
-  while ( !feof ( file ) )
-  {
-    char symbol = '\0';
-    fread ( &symbol, sizeof ( char ), 1, file );
-    str.push_back ( symbol );
-  };
-
-  fclose ( file );
-
-  if ( str.size() <= 1 )
-    return;
-
-  values.clear();
-
-  bool equalFound = false;
-  bool quoteLF = false, quoteRF = false;
-  unsigned int n = 0;
-
-  string varName, var;
-
-  while ( true )
-  {
-    char symbol = str.at ( n );
-
-    if ( symbol == ';' )
-    {
-      quoteLF    = false;
-      quoteRF    = false;
-      equalFound  = false;
-
-      varName.clear();
-      var.clear();
-    };
-
-    if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' )
-    {
-      if ( !equalFound )
-        varName.push_back ( symbol );
-    }
-    else
-    {
-      if ( symbol == '=' )
-        equalFound = true;
-
-      if ( symbol == '"' )
-      {
-        if ( quoteLF == false )
-          quoteLF = true;
-        else
-          quoteRF = true;
-      }
-    };
-
-    if ( quoteLF )
-    {
-      if ( quoteRF )
-        values[ varName ] = var;
-      else
-        if ( symbol != '"' )
-          var.push_back ( symbol );
-    };
-
-    n++;
-
-    if ( n >= str.size() )
-      break;
-  };
-}
 
 NodeHandle CreateFog( NodeHandle obj, int density )
 {
@@ -113,7 +34,6 @@ NodeHandle CreateFog( NodeHandle obj, int density )
   Attach( particleSystem, obj );
   return particleSystem;
 }
-
 
 void main( )
 {
@@ -175,10 +95,11 @@ void main( )
     if( !menu->visible )
     {
       if( mi::KeyHit( (mi::Key)g_keyQuickSave ))
-        SaveWriter( "quickSave.save" ).SaveWorldState();
+         SaveWriter( "quickSave.save" ).SaveWorldState();
 
       if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
-        SaveLoader( "quickSave.save" ).RestoreWorldState();
+        if( FileExist( "quickSave.save" ))     
+          SaveLoader( "quickSave.save" ).RestoreWorldState();
     }
   }
 

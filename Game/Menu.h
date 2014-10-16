@@ -61,6 +61,8 @@ public:
   bool continuePressed;
   bool returnToGameByEsc;
   bool autosaveNotify;
+  bool exitingGame;
+
   float buttonsXOffset;
   LevelName continueLevelName;
   SoundHandle pickSound;
@@ -84,8 +86,9 @@ public:
   WaitKeyButton * wkRun;
   WaitKeyButton * wkInventory;
   WaitKeyButton * wkUse;
-
-  bool exitingGame;
+  WaitKeyButton * wkQuickSave;
+  WaitKeyButton * wkQuickLoad;
+  
 
   Vector3 cameraInitialPosition;
   Vector3 cameraAnimationOffset;

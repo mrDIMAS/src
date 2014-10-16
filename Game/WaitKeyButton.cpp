@@ -1,5 +1,5 @@
 #include "WaitKeyButton.h"
-
+#include "Utils.h"
 
 
 
@@ -33,29 +33,7 @@ void WaitKeyButton::Draw( float x, float y, TextureHandle buttonImage, const cha
 
 void WaitKeyButton::SetSelected( int i )
 {
-  if( i != mi::LeftShift && i != mi::RightShift && i != mi::Space && i != mi::Tab )
-  {
-    unsigned char buffer[ 32 ] = { 0 };
-    int num = scan2ascii( i, (unsigned short*)buffer );
-
-    desc.clear();
-
-    for( int j = 0; j < num; j++ )
-    {            
-      desc.push_back( buffer[ j ] );
-    }
-  }
-  else
-  {
-    if( i == mi::LeftShift )
-      desc = "L Shift";
-    if( i == mi::RightShift )
-      desc = "R Shift";
-    if( i == mi::Space )
-      desc = "Space";
-    if( i == mi::Tab )
-      desc = "Tab";
-  }
+  desc = GetKeyName( i );
 
   selectedKey = i;
 }
