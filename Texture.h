@@ -2,21 +2,20 @@
 
 #include "Common.h"
 
-class Texture
-{
+class Texture {
 private:
-  explicit Texture( );
-  IDirect3DTexture9 * texture;
+    explicit Texture( );
+    IDirect3DTexture9 * texture;
 public:
-  
-  string name;
 
-  static map< string, Texture* > all;
-  
-  virtual ~Texture( );
+    string name;
 
-  void Bind( int level );
-  IDirect3DTexture9 * GetInterface();
-  static Texture * Require( string file );
-  static void DeleteAll();
+    static map< string, Texture* > all;
+
+    virtual ~Texture( );
+
+    void Bind( int level );
+    IDirect3DTexture9 * GetInterface();
+    static Texture * Require( string file );
+    static void DeleteAll();
 };

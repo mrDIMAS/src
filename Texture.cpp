@@ -2,68 +2,60 @@
 
 map< string, Texture* > Texture::all;
 
-Texture * Texture::Require( string file )
-{
-  Texture * texture = 0;
+Texture * Texture::Require( string file ) {
+    Texture * texture = 0;
 
-  map< string, Texture* >::iterator existing = all.find( file );
+    map< string, Texture* >::iterator existing = all.find( file );
 
-  if( existing == all.end() )
-  {
-    texture = new Texture;
+    if( existing == all.end() ) {
+        texture = new Texture;
 
-    texture->texture = 0;
-    texture->name = file;
+        texture->texture = 0;
+        texture->name = file;
 
-    D3DXCreateTextureFromFileA( g_device, file.c_str(), &texture->texture );
+        D3DXCreateTextureFromFileA( g_device, file.c_str(), &texture->texture );
 
-    all[ file ] = texture;
-  }
-  else
-  {
-    texture = existing->second;
-  }
+        all[ file ] = texture;
+    }
+    else {
+        texture = existing->second;
+    }
 
-  return texture;
+    return texture;
 }
 
-Texture::Texture()
-{
+Texture::Texture() {
 
 }
 
-Texture::~Texture( )
-{
-  
+Texture::~Texture( ) {
+
 }
 
-void Texture::Bind( int level )
-{
-  g_device->SetTexture( level, texture );
+void Texture::Bind( int level ) {
+    g_device->SetTexture( level, texture );
 }
 
-IDirect3DTexture9 * Texture::GetInterface()
-{
-  return texture;
+IDirect3DTexture9 * Texture::GetInterface() {
+    return texture;
 }
 
-void Texture::DeleteAll()
-{
-  for( auto tex : all )
-    delete tex.second;
+void Texture::DeleteAll() {
+    for( auto tex : all )
+        delete tex.second;
 }
 
 /////////////////////////////////////////////////////////////////
 // API
-TextureHandle TextureHandle::Empty()
-{
-  TextureHandle handle; handle.pointer = 0;
+TextureHandle TextureHandle::Empty() {
+    TextureHandle handle;
+    handle.pointer = 0;
 
-  return handle;
+    return handle;
 }
 
-TextureHandle GetTexture( const char * file )
-{
-  TextureHandle handle; handle.pointer = Texture::Require( file );
-  return handle;
+TextureHandle GetTexture( const char * file ) {
+    TextureHandle handle;
+    handle.pointer = Texture::Require( file );
+    return handle;
 }

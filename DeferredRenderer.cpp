@@ -11,55 +11,53 @@ DeferredRenderer * g_deferredRenderer = 0;
 
 bool g_fxaaEnabled = true;
 
-DeferredRenderer::DeferredRenderer()
-{
-  effectsQuad = new EffectsQuad;
+DeferredRenderer::DeferredRenderer() {
+    effectsQuad = new EffectsQuad;
 
-  CreateBoundingVolumes();
+    CreateBoundingVolumes();
 
-  fxaa = new FXAA;
-  gBuffer = new GBuffer;
-  pass2SpotLight = new Pass2SpotLight;
-  pass2AmbientLight = new Pass2AmbientLight;
-  pass2PointLight = new Pass2PointLight;
-  bvRenderer = new BoundingVolumeRenderingShader;
-  //ssao = new SSAO( gBuffer );
+    fxaa = new FXAA;
+    gBuffer = new GBuffer;
+    pass2SpotLight = new Pass2SpotLight;
+    pass2AmbientLight = new Pass2AmbientLight;
+    pass2PointLight = new Pass2PointLight;
+    bvRenderer = new BoundingVolumeRenderingShader;
+    //ssao = new SSAO( gBuffer );
 }
 
-GBuffer * DeferredRenderer::GetGBuffer()
-{
-  return gBuffer;
+GBuffer * DeferredRenderer::GetGBuffer() {
+    return gBuffer;
 }
 
-struct XYZNormalVertex
-{
-  D3DXVECTOR3 p;
-  D3DXVECTOR3 n;
+struct XYZNormalVertex {
+    D3DXVECTOR3 p;
+    D3DXVECTOR3 n;
 };
 
-void DeferredRenderer::CreateBoundingVolumes()
-{
-  int quality = 6;
+void DeferredRenderer::CreateBoundingVolumes() {
+    int quality = 6;
 
-  D3DXCreateSphere( g_device, 1.0, quality, quality, &icosphere, 0 );    
+    D3DXCreateSphere( g_device, 1.0, quality, quality, &icosphere, 0 );
 
-  D3DXCreateCylinder( g_device, 0.0f, 1.0f, 1.0f, quality, quality, &cone, 0 );
+    D3DXCreateCylinder( g_device, 0.0f, 1.0f, 1.0f, quality, quality, &cone, 0 );
 
-  // rotate cylinder on 90 degrees
-  XYZNormalVertex * data;
-  cone->LockVertexBuffer( 0, (void**)&data );
-  D3DXMATRIX tran; D3DXMatrixTranslation( &tran, 0, -0.5, 0 );
-  D3DXMATRIX rot90; D3DXMatrixRotationAxis( &rot90, &D3DXVECTOR3( 1, 0, 0 ), SIMD_HALF_PI );
-  D3DXMATRIX transform; D3DXMatrixMultiply( &transform, &rot90, &tran );
+    // rotate cylinder on 90 degrees
+    XYZNormalVertex * data;
+    cone->LockVertexBuffer( 0, (void**)&data );
+    D3DXMATRIX tran;
+    D3DXMatrixTranslation( &tran, 0, -0.5, 0 );
+    D3DXMATRIX rot90;
+    D3DXMatrixRotationAxis( &rot90, &D3DXVECTOR3( 1, 0, 0 ), SIMD_HALF_PI );
+    D3DXMATRIX transform;
+    D3DXMatrixMultiply( &transform, &rot90, &tran );
 
-  for( int i = 0; i < cone->GetNumVertices(); i++ )
-  {
-    XYZNormalVertex * v = &data[ i ];
+    for( int i = 0; i < cone->GetNumVertices(); i++ ) {
+        XYZNormalVertex * v = &data[ i ];
 
-    D3DXVec3TransformCoord( &v->p, &v->p, &transform );
-  }
+        D3DXVec3TransformCoord( &v->p, &v->p, &transform );
+    }
 
-  cone->UnlockVertexBuffer();
+    cone->UnlockVertexBuffer();
 }
 
 
@@ -69,360 +67,346 @@ void DeferredRenderer::CreateBoundingVolumes()
 ////////////////////////////////////////////////////////////
 // Point Light Subclass
 ////////////////////////////////////////////////////////////
-DeferredRenderer::Pass2PointLight::Pass2PointLight()
-{
-  string pixelSourcePassTwo =
+DeferredRenderer::Pass2PointLight::Pass2PointLight() {
+    string pixelSourcePassTwo =
 
-    "texture depthMap;\n"
-    "texture normalMap;\n"
-    "texture diffuseMap;\n"
+        "texture depthMap;\n"
+        "texture normalMap;\n"
+        "texture diffuseMap;\n"
 
-    "sampler depthSampler : register(s0) = sampler_state\n"
-    "{\n"
-    "   texture = <depthMap>;\n"
-    "};\n"
+        "sampler depthSampler : register(s0) = sampler_state\n"
+        "{\n"
+        "   texture = <depthMap>;\n"
+        "};\n"
 
-    "sampler normalSampler : register(s1) = sampler_state\n"
-    "{\n"
-    "   texture = <normalMap>;\n"
-    "};\n"    
+        "sampler normalSampler : register(s1) = sampler_state\n"
+        "{\n"
+        "   texture = <normalMap>;\n"
+        "};\n"
 
-    "sampler diffuseSampler : register(s2) = sampler_state\n"
-    "{\n"
-    "   texture = <diffuseMap>;\n"
-    "};\n"
+        "sampler diffuseSampler : register(s2) = sampler_state\n"
+        "{\n"
+        "   texture = <diffuseMap>;\n"
+        "};\n"
 
 #ifndef USE_R32F_DEPTH
-    // ONLY for A8R8G8B8 depth
-    "float unpackFloatFromVec4i ( const float4 value )\n"
-    "{\n"
-	  "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
-	
-	  "  return dot ( value, bitSh );\n"
-    "}\n"
+        // ONLY for A8R8G8B8 depth
+        "float unpackFloatFromVec4i ( const float4 value )\n"
+        "{\n"
+        "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
+
+        "  return dot ( value, bitSh );\n"
+        "}\n"
 #endif
-    // light props
-    "float3 lightPos;\n"
-    "float lightRange;\n"
-    "float3 lightColor;\n"
+        // light props
+        "float3 lightPos;\n"
+        "float lightRange;\n"
+        "float3 lightColor;\n"
 
-    // camera props
-    "float3 cameraPosition;\n"
+        // camera props
+        "float3 cameraPosition;\n"
 
-    "float4x4 invViewProj;\n"
-    "float spotAngle;\n"
-    "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
-    "{\n" 
-    // get diffuse color from diffuse map
-    "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
+        "float4x4 invViewProj;\n"
+        "float spotAngle;\n"
+        "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
+        "{\n"
+        // get diffuse color from diffuse map
+        "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
 #ifdef USE_R32F_DEPTH
-    "   float depth = tex2D( depthSampler, texcoord ).r;\n"
+        "   float depth = tex2D( depthSampler, texcoord ).r;\n"
 #else
-    "   float depth = unpackFloatFromVec4i( tex2D( depthSampler, texcoord ));\n"
+        "   float depth = unpackFloatFromVec4i( tex2D( depthSampler, texcoord ));\n"
 #endif
-    "   float3 n = tex2D( normalSampler, texcoord ).xyz;\n"
+        "   float3 n = tex2D( normalSampler, texcoord ).xyz;\n"
 
-    // unpack normal from [0;1] to [-1,1]
-    "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
+        // unpack normal from [0;1] to [-1,1]
+        "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
 
-    "   float4 screenPosition;\n"
-    "   screenPosition.x = texcoord.x * 2.0f - 1.0f;\n"
-    "   screenPosition.y = -(texcoord.y * 2.0f - 1.0f);\n"
-    "   screenPosition.z = depth;\n"
-    "   screenPosition.w = 1.0f;\n"
+        "   float4 screenPosition;\n"
+        "   screenPosition.x = texcoord.x * 2.0f - 1.0f;\n"
+        "   screenPosition.y = -(texcoord.y * 2.0f - 1.0f);\n"
+        "   screenPosition.z = depth;\n"
+        "   screenPosition.w = 1.0f;\n"
 
-    "   float4 p = mul( screenPosition, invViewProj );\n"
-    "   p /= p.w;\n"   
+        "   float4 p = mul( screenPosition, invViewProj );\n"
+        "   p /= p.w;\n"
 
-    "   float3 lightDirection = lightPos - p;"
-    "   float3 l = normalize( lightDirection );\n"
+        "   float3 lightDirection = lightPos - p;"
+        "   float3 l = normalize( lightDirection );\n"
 
-    // specular
-    "   float3 v = normalize( cameraPosition - p );\n"
-    "   float3 r = reflect( -v, n );\n"      
-    "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
+        // specular
+        "   float3 v = normalize( cameraPosition - p );\n"
+        "   float3 r = reflect( -v, n );\n"
+        "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
 
-    // diffuse
-    "   float diff = saturate(dot( l, n ));\n"
+        // diffuse
+        "   float diff = saturate(dot( l, n ));\n"
 
-    "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
+        "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
 
-    "   float o = clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
+        "   float o = clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
 
-    "   return float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
+        "   return float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
 
-    //" return float4( 1, 0, 0, 1 );\n"
-    "};\n";
+        //" return float4( 1, 0, 0, 1 );\n"
+        "};\n";
 
 
-  pixelShader = new PixelShader( pixelSourcePassTwo );
+    pixelShader = new PixelShader( pixelSourcePassTwo );
 
-  hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
-  hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
-  hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
-  hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
-  hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
+    hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
+    hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
+    hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
+    hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
+    hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
 
 }
 
-void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj )
-{
-  BindShader();
+void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj ) {
+    BindShader();
 
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hCameraPos, g_camera->globalTransform.getOrigin().m_floats, 3 );
-  pixelShader->GetConstantTable()->SetMatrix( g_device, hInvViewProj, &invViewProj );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hCameraPos, g_camera->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetMatrix( g_device, hInvViewProj, &invViewProj );
 }
 
-void DeferredRenderer::Pass2PointLight::BindShader( )
-{
-  pixelShader->Bind();
+void DeferredRenderer::Pass2PointLight::BindShader( ) {
+    pixelShader->Bind();
 }
 
-void DeferredRenderer::Pass2PointLight::SetLight( Light * lit )
-{
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
-  pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ) );
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
+void DeferredRenderer::Pass2PointLight::SetLight( Light * lit ) {
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ) );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
 }
 
-DeferredRenderer::Pass2PointLight::~Pass2PointLight()
-{
-  delete pixelShader;
+DeferredRenderer::Pass2PointLight::~Pass2PointLight() {
+    delete pixelShader;
 }
 
 ////////////////////////////////////////////////////////////
 // Ambient Light Subclass
 ////////////////////////////////////////////////////////////
 
-DeferredRenderer::Pass2AmbientLight::Pass2AmbientLight()
-{
-  string source =
-    "texture diffuseMap;\n"
+DeferredRenderer::Pass2AmbientLight::Pass2AmbientLight() {
+    string source =
+        "texture diffuseMap;\n"
 
-    "sampler diffuseSampler : register(s2) = sampler_state\n"
-    "{\n"
-    "   texture = <diffuseMap>;\n"
-    "};\n"
+        "sampler diffuseSampler : register(s2) = sampler_state\n"
+        "{\n"
+        "   texture = <diffuseMap>;\n"
+        "};\n"
 
-    "float3 ambientColor;\n"
+        "float3 ambientColor;\n"
 
-    "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
-    "{\n" 
-    "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
+        "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
+        "{\n"
+        "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
 
-    "   float albedo = diffuseTexel.a;\n"
+        "   float albedo = diffuseTexel.a;\n"
 
-    "   float4 intensity = clamp( float4( ambientColor.x + albedo, ambientColor.y + albedo, ambientColor.z + albedo, 1.0f ), 0.0f, 1.0f );\n"
+        "   float4 intensity = clamp( float4( ambientColor.x + albedo, ambientColor.y + albedo, ambientColor.z + albedo, 1.0f ), 0.0f, 1.0f );\n"
 
-    "   return intensity * diffuseTexel;\n"
-    "};\n";
+        "   return intensity * diffuseTexel;\n"
+        "};\n";
 
-  pixelShader = new PixelShader( source );
+    pixelShader = new PixelShader( source );
 
-  hAmbientColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "ambientColor" );
+    hAmbientColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "ambientColor" );
 }
 
-void DeferredRenderer::Pass2AmbientLight::Bind( )
-{
-  pixelShader->Bind();
+void DeferredRenderer::Pass2AmbientLight::Bind( ) {
+    pixelShader->Bind();
 
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hAmbientColor, g_ambientColor.elements, 3 );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hAmbientColor, g_ambientColor.elements, 3 );
 }
 
-DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight()
-{
-  delete pixelShader;
+DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight() {
+    delete pixelShader;
 }
 
 ////////////////////////////////////////////////////////////
 // Spot Light Subclass
 ////////////////////////////////////////////////////////////
 
-DeferredRenderer::Pass2SpotLight::Pass2SpotLight( )
-{
-  string spotSource =
+DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
+    string spotSource =
 
-    "texture depthMap;\n"
-    "texture normalMap;\n"
-    "texture diffuseMap;\n"
-    "texture spotMap;\n"
+        "texture depthMap;\n"
+        "texture normalMap;\n"
+        "texture diffuseMap;\n"
+        "texture spotMap;\n"
 
-    "sampler depthSampler : register(s0) = sampler_state\n"
-    "{\n"
-    "   texture = <depthMap>;\n"
-    "};\n"
+        "sampler depthSampler : register(s0) = sampler_state\n"
+        "{\n"
+        "   texture = <depthMap>;\n"
+        "};\n"
 
-    "sampler normalSampler : register(s1) = sampler_state\n"
-    "{\n"
-    "   texture = <normalMap>;\n"
-    "};\n"    
+        "sampler normalSampler : register(s1) = sampler_state\n"
+        "{\n"
+        "   texture = <normalMap>;\n"
+        "};\n"
 
-    "sampler diffuseSampler : register(s2) = sampler_state\n"
-    "{\n"
-    "   texture = <diffuseMap>;\n"
-    "};\n"
+        "sampler diffuseSampler : register(s2) = sampler_state\n"
+        "{\n"
+        "   texture = <diffuseMap>;\n"
+        "};\n"
 
-    "sampler spotSampler : register(s3) = sampler_state\n"
-    "{\n"
-    "   texture = <spotMap>;\n"
-    "};\n"
+        "sampler spotSampler : register(s3) = sampler_state\n"
+        "{\n"
+        "   texture = <spotMap>;\n"
+        "};\n"
 
 #ifndef USE_R32F_DEPTH
-    "float unpackFloatFromVec4i ( const float4 value )\n"
-    "{\n"
-	  "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
-	
-	  "  return dot ( value, bitSh );\n"
-    "}\n"
+        "float unpackFloatFromVec4i ( const float4 value )\n"
+        "{\n"
+        "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
+
+        "  return dot ( value, bitSh );\n"
+        "}\n"
 #endif
 
-    // light props
-    "float3 lightPos;\n"
-    "float lightRange;\n"
-    "float3 lightColor;\n"
+        // light props
+        "float3 lightPos;\n"
+        "float lightRange;\n"
+        "float3 lightColor;\n"
 
-    // camera props
-    "float3 cameraPosition;\n"
+        // camera props
+        "float3 cameraPosition;\n"
 
-    "float4x4 invViewProj;\n"
-    "int useSpotTexture = false;"
-    "float4x4 spotProjMatrix;\n"
+        "float4x4 invViewProj;\n"
+        "int useSpotTexture = false;"
+        "float4x4 spotProjMatrix;\n"
 
-    "float innerAngle;\n"
-    "float outerAngle;\n"
-    "float3 direction;\n"
+        "float innerAngle;\n"
+        "float outerAngle;\n"
+        "float3 direction;\n"
 
-    "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
-    "{\n" 
-    // get diffuse color from diffuse map
-    "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
+        "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
+        "{\n"
+        // get diffuse color from diffuse map
+        "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
 #ifdef USE_R32F_DEPTH
-    "   float depth = tex2D( depthSampler, texcoord ).r;\n"
+        "   float depth = tex2D( depthSampler, texcoord ).r;\n"
 #else
-    "   float depth = unpackFloatFromVec4i( tex2D( depthSampler, texcoord ));\n"
+        "   float depth = unpackFloatFromVec4i( tex2D( depthSampler, texcoord ));\n"
 #endif
-    "   float3 n = tex2D( normalSampler, texcoord ).xyz;\n"
+        "   float3 n = tex2D( normalSampler, texcoord ).xyz;\n"
 
-    // unpack normal from [0;1] to [-1,1]
-    "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
+        // unpack normal from [0;1] to [-1,1]
+        "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
 
-    "   float4 screenPosition;\n"
-    "   screenPosition.x = texcoord.x * 2.0f - 1.0f;\n"
-    "   screenPosition.y = -(texcoord.y * 2.0f - 1.0f);\n"
-    "   screenPosition.z = depth;\n"
-    "   screenPosition.w = 1.0f;\n"
+        "   float4 screenPosition;\n"
+        "   screenPosition.x = texcoord.x * 2.0f - 1.0f;\n"
+        "   screenPosition.y = -(texcoord.y * 2.0f - 1.0f);\n"
+        "   screenPosition.z = depth;\n"
+        "   screenPosition.w = 1.0f;\n"
 
-    "   float4 p = mul( screenPosition, invViewProj );\n"
-    "   p /= p.w;\n"   
+        "   float4 p = mul( screenPosition, invViewProj );\n"
+        "   p /= p.w;\n"
 
-    "   float4 projPos = mul(float4(p.xyz,1), spotProjMatrix);\n"
-    "   projPos.xyz /= projPos.w;\n"
-    "   float2 projTexCoords = projPos.xy*0.5+0.5;\n"
+        "   float4 projPos = mul(float4(p.xyz,1), spotProjMatrix);\n"
+        "   projPos.xyz /= projPos.w;\n"
+        "   float2 projTexCoords = projPos.xy*0.5+0.5;\n"
 
-    "   float4 spotTextureTexel = float4( 1, 1, 1, 1 );\n"
+        "   float4 spotTextureTexel = float4( 1, 1, 1, 1 );\n"
 
-    "   if( useSpotTexture )\n"
-    "     spotTextureTexel = tex2D( spotSampler, projTexCoords );\n "
+        "   if( useSpotTexture )\n"
+        "     spotTextureTexel = tex2D( spotSampler, projTexCoords );\n "
 
-    "   float3 lightDirection = lightPos - p;"
-    "   float3 l = normalize( lightDirection );\n"
+        "   float3 lightDirection = lightPos - p;"
+        "   float3 l = normalize( lightDirection );\n"
 
-    // specular
-    "   float3 v = normalize( cameraPosition - p );\n"
-    "   float3 r = reflect( -v, n );\n"      
-    "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
-        
-    // diffuse
-    "   float diff = saturate(dot( l, n ));\n"
-    "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
-    
-    // spot
-    "   float spotAngleCos = dot( direction, l );\n"
-    "   float spotEffect = smoothstep( outerAngle, innerAngle, spotAngleCos );\n"
-    //"   float spotEffect = smoothstep( 1.0f, 0.5f, spotAngleCos );\n"
+        // specular
+        "   float3 v = normalize( cameraPosition - p );\n"
+        "   float3 r = reflect( -v, n );\n"
+        "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
 
-    "   float o = clamp( falloff * spotEffect, 0.0, 1.2 ) * (  diff + spec  );\n"
+        // diffuse
+        "   float diff = saturate(dot( l, n ));\n"
+        "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
 
-    "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
-    //"   return float4( 0, 1, 0, 1 );\n"
-    "};\n";
+        // spot
+        "   float spotAngleCos = dot( direction, l );\n"
+        "   float spotEffect = smoothstep( outerAngle, innerAngle, spotAngleCos );\n"
+        //"   float spotEffect = smoothstep( 1.0f, 0.5f, spotAngleCos );\n"
+
+        "   float o = clamp( falloff * spotEffect, 0.0, 1.2 ) * (  diff + spec  );\n"
+
+        "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
+        //"   return float4( 0, 1, 0, 1 );\n"
+        "};\n";
 
 
-  pixelShader = new PixelShader( spotSource );
+    pixelShader = new PixelShader( spotSource );
 
-  hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
-  hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
-  hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
-  hInvViewProj  = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
-  hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
+    hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
+    hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
+    hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
+    hInvViewProj  = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
+    hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
 
-  hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
-  hOuterAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "outerAngle" );
-  hDirection = pixelShader->GetConstantTable()->GetConstantByName( 0, "direction" );
+    hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
+    hOuterAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "outerAngle" );
+    hDirection = pixelShader->GetConstantTable()->GetConstantByName( 0, "direction" );
 }
 
-void DeferredRenderer::Pass2SpotLight::BindShader( )
-{
-  pixelShader->Bind();
+void DeferredRenderer::Pass2SpotLight::BindShader( ) {
+    pixelShader->Bind();
 }
 
-void DeferredRenderer::Pass2SpotLight::Bind( D3DXMATRIX & invViewProj )
-{
-  BindShader();
+void DeferredRenderer::Pass2SpotLight::Bind( D3DXMATRIX & invViewProj ) {
+    BindShader();
 
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hCameraPos, g_camera->globalTransform.getOrigin().m_floats, 3 );
-  pixelShader->GetConstantTable()->SetMatrix( g_device, hInvViewProj, &invViewProj );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hCameraPos, g_camera->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetMatrix( g_device, hInvViewProj, &invViewProj );
 }
 
-void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit )
-{
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
-  pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ));
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
-  pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
-  pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
+void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ));
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
+    pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
+    pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
 
-  btMatrix3x3 rotation = lit->globalTransform.getBasis();
-  btVector3 direction = ( rotation * btVector3( 0, 1, 0 )).normalize();
+    btMatrix3x3 rotation = lit->globalTransform.getBasis();
+    btVector3 direction = ( rotation * btVector3( 0, 1, 0 )).normalize();
 
-  pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
 }
 
-DeferredRenderer::Pass2SpotLight::~Pass2SpotLight()
-{
-  delete pixelShader;
+DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
+    delete pixelShader;
 }
 
 
 
-DeferredRenderer::~DeferredRenderer()
-{
-  if( gBuffer )
-    delete gBuffer;
+DeferredRenderer::~DeferredRenderer() {
+    if( gBuffer )
+        delete gBuffer;
 
-  if( icosphere )
-    icosphere->Release();
+    if( icosphere )
+        icosphere->Release();
 
-  if( cone )
-    cone->Release();
+    if( cone )
+        cone->Release();
 
-  if( effectsQuad )
-    delete effectsQuad;
+    if( effectsQuad )
+        delete effectsQuad;
 
-  if( pass2SpotLight )
-    delete pass2SpotLight;
+    if( pass2SpotLight )
+        delete pass2SpotLight;
 
-  if( pass2AmbientLight )
-    delete pass2AmbientLight;
+    if( pass2AmbientLight )
+        delete pass2AmbientLight;
 
-  if( pass2PointLight )
-    delete pass2PointLight;
+    if( pass2PointLight )
+        delete pass2PointLight;
 
-  if( bvRenderer )
-    delete bvRenderer;
+    if( bvRenderer )
+        delete bvRenderer;
 
-  if( fxaa )
-    delete fxaa;
+    if( fxaa )
+        delete fxaa;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -430,225 +414,226 @@ DeferredRenderer::~DeferredRenderer()
 //
 // Bounding volume for a light can be a sphere for point light
 // a oriented cone for a spot light
-DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader()
-{
-  string vertexSourcePassOne = 
-    "float4x4 worldViewProj;\n"
+DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader() {
+    string vertexSourcePassOne =
+        "float4x4 worldViewProj;\n"
 
-    "float4 main( float4 position : POSITION ) : POSITION\n"
-    "{\n"
-    "  return mul(position, worldViewProj);\n"
-    "};\n";
+        "float4 main( float4 position : POSITION ) : POSITION\n"
+        "{\n"
+        "  return mul(position, worldViewProj);\n"
+        "};\n";
 
-  vs = new VertexShader( vertexSourcePassOne );
+    vs = new VertexShader( vertexSourcePassOne );
 
-  vWVP = vs->GetConstantTable()->GetConstantByName( 0, "worldViewProj" );
+    vWVP = vs->GetConstantTable()->GetConstantByName( 0, "worldViewProj" );
 
-  string pixelSourcePassOne =
-    "float4 main( ) : COLOR0\n"      
-    "{\n"
-    "   return float4( 1.0f, 1.0f, 1.0f, 1.0f );\n"
-    "};\n";
+    string pixelSourcePassOne =
+        "float4 main( ) : COLOR0\n"
+        "{\n"
+        "   return float4( 1.0f, 1.0f, 1.0f, 1.0f );\n"
+        "};\n";
 
-  ps = new PixelShader( pixelSourcePassOne ); 
+    ps = new PixelShader( pixelSourcePassOne );
 
-  D3DVERTEXELEMENT9 vd[ ] =
-  {
-    { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
-    D3DDECL_END()
-  };
+    D3DVERTEXELEMENT9 vd[ ] = {
+        { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+        { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+        D3DDECL_END()
+    };
 
-  g_device->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
+    g_device->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
 }
 
-DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader()
-{
-  delete ps;
-  delete vs;
-  vertexDeclaration->Release();
+DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader() {
+    delete ps;
+    delete vs;
+    vertexDeclaration->Release();
 }
 
-void DeferredRenderer::BoundingVolumeRenderingShader::Bind()
-{
-  ps->Bind();
-  vs->Bind();
+void DeferredRenderer::BoundingVolumeRenderingShader::Bind() {
+    ps->Bind();
+    vs->Bind();
 
-  g_device->SetVertexDeclaration( vertexDeclaration );
+    g_device->SetVertexDeclaration( vertexDeclaration );
 }
 
-void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX & wvp )
-{
-  vs->GetConstantTable()->SetMatrix( g_device, vWVP, &wvp );
+void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX & wvp ) {
+    vs->GetConstantTable()->SetMatrix( g_device, vWVP, &wvp );
 }
 
-void DeferredRenderer::RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition )
-{
-  float scl = 2.5f * lightRadius;
+void DeferredRenderer::RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition ) {
+    float scl = 2.5f * lightRadius;
 
-  D3DXMATRIX world;
+    D3DXMATRIX world;
 
-  world._11 = scl;               world._12 = 0.0f;              world._13 = 0.0f;              world._14 = 0.0f;
-  world._21 = 0.0f;              world._22 = scl;               world._23 = 0.0f;              world._24 = 0.0f;
-  world._31 = 0.0f;              world._32 = 0.0f;              world._33 = scl;               world._34 = 0.0f;
-  world._41 = lightPosition.x(); world._42 = lightPosition.y(); world._43 = lightPosition.z(); world._44 = 1.0f;
+    world._11 = scl;
+    world._12 = 0.0f;
+    world._13 = 0.0f;
+    world._14 = 0.0f;
+    world._21 = 0.0f;
+    world._22 = scl;
+    world._23 = 0.0f;
+    world._24 = 0.0f;
+    world._31 = 0.0f;
+    world._32 = 0.0f;
+    world._33 = scl;
+    world._34 = 0.0f;
+    world._41 = lightPosition.x();
+    world._42 = lightPosition.y();
+    world._43 = lightPosition.z();
+    world._44 = 1.0f;
 
-  bvRenderer->Bind();
+    bvRenderer->Bind();
 
-  D3DXMATRIX wvp;
-  D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
+    D3DXMATRIX wvp;
+    D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
 
-  bvRenderer->SetTransform( wvp );
+    bvRenderer->SetTransform( wvp );
 
-  // disable draw into color buffer
-  g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+    // disable draw into color buffer
+    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
 
-  g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS ); 
-  g_device->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+    g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+    g_device->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
 
-  g_device->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_ALWAYS );  
-  g_device->SetRenderState( D3DRS_CCW_STENCILPASS, D3DSTENCILOP_KEEP );
+    g_device->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_ALWAYS );
+    g_device->SetRenderState( D3DRS_CCW_STENCILPASS, D3DSTENCILOP_KEEP );
 
-  // draw a sphere bounds light into stencil buffer   
-  icosphere->DrawSubset( 0 );
+    // draw a sphere bounds light into stencil buffer
+    icosphere->DrawSubset( 0 );
 }
 
-void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit )
-{
-  float height = lit->GetRadius() * 2;
-  float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
-  D3DXMATRIX scale; D3DXMatrixScaling( &scale, radius, height, radius );
-  D3DXMATRIX world; GetD3DMatrixFromBulletTransform( lit->globalTransform, world );          
-  D3DXMatrixMultiply( &world, &scale, &world );
+void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
+    float height = lit->GetRadius() * 2;
+    float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
+    D3DXMATRIX scale;
+    D3DXMatrixScaling( &scale, radius, height, radius );
+    D3DXMATRIX world;
+    GetD3DMatrixFromBulletTransform( lit->globalTransform, world );
+    D3DXMatrixMultiply( &world, &scale, &world );
 
-  bvRenderer->Bind();
+    bvRenderer->Bind();
 
-  D3DXMATRIX wvp;
-  D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
+    D3DXMATRIX wvp;
+    D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
 
-  bvRenderer->SetTransform( wvp );
+    bvRenderer->SetTransform( wvp );
 
-  // disable draw into color buffer
-  g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+    // disable draw into color buffer
+    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
 
-  g_device->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+    g_device->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
 
-  g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-  g_device->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+    g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+    g_device->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
 
-  g_device->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_ALWAYS );
-  g_device->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+    g_device->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_ALWAYS );
+    g_device->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 
 
-  // draw a sphere bounds light into stencil buffer   
-  cone->DrawSubset( 0 );
+    // draw a sphere bounds light into stencil buffer
+    cone->DrawSubset( 0 );
 }
 
-void DeferredRenderer::RenderScreenQuad()
-{
-  // enable draw into color buffer
-  g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+void DeferredRenderer::RenderScreenQuad() {
+    // enable draw into color buffer
+    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
 
-  /////////////////////////////////////////////////////////////////////////////
-  // draw a screen quad 
-  g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-  //g_device->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL);
+    /////////////////////////////////////////////////////////////////////////////
+    // draw a screen quad
+    g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+    //g_device->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL);
 
-  g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+    g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
 
-  effectsQuad->Render();
+    effectsQuad->Render();
 }
 
-void DeferredRenderer::ConfigureStencilBuffer()
-{
-  g_device->SetRenderState( D3DRS_STENCILREF, 0x0 );
-  g_device->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-  g_device->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
+void DeferredRenderer::ConfigureStencilBuffer() {
+    g_device->SetRenderState( D3DRS_STENCILREF, 0x0 );
+    g_device->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
+    g_device->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
 
-  // setup stencil buffer
-  g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-  g_device->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-  g_device->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
+    // setup stencil buffer
+    g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+    g_device->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
+    g_device->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
 
-  g_device->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-  g_device->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+    g_device->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+    g_device->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 }
 
-void DeferredRenderer::EndFirstPassAndDoSecondPass()
-{
-  OnEnd();
+void DeferredRenderer::EndFirstPassAndDoSecondPass() {
+    OnEnd();
 
-  if( g_fxaaEnabled )
-    fxaa->BeginDrawIntoTexture();
-  else
-    gBuffer->BindBackSurfaceAsRT();
+    if( g_fxaaEnabled )
+        fxaa->BeginDrawIntoTexture();
+    else
+        gBuffer->BindBackSurfaceAsRT();
 
-  g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+    g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
-  IDirect3DStateBlock9 * state;
-  g_device->CreateStateBlock( D3DSBT_ALL, &state );
+    IDirect3DStateBlock9 * state;
+    g_device->CreateStateBlock( D3DSBT_ALL, &state );
 
-  gBuffer->BindTextures();
+    gBuffer->BindTextures();
 
-  g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-  g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-  g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-  g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );   
-  g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-  g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+    g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+    g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+    g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 
-  // first of all render the skybox
-  if( g_camera->skybox )
-    g_camera->skybox->Render( g_camera->globalTransform.getOrigin() );
+    // first of all render the skybox
+    if( g_camera->skybox )
+        g_camera->skybox->Render( g_camera->globalTransform.getOrigin() );
 
-  // then render fullscreen quad with ambient lighting
-  
-  pass2AmbientLight->Bind();
-  effectsQuad->Bind();
-  effectsQuad->Render();
-  
-  ConfigureStencilBuffer();    
+    // then render fullscreen quad with ambient lighting
 
-  // Render point lights
-  for( unsigned int i = 0; i < g_pointLights.size(); i++ )
-  {
-    Light * light = g_pointLights.at( i );
-
-    btVector3 lightPos = light->globalTransform.getOrigin();
-    RenderIcosphereIntoStencilBuffer( light->GetRadius(), lightPos );
-    
-    pass2PointLight->Bind( g_camera->invViewProjection );
-    pass2PointLight->SetLight( light );
-
+    pass2AmbientLight->Bind();
     effectsQuad->Bind();
+    effectsQuad->Render();
 
-    RenderScreenQuad();
-  }    
+    ConfigureStencilBuffer();
 
-  // Render spot lights
-  for( unsigned int i = 0; i < g_spotLights.size(); i++ )
-  {
-    Light * light = g_spotLights.at( i );
+    // Render point lights
+    for( unsigned int i = 0; i < g_pointLights.size(); i++ ) {
+        Light * light = g_pointLights.at( i );
 
-    RenderConeIntoStencilBuffer( light );
+        btVector3 lightPos = light->globalTransform.getOrigin();
+        RenderIcosphereIntoStencilBuffer( light->GetRadius(), lightPos );
 
-    pass2SpotLight->Bind( g_camera->invViewProjection );
-    pass2SpotLight->SetLight( light );
+        pass2PointLight->Bind( g_camera->invViewProjection );
+        pass2PointLight->SetLight( light );
 
-    effectsQuad->Bind();
+        effectsQuad->Bind();
 
-    RenderScreenQuad();
-  }    
+        RenderScreenQuad();
+    }
 
-  if( g_fxaaEnabled )
-  {
-    // ssao->FillAOMap();
-    // ssao->DoBlurAndAddAOToSourceMap( fxaa->texture );
-    // fxaa->DoAntialiasing( ssao->blurTexture );
+    // Render spot lights
+    for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
+        Light * light = g_spotLights.at( i );
 
-    fxaa->DoAntialiasing( fxaa->texture );
-  }
+        RenderConeIntoStencilBuffer( light );
 
-  state->Apply();
-  state->Release();
+        pass2SpotLight->Bind( g_camera->invViewProjection );
+        pass2SpotLight->SetLight( light );
+
+        effectsQuad->Bind();
+
+        RenderScreenQuad();
+    }
+
+    if( g_fxaaEnabled ) {
+        // ssao->FillAOMap();
+        // ssao->DoBlurAndAddAOToSourceMap( fxaa->texture );
+        // fxaa->DoAntialiasing( ssao->blurTexture );
+
+        fxaa->DoAntialiasing( fxaa->texture );
+    }
+
+    state->Apply();
+    state->Release();
 }

@@ -2,15 +2,14 @@
 
 #include "Game.h"
 
-class Fan
-{
+class Fan {
 public:
-  NodeHandle body;
-  float turnSpeed;
-  Vector3 tAxis;
-  float angle;
-  SoundHandle sound;
+    NodeHandle body;
+    float turnSpeed;
+    Vector3 tAxis;
+    float angle;
+    SoundHandle sound;
 
-  Fan( NodeHandle obj, float ts, Vector3 axis, SoundHandle snd );
-  void DoTurn();
+    Fan( NodeHandle obj, float ts, Vector3 axis, SoundHandle snd );
+    void DoTurn();
 };

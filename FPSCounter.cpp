@@ -1,23 +1,20 @@
 #include "FPSCounter.h"
 
-void FPSCounter::RegisterFrame()
-{
-  frameCounter++;
+void FPSCounter::RegisterFrame() {
+    frameCounter++;
 
-  if( timer->GetElapsedTimeInSeconds() > 1.0f )
-  {
-    fps = frameCounter;
+    if( timer->GetElapsedTimeInSeconds() > 1.0f ) {
+        fps = frameCounter;
 
-    frameCounter = 0;
+        frameCounter = 0;
 
-    timer->RestartTimer();
-  }
+        timer->RestartTimer();
+    }
 }
 
-FPSCounter::FPSCounter()
-{
-  timer = new Timer();
+FPSCounter::FPSCounter() {
+    timer = new Timer();
 
-  fps = 60;
-  frameCounter = 0;
+    fps = 60;
+    frameCounter = 0;
 }

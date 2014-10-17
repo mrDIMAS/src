@@ -2,14 +2,13 @@
 
 #include "Timer.h"
 
-class FPSCounter
-{
+class FPSCounter {
 public:
-  Timer * timer;
-  int frameCounter;
-  int fps;
+    Timer * timer;
+    int frameCounter;
+    int fps;
 
-  FPSCounter();
+    FPSCounter();
 
-  void RegisterFrame();
+    void RegisterFrame();
 };

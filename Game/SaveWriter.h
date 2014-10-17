@@ -4,14 +4,13 @@
 #include "ItemPlace.h"
 #include "TextFileStream.h"
 
-class SaveWriter : public TextFileStream
-{
+class SaveWriter : public TextFileStream {
 private:
-  void SavePlayerInventory();
-  void SaveCurrentLevelStages();
-  void SaveItemPlaces();
+    void SavePlayerInventory();
+    void SaveCurrentLevelStages();
+    void SaveItemPlaces();
 public:
-  SaveWriter( string fn );
-  ~SaveWriter();
-  void SaveWorldState( );
+    SaveWriter( string fn );
+    ~SaveWriter();
+    void SaveWorldState( );
 };

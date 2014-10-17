@@ -2,14 +2,13 @@
 
 #include "Game.h"
 
-class Sparks
-{
+class Sparks {
 public:
-  NodeHandle ps;
-  int alive;
-  SoundHandle es;
+    NodeHandle ps;
+    int alive;
+    SoundHandle es;
 public:
 
-  Sparks( NodeHandle at, SoundHandle emits );
-  void Update();
+    Sparks( NodeHandle at, SoundHandle emits );
+    void Update();
 };

@@ -11,91 +11,89 @@
 #include "List.h"
 #include "Parser.h"
 
-class Menu
-{
+class Menu {
 public:
-  enum class Page
-  {
-      Main,
-      Options,
-      Authors,
-      OptionsKeys,
-      OptionsCommon,
-      OptionsGraphics,
-  };
+    enum class Page {
+        Main,
+        Options,
+        Authors,
+        OptionsKeys,
+        OptionsCommon,
+        OptionsGraphics,
+    };
 
-  explicit Menu( );
-  virtual ~Menu();
+    explicit Menu( );
+    virtual ~Menu();
 
-  void WriteFloat( ofstream & stream, string name, float value );
-  void WriteInteger( ofstream & stream, string name, int value );
-  void Writestring( ofstream & stream, string name, string value );
-  void WriteProgressConfig();
-  void WriteConfig();
-  void SetPlayerControls();
-  void LoadConfig();
-  void CreateSliders();
-  void CreateRadioButtons();
-  void CreateWaitKeys();
-  void CreateLists();
-  void LoadSounds();
-  void CreateCamera();
-  void LoadTextures();  
-  void Show();
-  void Hide( );
-  void Update( );
-  void SetPage( Page page );
+    void WriteFloat( ofstream & stream, string name, float value );
+    void WriteInteger( ofstream & stream, string name, int value );
+    void Writestring( ofstream & stream, string name, string value );
+    void WriteProgressConfig();
+    void WriteConfig();
+    void SetPlayerControls();
+    void LoadConfig();
+    void CreateSliders();
+    void CreateRadioButtons();
+    void CreateWaitKeys();
+    void CreateLists();
+    void LoadSounds();
+    void CreateCamera();
+    void LoadTextures();
+    void Show();
+    void Hide( );
+    void Update( );
+    void SetPage( Page page );
 
-  FontHandle textFont;
-  FontHandle textBackgroundFont;
-  NodeHandle scene;
-  bool visible;
-  TextureHandle buttonImage;
-  TextureHandle smallButtonImage;
-  int distBetweenButtons;
+    FontHandle textFont;
+    FontHandle textBackgroundFont;
+    NodeHandle scene;
+    bool visible;
+    TextureHandle buttonImage;
+    TextureHandle smallButtonImage;
+    int distBetweenButtons;
 
-  float fadeSpeed;
-  bool canContinueGameFromLast;
-  bool startPressed;
-  bool exitPressed;
-  bool continuePressed;
-  bool returnToGameByEsc;
-  bool autosaveNotify;
-  bool exitingGame;
+    float fadeSpeed;
+    bool canContinueGameFromLast;
+    bool startPressed;
+    bool exitPressed;
+    bool continuePressed;
+    bool returnToGameByEsc;
+    bool autosaveNotify;
+    bool exitingGame;
 
-  float buttonsXOffset;
-  LevelName continueLevelName;
-  SoundHandle pickSound;
-  Page page;
-  SoundHandle music;
-  Parser loc;
+    float buttonsXOffset;
+    LevelName continueLevelName;
+    SoundHandle pickSound;
+    Page page;
+    SoundHandle music;
+    Parser loc;
 
-  NumericSlider * masterVolume;
-  NumericSlider * musicVolume;
-  NumericSlider * mouseSensivity;
-  RadioButton * fxaaButton;
-  RadioButton * fpsButton;
-  List * textureFiltering;
+    NumericSlider * masterVolume;
+    NumericSlider * musicVolume;
+    NumericSlider * mouseSensivity;
+    RadioButton * fxaaButton;
+    RadioButton * fpsButton;
+    List * textureFiltering;
 
-  // Keys
-  WaitKeyButton * wkMoveForward;
-  WaitKeyButton * wkMoveBackward;
-  WaitKeyButton * wkStrafeLeft;
-  WaitKeyButton * wkStrafeRight;
-  WaitKeyButton * wkJump;
-  WaitKeyButton * wkFlashLight;
-  WaitKeyButton * wkRun;
-  WaitKeyButton * wkInventory;
-  WaitKeyButton * wkUse;
-  WaitKeyButton * wkQuickSave;
-  WaitKeyButton * wkQuickLoad;
-  
+    // Keys
+    WaitKeyButton * wkMoveForward;
+    WaitKeyButton * wkMoveBackward;
+    WaitKeyButton * wkStrafeLeft;
+    WaitKeyButton * wkStrafeRight;
+    WaitKeyButton * wkJump;
+    WaitKeyButton * wkFlashLight;
+    WaitKeyButton * wkRun;
+    WaitKeyButton * wkInventory;
+    WaitKeyButton * wkUse;
+    WaitKeyButton * wkQuickSave;
+    WaitKeyButton * wkQuickLoad;
 
-  Vector3 cameraInitialPosition;
-  Vector3 cameraAnimationOffset;
-  Vector3 cameraAnimationNewOffset;
 
-  GameCamera * camera;
+    Vector3 cameraInitialPosition;
+    Vector3 cameraAnimationOffset;
+    Vector3 cameraAnimationNewOffset;
+
+    GameCamera * camera;
 };
 
 

@@ -3,45 +3,44 @@
 #include "Game.h"
 #include "TextFileStream.h"
 
-class Flashlight
-{
+class Flashlight {
 public:
-  NodeHandle light;
-  NodeHandle model;
+    NodeHandle light;
+    NodeHandle model;
 
-  float maxCharge;
-  float charge;
-  float onRange;
+    float maxCharge;
+    float charge;
+    float onRange;
 
-  float realRange;
-  float rangeDest;
+    float realRange;
+    float rangeDest;
 
-  SoundHandle onSound;
-  SoundHandle offSound;
-  SoundHandle outOfChargeSound;
+    SoundHandle onSound;
+    SoundHandle offSound;
+    SoundHandle outOfChargeSound;
 
-  Vector3 initialPosition;
+    Vector3 initialPosition;
 
-  Vector3 position;
-  Vector3 destPosition;
+    Vector3 position;
+    Vector3 destPosition;
 
-  TimerHandle chargeTimer;
+    TimerHandle chargeTimer;
 
-  float chargeWorkTimeSeconds;
+    float chargeWorkTimeSeconds;
 
-  bool on;
+    bool on;
 
-  float offTime;
+    float offTime;
 
-  Flashlight( );
-  bool GotCharge();
-  void Fuel();
-  void Attach( NodeHandle node );
-  void SwitchOff();
-  void SwitchOn();
-  void Switch();
-  void Update();
-  
-  virtual void SerializeWith( TextFileStream & out ) final;
-  virtual void DeserializeWith( TextFileStream & in ) final;
+    Flashlight( );
+    bool GotCharge();
+    void Fuel();
+    void Attach( NodeHandle node );
+    void SwitchOff();
+    void SwitchOn();
+    void Switch();
+    void Update();
+
+    virtual void SerializeWith( TextFileStream & out ) final;
+    virtual void DeserializeWith( TextFileStream & in ) final;
 };

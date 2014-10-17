@@ -3,23 +3,22 @@
 #include "Game.h"
 
 
-class InteractiveObject 
-{
+class InteractiveObject {
 public:
-  NodeHandle node;
-  float flashAlbedo;
-  float flashAlbedoTo;
-  float flashSpeed;
-  bool flashDirection;
-  static vector< InteractiveObject* > objects;
+    NodeHandle node;
+    float flashAlbedo;
+    float flashAlbedoTo;
+    float flashSpeed;
+    bool flashDirection;
+    static vector< InteractiveObject* > objects;
 
-  InteractiveObject( NodeHandle object );
-  ~InteractiveObject();
-  void UpdateFlashing();
+    InteractiveObject( NodeHandle object );
+    ~InteractiveObject();
+    void UpdateFlashing();
 
-  virtual void Update() = 0;
+    virtual void Update() = 0;
 
-  static void UpdateAll();
+    static void UpdateAll();
 
-  static void DeleteAll();
+    static void DeleteAll();
 };

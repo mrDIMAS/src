@@ -2,16 +2,14 @@
 
 #include "Common.h"
 
-// Used for drawing transparent faces, cause Deferred Shading does not support properly 
+// Used for drawing transparent faces, cause Deferred Shading does not support properly
 // transparent faces
 
-class ForwardRenderer
-{
+class ForwardRenderer {
 public:
-  ForwardRenderer()
-  {
+    ForwardRenderer() {
 
-  }
+    }
 
 
 };

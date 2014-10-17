@@ -2,13 +2,12 @@
 
 #include "Game.h"
 
-class Fire
-{
+class Fire {
 public:
-  NodeHandle particleSystem;
-  NodeHandle light;
+    NodeHandle particleSystem;
+    NodeHandle light;
 
-  Fire( float size, float height );
+    Fire( float size, float height );
 
-  ~Fire();
+    ~Fire();
 };

@@ -2,14 +2,13 @@
 
 #include "Game.h"
 
-class GUI 
-{
+class GUI {
 public:
-  FontHandle font;
-  TextureHandle staminaBarImg;
-  TextureHandle lifeBarImg;
-  TextureHandle itemImg;
+    FontHandle font;
+    TextureHandle staminaBarImg;
+    TextureHandle lifeBarImg;
+    TextureHandle itemImg;
 
-  GUI();
+    GUI();
 };
 

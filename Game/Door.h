@@ -2,35 +2,33 @@
 
 #include "Game.h"
 
-class Door
-{
+class Door {
 public:
-  enum class State
-  {
-    Opened,
-    Closed,
-    Closing,
-    Opening,
-  };
+    enum class State {
+        Opened,
+        Closed,
+        Closing,
+        Opening,
+    };
 private:
-  NodeHandle door;
+    NodeHandle door;
 
-  float maxAngle;
-  float offsetAngle;
-  float currentAngle;
+    float maxAngle;
+    float offsetAngle;
+    float currentAngle;
 
-  State state;
+    State state;
 
-  SoundHandle openSound;
-  SoundHandle closeSound;
+    SoundHandle openSound;
+    SoundHandle closeSound;
 public:
 
-  static vector< Door* > all;
+    static vector< Door* > all;
 
-  explicit Door( NodeHandle hDoor, float fMaxAngle );
-  virtual ~Door();
-  bool IsPickedByPlayer();
-  void SwitchState();
-  State GetState();  
-  void DoInteraction();
+    explicit Door( NodeHandle hDoor, float fMaxAngle );
+    virtual ~Door();
+    bool IsPickedByPlayer();
+    void SwitchState();
+    State GetState();
+    void DoInteraction();
 };

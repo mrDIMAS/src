@@ -5,42 +5,39 @@
 #include "Fire.h"
 #include "AmbientSoundSet.h"
 
-class LevelArrival : public Level
-{
+class LevelArrival : public Level {
 public:
-  // Sounds
-  SoundHandle windSound; 
-  SoundHandle generatorSound;
-  SoundHandle explosionSound;
-  SoundHandle strangeSound;
+    // Sounds
+    SoundHandle windSound;
+    SoundHandle generatorSound;
+    SoundHandle explosionSound;
+    SoundHandle strangeSound;
 
-  // Zones
-  NodeHandle strangeSoundZone;
-  NodeHandle rocksFallZone;
-  NodeHandle nextLevelLoadZone;
-  
-  // Entities
-  NodeHandle rocks;
-  NodeHandle rocksPos;  
-  NodeHandle generator;  
+    // Zones
+    NodeHandle strangeSoundZone;
+    NodeHandle rocksFallZone;
+    NodeHandle nextLevelLoadZone;
 
-  NodeHandle lamp1;
-  NodeHandle lamp2;
+    // Entities
+    NodeHandle rocks;
+    NodeHandle rocksPos;
+    NodeHandle generator;
 
-  LevelArrival( );
-  ~LevelArrival( );
+    NodeHandle lamp1;
+    NodeHandle lamp2;
 
-  virtual void DoScenario();
-  virtual void Show();
-  virtual void Hide();
+    LevelArrival( );
+    ~LevelArrival( );
 
-  virtual void OnSerialize( TextFileStream & out ) final
-  {
+    virtual void DoScenario();
+    virtual void Show();
+    virtual void Hide();
 
-  }
+    virtual void OnSerialize( TextFileStream & out ) final {
 
-  virtual void OnDeserialize( TextFileStream & in ) final
-  {
+    }
 
-  }
+    virtual void OnDeserialize( TextFileStream & in ) final {
+
+    }
 };

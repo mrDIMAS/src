@@ -3,22 +3,21 @@
 #include "Game.h"
 
 
-class AmbientSoundSet
-{
+class AmbientSoundSet {
 private:
-  vector< SoundHandle > sounds;
+    vector< SoundHandle > sounds;
 
-  float timeToNextSoundSec;
+    float timeToNextSoundSec;
 
-  float timeMinSec;
-  float timeMaxSec;
+    float timeMinSec;
+    float timeMaxSec;
 
-  TimerHandle timer;
+    TimerHandle timer;
 public:
 
-  AmbientSoundSet();
+    AmbientSoundSet();
 
-  void SetMinMax( float tMin, float tMax );
-  void AddSound( SoundHandle sound );
-  void DoRandomPlaying();
+    void SetMinMax( float tMin, float tMax );
+    void AddSound( SoundHandle sound );
+    void DoRandomPlaying();
 };

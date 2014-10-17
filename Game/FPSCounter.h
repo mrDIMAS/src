@@ -2,14 +2,13 @@
 
 #include "Game.h"
 
-class FPSCounter
-{
+class FPSCounter {
 public:
-  TimerHandle timer;
-  int frameCounter;
-  int fps;
+    TimerHandle timer;
+    int frameCounter;
+    int fps;
 
-  FPSCounter();
+    FPSCounter();
 
-  void RegisterFrame();
+    void RegisterFrame();
 };

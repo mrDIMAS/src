@@ -1,117 +1,95 @@
 #include "Common.h"
 
-SoundHandle::SoundHandle()
-{
-  pfHandle = -1;
+SoundHandle::SoundHandle() {
+    pfHandle = -1;
 }
 
-SoundHandle::~SoundHandle()
-{
+SoundHandle::~SoundHandle() {
 
 }
 
-bool SoundHandle::IsValid()
-{
-  return pfHandle >= 0;
+bool SoundHandle::IsValid() {
+    return pfHandle >= 0;
 }
 
-void SoundHandle::Invalidate()
-{
-  pfHandle = -1;
+void SoundHandle::Invalidate() {
+    pfHandle = -1;
 }
 
-bool SoundHandle::operator == ( const SoundHandle & node )
-{
-  return pfHandle == node.pfHandle;
+bool SoundHandle::operator == ( const SoundHandle & node ) {
+    return pfHandle == node.pfHandle;
 }
 
-SoundHandle CreateSound2D( const char * file )
-{
-  SoundHandle handle;
-  handle.pfHandle = pfCreateSound( pfDataLoad( file ), false, false );
-  return handle;
+SoundHandle CreateSound2D( const char * file ) {
+    SoundHandle handle;
+    handle.pfHandle = pfCreateSound( pfDataLoad( file ), false, false );
+    return handle;
 }
 
-SoundHandle CreateSound3D( const char * file )
-{
-  SoundHandle handle;
-  handle.pfHandle = pfCreateSound( pfDataLoad( file ), true, false );
-  return handle;
+SoundHandle CreateSound3D( const char * file ) {
+    SoundHandle handle;
+    handle.pfHandle = pfCreateSound( pfDataLoad( file ), true, false );
+    return handle;
 }
 
-void FreeSoundSource( SoundHandle sound )
-{
-  pfFreeSound( sound.pfHandle );
+void FreeSoundSource( SoundHandle sound ) {
+    pfFreeSound( sound.pfHandle );
 }
 
-void SetReverb( int reverb )
-{
-  pfSetListenerSetEAXPreset( (Preset)reverb );
+void SetReverb( int reverb ) {
+    pfSetListenerSetEAXPreset( (Preset)reverb );
 }
 
-SoundHandle CreateMusic( const char * file )
-{
-  SoundHandle handle;
-  handle.pfHandle = pfCreateSound( pfDataLoad( file, true ), false, false );
-  return handle;
+SoundHandle CreateMusic( const char * file ) {
+    SoundHandle handle;
+    handle.pfHandle = pfCreateSound( pfDataLoad( file, true ), false, false );
+    return handle;
 }
 
-void SetSoundPosition( SoundHandle sound, Vector3 pos )
-{
-  pfSetSoundPosition( sound.pfHandle, pos.x, pos.y, pos.z );
+void SetSoundPosition( SoundHandle sound, Vector3 pos ) {
+    pfSetSoundPosition( sound.pfHandle, pos.x, pos.y, pos.z );
 }
 
-void SetSoundReferenceDistance( SoundHandle sound, float rd )
-{
-  pfSetReferenceDistance( sound.pfHandle, rd );
+void SetSoundReferenceDistance( SoundHandle sound, float rd ) {
+    pfSetReferenceDistance( sound.pfHandle, rd );
 }
 
-void SetMaxDistance( SoundHandle sound, float maxDistance )
-{
-  pfSetMaxDistance( sound.pfHandle, maxDistance );
+void SetMaxDistance( SoundHandle sound, float maxDistance ) {
+    pfSetMaxDistance( sound.pfHandle, maxDistance );
 }
 
-void SetRolloffFactor( SoundHandle sound, float rolloffFactor )
-{
-  pfSetRolloffFactor( sound.pfHandle, rolloffFactor );
+void SetRolloffFactor( SoundHandle sound, float rolloffFactor ) {
+    pfSetRolloffFactor( sound.pfHandle, rolloffFactor );
 };
 
-void PlaySoundSource( SoundHandle sound, int oneshot )
-{
-  pfPlaySound( sound.pfHandle, oneshot );
+void PlaySoundSource( SoundHandle sound, int oneshot ) {
+    pfPlaySound( sound.pfHandle, oneshot );
 }
 
-void PauseSoundSource( SoundHandle sound )
-{
-  pfPauseSound( sound.pfHandle );
+void PauseSoundSource( SoundHandle sound ) {
+    pfPauseSound( sound.pfHandle );
 }
 
-void SetVolume( SoundHandle sound, float vol )
-{
-  pfSetSoundVolume( sound.pfHandle, vol );
+void SetVolume( SoundHandle sound, float vol ) {
+    pfSetSoundVolume( sound.pfHandle, vol );
 }
 
-int SoundPlaying( SoundHandle sound )
-{
-  return pfIsSoundPlaying( sound.pfHandle );
+int SoundPlaying( SoundHandle sound ) {
+    return pfIsSoundPlaying( sound.pfHandle );
 }
 
-API void SetMasterVolume( float volume )
-{
-  pfSetMasterVolume( volume );
+API void SetMasterVolume( float volume ) {
+    pfSetMasterVolume( volume );
 }
 
-API float GetMasterVolume()
-{
-  return pfGetMasterVolume();
+API float GetMasterVolume() {
+    return pfGetMasterVolume();
 }
 
-API void SetPitch( SoundHandle sound, float pitch )
-{
-  pfSetSoundPitch( sound.pfHandle, pitch );
+API void SetPitch( SoundHandle sound, float pitch ) {
+    pfSetSoundPitch( sound.pfHandle, pitch );
 }
 
-API bool IsSoundPaused( SoundHandle sound )
-{
-  return pfIsSoundPlayingUntilPaused( sound.pfHandle );
+API bool IsSoundPaused( SoundHandle sound ) {
+    return pfIsSoundPlayingUntilPaused( sound.pfHandle );
 }

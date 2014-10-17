@@ -2,20 +2,19 @@
 
 #include "Game.h"
 
-class Lift
-{
+class Lift {
 private:
-  NodeHandle body;
-  NodeHandle scr;
-  NodeHandle pos;
-  NodeHandle sourcePoint;
-  NodeHandle destPoint;
-  NodeHandle target;
+    NodeHandle body;
+    NodeHandle scr;
+    NodeHandle pos;
+    NodeHandle sourcePoint;
+    NodeHandle destPoint;
+    NodeHandle target;
 
-  bool arrived;
+    bool arrived;
 
-  SoundHandle motorIdleSound;
+    SoundHandle motorIdleSound;
 public:
-  Lift( NodeHandle object, NodeHandle screen, NodeHandle src, NodeHandle dest, SoundHandle motorIS );
-  void Update();
+    Lift( NodeHandle object, NodeHandle screen, NodeHandle src, NodeHandle dest, SoundHandle motorIS );
+    void Update();
 };

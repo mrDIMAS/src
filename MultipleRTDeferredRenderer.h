@@ -2,25 +2,24 @@
 
 #include "DeferredRenderer.h"
 
-class MultipleRTDeferredRenderer : public DeferredRenderer
-{
+class MultipleRTDeferredRenderer : public DeferredRenderer {
 public:
-  VertexShader * vertexShaderPassOne;
-  PixelShader * pixelShaderPassOne;
+    VertexShader * vertexShaderPassOne;
+    PixelShader * pixelShaderPassOne;
 
-  D3DXHANDLE v1World;
-  D3DXHANDLE v1WVP;  
+    D3DXHANDLE v1World;
+    D3DXHANDLE v1WVP;
 
-  D3DXHANDLE pAlbedo;
+    D3DXHANDLE pAlbedo;
 
-  void InitPassOneShaders();
+    void InitPassOneShaders();
 
-  MultipleRTDeferredRenderer();
-  ~MultipleRTDeferredRenderer();
+    MultipleRTDeferredRenderer();
+    ~MultipleRTDeferredRenderer();
 
-  void BeginFirstPass();
+    void BeginFirstPass();
 
-  void RenderMesh( Mesh * mesh );
+    void RenderMesh( Mesh * mesh );
 
-  void OnEnd();
+    void OnEnd();
 };

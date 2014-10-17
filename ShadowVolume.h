@@ -3,27 +3,25 @@
 #include "Common.h"
 #include "Mesh.h"
 
-class ShadowVolume
-{
+class ShadowVolume {
 private:
-  class Face
-  {
-  private:
-    short v1, v2, v3;
-  public:
+    class Face {
+    private:
+        short v1, v2, v3;
+    public:
 
-    Face( short theV1, short theV2, short theV3 );
-  };
+        Face( short theV1, short theV2, short theV3 );
+    };
 
-  IDirect3DVertexBuffer9 * vertexBuffer;
-  Mesh * caster;
-  Light * light;
+    IDirect3DVertexBuffer9 * vertexBuffer;
+    Mesh * caster;
+    Light * light;
 public:
-  ShadowVolume( Light * theLight, Mesh * theCaster );
+    ShadowVolume( Light * theLight, Mesh * theCaster );
 
-  void CreateSilhouette();
+    void CreateSilhouette();
 
-  void Update();
+    void Update();
 
-  void Render();
+    void Render();
 };

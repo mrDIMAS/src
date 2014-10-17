@@ -3,28 +3,27 @@
 #include "Shader.h"
 #include "ParticleEmitter.h"
 
-class ParticleSystemRenderer
-{
+class ParticleSystemRenderer {
 private:
-  PixelShader * pixelShader;
-  VertexShader * vertexShader;
+    PixelShader * pixelShader;
+    VertexShader * vertexShader;
 
-  IDirect3DVertexDeclaration9 * vd;
+    IDirect3DVertexDeclaration9 * vd;
 
-  D3DXHANDLE vView;
-  D3DXHANDLE vProj;
-  D3DXHANDLE vWorld;
+    D3DXHANDLE vView;
+    D3DXHANDLE vProj;
+    D3DXHANDLE vWorld;
 
-  D3DXHANDLE pLightCount;
-  D3DXHANDLE pColor;
-  D3DXHANDLE pRange;
-  D3DXHANDLE pPosition;
-  D3DXHANDLE pWithLight;
+    D3DXHANDLE pLightCount;
+    D3DXHANDLE pColor;
+    D3DXHANDLE pRange;
+    D3DXHANDLE pPosition;
+    D3DXHANDLE pWithLight;
 
-  D3DXHANDLE pInvViewProj;
-  D3DXHANDLE pThickness;
+    D3DXHANDLE pInvViewProj;
+    D3DXHANDLE pThickness;
 public:
-  ParticleSystemRenderer();
-  ~ParticleSystemRenderer();
-  void RenderAllParticleSystems();
+    ParticleSystemRenderer();
+    ~ParticleSystemRenderer();
+    void RenderAllParticleSystems();
 };

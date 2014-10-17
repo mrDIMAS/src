@@ -7,16 +7,15 @@
 
 using namespace std;
 
-class Parser
-{
+class Parser {
 private:
-  map< string, string > values;
-  bool parsed;
+    map< string, string > values;
+    bool parsed;
 public:
-  Parser( );
-  void ParseFile( string fn );
-  bool Empty();
-  bool IsParsed();
-  const char * GetString( string varName );
-  float GetNumber( string varName );
+    Parser( );
+    void ParseFile( string fn );
+    bool Empty();
+    bool IsParsed();
+    const char * GetString( string varName );
+    float GetNumber( string varName );
 };

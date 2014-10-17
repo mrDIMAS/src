@@ -4,81 +4,69 @@
 
 vector< Door* > Door::all;
 
-bool Door::IsPickedByPlayer()
-{
-  return door == player->nearestPicked;
+bool Door::IsPickedByPlayer() {
+    return door == player->nearestPicked;
 }
 
-Door::~Door()
-{
-  all.erase( find( all.begin(), all.end(), this ));
+Door::~Door() {
+    all.erase( find( all.begin(), all.end(), this ));
 }
 
-Door::Door( NodeHandle hDoor, float fMaxAngle )
-{
-  door = hDoor;
+Door::Door( NodeHandle hDoor, float fMaxAngle ) {
+    door = hDoor;
 
-  maxAngle = fMaxAngle;
-  
-  offsetAngle = GetEulerAngles( hDoor ).y;
+    maxAngle = fMaxAngle;
 
-  currentAngle = 0;
+    offsetAngle = GetEulerAngles( hDoor ).y;
 
-  state = State::Closed;
+    currentAngle = 0;
 
-  openSound = CreateSound3D( "data/sounds/door/dooropen.ogg" );
-  AttachSound( openSound, door );
+    state = State::Closed;
 
-  closeSound = CreateSound3D( "data/sounds/door/doorclose.ogg" );
-  AttachSound( closeSound, door );
+    openSound = CreateSound3D( "data/sounds/door/dooropen.ogg" );
+    AttachSound( openSound, door );
 
-  all.push_back( this );
+    closeSound = CreateSound3D( "data/sounds/door/doorclose.ogg" );
+    AttachSound( closeSound, door );
+
+    all.push_back( this );
 }
 
-void Door::DoInteraction()
-{
-  if( state == State::Closing )
-  {
-    currentAngle -= 1.0f;
+void Door::DoInteraction() {
+    if( state == State::Closing ) {
+        currentAngle -= 1.0f;
 
-    if( currentAngle < 0 )
-    {
-      currentAngle = 0.0f;
+        if( currentAngle < 0 ) {
+            currentAngle = 0.0f;
 
-      state = State::Closed;
+            state = State::Closed;
+        }
     }
-  }
 
-  if( state == State::Opening )
-  {
-    currentAngle += 1.0f;
+    if( state == State::Opening ) {
+        currentAngle += 1.0f;
 
-    if( currentAngle > maxAngle )
-    {
-      state = State::Opened;
+        if( currentAngle > maxAngle ) {
+            state = State::Opened;
 
-      currentAngle = maxAngle;
+            currentAngle = maxAngle;
+        }
     }
-  }
 
-  SetRotation( door, Quaternion( Vector3( 0, 1, 0 ), currentAngle + offsetAngle ));
+    SetRotation( door, Quaternion( Vector3( 0, 1, 0 ), currentAngle + offsetAngle ));
 }
 
-Door::State Door::GetState()
-{
-  return state;
+Door::State Door::GetState() {
+    return state;
 }
 
-void Door::SwitchState()
-{
-  if( state == State::Closed )
-  {
-    state = State::Opening;
-    PlaySoundSource( openSound );
-  }
-  if( state == State::Opened )
-  {
-    state = State::Closing;
-    PlaySoundSource( closeSound );
-  }
+void Door::SwitchState() {
+    if( state == State::Closed ) {
+        state = State::Opening;
+        PlaySoundSource( openSound );
+    }
+    if( state == State::Opened ) {
+        state = State::Closing;
+        PlaySoundSource( closeSound );
+    }
 }

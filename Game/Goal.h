@@ -5,21 +5,20 @@
 
 // Performs animation of goal text and it's rendering
 
-class Goal
-{
+class Goal {
 private:
-  TimerHandle waitTimer;
+    TimerHandle waitTimer;
 
-  float currentY;
-  float destY;
-  float initialY;
-  float waitSec;
+    float currentY;
+    float destY;
+    float initialY;
+    float waitSec;
 
-  float alpha;
+    float alpha;
 
-  string text;
+    string text;
 public:
-  Goal();
-  void SetText( string t );
-  void AnimateAndRender();
+    Goal();
+    void SetText( string t );
+    void AnimateAndRender();
 };

@@ -4,36 +4,35 @@
 #include "Item.h"
 #include "Parser.h"
 
-class Inventory
-{
+class Inventory {
 public:
-  vector<Item *> items;
-  TextureHandle backgroundTexture;
-  TextureHandle cellTexture;
-  TextureHandle buttonTexture;
+    vector<Item *> items;
+    TextureHandle backgroundTexture;
+    TextureHandle cellTexture;
+    TextureHandle buttonTexture;
 
-  bool opened;
+    bool opened;
 
-  Item* forUse;
-  Item* selected;
-  Item* combineItemFirst;
-  Item* combineItemSecond;
+    Item* forUse;
+    Item* selected;
+    Item* combineItemFirst;
+    Item* combineItemSecond;
 
-  int cellCountWidth;
-  int cellCountHeight;
-  int cellWidth;
-  int cellHeight;
+    int cellCountWidth;
+    int cellCountHeight;
+    int cellWidth;
+    int cellHeight;
 
-  SoundHandle pickSound;
- 
-  FontHandle font;
+    SoundHandle pickSound;
 
-  Parser localization;
+    FontHandle font;
 
-  Inventory();
-  void Update();
-  bool IsMouseInside( int x, int y, int w, int h );
-  void DoCombine();
-  void RemoveItem( Item * item );
-  void ThrowItem( Item * item );
+    Parser localization;
+
+    Inventory();
+    void Update();
+    bool IsMouseInside( int x, int y, int w, int h );
+    void DoCombine();
+    void RemoveItem( Item * item );
+    void ThrowItem( Item * item );
 };

@@ -3,28 +3,25 @@
 #include "Level.h"
 #include "GUI.h"
 
-class LevelIntroduction : public Level
-{
+class LevelIntroduction : public Level {
 public:
-  string text;
-  float textAlpha;
-  float textAlphaTo;
-  bool intro;
-  TimerHandle textTimer;
+    string text;
+    float textAlpha;
+    float textAlphaTo;
+    bool intro;
+    TimerHandle textTimer;
 
-  LevelIntroduction();
-  ~LevelIntroduction();
-  virtual void DoScenario();
-  virtual void Show();
-  virtual void Hide();
+    LevelIntroduction();
+    ~LevelIntroduction();
+    virtual void DoScenario();
+    virtual void Show();
+    virtual void Hide();
 
-  virtual void OnSerialize( TextFileStream & out ) final
-  {
+    virtual void OnSerialize( TextFileStream & out ) final {
 
-  }
+    }
 
-  virtual void OnDeserialize( TextFileStream & in ) final
-  {
+    virtual void OnDeserialize( TextFileStream & in ) final {
 
-  }
+    }
 };

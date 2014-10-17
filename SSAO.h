@@ -5,74 +5,73 @@
 #include "Utility.h"
 #include "Camera.h"
 
-class SSAO
-{
+class SSAO {
 public:
-  PixelShader * aoPixelShader;
-  PixelShader * blurPixelShader;
+    PixelShader * aoPixelShader;
+    PixelShader * blurPixelShader;
 
-  IDirect3DTexture9 * rotateTexture;
+    IDirect3DTexture9 * rotateTexture;
 
-  IDirect3DTexture9 * aoTexture;
-  IDirect3DSurface9 * aoRenderTarget;
+    IDirect3DTexture9 * aoTexture;
+    IDirect3DSurface9 * aoRenderTarget;
 
-  IDirect3DTexture9 * blurTexture;
-  IDirect3DSurface9 * blurRenderTarget;
+    IDirect3DTexture9 * blurTexture;
+    IDirect3DSurface9 * blurRenderTarget;
 
-  D3DXHANDLE aoScreenWidth;
-  D3DXHANDLE aoScreenHeight;
+    D3DXHANDLE aoScreenWidth;
+    D3DXHANDLE aoScreenHeight;
 
-  D3DXHANDLE aoInvViewProj;
+    D3DXHANDLE aoInvViewProj;
 
-  D3DXHANDLE aoRotateWidth;
-  D3DXHANDLE aoRotateHeight;
+    D3DXHANDLE aoRotateWidth;
+    D3DXHANDLE aoRotateHeight;
 
-  D3DXHANDLE aoRadius;
-  D3DXHANDLE aoDistScale;
-  D3DXHANDLE aoBias;
+    D3DXHANDLE aoRadius;
+    D3DXHANDLE aoDistScale;
+    D3DXHANDLE aoBias;
 
-  D3DXHANDLE blurScreenWidth;
-  D3DXHANDLE blurScreenHeight;
+    D3DXHANDLE blurScreenWidth;
+    D3DXHANDLE blurScreenHeight;
 
-  /*
-  "float ssao( float3x3 kernelBasis, float3 originPos, float radius) \n"
-    "{\n"
-    "   float occlusion = 0.0;\n"
-    "   for (int i = 0; i < uKernelSize; ++i) \n"
-    "   {\n"
+    /*
+    "float ssao( float3x3 kernelBasis, float3 originPos, float radius) \n"
+      "{\n"
+      "   float occlusion = 0.0;\n"
+      "   for (int i = 0; i < uKernelSize; ++i) \n"
+      "   {\n"
 
-    "     vec3 samplePos = kernelBasis * uKernelOffsets[i];\n"
-    "     samplePos = samplePos * radius + originPos;\n"
+      "     vec3 samplePos = kernelBasis * uKernelOffsets[i];\n"
+      "     samplePos = samplePos * radius + originPos;\n"
 
-    "     vec4 offset = uProjectionMatrix * vec4(samplePos, 1.0);\n"
-    "     offset.xy /= offset.w;\n"
-    "     offset.xy = offset.xy * 0.5 + 0.5;\n"
+      "     vec4 offset = uProjectionMatrix * vec4(samplePos, 1.0);\n"
+      "     offset.xy /= offset.w;\n"
+      "     offset.xy = offset.xy * 0.5 + 0.5;\n"
 
-    "     float sampleDepth = tex2D( depthSampler, offset.xy).r;\n"
-    "     sampleDepth = linearizeDepth(sampleDepth, uProjectionMatrix);\n"
+      "     float sampleDepth = tex2D( depthSampler, offset.xy).r;\n"
+      "     sampleDepth = linearizeDepth(sampleDepth, uProjectionMatrix);\n"
 
-    "     float rangeCheck = smoothstep(0.0, 1.0, radius / abs(originPos.z - sampleDepth));\n"
-    "     occlusion += rangeCheck * step(sampleDepth, samplePos.z);\n"
-    "  }\n"
+      "     float rangeCheck = smoothstep(0.0, 1.0, radius / abs(originPos.z - sampleDepth));\n"
+      "     occlusion += rangeCheck * step(sampleDepth, samplePos.z);\n"
+      "  }\n"
 
-    "  occlusion = 1.0 - (occlusion / float(uKernelSize));\n"
-    "  return pow(occlusion, uPower);\n"
-    "}\n"
-  */
+      "  occlusion = 1.0 - (occlusion / float(uKernelSize));\n"
+      "  return pow(occlusion, uPower);\n"
+      "}\n"
+    */
 
-  GBuffer * gBuffer;
+    GBuffer * gBuffer;
 
-  EffectsQuad * screenQuad;
+    EffectsQuad * screenQuad;
 
-  SSAO( GBuffer * theGBuffer );
+    SSAO( GBuffer * theGBuffer );
 
-  void FillAOMap();
+    void FillAOMap();
 
-  void DoBlurAndAddAOToSourceMap( IDirect3DTexture9 * sourceMap );
+    void DoBlurAndAddAOToSourceMap( IDirect3DTexture9 * sourceMap );
 };
 
 /*
-string aoSource = 
+string aoSource =
   "texture depthTexture;\n"
 
   "sampler depthSampler : register(s0) = sampler_state\n"
@@ -122,7 +121,7 @@ string aoSource =
   "   screenPosition.w = 1.0f;\n"
 
   "   float4 position = mul( screenPosition, invViewProj );\n"
-  "   position /= position.w;\n"   
+  "   position /= position.w;\n"
 
   "   float2 rotateMapCoord = float2( texCoord.x * screenWidth / rotateMapWidth, texCoord.y * screenHeight / rotateMapHeight );\n"
   "   float3 plane = tex2D( rotateSampler, rotateMapCoord ).xyz;\n"
@@ -142,9 +141,9 @@ string aoSource =
   "     screenPosition.w = 1.0f;\n"
 
   "     float4 iPosition = mul( screenPosition, invViewProj );\n"
-  "     iPosition /= iPosition.w;\n" 
+  "     iPosition /= iPosition.w;\n"
 
-  "     float	dist = max ( iPosition.z - position.z, 0.0 ) / distScale;\n"	
+  "     float	dist = max ( iPosition.z - position.z, 0.0 ) / distScale;\n"
   "     float	occl = 15 * max ( dist * (2.0 - dist), 0.0 );\n"
 
   "     attenuation += 1.0 / ( 1.0 + occl*occl );\n"

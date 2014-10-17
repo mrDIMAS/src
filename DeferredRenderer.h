@@ -10,119 +10,114 @@ class Mesh;
 
 
 
-class DeferredRenderer
-{
+class DeferredRenderer {
 public:
-  class BoundingVolumeRenderingShader
-  {
-  private:
-    VertexShader * vs;
-    PixelShader * ps;
+    class BoundingVolumeRenderingShader {
+    private:
+        VertexShader * vs;
+        PixelShader * ps;
 
-    IDirect3DVertexDeclaration9 * vertexDeclaration;
+        IDirect3DVertexDeclaration9 * vertexDeclaration;
 
-    D3DXHANDLE vWVP;
-  public:
-    BoundingVolumeRenderingShader();
-    ~BoundingVolumeRenderingShader();
+        D3DXHANDLE vWVP;
+    public:
+        BoundingVolumeRenderingShader();
+        ~BoundingVolumeRenderingShader();
 
-    void Bind();
-    void SetTransform( D3DXMATRIX & wvp );
-  };
+        void Bind();
+        void SetTransform( D3DXMATRIX & wvp );
+    };
 
-  BoundingVolumeRenderingShader * bvRenderer;
-  
-  ID3DXMesh * icosphere;
-  ID3DXMesh * cone;
+    BoundingVolumeRenderingShader * bvRenderer;
 
-   
-  // Ambient Light
-  class Pass2AmbientLight
-  {
-  private:
-    PixelShader * pixelShader;
+    ID3DXMesh * icosphere;
+    ID3DXMesh * cone;
 
-    D3DXHANDLE hAmbientColor;
 
-  public:
-    Pass2AmbientLight();
-    ~Pass2AmbientLight();
+    // Ambient Light
+    class Pass2AmbientLight {
+    private:
+        PixelShader * pixelShader;
 
-    void Bind( );
-  };
+        D3DXHANDLE hAmbientColor;
 
-  // Point Light
-  class Pass2PointLight
-  {
-  private:
-    D3DXHANDLE hLightPos;
-    D3DXHANDLE hLightRange;
-    D3DXHANDLE hCameraPos;
-    D3DXHANDLE hInvViewProj;
-    D3DXHANDLE hLightColor; 
+    public:
+        Pass2AmbientLight();
+        ~Pass2AmbientLight();
 
-    PixelShader * pixelShader;
-  public:
-    Pass2PointLight();
-    ~Pass2PointLight();
+        void Bind( );
+    };
 
-    void Bind( D3DXMATRIX & invViewProj );
-    void BindShader( );
-    void SetLight( Light * lit );
-  };
+    // Point Light
+    class Pass2PointLight {
+    private:
+        D3DXHANDLE hLightPos;
+        D3DXHANDLE hLightRange;
+        D3DXHANDLE hCameraPos;
+        D3DXHANDLE hInvViewProj;
+        D3DXHANDLE hLightColor;
 
-  // Spot Light
-  class Pass2SpotLight
-  {
-  private:
-    PixelShader * pixelShader;
+        PixelShader * pixelShader;
+    public:
+        Pass2PointLight();
+        ~Pass2PointLight();
 
-    D3DXHANDLE hLightPos;
-    D3DXHANDLE hLightRange;
-    D3DXHANDLE hCameraPos;
-    D3DXHANDLE hInvViewProj;
-    D3DXHANDLE hLightColor;  
+        void Bind( D3DXMATRIX & invViewProj );
+        void BindShader( );
+        void SetLight( Light * lit );
+    };
 
-    D3DXHANDLE hInnerAngle;
-    D3DXHANDLE hOuterAngle;
-    D3DXHANDLE hDirection;
-  public:
-    Pass2SpotLight( );
-    ~Pass2SpotLight();
+    // Spot Light
+    class Pass2SpotLight {
+    private:
+        PixelShader * pixelShader;
 
-    void Bind( D3DXMATRIX & invViewProj );
-    void BindShader( );
-    void SetLight( Light * lit );
-  };
-    
-  EffectsQuad * effectsQuad;
+        D3DXHANDLE hLightPos;
+        D3DXHANDLE hLightRange;
+        D3DXHANDLE hCameraPos;
+        D3DXHANDLE hInvViewProj;
+        D3DXHANDLE hLightColor;
 
-  GBuffer * gBuffer;
+        D3DXHANDLE hInnerAngle;
+        D3DXHANDLE hOuterAngle;
+        D3DXHANDLE hDirection;
+    public:
+        Pass2SpotLight( );
+        ~Pass2SpotLight();
 
-  Pass2AmbientLight * pass2AmbientLight;
-  Pass2PointLight * pass2PointLight;
-  Pass2SpotLight * pass2SpotLight;  
+        void Bind( D3DXMATRIX & invViewProj );
+        void BindShader( );
+        void SetLight( Light * lit );
+    };
 
-  FXAA * fxaa;
-  SSAO * ssao;
+    EffectsQuad * effectsQuad;
 
-  void CreateBoundingVolumes();
+    GBuffer * gBuffer;
 
-  void RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition );
-  void RenderConeIntoStencilBuffer( Light * lit );
+    Pass2AmbientLight * pass2AmbientLight;
+    Pass2PointLight * pass2PointLight;
+    Pass2SpotLight * pass2SpotLight;
 
-  void RenderScreenQuad();
-  void RenderMeshShadow( Mesh * mesh );
-  void ConfigureStencilBuffer();
+    FXAA * fxaa;
+    SSAO * ssao;
+
+    void CreateBoundingVolumes();
+
+    void RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition );
+    void RenderConeIntoStencilBuffer( Light * lit );
+
+    void RenderScreenQuad();
+    void RenderMeshShadow( Mesh * mesh );
+    void ConfigureStencilBuffer();
 public:
-  explicit DeferredRenderer();
-  virtual ~DeferredRenderer();
+    explicit DeferredRenderer();
+    virtual ~DeferredRenderer();
 
-  GBuffer * GetGBuffer();
+    GBuffer * GetGBuffer();
 
-  virtual void BeginFirstPass() = 0;
-  virtual void RenderMesh( Mesh * mesh ) = 0;
-  virtual void OnEnd() = 0;
+    virtual void BeginFirstPass() = 0;
+    virtual void RenderMesh( Mesh * mesh ) = 0;
+    virtual void OnEnd() = 0;
 
-  void EndFirstPassAndDoSecondPass();
+    void EndFirstPassAndDoSecondPass();
 };

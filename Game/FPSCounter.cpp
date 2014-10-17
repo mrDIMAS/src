@@ -3,24 +3,21 @@
 
 
 
-void FPSCounter::RegisterFrame()
-{
-  frameCounter++;
+void FPSCounter::RegisterFrame() {
+    frameCounter++;
 
-  if( GetElapsedTimeInSeconds( timer ) > 1.0f )
-  {
-    fps = frameCounter;
+    if( GetElapsedTimeInSeconds( timer ) > 1.0f ) {
+        fps = frameCounter;
 
-    frameCounter = 0;
+        frameCounter = 0;
 
-    RestartTimer( timer );
-  }
+        RestartTimer( timer );
+    }
 }
 
-FPSCounter::FPSCounter()
-{
-  timer = CreateTimer();
+FPSCounter::FPSCounter() {
+    timer = CreateTimer();
 
-  fps = 0;
-  frameCounter = 0;
+    fps = 0;
+    frameCounter = 0;
 }

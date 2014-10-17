@@ -2,18 +2,17 @@
 
 #include "Game.h"
 
-class Valve
-{
+class Valve {
 public:
-  NodeHandle object;
-  Vector3 tAxis;
+    NodeHandle object;
+    Vector3 tAxis;
 
-  float angle;
-  bool done;
-  int tc;
+    float angle;
+    bool done;
+    int tc;
 
-  float value;
+    float value;
 
-  Valve( NodeHandle obj, Vector3 axis, int turnCount = 2 );
-  void Update();
+    Valve( NodeHandle obj, Vector3 axis, int turnCount = 2 );
+    void Update();
 };

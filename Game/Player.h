@@ -12,147 +12,146 @@
 #include "TextFileStream.h"
 #include "Parser.h"
 
-class Player
-{
+class Player {
 private:
-  void LoadSounds();
-  void CreateBody();
-  void CreateCamera();
-  void CreateFlashLight();
-  void LoadGUIElements();
-  void UpdateJumping();
-  void UpdateCameraBob();
-  void DrawGUIElements();
-  void UpdateFlashLight();
-  void UpdatePicking();
-  void UpdateItemsHandling();
-  void UpdateEnvironmentDamaging();
-  void DescribePickedObject();
-  void DrawSheetInHands();
-  void SetRockFootsteps();
-  void SetDirtFootsteps();
-  void SetMetalFootsteps();
-  void UpdateFright();
+    void LoadSounds();
+    void CreateBody();
+    void CreateCamera();
+    void CreateFlashLight();
+    void LoadGUIElements();
+    void UpdateJumping();
+    void UpdateCameraBob();
+    void DrawGUIElements();
+    void UpdateFlashLight();
+    void UpdatePicking();
+    void UpdateItemsHandling();
+    void UpdateEnvironmentDamaging();
+    void DescribePickedObject();
+    void DrawSheetInHands();
+    void SetRockFootsteps();
+    void SetDirtFootsteps();
+    void SetMetalFootsteps();
+    void UpdateFright();
 
-  Parser localization;
+    Parser localization;
 public:
-  explicit Player();
-  virtual ~Player();
-  void DrawTip( string text );
-  void FreeHands();
-  bool CanJump( );
-  bool UseStamina( float st );
-  void Damage( float dmg );
-  void AddItem( Item * itm );
-  void UpdateInventory();
-  void Update( );
-  void UpdateMouseLook();
-  void UpdateMoving();
-  void DrawStatusBar();
-  void SetObjective( string text );
-  void CompleteObjective();
-  int GotItemAnyOfType( int type );
-  void SetPlaceDescription( string desc );
-  void SetFootsteps( FootstepsType ft );
-  void ChargeFlashLight( Item * fuel );
-  bool IsUseButtonHit();
-  bool IsObjectHasNormalMass( NodeHandle node );
-  void DoFright();
-  Item * flashLightItem;
+    explicit Player();
+    virtual ~Player();
+    void DrawTip( string text );
+    void FreeHands();
+    bool CanJump( );
+    bool UseStamina( float st );
+    void Damage( float dmg );
+    void AddItem( Item * itm );
+    void UpdateInventory();
+    void Update( );
+    void UpdateMouseLook();
+    void UpdateMoving();
+    void DrawStatusBar();
+    void SetObjective( string text );
+    void CompleteObjective();
+    int GotItemAnyOfType( int type );
+    void SetPlaceDescription( string desc );
+    void SetFootsteps( FootstepsType ft );
+    void ChargeFlashLight( Item * fuel );
+    bool IsUseButtonHit();
+    bool IsObjectHasNormalMass( NodeHandle node );
+    void DoFright();
+    Item * flashLightItem;
 
-  FootstepsType footstepsType;
+    FootstepsType footstepsType;
 
-  GameCamera * camera;
+    GameCamera * camera;
 
-  NodeHandle body;  
-  NodeHandle pickPoint;
-  NodeHandle itemPoint;
-  NodeHandle objectInHands;
-  NodeHandle nearestPicked;
-  NodeHandle picked;
+    NodeHandle body;
+    NodeHandle pickPoint;
+    NodeHandle itemPoint;
+    NodeHandle objectInHands;
+    NodeHandle nearestPicked;
+    NodeHandle picked;
 
-  TextureHandle upCursor;
-  TextureHandle downCursor;
-  TextureHandle statusBar;
+    TextureHandle upCursor;
+    TextureHandle downCursor;
+    TextureHandle statusBar;
 
-  float pitch;
-  float yaw;
-  float pitchTo;
-  float yawTo;
-  float stamina;
-  float life;
-  float maxLife;
-  float maxStamina;
-  float runSpeedMult;
-  float fov;
-  float runFOV;
-  float normalFOV;
-  float headHeight;
-  float fovTo;
-  float cameraBobCoeff;
-  float staminaAlpha;
-  float healthAlpha;
-  float staminaAlphaTo;
-  float healthAlphaTo;
-  float runBobCoeff;
-  float damagePitchOffset;
-  float damagePitchOffsetTo;
-  float breathVolume;
-  float heartBeatVolume;
-  float breathVolumeTo;
-  float heartBeatVolumeTo;
-  float heartBeatPitch;
-  float heartBeatPitchTo;
-  float breathPitch;
-  float breathPitchTo;
+    float pitch;
+    float yaw;
+    float pitchTo;
+    float yawTo;
+    float stamina;
+    float life;
+    float maxLife;
+    float maxStamina;
+    float runSpeedMult;
+    float fov;
+    float runFOV;
+    float normalFOV;
+    float headHeight;
+    float fovTo;
+    float cameraBobCoeff;
+    float staminaAlpha;
+    float healthAlpha;
+    float staminaAlphaTo;
+    float healthAlphaTo;
+    float runBobCoeff;
+    float damagePitchOffset;
+    float damagePitchOffsetTo;
+    float breathVolume;
+    float heartBeatVolume;
+    float breathVolumeTo;
+    float heartBeatVolumeTo;
+    float heartBeatPitch;
+    float heartBeatPitchTo;
+    float breathPitch;
+    float breathPitchTo;
 
-  Vector3 speed;
-  Vector3 speedTo;
-  Vector3 gravity;
-  Vector3 jumpTo;
-  Vector3 cameraOffset;
-  Vector3 cameraBob;
-  Vector3 frameColor;
-  Way * currentWay;
-  
-  SoundHandle lighterCloseSound;
-  SoundHandle lighterOpenSound;
-  SoundHandle pickupSound;
-  SoundHandle heartBeatSound;
-  SoundHandle breathSound;
+    Vector3 speed;
+    Vector3 speedTo;
+    Vector3 gravity;
+    Vector3 jumpTo;
+    Vector3 cameraOffset;
+    Vector3 cameraBob;
+    Vector3 frameColor;
+    Way * currentWay;
 
-  vector< SoundHandle > footsteps;
+    SoundHandle lighterCloseSound;
+    SoundHandle lighterOpenSound;
+    SoundHandle pickupSound;
+    SoundHandle heartBeatSound;
+    SoundHandle breathSound;
 
-  bool objectThrown;
-  bool landed; 
-  bool dead;
-  bool objectiveDone;
-  bool moved;
-  bool locked;
-  bool smoothCamera;
+    vector< SoundHandle > footsteps;
 
-  Inventory inventory;  
-  
-  int placeDescTimer;
-  int keyMoveForward;
-  int keyMoveBackward;
-  int keyStrafeLeft;
-  int keyStrafeRight;
-  int keyJump;
-  int keyFlashLight;
-  int keyRun;
-  int keyInventory;
-  int keyUse;
+    bool objectThrown;
+    bool landed;
+    bool dead;
+    bool objectiveDone;
+    bool moved;
+    bool locked;
+    bool smoothCamera;
 
-  string placeDesc;
-  string pickedObjectDesc;
+    Inventory inventory;
 
-  Goal goal;
+    int placeDescTimer;
+    int keyMoveForward;
+    int keyMoveBackward;
+    int keyStrafeLeft;
+    int keyStrafeRight;
+    int keyJump;
+    int keyFlashLight;
+    int keyRun;
+    int keyInventory;
+    int keyUse;
 
-  Sheet * sheetInHands;
+    string placeDesc;
+    string pickedObjectDesc;
 
-  Flashlight * flashlight;
+    Goal goal;
 
-  virtual void SerializeWith( TextFileStream & out ) final;
-  virtual void DeserializeWith( TextFileStream & in ) final;
+    Sheet * sheetInHands;
+
+    Flashlight * flashlight;
+
+    virtual void SerializeWith( TextFileStream & out ) final;
+    virtual void DeserializeWith( TextFileStream & in ) final;
 };

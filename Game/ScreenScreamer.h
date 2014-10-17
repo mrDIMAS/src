@@ -2,15 +2,14 @@
 
 #include "game.h"
 
-class ScreenScreamer
-{
+class ScreenScreamer {
 public:
-  SoundHandle sound;
-  int periods;
-  TextureHandle tex;
-  int nextPeriodFrames;
-  int pauseFrames;
-  ScreenScreamer();
-  void DoPeriods( int p );
-  void Update( );
+    SoundHandle sound;
+    int periods;
+    TextureHandle tex;
+    int nextPeriodFrames;
+    int pauseFrames;
+    ScreenScreamer();
+    void DoPeriods( int p );
+    void Update( );
 };

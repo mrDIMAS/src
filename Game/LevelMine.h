@@ -6,72 +6,69 @@
 #include "ItemPlace.h"
 #include "AmbientSoundSet.h"
 
-class LevelMine : public Level
-{
+class LevelMine : public Level {
 public:
-  LevelMine( );
-  ~LevelMine();
+    LevelMine( );
+    ~LevelMine();
 
-  virtual void DoScenario();
-  virtual void Show();
-  virtual void Hide();
+    virtual void DoScenario();
+    virtual void Show();
+    virtual void Hide();
 
-  void UpdateExplodeSequence();
-  void CleanUpExplodeArea();
+    void UpdateExplodeSequence();
+    void CleanUpExplodeArea();
 
-  AmbientSoundSet ambSoundSet;
-  void CreateItems();
+    AmbientSoundSet ambSoundSet;
+    void CreateItems();
 
-  NodeHandle screamerZone;
-  NodeHandle screamerZone2;
+    NodeHandle screamerZone;
+    NodeHandle screamerZone2;
 
-  NodeHandle concreteWall;
-  NodeHandle deathZone;
-  NodeHandle detonator;
+    NodeHandle concreteWall;
+    NodeHandle deathZone;
+    NodeHandle detonator;
 
-  NodeHandle findItemsZone;
+    NodeHandle findItemsZone;
 
-  NodeHandle newLevelZone;
+    NodeHandle newLevelZone;
 
-  NodeHandle stoneFallZone;
+    NodeHandle stoneFallZone;
 
-  bool detonatorActivated;
+    bool detonatorActivated;
 
-  SoundHandle alertSound;
-  SoundHandle explosionSound;
+    SoundHandle alertSound;
+    SoundHandle explosionSound;
 
-  // Item places
-  ItemPlace * detonatorPlace[4];
+    // Item places
+    ItemPlace * detonatorPlace[4];
 
-  // Create items
-  Item * explosives[4];
-  Item * detonators[4];
-  Item * wires[4];
+    // Create items
+    Item * explosives[4];
+    Item * detonators[4];
+    Item * wires[4];
 
-  Item * fuel[2];
+    Item * fuel[2];
 
-  NodeHandle wireModels[4];
-  NodeHandle detonatorModels[4];
-  NodeHandle explosivesModels[4];
+    NodeHandle wireModels[4];
+    NodeHandle detonatorModels[4];
+    NodeHandle explosivesModels[4];
 
-  TimerHandle explosionTimer;
-  TimerHandle beepSoundTimer;
+    TimerHandle explosionTimer;
+    TimerHandle beepSoundTimer;
 
-  float beepSoundTiming;
+    float beepSoundTiming;
 
-  int readyExplosivesCount;
+    int readyExplosivesCount;
 
-  LightAnimator * explosionFlashAnimator;
+    LightAnimator * explosionFlashAnimator;
 
-  virtual void OnSerialize( TextFileStream & out ) final
-  {
-    out.WriteBoolean( detonatorActivated );
-    out.WriteFloat( beepSoundTiming );
-  }
+    virtual void OnSerialize( TextFileStream & out ) final {
+        out.WriteBoolean( detonatorActivated );
+        out.WriteFloat( beepSoundTiming );
+    }
 
-  virtual void OnDeserialize( TextFileStream & in ) final
-  {
-    in.ReadBoolean( detonatorActivated );
-    in.ReadFloat( beepSoundTiming );    
-  }
+    virtual void OnDeserialize( TextFileStream & in ) final {
+        in.ReadBoolean( detonatorActivated );
+        in.ReadFloat( beepSoundTiming );
+    }
 };

@@ -17,44 +17,40 @@
 #include <vld.h>
 #include <windows.h>
 
-enum class FootstepsType
-{
-  Rock,
-  Metal,
-  Dirt
+enum class FootstepsType {
+    Rock,
+    Metal,
+    Dirt
 };
 
-enum LevelName
-{
-  LUndefined = 0,
-  L0Introduction = 1,
-  L1Arrival,
-  L2Mine,
-  L3ResearchFacility,
+enum LevelName {
+    LUndefined = 0,
+    L0Introduction = 1,
+    L1Arrival,
+    L2Mine,
+    L3ResearchFacility,
 
-  // For testing
-  LXTestingChamber,
+    // For testing
+    LXTestingChamber,
 };
 
 
-static string Format( const char * format, ... )
-{
-  char buffer[ 1024 ];
-  va_list	argumentList;
+static string Format( const char * format, ... ) {
+    char buffer[ 1024 ];
+    va_list	argumentList;
 
-  va_start( argumentList, format );
-  vsprintf_s( buffer, format , argumentList);
-  va_end(argumentList);
+    va_start( argumentList, format );
+    vsprintf_s( buffer, format , argumentList);
+    va_end(argumentList);
 
-  return string( buffer );
+    return string( buffer );
 }
 using namespace std;
 
 #pragma comment( lib, "Ruthenium.lib" )
 
-static float frandom( float low, float high )
-{
-  return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+static float frandom( float low, float high ) {
+    return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
 }
 
 

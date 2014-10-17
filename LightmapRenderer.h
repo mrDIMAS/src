@@ -5,22 +5,21 @@
 #include "SceneNode.h"
 #include "Mesh.h"
 
-class LightmapRenderer
-{
+class LightmapRenderer {
 private:
-  PixelShader * pixelShader;
-  VertexShader * vertexShader;
+    PixelShader * pixelShader;
+    VertexShader * vertexShader;
 
-  D3DXHANDLE vWVP;
-  D3DXHANDLE vView;
-  D3DXHANDLE vProj;
+    D3DXHANDLE vWVP;
+    D3DXHANDLE vView;
+    D3DXHANDLE vProj;
 
 public:
-  LightmapRenderer();
+    LightmapRenderer();
 
-  void Begin();
+    void Begin();
 
-  void RenderMesh( Mesh * mesh );
+    void RenderMesh( Mesh * mesh );
 
-  void End();
+    void End();
 };
