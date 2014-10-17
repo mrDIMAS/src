@@ -11,7 +11,6 @@ public:
   // Sounds
   SoundHandle windSound; 
   SoundHandle generatorSound;
-  SoundHandle creepyMus;
   SoundHandle explosionSound;
   SoundHandle strangeSound;
 
@@ -27,8 +26,6 @@ public:
 
   NodeHandle lamp1;
   NodeHandle lamp2;
-
-  AmbientSoundSet ambSoundSet;
 
   LevelArrival( );
   ~LevelArrival( );

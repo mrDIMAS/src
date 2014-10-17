@@ -281,13 +281,16 @@ API void PauseSoundSource( SoundHandle sound );
 API void SetVolume( SoundHandle sound, float vol );
 API void SetSoundPosition( SoundHandle sound, Vector3 pos );
 API void SetSoundReferenceDistance( SoundHandle sound, float rd );
-API void SetRolloffFactor( float rolloffDistance );
+API void SetRolloffFactor( SoundHandle sound, float rolloffDistance );
+API void SetMaxDistance( SoundHandle sound, float maxDistance );
 API int SoundPlaying( SoundHandle sound );
 API void FreeSoundSource( SoundHandle sound );
 API void SetReverb( int reverb );
 API void SetMasterVolume( float volume );
 API float GetMasterVolume();
 API bool IsNodeHasBody( NodeHandle node );
+API void SetPitch( SoundHandle sound, float pitch );
+API bool IsSoundPaused( SoundHandle sound );
 ////////////////////////////////////////////////////////////////////////////////////
 // Light functions
 ////////////////////////////////////////////////////////////////////////////////////

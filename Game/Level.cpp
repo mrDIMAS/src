@@ -46,6 +46,9 @@ Level::~Level()
 
   for( auto lift : lifts )
     delete lift;
+
+  for( auto sound : sounds )
+    FreeSoundSource( sound );
 }
 
 void Level::LoadLocalization( string fn )
@@ -56,11 +59,18 @@ void Level::LoadLocalization( string fn )
 void Level::Hide()
 {
   HideNode( scene );
+
+  for( auto & sound : sounds )
+    PauseSoundSource( sound );
 }
 
 void Level::Show()
 {
   ShowNode( scene );
+
+  for( auto & sound : sounds )
+    if( IsSoundPaused( sound ))
+      PlaySoundSource( sound );
 }
 
 void Level::Change( int levelId, bool continueFromSave )
@@ -181,4 +191,9 @@ void Level::SerializeWith( TextFileStream & out )
     out.WriteBoolean( IsNodeVisible( node ));
   }
   OnSerialize( out );
+}
+
+void Level::AddSound( SoundHandle sound )
+{
+  sounds.push_back( sound );
 }

@@ -32,6 +32,8 @@ private:
   void SetRockFootsteps();
   void SetDirtFootsteps();
   void SetMetalFootsteps();
+  void UpdateFright();
+
   Parser localization;
 public:
   explicit Player();
@@ -55,77 +57,83 @@ public:
   void ChargeFlashLight( Item * fuel );
   bool IsUseButtonHit();
   bool IsObjectHasNormalMass( NodeHandle node );
-  vector< SoundHandle > footsteps;
-
-  bool locked;
-  bool smoothCamera;
-
-  SoundHandle lighterCloseSound;
-  SoundHandle lighterOpenSound;
-  float runBobCoeff;
- 
-  float damagePitchOffset;
-  float damagePitchOffsetTo;
-
+  void DoFright();
   Item * flashLightItem;
 
   FootstepsType footstepsType;
-  NodeHandle body;
+
   GameCamera * camera;
+
+  NodeHandle body;  
   NodeHandle pickPoint;
   NodeHandle itemPoint;
   NodeHandle objectInHands;
-  float pitch, yaw;
-  float pitchTo, yawTo;
-  Vector3 speed;
-  Vector3 speedTo;
-  Vector3 gravity;
-  Vector3 jumpTo;
+  NodeHandle nearestPicked;
+  NodeHandle picked;
+
   TextureHandle upCursor;
   TextureHandle downCursor;
-  Way * currentWay;
-  bool landed;
-  NodeHandle picked;
+  TextureHandle statusBar;
+
+  float pitch;
+  float yaw;
+  float pitchTo;
+  float yawTo;
   float stamina;
   float life;
-  NodeHandle nearestPicked;
   float maxLife;
   float maxStamina;
   float runSpeedMult;
   float fov;
   float runFOV;
   float normalFOV;
-  
-  SoundHandle pickupSound;
+  float headHeight;
   float fovTo;
   float cameraBobCoeff;
-  Vector3 cameraOffset;
-  Vector3 cameraBob;
-  float headHeight;
-  bool objectThrown;
-
-  bool dead;
-  Inventory inventory;
-  Vector3 frameColor;
-  string placeDesc;
-  bool moved;
-  int placeDescTimer;
-  TextureHandle statusBar;
   float staminaAlpha;
   float healthAlpha;
   float staminaAlphaTo;
   float healthAlphaTo;
+  float runBobCoeff;
+  float damagePitchOffset;
+  float damagePitchOffsetTo;
+  float breathVolume;
+  float heartBeatVolume;
+  float breathVolumeTo;
+  float heartBeatVolumeTo;
+  float heartBeatPitch;
+  float heartBeatPitchTo;
+  float breathPitch;
+  float breathPitchTo;
 
+  Vector3 speed;
+  Vector3 speedTo;
+  Vector3 gravity;
+  Vector3 jumpTo;
+  Vector3 cameraOffset;
+  Vector3 cameraBob;
+  Vector3 frameColor;
+  Way * currentWay;
+  
+  SoundHandle lighterCloseSound;
+  SoundHandle lighterOpenSound;
+  SoundHandle pickupSound;
+  SoundHandle heartBeatSound;
+  SoundHandle breathSound;
+
+  vector< SoundHandle > footsteps;
+
+  bool objectThrown;
+  bool landed; 
+  bool dead;
   bool objectiveDone;
+  bool moved;
+  bool locked;
+  bool smoothCamera;
 
-  string pickedObjectDesc;
-
-  int breathParticleSystem;
-  Goal goal;
-
-  Sheet * sheetInHands;
-
-  // Control keys
+  Inventory inventory;  
+  
+  int placeDescTimer;
   int keyMoveForward;
   int keyMoveBackward;
   int keyStrafeLeft;
@@ -135,6 +143,13 @@ public:
   int keyRun;
   int keyInventory;
   int keyUse;
+
+  string placeDesc;
+  string pickedObjectDesc;
+
+  Goal goal;
+
+  Sheet * sheetInHands;
 
   Flashlight * flashlight;
 

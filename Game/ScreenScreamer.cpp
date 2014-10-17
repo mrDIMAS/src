@@ -1,5 +1,6 @@
 #include "ScreenScreamer.h"
 #include "Menu.h"
+#include "Player.h"
 
 ScreenScreamer * screamer = 0;
 
@@ -45,6 +46,8 @@ void ScreenScreamer::Update()
         DrawGUIRect( -offset + xOff, -offset + yOff , GetResolutionWidth() + xOff, GetResolutionHeight() + yOff, tex, Vector3( 255, 0, 0 ), 120 );
 
         PlaySoundSource( sound );
+
+        player->DoFright();
 
         nextPeriodFrames--;
       }

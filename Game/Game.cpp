@@ -81,8 +81,18 @@ void main( )
 
     InteractiveObject::UpdateAll();
 
-    if( currentLevel )
-      currentLevel->DoScenario();
+    if( !menu->visible )
+    {
+      if( mi::KeyHit( (mi::Key)g_keyQuickSave ))
+        SaveWriter( "quickSave.save" ).SaveWorldState();
+
+      if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
+        if( FileExist( "quickSave.save" ))     
+          SaveLoader( "quickSave.save" ).RestoreWorldState();
+
+      if( currentLevel )
+        currentLevel->DoScenario();
+    }
 
     fpsCounter.RegisterFrame();
     
@@ -93,15 +103,7 @@ void main( )
 
     RenderWorld( );
 
-    if( !menu->visible )
-    {
-      if( mi::KeyHit( (mi::Key)g_keyQuickSave ))
-         SaveWriter( "quickSave.save" ).SaveWorldState();
 
-      if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
-        if( FileExist( "quickSave.save" ))     
-          SaveLoader( "quickSave.save" ).RestoreWorldState();
-    }
   }
 
   if( currentLevel )

@@ -66,9 +66,14 @@ void SetSoundReferenceDistance( SoundHandle sound, float rd )
   pfSetReferenceDistance( sound.pfHandle, rd );
 }
 
-void SetRolloffFactor( float rolloffFactor )
+void SetMaxDistance( SoundHandle sound, float maxDistance )
 {
-  pfSetListenerRolloffFactor( rolloffFactor );
+  pfSetMaxDistance( sound.pfHandle, maxDistance );
+}
+
+void SetRolloffFactor( SoundHandle sound, float rolloffFactor )
+{
+  pfSetRolloffFactor( sound.pfHandle, rolloffFactor );
 };
 
 void PlaySoundSource( SoundHandle sound, int oneshot )
@@ -99,4 +104,14 @@ API void SetMasterVolume( float volume )
 API float GetMasterVolume()
 {
   return pfGetMasterVolume();
+}
+
+API void SetPitch( SoundHandle sound, float pitch )
+{
+  pfSetSoundPitch( sound.pfHandle, pitch );
+}
+
+API bool IsSoundPaused( SoundHandle sound )
+{
+  return pfIsSoundPlayingUntilPaused( sound.pfHandle );
 }

@@ -41,9 +41,7 @@ LevelResearchFacility::LevelResearchFacility()
 
   CreatePowerUpSequence();
  
-  SetRolloffFactor( 14 );
-
-  music = CreateMusic( "data/music/rf.ogg" );
+  AddSound( music = CreateMusic( "data/music/rf.ogg" ));
   SetVolume( music, 0.75f );
 
   AddDoor( new Door( FindInObjectByName( scene, "Door1" ), 90.0f ));

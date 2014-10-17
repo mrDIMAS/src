@@ -13,6 +13,7 @@
 #include "Locale.h"
 #include "TextFileStream.h"
 #include "Parser.h"
+#include "AmbientSoundSet.h"
 
 class Level
 {
@@ -25,11 +26,14 @@ private:
   vector<ItemPlace*> itemPlaces;
   vector<Valve*> valves;
   vector<Lift*> lifts;
-  
+  vector<SoundHandle> sounds;  
   virtual void OnSerialize( TextFileStream & out ) = 0;
   virtual void OnDeserialize( TextFileStream & in ) = 0;
-protected:
+  AmbientSoundSet ambSoundSet;
+protected:  
   Parser localization;
+  NodeHandle scene;
+  SoundHandle music;
 public:
   map<string, bool > stages;
   void AddItem( Item * item );
@@ -40,17 +44,25 @@ public:
   void AddLadder( Ladder * ladder );
   void AddValve( Valve * valve );
   void AddLift( Lift * lift );
+  void AddSound( SoundHandle sound );
   void LoadLocalization( string fn );
-
+  void AddAmbientSound( SoundHandle sound )
+  {
+    sounds.push_back( sound );
+    ambSoundSet.AddSound( sound );
+  }
+  void PlayAmbientSounds()
+  {
+    ambSoundSet.DoRandomPlaying();
+  }
   explicit Level();
   virtual ~Level();
   virtual void DoScenario() = 0;
   virtual void Hide();
   virtual void Show();
-  NodeHandle scene;
+  
   static int curLevelID;
-  static void Change( int levelId, bool continueFromSave = false );
-  SoundHandle music;
+  static void Change( int levelId, bool continueFromSave = false );  
 
   virtual void SerializeWith( TextFileStream & out ) final;
   virtual void DeserializeWith( TextFileStream & in ) final;

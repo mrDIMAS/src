@@ -28,16 +28,16 @@ LevelMine::LevelMine()
 
   SetReverb( 8 );
 
-  music = CreateMusic( "data/music/chapter2.ogg" );
+  AddSound( music = CreateMusic( "data/music/chapter2.ogg" ));
 
   concreteWall = FindInObjectByName( scene, "ConcreteWall" );
   deathZone = FindInObjectByName( scene, "DeadZone" );
   detonator = FindInObjectByName( scene, "Detonator" );
 
-  alertSound = CreateSound3D( "data/sounds/alert.ogg" );
+  AddSound( alertSound = CreateSound3D( "data/sounds/alert.ogg" ));
   AttachSound( alertSound, detonator );
 
-  explosionSound = CreateSound3D( "data/sounds/blast.ogg" );
+  AddSound( explosionSound = CreateSound3D( "data/sounds/blast.ogg" ));
   SetSoundReferenceDistance( explosionSound, 10 );
 
   detonatorActivated = 0;
@@ -87,11 +87,11 @@ LevelMine::LevelMine()
 
   findItemsZone = FindInObjectByName( scene, "FindItemsZone" );
 
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine1.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine2.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine3.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine4.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine5.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine1.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine2.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine3.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine4.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/mine/ambientmine5.ogg" ));
 
   explosionTimer = CreateTimer();
 
@@ -99,8 +99,6 @@ LevelMine::LevelMine()
   beepSoundTiming = 1.0f;
 
   CreateItems();
-
-  SetRolloffFactor( 25 );
 
   readyExplosivesCount = 0; 
 
@@ -146,7 +144,7 @@ void LevelMine::DoScenario()
   if( Level::curLevelID != LevelName::L2Mine )
     return;
 
-  ambSoundSet.DoRandomPlaying();
+  PlayAmbientSounds();
   
   if( !stages[ "EnterRockFallZoneWallExp" ] )
   {

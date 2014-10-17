@@ -389,6 +389,7 @@ void Player::UpdateMoving()
 
 void Player::Update( )
 {  
+  UpdateFright();
   camera->Update();
   
   if( menu->visible )
@@ -425,9 +426,6 @@ void Player::CreateCamera()
   camera = new GameCamera( normalFOV );
   Attach( camera->cameraNode, body );
   SetSkybox( camera->cameraNode, "data/textures/skyboxes/night4/nnksky01");
-
-  // Set up listener vars
-  SetRolloffFactor( 5 );
 
   // Pick 
   pickPoint = CreateSceneNode();
@@ -502,6 +500,57 @@ void Player::LoadSounds()
 
   AttachSound( lighterCloseSound, camera->cameraNode );
   AttachSound( lighterOpenSound, camera->cameraNode );
+
+  heartBeatSound = CreateSound2D( "data/sounds/heart.ogg" );
+  breathSound = CreateSound2D( "data/sounds/breath.ogg" );
+
+  SetSoundReferenceDistance( heartBeatSound, 100.0f );
+  SetSoundReferenceDistance( breathSound, 100.0f );
+
+  breathVolume = 0.1f;
+  heartBeatVolume = 0.15f;
+
+  breathVolumeTo = breathVolume;
+  heartBeatVolumeTo = heartBeatVolume;
+
+  heartBeatPitch = 1.0f;
+  heartBeatPitchTo = heartBeatPitch;
+
+  breathPitch = 1.0f;
+  breathPitchTo = breathPitch;
+}
+
+void Player::DoFright()
+{
+  breathVolumeTo = 0.1f;
+  heartBeatVolumeTo = 0.15f;
+
+  heartBeatVolume = 0.45f;
+  breathVolume = 0.25f;
+
+  heartBeatPitch = 2.0f;
+  heartBeatPitchTo = 1.0f;
+
+  breathPitch = 1.5f;
+  breathPitchTo = 1.0f;
+}
+
+void Player::UpdateFright()
+{
+  breathVolume += ( breathVolumeTo - breathVolume ) * 0.075f;
+  heartBeatVolume += ( heartBeatVolumeTo - heartBeatVolume ) * 0.075f;
+
+  heartBeatPitch += ( heartBeatPitchTo - heartBeatPitch ) * 0.0025f;
+  breathPitch += ( breathPitchTo - breathPitch ) * 0.0025f;
+
+  SetVolume( breathSound, breathVolume );
+  SetVolume( heartBeatSound, heartBeatVolume );
+
+  PlaySoundSource( heartBeatSound, true );
+  PlaySoundSource( breathSound, true );
+
+  SetPitch( breathSound, breathPitch );
+  SetPitch( heartBeatSound, heartBeatPitch );
 }
 
 void Player::UpdateCameraBob()
@@ -837,8 +886,7 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadFloat( damagePitchOffset );
   in.ReadFloat( damagePitchOffsetTo );
 
-  int fsType; in.ReadInteger( fsType );
-  footstepsType = (FootstepsType)fsType;
+  footstepsType = (FootstepsType)in.ReadInteger();
 
   in.ReadFloat( pitch );
   in.ReadFloat( yaw );
@@ -849,8 +897,7 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadVector3( gravity );
   in.ReadVector3( jumpTo );
 
-  string cwName; in.Readstring( cwName );
-  currentWay = Way::GetByObject( FindByName( cwName.c_str() ));
+  currentWay = Way::GetByObject( FindByName( in.Readstring().c_str() ));
   if( currentWay )
     Freeze( player->body );
 
@@ -888,8 +935,7 @@ void Player::DeserializeWith( TextFileStream & in )
   in.ReadBoolean( moved );
   in.ReadBoolean( objectiveDone );
 
-  string sheetName; in.Readstring( sheetName );
-  sheetInHands = Sheet::GetByObject( FindByName( sheetName.c_str() ));    
+  sheetInHands = Sheet::GetByObject( FindByName( in.Readstring().c_str() ));    
 
   in.ReadInteger( keyMoveForward );
   in.ReadInteger( keyMoveBackward );

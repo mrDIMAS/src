@@ -42,31 +42,30 @@ LevelArrival::LevelArrival( )
 
   //////////////////////////////////////////////////////////////////////////
   // Load sounds
-
-  creepyMus = CreateSound2D( "data/sounds/stress.ogg");
-
-  generatorSound = CreateSound3D( "data/sounds/generator.ogg" );
+  AddSound( generatorSound = CreateSound3D( "data/sounds/generator.ogg" ));
   AttachSound( generatorSound, FindByName( "Generator" ) );
+  SetRolloffFactor( generatorSound, 5 );
+  SetSoundReferenceDistance( generatorSound, 5 );
  
-  windSound = CreateSound2D( "data/sounds/wind.ogg");
+  AddSound( windSound = CreateSound2D( "data/sounds/wind.ogg"));
   SetVolume( windSound, 0.5f );
   PlaySoundSource( windSound );
 
-  explosionSound = CreateSound2D( "data/sounds/blast.ogg" );
+  AddSound( explosionSound = CreateSound2D( "data/sounds/blast.ogg" ));
 
-  strangeSound = CreateSound3D( "data/sounds/eerie3.ogg" );
+  AddSound( strangeSound = CreateSound3D( "data/sounds/eerie3.ogg" ));
+  SetRolloffFactor( strangeSound, 5 );
+  SetSoundReferenceDistance( strangeSound, 15 );
   AttachSound( strangeSound, generator );
-  SetVolume( strangeSound, 2 );
-
 
   SetReverb( 15 );
 
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/forest/forestambient1.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/forest/forestambient2.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/forest/forestambient3.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/forest/forestambient4.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/forest/forestambient5.ogg" ));
-  ambSoundSet.AddSound( CreateSound3D( "data/sounds/ambient/forest/forestambient6.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/forest/forestambient1.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/forest/forestambient2.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/forest/forestambient3.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/forest/forestambient4.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/forest/forestambient5.ogg" ));
+  AddAmbientSound( CreateSound3D( "data/sounds/ambient/forest/forestambient6.ogg" ));
 
   player->SetFootsteps( FootstepsType::Dirt );
 
@@ -76,26 +75,17 @@ LevelArrival::LevelArrival( )
 
 LevelArrival::~LevelArrival()
 {
-  FreeSoundSource( windSound );
-  FreeSoundSource( generatorSound );
-  FreeSoundSource( creepyMus );
-  FreeSoundSource( explosionSound );
-  FreeSoundSource( music );
+
 }
 
 void LevelArrival::Show()
 {
   Level::Show();
-
-  PlaySoundSource( windSound );
 }
 
 void LevelArrival::Hide()
 {
   Level::Hide();
-
-  PauseSoundSource( windSound );
-  PauseSoundSource( generatorSound );
 }
 
 void LevelArrival::DoScenario()
@@ -103,9 +93,9 @@ void LevelArrival::DoScenario()
   if( Level::curLevelID != LevelName::L1Arrival )
     return;
 
-  ambSoundSet.DoRandomPlaying();
+  PlayAmbientSounds();
 
-    PlaySoundSource( generatorSound );
+  PlaySoundSource( generatorSound );
 
   if( !stages[ "DoneStrangeSoundPlayed" ] )
   {
@@ -130,7 +120,7 @@ void LevelArrival::DoScenario()
 
       player->SetObjective( localization.GetString( "objective4" ) );
 
-      music = CreateMusic( "data/sounds/fear.ogg" );
+      AddSound( music = CreateMusic( "data/sounds/fear.ogg" ));
       PlaySoundSource( music );
 
       stages[ "DoneRocksFall" ] = true;
