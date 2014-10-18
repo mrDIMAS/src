@@ -262,8 +262,9 @@ void SingleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
     D3DXMATRIX world;
     D3DXMatrixIdentity( &world );
 
-    if( mesh->GetParentNode()->skinned == false )
+    if( mesh->GetParentNode()->skinned == false ) {
         GetD3DMatrixFromBulletTransform( mesh->GetParentNode()->globalTransform, world );
+    }
 
     mesh->BindBuffers();
 

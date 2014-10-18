@@ -81,6 +81,9 @@ public:
         D3DXHANDLE hInnerAngle;
         D3DXHANDLE hOuterAngle;
         D3DXHANDLE hDirection;
+
+        D3DXHANDLE hUseSpotTexture;
+        D3DXHANDLE hSpotProjMatrix;
     public:
         Pass2SpotLight( );
         ~Pass2SpotLight();

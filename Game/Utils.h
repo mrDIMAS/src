@@ -150,10 +150,12 @@ static const char * keyNames [] = {
 };
 
 static string GetKeyName( unsigned int vk) {
-    if( vk < 0 )
+    if( vk < 0 ) {
         return " ";
-    if( vk > 127 )
+    }
+    if( vk > 127 ) {
         return " ";
+    }
     return keyNames[ vk - 1 ];
 }
 

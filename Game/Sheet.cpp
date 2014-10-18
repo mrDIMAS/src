@@ -11,11 +11,13 @@ Sheet::Sheet( NodeHandle object, string desc, string text ) : InteractiveObject(
     noteTex = GetTexture( "data/textures/generic/note.jpg" );
     sheets.push_back( this );
 
-    if( !paperFlip.IsValid() )
+    if( !paperFlip.IsValid() ) {
         paperFlip = CreateSound2D( "data/sounds/paperflip.ogg" );
+    }
 
-    if( !sheetFont.IsValid() )
+    if( !sheetFont.IsValid() ) {
         sheetFont = CreateGUIFont( 20, "Arial", 0, 0 );
+    }
 }
 
 void Sheet::Draw( ) {
@@ -34,8 +36,9 @@ void Sheet::Draw( ) {
 
 Sheet * Sheet::GetSheetByObject( NodeHandle o ) {
     for( auto sh : sheets )
-        if( sh->node == o )
+        if( sh->node == o ) {
             return sh;
+        }
 
     return 0;
 }

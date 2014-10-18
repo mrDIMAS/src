@@ -12,8 +12,9 @@
 SceneNode * SceneNode::CastHandle( NodeHandle handle ) {
     SceneNode * n = reinterpret_cast< SceneNode *>( handle.pointer );
 
-    if( n->memoryTag == MEMORY_VALID_VALUE )
+    if( n->memoryTag == MEMORY_VALID_VALUE ) {
         return n;
+    }
 
     MessageBoxA( 0, "Invalid handle!", "CRITICAL", MB_ICONERROR | MB_OK );
     abort();
@@ -30,17 +31,19 @@ NodeHandle SceneNode::HandleFromPointer( SceneNode * ptr ) {
 void SceneNode::EraseUnusedNodes() {
     for( auto node : g_nodes )
         for( auto iter = node->childs.begin(); iter != node->childs.end();  )
-            if( *iter == 0 )
+            if( *iter == 0 ) {
                 node->childs.erase( iter );
-            else
+            } else {
                 ++iter;
+            }
 }
 
 bool SceneNode::IsVisible() {
     bool trulyVisible = visible;
 
-    if( parent )
+    if( parent ) {
         trulyVisible &= parent->IsVisible();
+    }
 
     return trulyVisible;
 }
@@ -84,14 +87,16 @@ SceneNode::SceneNode( ) {
 }
 
 void SceneNode::SetConvexBody() {
-    if( meshes.size() == 0 )
+    if( meshes.size() == 0 ) {
         return;
+    }
 
     btConvexHullShape * convex = new btConvexHullShape();
 
     for( auto mesh : meshes )
-        for( auto & vertex : mesh->vertices )
+        for( auto & vertex : mesh->vertices ) {
             convex->addPoint ( btVector3( vertex.coords.x, vertex.coords.y, vertex.coords.z ));
+        }
 
     btVector3 inertia ( 0.0f, 0.0f, 0.0f );
     convex->calculateLocalInertia ( 1, inertia );
@@ -130,13 +135,15 @@ void SceneNode::SetSphereBody( ) {
 }
 
 void SceneNode::SetAngularFactor( Vector3 fact ) {
-    if( body )
+    if( body ) {
         body->setAngularFactor( btVector3( fact.x, fact.y, fact.z ) );
+    }
 }
 
 void SceneNode::SetTrimeshBody() {
-    if( meshes.size() == 0 )
+    if( meshes.size() == 0 ) {
         return;
+    }
 
     btVector3 inertia ( 0.0f, 0.0f, 0.0f );
     trimesh = new btTriangleMesh ( true, false );
@@ -157,13 +164,15 @@ void SceneNode::SetTrimeshBody() {
 void SceneNode::EraseChild( const SceneNode * child ) {
     auto childIterator = find( childs.begin(), childs.end(), child );
 
-    if( childIterator != childs.end() )
+    if( childIterator != childs.end() ) {
         childs.erase( childIterator );
+    }
 }
 
 void SceneNode::AttachTo( SceneNode * newParent ) {
-    if( !newParent )
+    if( !newParent ) {
         return;
+    }
 
     parent = newParent;
     newParent->childs.push_back( this );
@@ -171,8 +180,9 @@ void SceneNode::AttachTo( SceneNode * newParent ) {
 
 btTransform & SceneNode::CalculateGlobalTransform() {
     if( body )
-        if( body->wantsSleeping() )
+        if( body->wantsSleeping() ) {
             body->activate( true );
+        }
 
     if( body ) {
         if( parent ) {
@@ -182,19 +192,18 @@ btTransform & SceneNode::CalculateGlobalTransform() {
                 body->setWorldTransform( globalTransform );
                 body->setLinearVelocity( btVector3( 0, 0, 0 ));
                 body->setAngularVelocity( btVector3( 0, 0, 0 ));
-            }
-            else {
+            } else {
                 globalTransform = body->getWorldTransform();
             }
-        }
-        else // dont has parent
+        } else { // dont has parent
             globalTransform = body->getWorldTransform();
-    }
-    else { // dont has body
-        if( parent )
+        }
+    } else { // dont has body
+        if( parent ) {
             globalTransform = parent->CalculateGlobalTransform() * localTransform;
-        else
+        } else {
             globalTransform = localTransform;
+        }
     }
 
     return globalTransform;
@@ -206,14 +215,17 @@ Vector3 SceneNode::GetAABBMin() {
     for( auto mesh : meshes ) {
         BoundingVolume bv = mesh->boundingVolume;
 
-        if( bv.min.x < min.x )
+        if( bv.min.x < min.x ) {
             min.x = bv.min.x;
+        }
 
-        if( bv.min.y < min.y )
+        if( bv.min.y < min.y ) {
             min.y = bv.min.y;
+        }
 
-        if( bv.min.z < min.z )
+        if( bv.min.z < min.z ) {
             min.z = bv.min.z;
+        }
     }
 
     return min;
@@ -225,14 +237,17 @@ Vector3 SceneNode::GetAABBMax() {
     for( auto mesh : meshes ) {
         BoundingVolume bv = mesh->boundingVolume;
 
-        if( bv.max.x > max.x )
+        if( bv.max.x > max.x ) {
             max.x = bv.max.x;
+        }
 
-        if( bv.max.y > max.y )
+        if( bv.max.y > max.y ) {
             max.y = bv.max.y;
+        }
 
-        if( bv.max.z > max.z )
+        if( bv.max.z > max.z ) {
             max.z = bv.max.z;
+        }
     }
 
     return max;
@@ -240,16 +255,18 @@ Vector3 SceneNode::GetAABBMax() {
 
 SceneNode * SceneNode::Find( SceneNode * parent, string childName ) {
     for( auto child : parent->childs )
-        if( child->name == childName )
+        if( child->name == childName ) {
             return child;
+        }
     return nullptr;
 }
 
 SceneNode * SceneNode::LoadScene( const char * file ) {
     FastReader reader;
 
-    if ( !reader.ReadFile( file ) )
+    if ( !reader.ReadFile( file ) ) {
         return 0;
+    }
 
     string pathToRes = "data/textures/generic/";
 
@@ -410,8 +427,9 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
         }
     }
 
-    for( auto node : scene->childs )
+    for( auto node : scene->childs ) {
         node->invBoneBindTransform = node->CalculateGlobalTransform().inverse();
+    }
 
     return scene;
 }
@@ -419,8 +437,9 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
 bool SceneNode::IsAnimating() {
     bool animCount = animationEnabled;
 
-    for( auto child : childs )
+    for( auto child : childs ) {
         animCount |= child->IsAnimating();
+    }
 
     return animCount;
 }
@@ -477,8 +496,7 @@ void SceneNode::PerformAnimation() {
 
             mesh->vertices = temp;
         }
-    }
-    else {
+    } else {
         // keyframes animation
         if ( keyframes.size() ) {
             btTransform * currentFrameTransform = keyframes.at( animationFrame );
@@ -488,17 +506,19 @@ void SceneNode::PerformAnimation() {
         }
     }
 
-    if ( !animationEnabled )
+    if ( !animationEnabled ) {
         return;
+    }
 
     if ( frameInterpolationCoefficient >= 1 ) {
         animationFrame++;
 
         if ( animationFrame > frameEnd ) {
-            if ( animationMode == 1 )
+            if ( animationMode == 1 ) {
                 animationFrame = frameStart;
-            else
+            } else {
                 animationEnabled = 0;
+            }
         };
 
         frameInterpolationCoefficient = 0;
@@ -529,8 +549,9 @@ void SceneNode::Animate( float speed, int mode ) {
     animationFrame = frameStart;
     animationEnabled = 1;
 
-    for( auto child : childs )
+    for( auto child : childs ) {
         child->Animate( speed, mode );
+    }
 }
 
 void SceneNode::Hide() {
@@ -544,8 +565,9 @@ void SceneNode::Show() {
 std::string SceneNode::GetProperty( string propName ) {
     auto propIter = properties.find( propName );
 
-    if( propIter != properties.end())
+    if( propIter != properties.end()) {
         return propIter->second;
+    }
 
     return string( "(Nothing)" );
 }
@@ -553,19 +575,22 @@ std::string SceneNode::GetProperty( string propName ) {
 void SceneNode::UpdateSounds() {
     btVector3 pos = globalTransform.getOrigin();
 
-    for( auto sound : sounds )
+    for( auto sound : sounds ) {
         pfSetSoundPosition( sound.pfHandle, pos.x(), pos.y(), pos.z() );
+    }
 
-    if( idleSound.pfHandle )
+    if( idleSound.pfHandle ) {
         pfPlaySound( idleSound.pfHandle, true );
+    }
 }
 
 void SceneNode::UpdateContacts() {
     int numManifolds = g_dynamicsWorld->getDispatcher()->getNumManifolds();
 
     for( auto node : g_nodes )
-        if( node->body )
+        if( node->body ) {
             node->numContacts = 0;
+        }
 
     for (int i=0; i < numManifolds; i++) {
         btPersistentManifold* contactManifold = g_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
@@ -575,16 +600,18 @@ void SceneNode::UpdateContacts() {
         SceneNode * nodeA = static_cast<SceneNode*>( obA->getUserPointer() );
         SceneNode * nodeB = static_cast<SceneNode*>( obB->getUserPointer() );
 
-        if( !nodeA || !nodeB )
+        if( !nodeA || !nodeB ) {
             continue;
+        }
 
         int numContacts = contactManifold->getNumContacts();
 
         nodeA->numContacts += numContacts;
         nodeB->numContacts += numContacts;
 
-        if( numContacts > BODY_MAX_CONTACTS )
+        if( numContacts > BODY_MAX_CONTACTS ) {
             numContacts = BODY_MAX_CONTACTS;
+        }
 
         for (int j = 0 ; j < numContacts; j++ ) {
             btManifoldPoint& pt = contactManifold->getContactPoint(j);
@@ -600,32 +627,40 @@ void SceneNode::UpdateContacts() {
 
                 if( pt.m_appliedImpulse > 10.0f ) {
                     if( !nodeA->frozen )
-                        if( nodeA->hitSound.pfHandle )
+                        if( nodeA->hitSound.pfHandle ) {
                             pfPlaySound( nodeA->hitSound.pfHandle );
+                        }
                     if( !nodeB->frozen )
-                        if( nodeB->hitSound.pfHandle )
+                        if( nodeB->hitSound.pfHandle ) {
                             pfPlaySound( nodeB->hitSound.pfHandle );
+                        }
 
                     float vol = pt.m_appliedImpulse / 20.0f;
 
-                    if( vol > 1.0f )
+                    if( vol > 1.0f ) {
                         vol = 1.0f;
+                    }
 
-                    if( nodeA->hitSound.pfHandle )
+                    if( nodeA->hitSound.pfHandle ) {
                         pfSetSoundVolume( nodeA->hitSound.pfHandle, vol );
-                    if( nodeB->hitSound.pfHandle )
+                    }
+                    if( nodeB->hitSound.pfHandle ) {
                         pfSetSoundVolume( nodeB->hitSound.pfHandle, vol );
+                    }
 
                     float pc = pt.m_appliedImpulse / 30.0f;
-                    if( pc > 0.7f )
+                    if( pc > 0.7f ) {
                         pc = 0.7f;
+                    }
 
                     float pitch = 0.6f + pc;
 
-                    if( nodeA->hitSound.pfHandle )
+                    if( nodeA->hitSound.pfHandle ) {
                         pfSetSoundPitch( nodeA->hitSound.pfHandle, pitch );
-                    if( nodeB->hitSound.pfHandle )
+                    }
+                    if( nodeB->hitSound.pfHandle ) {
                         pfSetSoundPitch( nodeB->hitSound.pfHandle, pitch );
+                    }
                 }
             }
         }
@@ -633,8 +668,9 @@ void SceneNode::UpdateContacts() {
 }
 
 void SceneNode::SetLinearFactor( Vector3 lin ) {
-    if( body )
+    if( body ) {
         body->setLinearFactor( btVector3( lin.x, lin.y, lin.z ) );
+    }
 }
 
 Vector3 SceneNode::GetPosition() {
@@ -656,44 +692,55 @@ void SceneNode::ApplyProperties() {
         string value = prop.second;
 
         if ( pname == "body" ) {
-            if ( value == "static" )
+            if ( value == "static" ) {
                 SetTrimeshBody();
-            if ( value == "convex" )
+            }
+            if ( value == "convex" ) {
                 SetConvexBody();
-            if ( value == "box" )
+            }
+            if ( value == "box" ) {
                 SetBoxBody();
-            if ( value == "sphere" )
+            }
+            if ( value == "sphere" ) {
                 SetSphereBody();
-            if ( value == "cylinder" )
+            }
+            if ( value == "cylinder" ) {
                 SetCylinderBody();
+            }
         };
 
-        if( pname == "albedo" )
+        if( pname == "albedo" ) {
             albedo = atof( value.c_str() );
+        }
 
         if ( pname == "octree" )
             if ( value == "1" )
                 for( auto mesh : meshes )
-                    if( !mesh->octree )
+                    if( !mesh->octree ) {
                         mesh->octree = new Octree( mesh, 768 );
+                    }
 
-        if ( pname == "visible" )
+        if ( pname == "visible" ) {
             visible = atoi( value.c_str());
+        }
 
         if ( pname == "frozen" ) {
             int frozen = atoi( value.c_str());
 
-            if( frozen )
+            if( frozen ) {
                 Freeze();
+            }
         }
 
         if ( pname == "mass" )
-            if( body )
+            if( body ) {
                 SetMass( atof( value.c_str()) );
+            }
 
         if ( pname == "friction" )
-            if( body )
+            if( body ) {
                 body->setFriction ( atof( value.c_str()) );
+            }
 
         if ( pname == "hitSound" ) {
             hitSound = CreateSound3D( value.c_str());
@@ -717,13 +764,15 @@ void SceneNode::SetAnimationSequence( int begin, int end ) {
     frameStart = begin;
     animationFrame = begin;
 
-    for( auto child : childs )
+    for( auto child : childs ) {
         child->SetAnimationSequence( begin, end );
+    }
 }
 
 bool SceneNode::IsNodeInside( SceneNode * node ) {
-    if( !node )
+    if( !node ) {
         return 0;
+    }
 
     btVector3 pos = globalTransform.getOrigin();
 
@@ -745,12 +794,14 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
 
         if( point.x > bv.min.x && point.x < bv.max.x &&
                 point.y > bv.min.y && point.y < bv.max.y &&
-                point.z > bv.min.z && point.z < bv.max.z )
+                point.z > bv.min.z && point.z < bv.max.z ) {
             result++;
+        }
     }
 
-    for( auto childNode : node->childs )
+    for( auto childNode : node->childs ) {
         result += childNode->IsNodeInside( this );
+    }
 
     return result;
 }
@@ -765,82 +816,97 @@ int SceneNode::GetCountChildren() {
 
 SceneNode * SceneNode::FindByName( const char * name ) {
     for( auto node : g_nodes )
-        if( node->name == name )
+        if( node->name == name ) {
             return node;
+        }
     return nullptr;
 }
 
 SceneNode::~SceneNode() {
-    for( auto mesh : meshes )
+    for( auto mesh : meshes ) {
         delete mesh;
+    }
 
     for( auto child : childs )
-        if( child )
+        if( child ) {
             delete child;
+        }
 
     for( auto theNode : g_nodes )
         for( size_t i = 0; i < theNode->childs.size(); i++ )
-            if( theNode->childs[i] == this )
+            if( theNode->childs[i] == this ) {
                 theNode->childs[i] = 0;
+            }
 
-    for( auto keyframe : keyframes )
+    for( auto keyframe : keyframes ) {
         delete keyframe;
+    }
 
-    if( trimesh )
+    if( trimesh ) {
         delete trimesh;
+    }
 
     if( body ) {
-        if( body->getCollisionShape() )
+        if( body->getCollisionShape() ) {
             delete body->getCollisionShape();
+        }
 
-        if( body->getMotionState() )
+        if( body->getMotionState() ) {
             delete body->getMotionState();
+        }
 
         g_dynamicsWorld->removeRigidBody( body );
 
         delete body;
     }
 
-    if( particleEmitter )
+    if( particleEmitter ) {
         delete particleEmitter;
+    }
 
     g_nodes.erase( find( g_nodes.begin(), g_nodes.end(), this ));
 }
 
 void SceneNode::SetFriction( float friction ) {
-    if( body )
+    if( body ) {
         body->setFriction( friction );
+    }
 }
 
 void SceneNode::SetOrder( int order ) {
     this->order = order;
 
-    for( size_t i = 0; i < childs.size(); i++ )
+    for( size_t i = 0; i < childs.size(); i++ ) {
         childs[ i ]->SetOrder( order );
+    }
 }
 
 void SceneNode::SetAnisotropicFriction( Vector3 aniso ) {
-    if( body )
+    if( body ) {
         body->setAnisotropicFriction( btVector3( aniso.x, aniso.y, aniso.z ));
+    }
 }
 
 void SceneNode::Move( Vector3 speed ) {
     localTransform.setOrigin( localTransform.getOrigin() + btVector3( speed.x, speed.y, speed.z ) );
 
-    if( body )
+    if( body ) {
         body->setLinearVelocity(  btVector3( speed.x, speed.y, speed.z ) );
+    }
 
     CalculateGlobalTransform( );
 }
 
 void SceneNode::SetVelocity( Vector3 velocity ) {
-    if( body )
+    if( body ) {
         body->setLinearFactor( btVector3( velocity.x, velocity.y, velocity.z ) );
+    }
 }
 
 void SceneNode::SetPosition( Vector3 position ) {
-    if( body )
+    if( body ) {
         body->getWorldTransform().setOrigin( btVector3( position.x, position.y, position.z ) );
+    }
 
     localTransform.setOrigin( btVector3( position.x, position.y, position.z ) );
 
@@ -848,8 +914,9 @@ void SceneNode::SetPosition( Vector3 position ) {
 }
 
 float SceneNode::GetMass() {
-    if( body )
+    if( body ) {
         return 1.0f / body->getInvMass();
+    }
 
     return 0.0f;
 }
@@ -859,8 +926,9 @@ bool SceneNode::IsFrozen() {
 }
 
 void SceneNode::SetRotation( Quaternion rotation ) {
-    if( body )
+    if( body ) {
         body->getWorldTransform().getBasis().setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ) );
+    }
 
     localTransform.setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ));
 
@@ -893,8 +961,9 @@ btTransform & SceneNode::GetGlobalTransform() {
 Vector3 SceneNode::GetLocalPosition() {
     btTransform transform = localTransform;
 
-    if( body && !frozen )
+    if( body && !frozen ) {
         transform = body->getWorldTransform();
+    }
 
     Vector3 lp;
 
@@ -906,8 +975,9 @@ Vector3 SceneNode::GetLocalPosition() {
 }
 
 SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const char * name ) {
-    if( node->name == name )
+    if( node->name == name ) {
         return node;
+    }
 
 
     for( int i = 0; i < node->childs.size(); i++ ) {
@@ -915,8 +985,9 @@ SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const char * name )
 
         SceneNode * lookup = FindInObjectByName( child, name );
 
-        if( lookup )
+        if( lookup ) {
             return lookup;
+        }
     }
 
     return 0;
@@ -942,21 +1013,24 @@ Vector3 SceneNode::GetEulerAngles() {
 
 Quaternion SceneNode::GetLocalRotation() {
     btTransform transform = localTransform;
-    if( body )
+    if( body ) {
         transform = body->getWorldTransform();
+    }
     return Quaternion( transform.getRotation().x(), transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w() );
 }
 
 void SceneNode::SetDamping( float linearDamping, float angularDamping ) {
-    if( body )
+    if( body ) {
         body->setDamping( linearDamping, angularDamping );
+    }
 }
 
 void SceneNode::SetGravity( const Vector3 & gravity ) {
     btVector3 g( gravity.x, gravity.y, gravity.z );
 
-    if(body)
+    if(body) {
         body->setGravity( g );
+    }
 }
 
 void SceneNode::SetMass( float mass ) {
@@ -1007,8 +1081,9 @@ void CreateOctree( NodeHandle node, int splitCriteria ) {
     for( int i = 0; i < n->meshes.size(); i++ ) {
         Mesh * mesh = n->meshes[ i ];
 
-        if( mesh->octree )
+        if( mesh->octree ) {
             delete mesh->octree;
+        }
 
         mesh->octree = new Octree( mesh, splitCriteria );
     }
@@ -1032,16 +1107,18 @@ void DeleteOctree( NodeHandle node ) {
     for( int i = 0; i < n->meshes.size(); i++ ) {
         Mesh * mesh = n->meshes[ i ];
 
-        if( mesh->octree )
+        if( mesh->octree ) {
             delete mesh->octree;
+        }
     }
 }
 
 void Detach( NodeHandle node ) {
     SceneNode * n = SceneNode::CastHandle( node );
 
-    if( n->parent )
+    if( n->parent ) {
         n->parent->EraseChild( n );
+    }
 
     n->parent = 0;
 }
@@ -1245,16 +1322,18 @@ Quaternion GetLocalRotation( NodeHandle node ) {
 void SetLocalPosition( NodeHandle node, Vector3 pos ) {
     SceneNode * s = SceneNode::CastHandle( node );
     s->localTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
-    if( s->body )
+    if( s->body ) {
         s->body->getWorldTransform().setOrigin( btVector3( pos.x, pos.y, pos.z ) );
+    }
     SceneNode::CastHandle( node )->CalculateGlobalTransform( );
 }
 
 void SetLocalRotation( NodeHandle node, Quaternion rot ) {
     SceneNode * s = SceneNode::CastHandle( node );
     s->localTransform.setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ));
-    if( s->body )
+    if( s->body ) {
         s->body->getWorldTransform().setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ) );
+    }
     SceneNode::CastHandle( node )->CalculateGlobalTransform( );
 }
 

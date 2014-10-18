@@ -7,68 +7,49 @@
 #include "AmbientSoundSet.h"
 
 class LevelMine : public Level {
-public:
-    LevelMine( );
-    ~LevelMine();
-
-    virtual void DoScenario();
-    virtual void Show();
-    virtual void Hide();
-
+private:
     void UpdateExplodeSequence();
     void CleanUpExplodeArea();
-
-    AmbientSoundSet ambSoundSet;
     void CreateItems();
 
     NodeHandle screamerZone;
     NodeHandle screamerZone2;
-
     NodeHandle concreteWall;
     NodeHandle deathZone;
     NodeHandle detonator;
-
     NodeHandle findItemsZone;
-
     NodeHandle newLevelZone;
-
     NodeHandle stoneFallZone;
-
-    bool detonatorActivated;
-
-    SoundHandle alertSound;
-    SoundHandle explosionSound;
-
-    // Item places
-    ItemPlace * detonatorPlace[4];
-
-    // Create items
-    Item * explosives[4];
-    Item * detonators[4];
-    Item * wires[4];
-
-    Item * fuel[2];
-
     NodeHandle wireModels[4];
     NodeHandle detonatorModels[4];
     NodeHandle explosivesModels[4];
 
+    Item * explosives[4];
+    Item * detonators[4];
+    Item * wires[4];
+    Item * fuel[2];
+
+    ItemPlace * detonatorPlace[4];
+
+    SoundHandle alertSound;
+    SoundHandle explosionSound;
+
     TimerHandle explosionTimer;
     TimerHandle beepSoundTimer;
 
-    float beepSoundTiming;
+    bool detonatorActivated;
 
     int readyExplosivesCount;
 
+    float beepSoundTiming;
+
     LightAnimator * explosionFlashAnimator;
-
-    virtual void OnSerialize( TextFileStream & out ) final {
-        out.WriteBoolean( detonatorActivated );
-        out.WriteFloat( beepSoundTiming );
-    }
-
-    virtual void OnDeserialize( TextFileStream & in ) final {
-        in.ReadBoolean( detonatorActivated );
-        in.ReadFloat( beepSoundTiming );
-    }
+public:
+    explicit LevelMine( );
+    virtual ~LevelMine();
+    virtual void DoScenario() final;
+    virtual void Show() final;
+    virtual void Hide() final;
+    virtual void OnSerialize( TextFileStream & out ) final;
+    virtual void OnDeserialize( TextFileStream & in ) final;
 };

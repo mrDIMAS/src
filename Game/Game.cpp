@@ -66,34 +66,40 @@ void main( ) {
     FPSCounter fpsCounter;
 
     while( true ) {
-        if( !g_running )
+        if( !g_running ) {
             break;
+        }
 
         mi::Update();
 
-        if( player )
+        if( player ) {
             player->Update();
+        }
 
         menu->Update();
 
         InteractiveObject::UpdateAll();
 
         if( !menu->visible ) {
-            if( mi::KeyHit( (mi::Key)g_keyQuickSave ))
+            if( mi::KeyHit( (mi::Key)g_keyQuickSave )) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
+            }
 
             if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
-                if( FileExist( "quickSave.save" ))
+                if( FileExist( "quickSave.save" )) {
                     SaveLoader( "quickSave.save" ).RestoreWorldState();
+                }
 
-            if( currentLevel )
+            if( currentLevel ) {
                 currentLevel->DoScenario();
+            }
         }
 
         fpsCounter.RegisterFrame();
 
-        if( g_showFPS )
+        if( g_showFPS ) {
             DrawGUIText( Format( "DIPs: %d\nTC: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 100, 100, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
+        }
 
         screamer->Update();
 
@@ -102,11 +108,13 @@ void main( ) {
 
     }
 
-    if( currentLevel )
+    if( currentLevel ) {
         delete currentLevel;
+    }
 
-    if( player )
+    if( player ) {
         delete player;
+    }
 
     delete screamer;
     delete menu;

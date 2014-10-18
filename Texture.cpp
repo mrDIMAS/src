@@ -16,8 +16,7 @@ Texture * Texture::Require( string file ) {
         D3DXCreateTextureFromFileA( g_device, file.c_str(), &texture->texture );
 
         all[ file ] = texture;
-    }
-    else {
+    } else {
         texture = existing->second;
     }
 
@@ -41,8 +40,9 @@ IDirect3DTexture9 * Texture::GetInterface() {
 }
 
 void Texture::DeleteAll() {
-    for( auto tex : all )
+    for( auto tex : all ) {
         delete tex.second;
+    }
 }
 
 /////////////////////////////////////////////////////////////////

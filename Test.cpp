@@ -45,7 +45,7 @@ void main( ) {
     float pitch = 0, yaw = 0;
     int cameraNum = 0;
 
-    int font = CreateGUIFont( 16, "Arial", 1, 0 );
+    FontHandle font = CreateGUIFont( 16, "Arial", 1, 0 );
 
     //int ripper = LoadScene( "data/models/ripper/ripper.scene" );
     /*
@@ -90,7 +90,9 @@ void main( ) {
     while( !mi::KeyDown( mi::Esc )) {
         if( mi::KeyHit( mi::E ))
             //if( !Animating( node ))
+        {
             Animate(node, 0.05, 2 );
+        }
 
 
         mi::Update();
@@ -115,22 +117,27 @@ void main( ) {
         //DrawGUIRect( 0, 0, 200, 200, 0 );
 //    DrawGUIText( "TEST", 200, 200, 100, 100, font, Vector3( 255, 0, 0 ) );
 
-        if( mi::KeyDown( mi::W ))
+        if( mi::KeyDown( mi::W )) {
             speed = speed + look;
-        if( mi::KeyDown( mi::S ))
+        }
+        if( mi::KeyDown( mi::S )) {
             speed = speed - look;
-        if( mi::KeyDown( mi::A ))
+        }
+        if( mi::KeyDown( mi::A )) {
             speed = speed + right;
-        if( mi::KeyDown( mi::D ))
+        }
+        if( mi::KeyDown( mi::D )) {
             speed = speed - right;
+        }
 
         if( mi::KeyHit( mi::Q )) {
             cameraNum = 1 - cameraNum;
 
-            if( cameraNum )
+            if( cameraNum ) {
                 SetCamera( testCamera );
-            else
+            } else {
                 SetCamera( camera );
+            }
         }
 
         //if( Animating( ripper ))

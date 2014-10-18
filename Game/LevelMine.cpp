@@ -136,8 +136,9 @@ void LevelMine::Hide() {
 }
 
 void LevelMine::DoScenario() {
-    if( Level::curLevelID != LevelName::L2Mine )
+    if( Level::curLevelID != LevelName::L2Mine ) {
         return;
+    }
 
     PlayAmbientSounds();
 
@@ -172,8 +173,7 @@ void LevelMine::DoScenario() {
 
                 stages[ "FindObjectObjectiveSet" ] = true;
             }
-        }
-        else {
+        } else {
             stages[ "FindObjectObjectiveSet" ] = true;
         }
     }
@@ -253,11 +253,13 @@ void LevelMine::UpdateExplodeSequence() {
         for( int i = 0; i < 4; i++ ) {
             ItemPlace * dp = detonatorPlace[i];
 
-            if( dp->GetPlaceType() == -1 )
+            if( dp->GetPlaceType() == -1 ) {
                 readyExplosivesCount++;
+            }
 
-            if( readyExplosivesCount >= 4 )
+            if( readyExplosivesCount >= 4 ) {
                 player->SetObjective( localization.GetString( "objective4" ) );
+            }
         }
     }
 
@@ -266,8 +268,9 @@ void LevelMine::UpdateExplodeSequence() {
     if( totalNeededObjects < 12 ) {
         totalNeededObjects = 0;
         for( auto item : player->inventory.items ) {
-            if( item->type == Item::Wires || item->type == Item::Explosives || item->type == Item::Detonator )
+            if( item->type == Item::Wires || item->type == Item::Explosives || item->type == Item::Detonator ) {
                 totalNeededObjects++;
+            }
 
             if( totalNeededObjects >= 12 ) {
                 stages[ "FindObjectObjectiveSet" ] = true;
@@ -301,12 +304,10 @@ void LevelMine::UpdateExplodeSequence() {
                         if( dp->GetPlaceType() == Item::Explosives ) {
                             ShowNode( explosivesModels[i] );
                             dp->SetPlaceType( Item::Detonator );
-                        }
-                        else if( dp->GetPlaceType() == Item::Detonator ) {
+                        } else if( dp->GetPlaceType() == Item::Detonator ) {
                             ShowNode( detonatorModels[i] );
                             dp->SetPlaceType( Item::Wires );
-                        }
-                        else if( dp->GetPlaceType() == Item::Wires ) {
+                        } else if( dp->GetPlaceType() == Item::Wires ) {
                             ShowNode( wireModels[i] );
                             dp->SetPlaceType( -1 );
                         }
@@ -334,4 +335,16 @@ void LevelMine::CleanUpExplodeArea() {
 void LevelMine::CreateItems() {
     AddItem( fuel[0] = new Item( FindInObjectByName( scene, "Fuel1" ), Item::FuelCanister ));
     AddItem( fuel[1] = new Item( FindInObjectByName( scene, "Fuel2" ), Item::FuelCanister ));
+}
+
+void LevelMine::OnDeserialize( TextFileStream & in )
+{
+    in.ReadBoolean( detonatorActivated );
+    in.ReadFloat( beepSoundTiming );
+}
+
+void LevelMine::OnSerialize( TextFileStream & out )
+{
+    out.WriteBoolean( detonatorActivated );
+    out.WriteFloat( beepSoundTiming );
 }

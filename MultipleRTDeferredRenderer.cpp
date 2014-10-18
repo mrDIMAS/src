@@ -12,8 +12,9 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
     D3DXMATRIX world;
     D3DXMatrixIdentity( &world );
 
-    if( mesh->GetParentNode()->skinned == false )
+    if( mesh->GetParentNode()->skinned == false ) {
         GetD3DMatrixFromBulletTransform( mesh->GetParentNode()->globalTransform, world );
+    }
 
     mesh->BindBuffers();
 
@@ -178,8 +179,10 @@ void MultipleRTDeferredRenderer::InitPassOneShaders() {
 }
 
 MultipleRTDeferredRenderer::~MultipleRTDeferredRenderer() {
-    if( vertexShaderPassOne )
+    if( vertexShaderPassOne ) {
         delete vertexShaderPassOne;
-    if( pixelShaderPassOne )
+    }
+    if( pixelShaderPassOne ) {
         delete pixelShaderPassOne;
+    }
 }

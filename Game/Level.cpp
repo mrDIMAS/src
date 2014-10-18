@@ -21,32 +21,41 @@ Level::~Level() {
     FreeSceneNode( scene );
 
     for( auto item : items )
-        if( !item->inInventory )
+        if( !item->inInventory ) {
             delete item;
+        }
 
-    for( auto sheet : sheets )
+    for( auto sheet : sheets ) {
         delete sheet;
+    }
 
-    for( auto door : doors )
+    for( auto door : doors ) {
         delete door;
+    }
 
-    for( auto crawlWay : crawlWays )
+    for( auto crawlWay : crawlWays ) {
         delete crawlWay;
+    }
 
-    for( auto ladder : ladders )
+    for( auto ladder : ladders ) {
         delete ladder;
+    }
 
-    for( auto itemPlace : itemPlaces )
+    for( auto itemPlace : itemPlaces ) {
         delete itemPlace;
+    }
 
-    for( auto valve : valves )
+    for( auto valve : valves ) {
         delete valve;
+    }
 
-    for( auto lift : lifts )
+    for( auto lift : lifts ) {
         delete lift;
+    }
 
-    for( auto sound : sounds )
+    for( auto sound : sounds ) {
         FreeSoundSource( sound );
+    }
 }
 
 void Level::LoadLocalization( string fn ) {
@@ -56,16 +65,18 @@ void Level::LoadLocalization( string fn ) {
 void Level::Hide() {
     HideNode( scene );
 
-    for( auto & sound : sounds )
+    for( auto & sound : sounds ) {
         PauseSoundSource( sound );
+    }
 }
 
 void Level::Show() {
     ShowNode( scene );
 
     for( auto & sound : sounds )
-        if( IsSoundPaused( sound ))
+        if( IsSoundPaused( sound )) {
             PlaySoundSource( sound );
+        }
 }
 
 void Level::Change( int levelId, bool continueFromSave ) {
@@ -84,25 +95,31 @@ void Level::Change( int levelId, bool continueFromSave ) {
             player = new Player();
         }
 
-        if( currentLevel )
+        if( currentLevel ) {
             delete currentLevel;
+        }
 
-        if( Level::curLevelID == LevelName::L0Introduction )
+        if( Level::curLevelID == LevelName::L0Introduction ) {
             currentLevel = new LevelIntroduction;
-        else
+        } else {
             player->FreeHands();
+        }
 
-        if( Level::curLevelID == LevelName::L1Arrival )
+        if( Level::curLevelID == LevelName::L1Arrival ) {
             currentLevel = new LevelArrival;
+        }
 
-        if( Level::curLevelID == LevelName::L2Mine )
+        if( Level::curLevelID == LevelName::L2Mine ) {
             currentLevel = new LevelMine;
+        }
 
-        if( Level::curLevelID == LevelName::L3ResearchFacility )
+        if( Level::curLevelID == LevelName::L3ResearchFacility ) {
             currentLevel = new LevelResearchFacility;
+        }
 
-        if( Level::curLevelID == LevelName::LXTestingChamber )
+        if( Level::curLevelID == LevelName::LXTestingChamber ) {
             currentLevel = new TestingChamber;
+        }
 
         if( continueFromSave ) {
             SaveLoader loader( "lastGame.save" );
@@ -151,10 +168,11 @@ void Level::DeserializeWith( TextFileStream & in ) {
         SetLocalPosition( node, in.ReadVector3() );
         SetLocalRotation( node, in.ReadQuaternion() );
         bool visible = in.ReadBoolean();
-        if( visible )
+        if( visible ) {
             ShowNode( node );
-        else
+        } else {
             HideNode( node );
+        }
     }
     OnDeserialize( in );
 }

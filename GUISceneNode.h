@@ -24,7 +24,8 @@ public:
     }
 
     static void UpdateAll() {
-        for( auto node : all )
+        for( auto node : all ) {
             node->Update();
+        }
     }
 };

@@ -12,10 +12,12 @@ ID3DXConstantTable * VertexShader::GetConstantTable() {
 }
 
 VertexShader::~VertexShader() {
-    if( shader )
+    if( shader ) {
         shader->Release();
-    if( constants )
+    }
+    if( constants ) {
         constants->Release();
+    }
 }
 
 VertexShader::VertexShader( string source ) {
@@ -41,10 +43,12 @@ ID3DXConstantTable * PixelShader::GetConstantTable() {
 }
 
 PixelShader::~PixelShader() {
-    if( shader )
+    if( shader ) {
         shader->Release();
-    if( constants )
+    }
+    if( constants ) {
         constants->Release();
+    }
 }
 
 PixelShader::PixelShader( string source ) {

@@ -16,13 +16,13 @@ void CrawlWay::DoPlayerCrawling() {
             if( distance < 0.25f ) {
                 leave = true;
 
-                if( (GetPosition( player->body ) - GetPosition( end )).Length2() < (GetPosition( player->body ) - GetPosition( begin )).Length2())
+                if( (GetPosition( player->body ) - GetPosition( end )).Length2() < (GetPosition( player->body ) - GetPosition( begin )).Length2()) {
                     target = endLeavePoint;
-                else
+                } else {
                     target = beginLeavePoint;
+                }
             }
-        }
-        else {
+        } else {
             DoLeave();
         }
     }

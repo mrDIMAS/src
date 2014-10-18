@@ -2,8 +2,9 @@
 #include "Menu.h"
 
 void Enemy::Update() {
-    if( menu->visible )
+    if( menu->visible ) {
         return;
+    }
 
     static float PI = 3.14159f;
 
@@ -31,10 +32,10 @@ void Enemy::Update() {
         PauseSoundSource( screamSound );
 
         detectPlayer = false;
-    }
-    else {
-        if( !detectPlayer )
+    } else {
+        if( !detectPlayer ) {
             detectPlayer = IsNodeInFrustum( torsoBone );
+        }
 
         if( !player->dead && detectPlayer ) {
             PauseSoundSource( breathSound );
@@ -54,12 +55,10 @@ void Enemy::Update() {
 
                         RestartTimer( damageTimer );
                     }
-                }
-                else {
+                } else {
                     SetRunAndAttackAnimation();
                 }
-            }
-            else {
+            } else {
                 SetRunAnimation();
             }
 
@@ -69,8 +68,9 @@ void Enemy::Update() {
         }
     }
 
-    if( !Animating( model ))
+    if( !Animating( model )) {
         Animate( model, 0.25f, 1 );
+    }
 }
 
 Enemy::Enemy( const char * file ) {
@@ -142,8 +142,9 @@ void Enemy::SetRunAnimation() {
 }
 
 void Enemy::SetIdleAnimation() {
-    if( currentAnimation != Animation::Idle )
+    if( currentAnimation != Animation::Idle ) {
         SetCommonAnimation( 0, 14 );
+    }
 
     currentAnimation = Animation::Idle;
 }

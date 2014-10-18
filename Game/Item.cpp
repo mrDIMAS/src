@@ -5,8 +5,9 @@ Parser Item::loc;
 
 Item * Item::GetByObject( NodeHandle obj ) {
     for( auto item : Available )
-        if( item->object == obj )
+        if( item->object == obj ) {
             return item;
+        }
     return 0;
 }
 
@@ -96,8 +97,9 @@ void Item::SetType( int typ ) {
 }
 
 Item::Item( NodeHandle obj, int typ ) {
-    if( !loc.IsParsed() )
+    if( !loc.IsParsed() ) {
         loc.ParseFile( localizationPath + "items.loc" );
+    }
 
     object = obj;
     onCombineBecomes = 0;

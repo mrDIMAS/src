@@ -3,8 +3,9 @@
 #include "Cursor.h"
 
 void SetCursorSettings( TextureHandle texture, int w, int h ) {
-    if( !g_cursor )
+    if( !g_cursor ) {
         g_cursor = new Cursor;
+    }
 
     g_cursor->Setup( texture, w, h );
 }
@@ -12,8 +13,7 @@ void SetCursorSettings( TextureHandle texture, int w, int h ) {
 void HideCursor( ) {
     if( g_cursor ) {
         g_cursor->Hide();
-    }
-    else {
+    } else {
         ShowCursor( FALSE );
         g_device->ShowCursor( FALSE );
     }
@@ -22,8 +22,7 @@ void HideCursor( ) {
 void ShowCursor( ) {
     if( g_cursor ) {
         g_cursor->Show();
-    }
-    else {
+    } else {
         ShowCursor( TRUE );
         g_device->ShowCursor( TRUE );
     }
@@ -78,10 +77,12 @@ API GUIState DrawGUIButton( int x, int y, int w, int h, TextureHandle texture, c
 
     if( mx > x && mx < ( x + w ) && my > y && my < ( y + h ) ) {
         state.mouseInside = 1;
-        if( mi::MouseHit( mi::Left ))
+        if( mi::MouseHit( mi::Left )) {
             state.mouseLeftClicked = true;
-        if( mi::MouseHit( mi::Right ))
+        }
+        if( mi::MouseHit( mi::Right )) {
             state.mouseRightClicked = true;
+        }
 
         color = Vector3( 255, 0, 0 );
     }

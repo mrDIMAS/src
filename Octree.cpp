@@ -8,10 +8,10 @@ void Octree::VisualizeHierarchy() {
 
 void Octree::NodeVisualize( Node * node ) {
     if( node->divided ) {
-        for( int i = 0; i < 8; i++ )
+        for( int i = 0; i < 8; i++ ) {
             NodeVisualize( node->childs[ i ]);
-    }
-    else {
+        }
+    } else {
         node->box.Visualize();
     }
 }
@@ -33,8 +33,7 @@ void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & tr
             for( int i = 0; i < 8; i++ ) { // go deeper, to child nodes and grab it visible triagles
                 GetVisibleTrianglesList( node->childs[ i ], triangles );
             }
-        }
-        else {
+        } else {
             visibleNodes++;
 
             for( auto t : node->triangles ) { // grab visible triangles
@@ -66,8 +65,9 @@ bool Octree::CubeInFrustum( const AABB & box ) {
             }
         }
 
-        if( nextPlane )
+        if( nextPlane ) {
             continue;
+        }
 
         return false;
     }
@@ -77,8 +77,9 @@ bool Octree::CubeInFrustum( const AABB & box ) {
 
 void Octree::Build( vector< Vector3 > & vertices, vector< Triangle* > & tris, Node * node ) {
     if( tris.size() < nodeSplitCriteria ) {
-        for( int i = 0; i < tris.size(); i++ )
+        for( int i = 0; i < tris.size(); i++ ) {
             node->AddTriangle( tris[ i ] );
+        }
 
         return;
     }
@@ -98,22 +99,25 @@ void Octree::Build( vector< Vector3 > & vertices, vector< Triangle* > & tris, No
             Vector3 b = vertices[ tri->b ];
             Vector3 c = vertices[ tri->c ];
 
-            if( child->box.IsTriangleInside( a, b, c ) )
+            if( child->box.IsTriangleInside( a, b, c ) ) {
                 leafTris[ childNum ].push_back( tri );
+            }
         };
     }
 
     for( int childNum = 0; childNum < 8; childNum++ ) {
-        if( leafTris[ childNum ].size() > 0 )
+        if( leafTris[ childNum ].size() > 0 ) {
             Build( vertices, leafTris[ childNum ], node->childs[ childNum ] );
+        }
     }
 }
 
 Octree::~Octree() {
     delete root;
 
-    for( int i = 0; i < triangles.size(); i++ )
+    for( int i = 0; i < triangles.size(); i++ ) {
         delete triangles[ i ];
+    }
 }
 
 Octree::Octree( Mesh * m, int _nodeSplitCriteria ) {
@@ -123,27 +127,30 @@ Octree::Octree( Mesh * m, int _nodeSplitCriteria ) {
     root = new Node;
 
     vector< Vector3 > vertices;
-    for( int i = 0; i < mesh->vertices.size(); i++ )
+    for( int i = 0; i < mesh->vertices.size(); i++ ) {
         vertices.push_back( mesh->vertices[ i ].coords );
+    }
 
 
 
     root->box = AABB( GetAABBMin( vertices ), GetAABBMax( vertices ) );
 
-    for( auto & triangle : mesh->triangles )
+    for( auto & triangle : mesh->triangles ) {
         triangles.push_back( new Triangle( triangle.a, triangle.b, triangle.c ) );
+    }
 
     Build( vertices, triangles, root );
 }
 
 void Octree::PrepareTriangles( Node * node ) {
     if( node->divided ) {
-        for( int i = 0; i < 8; i++ )
+        for( int i = 0; i < 8; i++ ) {
             PrepareTriangles( node->childs[ i ] );
-    }
-    else {
-        for( int i = 0; i < node->triangles.size(); i++ )
+        }
+    } else {
+        for( int i = 0; i < node->triangles.size(); i++ ) {
             node->triangles[ i ]->rendered = false;
+        }
     }
 }
 
@@ -153,14 +160,17 @@ Vector3 Octree::GetAABBMax( vector< Vector3 > & vertices ) {
     for( size_t i = 0; i < vertices.size(); i++ ) {
         Vector3 v = vertices[ i ];
 
-        if( v.x > max.x )
+        if( v.x > max.x ) {
             max.x = v.x;
+        }
 
-        if( v.y > max.y )
+        if( v.y > max.y ) {
             max.y = v.y;
+        }
 
-        if( v.z > max.z )
+        if( v.z > max.z ) {
             max.z = v.z;
+        }
     }
 
     return max;
@@ -172,14 +182,17 @@ Vector3 Octree::GetAABBMin( vector< Vector3 > & vertices ) {
     for( size_t i = 0; i < vertices.size(); i++ ) {
         Vector3 v = vertices[ i ];
 
-        if( v.x < min.x )
+        if( v.x < min.x ) {
             min.x = v.x;
+        }
 
-        if( v.y < min.y )
+        if( v.y < min.y ) {
             min.y = v.y;
+        }
 
-        if( v.z < min.z )
+        if( v.z < min.z ) {
             min.z = v.z;
+        }
     }
 
     return min;
@@ -188,8 +201,9 @@ Vector3 Octree::GetAABBMin( vector< Vector3 > & vertices ) {
 void Octree::Node::Split() {
     Vector3 center = ( box.min + box.max ) * 0.5f;
 
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 8; i++) {
         childs[i] = new Node();
+    }
 
     childs[0]->box = AABB( box.min, center );
     childs[1]->box = AABB( Vector3( center.x, box.min.y, box.min.z ), Vector3( box.max.x, center.y, center.z ) );
@@ -209,15 +223,17 @@ void Octree::Node::AddTriangle( Triangle * t ) {
 
 Octree::Node::~Node() {
     if( divided )
-        for( int i = 0; i < 8; i++ )
+        for( int i = 0; i < 8; i++ ) {
             delete childs[ i ];
+        }
 }
 
 Octree::Node::Node() {
     divided = false;
 
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 8; i++) {
         childs[i] = nullptr;
+    }
 }
 
 Octree::Triangle::Triangle( unsigned short _a, unsigned short _b, unsigned short _c ) : Mesh::Triangle( _a, _b, _c ) {

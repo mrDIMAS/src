@@ -56,14 +56,18 @@ void Update( ) {
     mouseY += mouseData.lY;
     mouseWheel += mouseData.lZ;
 
-    if( mouseX < 0 )
+    if( mouseX < 0 ) {
         mouseX = 0;
-    if( mouseY < 0 )
+    }
+    if( mouseY < 0 ) {
         mouseY = 0;
-    if( mouseX > windowRect.right )
+    }
+    if( mouseX > windowRect.right ) {
         mouseX = windowRect.right;
-    if( mouseY > windowRect.bottom )
+    }
+    if( mouseY > windowRect.bottom ) {
         mouseY = windowRect.bottom;
+    }
 
     SetCursorPos( windowOffsetX + windowRect.left + mouseX, windowOffsetY + windowRect.top + mouseY );
 
@@ -76,18 +80,21 @@ Message Init( void * window ) {
 
     hwnd = (HWND)(*(HWND*)window);
 
-    if( FAILED( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL)))
+    if( FAILED( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL))) {
         return UnableToInitializeDirectInput;
+    }
 
-    if( FAILED( pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL )))
+    if( FAILED( pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL ))) {
         return UnableToCreateKeyboardDevice;
+    }
 
     pKeyboard->SetDataFormat( &c_dfDIKeyboard );
     pKeyboard->SetCooperativeLevel( 0, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE );
     pKeyboard->Acquire();
 
-    if( FAILED( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL )))
+    if( FAILED( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL ))) {
         return UnableToCreateMouseDevice;
+    }
 
     pMouse->SetDataFormat(&c_dfDIMouse);
     pMouse->SetCooperativeLevel( 0, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE );
@@ -138,8 +145,9 @@ int	KeyUp	( Key key ) {
 }
 
 int MouseDown( MouseButton button ) {
-    if( (int)button >= 4 )
+    if( (int)button >= 4 ) {
         return 0;
+    }
 
     return mouseData.rgbButtons[ button ];
 }

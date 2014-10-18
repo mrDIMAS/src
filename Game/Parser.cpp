@@ -9,8 +9,9 @@ void Parser::ParseFile( string fn ) {
 
     fopen_s ( &file, fn.c_str(), "r" );
 
-    if ( !file )
+    if ( !file ) {
         return;
+    }
 
     string str;
 
@@ -22,8 +23,9 @@ void Parser::ParseFile( string fn ) {
 
     fclose ( file );
 
-    if ( str.size() <= 1 )
+    if ( str.size() <= 1 ) {
         return;
+    }
 
     values.clear();
 
@@ -46,32 +48,36 @@ void Parser::ParseFile( string fn ) {
         };
 
         if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' ) {
-            if ( !equalFound )
+            if ( !equalFound ) {
                 varName.push_back ( symbol );
-        }
-        else {
-            if ( symbol == '=' )
+            }
+        } else {
+            if ( symbol == '=' ) {
                 equalFound = true;
+            }
 
             if ( symbol == '"' ) {
-                if ( quoteLF == false )
+                if ( quoteLF == false ) {
                     quoteLF = true;
-                else
+                } else {
                     quoteRF = true;
+                }
             }
         };
 
         if ( quoteLF ) {
-            if ( quoteRF )
+            if ( quoteRF ) {
                 values[ varName ] = var;
-            else if ( symbol != '"' )
+            } else if ( symbol != '"' ) {
                 var.push_back ( symbol );
+            }
         };
 
         n++;
 
-        if ( n >= str.size() )
+        if ( n >= str.size() ) {
             break;
+        }
     };
 
     parsed = true;
@@ -84,8 +90,9 @@ bool Parser::Empty() {
 float Parser::GetNumber( string varName ) {
     auto iter = values.find( varName );
 
-    if( iter != values.end() )
+    if( iter != values.end() ) {
         return atof( iter->second.c_str() );
+    }
 
     return 0.0f;
 }
@@ -93,8 +100,9 @@ float Parser::GetNumber( string varName ) {
 const char * Parser::GetString( string varName ) {
     auto iter = values.find( varName );
 
-    if( iter != values.end() )
+    if( iter != values.end() ) {
         return iter->second.c_str();
+    }
 
     return "";
 }

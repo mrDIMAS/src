@@ -46,8 +46,9 @@ std::string FastReader::GetString() {
         out += data[ cursor ];
     }
 
-    if ( data[ cursor ] == '\0' )
+    if ( data[ cursor ] == '\0' ) {
         ++cursor;
+    }
 
     return out;
 }

@@ -1,8 +1,9 @@
 #include "Common.h"
 
 void ParseString ( string str, map<string,string> & values ) {
-    if ( str.size() <= 1 )
+    if ( str.size() <= 1 ) {
         return;
+    }
 
     values.clear();
 
@@ -28,16 +29,15 @@ void ParseString ( string str, map<string,string> & values ) {
             if ( !equalFound ) {
                 varName.push_back ( symbol );
             }
-        }
-        else {
-            if ( symbol == '=' )
+        } else {
+            if ( symbol == '=' ) {
                 equalFound = true;
+            }
 
             if ( symbol == '"' ) {
                 if ( quoteLF == false ) {
                     quoteLF = true;
-                }
-                else {
+                } else {
                     quoteRF = true;
                 }
             }
@@ -46,17 +46,18 @@ void ParseString ( string str, map<string,string> & values ) {
         if ( quoteLF ) {
             if ( quoteRF ) {
                 values[ varName ] = var;
-            }
-            else {
-                if ( symbol != '"' )
+            } else {
+                if ( symbol != '"' ) {
                     var.push_back ( symbol );
+                }
             };
         };
 
         n++;
 
-        if ( n >= str.size() )
+        if ( n >= str.size() ) {
             break;
+        }
     };
 }
 
@@ -65,8 +66,9 @@ void ParseFile( string fn, map<string,string> & values) {
 
     fopen_s ( &file, fn.c_str(), "r" );
 
-    if ( !file )
+    if ( !file ) {
         return;
+    }
 
     string str;
 
@@ -78,8 +80,9 @@ void ParseFile( string fn, map<string,string> & values) {
 
     fclose ( file );
 
-    if ( str.size() <= 1 )
+    if ( str.size() <= 1 ) {
         return;
+    }
 
     values.clear();
 
@@ -105,16 +108,15 @@ void ParseFile( string fn, map<string,string> & values) {
             if ( !equalFound ) {
                 varName.push_back ( symbol );
             }
-        }
-        else {
-            if ( symbol == '=' )
+        } else {
+            if ( symbol == '=' ) {
                 equalFound = true;
+            }
 
             if ( symbol == '"' ) {
                 if ( quoteLF == false ) {
                     quoteLF = true;
-                }
-                else {
+                } else {
                     quoteRF = true;
                 }
             }
@@ -123,17 +125,18 @@ void ParseFile( string fn, map<string,string> & values) {
         if ( quoteLF ) {
             if ( quoteRF ) {
                 values[ varName ] = var;
-            }
-            else {
-                if ( symbol != '"' )
+            } else {
+                if ( symbol != '"' ) {
                     var.push_back ( symbol );
+                }
             };
         };
 
         n++;
 
-        if ( n >= str.size() )
+        if ( n >= str.size() ) {
             break;
+        }
     };
 }
 

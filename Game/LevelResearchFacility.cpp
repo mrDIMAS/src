@@ -83,8 +83,9 @@ void LevelResearchFacility::Hide() {
 }
 
 void LevelResearchFacility::DoScenario() {
-    if( Level::curLevelID != LevelName::L3ResearchFacility )
+    if( Level::curLevelID != LevelName::L3ResearchFacility ) {
         return;
+    }
 
     static int stateEnterSteamActivateZone = 0;
     static int stateEnterScaryBarellThrowZone = 0;
@@ -142,8 +143,7 @@ void LevelResearchFacility::DoScenario() {
 
         if( steamParticleSize > 0 ) {
             steamParticleSize -= 0.0005f;
-        }
-        else {
+        } else {
             FreeSceneNode( steamPS );
 
             steamPS.Invalidate();
@@ -172,8 +172,9 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-    if( stateEnterSpawnRipperZone )
+    if( stateEnterSpawnRipperZone ) {
         ripper->Update();
+    }
 
     if( !stateEnterRepositionRipperZone ) {
         if( IsNodeInside( player->body, repositionRipperZone )) {
@@ -185,8 +186,7 @@ void LevelResearchFacility::DoScenario() {
 
     if( steamValve->done ) {
         SetPosition( extremeSteamBlock, Vector3( 1000, 1000, 1000 ));
-    }
-    else {
+    } else {
         if( IsNodeInside( player->body, extremeSteamHurtZone )) {
             player->Damage( 0.6 );
         }
@@ -200,8 +200,9 @@ void LevelResearchFacility::UpdatePowerupSequence() {
         for( int i = 0; i < 3; i++ ) {
             ItemPlace * fuse = fusePlace[i];
 
-            if( fuse->GetPlaceType() == -1 )
+            if( fuse->GetPlaceType() == -1 ) {
                 fuseInsertedCount++;
+            }
         }
     }
 
@@ -209,8 +210,9 @@ void LevelResearchFacility::UpdatePowerupSequence() {
         for( int i = 0; i < 3; i++ ) {
             ItemPlace * fuse = fusePlace[i];
 
-            if( fuse->IsPickedByPlayer() )
+            if( fuse->IsPickedByPlayer() ) {
                 DrawGUIText( "[E] - вставить предохранитель", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+            }
         }
 
         if( mi::KeyHit( mi::E )) {
@@ -284,4 +286,14 @@ void LevelResearchFacility::CreatePowerUpSequence() {
     fuseInsertedCount = 0;
 
     powerOn = false;
+}
+
+void LevelResearchFacility::OnDeserialize( TextFileStream & in )
+{
+
+}
+
+void LevelResearchFacility::OnSerialize( TextFileStream & out )
+{
+
 }

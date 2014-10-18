@@ -20,16 +20,11 @@ void Camera::Update() {
 
     btVector3 normlook = globalTransform.getBasis().getColumn ( 2 ).normalized();
 
-    float f_look[ 3 ];
-    f_look[ 0 ] = normlook.x();
-    f_look[ 1 ] = normlook.y();
-    f_look[ 2 ] = normlook.z();
-
     float f_up[ 3 ] = { 0.0f, 1.0f, 0.0f };
 
     // sound listener
-    pfSetListenerOrientation ( f_look, f_up );
-    pfSetListenerPosition ( eye.x(), eye.y(), eye.z() );
+    pfSetListenerOrientation( normlook.m_floats, f_up );
+    pfSetListenerPosition( eye.x(), eye.y(), eye.z() );
 
     // view matrix
     D3DXVECTOR3 ep (  eye.x(),  eye.y(),  eye.z() );
@@ -97,13 +92,15 @@ void Camera::BuildFrustum() {
     frustumPlanes[5].d = viewProjection._44 - viewProjection._43;
 
     // Normalize planes
-    for ( int i = 0; i < 6; i++ )
+    for ( int i = 0; i < 6; i++ ) {
         D3DXPlaneNormalize ( &frustumPlanes[i], &frustumPlanes[i] );
+    }
 }
 
 Camera::~Camera() {
-    if( skybox )
+    if( skybox ) {
         delete skybox;
+    }
 }
 
 Camera::Camera( float fov ) {

@@ -18,12 +18,14 @@ void List::Draw( float x, float y, TextureHandle buttonImage, const char * text 
         DrawGUIText( values[ currentValue ].c_str(), x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, gui->font, Vector3( 0, 255, 0 ), 1 );
 
         if( increase.mouseLeftClicked )
-            if( currentValue < values.size() - 1 )
+            if( currentValue < values.size() - 1 ) {
                 currentValue++;
+            }
 
         if( decrease.mouseLeftClicked )
-            if( currentValue > 0 )
+            if( currentValue > 0 ) {
                 currentValue--;
+            }
     }
 }
 

@@ -11,8 +11,9 @@ Valve::Valve( NodeHandle obj, Vector3 axis, int turnCount ) {
 }
 
 void Valve::Update() {
-    if( done )
+    if( done ) {
         return;
+    }
 
     if( player->nearestPicked == object ) {
         DrawGUIText( "[E] - вращать", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
@@ -20,8 +21,9 @@ void Valve::Update() {
         if( mi::KeyDown( mi::E )) {
             angle += 5;
 
-            if( angle >= 360 * tc )
+            if( angle >= 360 * tc ) {
                 done = true;
+            }
 
             SetRotation( object, Quaternion( tAxis, angle ));
         }

@@ -196,14 +196,17 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
     for( auto it = g_particleEmitters.begin(); it != g_particleEmitters.end(); ++it ) {
         ParticleEmitter * ps = *it;
 
-        if( !ps->GetBase()->IsVisible() )
+        if( !ps->GetBase()->IsVisible() ) {
             continue;
+        }
 
-        if( !ps->IsEnabled() )
+        if( !ps->IsEnabled() ) {
             continue;
+        }
 
-        if( !ps->HasAliveParticles() )
+        if( !ps->HasAliveParticles() ) {
             continue;
+        }
 
         ps->Update();
 
@@ -226,11 +229,13 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
             for( size_t j = 0; j < g_pointLights.size(); j++ ) {
                 Light * light = g_pointLights.at( j );
 
-                if( !light->IsVisible() )
+                if( !light->IsVisible() ) {
                     continue;
+                }
 
-                if( light->GetRadius() < 0.1 )
+                if( light->GetRadius() < 0.1 ) {
                     continue;
+                }
 
                 affectedLights.push_back( light );
             }
@@ -255,8 +260,7 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
                     affectedLights.erase( affectedLights.begin() );
                 }
             }
-        }
-        else {
+        } else {
             vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 0 );
 
             ps->Render();

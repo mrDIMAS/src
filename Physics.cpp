@@ -8,16 +8,21 @@ btSequentialImpulseConstraintSolver * g_solver = 0;
 bool g_physicsEnabled = true;
 
 void Physics::DestructWorld() {
-    if( g_dynamicsWorld )
+    if( g_dynamicsWorld ) {
         delete g_dynamicsWorld;
-    if( g_solver )
+    }
+    if( g_solver ) {
         delete g_solver;
-    if( g_broadphase )
+    }
+    if( g_broadphase ) {
         delete g_broadphase;
-    if( g_collisionDispatcher )
+    }
+    if( g_collisionDispatcher ) {
         delete g_collisionDispatcher;
-    if( g_defaultCollision )
+    }
+    if( g_defaultCollision ) {
         delete g_defaultCollision;
+    }
 }
 
 void PausePhysics() {

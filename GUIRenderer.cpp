@@ -41,8 +41,9 @@ GUIRenderer::~GUIRenderer() {
     lineDecl->Release();
     lineVertexBuffer->Release();
 
-    for( size_t i = 0; i < fonts.size(); i++ )
+    for( size_t i = 0; i < fonts.size(); i++ ) {
         fonts.at( i )->Release();
+    }
 }
 
 FontHandle GUIRenderer::CreateFont( int size, const char * name, int italic, int underlined ) {
@@ -105,7 +106,9 @@ void GUIRenderer::RenderAllGUIElements() {
     g_device->SetTransform( D3DTS_VIEW, &identity );
     RenderRects();
     RenderTexts();
-    RenderCursor();
+    if( g_cursor ) {
+        RenderCursor();
+    }
 }
 
 void GUIRenderer::RenderLines() {
@@ -186,8 +189,9 @@ void GUIRenderer::RenderRects() {
         memcpy( data, vertices, sizeOfRectBytes );
         vertexBuffer->Unlock( );
 
-        if( rect.texture )
+        if( rect.texture ) {
             rect.texture->Bind( 0 );
+        }
 
         g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 
@@ -272,10 +276,12 @@ GUIRenderer::Text::Text( string theText, float theX, float theY, float theWidth,
     text = theText;
     font = (ID3DXFont*)( theFont.pointer );
 
-    if( theTextAlign == 0 )
+    if( theTextAlign == 0 ) {
         textAlign = DT_LEFT;
-    if( theTextAlign == 1 )
+    }
+    if( theTextAlign == 1 ) {
         textAlign = DT_CENTER | DT_VCENTER;
+    }
     color = D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
 }
 

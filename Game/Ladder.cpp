@@ -27,13 +27,13 @@ void Ladder::DoPlayerCrawling() {
             if( distance < 0.25f ) {
                 leave = true;
 
-                if( (GetPosition( player->body ) - GetPosition( end )).Length2() < (GetPosition( player->body ) - GetPosition( begin )).Length2())
+                if( (GetPosition( player->body ) - GetPosition( end )).Length2() < (GetPosition( player->body ) - GetPosition( begin )).Length2()) {
                     target = endLeavePoint;
-                else
+                } else {
                     target = beginLeavePoint;
+                }
             }
-        }
-        else {
+        } else {
             DoLeave();
         }
     }
@@ -63,17 +63,19 @@ void Ladder::DoLeave() {
 
 void Ladder::SetDirection( Direction direction ) {
     if( direction == Way::Direction::Forward ) {
-        if( leave )
+        if( leave ) {
             target = endLeavePoint;
-        else
+        } else {
             target = end;
+        }
     }
 
     if( direction == Way::Direction::Backward ) {
-        if( leave )
+        if( leave ) {
             target = beginLeavePoint;
-        else
+        } else {
             target = begin;
+        }
     }
 }
 

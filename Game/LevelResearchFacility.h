@@ -9,65 +9,51 @@
 #include "Sparks.h"
 #include "SteamStream.h"
 
-
-
 class LevelResearchFacility : public Level {
-private:
-    NodeHandle steamActivateZone;
-    NodeHandle steamPS;
-    SoundHandle steamHissSound;
+private:    
     Lift * lift1;
-    SoundHandle fanSound;
-    NodeHandle scaryBarellThrowZone;
-    SoundHandle leverSound;
-    Sparks * powerSparks;
-    Fan * fan1;
-    Fan * fan2;
+    Sparks * powerSparks;  
     Valve * steamValve;
     SteamStream * extemeSteam;
-
     Enemy * ripper;
-
-    // Door open
+    Fan * fan1;    
+    Fan * fan2;
+    SoundHandle fanSound;    
+    SoundHandle leverSound;
+    SoundHandle steamHissSound;
+    NodeHandle scaryBarellThrowZone;
+    NodeHandle steamActivateZone;
+    NodeHandle steamPS;
     NodeHandle doorOpenLever;
     NodeHandle lockedDoor;
     NodeHandle spawnRipperZone;
     NodeHandle repositionRipperZone;
     NodeHandle ripperNewPosition;
-
     NodeHandle extremeSteamBlock;
     NodeHandle extremeSteamHurtZone;
-public:
-    LevelResearchFacility();
-    ~LevelResearchFacility();
-    virtual void DoScenario();
-    virtual void Hide();
-    virtual void Show();
-    void CreateSteam();
-    int CreateSparks( int at );
-
-    Item * fuse[3];
-    ItemPlace * fusePlace[3];
+    NodeHandle upLight[6];
     NodeHandle fuseModel[3];
     NodeHandle powerLever;
     NodeHandle powerLeverOffModel;
     NodeHandle powerLeverOnModel;
-    int fuseInsertedCount;
+    Item * fuse[3];
+    ItemPlace * fusePlace[3];
+    float upLightOnRange[6];
+    int fuseInsertedCount;    
     bool powerOn;
 
-    NodeHandle upLight[6];
-    float upLightOnRange[6];
-
+    void CreateSteam();
+    int CreateSparks( int at );   
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
-
-    virtual void OnSerialize( TextFileStream & out ) final {
-
-    }
-
-    virtual void OnDeserialize( TextFileStream & in ) final {
-
-    }
+public:
+    explicit LevelResearchFacility();
+    virtual ~LevelResearchFacility();
+    virtual void DoScenario() final;
+    virtual void Hide() final;
+    virtual void Show() final;
+    virtual void OnSerialize( TextFileStream & out ) final;
+    virtual void OnDeserialize( TextFileStream & in ) final;
 };
 
 

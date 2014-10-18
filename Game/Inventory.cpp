@@ -48,8 +48,7 @@ void Inventory::DoCombine() {
                 }
 
                 ThrowItem( canister );
-            }
-            else {
+            } else {
                 combineItemFirst->SetType( combineItemSecond->onCombineBecomes );
 
                 items.erase( find( items.begin(), items.end(), combineItemSecond ));
@@ -75,8 +74,9 @@ void Inventory::Update() {
             forUse = 0;
             selected = 0;
         }
-        if( opened )
+        if( opened ) {
             forUse = 0;
+        }
         return;
     }
 
@@ -131,16 +131,18 @@ void Inventory::Update() {
         DrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, cellWidth - 2 * combineBoxSpacing, cellHeight - 2 * combineBoxSpacing, combineItemFirst->img );
         if( IsMouseInside( buttonsX, combineBoxY, cellWidth, cellHeight )) {
             combineColor1 = Vector3( 255, 0, 0 );
-            if( mi::MouseHit( mi::MouseButton::Left ))
+            if( mi::MouseHit( mi::MouseButton::Left )) {
                 combineItemFirst = 0;
+            }
         }
     }
     if( combineItemSecond ) {
         DrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * cellHeight + combineBoxSpacing, cellWidth - 2 * combineBoxSpacing, cellHeight - 2 * combineBoxSpacing, combineItemSecond->img );
         if( IsMouseInside( buttonsX, combineBoxY + 1.2f * cellHeight, cellWidth, cellHeight )) {
             combineColor2 = Vector3( 255, 0, 0 );
-            if( mi::MouseHit( mi::MouseButton::Left ))
+            if( mi::MouseHit( mi::MouseButton::Left )) {
                 combineItemSecond = 0;
+            }
         }
     }
     DrawGUIRect( buttonsX, combineBoxY, cellWidth, cellHeight, cellTexture, combineColor1, 255 );
@@ -178,8 +180,9 @@ void Inventory::Update() {
             // get item for draw
             int itemNum = cw * cellCountHeight + ch;
             Item * item = nullptr;
-            if( itemNum < items.size() )
+            if( itemNum < items.size() ) {
                 item = items[ itemNum ];
+            }
             if( item )
                 if( selected == item ) {
                     color = Vector3( 0, 200, 0 );
@@ -203,12 +206,13 @@ void Inventory::Update() {
             if( picked ) {
                 if( mi::MouseHit( mi::MouseButton::Right ) && combinePick ) {
                     if( combineItemFirst == 0 ) {
-                        if( picked != combineItemFirst )
+                        if( picked != combineItemFirst ) {
                             combineItemFirst = picked;
-                    }
-                    else if( combineItemSecond == 0 ) {
-                        if( picked != combineItemSecond )
+                        }
+                    } else if( combineItemSecond == 0 ) {
+                        if( picked != combineItemSecond ) {
                             combineItemSecond = picked;
+                        }
                     }
 
                     combinePick = false;

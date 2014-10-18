@@ -42,7 +42,8 @@ int ItemPlace::GetPlaceType() {
 
 ItemPlace * ItemPlace::FindByObject( NodeHandle handle ) {
     for( auto ip : all )
-        if( ip->object == handle )
+        if( ip->object == handle ) {
             return ip;
+        }
     return 0;
 }

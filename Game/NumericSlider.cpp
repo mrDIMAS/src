@@ -17,12 +17,14 @@ void NumericSlider::Draw( float x, float y, TextureHandle buttonImage, const cha
     DrawGUIText( text, x, y + textHeight / 2, captionWidth, textHeight, gui->font, Vector3( 0, 255, 0 ), 0 );
 
     if( increase.mouseLeftClicked ) {
-        if( value < fMaximum )
+        if( value < fMaximum ) {
             value += fStep;
+        }
     }
     if( decrease.mouseLeftClicked ) {
-        if( value > fMinimum )
+        if( value > fMinimum ) {
             value -= fStep;
+        }
     }
 }
 

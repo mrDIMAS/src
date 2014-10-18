@@ -12,11 +12,13 @@ void EffectsQuad::Bind() {
 }
 
 EffectsQuad::~EffectsQuad() {
-    if( vertexDeclaration )
+    if( vertexDeclaration ) {
         vertexDeclaration->Release();
+    }
 
-    if( vertexBuffer )
+    if( vertexBuffer ) {
         vertexBuffer->Release();
+    }
 
     delete vertexShader;
 }

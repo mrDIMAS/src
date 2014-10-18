@@ -25,7 +25,7 @@ Menu::Menu( ) {
     continuePressed = false;
     exitingGame = false;
     returnToGameByEsc = false;
-    autosaveNotify = true;
+    autosaveNotify = false; // set it to true when build release version
     textFont = CreateGUIFont( 16, "Arial", false, false );
     textBackgroundFont = CreateGUIFont( 21, "Arial", false, false );
 
@@ -47,20 +47,23 @@ void Menu::Show() {
     camera->MakeCurrent();
     camera->FadeIn();
     ShowNode( scene );
-    if( currentLevel )
+    if( currentLevel ) {
         currentLevel->Hide();
+    }
     visible = true;
     ShowCursor();
     PausePhysics();
 }
 
 void Menu::Hide( ) {
-    if( player )
+    if( player ) {
         player->camera->MakeCurrent();
+    }
     SetPlayerControls();
     HideNode( scene );
-    if( currentLevel )
+    if( currentLevel ) {
         currentLevel->Show();
+    }
     visible = false;
     page = Page::Main;
     buttonsXOffset = 0;
@@ -73,8 +76,9 @@ void Menu::Update( ) {
     if( visible ) {
         camera->Update();
 
-        if( mi::KeyHit( mi::Esc ) )
+        if( mi::KeyHit( mi::Esc ) ) {
             returnToGameByEsc = currentLevel != nullptr;
+        }
 
         if( startPressed || continuePressed || returnToGameByEsc ) {
             camera->FadeOut();
@@ -82,11 +86,13 @@ void Menu::Update( ) {
             buttonsXOffset -= 6;
 
             if( camera->FadeComplete() ) {
-                if( !currentLevel && continuePressed )
+                if( !currentLevel && continuePressed ) {
                     Level::Change( continueLevelName, true );
+                }
 
-                if( !currentLevel && startPressed )
+                if( !currentLevel && startPressed ) {
                     Level::Change( g_initialLevel );
+                }
 
                 startPressed = false;
                 continuePressed = false;
@@ -115,8 +121,9 @@ void Menu::Update( ) {
 
         cameraAnimationOffset = cameraAnimationOffset.Lerp( cameraAnimationNewOffset, 0.0085f );
 
-        if( ( cameraAnimationOffset - cameraAnimationNewOffset ).Length2() < 0.025 )
+        if( ( cameraAnimationOffset - cameraAnimationNewOffset ).Length2() < 0.025 ) {
             cameraAnimationNewOffset = Vector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
+        }
 
         SetPosition( camera->cameraNode, cameraInitialPosition + cameraAnimationOffset );
 
@@ -130,23 +137,25 @@ void Menu::Update( ) {
         GUIState exit;
 
         if( !autosaveNotify ) {
-            if( currentLevel || canContinueGameFromLast )
+            if( currentLevel || canContinueGameFromLast ) {
                 continueGame = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 3.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            if( !currentLevel )
+            }
+            if( !currentLevel ) {
                 start = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            }
             options = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             authors = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             exit = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-        }
-        else {
+        } else {
             int ntfX = 400;
             int ntfY = GetResolutionHeight() / 2 - 64;
             int ntfW = GetResolutionWidth() - 800;
             DrawGUIRect( ntfX, ntfY, ntfW, 32, TextureHandle::Empty(), Vector3( 50, 0, 0 ), 200 );
             DrawGUIText( loc.GetString( "autosaveNotify" ), ntfX, ntfY, ntfW , 32, textFont, Vector3( 200, 0, 0 ), 1 );
             GUIState ok = DrawGUIButton( GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 16, 128, 32, buttonImage, loc.GetString( "okButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            if( ok.mouseLeftClicked )
+            if( ok.mouseLeftClicked ) {
                 autosaveNotify = false;
+            }
         }
 
         if( page == Page::Authors ) {
@@ -163,14 +172,17 @@ void Menu::Update( ) {
             GUIState optionsKeys = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "controls" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             GUIState optionsGraphics = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "graphics" ), gui->font, Vector3( 0, 255, 0 ), 1 );
 
-            if( optionsCommon.mouseLeftClicked )
+            if( optionsCommon.mouseLeftClicked ) {
                 SetPage( Page::OptionsCommon );
+            }
 
-            if( optionsKeys.mouseLeftClicked )
+            if( optionsKeys.mouseLeftClicked ) {
                 SetPage( Page::OptionsKeys );
+            }
 
-            if( optionsGraphics.mouseLeftClicked )
+            if( optionsGraphics.mouseLeftClicked ) {
                 SetPage( Page::OptionsGraphics );
+            }
         }
 
         if( page == Page::OptionsCommon ) {
@@ -201,10 +213,11 @@ void Menu::Update( ) {
 
             // FXAA Options
             fxaaButton->Draw( x, y, buttonImage, loc.GetString( "fxaa" ));
-            if( fxaaButton->on )
+            if( fxaaButton->on ) {
                 EnableFXAA();
-            else
+            } else {
                 DisableFXAA();
+            }
 
             y = GetResolutionHeight() - 2.0 * distBetweenButtons;
 
@@ -216,10 +229,11 @@ void Menu::Update( ) {
 
             textureFiltering->Draw( x, y, buttonImage, loc.GetString( "filtering" ));
 
-            if( textureFiltering->GetCurrentValue() == 0 )
+            if( textureFiltering->GetCurrentValue() == 0 ) {
                 SetTextureFiltering( TextureFilter::Anisotropic, GetMaxAnisotropy() );
-            else
+            } else {
                 SetTextureFiltering( TextureFilter::Linear, 0 );
+            }
         }
 
         if( page == Page::OptionsKeys ) {
@@ -303,24 +317,27 @@ void Menu::Update( ) {
                 }
             }
 
-            if( options.mouseLeftClicked )
+            if( options.mouseLeftClicked ) {
                 SetPage( Page::Options );
+            }
 
-            if( authors.mouseLeftClicked )
+            if( authors.mouseLeftClicked ) {
                 SetPage( Page::Authors );
+            }
         }
-    }
-    else {
-        if( mi::KeyHit( mi::Esc ) )
+    } else {
+        if( mi::KeyHit( mi::Esc ) ) {
             menu->Show();
+        }
     }
 }
 
 void Menu::SetPage( Page page ) {
-    if( this->page == page )
+    if( this->page == page ) {
         this->page = Page::Main;
-    else
+    } else {
         this->page = page;
+    }
 }
 
 void Menu::LoadTextures() {
@@ -469,8 +486,9 @@ void Menu::WriteProgressConfig() {
     ofstream out( "progress.cfg" );
 
     WriteInteger( out, "lastLevel", (int)Level::curLevelID );
-    if( player )
+    if( player ) {
         WriteFloat( out, "playerLife", player->life );
+    }
 
     out.close();
 }

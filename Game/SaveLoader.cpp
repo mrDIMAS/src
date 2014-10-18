@@ -3,8 +3,9 @@
 #include "Way.h"
 
 void SaveLoader::RestoreWorldState() {
-    if( currentLevel )
+    if( currentLevel ) {
         currentLevel->DeserializeWith( *this );
+    }
 
     int itemCount = ReadInteger();
 
@@ -34,19 +35,22 @@ void SaveLoader::RestoreWorldState() {
         string ipName = Readstring();
         bool gotPlacedItem = ReadBoolean();
         string itemName;
-        if( gotPlacedItem )
+        if( gotPlacedItem ) {
             itemName = Readstring();
+        }
         int placedType = ReadInteger();
 
         ItemPlace * ip = ItemPlace::FindByObject( FindByName( ipName.c_str()) );
 
         if( ip ) {
             Item * item = 0;
-            if( gotPlacedItem )
+            if( gotPlacedItem ) {
                 item = Item::GetByObject( FindByName( itemName.c_str() ));
+            }
 
-            if( item )
+            if( item ) {
                 ip->itemPlaced = item;
+            }
 
             ip->itemTypeCanBePlaced = placedType;
         }

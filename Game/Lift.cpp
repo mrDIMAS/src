@@ -23,8 +23,9 @@ void Lift::Update() {
         arrived = true;
     }
 
-    if( dist2 > 1 )
+    if( dist2 > 1 ) {
         dist2 = 1;
+    }
 
     SetVolume( motorIdleSound, dist2 );
 
@@ -33,10 +34,11 @@ void Lift::Update() {
     if( !arrived ) {
         float mul = 1;
 
-        if( dist2 > 1 )
+        if( dist2 > 1 ) {
             mul = 1;
-        else
+        } else {
             mul = dist2;
+        }
 
         Move( body, speed * mul );
     }
@@ -46,10 +48,11 @@ void Lift::Update() {
 
         if( mi::KeyHit( mi::E )) {
             if( arrived ) {
-                if( target == sourcePoint )
+                if( target == sourcePoint ) {
                     target = destPoint;
-                else
+                } else {
                     target = sourcePoint;
+                }
             }
 
             arrived = false;

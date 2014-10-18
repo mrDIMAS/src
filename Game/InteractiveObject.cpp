@@ -4,8 +4,9 @@
 vector< InteractiveObject* > InteractiveObject::objects;
 
 void InteractiveObject::DeleteAll() {
-    for( auto it = objects.begin(); it != objects.end(); it++ )
+    for( auto it = objects.begin(); it != objects.end(); it++ ) {
         delete *it;
+    }
 }
 
 void InteractiveObject::UpdateAll() {
@@ -21,16 +22,13 @@ void InteractiveObject::UpdateFlashing() {
     if( flashDirection ) {
         if( flashAlbedo < 1 ) {
             flashAlbedo += 0.05f;
-        }
-        else {
+        } else {
             flashDirection = false;
         }
-    }
-    else {
+    } else {
         if( flashAlbedo > 0 ) {
             flashAlbedo -= 0.05f;
-        }
-        else {
+        } else {
             flashDirection = true;
         }
     }

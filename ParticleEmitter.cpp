@@ -14,43 +14,49 @@ NodeHandle CreateParticleSystem( int particleNum, TextureHandle texture, int typ
 void SetParticleSystemSpeedDeviation( NodeHandle ps, Vector3 min, Vector3 max ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetSpeedDeviation( min, max );
+    }
 }
 
 void SetParticleSystemColors( NodeHandle ps, Vector3 begin, Vector3 end ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetColors( begin, end );
+    }
 }
 
 void SetParticleSystemPointSize( NodeHandle ps, float pointSize ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetParticleSize( pointSize );
+    }
 }
 
 void SetParticleSystemBox( NodeHandle ps, Vector3 min, Vector3 max ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetBoundingBox( min, max );
+    }
 }
 
 void SetParticleSystemAutoResurrect( NodeHandle ps, int ar ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetAutoResurrection( ar );
+    }
 }
 
 int GetParticleSystemAliveParticles( NodeHandle ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         return n->particleEmitter->GetAliveParticles();
+    }
 
     return 0;
 }
@@ -62,50 +68,57 @@ void RestartParticleSystem( NodeHandle ps ) {
 void SetParticleSystemRadius( NodeHandle ps, float radius ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetRadius( radius );
+    }
 }
 
 void EnableParticleSystem( NodeHandle ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetEnabled( 1 );
+    }
 }
 
 void DisableParticleSystem( NodeHandle ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetEnabled( 0 );
+    }
 }
 
 void SetParticleSystemParticleScaling( NodeHandle ps, float scl ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetScaling( scl );
+    }
 }
 
 void EnableParticleSystemLighting( NodeHandle ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetLighting( 1 );
+    }
 }
 
 void DisableParticleSystemLighting( NodeHandle ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetLighting( 0 );
+    }
 }
 
 void SetParticleSystemThickness( NodeHandle ps, float thickness ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
-    if( n->particleEmitter )
+    if( n->particleEmitter ) {
         n->particleEmitter->SetThickness( 1 );
+    }
 }
 
 ParticleEmitter::~ParticleEmitter() {
@@ -214,10 +227,10 @@ void ParticleEmitter::Update() {
         p.SetSize( p.GetSize() + scaling );
 
         if( translucency <= 10.0f  ) {
-            if( autoResurrect )
+            if( autoResurrect ) {
                 ResurrectParticle( p );
-        }
-        else {
+            }
+        } else {
             vertices[ vertexNum + 0 ] = SParticleVertex( p.GetPosition() + leftTop * p.GetSize(), 0.0, 0.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
             vertices[ vertexNum + 1 ] = SParticleVertex( p.GetPosition() + rightTop * p.GetSize(), 1.0, 0.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
             vertices[ vertexNum + 2 ] = SParticleVertex( p.GetPosition() + rightBottom * p.GetSize(), 1.0, 1.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
@@ -254,10 +267,12 @@ bool ParticleEmitter::IsLightAffects() {
 }
 
 float ParticleEmitter::CalculateColorInterpolationCoefficient( const SParticle & particle ) {
-    if( type == PS_BOX )
+    if( type == PS_BOX ) {
         return GetBoxColorInterpolationCoefficient( particle );
-    if( type == PS_STREAM )
+    }
+    if( type == PS_STREAM ) {
         return GetSphereColorInterpolationCoefficient( particle );
+    }
 
     return 0.0f;
 }
@@ -267,8 +282,9 @@ float ParticleEmitter::GetSphereColorInterpolationCoefficient( const SParticle &
     float radius2 = boundingSphereRadius * boundingSphereRadius;
 
     float coefficient = abs( distance2 / radius2 );
-    if( coefficient > 1.0f )
+    if( coefficient > 1.0f ) {
         coefficient = 1.0f;
+    }
     return coefficient;
 }
 
@@ -283,23 +299,28 @@ float ParticleEmitter::GetBoxColorInterpolationCoefficient( const SParticle & pa
 float ParticleEmitter::GetBox1DColorInterpolationCoefficient( float coord, float maxCoord, float minCoord ) {
     float coefficient = 0;
 
-    if( coord > 0 )
+    if( coord > 0 ) {
         coefficient = abs( coord / maxCoord );
+    }
 
-    if( coord < 0 )
+    if( coord < 0 ) {
         coefficient = abs( coord / minCoord );
+    }
 
-    if( coefficient > 1.0f )
+    if( coefficient > 1.0f ) {
         coefficient = 1.0f;
+    }
 
     return coefficient;
 }
 
 float ParticleEmitter::CalculateTranslucency( const SParticle & particle ) {
-    if( type == PS_BOX )
+    if( type == PS_BOX ) {
         return GetBoxBoundaryLayerTranslucency( particle );
-    if( type == PS_STREAM )
+    }
+    if( type == PS_STREAM ) {
         return GetSphereBoundaryLayerTranslucency( particle );
+    }
     return 255.0f;
 }
 
@@ -307,8 +328,9 @@ float ParticleEmitter::GetSphereBoundaryLayerTranslucency( const SParticle & par
     float distance2 = particle.GetPosition().Length2();
     float radius2 = boundingSphereRadius * boundingSphereRadius;
 
-    if( distance2 > radius2 )
+    if( distance2 > radius2 ) {
         return 255.0f * radius2 / ( distance2 );
+    }
 
     return 255.0f;
 }
@@ -328,11 +350,13 @@ void ParticleEmitter::SetRadius( float theRadius ) {
 float ParticleEmitter::GetBox1DTranslucency( float coord, float maxCoord, float minCoord ) {
     float translucency = 1.0f;
 
-    if( coord > maxCoord )
+    if( coord > maxCoord ) {
         translucency = abs( maxCoord / coord );
+    }
 
-    if( coord < minCoord )
+    if( coord < minCoord ) {
         translucency = abs( coord / minCoord );
+    }
 
     return 255.0f * translucency;
 }
@@ -377,8 +401,9 @@ float ParticleEmitter::GetThickness() {
 }
 
 void ParticleEmitter::ResurrectParticles() {
-    for( size_t i = 0; i < particles.size(); i++ )
+    for( size_t i = 0; i < particles.size(); i++ ) {
         ResurrectParticle( particles.at( i ));
+    }
 }
 
 ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, Texture * theTexture, int theType /*= PS_BOX */ ) {
@@ -395,8 +420,9 @@ ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, T
     faces = new SParticleFace[ theParticleCount * 2 ];
     vertices = new SParticleVertex[ theParticleCount * 4 ];
 
-    for( int i = 0; i < theParticleCount; i++ )
+    for( int i = 0; i < theParticleCount; i++ ) {
         particles.push_back( SParticle( ) );
+    }
 
     boundingBoxMin = Vector3( -1.0f, -1.0f, -1.0f );
     boundingBoxMax = Vector3( 1.0f, 1.0f, 1.0f );

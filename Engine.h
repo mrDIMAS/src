@@ -272,6 +272,7 @@ API void SetLightRange( NodeHandle node, float rad );
 API float GetLightRange( NodeHandle node );
 API void SetLightColor( NodeHandle node, Vector3 clr );
 API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle );
+API void SetSpotTexture( NodeHandle node, TextureHandle texture );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions

@@ -90,8 +90,7 @@ void Player::DrawStatusBar() {
     if( moved ) {
         staminaAlphaTo = 255;
         healthAlphaTo = 255;
-    }
-    else {
+    } else {
         staminaAlphaTo = 50;
         healthAlphaTo = 50;
     }
@@ -106,31 +105,36 @@ void Player::DrawStatusBar() {
     DrawGUIRect( 0, GetResolutionHeight() - h, w, h, statusBar, Vector3( 255, 255, 255 ), staminaAlphaTo );
 
     int segCount = stamina / 5;
-    for( int i = 0; i < segCount; i++ )
+    for( int i = 0; i < segCount; i++ ) {
         DrawGUIRect( 44 + i * ( 8 + 2 ), GetResolutionHeight() - 3 * 15, 8, 16, gui->staminaBarImg, Vector3( 255, 255, 255 ), staminaAlpha );
+    }
 
     segCount = life / 5;
-    for( int i = 0; i < segCount; i++ )
+    for( int i = 0; i < segCount; i++ ) {
         DrawGUIRect( 44 + i * ( 8 + 2 ), GetResolutionHeight() - 4 * 26, 8, 16, gui->lifeBarImg, Vector3( 255, 255, 255 ), healthAlpha );
+    }
 }
 
 bool Player::CanJump( ) {
     for( int i = 0; i < GetContactCount( body ); i++ )
-        if( GetContact( body, i ).normal.y > 0.5 )
+        if( GetContact( body, i ).normal.y > 0.5 ) {
             return true;
+        }
     return false;
 }
 
 int Player::GotItemAnyOfType( int type ) {
     for( auto item : inventory.items )
-        if( item->type == type )
+        if( item->type == type ) {
             return true;
+        }
     return false;
 }
 
 bool Player::UseStamina( float st ) {
-    if( stamina - st < 0 )
+    if( stamina - st < 0 ) {
         return false;
+    }
 
     stamina -= st;
 
@@ -161,12 +165,14 @@ void Player::Damage( float dmg ) {
 }
 
 void Player::AddItem( Item * itm ) {
-    if( !itm )
+    if( !itm ) {
         return;
+    }
 
     for( auto item : inventory.items )
-        if( item == itm )
+        if( item == itm ) {
             return;
+        }
 
     Freeze( itm->object );
     Detach( itm->object );
@@ -178,8 +184,9 @@ void Player::AddItem( Item * itm ) {
 }
 
 void Player::UpdateInventory() {
-    if( mi::KeyHit( (mi::Key)keyInventory ) && !locked )
+    if( mi::KeyHit( (mi::Key)keyInventory ) && !locked ) {
         inventory.opened = !inventory.opened;
+    }
 
     inventory.Update();
 }
@@ -202,8 +209,7 @@ void Player::CompleteObjective() {
 void Player::UpdateMouseLook() {
     if( currentWay ) {
         smoothCamera = false;
-    }
-    else {
+    } else {
         smoothCamera = true;
     }
 
@@ -211,8 +217,9 @@ void Player::UpdateMouseLook() {
         float mul = 1.0f;
 
         if( currentWay )
-            if( !currentWay->IsFreeLook() )
+            if( !currentWay->IsFreeLook() ) {
                 mul = 0;
+            }
 
         pitchTo += mi::MouseYSpeed() * mouseSens * 0.5f * mul;
         yawTo += -mi::MouseXSpeed() * mouseSens * 0.5f * mul;
@@ -220,20 +227,22 @@ void Player::UpdateMouseLook() {
 
     damagePitchOffset += ( damagePitchOffsetTo - damagePitchOffset ) * 0.65f;
 
-    if( damagePitchOffset >= 19.0f )
+    if( damagePitchOffset >= 19.0f ) {
         damagePitchOffsetTo = 0.0f;
+    }
 
 
-    if( pitchTo > 89.90f )
+    if( pitchTo > 89.90f ) {
         pitchTo = 89.90f;
-    if( pitchTo < -89.90f )
+    }
+    if( pitchTo < -89.90f ) {
         pitchTo = -89.90f;
+    }
 
     if( smoothCamera ) {
         pitch = Lerp( pitch, pitchTo, pitch, 0.45f ) * ( 1 - locked );
         yaw = Lerp( yaw, yawTo, yaw, 0.45f ) * ( 1 - locked );
-    }
-    else {
+    } else {
         yaw = yawTo;
         pitch = pitchTo;
     }
@@ -247,11 +256,13 @@ void Player::UpdateMoving() {
 
     for( auto cw : Way::all ) {
         if( cw->IsEnterPicked() ) {
-            if( !cw->IsPlayerInside() )
+            if( !cw->IsPlayerInside() ) {
                 DrawTip( Format( localization.GetString( "crawlIn" ), GetKeyName( keyUse )));
+            }
 
-            if( IsUseButtonHit() )
+            if( IsUseButtonHit() ) {
                 cw->Enter();
+            }
         }
     }
 
@@ -261,16 +272,18 @@ void Player::UpdateMoving() {
         if( door->IsPickedByPlayer() ) {
             DrawTip( Format( localization.GetString( "openClose" ), GetKeyName( keyUse )));
 
-            if( IsUseButtonHit() )
+            if( IsUseButtonHit() ) {
                 door->SwitchState();
+            }
         }
     }
 
     if( currentWay ) {
         currentWay->DoEntering();
 
-        if( !currentWay->IsFreeLook() )
+        if( !currentWay->IsFreeLook() ) {
             currentWay->LookAtTarget();
+        }
 
         if( currentWay->IsPlayerInside() ) {
             bool move = false;
@@ -289,37 +302,41 @@ void Player::UpdateMoving() {
 
                 moved = true;
 
-                if( !currentWay->IsPlayerInside() )
+                if( !currentWay->IsPlayerInside() ) {
                     currentWay = nullptr;
-            }
-            else {
+                }
+            } else {
                 Move( player->body, Vector3( 0, 0, 0 ));
 
                 moved = false;
             }
         }
-    }
-    else {
+    } else {
         Vector3 look = GetLookVector( body );
         Vector3 right = GetRightVector( body );
 
         speedTo = Vector3( 0, 0, 0 );
 
         if( !locked ) {
-            if( mi::KeyDown( (mi::Key)keyMoveForward ))
+            if( mi::KeyDown( (mi::Key)keyMoveForward )) {
                 speedTo = speedTo + look;
-            if( mi::KeyDown( (mi::Key)keyMoveBackward ))
+            }
+            if( mi::KeyDown( (mi::Key)keyMoveBackward )) {
                 speedTo = speedTo - look;
-            if( mi::KeyDown( (mi::Key)keyStrafeLeft ))
+            }
+            if( mi::KeyDown( (mi::Key)keyStrafeLeft )) {
                 speedTo = speedTo + right;
-            if( mi::KeyDown( (mi::Key)keyStrafeRight ))
+            }
+            if( mi::KeyDown( (mi::Key)keyStrafeRight )) {
                 speedTo = speedTo - right;
+            }
         }
 
         moved = speedTo.Length2() > 0;
 
-        if( moved )
+        if( moved ) {
             speedTo = speedTo.Normalize();
+        }
 
         UpdateJumping();
 
@@ -333,10 +350,10 @@ void Player::UpdateMoving() {
                 fovTo = runFOV;
                 runBobCoeff = 1.425f;
             }
-        }
-        else {
-            if( stamina < maxStamina )
+        } else {
+            if( stamina < maxStamina ) {
                 stamina += 0.35f;
+            }
         }
 
         fov = fov + ( fovTo - fov ) * 0.07f;
@@ -354,15 +371,17 @@ void Player::Update( ) {
     UpdateFright();
     camera->Update();
 
-    if( menu->visible )
+    if( menu->visible ) {
         return;
+    }
 
     DrawGUIElements();
     DrawStatusBar();
     UpdateFlashLight();
 
-    if( dead )
+    if( dead ) {
         return;
+    }
 
     UpdateMouseLook();
     UpdateMoving();
@@ -411,8 +430,9 @@ void Player::CreateBody() {
 }
 
 void Player::SetRockFootsteps() {
-    for( auto s : footsteps )
+    for( auto s : footsteps ) {
         FreeSoundSource( s );
+    }
 
     footsteps.clear();
 
@@ -430,8 +450,9 @@ void Player::SetRockFootsteps() {
 }
 
 void Player::SetDirtFootsteps() {
-    for( auto s : footsteps )
+    for( auto s : footsteps ) {
         FreeSoundSource( s );
+    }
 
     footsteps.clear();
 
@@ -521,8 +542,7 @@ void Player::UpdateCameraBob() {
         }
 
         cameraBob = Vector3( xOffset, yOffset + headHeight, 0 );
-    }
-    else {
+    } else {
         cameraBobCoeff = 0;
     }
 
@@ -540,14 +560,16 @@ void Player::UpdateJumping() {
 
     gravity = gravity.Lerp( jumpTo, 0.75f );
 
-    if( gravity.y >= jumpTo.y )
+    if( gravity.y >= jumpTo.y ) {
         landed = true;
+    }
 
     if( landed ) {
         jumpTo = Vector3( 0, -2.0, 0 );
 
-        if( CanJump() )
+        if( CanJump() ) {
             jumpTo = Vector3( 0, 0, 0 );
+        }
     };
 }
 
@@ -570,14 +592,15 @@ void Player::DrawSheetInHands() {
 void Player::DescribePickedObject() {
     // Change cursor first
     if( nearestPicked.IsValid() ) {
-        if( IsObjectHasNormalMass( nearestPicked ))
+        if( IsObjectHasNormalMass( nearestPicked )) {
             DrawGUIRect( GetResolutionWidth() / 2 - 16, GetResolutionHeight() / 2 - 16, 32, 32, upCursor, Vector3( 255, 255, 255 ), 180 );
-    }
-    else {
-        if( objectInHands.IsValid() )
+        }
+    } else {
+        if( objectInHands.IsValid() ) {
             DrawGUIRect( GetResolutionWidth() / 2 - 16, GetResolutionHeight() / 2 - 16, 32, 32, downCursor, Vector3( 255, 255, 255 ), 180 );
-        else
+        } else {
             DrawGUIText( "+", GetResolutionWidth() / 2 - 16, GetResolutionHeight() / 2 - 16, 32, 32, gui->font, Vector3( 255, 0, 0 ), 1, 180 );
+        }
     }
     // Then describe object
     DrawGUIText( pickedObjectDesc.c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
@@ -587,8 +610,9 @@ void Player::UpdateEnvironmentDamaging() {
     for( int i = 0; i < GetContactCount( body ); i++ ) {
         Contact contact = GetContact( body, i );
 
-        if( contact.impulse > 30 )
+        if( contact.impulse > 30 ) {
             Damage( contact.impulse / 5 );
+        }
     }
 }
 
@@ -603,21 +627,22 @@ void Player::UpdateItemsHandling() {
             SetAngularVelocity( objectInHands, Vector3( 0, 0, 0 ));
 
             if( mi::MouseDown( mi::Right ) ) {
-                if( UseStamina( GetMass( objectInHands )  ))
+                if( UseStamina( GetMass( objectInHands )  )) {
                     Move( objectInHands, ( ppPos - GetPosition( camera->cameraNode )).Normalize() * 6 );
+                }
 
                 objectThrown = true;
                 objectInHands.Invalidate();
             }
-        }
-        else {
+        } else {
             SetAngularVelocity( objectInHands, Vector3( 1, 1, 1 ));
 
             objectInHands.Invalidate();
         }
 
-        if( pitch > 70 )
+        if( pitch > 70 ) {
             objectInHands.Invalidate();
+        }
 
         if( objectInHands.IsValid() ) {
             if( IsUseButtonHit() ) {
@@ -642,15 +667,16 @@ void Player::UpdateItemsHandling() {
         }
     }
 
-    if( !mi::MouseDown( mi::Left ))
+    if( !mi::MouseDown( mi::Left )) {
         objectThrown = false;
+    }
 }
 
 void Player::UpdatePicking() {
     Vector3 pickPosition;
 
     picked = RayPick( GetResolutionWidth() / 2, GetResolutionHeight() / 2, &pickPosition );
-    
+
     nearestPicked.Invalidate();
 
     if( picked.IsValid() && !objectInHands.IsValid() && !locked  ) {
@@ -669,15 +695,14 @@ void Player::UpdatePicking() {
                 pickedObjectDesc = itm->name;
 
                 pickedObjectDesc += Format( localization.GetString( "itemPick" ), GetKeyName( keyUse));
-            }
-            else if( sheet ) {
+            } else if( sheet ) {
                 pickedObjectDesc = sheet->desc;
 
                 pickedObjectDesc += Format( localization.GetString( "sheetPick" ), GetKeyName( keyUse ));
-            }
-            else {
-                if( IsObjectHasNormalMass( picked ) && !IsNodeFrozen( picked ))
+            } else {
+                if( IsObjectHasNormalMass( picked ) && !IsNodeFrozen( picked )) {
                     DrawTip( localization.GetString( "objectPick" ) );
+                }
             }
 
             if( mi::MouseDown( mi::Left ) && pitch < 70 ) {
@@ -685,15 +710,15 @@ void Player::UpdatePicking() {
                     if( !IsNodeFrozen( picked ) && !objectThrown ) {
                         objectInHands = picked;
                     }
-                }
-                else {
+                } else {
                     DrawTip( localization.GetString( "tooHeavy" ) );
                 }
             }
         }
 
-        if( !itm && !sheet )
+        if( !itm && !sheet ) {
             pickedObjectDesc = " ";
+        }
     }
 }
 
@@ -712,16 +737,18 @@ void Player::UpdateFlashLight() {
 
     flashLightItem->content = flashlight->charge;
 
-    if( mi::KeyHit( (mi::Key)keyFlashLight ) && !locked )
+    if( mi::KeyHit( (mi::Key)keyFlashLight ) && !locked ) {
         flashlight->Switch();
+    }
 }
 
 void Player::DrawGUIElements() {
     int alpha = placeDescTimer < 50 ? 255.0f * (float)placeDescTimer / 50.0f : 255;
     DrawGUIText( placeDesc.c_str(), GetResolutionWidth() - 300, GetResolutionHeight() - 200, 200, 200, gui->font, Vector3( 255, 255, 255 ), 1, alpha );
 
-    if( placeDescTimer )
+    if( placeDescTimer ) {
         placeDescTimer--;
+    }
 
     goal.AnimateAndRender();
 }
@@ -741,8 +768,9 @@ Player::~Player() {
 }
 
 void Player::SetMetalFootsteps() {
-    for( auto s : footsteps )
+    for( auto s : footsteps ) {
         FreeSoundSource( s );
+    }
 
     footsteps.clear();
 
@@ -760,12 +788,15 @@ void Player::SetMetalFootsteps() {
 }
 
 void Player::SetFootsteps( FootstepsType ft ) {
-    if( ft == FootstepsType::Dirt )
+    if( ft == FootstepsType::Dirt ) {
         SetDirtFootsteps();
-    if( ft == FootstepsType::Rock )
+    }
+    if( ft == FootstepsType::Rock ) {
         SetRockFootsteps();
-    if( ft == FootstepsType::Metal )
+    }
+    if( ft == FootstepsType::Metal ) {
         SetMetalFootsteps();
+    }
 }
 
 void Player::DrawTip( string text ) {
@@ -801,8 +832,9 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadVector3( jumpTo );
 
     currentWay = Way::GetByObject( FindByName( in.Readstring().c_str() ));
-    if( currentWay )
+    if( currentWay ) {
         Freeze( player->body );
+    }
 
     in.ReadBoolean( landed );
     in.ReadFloat( stamina );

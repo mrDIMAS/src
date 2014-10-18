@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SceneNode.h"
+#include "Texture.h"
 
 class Light : public SceneNode {
 public:
@@ -28,17 +29,8 @@ public:
     float GetCosHalfInnerAngle( );
     float GetCosHalfOuterAngle( );
 
-    void SetSpotTexture( Texture * tex ) {
-        spotTexture = tex;
-    }
-
-    void BuildSpotProjectionMatrix() {
-        /*
-        D3DXVECTOR3 eye = D3DXVECTOR3( globalTransform.getOrigin().x(), globalTransform.getOrigin().y(), globalTransform.getOrigin().z() );
-        D3DXVECTOR3 lootAt;
-
-        D3DXMatrixLookAtRH( &spotProjectionMatrix, &eye, &lootAt,   )*/
-    }
+    void SetSpotTexture( Texture * tex );
+    void BuildSpotProjectionMatrix();
 
     static Light * GetLightByHandle( NodeHandle handle );
 };

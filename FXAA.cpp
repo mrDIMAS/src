@@ -141,8 +141,9 @@ FXAA::FXAA() {
     pixelShader = new PixelShader( source );
     screenWidth = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_WIDTH" );
     screenHeight = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_HEIGHT" );
-    if( FAILED( D3DXCreateTexture( g_device, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture )))
+    if( FAILED( D3DXCreateTexture( g_device, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture ))) {
         MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
+    }
 
     texture->GetSurfaceLevel( 0, &renderTarget );
     g_device->GetRenderTarget( 0, &backBufferRT );

@@ -39,38 +39,54 @@ float frandom( float low, float high ) {
 }
 
 int GetNearestPow2( int num ) {
-    if( num >= 3072 && num < 4096 )
+    if( num >= 3072 && num < 4096 ) {
         return 4096;
-    if( num >= 2048 && num < 3072 )
+    }
+    if( num >= 2048 && num < 3072 ) {
         return 2048;
-    if( num >= 1536 && num < 2048 )
+    }
+    if( num >= 1536 && num < 2048 ) {
         return 2048;
-    if( num >= 1024 && num < 1536 )
+    }
+    if( num >= 1024 && num < 1536 ) {
         return 1024;
-    if( num >= 768 && num < 1024 )
+    }
+    if( num >= 768 && num < 1024 ) {
         return 1024;
-    if( num >= 512 && num < 768 )
+    }
+    if( num >= 512 && num < 768 ) {
         return 512;
-    if( num >= 384 && num < 512 )
+    }
+    if( num >= 384 && num < 512 ) {
         return 512;
-    if( num >= 256 && num < 384 )
+    }
+    if( num >= 256 && num < 384 ) {
         return 256;
-    if( num >= 192 && num < 256 )
+    }
+    if( num >= 192 && num < 256 ) {
         return 256;
-    if( num >= 128 && num < 192 )
+    }
+    if( num >= 128 && num < 192 ) {
         return 128;
-    if( num >= 96 && num < 128 )
+    }
+    if( num >= 96 && num < 128 ) {
         return 128;
-    if( num >= 64 && num < 96 )
+    }
+    if( num >= 64 && num < 96 ) {
         return 64;
-    if( num >= 48 && num < 64 )
+    }
+    if( num >= 48 && num < 64 ) {
         return 64;
-    if( num >= 32 && num < 48 )
+    }
+    if( num >= 32 && num < 48 ) {
         return 32;
-    if( num >= 24 && num < 32 )
+    }
+    if( num >= 24 && num < 32 ) {
         return 32;
-    if( num >= 16 && num < 24 )
+    }
+    if( num >= 16 && num < 24 ) {
         return 16;
+    }
 
     return 8;
 }

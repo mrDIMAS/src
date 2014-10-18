@@ -26,10 +26,11 @@ Way::~Way() {
 void Way::Enter() {
     inside = false;
     entering = true;
-    if( ( GetPosition( player->body ) - GetPosition( begin )).Length2() < ( GetPosition( player->body ) - GetPosition( end )).Length2() )
+    if( ( GetPosition( player->body ) - GetPosition( begin )).Length2() < ( GetPosition( player->body ) - GetPosition( end )).Length2() ) {
         target = begin;
-    else
+    } else {
         target = end;
+    }
     Freeze( player->body );
     player->currentWay = this;
 }
@@ -48,10 +49,11 @@ void Way::DoEntering() {
             entering = false;
             inside = true;
 
-            if( target == end )
+            if( target == end ) {
                 target = begin;
-            else
+            } else {
                 target = end;
+            }
 
             Move( player->body, Vector3( 0, 0, 0 ));
         }
@@ -88,14 +90,18 @@ void Way::DeserializeWith( TextFileStream & in ) {
     freeLook = in.ReadBoolean(  );
     leave = in.ReadBoolean();
     int targetNum = in.ReadInteger( );
-    if( targetNum == 0 )
+    if( targetNum == 0 ) {
         target = begin;
-    if( targetNum == 1 )
+    }
+    if( targetNum == 1 ) {
         target = end;
-    if( targetNum == 2 )
+    }
+    if( targetNum == 2 ) {
         target = beginLeavePoint;
-    if( targetNum == 3 )
+    }
+    if( targetNum == 3 ) {
         target = endLeavePoint;
+    }
 }
 
 void Way::SerializeWith( TextFileStream & out ) {
@@ -105,20 +111,25 @@ void Way::SerializeWith( TextFileStream & out ) {
     out.WriteBoolean( freeLook );
     out.WriteBoolean( leave );
     int targetNum = 0;
-    if( target == begin )
+    if( target == begin ) {
         targetNum = 0;
-    if( target == end )
+    }
+    if( target == end ) {
         targetNum = 1;
-    if( target == beginLeavePoint )
+    }
+    if( target == beginLeavePoint ) {
         targetNum = 2;
-    if( target == endLeavePoint )
+    }
+    if( target == endLeavePoint ) {
         targetNum = 3;
+    }
     out.WriteInteger( targetNum );
 }
 
 Way * Way::GetByObject( NodeHandle obj ) {
     for( auto way : all )
-        if( way->enterZone == obj )
+        if( way->enterZone == obj ) {
             return way;
+        }
     return 0;
 }

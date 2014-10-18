@@ -42,14 +42,17 @@ vector< Light*> affectedLights;
 Renderer::~Renderer() {
     delete g_particleSystemRenderer;
 
-    if( g_deferredRenderer )
+    if( g_deferredRenderer ) {
         delete g_deferredRenderer;
+    }
 
-    if( g_guiRenderer )
+    if( g_guiRenderer ) {
         delete g_guiRenderer;
+    }
 
-    while( g_nodes.size() )
+    while( g_nodes.size() ) {
         delete g_nodes.front();
+    }
 
     Texture::DeleteAll();
 
@@ -76,19 +79,23 @@ Renderer::~Renderer() {
 }
 
 Renderer::Renderer( int width, int height, int fullscreen ) {
-    if ( width == 0 )
+    if ( width == 0 ) {
         width = GetSystemMetrics ( SM_CXSCREEN );
+    }
 
-    if ( height == 0 )
+    if ( height == 0 ) {
         height = GetSystemMetrics ( SM_CYSCREEN );
+    }
 
-    if( !CreateRenderWindow( width, height, fullscreen ))
+    if( !CreateRenderWindow( width, height, fullscreen )) {
         return;
+    }
 
     g_d3d = Direct3DCreate9( D3D_SDK_VERSION );
 
-    if( !g_d3d )
+    if( !g_d3d ) {
         return;
+    }
 
     g_width = width;
     g_height = height;
@@ -110,8 +117,7 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
         presentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
         presentParameters.Windowed = FALSE;
         presentParameters.FullScreen_RefreshRateInHz = displayMode.RefreshRate;
-    }
-    else {
+    } else {
         presentParameters.BackBufferFormat = displayMode.Format;
         presentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
         presentParameters.Windowed = TRUE;
@@ -186,15 +192,15 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
 
     if( g_rendererType == Renderer::TypeLightMapRenderer ) {
         g_lightMapRenderer = new LightmapRenderer;
-    }
-    else if( g_rendererType == Renderer::TypeDeferredRenderer ) {
+    } else if( g_rendererType == Renderer::TypeDeferredRenderer ) {
         D3DCAPS9 caps;
         g_device->GetDeviceCaps( &caps );
 
-        if( caps.NumSimultaneousRTs < 3 )
+        if( caps.NumSimultaneousRTs < 3 ) {
             g_deferredRenderer = new SingleRTDeferredRenderer();
-        else
+        } else {
             g_deferredRenderer = new MultipleRTDeferredRenderer();
+        }
 
         g_particleSystemRenderer = new ParticleSystemRenderer();
     }
@@ -211,17 +217,21 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
 void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
     int minMagFilter = D3DTEXF_POINT;
 
-    if( filter == TextureFilter::Nearest )
+    if( filter == TextureFilter::Nearest ) {
         minMagFilter = D3DTEXF_POINT;
-    if( filter == TextureFilter::Linear )
+    }
+    if( filter == TextureFilter::Linear ) {
         minMagFilter = D3DTEXF_LINEAR;
-    if( filter == TextureFilter::Anisotropic )
+    }
+    if( filter == TextureFilter::Anisotropic ) {
         minMagFilter = D3DTEXF_ANISOTROPIC;
+    }
 
     int mipFilter = D3DTEXF_LINEAR;
 
-    if( mipFilter == TextureFilter::Nearest )
+    if( mipFilter == TextureFilter::Nearest ) {
         mipFilter = D3DTEXF_POINT;
+    }
 
     g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter );
     g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter );
@@ -246,8 +256,9 @@ int GetMaxAnisotropy() {
 bool Renderer::PointInBV( BoundingVolume bv, Vector3 point ) {
     if( point.x > bv.min.x && point.x < bv.max.x &&
             point.y > bv.min.y && point.y < bv.max.y &&
-            point.z > bv.min.z && point.z < bv.max.z )
+            point.z > bv.min.z && point.z < bv.max.z ) {
         return true;
+    }
     return false;
 }
 
@@ -261,15 +272,17 @@ bool Renderer::IsLightVisible( Light * lit ) {
     snPos.z = pos.z();
 
     for ( int i = 0; i < 6; i++ )
-        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &snPos ) + lit->GetRadius() < 0 )
+        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &snPos ) + lit->GetRadius() < 0 ) {
             return FALSE;
+        }
 
     return true;
 }
 
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
-    if( mesh->parent->skinned )
+    if( mesh->parent->skinned ) {
         return true;
+    }
 
     SceneNode * node = mesh->parent;
 
@@ -280,8 +293,9 @@ bool Renderer::IsMeshVisible( Mesh * mesh ) {
     snPos.z = pos.z() + mesh->boundingVolume.center.z;
 
     for ( int i = 0; i < 6; i++ )
-        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &snPos ) + mesh->boundingVolume.radius < 0 )
+        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &snPos ) + mesh->boundingVolume.radius < 0 ) {
             return false;
+        }
 
     node->inFrustum = true;
 
@@ -309,8 +323,9 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
 
     DWORD style = WS_POPUP;
 
-    if ( !fullscreen )
+    if ( !fullscreen ) {
         style = WS_SYSMENU | WS_BORDER | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+    }
 
     RECT wRect;
     wRect.left = 0;
@@ -322,8 +337,9 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
 
     window = CreateWindowA ( className, "Mine", style, 0, 0, wRect.right - wRect.left, wRect.bottom - wRect.top, 0, 0, instance, 0 );
 
-    if( !window )
+    if( !window ) {
         return 0;
+    }
 
     ShowWindow ( window, SW_SHOW );
     UpdateWindow ( window );
@@ -377,8 +393,7 @@ void Renderer::RenderWorld() {
 
         if( !singleRT ) {
             RenderMeshesIntoGBuffer();
-        }
-        else {
+        } else {
             singleRT->SetDiffusePass();
             RenderMeshesIntoGBuffer();
 
@@ -406,8 +421,9 @@ void Renderer::RenderWorld() {
 
     const int subSteps = 4;
 
-    if( g_physicsEnabled )
+    if( g_physicsEnabled ) {
         g_dynamicsWorld->stepSimulation ( timeStep, subSteps );
+    }
 }
 
 void Renderer::LightmapRenderMeshByGroups() {
@@ -415,8 +431,9 @@ void Renderer::LightmapRenderMeshByGroups() {
         IDirect3DTexture9 * texture = groupIterator.first;
         auto & meshes = groupIterator.second;
 
-        if( meshes.size() == 0 )
+        if( meshes.size() == 0 ) {
             continue;
+        }
 
         // bind diffuse texture
         g_device->SetTexture( 0, texture );
@@ -428,11 +445,13 @@ void Renderer::LightmapRenderMeshByGroups() {
             SceneNode * node = mesh->parent;
 
             if( IsMeshVisible( mesh )) {
-                if( !mesh->indexBuffer )
+                if( !mesh->indexBuffer ) {
                     continue;
+                }
 
-                if( !mesh->vertexBuffer )
+                if( !mesh->vertexBuffer ) {
                     continue;
+                }
 
                 g_dips++;
 
@@ -449,8 +468,9 @@ void Renderer::RenderMeshesIntoGBuffer() {
         IDirect3DTexture9 * texture = groupIterator.first;
         auto & meshes = groupIterator.second;
 
-        if( meshes.size() == 0 )
+        if( meshes.size() == 0 ) {
             continue;
+        }
 
         // bind diffuse texture
         g_device->SetTexture( 0, texture );
@@ -461,15 +481,18 @@ void Renderer::RenderMeshesIntoGBuffer() {
             Mesh * mesh = meshIterator;
             SceneNode * node = mesh->parent;
 
-            if( mesh->GetNormalTexture() )
+            if( mesh->GetNormalTexture() ) {
                 mesh->GetNormalTexture()->Bind( 1 );
+            }
 
             if( IsMeshVisible( mesh ) ) {
-                if( !mesh->indexBuffer )
+                if( !mesh->indexBuffer ) {
                     continue;
+                }
 
-                if( !mesh->vertexBuffer )
+                if( !mesh->vertexBuffer ) {
                     continue;
+                }
 
                 g_dips++;
 

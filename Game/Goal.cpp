@@ -10,8 +10,9 @@ void Goal::AnimateAndRender() {
 
     alpha = alpha + ( 100 - alpha ) * 0.05f;
 
-    if( alpha <= 101 )
+    if( alpha <= 101 ) {
         alpha = 255.0f;
+    }
 
     DrawGUIText( text.c_str(), 40, currentY, GetResolutionWidth() - 80, 32, gui->font, Vector3( 255, 0, 0 ), 1, alpha );
 }

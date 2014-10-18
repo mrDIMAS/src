@@ -4,16 +4,18 @@
 #include "Way.h"
 
 void SaveWriter::SaveWorldState() {
-    if( currentLevel )
+    if( currentLevel ) {
         currentLevel->SerializeWith( *this );
+    }
 
     SavePlayerInventory();
     SaveCurrentLevelStages();
     SaveItemPlaces();
 
     WriteInteger( Way::all.size() );
-    for( auto way : Way::all )
+    for( auto way : Way::all ) {
         way->SerializeWith( *this );
+    }
 
     // save player state
     player->SerializeWith( *this );
@@ -32,8 +34,9 @@ void SaveWriter::SaveItemPlaces() {
     for( auto ip : ItemPlace::all ) {
         Writestring( GetName( ip->object ));
         WriteBoolean( ip->itemPlaced != 0 );
-        if( ip->itemPlaced )
+        if( ip->itemPlaced ) {
             Writestring( GetName( ip->itemPlaced->object ));
+        }
         WriteInteger( ip->GetPlaceType() );
     }
 }
@@ -48,8 +51,9 @@ void SaveWriter::SaveCurrentLevelStages() {
 }
 
 void SaveWriter::SavePlayerInventory() {
-    if( !player )
+    if( !player ) {
         return;
+    }
 
     WriteInteger( player->inventory.items.size() );
     for( auto item : player->inventory.items ) {

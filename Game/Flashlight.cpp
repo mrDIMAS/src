@@ -11,10 +11,10 @@ void Flashlight::Update() {
 
         charge = 1.0f - maxCharge * ( time ) / chargeWorkTimeSeconds;
 
-        if( charge < 0.25f )
+        if( charge < 0.25f ) {
             charge = 0.25f;
-    }
-    else {
+        }
+    } else {
         rangeDest = 0.0f;
 
         RestartTimer( chargeTimer );
@@ -30,10 +30,11 @@ void Flashlight::Update() {
 }
 
 void Flashlight::Switch() {
-    if( on )
+    if( on ) {
         SwitchOff();
-    else
+    } else {
         SwitchOn();
+    }
 }
 
 void Flashlight::SwitchOn() {
@@ -80,6 +81,7 @@ Flashlight::Flashlight() {
     model = LoadScene( "data/models/hands/arm.scene" );
 
     light = FindInObjectByName( model, "PlayerLight" );
+    SetSpotTexture( light, GetTexture( "data/textures/generic/spotlight.jpg"));
 
     onSound = CreateSound2D( "data/sounds/flashlight/on.ogg" );
     offSound = CreateSound2D( "data/sounds/flashlight/off.ogg" );
@@ -111,10 +113,11 @@ void Flashlight::DeserializeWith( TextFileStream & in ) {
     in.ReadFloat( chargeWorkTimeSeconds );
     in.ReadFloat( offTime );
     in.ReadBoolean( on );
-    if( on )
+    if( on ) {
         SwitchOn();
-    else
+    } else {
         SwitchOff();
+    }
 }
 
 void Flashlight::SerializeWith( TextFileStream & out ) {

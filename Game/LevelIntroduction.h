@@ -4,24 +4,18 @@
 #include "GUI.h"
 
 class LevelIntroduction : public Level {
-public:
+private:
     string text;
     float textAlpha;
     float textAlphaTo;
     bool intro;
     TimerHandle textTimer;
-
-    LevelIntroduction();
-    ~LevelIntroduction();
-    virtual void DoScenario();
-    virtual void Show();
-    virtual void Hide();
-
-    virtual void OnSerialize( TextFileStream & out ) final {
-
-    }
-
-    virtual void OnDeserialize( TextFileStream & in ) final {
-
-    }
+public:
+    explicit LevelIntroduction();
+    virtual ~LevelIntroduction();
+    virtual void DoScenario() final;
+    virtual void Show() final;
+    virtual void Hide() final;
+    virtual void OnSerialize( TextFileStream & out ) final;
+    virtual void OnDeserialize( TextFileStream & in ) final;
 };

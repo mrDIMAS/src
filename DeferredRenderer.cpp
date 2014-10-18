@@ -254,6 +254,8 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "sampler spotSampler : register(s3) = sampler_state\n"
         "{\n"
         "   texture = <spotMap>;\n"
+        "   AddressU = clamp;\n"
+        "   AddressV = clamp;\n"
         "};\n"
 
 #ifndef USE_R32F_DEPTH
@@ -326,11 +328,11 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
 
         // spot
-        "   float spotAngleCos = dot( direction, l );\n"
-        "   float spotEffect = smoothstep( outerAngle, innerAngle, spotAngleCos );\n"
-        //"   float spotEffect = smoothstep( 1.0f, 0.5f, spotAngleCos );\n"
-
-        "   float o = clamp( falloff * spotEffect, 0.0, 1.2 ) * (  diff + spec  );\n"
+        "   float spotAngleCos = dot( direction, l ) ;\n"
+        "   float spot = smoothstep( outerAngle, 1.0f , spotAngleCos );\n"
+        "   float hotSpot = smoothstep( innerAngle, 1.0f, spotAngleCos );\n"
+        "   float totalSpotBrightness = spot + hotSpot;\n"
+        "   float o = clamp( falloff * totalSpotBrightness, 0.0, 2.0 ) * (  diff + spec  );\n"
 
         "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
         //"   return float4( 0, 1, 0, 1 );\n"
@@ -348,6 +350,8 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
     hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
     hOuterAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "outerAngle" );
     hDirection = pixelShader->GetConstantTable()->GetConstantByName( 0, "direction" );
+    hUseSpotTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "useSpotTexture" );
+    hSpotProjMatrix = pixelShader->GetConstantTable()->GetConstantByName( 0, "spotProjMatrix" );
 }
 
 void DeferredRenderer::Pass2SpotLight::BindShader( ) {
@@ -368,10 +372,18 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
     pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
 
-    btMatrix3x3 rotation = lit->globalTransform.getBasis();
-    btVector3 direction = ( rotation * btVector3( 0, 1, 0 )).normalize();
-
+    btVector3 direction = ( lit->globalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
+
+    if( lit->spotTexture ) {
+        lit->BuildSpotProjectionMatrix();
+        lit->spotTexture->Bind( 3 );
+        pixelShader->GetConstantTable()->SetMatrix( g_device, hSpotProjMatrix, &lit->spotProjectionMatrix );
+        pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 1 );
+    } else {
+        g_device->SetTexture( 3, nullptr );
+        pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 0 );
+    }
 }
 
 DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
@@ -381,32 +393,41 @@ DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
 
 
 DeferredRenderer::~DeferredRenderer() {
-    if( gBuffer )
+    if( gBuffer ) {
         delete gBuffer;
+    }
 
-    if( icosphere )
+    if( icosphere ) {
         icosphere->Release();
+    }
 
-    if( cone )
+    if( cone ) {
         cone->Release();
+    }
 
-    if( effectsQuad )
+    if( effectsQuad ) {
         delete effectsQuad;
+    }
 
-    if( pass2SpotLight )
+    if( pass2SpotLight ) {
         delete pass2SpotLight;
+    }
 
-    if( pass2AmbientLight )
+    if( pass2AmbientLight ) {
         delete pass2AmbientLight;
+    }
 
-    if( pass2PointLight )
+    if( pass2PointLight ) {
         delete pass2PointLight;
+    }
 
-    if( bvRenderer )
+    if( bvRenderer ) {
         delete bvRenderer;
+    }
 
-    if( fxaa )
+    if( fxaa ) {
         delete fxaa;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -504,7 +525,7 @@ void DeferredRenderer::RenderIcosphereIntoStencilBuffer( float lightRadius, cons
 }
 
 void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
-    float height = lit->GetRadius() * 2;
+    float height = lit->GetRadius() * 2.05;
     float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
     D3DXMATRIX scale;
     D3DXMatrixScaling( &scale, radius, height, radius );
@@ -566,10 +587,11 @@ void DeferredRenderer::ConfigureStencilBuffer() {
 void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     OnEnd();
 
-    if( g_fxaaEnabled )
+    if( g_fxaaEnabled ) {
         fxaa->BeginDrawIntoTexture();
-    else
+    } else {
         gBuffer->BindBackSurfaceAsRT();
+    }
 
     g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
@@ -586,8 +608,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 
     // first of all render the skybox
-    if( g_camera->skybox )
+    if( g_camera->skybox ) {
         g_camera->skybox->Render( g_camera->globalTransform.getOrigin() );
+    }
 
     // then render fullscreen quad with ambient lighting
 

@@ -14,10 +14,12 @@ GBuffer::GBuffer() {
 
         MessageBoxA( 0, "Failed to create 'Depth Map' texture.", 0, MB_OK | MB_ICONERROR );
 
-    if( FAILED( D3DXCreateTexture( g_device, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap )))
+    if( FAILED( D3DXCreateTexture( g_device, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap ))) {
         MessageBoxA( 0, "Failed to create 'Normal Map' texture.", 0, MB_OK | MB_ICONERROR );
-    if( FAILED( D3DXCreateTexture( g_device, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap )))
+    }
+    if( FAILED( D3DXCreateTexture( g_device, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap ))) {
         MessageBoxA( 0, "Failed to create 'Diffuse Map' texture.", 0, MB_OK | MB_ICONERROR );
+    }
 
     depthMap->GetSurfaceLevel( 0, &depthSurface );
     normalMap->GetSurfaceLevel( 0, &normalSurface );
@@ -27,19 +29,25 @@ GBuffer::GBuffer() {
 }
 
 GBuffer::~GBuffer() {
-    if( depthMap )
+    if( depthMap ) {
         depthMap->Release();
-    if( normalMap )
+    }
+    if( normalMap ) {
         normalMap->Release();
-    if( diffuseMap )
+    }
+    if( diffuseMap ) {
         diffuseMap->Release();
+    }
 
-    if( depthSurface )
+    if( depthSurface ) {
         depthSurface->Release();
-    if( normalSurface )
+    }
+    if( normalSurface ) {
         normalSurface->Release();
-    if( diffuseSurface )
+    }
+    if( diffuseSurface ) {
         diffuseSurface->Release();
+    }
 }
 
 void GBuffer::BindRenderTargets() {

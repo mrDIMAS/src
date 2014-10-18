@@ -30,8 +30,7 @@ void ScreenScreamer::Update() {
     if( periods > 0 ) {
         if( pauseFrames > 0 ) {
             pauseFrames--;
-        }
-        else {
+        } else {
             if( nextPeriodFrames > 0 ) {
                 int xOff = rand() % offset;
                 int yOff = rand() % offset;
@@ -42,8 +41,7 @@ void ScreenScreamer::Update() {
                 player->DoFright();
 
                 nextPeriodFrames--;
-            }
-            else {
+            } else {
                 nextPeriodFrames = 5 + rand() % 10;
                 pauseFrames = 10 + rand() % 20;
                 PauseSoundSource( sound );

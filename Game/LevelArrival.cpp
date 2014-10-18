@@ -85,8 +85,9 @@ void LevelArrival::Hide() {
 }
 
 void LevelArrival::DoScenario() {
-    if( Level::curLevelID != LevelName::L1Arrival )
+    if( Level::curLevelID != LevelName::L1Arrival ) {
         return;
+    }
 
     PlayAmbientSounds();
 

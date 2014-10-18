@@ -22,18 +22,21 @@ Mesh::Mesh( SceneNode * theParent ) {
 void Mesh::Register( Mesh * mesh ) {
     auto textureGroup = Mesh::meshes.find( mesh->diffuseTexture->GetInterface() );
 
-    if( textureGroup == Mesh::meshes.end())
+    if( textureGroup == Mesh::meshes.end()) {
         Mesh::meshes[ mesh->diffuseTexture->GetInterface() ] = vector< Mesh*>();
+    }
 
     Mesh::meshes[ mesh->diffuseTexture->GetInterface() ].push_back( mesh );
 }
 
 Mesh::~Mesh() {
-    if( indexBuffer )
+    if( indexBuffer ) {
         indexBuffer->Release();
+    }
 
-    if( vertexBuffer )
+    if( vertexBuffer ) {
         vertexBuffer->Release();
+    }
 
     auto group = Mesh::meshes.find( diffuseTexture->GetInterface() );
 
@@ -55,11 +58,13 @@ Mesh::~Mesh() {
 void Mesh::UpdateVertexBuffer() {
     int sizeBytes = vertices.size() * sizeof( Vertex );
 
-    if( !vertexBuffer )
+    if( !vertexBuffer ) {
         g_device->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+    }
 
-    if( vertices.size() == 0 )
+    if( vertices.size() == 0 ) {
         return;
+    }
 
     void * vertexData = 0;
 
@@ -73,8 +78,9 @@ void Mesh::UpdateVertexBuffer() {
 void Mesh::UpdateIndexBuffer( vector< Triangle > & idc ) {
     int sizeBytes = idc.size() * 3 * sizeof( unsigned short );
 
-    if( !indexBuffer )
+    if( !indexBuffer ) {
         g_device->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 );
+    }
 
     void * indexData = 0;
 
@@ -109,8 +115,9 @@ void Mesh::BindBuffers() {
     if( octree ) {
         vector< Triangle > & id = octree->GetTrianglesToRender();
 
-        if( id.size() )
+        if( id.size() ) {
             UpdateIndexBuffer( id );
+        }
     }
 
     g_device->SetIndices( indexBuffer );
@@ -123,10 +130,10 @@ void Mesh::Render() {
         DrawGUIText( Format( "Nodes: %d, Triangles: %d", octree->visibleNodes, octree->visibleTriangles ).c_str(), 40, 40, 100, 50, g_font, Vector3( 255, 0, 0 ), 1 );
 #endif
 
-        if( octree->visibleTris.size() )
+        if( octree->visibleTris.size() ) {
             g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, octree->visibleTris.size() );
-    }
-    else {
+        }
+    } else {
         g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, triangles.size() );
     }
 }
