@@ -2,8 +2,9 @@
 
 #include "Game.h"
 #include "Parser.h"
+#include "InteractiveObject.h"
 
-class Item {
+class Item : public InteractiveObject {
 public:
     static Parser loc;
     class Property {
@@ -47,7 +48,6 @@ public:
         }
     };
 
-    NodeHandle object;
     TextureHandle img;
     string desc;
     string name;

@@ -18,7 +18,7 @@ public:
 
     static Sheet * Sheet::GetByObject( NodeHandle obj ) {
         for( auto sheet : sheets )
-            if( sheet->node == obj ) {
+            if( sheet->object == obj ) {
                 return sheet;
             }
         return 0;

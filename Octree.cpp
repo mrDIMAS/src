@@ -30,7 +30,7 @@ vector< Mesh::Triangle > & Octree::GetTrianglesToRender() {
 void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & triangles ) {
     if( CubeInFrustum( node->box )) {
         if( node->divided ) {
-            for( int i = 0; i < 8; i++ ) { // go deeper, to child nodes and grab it visible triagles
+            for( int i = 0; i < 8; i++ ) { // go deeper, to child nodes and grab it visible triangles
                 GetVisibleTrianglesList( node->childs[ i ], triangles );
             }
         } else {

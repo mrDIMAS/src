@@ -2,6 +2,7 @@
 
 #include "SceneNode.h"
 #include "Texture.h"
+#include "Camera.h"
 
 class Light : public SceneNode {
 public:
@@ -15,8 +16,16 @@ public:
 
     D3DXMATRIX spotProjectionMatrix;
     Texture * spotTexture;
+
+    typedef struct {
+        float x,y,z;
+        float tx,ty;
+    } flareVertex_t;
+    static IDirect3DVertexBuffer9 * flareBuffer;
+    Texture * flareTexture;
+    static vector<Light*> lights;
 public:
-    Light( int type );
+    explicit Light( int type );
     virtual ~Light();
     void SetColor( const Vector3 & theColor );
     Vector3 GetColor() const;
@@ -25,12 +34,11 @@ public:
     void SetConeAngles( float theInner, float theOuter );
     float GetInnerAngle() const;
     float GetOuterAngle() const;
-
+    void SetFlare( Texture * texture );
+    static void RenderLightFlares();
     float GetCosHalfInnerAngle( );
     float GetCosHalfOuterAngle( );
-
     void SetSpotTexture( Texture * tex );
     void BuildSpotProjectionMatrix();
-
     static Light * GetLightByHandle( NodeHandle handle );
 };

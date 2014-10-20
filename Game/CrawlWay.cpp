@@ -31,10 +31,10 @@ void CrawlWay::DoPlayerCrawling() {
 void CrawlWay::LookAtTarget() {
     Vector3 direction = GetPosition( target ) - GetPosition( player->camera->cameraNode );
 
-    player->yawTo = atan2f( direction.x, direction.z ) * 180.0f / 3.14159f;
-    player->yawTo = ( player->yawTo > 0 ? player->yawTo : ( 360 + player->yawTo) );
+    player->yaw = atan2f( direction.x, direction.z ) * 180.0f / 3.14159f;
+    player->yaw = ( player->yaw > 0 ? player->yaw : ( 360 + player->yaw ) );
 
-    player->pitchTo = 15.0f;
+    player->pitch = 15.0f;
 }
 
 

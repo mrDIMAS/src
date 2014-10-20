@@ -38,8 +38,8 @@ void MultipleRTDeferredRenderer::BeginFirstPass() {
     g_device->Clear( 0, 0, clearFlags, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
     vertexShaderPassOne->Bind();
 
-    g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE );
-    g_device->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE );
+    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+    g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
 }
 
 MultipleRTDeferredRenderer::MultipleRTDeferredRenderer() {

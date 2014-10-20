@@ -1,6 +1,5 @@
 #include "Common.h"
 #include "ParticleSystemRenderer.h"
-#include "LightmapRenderer.h"
 #include "GUIRenderer.h"
 #include "Light.h"
 #include "Mesh.h"
@@ -30,7 +29,7 @@ int g_debugDraw = 0;
 int g_textureChanges = 0;
 int g_fps = 0;
 FPSCounter g_fpsCounter;
-
+bool g_engineRunning = true;
 IDirect3DTexture9 * g_renderTexture = 0;
 IDirect3DSurface9 * g_renderSurface = 0;
 IDirect3DSurface9 * g_backbufferSurface = 0;
@@ -41,40 +40,29 @@ vector< Light*> affectedLights;
 
 Renderer::~Renderer() {
     delete g_particleSystemRenderer;
-
     if( g_deferredRenderer ) {
         delete g_deferredRenderer;
     }
-
     if( g_guiRenderer ) {
         delete g_guiRenderer;
     }
-
     while( g_nodes.size() ) {
         delete g_nodes.front();
     }
-
     Texture::DeleteAll();
-
     if( g_meshVertexDeclaration ) {
         g_meshVertexDeclaration->Release();
         g_meshVertexDeclaration = 0;
     }
-
     if( g_device ) {
         while( g_device->Release() );
-
         g_device = 0;
     }
-
     if( g_d3d ) {
         while( g_d3d->Release() );
-
         g_d3d = 0;
     }
-
     Physics::DestructWorld();
-
     pfSystemDestroy();
 }
 
@@ -82,11 +70,9 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     if ( width == 0 ) {
         width = GetSystemMetrics ( SM_CXSCREEN );
     }
-
     if ( height == 0 ) {
         height = GetSystemMetrics ( SM_CYSCREEN );
     }
-
     if( !CreateRenderWindow( width, height, fullscreen )) {
         return;
     }
@@ -189,28 +175,17 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
-
-    if( g_rendererType == Renderer::TypeLightMapRenderer ) {
-        g_lightMapRenderer = new LightmapRenderer;
-    } else if( g_rendererType == Renderer::TypeDeferredRenderer ) {
-        D3DCAPS9 caps;
-        g_device->GetDeviceCaps( &caps );
-
-        if( caps.NumSimultaneousRTs < 3 ) {
-            g_deferredRenderer = new SingleRTDeferredRenderer();
-        } else {
-            g_deferredRenderer = new MultipleRTDeferredRenderer();
-        }
-
-        g_particleSystemRenderer = new ParticleSystemRenderer();
+    
+    if( caps.NumSimultaneousRTs < 3 ) {
+        g_deferredRenderer = new SingleRTDeferredRenderer();
+    } else {
+        g_deferredRenderer = new MultipleRTDeferredRenderer();
     }
+    g_particleSystemRenderer = new ParticleSystemRenderer();
 
     g_guiRenderer = new GUIRenderer();
-
     g_font = g_guiRenderer->CreateFont( 12, "Arial", 0, 0 );
-
     g_renderer = this;
-
     performanceTimer = new Timer;
 }
 
@@ -226,13 +201,11 @@ void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
     if( filter == TextureFilter::Anisotropic ) {
         minMagFilter = D3DTEXF_ANISOTROPIC;
     }
-
     int mipFilter = D3DTEXF_LINEAR;
 
     if( mipFilter == TextureFilter::Nearest ) {
         mipFilter = D3DTEXF_POINT;
     }
-
     g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter );
     g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter );
     g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter );
@@ -250,8 +223,6 @@ int GetMaxAnisotropy() {
 
     return caps.MaxAnisotropy;
 }
-
-
 
 bool Renderer::PointInBV( BoundingVolume bv, Vector3 point ) {
     if( point.x > bv.min.x && point.x < bv.max.x &&
@@ -280,22 +251,24 @@ bool Renderer::IsLightVisible( Light * lit ) {
 }
 
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
+    // skinned meshes are always visible, cause their vertices transformed manually
     if( mesh->parent->skinned ) {
         return true;
     }
 
     SceneNode * node = mesh->parent;
 
-    btVector3 pos = node->globalTransform.getOrigin();
-    D3DXVECTOR3 snPos;
-    snPos.x = pos.x() + mesh->boundingVolume.center.x;
-    snPos.y = pos.y() + mesh->boundingVolume.center.y;
-    snPos.z = pos.z() + mesh->boundingVolume.center.z;
+    btVector3 btPosition = node->globalTransform.getOrigin();
+    D3DXVECTOR3 dxPosition;
+    dxPosition.x = btPosition.x() + mesh->boundingVolume.center.x;
+    dxPosition.y = btPosition.y() + mesh->boundingVolume.center.y;
+    dxPosition.z = btPosition.z() + mesh->boundingVolume.center.z;
 
-    for ( int i = 0; i < 6; i++ )
-        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &snPos ) + mesh->boundingVolume.radius < 0 ) {
+    for ( int i = 0; i < 6; i++ ) {
+        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &dxPosition ) + mesh->boundingVolume.radius < 0 ) {
             return false;
         }
+    }
 
     node->inFrustum = true;
 
@@ -307,6 +280,7 @@ bool Renderer::SortByTexture( Mesh * mesh1, Mesh * mesh2 ) {
 }
 
 int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
+    // get instance of this process
     HINSTANCE instance = GetModuleHandle ( 0 );
 
     const char * className = "Mine";
@@ -346,6 +320,7 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     SetActiveWindow ( window );
     SetForegroundWindow ( window );
 
+    // init input
     mi::Init( &window );
 
     return 1;
@@ -356,146 +331,112 @@ void Renderer::CreatePhysics() {
 }
 
 void Renderer::RenderWorld() {
+    if( !g_engineRunning )
+        return;
+    if( !g_camera )
+        return;
     g_fpsCounter.RegisterFrame();
-
+    // erase marked nodes
     SceneNode::EraseUnusedNodes();
-
+    // window message pump
     UpdateMessagePump();
-
-    // grab some statistics
+    // clear statistics
     g_dips = 0;
     g_textureChanges = 0;
-
-
-
-    if( g_camera ) {
-        g_device->SetTransform( D3DTS_VIEW, &g_camera->view );
-        g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection );
-
-        g_camera->Update();
-        g_camera->BuildFrustum();
-    }
-
-
+    // build view and projection matrices, also attach sound listener to camera
+    g_camera->Update();
+    // frustum
+    g_camera->BuildFrustum();
+    // set these transforms, for render passes which uses FFP
+    g_device->SetTransform( D3DTS_VIEW, &g_camera->view );
+    g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection );
     // precalculations
     for( auto node : g_nodes ) {
         node->CalculateGlobalTransform();
         node->PerformAnimation();
+        // update all sounds attached to node, and physical interaction sounds( roll, hit )
         node->UpdateSounds();
+        // skip frustum flag, it will be set to true, if one of node's mesh
+        // are in frustum
         node->inFrustum = false;
     }
-
+    // begin dx scene
     g_device->BeginScene();
+    // begin rendering into G-Buffer
     g_deferredRenderer->BeginFirstPass();
-
-    if( g_camera ) {
-        SingleRTDeferredRenderer * singleRT = dynamic_cast< SingleRTDeferredRenderer* >( g_deferredRenderer );
-
-        if( !singleRT ) {
-            RenderMeshesIntoGBuffer();
-        } else {
-            singleRT->SetDiffusePass();
-            RenderMeshesIntoGBuffer();
-
-            singleRT->SetNormalPass();
-            RenderMeshesIntoGBuffer();
-
-            singleRT->SetDepthPass();
-            RenderMeshesIntoGBuffer();
-        }
-    }
-
+    // render from current camera
+    SingleRTDeferredRenderer * singleRT = dynamic_cast< SingleRTDeferredRenderer* >( g_deferredRenderer );
+    if( !singleRT ) { // multiple RT's rendering
+        RenderMeshesIntoGBuffer();
+    } else { // single RT for poor videocards
+        // diffuse pass
+        singleRT->SetDiffusePass();
+        RenderMeshesIntoGBuffer();
+        // normal pass
+        singleRT->SetNormalPass();
+        RenderMeshesIntoGBuffer();
+        // depth pass
+        singleRT->SetDepthPass();
+        RenderMeshesIntoGBuffer();
+    }  
+    // end render into G-Buffer and do a lighting passes
     g_deferredRenderer->EndFirstPassAndDoSecondPass();
+    // render particles after all, cause deferred shading doesnt support transparency    
     g_particleSystemRenderer->RenderAllParticleSystems();
+    // render gui on top of all
     g_guiRenderer->RenderAllGUIElements();
-
+    // render light flares without writing to z-buffer
+    Light::RenderLightFlares();
+    // finalize
     g_device->EndScene();
     g_device->Present( 0, 0, 0, 0 );
-
+    // grab info about node's physic contacts 
     SceneNode::UpdateContacts( );
+    // update sound subsystem
     pfSystemUpdate();
-    float timeStep = 1.0f / 60.0f;
-
-    //if( g_fpsCounter.fps > 0 )
-    //  timeStep = 1.0f / (float)g_fpsCounter.fps;
-
-    const int subSteps = 4;
-
+    // update physics subsystem
     if( g_physicsEnabled ) {
-        g_dynamicsWorld->stepSimulation ( timeStep, subSteps );
+        const float timeStep = 1.0f / 60.0f;
+        const int subSteps = 4;
+        g_dynamicsWorld->stepSimulation( timeStep, subSteps );
     }
 }
 
-void Renderer::LightmapRenderMeshByGroups() {
-    for( auto groupIterator : Mesh::meshes ) {
-        IDirect3DTexture9 * texture = groupIterator.first;
-        auto & meshes = groupIterator.second;
-
-        if( meshes.size() == 0 ) {
-            continue;
-        }
-
-        // bind diffuse texture
-        g_device->SetTexture( 0, texture );
-
-        g_textureChanges++;
-
-        for( auto meshIterator : meshes ) {
-            Mesh * mesh = meshIterator;
-            SceneNode * node = mesh->parent;
-
-            if( IsMeshVisible( mesh )) {
-                if( !mesh->indexBuffer ) {
-                    continue;
-                }
-
-                if( !mesh->vertexBuffer ) {
-                    continue;
-                }
-
-                g_dips++;
-
-                mesh->lightMapTexture->Bind( 1 );
-
-                g_lightMapRenderer->RenderMesh( mesh );
-            }
-        }
-    }
-}
-
+/*
+===============
+all registered meshes are sorted by texture, so rendering becomes really fast - there no redundant texture changes
+===============
+*/
 void Renderer::RenderMeshesIntoGBuffer() {
     for( auto groupIterator : Mesh::meshes ) {
-        IDirect3DTexture9 * texture = groupIterator.first;
+        IDirect3DTexture9 * diffuseTexture = groupIterator.first;
+        IDirect3DTexture9 * normalTexture = nullptr;
         auto & meshes = groupIterator.second;
-
+        // skip group if it has no meshes
         if( meshes.size() == 0 ) {
             continue;
         }
-
         // bind diffuse texture
-        g_device->SetTexture( 0, texture );
-
+        g_device->SetTexture( 0, diffuseTexture );
+        // each group has same texture
         g_textureChanges++;
-
         for( auto meshIterator : meshes ) {
             Mesh * mesh = meshIterator;
             SceneNode * node = mesh->parent;
-
+            // prevent overhead with normal texture       
             if( mesh->GetNormalTexture() ) {
-                mesh->GetNormalTexture()->Bind( 1 );
+                IDirect3DTexture9 * meshNormalTexture = mesh->GetNormalTexture()->GetInterface();
+                if( meshNormalTexture != normalTexture ) {
+                    mesh->GetNormalTexture()->Bind( 1 );
+                    normalTexture = meshNormalTexture;
+                }
             }
-
             if( IsMeshVisible( mesh ) ) {
-                if( !mesh->indexBuffer ) {
+                if( !mesh->indexBuffer || !mesh->vertexBuffer ) {
                     continue;
                 }
-
-                if( !mesh->vertexBuffer ) {
-                    continue;
-                }
-
+                // each mesh renders in one DIP
                 g_dips++;
-
                 g_deferredRenderer->RenderMesh( mesh );
             }
         }
@@ -572,15 +513,13 @@ NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
     coord.x /= g_camera->projection._11;
     coord.y /= g_camera->projection._22;
 
-    D3DXMATRIX matinv;
-    g_device->GetTransform ( D3DTS_VIEW, &matinv );
-    D3DXMatrixInverse ( &matinv, NULL, &matinv );
+    D3DXMATRIX matinv = g_camera->view;
+    D3DXMatrixInverse( &matinv, NULL, &matinv );
 
     coord *= g_camera->farZ;
     D3DXVec3TransformCoord ( &coord, &coord, &matinv );
 
     btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
-
     btVector3 rayBegin = g_camera->globalTransform.getOrigin();
 
     btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
@@ -607,6 +546,7 @@ NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
 }
 
 int FreeRenderer( ) {
+    g_engineRunning = false;
     delete g_renderer;
     return 1;
 }

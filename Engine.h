@@ -273,7 +273,13 @@ API float GetLightRange( NodeHandle node );
 API void SetLightColor( NodeHandle node, Vector3 clr );
 API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle );
 API void SetSpotTexture( NodeHandle node, TextureHandle texture );
-
+API int GetWorldSpotLightCount();
+API NodeHandle GetWorldSpotLight( int n );
+API int GetWorldPointLightCount();
+API NodeHandle GetWorldPointLight( int n );
+API void SetLightFlare( NodeHandle node, TextureHandle flareTexture );
+API void SetLightDefaultFlare( TextureHandle defaultFlareTexture );
+API void SetSpotDefaultTexture( TextureHandle defaultSpotTexture );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////

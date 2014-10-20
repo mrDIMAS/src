@@ -25,7 +25,7 @@ Menu::Menu( ) {
     continuePressed = false;
     exitingGame = false;
     returnToGameByEsc = false;
-    autosaveNotify = false; // set it to true when build release version
+    autosaveNotify = true; // FIXED: set it to true when build release version
     textFont = CreateGUIFont( 16, "Arial", false, false );
     textBackgroundFont = CreateGUIFont( 21, "Arial", false, false );
 
@@ -138,21 +138,21 @@ void Menu::Update( ) {
 
         if( !autosaveNotify ) {
             if( currentLevel || canContinueGameFromLast ) {
-                continueGame = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 3.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+                continueGame = DrawGUIButton( mainButtonsX, g_resH - 3.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             }
             if( !currentLevel ) {
-                start = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+                start = DrawGUIButton( mainButtonsX, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             }
-            options = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            authors = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            exit = DrawGUIButton( mainButtonsX, GetResolutionHeight() - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            options = DrawGUIButton( mainButtonsX, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            authors = DrawGUIButton( mainButtonsX, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            exit = DrawGUIButton( mainButtonsX, g_resH - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
         } else {
             int ntfX = 400;
-            int ntfY = GetResolutionHeight() / 2 - 64;
-            int ntfW = GetResolutionWidth() - 800;
+            int ntfY = g_resH / 2 - 64;
+            int ntfW = g_resW - 800;
             DrawGUIRect( ntfX, ntfY, ntfW, 32, TextureHandle::Empty(), Vector3( 50, 0, 0 ), 200 );
             DrawGUIText( loc.GetString( "autosaveNotify" ), ntfX, ntfY, ntfW , 32, textFont, Vector3( 200, 0, 0 ), 1 );
-            GUIState ok = DrawGUIButton( GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 16, 128, 32, buttonImage, loc.GetString( "okButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            GUIState ok = DrawGUIButton( g_resW / 2 - 64, g_resH / 2 - 16, 128, 32, buttonImage, loc.GetString( "okButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             if( ok.mouseLeftClicked ) {
                 autosaveNotify = false;
             }
@@ -161,16 +161,16 @@ void Menu::Update( ) {
         if( page == Page::Authors ) {
             int w = 500;
             int h = 400;
-            int x = ( GetResolutionWidth() - w ) / 2;
-            int y = ( GetResolutionHeight() - h ) / 2;
+            int x = ( g_resW - w ) / 2;
+            int y = ( g_resH - h ) / 2;
             DrawGUIRect( x, y, w, h, TextureHandle::Empty() );
             DrawGUIText( loc.GetString( "authorsText" ), x, y, w, h, gui->font, Vector3( 255, 127, 127 ), 1 );
         }
 
         if( page == Page::Options ) { // options window
-            GUIState optionsCommon = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "commonSettings" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            GUIState optionsKeys = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "controls" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            GUIState optionsGraphics = DrawGUIButton( buttonsXOffset + 200, GetResolutionHeight() - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "graphics" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            GUIState optionsCommon = DrawGUIButton( buttonsXOffset + 200, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "commonSettings" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            GUIState optionsKeys = DrawGUIButton( buttonsXOffset + 200, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "controls" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            GUIState optionsGraphics = DrawGUIButton( buttonsXOffset + 200, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "graphics" ), gui->font, Vector3( 0, 255, 0 ), 1 );
 
             if( optionsCommon.mouseLeftClicked ) {
                 SetPage( Page::OptionsCommon );
@@ -187,7 +187,7 @@ void Menu::Update( ) {
 
         if( page == Page::OptionsCommon ) {
             float x = buttonsXOffset + 200;
-            float y = GetResolutionHeight() - 2.5 * distBetweenButtons;
+            float y = g_resH - 2.5 * distBetweenButtons;
 
             float buttonWidth = 80;
             float buttonHeight = 32;
@@ -209,7 +209,7 @@ void Menu::Update( ) {
 
         if( page == Page::OptionsGraphics ) {
             float x = buttonsXOffset + 200;
-            float y = GetResolutionHeight() - 2.5 * distBetweenButtons;
+            float y = g_resH - 2.5 * distBetweenButtons;
 
             // FXAA Options
             fxaaButton->Draw( x, y, buttonImage, loc.GetString( "fxaa" ));
@@ -219,13 +219,13 @@ void Menu::Update( ) {
                 DisableFXAA();
             }
 
-            y = GetResolutionHeight() - 2.0 * distBetweenButtons;
+            y = g_resH - 2.0 * distBetweenButtons;
 
             fpsButton->Draw( x, y, buttonImage, loc.GetString( "showFPS" ));
 
             g_showFPS = fpsButton->on;
 
-            y = GetResolutionHeight() - 2.0 * distBetweenButtons;
+            y = g_resH - 2.0 * distBetweenButtons;
 
             textureFiltering->Draw( x, y, buttonImage, loc.GetString( "filtering" ));
 
@@ -238,7 +238,7 @@ void Menu::Update( ) {
 
         if( page == Page::OptionsKeys ) {
             float x = buttonsXOffset + 200;
-            float y = GetResolutionHeight() - 2.5 * distBetweenButtons;
+            float y = g_resH - 2.5 * distBetweenButtons;
 
             // First column
             wkMoveForward->Draw( x, y, smallButtonImage, loc.GetString( "forward" ) );
@@ -254,7 +254,7 @@ void Menu::Update( ) {
 
             // Second column
             x += 150;
-            y = GetResolutionHeight() - 2.5 * distBetweenButtons;
+            y = g_resH - 2.5 * distBetweenButtons;
 
             wkJump->Draw( x, y, smallButtonImage, loc.GetString( "jump" ) );
 
@@ -269,7 +269,7 @@ void Menu::Update( ) {
 
             // Third column
             x += 150;
-            y = GetResolutionHeight() - 2.5 * distBetweenButtons;
+            y = g_resH - 2.5 * distBetweenButtons;
 
             wkUse->Draw( x, y, smallButtonImage, loc.GetString( "use" ) );
 
@@ -282,45 +282,32 @@ void Menu::Update( ) {
 
         if( !startPressed && !returnToGameByEsc ) {
             PlaySoundSource( music );
-
             if( start.mouseLeftClicked ) {
                 startPressed = true;
-
                 SetPage( Page::Main );
             }
-
             if( exit.mouseLeftClicked ) {
                 exitPressed = true;
-
                 if( player && currentLevel ) {
                     if( !player->dead ) {
                         WriteProgressConfig();
-                        SaveWriter save( "lastGame.save" );
-                        save.SaveWorldState();
+                        SaveWriter( "lastGame.save" ).SaveWorldState();
                     }
                 }
-
                 SetPage( Page::Main );
             }
-
             if( continueGame.mouseLeftClicked ) {
                 continuePressed = true;
-
                 SetPage( Page::Main );
-
                 if( !currentLevel ) {
-                    // load last played game
                     Parser progress;
                     progress.ParseFile( "progress.cfg" );
-
-                    continueLevelName = (LevelName)( (int)progress.GetNumber( "lastLevel" ) );
+                    continueLevelName = progress.GetNumber( "lastLevel" );
                 }
             }
-
             if( options.mouseLeftClicked ) {
                 SetPage( Page::Options );
             }
-
             if( authors.mouseLeftClicked ) {
                 SetPage( Page::Authors );
             }
@@ -484,11 +471,6 @@ Menu::~Menu() {
 
 void Menu::WriteProgressConfig() {
     ofstream out( "progress.cfg" );
-
     WriteInteger( out, "lastLevel", (int)Level::curLevelID );
-    if( player ) {
-        WriteFloat( out, "playerLife", player->life );
-    }
-
     out.close();
 }

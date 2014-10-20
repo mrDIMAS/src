@@ -10,6 +10,8 @@
 #include "SaveLoader.h"
 #include "Utils.h"
 
+float g_resW;
+float g_resH;
 int g_keyQuickSave = mi::Key::F5;
 int g_keyQuickLoad = mi::Key::F9;
 
@@ -38,8 +40,8 @@ void main( ) {
     Parser config;
     config.ParseFile( "mine.cfg" );
 
-    int width         = config.GetNumber( "resW" );
-    int height        = config.GetNumber( "resH" );
+    g_resW            = config.GetNumber( "resW" );
+    g_resH            = config.GetNumber( "resH" );
     int fullscreen    = config.GetNumber( "fullscreen" );
     g_initialLevel    = config.GetNumber( "levelNum" );
     g_showFPS         = config.GetNumber( "debugInfo" );
@@ -48,77 +50,57 @@ void main( ) {
 #ifdef _DEBUG
     CreateRenderer( 1366, 768, 0 );
 #else
-    CreateRenderer( width, height, fullscreen );
+    CreateRenderer( g_resW, g_resH, fullscreen );
 #endif
 
+    g_resW = GetResolutionWidth();
+    g_resH = GetResolutionHeight();
+
     gui = new GUI;
-
     menu = new Menu;
-
-    TextureHandle buttonTex = GetTexture( "data/gui/button.png" );
-
     int escHit = 0;
-
     screamer = new ScreenScreamer;
-
     SetCursorSettings( GetTexture( "data/gui/cursor.png" ), 32, 32 );
-
     FPSCounter fpsCounter;
 
     while( true ) {
         if( !g_running ) {
             break;
         }
-
         mi::Update();
-
         if( player ) {
             player->Update();
         }
-
         menu->Update();
-
         InteractiveObject::UpdateAll();
-
         if( !menu->visible ) {
             if( mi::KeyHit( (mi::Key)g_keyQuickSave )) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
             }
-
             if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
                 if( FileExist( "quickSave.save" )) {
                     SaveLoader( "quickSave.save" ).RestoreWorldState();
                 }
-
             if( currentLevel ) {
                 currentLevel->DoScenario();
             }
         }
-
         fpsCounter.RegisterFrame();
-
         if( g_showFPS ) {
             DrawGUIText( Format( "DIPs: %d\nTC: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 100, 100, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
         }
-
         screamer->Update();
-
         RenderWorld( );
-
-
     }
 
     if( currentLevel ) {
         delete currentLevel;
     }
-
     if( player ) {
         delete player;
     }
-
     delete screamer;
     delete menu;
     delete gui;
-
     FreeRenderer();
 }

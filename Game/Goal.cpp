@@ -14,7 +14,7 @@ void Goal::AnimateAndRender() {
         alpha = 255.0f;
     }
 
-    DrawGUIText( text.c_str(), 40, currentY, GetResolutionWidth() - 80, 32, gui->font, Vector3( 255, 0, 0 ), 1, alpha );
+    DrawGUIText( text.c_str(), 40, currentY, g_resW - 80, 32, gui->font, Vector3( 255, 0, 0 ), 1, alpha );
 }
 
 void Goal::SetText( string t ) {
@@ -24,7 +24,7 @@ void Goal::SetText( string t ) {
 
     text = t;
 
-    currentY = GetResolutionHeight() * 0.45f;
+    currentY = g_resH * 0.45f;
 }
 
 Goal::Goal() {

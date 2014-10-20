@@ -4,8 +4,8 @@
 void Ladder::LookAtTarget() {
     Vector3 direction = GetPosition( target ) - GetPosition( player->camera->cameraNode );
 
-    player->pitchTo = atan2f( direction.y, direction.z ) * 180.0f / 3.14159f;
-    player->pitchTo = ( player->pitchTo > 0 ? player->pitchTo : ( 360 + player->pitchTo) );
+    player->pitch = atan2f( direction.y, direction.z ) * 180.0f / 3.14159f;
+    player->pitch = ( player->pitch > 0 ? player->pitch : ( 360 + player->pitch ) );
 }
 
 Ladder::Ladder( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint )

@@ -79,5 +79,7 @@ extern int g_initialLevel;
 extern bool g_continueGame;
 extern int g_keyQuickSave;
 extern int g_keyQuickLoad;
+extern float g_resW;
+extern float g_resH;
 
 

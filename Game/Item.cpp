@@ -96,12 +96,12 @@ void Item::SetType( int typ ) {
     }
 }
 
-Item::Item( NodeHandle obj, int typ ) {
+Item::Item( NodeHandle obj, int typ ): InteractiveObject( obj ) {
     if( !loc.IsParsed() ) {
         loc.ParseFile( localizationPath + "items.loc" );
     }
 
-    object = obj;
+
     onCombineBecomes = 0;
     combinesWith = 0;
 

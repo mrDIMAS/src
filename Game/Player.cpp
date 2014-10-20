@@ -12,11 +12,7 @@ Player::Player() {
     maxStamina = 100.0f;
     stamina = maxStamina;
 
-    // FOV vars
-    normalFOV = 75;
-    fov = normalFOV;
-    fovTo = fov;
-    runFOV = 80;
+    fov = SmoothFloat( 75.0f, 75.0f, 90.0f );
 
     // Run vars
     runSpeedMult = 2.5f;
@@ -28,17 +24,16 @@ Player::Player() {
     maxLife = 100;
     life = maxLife;
 
-    // Mouse look vars
-    pitchTo = 0.0f;
-    pitch = 0.0f;
-    yaw = 0.0f;
-    yawTo = 0.0f;
+    pitch = SmoothFloat( 0.0f, -89.9f, 89.9f );
+    yaw = SmoothFloat( 0.0f );
+    damagePitchOffset = SmoothFloat( 0.0f );
 
     // State vars
     dead = false;
-    landed = 0;
-    locked = 0;
-    sheetInHands = 0;
+    landed = false;
+    locked = false;
+
+    sheetInHands = nullptr;
 
     // Camera bob vars
     headHeight = 0.4;
@@ -62,13 +57,8 @@ Player::Player() {
     keyUse = mi::E;
 
     // GUI vars
-    staminaAlpha = 255;
-    healthAlpha = 255;
-    staminaAlphaTo = 100;
-    healthAlphaTo = 100;
-
-    damagePitchOffset = 0.0f;
-    damagePitchOffsetTo = 0.0f;
+    staminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
+    healthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
 
     currentWay = nullptr;
 
@@ -88,21 +78,21 @@ void Player::SetPlaceDescription( string desc ) {
 
 void Player::DrawStatusBar() {
     if( moved ) {
-        staminaAlphaTo = 255;
-        healthAlphaTo = 255;
+        staminaAlpha.SetTarget( 255 );
+        healthAlpha.SetTarget( 255 );
     } else {
-        staminaAlphaTo = 50;
-        healthAlphaTo = 50;
+        staminaAlpha.SetTarget( 50 );
+        healthAlpha.SetTarget( 50 );
     }
 
-    staminaAlpha = Lerp( staminaAlpha, staminaAlpha, staminaAlphaTo, 0.15f );
-    healthAlpha = Lerp( healthAlpha, healthAlpha, healthAlphaTo, 0.15f );
+    staminaAlpha.ChaseTarget( 0.15f );
+    healthAlpha.ChaseTarget( 0.15f );
 
     float scale = 2;
     int w = 512.0f / scale;
     int h = 256.0f / scale;
 
-    DrawGUIRect( 0, GetResolutionHeight() - h, w, h, statusBar, Vector3( 255, 255, 255 ), staminaAlphaTo );
+    DrawGUIRect( 0, GetResolutionHeight() - h, w, h, statusBar, Vector3( 255, 255, 255 ), staminaAlpha );
 
     int segCount = stamina / 5;
     for( int i = 0; i < segCount; i++ ) {
@@ -144,7 +134,7 @@ bool Player::UseStamina( float st ) {
 void Player::Damage( float dmg ) {
     life -= dmg;
 
-    damagePitchOffsetTo = 20.0f;
+    damagePitchOffset.SetTarget( 20.0f );
 
     if( life < 0 ) {
         if( !dead ) {
@@ -213,38 +203,31 @@ void Player::UpdateMouseLook() {
         smoothCamera = true;
     }
 
-    if( inventory.opened == 0 ) {
-        float mul = 1.0f;
-
-        if( currentWay )
+    if( !inventory.opened ) {
+        float mouseSpeed =  mouseSens / 2.0f;
+        if( currentWay ) {
             if( !currentWay->IsFreeLook() ) {
-                mul = 0;
+                mouseSpeed = 0.0f;
             }
-
-        pitchTo += mi::MouseYSpeed() * mouseSens * 0.5f * mul;
-        yawTo += -mi::MouseXSpeed() * mouseSens * 0.5f * mul;
+        }
+        pitch.SetTarget( pitch.GetTarget() + mi::MouseYSpeed() * mouseSpeed );
+        yaw.SetTarget( yaw.GetTarget() - mi::MouseXSpeed() * mouseSpeed );
     }
-
-    damagePitchOffset += ( damagePitchOffsetTo - damagePitchOffset ) * 0.65f;
+    
+    damagePitchOffset.ChaseTarget( 0.65f );
 
     if( damagePitchOffset >= 19.0f ) {
-        damagePitchOffsetTo = 0.0f;
+        damagePitchOffset.SetTarget( 0.0f );
     }
 
-
-    if( pitchTo > 89.90f ) {
-        pitchTo = 89.90f;
-    }
-    if( pitchTo < -89.90f ) {
-        pitchTo = -89.90f;
-    }
-
-    if( smoothCamera ) {
-        pitch = Lerp( pitch, pitchTo, pitch, 0.45f ) * ( 1 - locked );
-        yaw = Lerp( yaw, yawTo, yaw, 0.45f ) * ( 1 - locked );
-    } else {
-        yaw = yawTo;
-        pitch = pitchTo;
+    if( !locked ) {
+        if( smoothCamera ) {
+            pitch.ChaseTarget( 0.35f );
+            yaw.ChaseTarget( 0.35f );
+        } else {
+            yaw = yaw.GetTarget();
+            pitch = pitch.GetTarget();
+        }
     }
 
     SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch + damagePitchOffset ) );
@@ -341,13 +324,13 @@ void Player::UpdateMoving() {
         UpdateJumping();
 
         runBobCoeff = 1.0f;
-        fovTo = normalFOV;
+        fov.SetTarget( fov.GetMin() );
 
         if( mi::KeyDown( (mi::Key)keyRun ) && moved ) {
             if( stamina > 0 ) {
                 speedTo = speedTo * runSpeedMult;
                 stamina -= 0.15f;
-                fovTo = runFOV;
+                fov.SetTarget( fov.GetMax() );
                 runBobCoeff = 1.425f;
             }
         } else {
@@ -356,11 +339,10 @@ void Player::UpdateMoving() {
             }
         }
 
-        fov = fov + ( fovTo - fov ) * 0.07f;
+        fov.ChaseTarget( 0.07f );
+
         SetFOV( camera->cameraNode, fov );
-
         speed = speed.Lerp( speedTo, 0.25f ) + gravity;
-
         Move( body, speed * Vector3( 2.5, 1, 2.5 ) );
     }
 
@@ -402,7 +384,7 @@ void Player::LoadGUIElements() {
 
 
 void Player::CreateCamera() {
-    camera = new GameCamera( normalFOV );
+    camera = new GameCamera( fov );
     Attach( camera->cameraNode, body );
     SetSkybox( camera->cameraNode, "data/textures/skyboxes/night4/nnksky01");
 
@@ -482,39 +464,28 @@ void Player::LoadSounds() {
     SetSoundReferenceDistance( heartBeatSound, 100.0f );
     SetSoundReferenceDistance( breathSound, 100.0f );
 
-    breathVolume = 0.1f;
-    heartBeatVolume = 0.15f;
-
-    breathVolumeTo = breathVolume;
-    heartBeatVolumeTo = heartBeatVolume;
-
-    heartBeatPitch = 1.0f;
-    heartBeatPitchTo = heartBeatPitch;
-
-    breathPitch = 1.0f;
-    breathPitchTo = breathPitch;
+    breathVolume = SmoothFloat( 0.1f );
+    heartBeatVolume = SmoothFloat( 0.15f );
+    heartBeatPitch = SmoothFloat( 1.0f );
+    breathPitch = SmoothFloat( 1.0f );
 }
 
 void Player::DoFright() {
-    breathVolumeTo = 0.1f;
-    heartBeatVolumeTo = 0.15f;
-
-    heartBeatVolume = 0.45f;
-    breathVolume = 0.25f;
-
-    heartBeatPitch = 2.0f;
-    heartBeatPitchTo = 1.0f;
-
-    breathPitch = 1.5f;
-    breathPitchTo = 1.0f;
+    breathVolume.SetTarget( 0.1f );
+    breathVolume.Set( 0.25f );
+    heartBeatVolume.SetTarget( 0.15f );
+    heartBeatVolume.Set( 0.45f );    
+    heartBeatPitch.Set( 2.0f );
+    heartBeatPitch.SetTarget( 1.0f );
+    breathPitch.Set( 1.5f );
+    breathPitch.SetTarget( 1.0f );
 }
 
 void Player::UpdateFright() {
-    breathVolume += ( breathVolumeTo - breathVolume ) * 0.075f;
-    heartBeatVolume += ( heartBeatVolumeTo - heartBeatVolume ) * 0.075f;
-
-    heartBeatPitch += ( heartBeatPitchTo - heartBeatPitch ) * 0.0025f;
-    breathPitch += ( breathPitchTo - breathPitch ) * 0.0025f;
+    breathVolume.ChaseTarget( 0.075f );
+    heartBeatVolume.ChaseTarget( 0.075f );
+    heartBeatPitch.ChaseTarget( 0.0025f );
+    breathPitch.ChaseTarget( 0.0025f );
 
     SetVolume( breathSound, breathVolume );
     SetVolume( heartBeatSound, heartBeatVolume );
@@ -582,7 +553,7 @@ void Player::DrawSheetInHands() {
         pickedObjectDesc += localization.GetString( "sheetOpen" );
 
         if( mi::MouseHit( mi::Right )) {
-            ShowNode( sheetInHands->node );
+            ShowNode( sheetInHands->object );
             sheetInHands = 0;
             PlaySoundSource( Sheet::paperFlip );
         }
@@ -658,7 +629,7 @@ void Player::UpdateItemsHandling() {
 
                 if( sheet ) {
                     sheetInHands = sheet;
-                    HideNode( sheetInHands->node );
+                    HideNode( sheetInHands->object );
                     PlaySoundSource( Sheet::paperFlip );
                 }
 
@@ -693,11 +664,9 @@ void Player::UpdatePicking() {
 
             if( itm ) {
                 pickedObjectDesc = itm->name;
-
                 pickedObjectDesc += Format( localization.GetString( "itemPick" ), GetKeyName( keyUse));
             } else if( sheet ) {
                 pickedObjectDesc = sheet->desc;
-
                 pickedObjectDesc += Format( localization.GetString( "sheetPick" ), GetKeyName( keyUse ));
             } else {
                 if( IsObjectHasNormalMass( picked ) && !IsNodeFrozen( picked )) {
@@ -705,7 +674,7 @@ void Player::UpdatePicking() {
                 }
             }
 
-            if( mi::MouseDown( mi::Left ) && pitch < 70 ) {
+            if( mi::MouseDown( mi::Left ) ) {
                 if( IsObjectHasNormalMass( picked )) {
                     if( !IsNodeFrozen( picked ) && !objectThrown ) {
                         objectInHands = picked;
@@ -817,15 +786,12 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadBoolean( locked );
     in.ReadBoolean( smoothCamera );
     in.ReadFloat( runBobCoeff );
-    in.ReadFloat( damagePitchOffset );
-    in.ReadFloat( damagePitchOffsetTo );
+    damagePitchOffset.Deserialize( in );
 
     footstepsType = (FootstepsType)in.ReadInteger();
 
-    in.ReadFloat( pitch );
-    in.ReadFloat( yaw );
-    in.ReadFloat( pitchTo );
-    in.ReadFloat( yawTo );
+    pitch.Deserialize( in );
+    yaw.Deserialize( in );
     in.ReadVector3( speed );
     in.ReadVector3( speedTo );
     in.ReadVector3( gravity );
@@ -842,10 +808,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadFloat( maxLife );
     in.ReadFloat( maxStamina );
     in.ReadFloat( runSpeedMult );
-    in.ReadFloat( fov );
-    in.ReadFloat( runFOV );
-    in.ReadFloat( normalFOV );
-    in.ReadFloat( fovTo );
+    fov.Deserialize( in );
     in.ReadFloat( cameraBobCoeff );
 
     in.ReadVector3( cameraOffset );
@@ -862,13 +825,16 @@ void Player::DeserializeWith( TextFileStream & in ) {
 
     in.ReadInteger( placeDescTimer );
 
-    in.ReadFloat( staminaAlpha );
-    in.ReadFloat( healthAlpha );
-    in.ReadFloat( staminaAlphaTo );
-    in.ReadFloat( healthAlphaTo );
+    staminaAlpha.Deserialize( in );
+    healthAlpha.Deserialize( in );
 
     in.ReadBoolean( moved );
     in.ReadBoolean( objectiveDone );
+
+    breathVolume.Deserialize( in );
+    heartBeatVolume.Deserialize( in );
+    heartBeatPitch.Deserialize( in );
+    breathPitch.Deserialize( in );
 
     sheetInHands = Sheet::GetByObject( FindByName( in.Readstring().c_str() ));
 
@@ -891,13 +857,10 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteBoolean( locked );
     out.WriteBoolean( smoothCamera );
     out.WriteFloat( runBobCoeff );
-    out.WriteFloat( damagePitchOffset );
-    out.WriteFloat( damagePitchOffsetTo );
+    damagePitchOffset.Serialize( out );
     out.WriteInteger((int)footstepsType );
-    out.WriteFloat( pitch );
-    out.WriteFloat( yaw );
-    out.WriteFloat( pitchTo );
-    out.WriteFloat( yawTo );
+    pitch.Serialize( out );
+    yaw.Serialize( out );
     out.WriteVector3( speed );
     out.WriteVector3( speedTo );
     out.WriteVector3( gravity );
@@ -911,10 +874,7 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteFloat( maxLife );
     out.WriteFloat( maxStamina );
     out.WriteFloat( runSpeedMult );
-    out.WriteFloat( fov );
-    out.WriteFloat( runFOV );
-    out.WriteFloat( normalFOV );
-    out.WriteFloat( fovTo );
+    fov.Serialize( out );
     out.WriteFloat( cameraBobCoeff );
 
     out.WriteVector3( cameraOffset );
@@ -931,15 +891,18 @@ void Player::SerializeWith( TextFileStream & out ) {
 
     out.WriteInteger( placeDescTimer );
 
-    out.WriteFloat( staminaAlpha );
-    out.WriteFloat( healthAlpha );
-    out.WriteFloat( staminaAlphaTo );
-    out.WriteFloat( healthAlphaTo );
-
+    staminaAlpha.Serialize( out );
+    healthAlpha.Serialize( out );
+    
     out.WriteBoolean( moved );
     out.WriteBoolean( objectiveDone );
 
-    out.Writestring( sheetInHands ? GetName( sheetInHands->node ) : "undefinedSheet" );
+    breathVolume.Serialize( out );
+    heartBeatVolume.Serialize( out );
+    heartBeatPitch.Serialize( out );
+    breathPitch.Serialize( out );
+
+    out.Writestring( sheetInHands ? GetName( sheetInHands->object ) : "undefinedSheet" );
 
     out.WriteInteger( keyMoveForward );
     out.WriteInteger( keyMoveBackward );

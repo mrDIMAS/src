@@ -5,7 +5,7 @@
 
 class InteractiveObject {
 public:
-    NodeHandle node;
+    NodeHandle object;
     float flashAlbedo;
     float flashAlbedoTo;
     float flashSpeed;
@@ -16,7 +16,9 @@ public:
     ~InteractiveObject();
     void UpdateFlashing();
 
-    virtual void Update() = 0;
+    virtual void Update()
+    {
+    }
 
     static void UpdateAll();
 

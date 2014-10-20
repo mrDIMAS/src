@@ -44,7 +44,7 @@ void Lift::Update() {
     }
 
     if( player->nearestPicked == scr ) {
-        DrawGUIText( "[E] - вверх/вниз", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+        DrawGUIText( "[E] - вверх/вниз", g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
         if( mi::KeyHit( mi::E )) {
             if( arrived ) {

@@ -1,15 +1,22 @@
 #pragma once
 
 #include "Common.h"
-
-// Used for drawing transparent faces, cause Deferred Shading does not support properly
-// transparent faces
+#include "Light.h"
+#include "Camera.h"
 
 class ForwardRenderer {
+private:
+
 public:
     ForwardRenderer() {
 
     }
 
+    ~ForwardRenderer() {
 
+    }
+
+    void RenderLightFlare( Light * light ) {
+
+    }
 };

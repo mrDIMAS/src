@@ -16,7 +16,7 @@ void Valve::Update() {
     }
 
     if( player->nearestPicked == object ) {
-        DrawGUIText( "[E] - вращать", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+        DrawGUIText( "[E] - вращать", g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
         if( mi::KeyDown( mi::E )) {
             angle += 5;

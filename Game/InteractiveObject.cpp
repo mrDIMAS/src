@@ -21,25 +21,27 @@ void InteractiveObject::UpdateAll() {
 void InteractiveObject::UpdateFlashing() {
     if( flashDirection ) {
         if( flashAlbedo < 1 ) {
-            flashAlbedo += 0.05f;
+            flashAlbedo += 0.015f;
         } else {
             flashDirection = false;
         }
     } else {
-        if( flashAlbedo > 0 ) {
-            flashAlbedo -= 0.05f;
+        if( flashAlbedo > 0.2 ) {
+            flashAlbedo -= 0.015f;
         } else {
             flashDirection = true;
         }
     }
 
-    SetAlbedo( node, 0.51f );
+    if( object.IsValid() ) {
+        SetAlbedo( object, flashAlbedo );
+    }
 }
 
 InteractiveObject::InteractiveObject( NodeHandle object ) {
     objects.push_back( this );
 
-    node = object;
+    this->object = object;
 
     flashAlbedo = 0.2f;
     flashAlbedoTo = 1.0f;

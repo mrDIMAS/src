@@ -62,7 +62,7 @@ public:
     bool exitingGame;
 
     float buttonsXOffset;
-    LevelName continueLevelName;
+    int continueLevelName;
     SoundHandle pickSound;
     Page page;
     SoundHandle music;

@@ -36,7 +36,7 @@ void Sheet::Draw( ) {
 
 Sheet * Sheet::GetSheetByObject( NodeHandle o ) {
     for( auto sh : sheets )
-        if( sh->node == o ) {
+        if( sh->object == o ) {
             return sh;
         }
 

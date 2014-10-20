@@ -254,8 +254,6 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "sampler spotSampler : register(s3) = sampler_state\n"
         "{\n"
         "   texture = <spotMap>;\n"
-        "   AddressU = clamp;\n"
-        "   AddressV = clamp;\n"
         "};\n"
 
 #ifndef USE_R32F_DEPTH
@@ -325,17 +323,14 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
 
         // diffuse
         "   float diff = saturate(dot( l, n ));\n"
-        "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
+        "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2.3 );\n"
 
         // spot
         "   float spotAngleCos = dot( direction, l ) ;\n"
-        "   float spot = smoothstep( outerAngle, 1.0f , spotAngleCos );\n"
-        "   float hotSpot = smoothstep( innerAngle, 1.0f, spotAngleCos );\n"
-        "   float totalSpotBrightness = spot + hotSpot;\n"
-        "   float o = clamp( falloff * totalSpotBrightness, 0.0, 2.0 ) * (  diff + spec  );\n"
+        "   float spot = smoothstep( outerAngle - 0.08, 1.0f , spotAngleCos );\n"
+        "   float o = clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
 
         "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
-        //"   return float4( 0, 1, 0, 1 );\n"
         "};\n";
 
 
@@ -344,7 +339,7 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
     hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
     hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
     hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
-    hInvViewProj  = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
+    hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
     hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
 
     hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
@@ -389,8 +384,6 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
 DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
     delete pixelShader;
 }
-
-
 
 DeferredRenderer::~DeferredRenderer() {
     if( gBuffer ) {
@@ -635,6 +628,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         RenderScreenQuad();
     }
 
+    g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
+    g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
     // Render spot lights
     for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
         Light * light = g_spotLights.at( i );

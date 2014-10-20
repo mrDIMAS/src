@@ -11,6 +11,7 @@
 #include "Way.h"
 #include "TextFileStream.h"
 #include "Parser.h"
+#include "SmoothFloat.h"
 
 class Player {
 private:
@@ -74,37 +75,26 @@ public:
     TextureHandle downCursor;
     TextureHandle statusBar;
 
-    float pitch;
-    float yaw;
-    float pitchTo;
-    float yawTo;
+    SmoothFloat pitch;
+    SmoothFloat yaw;
+    SmoothFloat damagePitchOffset;
+    SmoothFloat staminaAlpha;
+    SmoothFloat healthAlpha;
+    SmoothFloat breathVolume;
+    SmoothFloat heartBeatVolume;
+    SmoothFloat heartBeatPitch;
+    SmoothFloat breathPitch;
+    SmoothFloat fov;
+
     float stamina;
     float life;
     float maxLife;
     float maxStamina;
     float runSpeedMult;
-    float fov;
-    float runFOV;
-    float normalFOV;
     float headHeight;
-    float fovTo;
     float cameraBobCoeff;
-    float staminaAlpha;
-    float healthAlpha;
-    float staminaAlphaTo;
-    float healthAlphaTo;
-    float runBobCoeff;
-    float damagePitchOffset;
-    float damagePitchOffsetTo;
-    float breathVolume;
-    float heartBeatVolume;
-    float breathVolumeTo;
-    float heartBeatVolumeTo;
-    float heartBeatPitch;
-    float heartBeatPitchTo;
-    float breathPitch;
-    float breathPitchTo;
-
+    float runBobCoeff;    
+    
     Vector3 speed;
     Vector3 speedTo;
     Vector3 gravity;

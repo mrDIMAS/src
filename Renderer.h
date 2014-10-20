@@ -13,7 +13,6 @@ public:
     static LRESULT CALLBACK WindowProcess ( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam );
     void UpdateMessagePump( );
     void RenderMeshesIntoGBuffer();
-    void LightmapRenderMeshByGroups();
     void RenderWorld( );
     void CreatePhysics( );
     int CreateRenderWindow( int width, int height, int fullscreen );
