@@ -105,14 +105,32 @@ Camera::~Camera() {
 
 Camera::Camera( float fov ) {
     this->fov = fov;
-    nearZ     = 0.1f;
-    farZ      = 6000.0f;
-    skybox    = nullptr;
-    g_camera  = this;
-
+    nearZ = 0.1f;
+    farZ = 6000.0f;
+    skybox = nullptr;
+    g_camera = this;
+    inDepthHack = false;
     CalculateProjectionMatrix();
     D3DXMatrixLookAtRH( &view, &D3DXVECTOR3( 0, 100, 100 ), &D3DXVECTOR3( 0, 0, 0), &D3DXVECTOR3( 0, 1, 0 ));
 }
+
+void Camera::EnterDepthHack( float depth )
+{
+    if( !inDepthHack ) {
+        depthHackMatrix = projection;
+    }
+    inDepthHack = true;
+    projection._43 -= depth;
+    CalculateInverseViewProjection();
+}
+
+void Camera::LeaveDepthHack()
+{
+    inDepthHack = false;
+    projection = depthHackMatrix;
+    CalculateInverseViewProjection();
+}
+
 
 /////////////////////////////////////////////////////////////
 // API

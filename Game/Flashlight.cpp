@@ -79,6 +79,7 @@ bool Flashlight::GotCharge() {
 
 Flashlight::Flashlight() {
     model = LoadScene( "data/models/hands/arm.scene" );
+    SetDepthHack( model, 0.1f );
 
     light = FindInObjectByName( model, "PlayerLight" );
     SetSpotTexture( light, GetTexture( "data/textures/generic/spotlight.jpg"));

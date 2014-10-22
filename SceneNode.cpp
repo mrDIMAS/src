@@ -79,7 +79,7 @@ SceneNode::SceneNode( ) {
     globalTransform = localTransform;
     numContacts = 0;
     frozen = false;
-    order = 0;
+    fDepthHack = 0;
     particleEmitter = 0;
     albedo = 0.0f;
 
@@ -825,19 +825,24 @@ SceneNode * SceneNode::FindByName( const char * name ) {
 
 SceneNode::~SceneNode() {
     for( auto mesh : meshes ) {
-        delete mesh;
+        if( mesh ) {
+            delete mesh;
+        }
     }
 
-    for( auto child : childs )
+    for( auto child : childs ) {
         if( child ) {
             delete child;
         }
-
-    for( auto theNode : g_nodes )
-        for( size_t i = 0; i < theNode->childs.size(); i++ )
+    }
+   
+    for( auto theNode : g_nodes ) {
+        for( size_t i = 0; i < theNode->childs.size(); i++ ) {
             if( theNode->childs[i] == this ) {
-                theNode->childs[i] = 0;
+                theNode->childs[i] = nullptr;
             }
+        }
+    }
 
     for( auto keyframe : keyframes ) {
         delete keyframe;
@@ -874,11 +879,10 @@ void SceneNode::SetFriction( float friction ) {
     }
 }
 
-void SceneNode::SetOrder( int order ) {
-    this->order = order;
-
+void SceneNode::SetDepthHack( float depthHack ) {
+    this->fDepthHack = depthHack;
     for( size_t i = 0; i < childs.size(); i++ ) {
-        childs[ i ]->SetOrder( order );
+        childs[ i ]->SetDepthHack( depthHack );
     }
 }
 
@@ -1256,8 +1260,8 @@ void SetAlbedo( NodeHandle node, float albedo ) {
     SceneNode::CastHandle( node )->albedo = albedo;
 }
 
-void SetOrder( NodeHandle node, int order ) {
-    SceneNode::CastHandle( node )->SetOrder( order );
+void SetDepthHack( NodeHandle node, float depthHack ) {
+    SceneNode::CastHandle( node )->SetDepthHack( depthHack );
 }
 
 void SetAnisotropicFriction( NodeHandle node, Vector3 aniso ) {

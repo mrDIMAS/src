@@ -261,8 +261,6 @@ bool Renderer::IsMeshVisible( Mesh * mesh ) {
 /*
 ==========
 Renderer::CreateRenderWindow
-
-creates render window and setup it's properties
 ==========
 */
 int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
@@ -308,22 +306,18 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
 }
 
 /*
-==========
+===============
 Renderer::CreatePhysics
-
-simple wrapper
-==========
+===============
 */
 void Renderer::CreatePhysics() {
     Physics::CreateWorld();
 }
 
 /*
-==========
+===============
 Renderer::RenderWorld
-
-doing most work of this engine
-==========
+===============
 */
 void Renderer::RenderWorld() {
     if( !g_engineRunning )
@@ -400,11 +394,11 @@ void Renderer::RenderWorld() {
 }
 
 /*
-==========
+===============
 Renderer::RenderMeshesIntoGBuffer
 
 all registered meshes are sorted by texture, so rendering becomes really fast - there no redundant texture changes
-==========
+===============
 */
 void Renderer::RenderMeshesIntoGBuffer() {
     for( auto groupIterator : Mesh::meshes ) {
@@ -439,14 +433,12 @@ void Renderer::RenderMeshesIntoGBuffer() {
                 g_deferredRenderer->RenderMesh( mesh );
             }
         }
-    }
+    }   
 }
 /*
-==========
+===============
 Renderer::UpdateMessagePump
-
-stupid window can't work without transmit messages
-==========
+===============
 */
 void Renderer::UpdateMessagePump() {
     MSG message;
@@ -459,7 +451,11 @@ void Renderer::UpdateMessagePump() {
         }
     }
 }
-
+/*
+===============
+Renderer::WindowProcess
+===============
+*/
 LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
     switch ( msg ) {
     case WM_PAINT:
@@ -484,10 +480,21 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
 //////////////////////////////////////////////////////////
 // API
 //////////////////////////////////////////////////////////
+
+/*
+===============
+DebugDrawEnabled
+===============
+*/
 void DebugDrawEnabled( int state ) {
     g_debugDraw = state;
 }
 
+/*
+===============
+SetTextureFiltering
+===============
+*/
 void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
     int minMagFilter = D3DTEXF_POINT;
 
@@ -515,24 +522,47 @@ void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
     g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter );
     g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
 }
-
+/*
+===============
+DIPs
+===============
+*/
 int DIPs( ) {
     return g_dips;
 }
-
+/*
+===============
+CreateRenderer
+===============
+*/
 int CreateRenderer( int width, int height, int fullscreen ) {
     Renderer * renderer = new Renderer( width, height, fullscreen ) ;
     return 1;
 }
 
+/*
+===============
+SetAmbientColor
+===============
+*/
 void SetAmbientColor( Vector3 color ) {
     g_ambientColor = color;
 }
 
+/*
+===============
+GetAvailableTextureMemory
+===============
+*/
 int GetAvailableTextureMemory() {
     return g_device->GetAvailableTextureMem();
 }
 
+/*
+===============
+RayPick
+===============
+*/
 NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
     D3DVIEWPORT9 vp;
     g_device->GetViewport( &vp );
@@ -578,24 +608,49 @@ NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
     return SceneNode::HandleFromPointer( 0 );
 }
 
+/*
+===============
+FreeRenderer
+===============
+*/
 int FreeRenderer( ) {
     g_engineRunning = false;
     delete g_renderer;
     return 1;
 }
 
+/*
+===============
+GetResolutionWidth
+===============
+*/
 int GetResolutionWidth( ) {
     return g_width;
 }
 
+/*
+===============
+GetResolutionHeight
+===============
+*/
 int GetResolutionHeight( ) {
     return g_height;
 }
 
+/*
+===============
+TextureUsedPerFrame
+===============
+*/
 int TextureUsedPerFrame( ) {
     return g_textureChanges;
 }
 
+/*
+===============
+RenderWorld
+===============
+*/
 int RenderWorld( float dt ) {
     g_renderer->RenderWorld();
 

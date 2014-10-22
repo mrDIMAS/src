@@ -42,10 +42,8 @@ void ForwardRenderer::RenderMeshes() {
 
 void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
     auto groupIter = renderList.find( mesh->diffuseTexture->GetInterface() );
-
     if( groupIter != renderList.end() ) {
         auto & group = groupIter->second;
-
         group.erase( find( group.begin(), group.end(), mesh ));
     }
 }

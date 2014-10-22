@@ -33,7 +33,7 @@ public:
     SoundHandle hitSound;
     SoundHandle idleSound;
     float albedo;
-    int order;
+    float fDepthHack;
     SceneNode * scene;
     bool inFrustum;
     friend class DeferredRenderer;
@@ -84,7 +84,7 @@ public:
     SceneNode * GetChild( int i );
     int GetCountChildren();
     void SetFriction( float friction );
-    void SetOrder( int order );
+    void SetDepthHack( float depthHack );
     void SetAnisotropicFriction( Vector3 aniso );
     void Move( Vector3 speed );
     void SetVelocity( Vector3 velocity );

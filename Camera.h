@@ -14,9 +14,9 @@ public:
     D3DXMATRIX view;
     D3DXMATRIX viewProjection;
     D3DXMATRIX invViewProjection;
-
+    D3DXMATRIX depthHackMatrix;
     D3DXPLANE frustumPlanes[ 6 ];
-
+    bool inDepthHack;
     Skybox * skybox;
 
 public:
@@ -28,6 +28,7 @@ public:
     void CalculateInverseViewProjection();
     void SetSkyBox( const char * path );
     void Update();
-
+    void EnterDepthHack( float depth );
+    void LeaveDepthHack( );
     static Camera * CastHandle( NodeHandle handle );
 };

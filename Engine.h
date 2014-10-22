@@ -329,7 +329,7 @@ API void ShowNode( NodeHandle node );
 API bool IsNodeVisible( NodeHandle node );
 API void FreeSceneNode( NodeHandle node );
 API const char * GetName( NodeHandle node );
-API void SetOrder( NodeHandle node, int order );
+API void SetDepthHack( NodeHandle node, float order );
 API void Attach( NodeHandle node1, NodeHandle node2 );
 API void Detach( NodeHandle node );
 API void SetDamping( NodeHandle node, float linearDamping, float angularDamping );

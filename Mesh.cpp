@@ -43,21 +43,20 @@ Mesh::~Mesh() {
     if( vertexBuffer ) {
         vertexBuffer->Release();
     }
-
+    bool removed = false;
     auto group = Mesh::meshes.find( diffuseTexture->GetInterface() );
-
     if( group != Mesh::meshes.end()) {
         auto & meshes = group->second;
-
         for( size_t i = 0; i < meshes.size(); i++ ) {
-            if( meshes.at( i ) == this ) {
+            if( meshes[i] == this ) {
                 meshes.erase( meshes.begin() + i );
+                removed = true;
             }
         }
     }
-
-    g_forwardRenderer->RemoveMesh( this );
-
+    if( !removed ) {
+        g_forwardRenderer->RemoveMesh( this );
+    }
     if( octree ) {
         delete octree;
     }

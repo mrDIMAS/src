@@ -19,7 +19,6 @@ public:
     bool IsMeshVisible( Mesh * mesh );
     bool IsLightVisible( Light * lit );
     bool PointInBV( BoundingVolume bv, Vector3 point );
-
     Timer * performanceTimer;
 public:
     Renderer( int width, int height, int fullscreen );
