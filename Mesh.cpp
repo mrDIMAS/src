@@ -2,6 +2,7 @@
 #include "Octree.h"
 #include "Texture.h"
 #include "Vertex.h"
+#include "ForwardRenderer.h"
 
 unordered_map< IDirect3DTexture9*, vector< Mesh*>> Mesh::meshes;
 
@@ -12,6 +13,7 @@ Mesh::Mesh( SceneNode * theParent ) {
     parent = theParent;
     normalMapTexture = 0;
     octree = 0;
+    opacity = 1.0f;
 
     boundingVolume.max = Vector3( FLT_MAX, FLT_MAX, FLT_MAX );
     boundingVolume.min = Vector3( FLT_MIN, FLT_MIN, FLT_MIN );
@@ -20,13 +22,17 @@ Mesh::Mesh( SceneNode * theParent ) {
 }
 
 void Mesh::Register( Mesh * mesh ) {
-    auto textureGroup = Mesh::meshes.find( mesh->diffuseTexture->GetInterface() );
+    if( mesh->opacity > 0.99f ) { // pass it to deferred renderer
+        auto textureGroup = Mesh::meshes.find( mesh->diffuseTexture->GetInterface() );
 
-    if( textureGroup == Mesh::meshes.end()) {
-        Mesh::meshes[ mesh->diffuseTexture->GetInterface() ] = vector< Mesh*>();
+        if( textureGroup == Mesh::meshes.end()) {
+            Mesh::meshes[ mesh->diffuseTexture->GetInterface() ] = vector< Mesh*>();
+        }
+
+        Mesh::meshes[ mesh->diffuseTexture->GetInterface() ].push_back( mesh );
+    } else { // pass it to forward renderer
+        g_forwardRenderer->AddMesh( mesh );
     }
-
-    Mesh::meshes[ mesh->diffuseTexture->GetInterface() ].push_back( mesh );
 }
 
 Mesh::~Mesh() {
@@ -49,6 +55,8 @@ Mesh::~Mesh() {
             }
         }
     }
+
+    g_forwardRenderer->RemoveMesh( this );
 
     if( octree ) {
         delete octree;

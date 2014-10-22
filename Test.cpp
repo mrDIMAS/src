@@ -20,6 +20,9 @@ void main( ) {
 
     CreateRenderer( 0, 0, 0 );
 
+    SetPointDefaultTexture( GetCubeTexture( "data/textures/generic/pointCube.dds" ));
+    SetSpotDefaultTexture( GetTexture( "data/textures/generic/spotlight.jpg" ));
+
     NodeHandle cameraPivot = CreateSceneNode();
     SetCapsuleBody( cameraPivot, 6, 2 );
     SetAngularFactor( cameraPivot, Vector3( 0, 0, 0 ));

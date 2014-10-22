@@ -8,6 +8,7 @@
 #include "TestingChamber.h"
 #include "LevelIntroduction.h"
 #include "SaveLoader.h"
+#include "SaveWriter.h"
 
 int g_initialLevel;
 Level * currentLevel = 0;
@@ -87,6 +88,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
     if( lastLevel != Level::curLevelID ) {
         DrawGUIText( menu->loc.GetString( "loading" ), GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 64, 128, 128, gui->font, Vector3( 255, 255, 0), 1 );
 
+        // draw 'loading' string
         RenderWorld();
 
         lastLevel = Level::curLevelID;
@@ -122,8 +124,11 @@ void Level::Change( int levelId, bool continueFromSave ) {
         }
 
         if( continueFromSave ) {
-            SaveLoader loader( "lastGame.save" );
-            loader.RestoreWorldState();
+            SaveLoader( "lastGame.save" ).RestoreWorldState();
+        } else {
+            if( player ) {
+                SaveWriter( "quickSave.save" ).SaveWorldState();
+            }
         }
     }
 }
@@ -174,6 +179,12 @@ void Level::DeserializeWith( TextFileStream & in ) {
             HideNode( node );
         }
     }
+    int countStages = in.ReadInteger();
+    for( int i = 0; i < countStages; i++ ) {
+        string stageName = in.Readstring();
+        bool stageState = in.ReadBoolean();
+        stages[ stageName ] = stageState;
+    }
     OnDeserialize( in );
 }
 
@@ -186,6 +197,11 @@ void Level::SerializeWith( TextFileStream & out ) {
         out.WriteVector3( GetLocalPosition( node ));
         out.WriteQuaternion( GetLocalRotation( node ));
         out.WriteBoolean( IsNodeVisible( node ));
+    }
+    out.WriteInteger( stages.size());
+    for( auto stage : stages ) {
+        out.Writestring( stage.first );
+        out.WriteBoolean( stage.second );
     }
     OnSerialize( out );
 }

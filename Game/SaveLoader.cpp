@@ -21,13 +21,6 @@ void SaveLoader::RestoreWorldState() {
         }
     }
 
-    int countStages = ReadInteger();
-
-    for( int i = 0; i < countStages; i++ ) {
-        string stageName = Readstring();
-        bool stageState = ReadBoolean();
-        currentLevel->stages[ stageName ] = stageState;
-    }
 
     int countItemPlaces = ReadInteger();
 

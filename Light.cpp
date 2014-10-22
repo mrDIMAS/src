@@ -6,6 +6,8 @@ vector<Light*> g_pointLights;
 vector<Light*> g_spotLights;
 vector<Light*> Light::lights;
 IDirect3DVertexBuffer9 * Light::flareBuffer = nullptr;
+Texture * Light::defaultSpotTexture = nullptr;
+CubeTexture * Light::defaultPointCubeTexture = nullptr;
 
 Light * Light::GetLightByHandle( NodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
@@ -20,15 +22,22 @@ Light * Light::GetLightByHandle( NodeHandle handle ) {
 Light::Light( int type ) {
     color = Vector3( 1.0f, 1.0f, 1.0f );
     radius = 1.0f;
-    flareTexture = nullptr;
-    SetConeAngles( 45.0f, 80.0f );
+    flareTexture = nullptr;    
+    pointTexture = nullptr;
     spotTexture = nullptr;
     if( type == LT_POINT ) {
         g_pointLights.push_back( this );
+        if( defaultPointCubeTexture ) {
+            pointTexture = defaultPointCubeTexture;
+        }
     }
     if( type == LT_SPOT ) {
         g_spotLights.push_back( this );
+        if( defaultSpotTexture ) {
+            spotTexture = defaultSpotTexture;
+        }
     }
+    SetConeAngles( 45.0f, 80.0f ); 
 }
 
 void Light::SetColor( const Vector3 & theColor ) {
@@ -156,6 +165,8 @@ void Light::SetFlare( Texture * texture ) {
 
 // API Functions
 
+
+
 int GetWorldSpotLightCount() {
     return g_spotLights.size();
 }
@@ -185,7 +196,7 @@ NodeHandle GetWorldPointLight( int n ){
 }
 
 void SetLightFlare( NodeHandle node, TextureHandle flareTexture ) {
-
+    Light::GetLightByHandle( node )->flareTexture = (Texture *)flareTexture.pointer;
 }
 
 void SetLightDefaultFlare( TextureHandle defaultFlareTexture ) {
@@ -193,7 +204,25 @@ void SetLightDefaultFlare( TextureHandle defaultFlareTexture ) {
 }
 
 void SetSpotDefaultTexture( TextureHandle defaultSpotTexture ) {
+    Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
+    for( auto spot : g_spotLights ) {
+        if( !spot->spotTexture ) {
+            spot->spotTexture = Light::defaultSpotTexture;
+        }
+    }
+}
 
+void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture ) {
+    Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
+    for( auto point : g_pointLights ) {
+        if( !point->pointTexture ) {
+            point->pointTexture = Light::defaultPointCubeTexture;
+        }
+    }
+}
+
+void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture ) {
+    Light::GetLightByHandle( node )->SetPointTexture( (CubeTexture*)cubeTexture.pointer );
 }
 
 NodeHandle CreateLight( int type  ) {
@@ -201,13 +230,7 @@ NodeHandle CreateLight( int type  ) {
 }
 
 API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle ) {
-    Light * l = Light::GetLightByHandle( node );
-
-    if( !l ) {
-        return;
-    }
-
-    l->SetConeAngles( innerAngle, outerAngle );
+    Light::GetLightByHandle( node )->SetConeAngles( innerAngle, outerAngle );
 }
 
 API void SetLightRange( NodeHandle node, float rad ) {

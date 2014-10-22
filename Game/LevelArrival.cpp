@@ -70,6 +70,7 @@ LevelArrival::LevelArrival( ) {
 
     stages[ "DoneStrangeSoundPlayed" ] = false;
     stages[ "DoneRocksFall" ] = false;
+
 }
 
 LevelArrival::~LevelArrival() {

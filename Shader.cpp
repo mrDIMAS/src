@@ -1,8 +1,5 @@
 #include "Shader.h"
 
-
-
-
 void VertexShader::Bind() {
     g_device->SetVertexShader( shader );
 }

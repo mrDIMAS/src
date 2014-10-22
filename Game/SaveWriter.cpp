@@ -9,7 +9,6 @@ void SaveWriter::SaveWorldState() {
     }
 
     SavePlayerInventory();
-    SaveCurrentLevelStages();
     SaveItemPlaces();
 
     WriteInteger( Way::all.size() );
@@ -41,14 +40,6 @@ void SaveWriter::SaveItemPlaces() {
     }
 }
 
-void SaveWriter::SaveCurrentLevelStages() {
-    WriteInteger( currentLevel->stages.size());
-
-    for( auto stage : currentLevel->stages ) {
-        Writestring( stage.first );
-        WriteBoolean( stage.second );
-    }
-}
 
 void SaveWriter::SavePlayerInventory() {
     if( !player ) {

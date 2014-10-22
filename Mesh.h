@@ -43,6 +43,7 @@ public:
     SceneNode * parent;
     BoundingVolume boundingVolume;
     Octree * octree;
+    float opacity;
 public:
     static unordered_map< IDirect3DTexture9*, vector< Mesh*>> meshes;
     static void Register( Mesh * mesh );

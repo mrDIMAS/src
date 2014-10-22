@@ -11,6 +11,7 @@
 #include "MultipleRTDeferredRenderer.h"
 #include "FXAA.h"
 #include "FPSCounter.h"
+#include "ForwardRenderer.h"
 
 Renderer * g_renderer = 0;
 
@@ -49,18 +50,26 @@ Renderer::~Renderer() {
     while( g_nodes.size() ) {
         delete g_nodes.front();
     }
+    if( g_forwardRenderer ) {
+        delete g_forwardRenderer;
+    }
+    for( auto texPair : CubeTexture::all ) {
+        texPair.second->cubeTexture->Release();
+    }
     Texture::DeleteAll();
     if( g_meshVertexDeclaration ) {
         g_meshVertexDeclaration->Release();
-        g_meshVertexDeclaration = 0;
     }
+    int counter = 0;
     if( g_device ) {
-        while( g_device->Release() );
-        g_device = 0;
+        while( g_device->Release() ) {
+            counter++;
+        }
     }
     if( g_d3d ) {
-        while( g_d3d->Release() );
-        g_d3d = 0;
+        while( g_d3d->Release() ) {
+            counter++;
+        }
     }
     Physics::DestructWorld();
     pfSystemDestroy();
@@ -181,6 +190,7 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     } else {
         g_deferredRenderer = new MultipleRTDeferredRenderer();
     }
+    g_forwardRenderer = new ForwardRenderer();
     g_particleSystemRenderer = new ParticleSystemRenderer();
 
     g_guiRenderer = new GUIRenderer();
@@ -189,33 +199,6 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     performanceTimer = new Timer;
 }
 
-void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
-    int minMagFilter = D3DTEXF_POINT;
-
-    if( filter == TextureFilter::Nearest ) {
-        minMagFilter = D3DTEXF_POINT;
-    }
-    if( filter == TextureFilter::Linear ) {
-        minMagFilter = D3DTEXF_LINEAR;
-    }
-    if( filter == TextureFilter::Anisotropic ) {
-        minMagFilter = D3DTEXF_ANISOTROPIC;
-    }
-    int mipFilter = D3DTEXF_LINEAR;
-
-    if( mipFilter == TextureFilter::Nearest ) {
-        mipFilter = D3DTEXF_POINT;
-    }
-    g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter );
-    g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter );
-    g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter );
-    g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
-
-    g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter );
-    g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter );
-    g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter );
-    g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
-}
 
 int GetMaxAnisotropy() {
     D3DCAPS9 caps;
@@ -275,16 +258,18 @@ bool Renderer::IsMeshVisible( Mesh * mesh ) {
     return node->IsVisible();
 }
 
-bool Renderer::SortByTexture( Mesh * mesh1, Mesh * mesh2 ) {
-    return mesh1->diffuseTexture->GetInterface() < mesh2->diffuseTexture->GetInterface();
-}
+/*
+==========
+Renderer::CreateRenderWindow
 
+creates render window and setup it's properties
+==========
+*/
 int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     // get instance of this process
     HINSTANCE instance = GetModuleHandle ( 0 );
-
+    // setup window class
     const char * className = "Mine";
-
     WNDCLASSEXA wcx = { 0 };
     wcx.cbSize = sizeof ( wcx );
     wcx.hCursor = LoadCursor ( NULL, IDC_ARROW );
@@ -293,43 +278,53 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     wcx.lpfnWndProc = WindowProcess;
     wcx.lpszClassName = className;
     wcx.style = CS_HREDRAW | CS_VREDRAW;
-    RegisterClassExA ( &wcx );
-
-    DWORD style = WS_POPUP;
-
+    RegisterClassExA ( &wcx );    
+    DWORD style;    
     if ( !fullscreen ) {
+        // windowed style prevent device lost
         style = WS_SYSMENU | WS_BORDER | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+    } else {
+        // in fullscreen we has to deal with device lost
+        style = WS_POPUP;
     }
-
-    RECT wRect;
-    wRect.left = 0;
-    wRect.top = 0;
-    wRect.right = width;
-    wRect.bottom = height;
-
+    RECT wRect = { 0, 0, width, height };
+    // make client region fits to the current resolution
     AdjustWindowRect ( &wRect, style, 0 );
-
+    // create window
     window = CreateWindowA ( className, "Mine", style, 0, 0, wRect.right - wRect.left, wRect.bottom - wRect.top, 0, 0, instance, 0 );
 
-    if( !window ) {
+    if( !window ) { // fail
         return 0;
     }
-
+    // setup window
     ShowWindow ( window, SW_SHOW );
     UpdateWindow ( window );
     SetActiveWindow ( window );
     SetForegroundWindow ( window );
-
     // init input
     mi::Init( &window );
-
+    // success
     return 1;
 }
 
+/*
+==========
+Renderer::CreatePhysics
+
+simple wrapper
+==========
+*/
 void Renderer::CreatePhysics() {
     Physics::CreateWorld();
 }
 
+/*
+==========
+Renderer::RenderWorld
+
+doing most work of this engine
+==========
+*/
 void Renderer::RenderWorld() {
     if( !g_engineRunning )
         return;
@@ -381,6 +376,8 @@ void Renderer::RenderWorld() {
     }  
     // end render into G-Buffer and do a lighting passes
     g_deferredRenderer->EndFirstPassAndDoSecondPass();
+    // render all opacity meshes with forward renderer
+    g_forwardRenderer->RenderMeshes();
     // render particles after all, cause deferred shading doesnt support transparency    
     g_particleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
@@ -403,9 +400,11 @@ void Renderer::RenderWorld() {
 }
 
 /*
-===============
+==========
+Renderer::RenderMeshesIntoGBuffer
+
 all registered meshes are sorted by texture, so rendering becomes really fast - there no redundant texture changes
-===============
+==========
 */
 void Renderer::RenderMeshesIntoGBuffer() {
     for( auto groupIterator : Mesh::meshes ) {
@@ -442,7 +441,13 @@ void Renderer::RenderMeshesIntoGBuffer() {
         }
     }
 }
+/*
+==========
+Renderer::UpdateMessagePump
 
+stupid window can't work without transmit messages
+==========
+*/
 void Renderer::UpdateMessagePump() {
     MSG message;
 
@@ -481,6 +486,34 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
 //////////////////////////////////////////////////////////
 void DebugDrawEnabled( int state ) {
     g_debugDraw = state;
+}
+
+void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
+    int minMagFilter = D3DTEXF_POINT;
+
+    if( filter == TextureFilter::Nearest ) {
+        minMagFilter = D3DTEXF_POINT;
+    }
+    if( filter == TextureFilter::Linear ) {
+        minMagFilter = D3DTEXF_LINEAR;
+    }
+    if( filter == TextureFilter::Anisotropic ) {
+        minMagFilter = D3DTEXF_ANISOTROPIC;
+    }
+    int mipFilter = D3DTEXF_LINEAR;
+
+    if( mipFilter == TextureFilter::Nearest ) {
+        mipFilter = D3DTEXF_POINT;
+    }
+    g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter );
+    g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter );
+    g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter );
+    g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
+
+    g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter );
+    g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter );
+    g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter );
+    g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
 }
 
 int DIPs( ) {

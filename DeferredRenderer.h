@@ -57,6 +57,8 @@ public:
         D3DXHANDLE hInvViewProj;
         D3DXHANDLE hLightColor;
 
+        D3DXHANDLE hUsePointTexture;
+
         PixelShader * pixelShader;
     public:
         Pass2PointLight();

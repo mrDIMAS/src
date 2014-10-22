@@ -7,7 +7,6 @@
 class SaveWriter : public TextFileStream {
 private:
     void SavePlayerInventory();
-    void SaveCurrentLevelStages();
     void SaveItemPlaces();
 public:
     SaveWriter( string fn );

@@ -1,8 +1,6 @@
 #ifndef _COMMON_
 #define _COMMON_
 
-#define D3D_DEBUG_INFO
-
 #define _CRT_SECURE_NO_WARNINGS
 
 #define DIRECTINPUT_VERSION 0x0800
@@ -24,7 +22,7 @@
 #include "LinearMath\btTransform.h"
 #include "ProjectF.h"
 #include <queue>
-#include "vld.h"
+//#include "vld.h"
 
 #define DEG2RAD ( 3.14159f / 180.0f )
 
@@ -55,7 +53,7 @@ class DeferredRenderer;
 class ParticleSystemRenderer;
 class GUIRenderer;
 class Light;
-class LightmapRenderer;
+class ForwardRenderer;
 class ParticleEmitter;
 class SceneNode;
 class Camera;
@@ -111,7 +109,7 @@ extern Vector3 g_ambientColor;
 extern DeferredRenderer * g_deferredRenderer;
 extern PostProcessing * g_postProcessing;
 extern ParticleSystemRenderer * g_particleSystemRenderer;
-extern LightmapRenderer * g_lightMapRenderer;
+extern ForwardRenderer * g_forwardRenderer;
 extern GUIRenderer * g_guiRenderer;
 extern Cursor * g_cursor;
 extern Renderer * g_renderer;

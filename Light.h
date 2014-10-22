@@ -3,6 +3,7 @@
 #include "SceneNode.h"
 #include "Texture.h"
 #include "Camera.h"
+#include "CubeTexture.h"
 
 class Light : public SceneNode {
 public:
@@ -16,7 +17,7 @@ public:
 
     D3DXMATRIX spotProjectionMatrix;
     Texture * spotTexture;
-
+    CubeTexture * pointTexture;
     typedef struct {
         float x,y,z;
         float tx,ty;
@@ -24,6 +25,8 @@ public:
     static IDirect3DVertexBuffer9 * flareBuffer;
     Texture * flareTexture;
     static vector<Light*> lights;
+    static Texture * defaultSpotTexture;
+    static CubeTexture * defaultPointCubeTexture;
 public:
     explicit Light( int type );
     virtual ~Light();
@@ -39,6 +42,9 @@ public:
     float GetCosHalfInnerAngle( );
     float GetCosHalfOuterAngle( );
     void SetSpotTexture( Texture * tex );
+    void SetPointTexture( CubeTexture * ctex ) {
+        pointTexture = ctex;
+    }
     void BuildSpotProjectionMatrix();
     static Light * GetLightByHandle( NodeHandle handle );
 };

@@ -337,6 +337,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
 
             string diffuse = reader.GetString();
             string normal = reader.GetString();
+            mesh->opacity = reader.GetFloat() / 100.0f;
 
             mesh->vertices.reserve( vertexCount );
             for( int vertexNum = 0; vertexNum < vertexCount; vertexNum++ ) {

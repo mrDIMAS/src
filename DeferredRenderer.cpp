@@ -69,26 +69,10 @@ void DeferredRenderer::CreateBoundingVolumes() {
 ////////////////////////////////////////////////////////////
 DeferredRenderer::Pass2PointLight::Pass2PointLight() {
     string pixelSourcePassTwo =
-
-        "texture depthMap;\n"
-        "texture normalMap;\n"
-        "texture diffuseMap;\n"
-
-        "sampler depthSampler : register(s0) = sampler_state\n"
-        "{\n"
-        "   texture = <depthMap>;\n"
-        "};\n"
-
-        "sampler normalSampler : register(s1) = sampler_state\n"
-        "{\n"
-        "   texture = <normalMap>;\n"
-        "};\n"
-
-        "sampler diffuseSampler : register(s2) = sampler_state\n"
-        "{\n"
-        "   texture = <diffuseMap>;\n"
-        "};\n"
-
+        "sampler depthSampler : register(s0);\n"
+        "sampler normalSampler : register(s1);\n"
+        "sampler diffuseSampler : register(s2);\n"
+        "sampler pointSampler : register(s3);\n"
 #ifndef USE_R32F_DEPTH
         // ONLY for A8R8G8B8 depth
         "float unpackFloatFromVec4i ( const float4 value )\n"
@@ -105,6 +89,8 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
 
         // camera props
         "float3 cameraPosition;\n"
+
+        "int usePointTexture = false;\n"
 
         "float4x4 invViewProj;\n"
         "float spotAngle;\n"
@@ -139,6 +125,11 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
         "   float3 r = reflect( -v, n );\n"
         "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
 
+        // point texture( cube )
+        "   float4 pointTexel = float4( 1.0f, 1.0f, 1.0f, 1.0f );\n"
+        "   if( usePointTexture ) {"
+        "       pointTexel = texCUBE( pointSampler, l );\n"
+        "   };\n"
         // diffuse
         "   float diff = saturate(dot( l, n ));\n"
 
@@ -146,7 +137,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
 
         "   float o = clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
 
-        "   return float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
+        "   return pointTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
 
         //" return float4( 1, 0, 0, 1 );\n"
         "};\n";
@@ -159,7 +150,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
     hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
     hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
     hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
-
+    hUsePointTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "usePointTexture" );
 }
 
 void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj ) {
@@ -173,10 +164,18 @@ void DeferredRenderer::Pass2PointLight::BindShader( ) {
     pixelShader->Bind();
 }
 
-void DeferredRenderer::Pass2PointLight::SetLight( Light * lit ) {
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
-    pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ) );
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
+void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, light->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( light->GetRadius(), 4 ) );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, light->GetColor().elements, 3 );
+
+    if( light->pointTexture ) {
+        g_device->SetTexture( 3, light->pointTexture->cubeTexture );
+        pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 1 );
+    } else {
+        g_device->SetTexture( 3, 0 );
+        pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 0 );
+    }
 }
 
 DeferredRenderer::Pass2PointLight::~Pass2PointLight() {
@@ -189,12 +188,7 @@ DeferredRenderer::Pass2PointLight::~Pass2PointLight() {
 
 DeferredRenderer::Pass2AmbientLight::Pass2AmbientLight() {
     string source =
-        "texture diffuseMap;\n"
-
-        "sampler diffuseSampler : register(s2) = sampler_state\n"
-        "{\n"
-        "   texture = <diffuseMap>;\n"
-        "};\n"
+        "sampler diffuseSampler : register(s2);\n"
 
         "float3 ambientColor;\n"
 
@@ -230,31 +224,10 @@ DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight() {
 
 DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
     string spotSource =
-
-        "texture depthMap;\n"
-        "texture normalMap;\n"
-        "texture diffuseMap;\n"
-        "texture spotMap;\n"
-
-        "sampler depthSampler : register(s0) = sampler_state\n"
-        "{\n"
-        "   texture = <depthMap>;\n"
-        "};\n"
-
-        "sampler normalSampler : register(s1) = sampler_state\n"
-        "{\n"
-        "   texture = <normalMap>;\n"
-        "};\n"
-
-        "sampler diffuseSampler : register(s2) = sampler_state\n"
-        "{\n"
-        "   texture = <diffuseMap>;\n"
-        "};\n"
-
-        "sampler spotSampler : register(s3) = sampler_state\n"
-        "{\n"
-        "   texture = <spotMap>;\n"
-        "};\n"
+        "sampler depthSampler : register(s0);\n"
+        "sampler normalSampler : register(s1);\n"
+        "sampler diffuseSampler : register(s2);\n"
+        "sampler spotSampler : register(s3);\n"
 
 #ifndef USE_R32F_DEPTH
         "float unpackFloatFromVec4i ( const float4 value )\n"

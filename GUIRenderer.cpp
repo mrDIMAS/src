@@ -141,7 +141,9 @@ void GUIRenderer::RenderLines() {
     lineVertexBuffer->Unlock( );
     g_device->SetVertexDeclaration( lineDecl );
     g_device->SetStreamSource( 0, lineVertexBuffer, 0, sizeof( LinePoint ));
-    g_device->DrawPrimitive( D3DPT_LINELIST, 0, linesToRender );
+
+    if( linesToRender )
+        g_device->DrawPrimitive( D3DPT_LINELIST, 0, linesToRender );
 
     state->Apply();
     state->Release();

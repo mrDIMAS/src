@@ -53,6 +53,8 @@ void main( ) {
     CreateRenderer( g_resW, g_resH, fullscreen );
 #endif
 
+    SetPointDefaultTexture( GetCubeTexture( "data/textures/generic/pointCube.dds" ));
+    SetSpotDefaultTexture( GetTexture( "data/textures/generic/spotlight.jpg" ));
     g_resW = GetResolutionWidth();
     g_resH = GetResolutionHeight();
 

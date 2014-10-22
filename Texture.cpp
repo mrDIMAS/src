@@ -41,6 +41,7 @@ IDirect3DTexture9 * Texture::GetInterface() {
 
 void Texture::DeleteAll() {
     for( auto tex : all ) {
+        tex.second->texture->Release();
         delete tex.second;
     }
 }

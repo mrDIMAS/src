@@ -93,20 +93,8 @@ void MultipleRTDeferredRenderer::InitPassOneShaders() {
     v1WVP = vertexShaderPassOne->GetConstantTable()->GetConstantByName( 0, "g_WVP" );
 
     string pixelSourcePassOne =
-
-        "texture diffuseMap;\n"
-
-        "sampler diffuseSampler : register(s0) = sampler_state\n"
-        "{\n"
-        "   texture = <diffuseMap>;\n"
-        "};\n"
-
-        "texture normalMap;\n"
-
-        "sampler normalSampler : register(s1) = sampler_state\n"
-        "{\n"
-        "   texture = <normalMap>;\n"
-        "};\n"
+        "sampler diffuseSampler : register(s0);\n"
+        "sampler normalSampler : register(s1);\n"
 
         "struct PS_INPUT {\n"
         "  float4 screenPos : TEXCOORD0;\n"

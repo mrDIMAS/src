@@ -184,6 +184,12 @@ public:
     bool operator == ( const TextureHandle & node );
 };
 
+class API CubeTextureHandle : public RutheniumHandle {
+public:
+    static CubeTextureHandle Empty();
+    bool operator == ( const CubeTextureHandle & node );
+};
+
 class API SoundHandle : public RutheniumHandle {
 public:
     int pfHandle;
@@ -233,7 +239,7 @@ API int GetMaxAnisotropy();
 // Resource functions
 ////////////////////////////////////////////////////////////////////////////////////
 API TextureHandle GetTexture( const char * file );
-
+API CubeTextureHandle GetCubeTexture( const char * file );
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
 ////////////////////////////////////////////////////////////////////////////////////
@@ -280,6 +286,8 @@ API NodeHandle GetWorldPointLight( int n );
 API void SetLightFlare( NodeHandle node, TextureHandle flareTexture );
 API void SetLightDefaultFlare( TextureHandle defaultFlareTexture );
 API void SetSpotDefaultTexture( TextureHandle defaultSpotTexture );
+API void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture );
+API void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////

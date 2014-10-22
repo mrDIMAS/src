@@ -125,7 +125,6 @@ FXAA::FXAA() {
 
         "    float2 pixelCenter = float2(tc.x - pixelWidth, tc.y - pixelHeight);\n"
         "    float4 fxaaConsolePosPos = float4(tc.x, tc.y, tc.x + pixelWidth, tc.y + pixelHeight);\n"
-        //"    return float4( 1, 0, 0, 1 );\n"
 
         "    return FxaaPixelShader("
         "        pixelCenter,"
@@ -149,6 +148,14 @@ FXAA::FXAA() {
     g_device->GetRenderTarget( 0, &backBufferRT );
 
     effectsQuad = new EffectsQuad;
+}
+
+FXAA::~FXAA()
+{
+    delete pixelShader;
+    delete effectsQuad;
+    renderTarget->Release();
+    texture->Release();
 }
 
 //////////////////////////////////////////////////////////////////////////

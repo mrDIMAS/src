@@ -14,14 +14,7 @@ public:
     D3DXHANDLE screenHeight;
 
     FXAA();
-    ~FXAA() {
-        delete pixelShader;
-        delete effectsQuad;
-        renderTarget->Release();
-        texture->Release();
-    }
-
+    virtual ~FXAA();
     void BeginDrawIntoTexture( );
-
     void DoAntialiasing( IDirect3DTexture9 * outTexture );
 };
