@@ -5,10 +5,9 @@
 #include "EffectsQuad.h"
 #include "FXAA.h"
 #include "SSAO.h"
+#include "ShadowMap.h"
 
 class Mesh;
-
-
 
 class DeferredRenderer {
 public:
@@ -85,7 +84,9 @@ public:
         D3DXHANDLE hDirection;
 
         D3DXHANDLE hUseSpotTexture;
-        D3DXHANDLE hSpotProjMatrix;
+        D3DXHANDLE hSpotViewProjMatrix;
+        D3DXHANDLE hUseShadows;
+        D3DXHANDLE hCameraView;
     public:
         Pass2SpotLight( );
         ~Pass2SpotLight();
@@ -105,6 +106,7 @@ public:
 
     FXAA * fxaa;
     SSAO * ssao;
+    ShadowMap * shadowMap;
 
     void CreateBoundingVolumes();
 

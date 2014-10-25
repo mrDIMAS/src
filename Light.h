@@ -15,7 +15,7 @@ public:
     float cosHalfInnerAngle;
     float cosHalfOuterAngle;
 
-    D3DXMATRIX spotProjectionMatrix;
+    D3DXMATRIX spotViewProjectionMatrix;
     Texture * spotTexture;
     CubeTexture * pointTexture;
     typedef struct {
@@ -46,5 +46,6 @@ public:
         pointTexture = ctex;
     }
     void BuildSpotProjectionMatrix();
+    D3DXMATRIX BuiltSpotProjectionViewMatrix();
     static Light * GetLightByHandle( NodeHandle handle );
 };

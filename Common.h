@@ -79,8 +79,8 @@ double GetTimeInMilliSeconds( );
 double GetTimeInMicroSeconds( );
 
 // globals
-extern int g_width;
-extern int g_height;
+extern float g_width;
+extern float g_height;
 extern int g_dips;
 extern int g_rendererType;
 extern FontHandle g_font;
@@ -117,5 +117,6 @@ extern int g_fps;
 extern FPSCounter g_fpsCounter;
 extern bool g_physicsEnabled;
 extern bool g_engineRunning;
+extern bool g_useShadows;
 
 #endif

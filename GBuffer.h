@@ -5,7 +5,7 @@
 #define USE_R32F_DEPTH
 
 class GBuffer {
-private:
+public:
     IDirect3DTexture9 * depthMap;
     IDirect3DTexture9 * normalMap;
     IDirect3DTexture9 * diffuseMap;

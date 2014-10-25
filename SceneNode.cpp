@@ -880,7 +880,7 @@ void SceneNode::SetFriction( float friction ) {
 }
 
 void SceneNode::SetDepthHack( float depthHack ) {
-    this->fDepthHack = depthHack;
+    fDepthHack = depthHack;
     for( size_t i = 0; i < childs.size(); i++ ) {
         childs[ i ]->SetDepthHack( depthHack );
     }

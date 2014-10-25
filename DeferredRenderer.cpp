@@ -22,6 +22,7 @@ DeferredRenderer::DeferredRenderer() {
     pass2AmbientLight = new Pass2AmbientLight;
     pass2PointLight = new Pass2PointLight;
     bvRenderer = new BoundingVolumeRenderingShader;
+    shadowMap = new ShadowMap;
     //ssao = new SSAO( gBuffer );
 }
 
@@ -228,7 +229,7 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "sampler normalSampler : register(s1);\n"
         "sampler diffuseSampler : register(s2);\n"
         "sampler spotSampler : register(s3);\n"
-
+        "sampler shadowSampler : register(s4);\n"
 #ifndef USE_R32F_DEPTH
         "float unpackFloatFromVec4i ( const float4 value )\n"
         "{\n"
@@ -247,9 +248,10 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "float3 cameraPosition;\n"
 
         "float4x4 invViewProj;\n"
-        "int useSpotTexture = false;"
-        "float4x4 spotProjMatrix;\n"
-
+        "int useSpotTexture = false;\n"
+        "int useShadows = false;\n"
+        "float4x4 spotViewProjMatrix;\n"
+        "float4x4 cameraView;\n"
         "float innerAngle;\n"
         "float outerAngle;\n"
         "float3 direction;\n"
@@ -269,25 +271,36 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
 
         "   float4 screenPosition;\n"
-        "   screenPosition.x = texcoord.x * 2.0f - 1.0f;\n"
-        "   screenPosition.y = -(texcoord.y * 2.0f - 1.0f);\n"
+        "   screenPosition.x =    texcoord.x * 2.0f - 1.0f;\n"
+        "   screenPosition.y = -( texcoord.y * 2.0f - 1.0f );\n"
         "   screenPosition.z = depth;\n"
         "   screenPosition.w = 1.0f;\n"
 
         "   float4 p = mul( screenPosition, invViewProj );\n"
         "   p /= p.w;\n"
 
-        "   float4 projPos = mul(float4(p.xyz,1), spotProjMatrix);\n"
+        "   float4 projPos = mul( float4( p.xyz, 1 ), spotViewProjMatrix );\n"
         "   projPos.xyz /= projPos.w;\n"
-        "   float2 projTexCoords = projPos.xy*0.5+0.5;\n"
+        "   float2 projTexCoords = projPos.xy * 0.5 + 0.5;\n"
 
+        // spot texture
         "   float4 spotTextureTexel = float4( 1, 1, 1, 1 );\n"
 
         "   if( useSpotTexture )\n"
         "     spotTextureTexel = tex2D( spotSampler, projTexCoords );\n "
 
+
+        // light calculations
         "   float3 lightDirection = lightPos - p;"
         "   float3 l = normalize( lightDirection );\n"
+
+        // shadow
+        "   float shadowMult = 1.0f;\n"
+        "   float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
+        "   shadowDepth = 1 - ( 1 - shadowDepth ) * 25;\n"
+        "   if( shadowDepth > depth ) {\n"
+        "       shadowMult = 0.05f;\n"
+        "   };\n"
 
         // specular
         "   float3 v = normalize( cameraPosition - p );\n"
@@ -303,7 +316,8 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "   float spot = smoothstep( outerAngle - 0.08, 1.0f , spotAngleCos );\n"
         "   float o = clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
 
-        "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
+        //"   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
+        "   return float4( shadowDepth, shadowDepth, shadowDepth, 1.0f );\n"
         "};\n";
 
 
@@ -314,12 +328,14 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
     hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
     hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
     hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
+    hCameraView = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraView" );
 
     hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
     hOuterAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "outerAngle" );
     hDirection = pixelShader->GetConstantTable()->GetConstantByName( 0, "direction" );
     hUseSpotTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "useSpotTexture" );
-    hSpotProjMatrix = pixelShader->GetConstantTable()->GetConstantByName( 0, "spotProjMatrix" );
+    hSpotViewProjMatrix = pixelShader->GetConstantTable()->GetConstantByName( 0, "spotViewProjMatrix" );
+    hUseShadows = pixelShader->GetConstantTable()->GetConstantByName( 0, "useShadows" );
 }
 
 void DeferredRenderer::Pass2SpotLight::BindShader( ) {
@@ -334,20 +350,22 @@ void DeferredRenderer::Pass2SpotLight::Bind( D3DXMATRIX & invViewProj ) {
 }
 
 void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
+    btVector3 direction = ( lit->globalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
     pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ));
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
     pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
     pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
-
-    btVector3 direction = ( lit->globalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
-
-    if( lit->spotTexture ) {
+    pixelShader->GetConstantTable()->SetInt( g_device, hUseShadows, g_useShadows ? 1 : 0 );
+    if( lit->spotTexture || g_useShadows ) {
         lit->BuildSpotProjectionMatrix();
-        lit->spotTexture->Bind( 3 );
-        pixelShader->GetConstantTable()->SetMatrix( g_device, hSpotProjMatrix, &lit->spotProjectionMatrix );
-        pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 1 );
+        if( lit->spotTexture ) {
+            lit->spotTexture->Bind( 3 );
+            pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 1 );
+        }
+        pixelShader->GetConstantTable()->SetMatrix( g_device, hCameraView, &g_camera->viewProjection );
+        pixelShader->GetConstantTable()->SetMatrix( g_device, hSpotViewProjMatrix, &lit->spotViewProjectionMatrix );        
     } else {
         g_device->SetTexture( 3, nullptr );
         pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 0 );
@@ -389,6 +407,10 @@ DeferredRenderer::~DeferredRenderer() {
 
     if( bvRenderer ) {
         delete bvRenderer;
+    }
+
+    if( shadowMap ) {
+        delete shadowMap;
     }
 
     if( fxaa ) {
@@ -525,14 +547,10 @@ void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
 void DeferredRenderer::RenderScreenQuad() {
     // enable draw into color buffer
     g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-
-    /////////////////////////////////////////////////////////////////////////////
     // draw a screen quad
     g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-    //g_device->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL);
-
     g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-
+    // quad render
     effectsQuad->Render();
 }
 
@@ -603,12 +621,21 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
     g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
     g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
+
+    g_device->SetSamplerState( 4, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
+    g_device->SetSamplerState( 4, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
     // Render spot lights
     for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
         Light * light = g_spotLights.at( i );
+        
+        if( g_useShadows ) {
+            shadowMap->UnbindSpotShadowMap( 4 );
+            shadowMap->RenderSpotShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            shadowMap->BindSpotShadowMap( 4 );
+        }
 
         RenderConeIntoStencilBuffer( light );
-
+        
         pass2SpotLight->Bind( g_camera->invViewProjection );
         pass2SpotLight->SetLight( light );
 

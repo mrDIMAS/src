@@ -23,14 +23,15 @@ IDirect3DVertexDeclaration9 * g_meshVertexDeclaration = 0;
 vector< SceneNode* > g_nodes;
 HWND window;
 
-int g_width = 0;
-int g_height = 0;
+float g_width = 0;
+float g_height = 0;
 int g_dips = 0;
 int g_debugDraw = 0;
 int g_textureChanges = 0;
 int g_fps = 0;
 FPSCounter g_fpsCounter;
 bool g_engineRunning = true;
+bool g_useShadows = true;
 IDirect3DTexture9 * g_renderTexture = 0;
 IDirect3DSurface9 * g_renderSurface = 0;
 IDirect3DSurface9 * g_backbufferSurface = 0;
@@ -655,4 +656,13 @@ int RenderWorld( float dt ) {
     g_renderer->RenderWorld();
 
     return 1;
+}
+
+/*
+===============
+EnableShadows
+===============
+*/
+API void EnableShadows( bool state ) {
+    g_useShadows = state;
 }

@@ -217,6 +217,7 @@ API int TextureUsedPerFrame( );
 API void DebugDrawEnabled( int state );
 API void SetAmbientColor( Vector3 color );
 API int GetAvailableTextureMemory();
+API void EnableShadows( bool state );
 
 // FXAA
 API void EnableFXAA( );
