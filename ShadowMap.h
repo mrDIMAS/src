@@ -58,27 +58,29 @@ public:
         g_device->CreateStateBlock( D3DSBT_ALL, &state );
 
         g_device->SetRenderTarget( 0, spotSurface );
+        //g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
         g_device->Clear( 0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
-
         
         g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
         g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
         g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-        g_device->SetRenderState( D3DRS_ZENABLE, TRUE );
+        g_device->SetRenderState( D3DRS_ZENABLE, FALSE );
         g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-        g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+        g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
         g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
 
         pixelShader->Bind();
         vertexShader->Bind();
 
         spotLight->BuildSpotProjectionMatrix();
+        // each group is a pair< IDirect3DTexture9*, vector< Mesh*>>
         for( auto meshGroupIter : Mesh::meshes ) { // brute force method 
             auto & group = meshGroupIter.second;
             for( auto mesh : group ) {
                 D3DXMATRIX world, wvp; 
                 GetD3DMatrixFromBulletTransform( mesh->parent->globalTransform, world );
                 D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
+                //D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
                 g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
                 mesh->BindBuffers();
                 mesh->Render();

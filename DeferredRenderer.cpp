@@ -13,6 +13,7 @@ bool g_fxaaEnabled = true;
 
 DeferredRenderer::DeferredRenderer() {
     effectsQuad = new EffectsQuad;
+    debugQuad = new EffectsQuad( true );
 
     CreateBoundingVolumes();
 
@@ -251,7 +252,6 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "int useSpotTexture = false;\n"
         "int useShadows = false;\n"
         "float4x4 spotViewProjMatrix;\n"
-        "float4x4 cameraView;\n"
         "float innerAngle;\n"
         "float outerAngle;\n"
         "float3 direction;\n"
@@ -279,33 +279,31 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "   float4 p = mul( screenPosition, invViewProj );\n"
         "   p /= p.w;\n"
 
+        // light calculations
+        "   float3 lightDirection = lightPos - p;"
+        "   float3 l = normalize( lightDirection );\n"
+
+        // specular
+        "   float3 v = normalize( cameraPosition - p );\n"
+        "   float3 r = reflect( -v, n );\n"
+        "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"        
+  
         "   float4 projPos = mul( float4( p.xyz, 1 ), spotViewProjMatrix );\n"
-        "   projPos.xyz /= projPos.w;\n"
-        "   float2 projTexCoords = projPos.xy * 0.5 + 0.5;\n"
+        "   float2 projTexCoords = float2( projPos.x / 2 / projPos.w + 0.5f, -projPos.y / 2 / projPos.w + 0.5f);\n"
+        
+        // shadow
+        "   float shadowMult = 1.0f;\n"
+        "   float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
+        "   shadowDepth = 1 - ( 1 - shadowDepth ) * 250;\n"
+        "   if( shadowDepth > depth ) {\n"
+        "       shadowMult = 0.05f;\n"
+        "   };\n"
 
         // spot texture
         "   float4 spotTextureTexel = float4( 1, 1, 1, 1 );\n"
 
         "   if( useSpotTexture )\n"
         "     spotTextureTexel = tex2D( spotSampler, projTexCoords );\n "
-
-
-        // light calculations
-        "   float3 lightDirection = lightPos - p;"
-        "   float3 l = normalize( lightDirection );\n"
-
-        // shadow
-        "   float shadowMult = 1.0f;\n"
-        "   float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
-        "   shadowDepth = 1 - ( 1 - shadowDepth ) * 25;\n"
-        "   if( shadowDepth > depth ) {\n"
-        "       shadowMult = 0.05f;\n"
-        "   };\n"
-
-        // specular
-        "   float3 v = normalize( cameraPosition - p );\n"
-        "   float3 r = reflect( -v, n );\n"
-        "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
 
         // diffuse
         "   float diff = saturate(dot( l, n ));\n"
@@ -328,8 +326,6 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
     hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
     hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
     hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
-    hCameraView = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraView" );
-
     hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
     hOuterAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "outerAngle" );
     hDirection = pixelShader->GetConstantTable()->GetConstantByName( 0, "direction" );
@@ -364,7 +360,6 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
             lit->spotTexture->Bind( 3 );
             pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 1 );
         }
-        pixelShader->GetConstantTable()->SetMatrix( g_device, hCameraView, &g_camera->viewProjection );
         pixelShader->GetConstantTable()->SetMatrix( g_device, hSpotViewProjMatrix, &lit->spotViewProjectionMatrix );        
     } else {
         g_device->SetTexture( 3, nullptr );
@@ -642,6 +637,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         effectsQuad->Bind();
 
         RenderScreenQuad();
+
+        debugQuad->Bind();
+        debugQuad->Render();
     }
 
     if( g_fxaaEnabled ) {

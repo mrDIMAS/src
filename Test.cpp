@@ -18,7 +18,7 @@ void main( ) {
 
     v3 = 10 * v1 ;
 
-    CreateRenderer( 1366, 768, 0 );
+    CreateRenderer( 0, 0, 0 );
 
     SetPointDefaultTexture( GetCubeTexture( "data/textures/generic/pointCube.dds" ));
     SetSpotDefaultTexture( GetTexture( "data/textures/generic/spotlight.jpg" ));

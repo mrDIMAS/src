@@ -86,7 +86,6 @@ public:
         D3DXHANDLE hUseSpotTexture;
         D3DXHANDLE hSpotViewProjMatrix;
         D3DXHANDLE hUseShadows;
-        D3DXHANDLE hCameraView;
     public:
         Pass2SpotLight( );
         ~Pass2SpotLight();
@@ -97,6 +96,7 @@ public:
     };
 
     EffectsQuad * effectsQuad;
+    EffectsQuad * debugQuad;
 
     GBuffer * gBuffer;
 

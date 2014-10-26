@@ -10,16 +10,17 @@ public:
     struct QuadVertex {
         float x, y, z;
         float tx, ty;
-
-        QuadVertex( float ax, float ay, float az, float atx, float aty );
     };
 
+    bool debug;
+
     VertexShader * vertexShader;
+    PixelShader * debugPixelShader;
 
     D3DXMATRIX orthoProjection;
     D3DXHANDLE v2Proj;
 
-    explicit EffectsQuad();
+    explicit EffectsQuad( bool bDebug = false );
     virtual ~EffectsQuad();
 
     void Bind( );

@@ -4,9 +4,18 @@ void EffectsQuad::Render() {
     g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
     g_device->SetVertexDeclaration( vertexDeclaration );
     g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+    if( debug ) {
+        g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+        g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+    }
 }
 
 void EffectsQuad::Bind() {
+    if( debug ) {
+        debugPixelShader->Bind();
+        g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+        g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    }
     vertexShader->Bind();
     vertexShader->GetConstantTable()->SetMatrix( g_device, v2Proj, &orthoProjection );
 }
@@ -20,21 +29,51 @@ EffectsQuad::~EffectsQuad() {
         vertexBuffer->Release();
     }
 
+    if( debugPixelShader ) {
+        delete debugPixelShader;
+    }
+
     delete vertexShader;
 }
 
-EffectsQuad::EffectsQuad() {
+EffectsQuad::EffectsQuad( bool bDebug ) {
     g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
 
-    QuadVertex vertices[ ] = { QuadVertex( -0.5, -0.5, 0, 0, 0 ), QuadVertex( g_width - 0.5, 0 - 0.5, 0, 1, 0 ), QuadVertex ( 0 - 0.5, g_height - 0.5, 0, 0, 1 ),
-                               QuadVertex( g_width - 0.5, 0 - 0.5, 0, 1, 0 ), QuadVertex( g_width - 0.5, g_height - 0.5, 0, 1, 1 ), QuadVertex ( 0 - 0.5, g_height - 0.5, 0, 0, 1 )
-                             };
+    debug = bDebug;
+    debugPixelShader = nullptr;
 
-    void * data = 0;
+    if( !debug ) {
+        QuadVertex vertices[ ] = { 
+            {           -0.5, -0.5, 0, 0, 0 }, { g_width - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, g_height - 0.5, 0, 0, 1 },
+            {  g_width - 0.5, -0.5, 0, 1, 0 }, { g_width - 0.5,  g_height - 0.5, 0, 1, 1 }, { -0.5, g_height - 0.5, 0, 0, 1 }};
 
-    vertexBuffer->Lock( 0, 0, &data, 0 );
-    memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-    vertexBuffer->Unlock( );
+        void * data = 0;
+
+        vertexBuffer->Lock( 0, 0, &data, 0 );
+        memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
+        vertexBuffer->Unlock( );
+    } else {
+        int size = 500; 
+        QuadVertex vertices[ ] = { 
+            {        -0.5, -0.5, 0, 0, 0 }, { size - 0.5,        -0.5, 0, 1, 0 }, { -0.5, size - 0.5, 0, 0, 1 },
+            {  size - 0.5, -0.5, 0, 1, 0 }, { size - 0.5,  size - 0.5, 0, 1, 1 }, { -0.5, size - 0.5, 0, 0, 1 }};
+
+        void * data = 0;
+
+        vertexBuffer->Lock( 0, 0, &data, 0 );
+        memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
+        vertexBuffer->Unlock( );
+
+        string debugPixelShaderSource = 
+            "sampler diffuse : register( s4 );\n"
+            "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
+            "   float depth = tex2D( diffuse, texCoord ).r;\n"
+            "   depth = 1 - ( 1 - depth ) * 250;\n"
+            "   return float4( depth, depth, depth, 1.0f );\n"
+            "};\n";
+        
+        debugPixelShader = new PixelShader( debugPixelShaderSource );
+    }
 
     D3DVERTEXELEMENT9 quadVertexDeclation[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -71,6 +110,7 @@ EffectsQuad::EffectsQuad() {
     D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, g_width, g_height, 0, 0, 1024 );
 }
 
+/*
 EffectsQuad::QuadVertex::QuadVertex( float ax, float ay, float az, float atx, float aty ) {
     x = ax;
     y = ay;
@@ -79,3 +119,4 @@ EffectsQuad::QuadVertex::QuadVertex( float ax, float ay, float az, float atx, fl
     tx = atx;
     ty = aty;
 }
+*/
