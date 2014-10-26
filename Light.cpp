@@ -96,41 +96,20 @@ Light::~Light() {
 }
 
 void Light::BuildSpotProjectionMatrix() {
-    //CalculateGlobalTransform();
-    
-    /*
     btVector3 bEye = globalTransform.getOrigin();
-    btVector3 bLookAt = bEye + globalTransform.getBasis() * btVector3( 0, 1, 0 );
-    btVector3 bUp = globalTransform.getBasis() * btVector3( 0, 0, -1 );
-    
+    btVector3 bLookAt = bEye + globalTransform.getBasis() * btVector3( 0, -1, 0 );
+    btVector3 bUp = globalTransform.getBasis() * btVector3( 1, 0, 0 );
+
     D3DXVECTOR3 dxEye( bEye.x(), bEye.y(), bEye.z() );
     D3DXVECTOR3 dxLookAt( bLookAt.x(), bLookAt.y(), bLookAt.z() );
-    D3DXVECTOR3 dxUp( bUp.x(), bUp.y(), bUp.z() );
-    */
-    
-    D3DXVECTOR3 dxEye( 40, 40, 40 );
-    D3DXVECTOR3 dxLookAt( 0, 0, 0 );
-    D3DXVECTOR3 dxUp( 0, 1, 0 );
-
+    D3DXVECTOR3 dxUp( bUp.x(), bUp.y(), bUp.z() );    
+   
     D3DXMATRIX mView, mProj;
     D3DXMatrixLookAtRH( &mView, &dxEye, &dxLookAt, &dxUp );
-    D3DXMatrixPerspectiveFovRH( &mProj, outerAngle * SIMD_PI / 180.0f, (float)g_width / (float)g_height, g_camera->nearZ, g_camera->farZ );
+    D3DXMatrixPerspectiveFovRH( &mProj, outerAngle * SIMD_PI / 180.0f, 1.0f, 0.1f, 1000.0f );
     D3DXMatrixMultiply( &spotViewProjectionMatrix, &mView, &mProj );
 }
 
-D3DXMATRIX Light::BuiltSpotProjectionViewMatrix()
-{
-    D3DXVECTOR3 dxEye( 40, 40, 40 );
-    D3DXVECTOR3 dxLookAt( 0, 0, 0 );
-    D3DXVECTOR3 dxUp( 0, 1, 0 );
-
-    D3DXMATRIX mView, mProj, out;
-    D3DXMatrixLookAtRH( &mView, &dxEye, &dxLookAt, &dxUp );
-    D3DXMatrixPerspectiveFovRH( &mProj, outerAngle * SIMD_PI / 180.0f, (float)g_width / (float)g_height, g_camera->nearZ, g_camera->farZ );
-    D3DXMatrixMultiply( &out, &mProj, &mView );
-
-    return out;
-}
 
 void Light::SetSpotTexture( Texture * tex ) {
     spotTexture = tex;

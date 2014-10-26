@@ -46,6 +46,5 @@ public:
         pointTexture = ctex;
     }
     void BuildSpotProjectionMatrix();
-    D3DXMATRIX BuiltSpotProjectionViewMatrix();
     static Light * GetLightByHandle( NodeHandle handle );
 };

@@ -279,6 +279,10 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "   float4 p = mul( screenPosition, invViewProj );\n"
         "   p /= p.w;\n"
 
+        "   float4 projPos = mul( float4( p.xyz, 1 ), spotViewProjMatrix );\n"
+        "   projPos.xyz /= projPos.w;\n"
+        "   float2 projTexCoords = float2( projPos.x * 0.5f + 0.5f, -projPos.y * 0.5f + 0.5f  );\n"
+
         // light calculations
         "   float3 lightDirection = lightPos - p;"
         "   float3 l = normalize( lightDirection );\n"
@@ -287,16 +291,12 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "   float3 v = normalize( cameraPosition - p );\n"
         "   float3 r = reflect( -v, n );\n"
         "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"        
-  
-        "   float4 projPos = mul( float4( p.xyz, 1 ), spotViewProjMatrix );\n"
-        "   float2 projTexCoords = float2( projPos.x / 2 / projPos.w + 0.5f, -projPos.y / 2 / projPos.w + 0.5f);\n"
-        
+          
         // shadow
         "   float shadowMult = 1.0f;\n"
         "   float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
-        "   shadowDepth = 1 - ( 1 - shadowDepth ) * 250;\n"
-        "   if( shadowDepth > depth ) {\n"
-        "       shadowMult = 0.05f;\n"
+        "   if( projPos.z - 0.0005 > shadowDepth ) {\n"
+        "       shadowMult = 0.25f;\n"
         "   };\n"
 
         // spot texture
@@ -312,10 +312,9 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         // spot
         "   float spotAngleCos = dot( direction, l ) ;\n"
         "   float spot = smoothstep( outerAngle - 0.08, 1.0f , spotAngleCos );\n"
-        "   float o = clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
+        "   float o = shadowMult * clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
 
-        //"   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
-        "   return float4( shadowDepth, shadowDepth, shadowDepth, 1.0f );\n"
+        "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
         "};\n";
 
 
@@ -617,8 +616,6 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
     g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
 
-    g_device->SetSamplerState( 4, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
-    g_device->SetSamplerState( 4, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
     // Render spot lights
     for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
         Light * light = g_spotLights.at( i );
@@ -638,8 +635,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
         RenderScreenQuad();
 
-        debugQuad->Bind();
-        debugQuad->Render();
+        //debugQuad->Bind();
+        //debugQuad->Render();
     }
 
     if( g_fxaaEnabled ) {
