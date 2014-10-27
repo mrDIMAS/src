@@ -34,6 +34,8 @@ void Camera::Update() {
 
     CalculateProjectionMatrix();
     CalculateInverseViewProjection();
+
+    frustum.Build( viewProjection );
 }
 
 void Camera::SetSkyBox( const char * path ) {
@@ -49,52 +51,6 @@ void Camera::CalculateProjectionMatrix() {
     D3DVIEWPORT9 vp;
     g_device->GetViewport( &vp );
     D3DXMatrixPerspectiveFovRH( &projection, fov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, nearZ, farZ );
-}
-
-void Camera::BuildFrustum() {
-    D3DXMATRIX viewProjection;
-    D3DXMatrixMultiply ( &viewProjection, &view, &projection );
-
-    // Left plane
-    frustumPlanes[0].a = viewProjection._14 + viewProjection._11;
-    frustumPlanes[0].b = viewProjection._24 + viewProjection._21;
-    frustumPlanes[0].c = viewProjection._34 + viewProjection._31;
-    frustumPlanes[0].d = viewProjection._44 + viewProjection._41;
-
-    // Right plane
-    frustumPlanes[1].a = viewProjection._14 - viewProjection._11;
-    frustumPlanes[1].b = viewProjection._24 - viewProjection._21;
-    frustumPlanes[1].c = viewProjection._34 - viewProjection._31;
-    frustumPlanes[1].d = viewProjection._44 - viewProjection._41;
-
-    // Top plane
-    frustumPlanes[2].a = viewProjection._14 - viewProjection._12;
-    frustumPlanes[2].b = viewProjection._24 - viewProjection._22;
-    frustumPlanes[2].c = viewProjection._34 - viewProjection._32;
-    frustumPlanes[2].d = viewProjection._44 - viewProjection._42;
-
-    // Bottom plane
-    frustumPlanes[3].a = viewProjection._14 + viewProjection._12;
-    frustumPlanes[3].b = viewProjection._24 + viewProjection._22;
-    frustumPlanes[3].c = viewProjection._34 + viewProjection._32;
-    frustumPlanes[3].d = viewProjection._44 + viewProjection._42;
-
-    // Near plane
-    frustumPlanes[4].a = viewProjection._13;
-    frustumPlanes[4].b = viewProjection._23;
-    frustumPlanes[4].c = viewProjection._33;
-    frustumPlanes[4].d = viewProjection._43;
-
-    // Far plane
-    frustumPlanes[5].a = viewProjection._14 - viewProjection._13;
-    frustumPlanes[5].b = viewProjection._24 - viewProjection._23;
-    frustumPlanes[5].c = viewProjection._34 - viewProjection._33;
-    frustumPlanes[5].d = viewProjection._44 - viewProjection._43;
-
-    // Normalize planes
-    for ( int i = 0; i < 6; i++ ) {
-        D3DXPlaneNormalize ( &frustumPlanes[i], &frustumPlanes[i] );
-    }
 }
 
 Camera::~Camera() {

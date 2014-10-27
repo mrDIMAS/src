@@ -10,15 +10,10 @@ Mesh::Mesh( SceneNode * theParent ) {
     diffuseTexture = 0;
     indexBuffer = 0;
     vertexBuffer = 0;
-    parent = theParent;
+    ownerNode = theParent;
     normalMapTexture = 0;
     octree = 0;
     opacity = 1.0f;
-
-    boundingVolume.max = Vector3( FLT_MAX, FLT_MAX, FLT_MAX );
-    boundingVolume.min = Vector3( FLT_MIN, FLT_MIN, FLT_MIN );
-    boundingVolume.center = Vector3( 0.0f, 0.0f, 0.0f );
-    boundingVolume.radius = FLT_MAX;
 }
 
 void Mesh::Register( Mesh * mesh ) {
@@ -99,7 +94,7 @@ void Mesh::UpdateIndexBuffer( vector< Triangle > & idc ) {
 }
 
 SceneNode * Mesh::GetParentNode() {
-    return parent;
+    return ownerNode;
 }
 
 void Mesh::UpdateBuffers() {

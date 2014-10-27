@@ -7,13 +7,14 @@ void Octree::VisualizeHierarchy() {
 }
 
 void Octree::NodeVisualize( Node * node ) {
+    /*
     if( node->divided ) {
         for( int i = 0; i < 8; i++ ) {
             NodeVisualize( node->childs[ i ]);
         }
     } else {
         node->box.Visualize();
-    }
+    }*/
 }
 
 vector< Mesh::Triangle > & Octree::GetTrianglesToRender() {
@@ -50,29 +51,7 @@ void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & tr
 }
 
 bool Octree::CubeInFrustum( const AABB & box ) {
-    btVector3 pos = mesh->GetParentNode()->globalTransform.getOrigin();
-
-    for( int planeNum = 0; planeNum < 6; planeNum++ ) {
-        bool nextPlane = false;
-
-        for( int vertexNum = 0; vertexNum < 8; vertexNum++ ) {
-            D3DXVECTOR4 vertex = D3DXVECTOR4( box.vertices[ vertexNum ].x + pos.x(), box.vertices[ vertexNum ].y + pos.y(), box.vertices[ vertexNum ].z + pos.z(), 1 );
-
-            if( D3DXPlaneDot( &g_camera->frustumPlanes[ planeNum ], &vertex ) > 0 ) {
-                nextPlane = true;
-
-                break;
-            }
-        }
-
-        if( nextPlane ) {
-            continue;
-        }
-
-        return false;
-    }
-
-    return true;
+    return g_camera->frustum.IsAABBInside( box, Vector3( mesh->GetParentNode()->globalTransform.getOrigin().m_floats ) );
 }
 
 void Octree::Build( vector< Vector3 > & vertices, vector< Triangle* > & tris, Node * node ) {
@@ -127,11 +106,9 @@ Octree::Octree( Mesh * m, int _nodeSplitCriteria ) {
     root = new Node;
 
     vector< Vector3 > vertices;
-    for( int i = 0; i < mesh->vertices.size(); i++ ) {
-        vertices.push_back( mesh->vertices[ i ].coords );
+    for( auto & vertex : mesh->vertices ) {
+        vertices.push_back( vertex.coords );
     }
-
-
 
     root->box = AABB( GetAABBMin( vertices ), GetAABBMax( vertices ) );
 

@@ -213,21 +213,17 @@ Vector3 SceneNode::GetAABBMin() {
     Vector3 min = Vector3( FLT_MAX, FLT_MAX, FLT_MAX );
 
     for( auto mesh : meshes ) {
-        BoundingVolume bv = mesh->boundingVolume;
-
-        if( bv.min.x < min.x ) {
-            min.x = bv.min.x;
+        AABB aabb = mesh->aabb;
+        if( aabb.min.x < min.x ) {
+            min.x = aabb.min.x;
         }
-
-        if( bv.min.y < min.y ) {
-            min.y = bv.min.y;
+        if( aabb.min.y < min.y ) {
+            min.y = aabb.min.y;
         }
-
-        if( bv.min.z < min.z ) {
-            min.z = bv.min.z;
+        if( aabb.min.z < min.z ) {
+            min.z = aabb.min.z;
         }
     }
-
     return min;
 }
 
@@ -235,21 +231,18 @@ Vector3 SceneNode::GetAABBMax() {
     Vector3 max = Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 
     for( auto mesh : meshes ) {
-        BoundingVolume bv = mesh->boundingVolume;
+        AABB aabb = mesh->aabb;
 
-        if( bv.max.x > max.x ) {
-            max.x = bv.max.x;
+        if( aabb.max.x > max.x ) {
+            max.x = aabb.max.x;
         }
-
-        if( bv.max.y > max.y ) {
-            max.y = bv.max.y;
+        if( aabb.max.y > max.y ) {
+            max.y = aabb.max.y;
         }
-
-        if( bv.max.z > max.z ) {
-            max.z = bv.max.z;
+        if( aabb.max.z > max.z ) {
+            max.z = aabb.max.z;
         }
     }
-
     return max;
 }
 
@@ -330,10 +323,11 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
             int vertexCount = reader.GetInteger();
             int indexCount = reader.GetInteger();
 
-            mesh->boundingVolume.min = reader.GetBareVector();
-            mesh->boundingVolume.max = reader.GetBareVector();
-            mesh->boundingVolume.center = reader.GetBareVector();
-            mesh->boundingVolume.radius = reader.GetFloat();
+            Vector3 aabbMin = reader.GetBareVector();
+            Vector3 aabbMax = reader.GetBareVector();
+            Vector3 aabbCenter = reader.GetBareVector(); // odd
+            float aabbRadius = reader.GetFloat(); // odd
+            mesh->aabb = AABB( aabbMin, aabbMax );
 
             string diffuse = reader.GetString();
             string normal = reader.GetString();
@@ -352,6 +346,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
                 mesh->vertices.push_back( v );
             }
 
+            //mesh->aabb = AABB( mesh->vertices );
             mesh->lightMapTexture = lightMapTexture;
 
             mesh->triangles.reserve( indexCount );
@@ -783,19 +778,19 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
 
     btVector3 n2Pos = node->globalTransform.getOrigin();
     for( auto mesh : node->meshes ) {
-        BoundingVolume bv = mesh->boundingVolume;
+        AABB aabb = mesh->aabb;
 
-        bv.max.x += n2Pos.x();
-        bv.max.y += n2Pos.y();
-        bv.max.z += n2Pos.z();
+        aabb.max.x += n2Pos.x();
+        aabb.max.y += n2Pos.y();
+        aabb.max.z += n2Pos.z();
 
-        bv.min.x += n2Pos.x();
-        bv.min.y += n2Pos.y();
-        bv.min.z += n2Pos.z();
+        aabb.min.x += n2Pos.x();
+        aabb.min.y += n2Pos.y();
+        aabb.min.z += n2Pos.z();
 
-        if( point.x > bv.min.x && point.x < bv.max.x &&
-                point.y > bv.min.y && point.y < bv.max.y &&
-                point.z > bv.min.z && point.z < bv.max.z ) {
+        if( point.x > aabb.min.x && point.x < aabb.max.x &&
+                point.y > aabb.min.y && point.y < aabb.max.y &&
+                point.z > aabb.min.z && point.z < aabb.max.z ) {
             result++;
         }
     }

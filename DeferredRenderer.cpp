@@ -23,8 +23,45 @@ DeferredRenderer::DeferredRenderer() {
     pass2AmbientLight = new Pass2AmbientLight;
     pass2PointLight = new Pass2PointLight;
     bvRenderer = new BoundingVolumeRenderingShader;
-    shadowMap = new ShadowMap;
+    spotShadowMap = new SpotlightShadowMap;
+    pointShadowMap = new PointlightShadowMap;
     //ssao = new SSAO( gBuffer );
+}
+
+DeferredRenderer::~DeferredRenderer() {
+    if( gBuffer ) {
+        delete gBuffer;
+    }
+    if( icosphere ) {
+        icosphere->Release();
+    }
+    if( cone ) {
+        cone->Release();
+    }
+    if( effectsQuad ) {
+        delete effectsQuad;
+    }
+    if( pass2SpotLight ) {
+        delete pass2SpotLight;
+    }
+    if( pass2AmbientLight ) {
+        delete pass2AmbientLight;
+    }
+    if( pass2PointLight ) {
+        delete pass2PointLight;
+    }
+    if( bvRenderer ) {
+        delete bvRenderer;
+    }
+    if( spotShadowMap ) {
+        delete spotShadowMap;
+    }
+    if( fxaa ) {
+        delete fxaa;
+    }
+    if( pointShadowMap ) {
+        delete pointShadowMap;
+    }
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {
@@ -354,7 +391,7 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
     pixelShader->GetConstantTable()->SetInt( g_device, hUseShadows, g_useShadows ? 1 : 0 );
     if( lit->spotTexture || g_useShadows ) {
-        lit->BuildSpotProjectionMatrix();
+        lit->BuildSpotProjectionMatrixAndFrustum();
         if( lit->spotTexture ) {
             lit->spotTexture->Bind( 3 );
             pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 1 );
@@ -370,47 +407,7 @@ DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
     delete pixelShader;
 }
 
-DeferredRenderer::~DeferredRenderer() {
-    if( gBuffer ) {
-        delete gBuffer;
-    }
 
-    if( icosphere ) {
-        icosphere->Release();
-    }
-
-    if( cone ) {
-        cone->Release();
-    }
-
-    if( effectsQuad ) {
-        delete effectsQuad;
-    }
-
-    if( pass2SpotLight ) {
-        delete pass2SpotLight;
-    }
-
-    if( pass2AmbientLight ) {
-        delete pass2AmbientLight;
-    }
-
-    if( pass2PointLight ) {
-        delete pass2PointLight;
-    }
-
-    if( bvRenderer ) {
-        delete bvRenderer;
-    }
-
-    if( shadowMap ) {
-        delete shadowMap;
-    }
-
-    if( fxaa ) {
-        delete fxaa;
-    }
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Bounding volume rendering shader
@@ -621,9 +618,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         Light * light = g_spotLights.at( i );
         
         if( g_useShadows ) {
-            shadowMap->UnbindSpotShadowMap( 4 );
-            shadowMap->RenderSpotShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
-            shadowMap->BindSpotShadowMap( 4 );
+            spotShadowMap->UnbindSpotShadowMap( 4 );
+            spotShadowMap->RenderSpotShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            spotShadowMap->BindSpotShadowMap( 4 );
         }
 
         RenderConeIntoStencilBuffer( light );

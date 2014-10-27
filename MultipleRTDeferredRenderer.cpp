@@ -9,8 +9,8 @@ void MultipleRTDeferredRenderer::OnEnd() {
 }
 
 void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
-    if( fabs( mesh->parent->fDepthHack ) > 0.001 )
-        g_camera->EnterDepthHack( fabs( mesh->parent->fDepthHack ) );
+    if( fabs( mesh->ownerNode->fDepthHack ) > 0.001 )
+        g_camera->EnterDepthHack( fabs( mesh->ownerNode->fDepthHack ) );
 
     D3DXMATRIX world;
     D3DXMatrixIdentity( &world );
@@ -32,7 +32,7 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
 
     mesh->Render();
 
-    if( mesh->parent->fDepthHack )
+    if( mesh->ownerNode->fDepthHack )
         g_camera->LeaveDepthHack();
 }
 

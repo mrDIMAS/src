@@ -5,7 +5,8 @@
 #include "EffectsQuad.h"
 #include "FXAA.h"
 #include "SSAO.h"
-#include "ShadowMap.h"
+#include "SpotlightShadowMap.h"
+#include "PointlightShadowMap.h"
 
 class Mesh;
 
@@ -106,7 +107,8 @@ public:
 
     FXAA * fxaa;
     SSAO * ssao;
-    ShadowMap * shadowMap;
+    SpotlightShadowMap * spotShadowMap;
+    PointlightShadowMap * pointShadowMap;
 
     void CreateBoundingVolumes();
 

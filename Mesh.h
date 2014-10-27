@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "AABB.h"
 
 class Octree;
 
@@ -40,8 +41,8 @@ public:
     vector<Vertex> vertices;
     vector<Triangle> triangles;
     vector<Weight> weights;
-    SceneNode * parent;
-    BoundingVolume boundingVolume;
+    SceneNode * ownerNode;
+    AABB aabb;
     Octree * octree;
     float opacity;
 public:

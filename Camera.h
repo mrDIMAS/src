@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SceneNode.h"
+#include "Frustum.h"
 
 class Skybox;
 
@@ -15,15 +16,12 @@ public:
     D3DXMATRIX viewProjection;
     D3DXMATRIX invViewProjection;
     D3DXMATRIX depthHackMatrix;
-    D3DXPLANE frustumPlanes[ 6 ];
+    Frustum frustum;
     bool inDepthHack;
     Skybox * skybox;
-
 public:
-
     explicit Camera( float fov );
     virtual ~Camera();
-    void BuildFrustum();
     void CalculateProjectionMatrix();
     void CalculateInverseViewProjection();
     void SetSkyBox( const char * path );

@@ -64,11 +64,6 @@ class Vertex;
 class Vertex2D;
 class FPSCounter;
 
-struct BoundingVolume {
-    Vector3 min, max, center;
-    float radius;
-};
-
 #define MEMORY_VALID_VALUE ( 0xDEADBEEF )
 
 void ParseString( string str, map<string,string> & values);

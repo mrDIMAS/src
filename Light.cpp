@@ -9,6 +9,11 @@ IDirect3DVertexBuffer9 * Light::flareBuffer = nullptr;
 Texture * Light::defaultSpotTexture = nullptr;
 CubeTexture * Light::defaultPointCubeTexture = nullptr;
 
+/*
+==========
+Light::GetLightByHandle
+==========
+*/
 Light * Light::GetLightByHandle( NodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
     Light * light = dynamic_cast< Light* >( n );
@@ -18,7 +23,11 @@ Light * Light::GetLightByHandle( NodeHandle handle ) {
     }
     return light;
 };
-
+/*
+==========
+Light::Light
+==========
+*/
 Light::Light( int type ) {
     color = Vector3( 1.0f, 1.0f, 1.0f );
     radius = 1.0f;
@@ -39,34 +48,67 @@ Light::Light( int type ) {
     }
     SetConeAngles( 45.0f, 80.0f ); 
 }
-
+/*
+==========
+Light::SetColor
+==========
+*/
 void Light::SetColor( const Vector3 & theColor ) {
     color.x = theColor.x / 255.0f;
     color.y = theColor.y / 255.0f;
     color.z = theColor.z / 255.0f;
 }
 
+/*
+==========
+Light::GetColor
+==========
+*/
 Vector3 Light::GetColor() const {
     return color;
 }
 
+/*
+==========
+Light::SetRadius
+==========
+*/
 void Light::SetRadius( const float & theRadius ) {
     radius = theRadius;
 }
 
+/*
+==========
+Light::GetRadius
+==========
+*/
 float Light::GetRadius() const {
     return radius;
 }
 
-
+/*
+==========
+Light::GetInnerAngle
+==========
+*/
 float Light::GetInnerAngle() const {
     return innerAngle;
 }
 
+/*
+==========
+Light::GetOuterAngle
+==========
+*/
 float Light::GetOuterAngle() const {
     return outerAngle;
 }
 
+/*
+==========
+Light::SetConeAngles
+==========
+*/
 void Light::SetConeAngles( float theInner, float theOuter ) {
     innerAngle = theInner;
     outerAngle = theOuter;
@@ -75,14 +117,29 @@ void Light::SetConeAngles( float theInner, float theOuter ) {
     cosHalfOuterAngle = cosf( ( outerAngle / 2 ) * SIMD_PI / 180.0f );
 }
 
+/*
+==========
+Light::GetCosHalfInnerAngle
+==========
+*/
 float Light::GetCosHalfInnerAngle( ) {
     return cosHalfInnerAngle;
 }
 
+/*
+==========
+Light::GetCosHalfOuterAngle
+==========
+*/
 float Light::GetCosHalfOuterAngle( ) {
     return cosHalfOuterAngle;
 }
 
+/*
+==========
+Light::~Light
+==========
+*/
 Light::~Light() {
     auto pointLight = find( g_pointLights.begin(), g_pointLights.end(), this );
     if( pointLight != g_pointLights.end() ) {
@@ -95,7 +152,12 @@ Light::~Light() {
     }
 }
 
-void Light::BuildSpotProjectionMatrix() {
+/*
+==========
+Light::BuildSpotProjectionMatrix
+==========
+*/
+void Light::BuildSpotProjectionMatrixAndFrustum() {
     btVector3 bEye = globalTransform.getOrigin();
     btVector3 bLookAt = bEye + globalTransform.getBasis() * btVector3( 0, -1, 0 );
     btVector3 bUp = globalTransform.getBasis() * btVector3( 1, 0, 0 );
@@ -108,13 +170,23 @@ void Light::BuildSpotProjectionMatrix() {
     D3DXMatrixLookAtRH( &mView, &dxEye, &dxLookAt, &dxUp );
     D3DXMatrixPerspectiveFovRH( &mProj, outerAngle * SIMD_PI / 180.0f, 1.0f, 0.1f, 1000.0f );
     D3DXMatrixMultiply( &spotViewProjectionMatrix, &mView, &mProj );
+    frustum.Build( spotViewProjectionMatrix );
 }
 
-
+/*
+==========
+Light::SetSpotTexture
+==========
+*/
 void Light::SetSpotTexture( Texture * tex ) {
     spotTexture = tex;
 }
 
+/*
+==========
+Light::RenderLightFlares
+==========
+*/
 void Light::RenderLightFlares() {
     if( !flareBuffer ) {
         return;
@@ -147,6 +219,11 @@ void Light::RenderLightFlares() {
     state->Release();
 }
 
+/*
+==========
+Light::SetFlare
+==========
+*/
 void Light::SetFlare( Texture * texture ) {
     if( !texture ) {
         return;
@@ -167,11 +244,20 @@ void Light::SetFlare( Texture * texture ) {
 // API Functions
 
 
-
+/*
+==========
+GetWorldSpotLightCount
+==========
+*/
 int GetWorldSpotLightCount() {
     return g_spotLights.size();
 }
 
+/*
+==========
+GetWorldSpotLight
+==========
+*/
 NodeHandle GetWorldSpotLight( int n ) {
     NodeHandle handle;
     if( n >= g_spotLights.size() || n < 0 ) {
@@ -182,10 +268,20 @@ NodeHandle GetWorldSpotLight( int n ) {
     }
 }
 
+/*
+==========
+GetWorldPointLightCount
+==========
+*/
 int GetWorldPointLightCount() {
     return g_pointLights.size();
 }
 
+/*
+==========
+GetWorldPointLight
+==========
+*/
 NodeHandle GetWorldPointLight( int n ){
     NodeHandle handle;
     if( n >= g_pointLights.size() || n < 0 ) {
@@ -196,14 +292,29 @@ NodeHandle GetWorldPointLight( int n ){
     }
 }
 
+/*
+==========
+SetLightFlare
+==========
+*/
 void SetLightFlare( NodeHandle node, TextureHandle flareTexture ) {
     Light::GetLightByHandle( node )->flareTexture = (Texture *)flareTexture.pointer;
 }
 
+/*
+==========
+SetLightDefaultFlare
+==========
+*/
 void SetLightDefaultFlare( TextureHandle defaultFlareTexture ) {
-
+    // FIX
 }
 
+/*
+==========
+SetSpotDefaultTexture
+==========
+*/
 void SetSpotDefaultTexture( TextureHandle defaultSpotTexture ) {
     Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
     for( auto spot : g_spotLights ) {
@@ -213,6 +324,11 @@ void SetSpotDefaultTexture( TextureHandle defaultSpotTexture ) {
     }
 }
 
+/*
+==========
+SetPointDefaultTexture
+==========
+*/
 void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture ) {
     Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
     for( auto point : g_pointLights ) {
@@ -222,18 +338,38 @@ void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture ) {
     }
 }
 
+/*
+==========
+SetPointTexture
+==========
+*/
 void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture ) {
     Light::GetLightByHandle( node )->SetPointTexture( (CubeTexture*)cubeTexture.pointer );
 }
 
+/*
+==========
+CreateLight
+==========
+*/
 NodeHandle CreateLight( int type  ) {
     return SceneNode::HandleFromPointer( new Light( type ) );
 }
 
+/*
+==========
+SetConeAngles
+==========
+*/
 API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle ) {
     Light::GetLightByHandle( node )->SetConeAngles( innerAngle, outerAngle );
 }
 
+/*
+==========
+SetLightRange
+==========
+*/
 API void SetLightRange( NodeHandle node, float rad ) {
     Light * l = Light::GetLightByHandle( node );
 
@@ -248,6 +384,11 @@ API void SetLightRange( NodeHandle node, float rad ) {
     l->SetRadius( rad );
 }
 
+/*
+==========
+SetLightColor
+==========
+*/
 API void SetLightColor( NodeHandle node, Vector3 clr ) {
     Light * l = Light::GetLightByHandle( node );
 
@@ -262,6 +403,11 @@ API void SetLightColor( NodeHandle node, Vector3 clr ) {
     l->SetColor( clr );
 }
 
+/*
+==========
+GetLightRange
+==========
+*/
 API float GetLightRange( NodeHandle node ) {
     Light * l = Light::GetLightByHandle( node );
 
@@ -272,6 +418,11 @@ API float GetLightRange( NodeHandle node ) {
     return l->radius;
 }
 
+/*
+==========
+SetSpotTexture
+==========
+*/
 API void SetSpotTexture( NodeHandle node, TextureHandle texture ) {
     Light * l = Light::GetLightByHandle( node );
 

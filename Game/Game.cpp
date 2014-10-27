@@ -14,12 +14,9 @@ float g_resW;
 float g_resH;
 int g_keyQuickSave = mi::Key::F5;
 int g_keyQuickLoad = mi::Key::F9;
-
 string localizationPath;
 bool g_showFPS = false;
-
 bool g_running = true;
-
 float mouseSens = 0.5f;
 
 NodeHandle CreateFog( NodeHandle obj, int density ) {

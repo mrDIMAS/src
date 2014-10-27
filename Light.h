@@ -4,24 +4,26 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "CubeTexture.h"
+#include "Mesh.h"
+#include "AABB.h"
+#include "Frustum.h"
 
 class Light : public SceneNode {
 public:
-    float radius;
-    Vector3 color;
-    float innerAngle;
-    float outerAngle;
-
-    float cosHalfInnerAngle;
-    float cosHalfOuterAngle;
-
-    D3DXMATRIX spotViewProjectionMatrix;
-    Texture * spotTexture;
-    CubeTexture * pointTexture;
     typedef struct {
         float x,y,z;
         float tx,ty;
     } flareVertex_t;
+    Frustum frustum;
+    float radius;
+    Vector3 color;
+    float innerAngle;
+    float outerAngle;
+    float cosHalfInnerAngle;
+    float cosHalfOuterAngle;
+    D3DXMATRIX spotViewProjectionMatrix;
+    Texture * spotTexture;
+    CubeTexture * pointTexture;
     static IDirect3DVertexBuffer9 * flareBuffer;
     Texture * flareTexture;
     static vector<Light*> lights;
@@ -37,6 +39,9 @@ public:
     void SetConeAngles( float theInner, float theOuter );
     float GetInnerAngle() const;
     float GetOuterAngle() const;
+    bool IsContainsMesh( Mesh * mesh ) const {
+
+    }
     void SetFlare( Texture * texture );
     static void RenderLightFlares();
     float GetCosHalfInnerAngle( );
@@ -45,6 +50,6 @@ public:
     void SetPointTexture( CubeTexture * ctex ) {
         pointTexture = ctex;
     }
-    void BuildSpotProjectionMatrix();
+    void BuildSpotProjectionMatrixAndFrustum();
     static Light * GetLightByHandle( NodeHandle handle );
 };

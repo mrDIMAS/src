@@ -200,63 +200,14 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     performanceTimer = new Timer;
 }
 
-
-int GetMaxAnisotropy() {
-    D3DCAPS9 caps;
-    g_device->GetDeviceCaps( &caps );
-
-    return caps.MaxAnisotropy;
-}
-
-bool Renderer::PointInBV( BoundingVolume bv, Vector3 point ) {
-    if( point.x > bv.min.x && point.x < bv.max.x &&
-            point.y > bv.min.y && point.y < bv.max.y &&
-            point.z > bv.min.z && point.z < bv.max.z ) {
-        return true;
-    }
-    return false;
-}
-
-bool Renderer::IsLightVisible( Light * lit ) {
-    D3DXVECTOR3 snPos;
-
-    btVector3 pos = lit->globalTransform.getOrigin();
-
-    snPos.x = pos.x();
-    snPos.y = pos.y();
-    snPos.z = pos.z();
-
-    for ( int i = 0; i < 6; i++ )
-        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &snPos ) + lit->GetRadius() < 0 ) {
-            return FALSE;
-        }
-
-    return true;
-}
-
+/*
+==========
+Renderer::IsMeshVisible
+==========
+*/
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
-    // skinned meshes are always visible, cause their vertices transformed manually
-    if( mesh->parent->skinned ) {
-        return true;
-    }
-
-    SceneNode * node = mesh->parent;
-
-    btVector3 btPosition = node->globalTransform.getOrigin();
-    D3DXVECTOR3 dxPosition;
-    dxPosition.x = btPosition.x() + mesh->boundingVolume.center.x;
-    dxPosition.y = btPosition.y() + mesh->boundingVolume.center.y;
-    dxPosition.z = btPosition.z() + mesh->boundingVolume.center.z;
-
-    for ( int i = 0; i < 6; i++ ) {
-        if ( D3DXPlaneDotCoord ( &g_camera->frustumPlanes[i], &dxPosition ) + mesh->boundingVolume.radius < 0 ) {
-            return false;
-        }
-    }
-
-    node->inFrustum = true;
-
-    return node->IsVisible();
+    mesh->ownerNode->inFrustum = g_camera->frustum.IsAABBInside( mesh->aabb, Vector3( mesh->ownerNode->globalTransform.getOrigin().m_floats ));
+    return mesh->ownerNode->skinned || mesh->ownerNode->IsVisible() && mesh->ownerNode->inFrustum;
 }
 
 /*
@@ -333,10 +284,8 @@ void Renderer::RenderWorld() {
     // clear statistics
     g_dips = 0;
     g_textureChanges = 0;
-    // build view and projection matrices, also attach sound listener to camera
+    // build view and projection matrices, frustum, also attach sound listener to camera
     g_camera->Update();
-    // frustum
-    g_camera->BuildFrustum();
     // set these transforms, for render passes which uses FFP
     g_device->SetTransform( D3DTS_VIEW, &g_camera->view );
     g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection );
@@ -416,7 +365,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
         g_textureChanges++;
         for( auto meshIterator : meshes ) {
             Mesh * mesh = meshIterator;
-            SceneNode * node = mesh->parent;
+            SceneNode * node = mesh->ownerNode;
             // prevent overhead with normal texture       
             if( mesh->GetNormalTexture() ) {
                 IDirect3DTexture9 * meshNormalTexture = mesh->GetNormalTexture()->GetInterface();
@@ -607,6 +556,17 @@ NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
     }
 
     return SceneNode::HandleFromPointer( 0 );
+}
+/*
+===============
+GetMaxAnisotropy
+===============
+*/
+int GetMaxAnisotropy() {
+    D3DCAPS9 caps;
+    g_device->GetDeviceCaps( &caps );
+
+    return caps.MaxAnisotropy;
 }
 
 /*

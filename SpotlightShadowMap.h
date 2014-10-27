@@ -6,18 +6,17 @@
 #include "Mesh.h"
 #include "Utility.h"
 
-class ShadowMap {
+class SpotlightShadowMap {
 private:
     IDirect3DTexture9 * spotShadowMap;
-    IDirect3DCubeTexture9 * pointShadowMap;
     IDirect3DSurface9 * spotSurface;
     IDirect3DSurface9 * defaultDepthStencil;
     IDirect3DSurface9 * depthStencil;
     PixelShader * pixelShader;
     VertexShader * vertexShader;
 public:
-    ShadowMap( float size = 1024 );
-    ~ShadowMap();
+    explicit SpotlightShadowMap( float size = 1024 );
+    virtual ~SpotlightShadowMap();
     void RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight );
     void BindSpotShadowMap( int index );
     void UnbindSpotShadowMap( int index );

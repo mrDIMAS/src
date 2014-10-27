@@ -18,6 +18,13 @@ Vector3::Vector3( const Vector3 & v ) {
     z = v.z;
 };
 
+Vector3::Vector3( float * v )
+{
+    x = v[ 0 ];
+    y = v[ 1 ];
+    z = v[ 2 ];
+}
+
 Vector3 Vector3::operator + ( const Vector3 & v ) const {
     return Vector3( x + v.x, y + v.y, z + v.z );
 }
