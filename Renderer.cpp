@@ -378,8 +378,6 @@ void Renderer::RenderMeshesIntoGBuffer() {
                 if( !mesh->indexBuffer || !mesh->vertexBuffer ) {
                     continue;
                 }
-                // each mesh renders in one DIP
-                g_dips++;
                 g_deferredRenderer->RenderMesh( mesh );
             }
         }

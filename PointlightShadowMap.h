@@ -137,6 +137,7 @@ public:
             g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
             // render all lighted meshes 
             for( auto mesh : lightedMeshes ) {
+                mesh->GetDiffuseTexture()->Bind( 0 );
                 D3DXMATRIX world, wvp; 
                 GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
                 D3DXMatrixMultiplyTranspose( &wvp, &world, &viewProj );

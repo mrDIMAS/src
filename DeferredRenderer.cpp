@@ -112,6 +112,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
         "sampler normalSampler : register(s1);\n"
         "sampler diffuseSampler : register(s2);\n"
         "sampler pointSampler : register(s3);\n"
+        "sampler shadowSampler : register(s4);\n"
 #ifndef USE_R32F_DEPTH
         // ONLY for A8R8G8B8 depth
         "float unpackFloatFromVec4i ( const float4 value )\n"
@@ -125,12 +126,10 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
         "float3 lightPos;\n"
         "float lightRange;\n"
         "float3 lightColor;\n"
-
         // camera props
         "float3 cameraPosition;\n"
-
         "int usePointTexture = false;\n"
-
+        "int useShadows = false;\n"
         "float4x4 invViewProj;\n"
         "float spotAngle;\n"
         "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
@@ -587,8 +586,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         g_camera->skybox->Render( g_camera->globalTransform.getOrigin() );
     }
 
-    // then render fullscreen quad with ambient lighting
-
+    //do ambient lighting
     pass2AmbientLight->Bind();
     effectsQuad->Bind();
     effectsQuad->Render();
@@ -598,6 +596,12 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     // Render point lights
     for( unsigned int i = 0; i < g_pointLights.size(); i++ ) {
         Light * light = g_pointLights.at( i );
+
+        if( g_useShadows ) {
+            pointShadowMap->UnbindShadowCubemap( 4 );
+            pointShadowMap->RenderPointShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            pointShadowMap->BindShadowCubemap( 4 );
+        }
 
         btVector3 lightPos = light->globalTransform.getOrigin();
         RenderIcosphereIntoStencilBuffer( light->GetRadius(), lightPos );
@@ -631,9 +635,6 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         effectsQuad->Bind();
 
         RenderScreenQuad();
-
-        //debugQuad->Bind();
-        //debugQuad->Render();
     }
 
     if( g_fxaaEnabled ) {

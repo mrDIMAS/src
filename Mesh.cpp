@@ -138,4 +138,7 @@ void Mesh::Render() {
     } else {
         g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, triangles.size() );
     }
+
+    // each mesh renders in one DIP
+    g_dips++;
 }
