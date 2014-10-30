@@ -12,6 +12,7 @@
 #include "FXAA.h"
 #include "FPSCounter.h"
 #include "ForwardRenderer.h"
+#include "FTFont.h"
 
 Renderer * g_renderer = 0;
 
@@ -29,9 +30,12 @@ int g_dips = 0;
 int g_debugDraw = 0;
 int g_textureChanges = 0;
 int g_fps = 0;
+
 FPSCounter g_fpsCounter;
+bool g_usePointLightShadows = true;
+bool g_useSpotLightShadows = true;
 bool g_engineRunning = true;
-bool g_useShadows = true;
+
 IDirect3DTexture9 * g_renderTexture = 0;
 IDirect3DSurface9 * g_renderSurface = 0;
 IDirect3DSurface9 * g_backbufferSurface = 0;
@@ -198,6 +202,12 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     g_font = g_guiRenderer->CreateFont( 12, "Arial", 0, 0 );
     g_renderer = this;
     performanceTimer = new Timer;
+    // init freetype    
+    if( FT_Init_FreeType( &g_ftLibrary ) ) {
+        throw std::runtime_error( "Unable to initialize FreeType 2.53" );
+    }
+
+    FTFont ftTest( "data/fonts/font.ttf" );
 }
 
 /*
@@ -431,6 +441,60 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
 
 /*
 ===============
+SetPointLightShadowMapSize
+===============
+*/
+API void SetPointLightShadowMapSize( int size ) {
+    g_deferredRenderer->SetPointLightShadowMapSize( size );
+}
+
+/*
+===============
+SetSpotLightShadowMapSize
+===============
+*/
+API void SetSpotLightShadowMapSize( int size ) {
+    g_deferredRenderer->SetSpotLightShadowMapSize( size );
+}
+
+/*
+===============
+EnablePointLightShadows
+===============
+*/
+API void EnablePointLightShadows( bool state ) {
+    g_usePointLightShadows = state;
+}
+
+/*
+===============
+EnableSpotLightShadows
+===============
+*/
+API void EnableSpotLightShadows( bool state ) {
+    g_useSpotLightShadows = state;
+}
+
+/*
+===============
+EnableSpotLightShadows
+===============
+*/
+API bool IsPointLightShadowsEnabled() {
+    return g_usePointLightShadows;
+}
+
+/*
+===============
+EnableSpotLightShadows
+===============
+*/
+API bool IsSpotLightShadowsEnabled() {
+    return g_useSpotLightShadows;
+}
+
+/*
+===============
 DebugDrawEnabled
 ===============
 */
@@ -622,5 +686,6 @@ EnableShadows
 ===============
 */
 API void EnableShadows( bool state ) {
-    g_useShadows = state;
+    g_useSpotLightShadows = state;
+    g_usePointLightShadows = state;
 }

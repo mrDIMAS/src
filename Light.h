@@ -21,6 +21,9 @@ public:
     float outerAngle;
     float cosHalfInnerAngle;
     float cosHalfOuterAngle;
+    bool floating;
+    Vector3 floatMin;
+    Vector3 floatMax;
     D3DXMATRIX spotViewProjectionMatrix;
     Texture * spotTexture;
     CubeTexture * pointTexture;
@@ -39,17 +42,12 @@ public:
     void SetConeAngles( float theInner, float theOuter );
     float GetInnerAngle() const;
     float GetOuterAngle() const;
-    bool IsContainsMesh( Mesh * mesh ) const {
-
-    }
     void SetFlare( Texture * texture );
     static void RenderLightFlares();
     float GetCosHalfInnerAngle( );
     float GetCosHalfOuterAngle( );
     void SetSpotTexture( Texture * tex );
-    void SetPointTexture( CubeTexture * ctex ) {
-        pointTexture = ctex;
-    }
+    void SetPointTexture( CubeTexture * ctex );
     void BuildSpotProjectionMatrixAndFrustum();
     static Light * GetLightByHandle( NodeHandle handle );
 };

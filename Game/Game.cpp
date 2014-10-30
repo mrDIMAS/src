@@ -62,6 +62,7 @@ void main( ) {
     SetCursorSettings( GetTexture( "data/gui/cursor.png" ), 32, 32 );
     FPSCounter fpsCounter;
 
+    EnablePointLightShadows( false );
     while( true ) {
         if( !g_running ) {
             break;
@@ -75,10 +76,12 @@ void main( ) {
         if( !menu->visible ) {
             if( mi::KeyHit( (mi::Key)g_keyQuickSave )) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
+                player->tip.SetNewText( config.GetString( "saved" ) );
             }
             if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
-                if( FileExist( "quickSave.save" )) {
+                if( FileExist( "quickSave.save" )) {                    
                     SaveLoader( "quickSave.save" ).RestoreWorldState();
+                    player->tip.SetNewText( config.GetString( "loaded" ) );
                 }
             if( currentLevel ) {
                 currentLevel->DoScenario();

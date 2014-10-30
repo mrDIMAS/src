@@ -58,6 +58,7 @@ public:
         D3DXHANDLE hLightColor;
 
         D3DXHANDLE hUsePointTexture;
+        D3DXHANDLE hUseShadows;
 
         PixelShader * pixelShader;
     public:
@@ -127,6 +128,23 @@ public:
     virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;
+    
+    void SetSpotLightShadowMapSize( int size ) {
+        if( size != spotShadowMap->iSize ) {
+            if( spotShadowMap ) {
+                delete spotShadowMap;
+            }
+            spotShadowMap = new SpotlightShadowMap( size );
+        }
+    }
 
+    void SetPointLightShadowMapSize( int size ) {
+        if( size != pointShadowMap->iSize ) {
+            if( pointShadowMap ) {
+                delete pointShadowMap;
+            }
+            pointShadowMap = new PointlightShadowMap( size );
+        }
+    }
     void EndFirstPassAndDoSecondPass();
 };

@@ -13,8 +13,9 @@ private:
     IDirect3DSurface9 * defaultDepthStencil;
     IDirect3DSurface9 * depthStencil;
     PixelShader * pixelShader;
-    VertexShader * vertexShader;
-public:
+    VertexShader * vertexShader;    
+public: 
+    int iSize;
     explicit SpotlightShadowMap( float size = 1024 );
     virtual ~SpotlightShadowMap();
     void RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight );

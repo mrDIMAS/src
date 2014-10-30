@@ -225,21 +225,29 @@ API void EnableFXAA( );
 API void DisableFXAA( );
 API bool FXAAEnabled();
 
+////////////////////////////////////////////////////////////////////////////////////
+// Shadow functions
+////////////////////////////////////////////////////////////////////////////////////
+API void SetPointLightShadowMapSize( int size );
+API void SetSpotLightShadowMapSize( int size );
+API void EnablePointLightShadows( bool state );
+API void EnableSpotLightShadows( bool state );
+API bool IsPointLightShadowsEnabled();
+API bool IsSpotLightShadowsEnabled();
+
+////////////////////////////////////////////////////////////////////////////////////
+// Texture functions
+////////////////////////////////////////////////////////////////////////////////////
 // Texture sampling
 namespace TextureFilter {
-enum {
-    Nearest,
-    Linear,
-    Anisotropic
+    enum {
+        Nearest,
+        Linear,
+        Anisotropic
+    };
 };
-};
-
 API void SetTextureFiltering( const int & filter, int anisotropicQuality );
 API int GetMaxAnisotropy();
-
-////////////////////////////////////////////////////////////////////////////////////
-// Resource functions
-////////////////////////////////////////////////////////////////////////////////////
 API TextureHandle GetTexture( const char * file );
 API CubeTextureHandle GetCubeTexture( const char * file );
 ////////////////////////////////////////////////////////////////////////////////////
@@ -290,6 +298,9 @@ API void SetLightDefaultFlare( TextureHandle defaultFlareTexture );
 API void SetSpotDefaultTexture( TextureHandle defaultSpotTexture );
 API void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture );
 API void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture );
+API void SetLightFloatingLimits( NodeHandle node, Vector3 floatMin, Vector3 floatMax );
+API void SetLightFloatingEnabled( NodeHandle node, bool state );
+API bool IsLightFloatingEnabled( NodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////

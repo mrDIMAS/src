@@ -17,9 +17,9 @@ protected:
     float max;
     float chase;
 public:
-    SmoothFloat( );
-    SmoothFloat( float newValue );
-    SmoothFloat( float newValue, float minValue, float maxValue );
+    explicit SmoothFloat( );
+    explicit SmoothFloat( float newValue );
+    explicit SmoothFloat( float newValue, float minValue, float maxValue );
     void Set( float newValue );
     void SetMin( float minValue );
     void SetMax( float maxValue );
@@ -31,6 +31,9 @@ public:
     float GetTarget( );    
     float ChaseTarget( float chaseSpeed = 0.01f );
     operator const float();
+    void operator = ( float f ) {
+        value = f;
+    }
     void Serialize( TextFileStream & out );    
     void Deserialize( TextFileStream & in );
 };

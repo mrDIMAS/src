@@ -22,6 +22,8 @@
 #include "LinearMath\btTransform.h"
 #include "ProjectF.h"
 #include <queue>
+#include "ft2build.h"
+#include FT_FREETYPE_H
 //#include "vld.h"
 
 #define DEG2RAD ( 3.14159f / 180.0f )
@@ -35,10 +37,12 @@
 #   pragma comment(lib, "BulletCollision_debug")
 #   pragma comment(lib, "BulletDynamics_debug")
 #   pragma comment(lib, "LinearMath_debug")
+#   pragma comment(lib, "FreeType253MT_D")
 #else
 #   pragma comment(lib, "BulletCollision")
 #   pragma comment(lib, "BulletDynamics")
 #   pragma comment(lib, "LinearMath")
+#   pragma comment(lib, "FreeType253MT")
 #endif
 
 #pragma comment( lib, "ProjectF")
@@ -80,6 +84,7 @@ extern int g_dips;
 extern int g_rendererType;
 extern FontHandle g_font;
 
+extern FT_Library g_ftLibrary;
 // direct3d
 extern IDirect3D9 * g_d3d;
 extern IDirect3DDevice9 * g_device;
@@ -112,6 +117,9 @@ extern int g_fps;
 extern FPSCounter g_fpsCounter;
 extern bool g_physicsEnabled;
 extern bool g_engineRunning;
-extern bool g_useShadows;
+
+// shadow settings
+extern bool g_usePointLightShadows;
+extern bool g_useSpotLightShadows;
 
 #endif

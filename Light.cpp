@@ -34,6 +34,7 @@ Light::Light( int type ) {
     flareTexture = nullptr;    
     pointTexture = nullptr;
     spotTexture = nullptr;
+    floating = false;
     if( type == LT_POINT ) {
         g_pointLights.push_back( this );
         if( defaultPointCubeTexture ) {
@@ -241,6 +242,11 @@ void Light::SetFlare( Texture * texture ) {
     flareTexture = texture;
 }
 
+void Light::SetPointTexture( CubeTexture * ctex )
+{
+    pointTexture = ctex;
+}
+
 // API Functions
 
 
@@ -372,16 +378,43 @@ SetLightRange
 */
 API void SetLightRange( NodeHandle node, float rad ) {
     Light * l = Light::GetLightByHandle( node );
-
-    if( !l ) {
-        return;
+    if( l ) {
+        for( int i = 0; i < GetCountChildren( node ); i++ ) {
+            SetLightRange( GetChild( node, i ), rad );
+        }
+        l->SetRadius( rad );
     }
+}
 
-    for( int i = 0; i < GetCountChildren( node ); i++ ) {
-        SetLightRange( GetChild( node, i ), rad );
+/*
+==========
+SetLightFloatingLimits
+==========
+*/
+API void SetLightFloatingLimits( NodeHandle node, Vector3 floatMin, Vector3 floatMax ) {
+    Light * l = Light::GetLightByHandle( node );
+    if( l ) {
+        l->floatMax = floatMax;
+        l->floatMin = floatMin;
     }
+}
 
-    l->SetRadius( rad );
+/*
+==========
+SetLightFloatingEnabled
+==========
+*/
+API void SetLightFloatingEnabled( NodeHandle node, bool state ) {
+    Light::GetLightByHandle( node )->floating = state;
+}
+
+/*
+==========
+IsLightFloatingEnabled
+==========
+*/
+bool IsLightFloatingEnabled( NodeHandle node ) {
+    return Light::GetLightByHandle( node )->floating;
 }
 
 /*

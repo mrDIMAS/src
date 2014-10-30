@@ -129,7 +129,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
         // camera props
         "float3 cameraPosition;\n"
         "int usePointTexture = false;\n"
-        "int useShadows = false;\n"
+        "bool useShadows = false;\n"
         "float4x4 invViewProj;\n"
         "float spotAngle;\n"
         "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
@@ -168,16 +168,28 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
         "   if( usePointTexture ) {"
         "       pointTexel = texCUBE( pointSampler, l );\n"
         "   };\n"
+
+        "   float sqrDistance = dot( lightDirection, lightDirection );\n"
+
+        // shadow
+        "   float shadowMult = 1.0f;"
+        "   if( useShadows ) {\n"
+        "       float sampDistance = texCUBE( shadowSampler, l ).r;\n"
+      //"       shadowMult = sampDistance / 100;\n"     
+      //"       shadowMult = sampDistance / sqrDistance ;\n"         
+        "       if( sqrDistance >= sampDistance * 10  ) {\n"
+        "           shadowMult = 0.25f;\n"
+        "       };\n"
+        "   };\n"
+
         // diffuse
         "   float diff = saturate(dot( l, n ));\n"
 
-        "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2 );\n"
+        "   float falloff = lightRange / pow( sqrDistance, 2 );\n"
 
-        "   float o = clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
+        "   float o = shadowMult * clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
 
         "   return pointTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
-
-        //" return float4( 1, 0, 0, 1 );\n"
         "};\n";
 
 
@@ -189,6 +201,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
     hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
     hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
     hUsePointTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "usePointTexture" );
+    hUseShadows = pixelShader->GetConstantTable()->GetConstantByName( 0, "useShadows" );
 }
 
 void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj ) {
@@ -206,7 +219,7 @@ void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, light->globalTransform.getOrigin().m_floats, 3 );
     pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( light->GetRadius(), 4 ) );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, light->GetColor().elements, 3 );
-
+    pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_usePointLightShadows );
     if( light->pointTexture ) {
         g_device->SetTexture( 3, light->pointTexture->cubeTexture );
         pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 1 );
@@ -286,7 +299,7 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
 
         "float4x4 invViewProj;\n"
         "int useSpotTexture = false;\n"
-        "int useShadows = false;\n"
+        "bool useShadows = false;\n"
         "float4x4 spotViewProjMatrix;\n"
         "float innerAngle;\n"
         "float outerAngle;\n"
@@ -330,9 +343,11 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
           
         // shadow
         "   float shadowMult = 1.0f;\n"
-        "   float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
-        "   if( projPos.z - 0.0005 > shadowDepth ) {\n"
-        "       shadowMult = 0.25f;\n"
+        "   if( useShadows ) {\n"
+        "       float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
+        "       if( projPos.z - 0.0005 > shadowDepth ) {\n"
+        "           shadowMult = 0.25f;\n"
+        "       };\n"
         "   };\n"
 
         // spot texture
@@ -388,8 +403,8 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
     pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
-    pixelShader->GetConstantTable()->SetInt( g_device, hUseShadows, g_useShadows ? 1 : 0 );
-    if( lit->spotTexture || g_useShadows ) {
+    pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_useSpotLightShadows );
+    if( lit->spotTexture || g_useSpotLightShadows ) {
         lit->BuildSpotProjectionMatrixAndFrustum();
         if( lit->spotTexture ) {
             lit->spotTexture->Bind( 3 );
@@ -596,8 +611,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     // Render point lights
     for( unsigned int i = 0; i < g_pointLights.size(); i++ ) {
         Light * light = g_pointLights.at( i );
-
-        if( g_useShadows ) {
+        
+        if( g_usePointLightShadows ) {
             pointShadowMap->UnbindShadowCubemap( 4 );
             pointShadowMap->RenderPointShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
             pointShadowMap->BindShadowCubemap( 4 );
@@ -621,7 +636,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
         Light * light = g_spotLights.at( i );
         
-        if( g_useShadows ) {
+        if( g_useSpotLightShadows ) {
             spotShadowMap->UnbindSpotShadowMap( 4 );
             spotShadowMap->RenderSpotShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
             spotShadowMap->BindSpotShadowMap( 4 );

@@ -219,21 +219,30 @@ void Menu::Update( ) {
                 DisableFXAA();
             }
 
+            // show fps
             y = g_resH - 2.0 * distBetweenButtons;
-
             fpsButton->Draw( x, y, buttonImage, loc.GetString( "showFPS" ));
-
             g_showFPS = fpsButton->on;
 
+            // texture filtering
             y = g_resH - 2.0 * distBetweenButtons;
-
             textureFiltering->Draw( x, y, buttonImage, loc.GetString( "filtering" ));
-
             if( textureFiltering->GetCurrentValue() == 0 ) {
                 SetTextureFiltering( TextureFilter::Anisotropic, GetMaxAnisotropy() );
             } else {
                 SetTextureFiltering( TextureFilter::Linear, 0 );
             }
+
+            // shadows
+            x += 250;
+
+            y = g_resH - 2.5 * distBetweenButtons;
+            pointShadowsButton->Draw( x, y, buttonImage, loc.GetString( "pointLightShadows" ));
+            EnablePointLightShadows( pointShadowsButton->on );
+
+            y = g_resH - 2.0 * distBetweenButtons;
+            spotShadowsButton->Draw( x, y, buttonImage, loc.GetString( "spotLightShadows" ));
+            EnableSpotLightShadows( spotShadowsButton->on );
         }
 
         if( page == Page::OptionsKeys ) {
@@ -360,6 +369,8 @@ void Menu::CreateWaitKeys() {
 void Menu::CreateRadioButtons() {
     fxaaButton = new RadioButton;
     fpsButton = new RadioButton;
+    pointShadowsButton = new RadioButton;
+    spotShadowsButton = new RadioButton;
 }
 
 void Menu::CreateSliders() {
@@ -390,6 +401,10 @@ void Menu::LoadConfig() {
         wkUse->SetSelected( config.GetNumber( "keyUse" ) );
         wkQuickSave->SetSelected( g_keyQuickSave = config.GetNumber( "keyQuickSave" ) );
         wkQuickLoad->SetSelected( g_keyQuickLoad = config.GetNumber( "keyQuickLoad" ) );
+        spotShadowsButton->on = config.GetNumber( "spotShadowsEnabled" );
+        EnableSpotLightShadows( spotShadowsButton->on );
+        pointShadowsButton->on = config.GetNumber( "pointShadowsEnabled" );
+        EnablePointLightShadows( pointShadowsButton->on );
     }
 }
 
@@ -426,7 +441,9 @@ void Menu::WriteConfig() {
     WriteInteger( config, "keyUse", wkUse->selectedKey );
     WriteInteger( config, "keyQuickSave", wkQuickSave->selectedKey );
     WriteInteger( config, "keyQuickLoad", wkQuickLoad->selectedKey );
-
+    
+    WriteInteger( config, "spotShadowsEnabled", IsSpotLightShadowsEnabled() ? 1 : 0  );
+    WriteInteger( config, "pointShadowsEnabled", IsPointLightShadowsEnabled() ? 1 : 0  );
     config.close();
 }
 
@@ -467,6 +484,8 @@ Menu::~Menu() {
     delete wkUse;
     delete wkQuickLoad;
     delete wkQuickSave;
+    delete pointShadowsButton;
+    delete spotShadowsButton;
 }
 
 void Menu::WriteProgressConfig() {

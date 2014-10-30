@@ -31,18 +31,24 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     spotLight->BuildSpotProjectionMatrixAndFrustum();
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
     g_device->GetTexture( 0, &prevZeroSamplerTexture );
+
     for( auto meshGroupIter : Mesh::meshes ) {
         auto & group = meshGroupIter.second;
         g_device->SetTexture( 0, meshGroupIter.first );
         for( auto mesh : group ) {
+            // if owner of mesh is visible
             if( mesh->ownerNode->IsVisible()) {
+                // if light "sees" mesh, it can cast shadow
                 if( spotLight->frustum.IsAABBInside( mesh->aabb, mesh->ownerNode->GetPosition())) {
-                    D3DXMATRIX world, wvp; 
-                    GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
-                    D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
-                    g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-                    mesh->BindBuffers();
-                    mesh->Render();
+                    // if mesh in light range, it can cast shadow
+                    //if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
+                        D3DXMATRIX world, wvp; 
+                        GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
+                        D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
+                        g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+                        mesh->BindBuffers();
+                        mesh->Render();
+                    //}
                 } 
             }
         };
@@ -66,6 +72,8 @@ SpotlightShadowMap::~SpotlightShadowMap() {
 }
 
 SpotlightShadowMap::SpotlightShadowMap( float size ) {
+    iSize = size;
+
     // create shadow maps
     D3DXCreateTexture( g_device, size, size, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap );
 

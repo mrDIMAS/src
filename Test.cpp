@@ -26,7 +26,7 @@ void main( ) {
     NodeHandle cameraPivot = CreateSceneNode();
     SetCapsuleBody( cameraPivot, 6, 2 );
     SetAngularFactor( cameraPivot, Vector3( 0, 0, 0 ));
-    SetPosition( cameraPivot, Vector3( -50, 5, 0 ));
+    SetPosition( cameraPivot, Vector3( 0, 5, 0 ));
 
     NodeHandle testCamera = CreateCamera( 90 );
     SetPosition( testCamera, Vector3( 10, 50, -100 ));
@@ -35,7 +35,6 @@ void main( ) {
     Attach( camera, cameraPivot );
     SetSkybox( camera, "data/textures/skyboxes/test/red_sky");
     SetPosition( camera, Vector3( 0, 6, 0 ));
-
 
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
     NodeHandle node = LoadScene( "data/newFormat.scene" );

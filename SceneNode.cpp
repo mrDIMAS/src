@@ -709,12 +709,15 @@ void SceneNode::ApplyProperties() {
             albedo = atof( value.c_str() );
         }
 
-        if ( pname == "octree" )
-            if ( value == "1" )
-                for( auto mesh : meshes )
+        if ( pname == "octree" ) {
+            if ( value == "1" ) {
+                for( auto mesh : meshes ) {
                     if( !mesh->octree ) {
-                        mesh->octree = new Octree( mesh, 768 );
+                       // mesh->octree = new Octree( mesh, 4096 );
                     }
+                }
+            }
+        }
 
         if ( pname == "visible" ) {
             visible = atoi( value.c_str());

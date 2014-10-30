@@ -12,6 +12,7 @@
 #include "TextFileStream.h"
 #include "Parser.h"
 #include "SmoothFloat.h"
+#include "Tip.h"
 
 class Player {
 private:
@@ -137,6 +138,8 @@ public:
     string pickedObjectDesc;
 
     Goal goal;
+
+    Tip tip;
 
     Sheet * sheetInHands;
 

@@ -73,6 +73,8 @@ public:
     NumericSlider * mouseSensivity;
     RadioButton * fxaaButton;
     RadioButton * fpsButton;
+    RadioButton * pointShadowsButton;
+    RadioButton * spotShadowsButton;
     List * textureFiltering;
 
     // Keys

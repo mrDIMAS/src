@@ -365,6 +365,7 @@ void Player::Update( ) {
         return;
     }
 
+    tip.AnimateAndDraw();
     UpdateMouseLook();
     UpdateMoving();
     UpdatePicking();
@@ -611,10 +612,6 @@ void Player::UpdateItemsHandling() {
             objectInHands.Invalidate();
         }
 
-        if( pitch > 70 ) {
-            objectInHands.Invalidate();
-        }
-
         if( objectInHands.IsValid() ) {
             if( IsUseButtonHit() ) {
                 Item * itm = Item::GetByObject( objectInHands );
@@ -849,10 +846,14 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadInteger( keyUse );
 
     flashlight->DeserializeWith( in );
+
+    tip.Deserialize( in );
 }
 
-void Player::SerializeWith( TextFileStream & out ) {
+void Player::SerializeWith( TextFileStream & out ) {    
+    Unfreeze( body );
     out.WriteVector3( GetLocalPosition( body ));
+    SetAngularFactor( body, Vector3( 0, 0, 0 ));
 
     out.WriteBoolean( locked );
     out.WriteBoolean( smoothCamera );
@@ -915,4 +916,6 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteInteger( keyUse );
 
     flashlight->SerializeWith( out );
+
+    tip.Serialize( out );
 }
