@@ -5,6 +5,11 @@
 
 Player * player = 0;
 
+/*
+========
+Player::Player
+========
+*/
 Player::Player() {
     localization.ParseFile( localizationPath + "player.loc" );
 
@@ -71,11 +76,21 @@ Player::Player() {
     SetDirtFootsteps();
 }
 
+/*
+========
+Player::SetPlaceDescription
+========
+*/
 void Player::SetPlaceDescription( string desc ) {
     placeDesc = desc;
     placeDescTimer = 240;
 }
 
+/*
+========
+Player::DrawStatusBar
+========
+*/
 void Player::DrawStatusBar() {
     if( moved ) {
         staminaAlpha.SetTarget( 255 );
@@ -85,8 +100,8 @@ void Player::DrawStatusBar() {
         healthAlpha.SetTarget( 50 );
     }
 
-    staminaAlpha.ChaseTarget( 0.15f );
-    healthAlpha.ChaseTarget( 0.15f );
+    staminaAlpha.ChaseTarget( 8.0f * g_dt );
+    healthAlpha.ChaseTarget( 8.0f * g_dt );
 
     float scale = 2;
     int w = 512.0f / scale;
@@ -105,6 +120,11 @@ void Player::DrawStatusBar() {
     }
 }
 
+/*
+========
+Player::CanJump
+========
+*/
 bool Player::CanJump( ) {
     for( int i = 0; i < GetContactCount( body ); i++ )
         if( GetContact( body, i ).normal.y > 0.5 ) {
@@ -113,6 +133,11 @@ bool Player::CanJump( ) {
     return false;
 }
 
+/*
+========
+Player::GotItemAnyOfType
+========
+*/
 int Player::GotItemAnyOfType( int type ) {
     for( auto item : inventory.items )
         if( item->type == type ) {
@@ -121,6 +146,11 @@ int Player::GotItemAnyOfType( int type ) {
     return false;
 }
 
+/*
+========
+Player::UseStamina
+========
+*/
 bool Player::UseStamina( float st ) {
     if( stamina - st < 0 ) {
         return false;
@@ -131,6 +161,11 @@ bool Player::UseStamina( float st ) {
     return true;
 }
 
+/*
+========
+Player::Damage
+========
+*/
 void Player::Damage( float dmg ) {
     life -= dmg;
 
@@ -154,6 +189,11 @@ void Player::Damage( float dmg ) {
     }
 }
 
+/*
+========
+Player::AddItem
+========
+*/
 void Player::AddItem( Item * itm ) {
     if( !itm ) {
         return;
@@ -173,6 +213,11 @@ void Player::AddItem( Item * itm ) {
     inventory.items.push_back( itm );
 }
 
+/*
+========
+Player::UpdateInventory
+========
+*/
 void Player::UpdateInventory() {
     if( mi::KeyHit( (mi::Key)keyInventory ) && !locked ) {
         inventory.opened = !inventory.opened;
@@ -181,6 +226,11 @@ void Player::UpdateInventory() {
     inventory.Update();
 }
 
+/*
+========
+Player::SetObjective
+========
+*/
 void Player::SetObjective( string text ) {
     string objectiveText = localization.GetString( "currentObjective" );
     objectiveText += text;
@@ -190,12 +240,22 @@ void Player::SetObjective( string text ) {
     objectiveDone = false;
 }
 
+/*
+========
+Player::CompleteObjective
+========
+*/
 void Player::CompleteObjective() {
     SetObjective( localization.GetString( "objectiveUnknown" ));
 
     objectiveDone = true;
 }
 
+/*
+========
+Player::UpdateMouseLook
+========
+*/
 void Player::UpdateMouseLook() {
     if( currentWay ) {
         smoothCamera = false;
@@ -214,7 +274,7 @@ void Player::UpdateMouseLook() {
         yaw.SetTarget( yaw.GetTarget() - mi::MouseXSpeed() * mouseSpeed );
     }
     
-    damagePitchOffset.ChaseTarget( 0.65f );
+    damagePitchOffset.ChaseTarget( 20.0f * g_dt );
 
     if( damagePitchOffset >= 19.0f ) {
         damagePitchOffset.SetTarget( 0.0f );
@@ -222,8 +282,8 @@ void Player::UpdateMouseLook() {
 
     if( !locked ) {
         if( smoothCamera ) {
-            pitch.ChaseTarget( 0.35f );
-            yaw.ChaseTarget( 0.35f );
+            pitch.ChaseTarget( 14.0f * g_dt );
+            yaw.ChaseTarget( 14.0f * g_dt );
         } else {
             yaw = yaw.GetTarget();
             pitch = pitch.GetTarget();
@@ -234,6 +294,42 @@ void Player::UpdateMouseLook() {
     SetRotation( body, Quaternion( Vector3( 0, 1, 0 ), yaw ) );
 }
 
+/*
+========
+Player::UpdateJumping
+========
+*/
+void Player::UpdateJumping() {
+    if( mi::KeyHit( (mi::Key)keyJump ) && !locked ) {
+        if( CanJump() ) {
+            jumpTo = Vector3( 0, 30, 0 );
+            landed = false;
+        }
+    }
+
+    gravity = gravity.Lerp( jumpTo, 30.0f * g_dt );
+
+    if( gravity.y >= jumpTo.y ) {
+        if( !landed ) {
+            damagePitchOffset.SetTarget( 20.0f );
+        }
+        landed = true;
+    }
+
+    if( landed ) {
+        jumpTo = Vector3( 0, -70, 0 );
+
+        if( CanJump() ) {
+            jumpTo = Vector3( 0, 0, 0 );
+        }
+    };
+}
+
+/*
+========
+Player::UpdateMoving
+========
+*/
 void Player::UpdateMoving() {
     static int stepPlayed = 0;
 
@@ -329,26 +425,31 @@ void Player::UpdateMoving() {
         if( mi::KeyDown( (mi::Key)keyRun ) && moved ) {
             if( stamina > 0 ) {
                 speedTo = speedTo * runSpeedMult;
-                stamina -= 0.15f;
+                stamina -= 8.0f * g_dt ;
                 fov.SetTarget( fov.GetMax() );
                 runBobCoeff = 1.425f;
             }
         } else {
             if( stamina < maxStamina ) {
-                stamina += 0.35f;
+                stamina += 16.0f * g_dt;
             }
         }
 
-        fov.ChaseTarget( 0.07f );
+        fov.ChaseTarget( 4.0f * g_dt );
 
         SetFOV( camera->cameraNode, fov );
-        speed = speed.Lerp( speedTo, 0.25f ) + gravity;
-        Move( body, speed * Vector3( 2.5, 1, 2.5 ) );
+        speed = speed.Lerp( speedTo, 10.0f * g_dt ) + gravity;
+        Move( body, speed * Vector3( 100, 1, 100 ) * g_dt );
     }
 
     UpdateCameraBob();
 }
 
+/*
+========
+Player::Update
+========
+*/
 void Player::Update( ) {
     UpdateFright();
     camera->Update();
@@ -376,6 +477,11 @@ void Player::Update( ) {
     DescribePickedObject();
 }
 
+/*
+========
+Player::LoadGUIElements
+========
+*/
 void Player::LoadGUIElements() {
     upCursor = GetTexture( "data/gui/up.png" );
     downCursor = GetTexture( "data/gui/down.png" );
@@ -383,7 +489,11 @@ void Player::LoadGUIElements() {
     statusBar = GetTexture( "data/gui/statusbar.png" );
 }
 
-
+/*
+========
+Player::CreateCamera
+========
+*/
 void Player::CreateCamera() {
     camera = new GameCamera( fov );
     Attach( camera->cameraNode, body );
@@ -399,6 +509,11 @@ void Player::CreateCamera() {
     SetPosition( itemPoint, Vector3( 0, 0, 1.0f ));
 }
 
+/*
+========
+Player::CreateBody
+========
+*/
 void Player::CreateBody() {
     body = CreateSceneNode();
     SetName( body, "Player" );
@@ -412,6 +527,11 @@ void Player::CreateBody() {
     SetGravity( body, Vector3( 0, 0, 0 ));
 }
 
+/*
+========
+Player::SetRockFootsteps
+========
+*/
 void Player::SetRockFootsteps() {
     for( auto s : footsteps ) {
         FreeSoundSource( s );
@@ -432,6 +552,11 @@ void Player::SetRockFootsteps() {
     footstepsType = FootstepsType::Rock;
 }
 
+/*
+========
+Player::SetDirtFootsteps
+========
+*/
 void Player::SetDirtFootsteps() {
     for( auto s : footsteps ) {
         FreeSoundSource( s );
@@ -452,6 +577,11 @@ void Player::SetDirtFootsteps() {
     footstepsType = FootstepsType::Dirt;
 }
 
+/*
+========
+Player::LoadSounds
+========
+*/
 void Player::LoadSounds() {
     lighterCloseSound = CreateSound3D( "data/sounds/lighter_close.ogg" );
     lighterOpenSound = CreateSound3D( "data/sounds/lighter_open.ogg" );
@@ -471,6 +601,11 @@ void Player::LoadSounds() {
     breathPitch = SmoothFloat( 1.0f );
 }
 
+/*
+========
+Player::DoFright
+========
+*/
 void Player::DoFright() {
     breathVolume.SetTarget( 0.1f );
     breathVolume.Set( 0.25f );
@@ -482,6 +617,11 @@ void Player::DoFright() {
     breathPitch.SetTarget( 1.0f );
 }
 
+/*
+========
+Player::UpdateFright
+========
+*/
 void Player::UpdateFright() {
     breathVolume.ChaseTarget( 0.075f );
     heartBeatVolume.ChaseTarget( 0.075f );
@@ -498,6 +638,11 @@ void Player::UpdateFright() {
     SetPitch( heartBeatSound, heartBeatPitch );
 }
 
+/*
+========
+Player::UpdateCameraBob
+========
+*/
 void Player::UpdateCameraBob() {
     static int stepPlayed = 0;
 
@@ -522,29 +667,11 @@ void Player::UpdateCameraBob() {
     SetPosition( camera->cameraNode, cameraOffset );
 }
 
-void Player::UpdateJumping() {
-    if( mi::KeyHit( (mi::Key)keyJump ) && !locked ) {
-        if( CanJump() ) {
-            jumpTo = Vector3( 0, 1.8, 0 );
-            landed = false;
-        }
-    }
-
-    gravity = gravity.Lerp( jumpTo, 0.75f );
-
-    if( gravity.y >= jumpTo.y ) {
-        landed = true;
-    }
-
-    if( landed ) {
-        jumpTo = Vector3( 0, -2.0, 0 );
-
-        if( CanJump() ) {
-            jumpTo = Vector3( 0, 0, 0 );
-        }
-    };
-}
-
+/*
+========
+Player::DrawSheetInHands
+========
+*/
 void Player::DrawSheetInHands() {
     if( sheetInHands ) {
         sheetInHands->Draw();
@@ -561,6 +688,11 @@ void Player::DrawSheetInHands() {
     }
 }
 
+/*
+========
+Player::DescribePickedObject
+========
+*/
 void Player::DescribePickedObject() {
     // Change cursor first
     if( nearestPicked.IsValid() ) {
@@ -578,6 +710,11 @@ void Player::DescribePickedObject() {
     DrawGUIText( pickedObjectDesc.c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 }
 
+/*
+========
+Player::UpdateEnvironmentDamaging
+========
+*/
 void Player::UpdateEnvironmentDamaging() {
     for( int i = 0; i < GetContactCount( body ); i++ ) {
         Contact contact = GetContact( body, i );
@@ -588,6 +725,11 @@ void Player::UpdateEnvironmentDamaging() {
     }
 }
 
+/*
+========
+Player::UpdateItemsHandling
+========
+*/
 void Player::UpdateItemsHandling() {
     if( objectInHands.IsValid() ) {
         Vector3 ppPos = GetPosition( itemPoint );
@@ -640,6 +782,11 @@ void Player::UpdateItemsHandling() {
     }
 }
 
+/*
+========
+Player::UpdatePicking
+========
+*/
 void Player::UpdatePicking() {
     Vector3 pickPosition;
 
@@ -688,6 +835,11 @@ void Player::UpdatePicking() {
     }
 }
 
+/*
+========
+Player::CreateFlashLight
+========
+*/
 void Player::CreateFlashLight() {
     flashlight = new Flashlight();
 
@@ -697,7 +849,11 @@ void Player::CreateFlashLight() {
     inventory.items.push_back( flashLightItem );
 }
 
-
+/*
+========
+Player::UpdateFlashLight
+========
+*/
 void Player::UpdateFlashLight() {
     flashlight->Update();
 
@@ -708,6 +864,11 @@ void Player::UpdateFlashLight() {
     }
 }
 
+/*
+========
+Player::DrawGUIElements
+========
+*/
 void Player::DrawGUIElements() {
     int alpha = placeDescTimer < 50 ? 255.0f * (float)placeDescTimer / 50.0f : 255;
     DrawGUIText( placeDesc.c_str(), GetResolutionWidth() - 300, GetResolutionHeight() - 200, 200, 200, gui->font, Vector3( 255, 255, 255 ), 1, alpha );
@@ -719,20 +880,40 @@ void Player::DrawGUIElements() {
     goal.AnimateAndRender();
 }
 
+/*
+========
+Player::FreeHands
+========
+*/
 void Player::FreeHands() {
     objectInHands.Invalidate();
 }
 
+/*
+========
+Player::ChargeFlashLight
+========
+*/
 void Player::ChargeFlashLight( Item * fuel ) {
     flashlight->Fuel();
 }
 
+/*
+========
+Player::~Player
+========
+*/
 Player::~Player() {
     delete flashlight;
     delete camera;
     delete flashLightItem;
 }
 
+/*
+========
+Player::SetMetalFootsteps
+========
+*/
 void Player::SetMetalFootsteps() {
     for( auto s : footsteps ) {
         FreeSoundSource( s );
@@ -753,6 +934,11 @@ void Player::SetMetalFootsteps() {
     footstepsType = FootstepsType::Metal;
 }
 
+/*
+========
+Player::SetFootsteps
+========
+*/
 void Player::SetFootsteps( FootstepsType ft ) {
     if( ft == FootstepsType::Dirt ) {
         SetDirtFootsteps();
@@ -765,18 +951,38 @@ void Player::SetFootsteps( FootstepsType ft ) {
     }
 }
 
+/*
+========
+Player::DrawTip
+========
+*/
 void Player::DrawTip( string text ) {
     DrawGUIText( text.c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 }
 
+/*
+========
+Player::IsUseButtonHit
+========
+*/
 bool Player::IsUseButtonHit() {
     return mi::KeyHit( (mi::Key)keyUse );
 }
 
+/*
+========
+Player::IsObjectHasNormalMass
+========
+*/
 bool Player::IsObjectHasNormalMass( NodeHandle node ) {
     return GetMass( node ) > 0 && GetMass( node ) < 40;
 }
 
+/*
+========
+Player::DeserializeWith
+========
+*/
 void Player::DeserializeWith( TextFileStream & in ) {
     SetLocalPosition( body, in.ReadVector3() );
 
@@ -848,8 +1054,17 @@ void Player::DeserializeWith( TextFileStream & in ) {
     flashlight->DeserializeWith( in );
 
     tip.Deserialize( in );
+
+    camera->FadePercent( 100 );
+    camera->SetFadeColor( Vector3( 255, 255, 255 ) );
+    SetFriction( body, 0 );
 }
 
+/*
+========
+Player::SerializeWith
+========
+*/
 void Player::SerializeWith( TextFileStream & out ) {    
     Unfreeze( body );
     out.WriteVector3( GetLocalPosition( body ));

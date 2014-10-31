@@ -159,7 +159,7 @@ Light::BuildSpotProjectionMatrix
 ==========
 */
 void Light::BuildSpotProjectionMatrixAndFrustum() {
-    btVector3 bEye = globalTransform.getOrigin();
+    btVector3 bEye = btVector3( GetRealPosition().x, GetRealPosition().y, GetRealPosition().z );
     btVector3 bLookAt = bEye + globalTransform.getBasis() * btVector3( 0, -1, 0 );
     btVector3 bUp = globalTransform.getBasis() * btVector3( 1, 0, 0 );
 
@@ -245,6 +245,30 @@ void Light::SetFlare( Texture * texture ) {
 void Light::SetPointTexture( CubeTexture * ctex )
 {
     pointTexture = ctex;
+}
+
+void Light::DoFloating()
+{
+    if( floating ) {
+        // 'chase' floatTo 
+        floatOffset = floatOffset.Lerp( floatTo, 0.015 );
+        // if close enough to floatTo
+        if( (floatOffset - floatTo).Length2() < 0.005f ) {
+            // get new random value
+            floatTo.x = frandom( floatMin.x, floatMax.x );
+            floatTo.y = frandom( floatMin.y, floatMax.y );
+            floatTo.z = frandom( floatMin.z, floatMax.z );
+        }
+    }
+}
+
+Vector3 Light::GetRealPosition()
+{
+    if( floating ) {
+        return GetPosition() + floatOffset;
+    } else {
+        return GetPosition();
+    }
 }
 
 // API Functions

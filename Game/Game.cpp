@@ -12,6 +12,7 @@
 
 float g_resW;
 float g_resH;
+float g_dt = 1.0f;
 int g_keyQuickSave = mi::Key::F5;
 int g_keyQuickLoad = mi::Key::F9;
 string localizationPath;
@@ -63,7 +64,9 @@ void main( ) {
     FPSCounter fpsCounter;
 
     EnablePointLightShadows( false );
+    TimerHandle dtTimer = CreateTimer();
     while( true ) {
+        RestartTimer( dtTimer );
         if( !g_running ) {
             break;
         }
@@ -93,6 +96,7 @@ void main( ) {
         }
         screamer->Update();
         RenderWorld( );
+        g_dt = GetElapsedTimeInMilliSeconds( dtTimer ) / 1000.0f;
     }
 
     if( currentLevel ) {

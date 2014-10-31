@@ -22,7 +22,7 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
         auto & group = meshGroupIter.second;
         for( auto mesh : group ) {
             if( mesh->ownerNode->IsVisible()) {
-                if( (( mesh->aabb.center + mesh->ownerNode->GetPosition()) - light->GetPosition()).Length() < light->radius ) {
+                if( (( mesh->aabb.center + mesh->ownerNode->GetPosition()) - light->GetRealPosition()).Length() < light->radius ) {
                     lightedMeshes.push_back( mesh );
                 }
             }
@@ -60,7 +60,7 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
             up = D3DXVECTOR3( 0, -1, 0 );
         }
         lookAt += D3DXVECTOR3( light->globalTransform.getOrigin().m_floats );
-        D3DXMatrixLookAtRH( &view, &D3DXVECTOR3( light->globalTransform.getOrigin().m_floats ), &lookAt, &up );
+        D3DXMatrixLookAtRH( &view, &D3DXVECTOR3( light->GetRealPosition().elements ), &lookAt, &up );
         D3DXMatrixMultiply( &viewProj, &view, &proj );
         // bind i-face of cube map
         g_device->SetRenderTarget( 0, cubeFaces[i] );
@@ -74,7 +74,7 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
             D3DXMatrixMultiply( &wvp, &world, &viewProj );
             vertexShader->GetConstantTable()->SetMatrix( g_device, vWVP, &wvp );
             vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &world );
-            pixelShader->GetConstantTable()->SetFloatArray( g_device, pLightPosition, light->globalTransform.getOrigin().m_floats, 3 );
+            pixelShader->GetConstantTable()->SetFloatArray( g_device, pLightPosition, light->GetRealPosition().elements, 3 );
             mesh->BindBuffers();
             mesh->Render();
         };            

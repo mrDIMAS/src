@@ -41,6 +41,11 @@ Menu::Menu( ) {
     ifstream file( "lastGame.save" );
     canContinueGameFromLast = file.good();
     file.close();
+
+    for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
+        SetLightFloatingEnabled( GetWorldPointLight( i ), true );
+        SetLightFloatingLimits( GetWorldPointLight( i ), Vector3( -.25, -.25, -.25 ), Vector3( .25, .25, .25 ) );
+    }
 }
 
 void Menu::Show() {
@@ -389,7 +394,6 @@ void Menu::LoadConfig() {
         musicVolume->value = config.GetNumber( "musicVolume" );
         mouseSensivity->value = config.GetNumber( "mouseSens" );
         fxaaButton->on = config.GetNumber( "masterVolume" );
-
         wkMoveForward->SetSelected( config.GetNumber( "keyMoveForward" ) );
         wkMoveBackward->SetSelected( config.GetNumber( "keyMoveBackward" ) );
         wkStrafeLeft->SetSelected( config.GetNumber( "keyStrafeLeft" ) );

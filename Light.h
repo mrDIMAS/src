@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "AABB.h"
 #include "Frustum.h"
+#include "Utility.h"
 
 class Light : public SceneNode {
 public:
@@ -24,6 +25,8 @@ public:
     bool floating;
     Vector3 floatMin;
     Vector3 floatMax;
+    Vector3 floatTo;
+    Vector3 floatOffset;
     D3DXMATRIX spotViewProjectionMatrix;
     Texture * spotTexture;
     CubeTexture * pointTexture;
@@ -50,4 +53,6 @@ public:
     void SetPointTexture( CubeTexture * ctex );
     void BuildSpotProjectionMatrixAndFrustum();
     static Light * GetLightByHandle( NodeHandle handle );
+    Vector3 GetRealPosition( );
+    void DoFloating();
 };

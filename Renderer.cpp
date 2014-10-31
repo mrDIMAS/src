@@ -309,6 +309,13 @@ void Renderer::RenderWorld() {
         // are in frustum
         node->inFrustum = false;
     }
+    // update lights
+    for( auto light : g_spotLights ) {
+        light->DoFloating();
+    }
+    for( auto light : g_pointLights ) {
+        light->DoFloating();
+    }
     // begin dx scene
     g_device->BeginScene();
     // begin rendering into G-Buffer

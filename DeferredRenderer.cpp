@@ -216,7 +216,7 @@ void DeferredRenderer::Pass2PointLight::BindShader( ) {
 }
 
 void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, light->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, light->GetRealPosition().elements, 3 );
     pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( light->GetRadius(), 4 ) );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, light->GetColor().elements, 3 );
     pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_usePointLightShadows );
@@ -397,7 +397,7 @@ void DeferredRenderer::Pass2SpotLight::Bind( D3DXMATRIX & invViewProj ) {
 
 void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     btVector3 direction = ( lit->globalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->globalTransform.getOrigin().m_floats, 3 );
+    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->GetRealPosition().elements, 3 );
     pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ));
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
     pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
@@ -614,11 +614,11 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         
         if( g_usePointLightShadows ) {
             pointShadowMap->UnbindShadowCubemap( 4 );
-            pointShadowMap->RenderPointShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            pointShadowMap->RenderPointShadowMap( g_fxaaEnabled ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
             pointShadowMap->BindShadowCubemap( 4 );
         }
 
-        btVector3 lightPos = light->globalTransform.getOrigin();
+        btVector3 lightPos( light->GetRealPosition().x, light->GetRealPosition().y, light->GetRealPosition().z );
         RenderIcosphereIntoStencilBuffer( light->GetRadius(), lightPos );
 
         pass2PointLight->Bind( g_camera->invViewProjection );
@@ -638,7 +638,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         
         if( g_useSpotLightShadows ) {
             spotShadowMap->UnbindSpotShadowMap( 4 );
-            spotShadowMap->RenderSpotShadowMap( fxaa ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            spotShadowMap->RenderSpotShadowMap( g_fxaaEnabled ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
             spotShadowMap->BindSpotShadowMap( 4 );
         }
 

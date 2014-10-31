@@ -130,6 +130,12 @@ void Level::Change( int levelId, bool continueFromSave ) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
             }
         }
+
+        for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
+            SetLightFloatingEnabled( GetWorldPointLight( i ), true );
+            float d = 0.1f;
+            SetLightFloatingLimits( GetWorldPointLight( i ), Vector3( -d, -d, -d ), Vector3( d, d, d ) );
+        }
     }
 }
 
