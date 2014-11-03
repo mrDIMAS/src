@@ -23,6 +23,7 @@ IDirect3DDevice9 * g_device = 0;
 IDirect3DVertexDeclaration9 * g_meshVertexDeclaration = 0;
 vector< SceneNode* > g_nodes;
 HWND window;
+bool g_hdrEnabled = false;
 
 float g_width = 0;
 float g_height = 0;
@@ -202,6 +203,7 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     g_font = g_guiRenderer->CreateFont( 12, "Arial", 0, 0 );
     g_renderer = this;
     performanceTimer = new Timer;
+
     // init freetype    
     if( FT_Init_FreeType( &g_ftLibrary ) ) {
         throw std::runtime_error( "Unable to initialize FreeType 2.53" );
@@ -695,4 +697,40 @@ EnableShadows
 API void EnableShadows( bool state ) {
     g_useSpotLightShadows = state;
     g_usePointLightShadows = state;
+}
+
+/*
+===============
+SetHDREnabled
+===============
+*/
+API void SetHDREnabled( bool state ) {
+	g_hdrEnabled = state;
+}
+
+/*
+===============
+IsHDREnabled
+===============
+*/
+API bool IsHDREnabled( ) {
+	return g_hdrEnabled;
+}
+
+/*
+===============
+SetHDRExposure
+===============
+*/
+API void SetHDRExposure( float exposure ) {
+	//g_deferredRenderer->hdrRenderer->exposure = exposure;
+}
+
+/*
+===============
+GetHDRExposure
+===============
+*/
+API float GetHDRExposure( ) {
+	return 1.0f;//g_deferredRenderer->hdrRenderer->exposure;
 }

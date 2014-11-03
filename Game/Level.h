@@ -31,9 +31,9 @@ private:
     AmbientSoundSet ambSoundSet;
 protected:
     Parser localization;
-    NodeHandle scene;
-    SoundHandle music;
+    NodeHandle scene;    
 public:
+	SoundHandle music;
     map<string, bool > stages;
     void AddItem( Item * item );
     void AddItemPlace( ItemPlace * ipc );

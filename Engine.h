@@ -225,6 +225,12 @@ API void EnableFXAA( );
 API void DisableFXAA( );
 API bool FXAAEnabled();
 
+// HDR
+API void SetHDREnabled( bool state );
+API bool IsHDREnabled( );
+API void SetHDRExposure( float exposure );
+API float GetHDRExposure( );
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Shadow functions
 ////////////////////////////////////////////////////////////////////////////////////

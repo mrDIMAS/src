@@ -75,6 +75,7 @@ public:
     RadioButton * fpsButton;
     RadioButton * pointShadowsButton;
     RadioButton * spotShadowsButton;
+	RadioButton * hdrButton;
     List * textureFiltering;
 
     // Keys

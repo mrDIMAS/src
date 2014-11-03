@@ -398,6 +398,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
         light->name = name;
         light->SetColor( reader.GetBareVector());
         light->SetRadius( reader.GetFloat());
+		light->brightness = reader.GetFloat();
         light->localTransform.setOrigin( reader.GetVector());
         light->scene = scene;
         light->parent = scene;

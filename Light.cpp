@@ -35,6 +35,7 @@ Light::Light( int type ) {
     pointTexture = nullptr;
     spotTexture = nullptr;
     floating = false;
+	brightness = 1.0f;
     if( type == LT_POINT ) {
         g_pointLights.push_back( this );
         if( defaultPointCubeTexture ) {

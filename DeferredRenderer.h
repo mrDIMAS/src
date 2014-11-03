@@ -7,6 +7,7 @@
 #include "SSAO.h"
 #include "SpotlightShadowMap.h"
 #include "PointlightShadowMap.h"
+#include "HDR.h"
 
 class Mesh;
 
@@ -60,6 +61,8 @@ public:
         D3DXHANDLE hUsePointTexture;
         D3DXHANDLE hUseShadows;
 
+		D3DXHANDLE hBrightness;
+
         PixelShader * pixelShader;
     public:
         Pass2PointLight();
@@ -88,6 +91,8 @@ public:
         D3DXHANDLE hUseSpotTexture;
         D3DXHANDLE hSpotViewProjMatrix;
         D3DXHANDLE hUseShadows;
+
+		D3DXHANDLE hBrightness;
     public:
         Pass2SpotLight( );
         ~Pass2SpotLight();
@@ -110,6 +115,7 @@ public:
     SSAO * ssao;
     SpotlightShadowMap * spotShadowMap;
     PointlightShadowMap * pointShadowMap;
+	HDRRenderer * hdrRenderer;
 
     void CreateBoundingVolumes();
 

@@ -24,7 +24,9 @@ LevelResearchFacility::LevelResearchFacility() {
     leverSound = CreateSound3D( "data/sounds/lever.ogg");
 
     AddValve( steamValve = new Valve( FindByName( "SteamValve" ), Vector3( 0, 1, 0 )));
-    extemeSteam = new SteamStream( FindByName( "ExtremeSteam"), Vector3( -0.0015, -0.1, -0.0015 ), Vector3( 0.0015, -0.45, 0.0015 ), CreateSound3D( "data/sounds/steamhiss_loop.ogg" ) );
+	SoundHandle steamHis = CreateSound3D( "data/sounds/steamhiss_loop.ogg" ) ;
+	AddSound( steamHis );
+    extemeSteam = new SteamStream( FindByName( "ExtremeSteam"), Vector3( -0.0015, -0.1, -0.0015 ), Vector3( 0.0015, -0.45, 0.0015 ), steamHis );
 
     SetAmbientColor( Vector3( 0, 0, 0 ));
 

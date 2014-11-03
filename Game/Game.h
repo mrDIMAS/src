@@ -82,5 +82,6 @@ extern int g_keyQuickLoad;
 extern float g_resW;
 extern float g_resH;
 extern float g_dt;
+extern float g_musicVolume;
 
 

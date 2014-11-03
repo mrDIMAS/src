@@ -11,6 +11,11 @@ DeferredRenderer * g_deferredRenderer = 0;
 
 bool g_fxaaEnabled = true;
 
+bool IsTextureFormatOk( D3DFORMAT TextureFormat ) 
+{
+	return SUCCEEDED( g_d3d->CheckDeviceFormat( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_TEXTURE, TextureFormat) );
+}
+
 DeferredRenderer::DeferredRenderer() {
     effectsQuad = new EffectsQuad;
     debugQuad = new EffectsQuad( true );
@@ -25,7 +30,12 @@ DeferredRenderer::DeferredRenderer() {
     bvRenderer = new BoundingVolumeRenderingShader;
     spotShadowMap = new SpotlightShadowMap;
     pointShadowMap = new PointlightShadowMap;
-    //ssao = new SSAO( gBuffer );
+	// check support of floating-point textures first
+	if( IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
+		hdrRenderer = new HDRRenderer( D3DFMT_A16B16G16R16 );
+	} else {
+		hdrRenderer = nullptr;
+	}
 }
 
 DeferredRenderer::~DeferredRenderer() {
@@ -62,6 +72,10 @@ DeferredRenderer::~DeferredRenderer() {
     if( pointShadowMap ) {
         delete pointShadowMap;
     }
+	if( hdrRenderer ) {
+		delete hdrRenderer;
+	}
+
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {
@@ -132,6 +146,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
         "bool useShadows = false;\n"
         "float4x4 invViewProj;\n"
         "float spotAngle;\n"
+		"float brightness;\n"
         "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
         "{\n"
         // get diffuse color from diffuse map
@@ -187,7 +202,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
 
         "   float falloff = lightRange / pow( sqrDistance, 2 );\n"
 
-        "   float o = shadowMult * clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
+        "   float o = brightness * shadowMult * clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
 
         "   return pointTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
         "};\n";
@@ -202,6 +217,7 @@ DeferredRenderer::Pass2PointLight::Pass2PointLight() {
     hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
     hUsePointTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "usePointTexture" );
     hUseShadows = pixelShader->GetConstantTable()->GetConstantByName( 0, "useShadows" );
+	hBrightness = pixelShader->GetConstantTable()->GetConstantByName( 0, "brightness" );
 }
 
 void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj ) {
@@ -220,6 +236,7 @@ void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
     pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( light->GetRadius(), 4 ) );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, light->GetColor().elements, 3 );
     pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_usePointLightShadows );
+	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, light->brightness );
     if( light->pointTexture ) {
         g_device->SetTexture( 3, light->pointTexture->cubeTexture );
         pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 1 );
@@ -304,6 +321,7 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         "float innerAngle;\n"
         "float outerAngle;\n"
         "float3 direction;\n"
+		"float brightness;\n"
 
         "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
         "{\n"
@@ -363,7 +381,7 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
         // spot
         "   float spotAngleCos = dot( direction, l ) ;\n"
         "   float spot = smoothstep( outerAngle - 0.08, 1.0f , spotAngleCos );\n"
-        "   float o = shadowMult * clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
+        "   float o = brightness * shadowMult * clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
 
         "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
         "};\n";
@@ -382,6 +400,7 @@ DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
     hUseSpotTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "useSpotTexture" );
     hSpotViewProjMatrix = pixelShader->GetConstantTable()->GetConstantByName( 0, "spotViewProjMatrix" );
     hUseShadows = pixelShader->GetConstantTable()->GetConstantByName( 0, "useShadows" );
+	hBrightness = pixelShader->GetConstantTable()->GetConstantByName( 0, "brightness" );
 }
 
 void DeferredRenderer::Pass2SpotLight::BindShader( ) {
@@ -404,6 +423,7 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
     pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_useSpotLightShadows );
+	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, lit->brightness );
     if( lit->spotTexture || g_useSpotLightShadows ) {
         lit->BuildSpotProjectionMatrixAndFrustum();
         if( lit->spotTexture ) {
@@ -576,18 +596,30 @@ void DeferredRenderer::ConfigureStencilBuffer() {
 void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     OnEnd();
 
-    if( g_fxaaEnabled ) {
-        fxaa->BeginDrawIntoTexture();
-    } else {
-        gBuffer->BindBackSurfaceAsRT();
-    }
-
-    g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+	if( hdrRenderer && g_hdrEnabled ) {
+		hdrRenderer->SetAsRenderTarget();
+	} else {
+		if( g_fxaaEnabled ) {
+			fxaa->BeginDrawIntoTexture();
+		} else {
+			gBuffer->BindBackSurfaceAsRT();
+		}
+	}
+	
+	g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
     IDirect3DStateBlock9 * state;
     g_device->CreateStateBlock( D3DSBT_ALL, &state );
 
     gBuffer->BindTextures();
+
+	if( g_hdrEnabled ) {
+		g_device->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+		g_device->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
+	} else 	{
+		g_device->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+		g_device->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
+	}
 
     g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
     g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
@@ -613,8 +645,16 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         Light * light = g_pointLights.at( i );
         
         if( g_usePointLightShadows ) {
+			IDirect3DSurface9 * prevSurface = nullptr;
+			if( hdrRenderer && g_hdrEnabled ) {
+				prevSurface = hdrRenderer->hdrSurface;
+			} else if( g_fxaaEnabled ) {
+				prevSurface = fxaa->renderTarget;
+			} else {
+				prevSurface = gBuffer->backSurface;
+			}
             pointShadowMap->UnbindShadowCubemap( 4 );
-            pointShadowMap->RenderPointShadowMap( g_fxaaEnabled ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            pointShadowMap->RenderPointShadowMap( prevSurface, 0, light );
             pointShadowMap->BindShadowCubemap( 4 );
         }
 
@@ -637,8 +677,16 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         Light * light = g_spotLights.at( i );
         
         if( g_useSpotLightShadows ) {
+			IDirect3DSurface9 * prevSurface = nullptr;
+			if( hdrRenderer && g_hdrEnabled ) {
+				prevSurface = hdrRenderer->hdrSurface;
+			} else if( g_fxaaEnabled ) {
+				prevSurface = fxaa->renderTarget;
+			} else {
+				prevSurface = gBuffer->backSurface;
+			}
             spotShadowMap->UnbindSpotShadowMap( 4 );
-            spotShadowMap->RenderSpotShadowMap( g_fxaaEnabled ? fxaa->renderTarget : gBuffer->backSurface, 0, light );
+            spotShadowMap->RenderSpotShadowMap( prevSurface, 0, light );
             spotShadowMap->BindSpotShadowMap( 4 );
         }
 
@@ -652,13 +700,26 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         RenderScreenQuad();
     }
 
-    if( g_fxaaEnabled ) {
-        // ssao->FillAOMap();
-        // ssao->DoBlurAndAddAOToSourceMap( fxaa->texture );
-        // fxaa->DoAntialiasing( ssao->blurTexture );
+	if( hdrRenderer && g_hdrEnabled ) {
+		if( g_fxaaEnabled ) {
+			hdrRenderer->CalculateFrameLuminance( fxaa->texture, gBuffer->backSurface );
+			hdrRenderer->DoToneMapping( fxaa->renderTarget );			
+			fxaa->DoAntialiasing( fxaa->texture );			
+			/*
+			g_device->SetTexture( 4, hdrRenderer->adaptedLuminanceCurrent );
+			debugQuad->Bind();
+			debugQuad->Render();*/
+		} else {
+			// if fxaa disabled, we still can use it's texture to calculate frame brightness
+			hdrRenderer->DoToneMapping( gBuffer->backSurface );
+		}
+	} else {
+		if( g_fxaaEnabled ) {
+			fxaa->DoAntialiasing( fxaa->texture );
+		}
+	}
 
-        fxaa->DoAntialiasing( fxaa->texture );
-    }
+
 
     state->Apply();
     state->Release();

@@ -23,6 +23,7 @@ SteamStream::SteamStream( NodeHandle obj, Vector3 speedMin, Vector3 speedMax, So
     //Attach( ps, obj );
     SetPosition( ps, GetPosition( obj ));
     AttachSound( snd, ps );
-
+	SetSoundReferenceDistance( snd, 15.0f );
+	SetRolloffFactor( snd, 50.0f );
     power = 1;
 }

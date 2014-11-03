@@ -65,7 +65,6 @@ void Level::LoadLocalization( string fn ) {
 
 void Level::Hide() {
     HideNode( scene );
-
     for( auto & sound : sounds ) {
         PauseSoundSource( sound );
     }
@@ -73,11 +72,11 @@ void Level::Hide() {
 
 void Level::Show() {
     ShowNode( scene );
-
-    for( auto & sound : sounds )
+    for( auto & sound : sounds ) {
         if( IsSoundPaused( sound )) {
             PlaySoundSource( sound );
         }
+	}
 }
 
 void Level::Change( int levelId, bool continueFromSave ) {

@@ -1,6 +1,8 @@
 #ifndef _COMMON_
 #define _COMMON_
 
+#define D3D_DEBUG_INFO
+
 #define _CRT_SECURE_NO_WARNINGS
 
 #define DIRECTINPUT_VERSION 0x0800
@@ -117,6 +119,7 @@ extern int g_fps;
 extern FPSCounter g_fpsCounter;
 extern bool g_physicsEnabled;
 extern bool g_engineRunning;
+extern bool g_hdrEnabled;
 
 // shadow settings
 extern bool g_usePointLightShadows;

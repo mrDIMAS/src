@@ -23,6 +23,8 @@ public:
     explicit EffectsQuad( bool bDebug = false );
     virtual ~EffectsQuad();
 
+	void SetSize( float width, float height );
+
     void Bind( );
     void Render();
 };

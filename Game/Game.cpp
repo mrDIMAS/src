@@ -19,6 +19,7 @@ string localizationPath;
 bool g_showFPS = false;
 bool g_running = true;
 float mouseSens = 0.5f;
+float g_musicVolume = 1.0f;
 
 NodeHandle CreateFog( NodeHandle obj, int density ) {
     Vector3 min = GetAABBMin( obj );
@@ -65,6 +66,7 @@ void main( ) {
 
     EnablePointLightShadows( false );
     TimerHandle dtTimer = CreateTimer();
+	SetHDREnabled( true );
     while( true ) {
         RestartTimer( dtTimer );
         if( !g_running ) {

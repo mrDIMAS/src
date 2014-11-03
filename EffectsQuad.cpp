@@ -36,8 +36,22 @@ EffectsQuad::~EffectsQuad() {
     delete vertexShader;
 }
 
+void EffectsQuad::SetSize( float width, float height ) {
+	if( !debug ) {
+		QuadVertex vertices[ ] = { 
+			{        - 0.5, -0.5, 0, 0, 0 }, { width - 0.5,         - 0.5, 0, 1, 0 }, { -0.5, height - 0.5, 0, 0, 1 },
+			{  width - 0.5, -0.5, 0, 1, 0 }, { width - 0.5,  height - 0.5, 0, 1, 1 }, { -0.5, height - 0.5, 0, 0, 1 }};
+
+		void * data = 0;
+
+		vertexBuffer->Lock( 0, 0, &data, 0 );
+		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
+		vertexBuffer->Unlock( );
+	}
+}
+
 EffectsQuad::EffectsQuad( bool bDebug ) {
-    g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+    g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
 
     debug = bDebug;
     debugPixelShader = nullptr;
@@ -67,9 +81,9 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         string debugPixelShaderSource = 
             "sampler diffuse : register( s4 );\n"
             "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
-            "   float depth = tex2D( diffuse, texCoord ).r;\n"
-            "   depth = 1 - ( 1 - depth ) * 250;\n"
-            "   return float4( depth, depth, depth, 1.0f );\n"
+            //"   return tex2D( diffuse, texCoord );\n"
+			"   float r = tex2D( diffuse, texCoord ).r;\n"
+			"	return float4( r, r, r, 1.0f );\n"
             "};\n";
         
         debugPixelShader = new PixelShader( debugPixelShaderSource );

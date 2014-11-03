@@ -89,6 +89,7 @@ void main( ) {
 
     TimerHandle perfTimer = CreateTimer();
     int perfTime=0;
+	float exposure = 1.0f;
     while( !mi::KeyDown( mi::Esc )) {
         if( mi::KeyHit( mi::E ))
             //if( !Animating( node ))
@@ -96,10 +97,17 @@ void main( ) {
             Animate(node, 0.05, 2 );
         }
 
+		if( mi::KeyDown( mi::E ))
+			exposure -= 0.025;
+		if( mi::KeyDown( mi::R ))
+			exposure += 0.025;
+		//SetHDRExposure( exposure );
 
         mi::Update();
 
-
+		if( mi::MouseHit( mi::MouseButton::Right )) {
+			SetHDREnabled( !IsHDREnabled() );
+		}
         Vector3 speed;
 
         pitchTo += mi::MouseYSpeed() / 2.0;
@@ -175,7 +183,7 @@ void main( ) {
             counter = 0;
         }
         char buf[ 128 ];
-        sprintf( buf, "DIPs: %d\nTC: %d\nFPS: %d\nAvailable Vid Mem, Mb: %i", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 )  );
+        sprintf( buf, "DIPs: %d\nTC: %d\nFPS: %d\nAvailable Vid Mem, Mb: %i\nHDR: %i", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)IsHDREnabled()  );
         DrawGUIText( buf, 0, 0, 200, 100, font, Vector3( 255, 0, 255 ), 0, 100 );
         RestartTimer( perfTimer );
         RenderWorld();

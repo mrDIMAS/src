@@ -151,12 +151,12 @@ int Player::GotItemAnyOfType( int type ) {
 Player::UseStamina
 ========
 */
-bool Player::UseStamina( float st ) {
-    if( stamina - st < 0 ) {
+bool Player::UseStamina( float required ) {
+    if( stamina - required < 0 ) {
         return false;
     }
 
-    stamina -= st;
+    stamina -= required;
 
     return true;
 }

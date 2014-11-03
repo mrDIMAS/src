@@ -210,6 +210,10 @@ void Menu::Update( ) {
 
             musicVolume->Draw( x, y, buttonImage, loc.GetString(  "musicVolume" ));
             SetVolume( music, musicVolume->value / 100.0f );
+			g_musicVolume = musicVolume->value / 100.0f;
+			if( currentLevel ) {
+				SetVolume( currentLevel->music, g_musicVolume );
+			}
         }
 
         if( page == Page::OptionsGraphics ) {
@@ -248,6 +252,11 @@ void Menu::Update( ) {
             y = g_resH - 2.0 * distBetweenButtons;
             spotShadowsButton->Draw( x, y, buttonImage, loc.GetString( "spotLightShadows" ));
             EnableSpotLightShadows( spotShadowsButton->on );
+
+			// hdr
+			y = g_resH - 1.5 * distBetweenButtons;
+			hdrButton->Draw( x, y, buttonImage, loc.GetString( "hdr" ));
+			SetHDREnabled( hdrButton->on );
         }
 
         if( page == Page::OptionsKeys ) {
@@ -376,6 +385,7 @@ void Menu::CreateRadioButtons() {
     fpsButton = new RadioButton;
     pointShadowsButton = new RadioButton;
     spotShadowsButton = new RadioButton;
+	hdrButton = new RadioButton;
 }
 
 void Menu::CreateSliders() {
@@ -391,9 +401,14 @@ void Menu::LoadConfig() {
 
     if( !config.Empty() ) {
         masterVolume->value = config.GetNumber( "masterVolume" );
-        musicVolume->value = config.GetNumber( "musicVolume" );
+        g_musicVolume = musicVolume->value = config.GetNumber( "musicVolume" );
         mouseSensivity->value = config.GetNumber( "mouseSens" );
         fxaaButton->on = config.GetNumber( "masterVolume" );
+		if( fxaaButton->on ) {
+			EnableFXAA(); 
+		} else {
+			DisableFXAA();
+		};
         wkMoveForward->SetSelected( config.GetNumber( "keyMoveForward" ) );
         wkMoveBackward->SetSelected( config.GetNumber( "keyMoveBackward" ) );
         wkStrafeLeft->SetSelected( config.GetNumber( "keyStrafeLeft" ) );
@@ -409,6 +424,9 @@ void Menu::LoadConfig() {
         EnableSpotLightShadows( spotShadowsButton->on );
         pointShadowsButton->on = config.GetNumber( "pointShadowsEnabled" );
         EnablePointLightShadows( pointShadowsButton->on );
+		SetMasterVolume( masterVolume->value / 100.0f );
+		SetVolume( music, musicVolume->value / 100.0f );
+		SetHDREnabled( hdrButton->on = (int)config.GetNumber( "hdrEnabled" ));
     }
 }
 
@@ -428,12 +446,10 @@ void Menu::SetPlayerControls() {
 
 void Menu::WriteConfig() {
     ofstream config( "config.cfg" );
-
     WriteFloat( config, "mouseSens", mouseSensivity->value );
     WriteFloat( config, "masterVolume", masterVolume->value );
     WriteFloat( config, "musicVolume", musicVolume->value );
     WriteFloat( config, "fxaaEnabled", fxaaButton->on );
-
     WriteInteger( config, "keyMoveForward", wkMoveForward->selectedKey );
     WriteInteger( config, "keyMoveBackward", wkMoveBackward->selectedKey );
     WriteInteger( config, "keyStrafeLeft", wkStrafeLeft->selectedKey );
@@ -444,10 +460,10 @@ void Menu::WriteConfig() {
     WriteInteger( config, "keyInventory", wkInventory->selectedKey );
     WriteInteger( config, "keyUse", wkUse->selectedKey );
     WriteInteger( config, "keyQuickSave", wkQuickSave->selectedKey );
-    WriteInteger( config, "keyQuickLoad", wkQuickLoad->selectedKey );
-    
+    WriteInteger( config, "keyQuickLoad", wkQuickLoad->selectedKey );    
     WriteInteger( config, "spotShadowsEnabled", IsSpotLightShadowsEnabled() ? 1 : 0  );
     WriteInteger( config, "pointShadowsEnabled", IsPointLightShadowsEnabled() ? 1 : 0  );
+	WriteInteger( config, "hdrEnabled", IsHDREnabled() ? 1 : 0  );
     config.close();
 }
 
@@ -489,6 +505,7 @@ Menu::~Menu() {
     delete wkQuickLoad;
     delete wkQuickSave;
     delete pointShadowsButton;
+	delete hdrButton;
     delete spotShadowsButton;
 }
 
