@@ -25,7 +25,7 @@ Menu::Menu( ) {
     continuePressed = false;
     exitingGame = false;
     returnToGameByEsc = false;
-    autosaveNotify = true; // FIXED: set it to true when build release version
+    autosaveNotify = false; // FIXED: set it to true when build release version
     textFont = CreateGUIFont( 16, "Arial", false, false );
     textBackgroundFont = CreateGUIFont( 21, "Arial", false, false );
 
@@ -96,7 +96,8 @@ void Menu::Update( ) {
                 }
 
                 if( !currentLevel && startPressed ) {
-                    Level::Change( g_initialLevel );
+                    //Level::Change( g_initialLevel );
+					Level::Change( LXTestingChamber );
                 }
 
                 startPressed = false;

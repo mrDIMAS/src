@@ -88,7 +88,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
         DrawGUIText( menu->loc.GetString( "loading" ), GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 64, 128, 128, gui->font, Vector3( 255, 255, 0), 1 );
 
         // draw 'loading' string
-        RenderWorld();
+        RenderWorld( 1.0f / 60.0f );
 
         lastLevel = Level::curLevelID;
 
@@ -128,6 +128,10 @@ void Level::Change( int levelId, bool continueFromSave ) {
             if( player ) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
             }
+
+			if( player ) {
+				SaveLoader( "quickSave.save" ).RestoreWorldState();
+			}
         }
 
         for( int i = 0; i < GetWorldPointLightCount(); i++ ) {

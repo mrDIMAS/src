@@ -68,8 +68,8 @@ void Enemy::Update() {
         }
     }
 
-    if( !Animating( model )) {
-        Animate( model, 0.25f, 1 );
+    if( !IsAnimationEnabled( model )) {
+        SetAnimationEnabled( model, true );
     }
 }
 
@@ -91,7 +91,7 @@ Enemy::Enemy( const char * file ) {
 
     torsoBone = FindInObjectByName( model, "Torso" );
 
-    SetIdleAnimation();
+    //SetIdleAnimation();
 
     angleTo = 0.0f;
     angle = 0.0f;
@@ -113,53 +113,47 @@ Enemy::Enemy( const char * file ) {
     footstepsSounds[ 1 ] = CreateSound3D( "data/sounds/step2.ogg" );
     footstepsSounds[ 2 ] = CreateSound3D( "data/sounds/step3.ogg" );
     footstepsSounds[ 3 ] = CreateSound3D( "data/sounds/step4.ogg" );
+
+	// Animations
+	animIdle = Animation( 0, 15, 0.8, false );
+	animRun = Animation( 15, 32, 0.8, false );
+	animAttack = Animation( 32, 44, 0.35, false );
+
+	Animation * anim = GetCurrentAnimation( model );
+
+	int a = 0;
 }
 
-void Enemy::SetStayAndAttackAnimation() {
-    if( currentAnimation != Animation::StayAndAttack ) {
-        SetCommonAnimation( 0, 15 );
-        SetTorsoAnimation( 32, 43 );
-    }
 
-    currentAnimation = Animation::StayAndAttack;
+void Enemy::SetStayAndAttackAnimation() {
+	SetCommonAnimation( &animIdle );
+	SetTorsoAnimation( &animAttack );
 }
 
 void Enemy::SetRunAndAttackAnimation() {
-    if( currentAnimation != Animation::RunAndAttack ) {
-        SetCommonAnimation( 32, 43 );
-        SetLegsAnimation( 15, 31 );
-    }
-
-    currentAnimation = Animation::RunAndAttack;
+	SetCommonAnimation( &animAttack );
+	SetLegsAnimation( &animRun );
 }
 
 void Enemy::SetRunAnimation() {
-    if( currentAnimation != Animation::Run ) {
-        SetCommonAnimation( 15, 31 );
-    }
-
-    currentAnimation = Animation::Run;
+    SetCommonAnimation( &animRun );
 }
 
 void Enemy::SetIdleAnimation() {
-    if( currentAnimation != Animation::Idle ) {
-        SetCommonAnimation( 0, 14 );
-    }
-
-    currentAnimation = Animation::Idle;
+    SetCommonAnimation( &animIdle );
 }
 
-void Enemy::SetCommonAnimation( int frameBegin, int frameEnd ) {
-    SetAnimationSequence( model, frameBegin, frameEnd );
+void Enemy::SetCommonAnimation( Animation * anim ) {
+    SetAnimation( model, anim );
 }
 
-void Enemy::SetTorsoAnimation( int frameBegin, int frameEnd ) {
-    SetAnimationSequence( torsoBone, frameBegin, frameEnd );
+void Enemy::SetTorsoAnimation( Animation * anim ) {
+    SetAnimation( torsoBone, anim );
 }
 
-void Enemy::SetLegsAnimation( int frameBegin, int frameEnd ) {
-    SetAnimationSequence( rightLeg, frameBegin, frameEnd );
-    SetAnimationSequence( leftLeg, frameBegin, frameEnd );
-    SetAnimationSequence( rightLegDown, frameBegin, frameEnd );
-    SetAnimationSequence( leftLegDown, frameBegin, frameEnd );
+void Enemy::SetLegsAnimation( Animation * anim ) {
+    SetAnimation( rightLeg, anim );
+    SetAnimation( leftLeg, anim );
+    SetAnimation( rightLegDown, anim );
+    SetAnimation( leftLegDown, anim );
 }

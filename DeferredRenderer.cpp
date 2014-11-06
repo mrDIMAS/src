@@ -236,7 +236,7 @@ void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
     pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( light->GetRadius(), 4 ) );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, light->GetColor().elements, 3 );
     pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_usePointLightShadows );
-	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, light->brightness );
+	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, g_hdrEnabled ? light->brightness : 1.0f );
     if( light->pointTexture ) {
         g_device->SetTexture( 3, light->pointTexture->cubeTexture );
         pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 1 );
@@ -423,7 +423,7 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
     pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
     pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_useSpotLightShadows );
-	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, lit->brightness );
+	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, g_hdrEnabled ? lit->brightness : 1.0f );
     if( lit->spotTexture || g_useSpotLightShadows ) {
         lit->BuildSpotProjectionMatrixAndFrustum();
         if( lit->spotTexture ) {
@@ -701,16 +701,11 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     }
 
 	if( hdrRenderer && g_hdrEnabled ) {
+		hdrRenderer->CalculateFrameLuminance( );
 		if( g_fxaaEnabled ) {
-			hdrRenderer->CalculateFrameLuminance( fxaa->texture, gBuffer->backSurface );
 			hdrRenderer->DoToneMapping( fxaa->renderTarget );			
 			fxaa->DoAntialiasing( fxaa->texture );			
-			/*
-			g_device->SetTexture( 4, hdrRenderer->adaptedLuminanceCurrent );
-			debugQuad->Bind();
-			debugQuad->Render();*/
 		} else {
-			// if fxaa disabled, we still can use it's texture to calculate frame brightness
 			hdrRenderer->DoToneMapping( gBuffer->backSurface );
 		}
 	} else {

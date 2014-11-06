@@ -31,6 +31,7 @@ int g_dips = 0;
 int g_debugDraw = 0;
 int g_textureChanges = 0;
 int g_fps = 0;
+float g_dt = 1.0f / 60.0f; // 60 FPS
 
 FPSCounter g_fpsCounter;
 bool g_usePointLightShadows = true;
@@ -684,6 +685,8 @@ RenderWorld
 ===============
 */
 int RenderWorld( float dt ) {
+	g_dt = dt;
+
     g_renderer->RenderWorld();
 
     return 1;

@@ -207,7 +207,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////
 API int CreateRenderer( int width, int height, int fullscreen );
 API int FreeRenderer( );
-API int RenderWorld( float dt = 1.0f );
+API int RenderWorld( float dt );
 API int GetResolutionWidth( );
 API int GetResolutionHeight( );
 API void HideCursor( );
@@ -386,9 +386,40 @@ API void CreateOctree( NodeHandle node, int splitCriteria = 45 );
 API void DeleteOctree( NodeHandle node );
 
 // Animation
-API int Animating( NodeHandle node );
-API void Animate( NodeHandle node, float speed, int mode );
-API void SetAnimationSequence( NodeHandle node, int begin, int end );
+class Animation {
+private:
+	friend class SceneNode;
+	float interpolator;
+public:
+	int beginFrame;
+	int endFrame;
+	int currentFrame;
+	float timeSeconds; // full animation time in seconds, can be 0...+inf
+	bool looped;
+
+	explicit Animation() {
+		looped = false;
+		beginFrame = 0;
+		endFrame = 0;
+		currentFrame = 0;
+		timeSeconds = 0.0f;
+	}
+
+	explicit Animation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false ) {
+		currentFrame = theBeginFrame;
+		beginFrame = theBeginFrame;
+		endFrame = theEndFrame;
+		timeSeconds = theTimeSeconds;
+		looped = theLooped;
+		interpolator = 0.0f;
+	}
+};
+
+API bool IsAnimationEnabled( NodeHandle node );
+API void SetAnimationEnabled( NodeHandle node, bool state, bool dontAffectChilds = false );
+API void SetAnimation( NodeHandle node, Animation * newAnim, bool dontAffectChilds = false );
+API int GetTotalAnimationFrameCount( NodeHandle node );
+API Animation * GetCurrentAnimation( NodeHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Font functions
@@ -422,22 +453,62 @@ API double GetElapsedTimeInMicroSeconds( TimerHandle timer );
 #define PS_BOX ( 0 )
 #define PS_STREAM ( 1 )
 
-API NodeHandle CreateParticleSystem( int particleNum, TextureHandle texture, int type = PS_BOX );
-API void SetParticleSystemSpeedDeviation( NodeHandle ps, Vector3 min, Vector3 max );
-API void SetParticleSystemColors( NodeHandle ps, Vector3 begin, Vector3 end );
-API void SetParticleSystemPointSize( NodeHandle ps, float pointSize );
-API void SetParticleSystemBox( NodeHandle ps, Vector3 min, Vector3 max );
-API void SetParticleSystemAutoResurrect( NodeHandle ps, int ar );
-API int GetParticleSystemAliveParticles( NodeHandle ps );
-API void RestartParticleSystem( NodeHandle ps );
-API void EnableParticleSystem( NodeHandle ps );
-API void DisableParticleSystem( NodeHandle ps );
-API void EnableParticleSystemLighting( NodeHandle ps );
-API void DisableParticleSystemLighting( NodeHandle ps );
-API void SetParticleSystemThickness( NodeHandle ps, float thickness );
-API void SetParticleSystemRadius( NodeHandle ps, float radius );
-API void SetParticleSystemParticleScaling( NodeHandle ps, float scl );
+class ParticleSystemProperties {
+public:
+	int type; // PS_BOX or PS_STREAM
 
+	Vector3 colorBegin;
+	Vector3 colorEnd;
+
+	Vector3 speedDeviationMin;
+	Vector3 speedDeviationMax;
+
+	// set these values, if type == PS_BOX
+	Vector3 boundingBoxMin;
+	Vector3 boundingBoxMax;
+
+	float particleThickness;
+	float boundingRadius; // set this if type == PS_STREAM
+	float pointSize;
+	float scaleFactor;
+
+	bool autoResurrectDeadParticles;
+	bool useLighting;
+
+	bool enabled;
+
+	TextureHandle texture;
+
+	explicit ParticleSystemProperties() {
+		type = PS_BOX;
+
+		colorBegin = Vector3( 0, 0, 0 );
+		colorEnd = Vector3( 255, 255, 255 );
+
+		speedDeviationMin = Vector3( -1, -1, -1 );
+		speedDeviationMax = Vector3( 1, 1, 1 );
+
+		boundingBoxMin = Vector3( 100, 100, 100 );
+		boundingBoxMax = Vector3( -100, -100, -100 );
+
+		particleThickness = 1.0f;
+		boundingRadius = 1.0f;
+		pointSize = 1.0f;
+		scaleFactor = 0.0f;
+
+		autoResurrectDeadParticles = true;
+		useLighting = false;
+
+		enabled = true;
+
+		texture = TextureHandle::Empty();
+	}
+};
+
+API NodeHandle CreateParticleSystem( int particleNum, ParticleSystemProperties creationProps );
+API int GetParticleSystemAliveParticles( NodeHandle ps );
+API void ResurrectDeadParticles( NodeHandle ps );
+API ParticleSystemProperties * GetParticleSystemProperties( NodeHandle ps );
 ////////////////////////////////////////////////////////////////////////////////////
 // Input functions
 ////////////////////////////////////////////////////////////////////////////////////

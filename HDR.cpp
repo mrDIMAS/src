@@ -45,13 +45,11 @@ HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
 		"sampler avgLum : register( s7 );\n"
 
 		"float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{\n"
-		//"	float exposure = clamp( 4.0f - 100.0f * tex2D( avgLum, float2( 0.5f, 0.5f )).r, 0.4, 10 );\n"
 		"	float exposure = tex2D( avgLum, float2( 0.5f, 0.5f )).r;\n"
 		"	float3 texColor = tex2D( hdrTexture, texCoord );\n"
 		"	float key = 0.1f;\n"
-		"	texColor *=  key / ( exposure + 0.001f );\n"
+		"	texColor *=  key / ( exposure + 0.034f );\n"
 		"	texColor /= ( 1.0f + texColor );\n"
-		//"	float3 retColor = 1 - exp( -exposure * texColor );\n"
 		"	return float4(texColor,1);\n"
 		"};\n";
 		
@@ -119,7 +117,7 @@ HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
 	hPixelSize = downScalePixelShader->GetConstantTable()->GetConstantByName( 0, "pixelSize" );
 }
 
-void HDRRenderer::CalculateFrameLuminance( IDirect3DTexture9 * frame, IDirect3DSurface9 * lastRT ) {
+void HDRRenderer::CalculateFrameLuminance( ) {
 	g_device->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 	g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
 	g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
@@ -209,7 +207,7 @@ void HDRRenderer::CalculateFrameLuminance( IDirect3DTexture9 * frame, IDirect3DS
 	g_device->SetTexture( 7, downSampTex[8] );
 
 	adaptationPixelShader->Bind();
-	adaptationPixelShader->GetConstantTable()->SetFloat( g_device, hAdaptation, 1.4f );
+	adaptationPixelShader->GetConstantTable()->SetFloat( g_device, hAdaptation, 0.2f );
 	screenQuad->Render();
 
 	pSurfAdaptedLum->Release();

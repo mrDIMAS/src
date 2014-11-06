@@ -6,6 +6,8 @@ class Mesh;
 
 class SceneNode {
 public:
+	friend class DeferredRenderer;
+
     volatile int memoryTag;
 
     SceneNode * parent;
@@ -14,18 +16,12 @@ public:
     btTransform invBoneBindTransform;
     btRigidBody * body;
     map<string,string> properties;
-    vector<btTransform*> keyframes;
+    
     string name;
-    vector<Mesh*> meshes;
-    int frameStart, frameEnd;
-    bool skinned;
+    vector<Mesh*> meshes;    
     bool visible;
     btTriangleMesh * trimesh;
-    int animationFrame;
-    bool animationEnabled;
-    int animationMode;
-    float animationSpeedFramePerSecond;
-    float frameInterpolationCoefficient;
+    
     Contact contacts[ BODY_MAX_CONTACTS ];
     int numContacts;
     vector<SoundHandle> sounds;
@@ -36,7 +32,17 @@ public:
     float fDepthHack;
     SceneNode * scene;
     bool inFrustum;
-    friend class DeferredRenderer;
+
+	/*
+	===========
+	animation
+	===========
+	*/
+	vector< btTransform* > keyframes;
+	Animation * currentAnimation;
+	bool animationEnabled;
+	bool skinned;
+	int totalFrames;
 public:
     // Components
     ParticleEmitter * particleEmitter;
@@ -48,6 +54,11 @@ public:
     // Methods
     explicit SceneNode();
     virtual ~SceneNode();
+
+	void SetAnimation( Animation * newAnim, bool dontAffectChilds = false );
+	Animation * GetCurrentAnimation( ) {
+		return currentAnimation;
+	}
 
     void EraseChild( const SceneNode * child );
     void SetConvexBody( );
@@ -62,12 +73,11 @@ public:
     Vector3 GetAABBMin( );
     Vector3 GetAABBMax( );
     static SceneNode * Find( SceneNode * parent, string childName );
-    bool IsAnimating( );
-    btTransform GetInterpolatedTransform ( btTransform * tr1, btTransform * tr2, float t );
+    bool IsAnimationEnabled( );
     void PerformAnimation( );
     void Freeze( );
     void Unfreeze();
-    void Animate( float speed, int mode );
+    void SetAnimationEnabled( bool state, bool dontAffectChilds = false );
     void Hide( );
     void Show( );
     string GetProperty( string propName );
@@ -77,7 +87,6 @@ public:
     int GetContactCount( );
     void SetBody( btRigidBody * theBody );
     Contact GetContact( int num );
-    void SetAnimationSequence( int begin, int end );
     void ApplyProperties( );
     void AttachSound( SoundHandle sound );
     bool IsNodeInside( SceneNode * node );

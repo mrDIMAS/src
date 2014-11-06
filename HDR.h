@@ -38,6 +38,6 @@ public:
 	explicit HDRRenderer( D3DFORMAT rtFormat );
 	virtual ~HDRRenderer();
 	void SetAsRenderTarget( );
-	void CalculateFrameLuminance( IDirect3DTexture9 * frame, IDirect3DSurface9 * lastRT );
+	void CalculateFrameLuminance( );
 	void DoToneMapping( IDirect3DSurface9 * targetSurface );
 };

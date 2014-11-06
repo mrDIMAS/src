@@ -85,6 +85,7 @@ extern float g_height;
 extern int g_dips;
 extern int g_rendererType;
 extern FontHandle g_font;
+extern float g_dt;
 
 extern FT_Library g_ftLibrary;
 // direct3d

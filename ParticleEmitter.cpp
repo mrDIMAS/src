@@ -5,122 +5,6 @@
 
 vector<ParticleEmitter*> g_particleEmitters;
 
-NodeHandle CreateParticleSystem( int particleNum, TextureHandle texture, int type ) {
-    SceneNode * node = new SceneNode;
-    node->particleEmitter = new ParticleEmitter( node, particleNum, reinterpret_cast<Texture*>( texture.pointer ), type );
-    return SceneNode::HandleFromPointer( node );
-}
-
-void SetParticleSystemSpeedDeviation( NodeHandle ps, Vector3 min, Vector3 max ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetSpeedDeviation( min, max );
-    }
-}
-
-void SetParticleSystemColors( NodeHandle ps, Vector3 begin, Vector3 end ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetColors( begin, end );
-    }
-}
-
-void SetParticleSystemPointSize( NodeHandle ps, float pointSize ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetParticleSize( pointSize );
-    }
-}
-
-void SetParticleSystemBox( NodeHandle ps, Vector3 min, Vector3 max ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetBoundingBox( min, max );
-    }
-}
-
-void SetParticleSystemAutoResurrect( NodeHandle ps, int ar ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetAutoResurrection( ar );
-    }
-}
-
-int GetParticleSystemAliveParticles( NodeHandle ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        return n->particleEmitter->GetAliveParticles();
-    }
-
-    return 0;
-}
-
-void RestartParticleSystem( NodeHandle ps ) {
-
-}
-
-void SetParticleSystemRadius( NodeHandle ps, float radius ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetRadius( radius );
-    }
-}
-
-void EnableParticleSystem( NodeHandle ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetEnabled( 1 );
-    }
-}
-
-void DisableParticleSystem( NodeHandle ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetEnabled( 0 );
-    }
-}
-
-void SetParticleSystemParticleScaling( NodeHandle ps, float scl ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetScaling( scl );
-    }
-}
-
-void EnableParticleSystemLighting( NodeHandle ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetLighting( 1 );
-    }
-}
-
-void DisableParticleSystemLighting( NodeHandle ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetLighting( 0 );
-    }
-}
-
-void SetParticleSystemThickness( NodeHandle ps, float thickness ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        n->particleEmitter->SetThickness( 1 );
-    }
-}
-
 ParticleEmitter::~ParticleEmitter() {
     vertexBuffer->Release();
     indexBuffer->Release();
@@ -136,58 +20,19 @@ void ParticleEmitter::Render() {
 }
 
 void ParticleEmitter::Bind() {
-    texture->Bind( 0 );
+	Texture * texPtr = (Texture *)props.texture.pointer;
+	if( texPtr ) {
+		texPtr->Bind( 0 );
+	}
     g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( SParticleVertex ));
     g_device->SetIndices( indexBuffer );
-}
-
-void ParticleEmitter::SetBoundingBox( const Vector3 & theMin, const Vector3 & theMax ) {
-    boundingBoxMax = theMax;
-    boundingBoxMin = theMin;
-
-    ResurrectParticles();
-}
-
-void ParticleEmitter::SetThickness( float theThickness ) {
-    thickness = theThickness;
-}
-
-void ParticleEmitter::SetSpeedDeviation( const Vector3 & theMin, const Vector3 & theMax ) {
-    speedDeviationMax = theMax;
-    speedDeviationMin = theMin;
-
-    ResurrectParticles();
-}
-
-void ParticleEmitter::SetEnabled( bool state ) {
-    enabled = state;
 }
 
 int ParticleEmitter::GetAliveParticles() {
     return aliveParticles;
 }
-
-void ParticleEmitter::SetAutoResurrection( bool state ) {
-    autoResurrect = state;
-}
-
 D3DXMATRIX ParticleEmitter::GetWorldTransform() {
     return world;
-}
-
-void ParticleEmitter::SetParticleSize( float thePointSize ) {
-    pointSize = thePointSize;
-}
-
-void ParticleEmitter::SetColors( const Vector3 & theBeginColor, const Vector3 & theEndColor ) {
-    colorBegin = theBeginColor;
-    colorEnd = theEndColor;
-
-    ResurrectParticles();
-}
-
-void ParticleEmitter::SetLighting( bool state ) {
-    lightAffects = state;
 }
 
 void ParticleEmitter::Update() {
@@ -223,11 +68,11 @@ void ParticleEmitter::Update() {
         float translucency = CalculateTranslucency( p );
         p.Move();
         p.SetTranslucency( translucency );
-        p.SetColor( colorBegin.Lerp( colorEnd , CalculateColorInterpolationCoefficient( p ) ) );
-        p.SetSize( p.GetSize() + scaling );
+        p.SetColor( props.colorBegin.Lerp( props.colorEnd , CalculateColorInterpolationCoefficient( p ) ) );
+        p.SetSize( p.GetSize() + props.scaleFactor );
 
         if( translucency <= 10.0f  ) {
-            if( autoResurrect ) {
+            if( props.autoResurrectDeadParticles ) {
                 ResurrectParticle( p );
             }
         } else {
@@ -263,14 +108,14 @@ SceneNode * ParticleEmitter::GetBase() {
 }
 
 bool ParticleEmitter::IsLightAffects() {
-    return lightAffects;
+    return props.useLighting;
 }
 
 float ParticleEmitter::CalculateColorInterpolationCoefficient( const SParticle & particle ) {
-    if( type == PS_BOX ) {
+    if( props.type == PS_BOX ) {
         return GetBoxColorInterpolationCoefficient( particle );
     }
-    if( type == PS_STREAM ) {
+    if( props.type == PS_STREAM ) {
         return GetSphereColorInterpolationCoefficient( particle );
     }
 
@@ -279,7 +124,7 @@ float ParticleEmitter::CalculateColorInterpolationCoefficient( const SParticle &
 
 float ParticleEmitter::GetSphereColorInterpolationCoefficient( const SParticle & particle ) {
     float distance2 = particle.GetPosition().Length2();
-    float radius2 = boundingSphereRadius * boundingSphereRadius;
+    float radius2 = props.boundingRadius * props.boundingRadius;
 
     float coefficient = abs( distance2 / radius2 );
     if( coefficient > 1.0f ) {
@@ -289,9 +134,9 @@ float ParticleEmitter::GetSphereColorInterpolationCoefficient( const SParticle &
 }
 
 float ParticleEmitter::GetBoxColorInterpolationCoefficient( const SParticle & particle ) {
-    float xColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().x, boundingBoxMax.x, boundingBoxMin.x );
-    float yColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().y, boundingBoxMax.y, boundingBoxMin.y );
-    float zColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().z, boundingBoxMax.z, boundingBoxMin.z );
+    float xColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().x, props.boundingBoxMax.x, props.boundingBoxMin.x );
+    float yColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().y, props.boundingBoxMax.y, props.boundingBoxMin.y );
+    float zColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().z, props.boundingBoxMax.z, props.boundingBoxMin.z );
 
     return ( xColorInterpolationCoefficient + yColorInterpolationCoefficient + zColorInterpolationCoefficient ) / 3.0f ;
 }
@@ -315,10 +160,10 @@ float ParticleEmitter::GetBox1DColorInterpolationCoefficient( float coord, float
 }
 
 float ParticleEmitter::CalculateTranslucency( const SParticle & particle ) {
-    if( type == PS_BOX ) {
+    if( props.type == PS_BOX ) {
         return GetBoxBoundaryLayerTranslucency( particle );
     }
-    if( type == PS_STREAM ) {
+    if( props.type == PS_STREAM ) {
         return GetSphereBoundaryLayerTranslucency( particle );
     }
     return 255.0f;
@@ -326,7 +171,7 @@ float ParticleEmitter::CalculateTranslucency( const SParticle & particle ) {
 
 float ParticleEmitter::GetSphereBoundaryLayerTranslucency( const SParticle & particle ) {
     float distance2 = particle.GetPosition().Length2();
-    float radius2 = boundingSphereRadius * boundingSphereRadius;
+    float radius2 = props.boundingRadius * props.boundingRadius;
 
     if( distance2 > radius2 ) {
         return 255.0f * radius2 / ( distance2 );
@@ -336,15 +181,11 @@ float ParticleEmitter::GetSphereBoundaryLayerTranslucency( const SParticle & par
 }
 
 float ParticleEmitter::GetBoxBoundaryLayerTranslucency( const SParticle & particle ) {
-    float xTranslucency = GetBox1DTranslucency( particle.GetPosition().x, boundingBoxMax.x, boundingBoxMin.x );
-    float yTranslucency = GetBox1DTranslucency( particle.GetPosition().y, boundingBoxMax.y, boundingBoxMin.y );
-    float zTranslucency = GetBox1DTranslucency( particle.GetPosition().z, boundingBoxMax.z, boundingBoxMin.z );
+    float xTranslucency = GetBox1DTranslucency( particle.GetPosition().x, props.boundingBoxMax.x, props.boundingBoxMin.x );
+    float yTranslucency = GetBox1DTranslucency( particle.GetPosition().y, props.boundingBoxMax.y, props.boundingBoxMin.y );
+    float zTranslucency = GetBox1DTranslucency( particle.GetPosition().z, props.boundingBoxMax.z, props.boundingBoxMin.z );
 
     return ( xTranslucency + yTranslucency + zTranslucency ) / 3.0f;
-}
-
-void ParticleEmitter::SetRadius( float theRadius ) {
-    boundingSphereRadius = theRadius;
 }
 
 float ParticleEmitter::GetBox1DTranslucency( float coord, float maxCoord, float minCoord ) {
@@ -366,22 +207,18 @@ int ParticleEmitter::RGBAToInt( Vector3 color, int alpha ) {
 }
 
 void ParticleEmitter::ResurrectParticle( SParticle & p ) {
-    if( type == PS_BOX ) {
-        p.SetPosition( RandomVector3( boundingBoxMin, Vector3( boundingBoxMax.x, boundingBoxMin.y, boundingBoxMax.z )  ));
-        p.SetSpeed( RandomVector3( speedDeviationMin, speedDeviationMax ));
+    if( props.type == PS_BOX ) {
+        p.SetPosition( RandomVector3( props.boundingBoxMin, Vector3( props.boundingBoxMax.x, props.boundingBoxMin.y, props.boundingBoxMax.z )  ));
+        p.SetSpeed( RandomVector3( props.speedDeviationMin, props.speedDeviationMax ));
     }
 
-    if( type == PS_STREAM ) {
+    if( props.type == PS_STREAM ) {
         p.SetPosition( Vector3( 0, 0, 0 ) );
-        p.SetSpeed( RandomVector3( speedDeviationMin, speedDeviationMax ));
+        p.SetSpeed( RandomVector3( props.speedDeviationMin, props.speedDeviationMax ));
     }
 
-    p.SetSize( pointSize );
+    p.SetSize( props.pointSize );
     p.SetTranslucency( 255 );
-}
-
-void ParticleEmitter::SetScaling( float scl ) {
-    scaling = scl;
 }
 
 Vector3 ParticleEmitter::RandomVector3( Vector3 & min, Vector3 & max ) {
@@ -393,11 +230,11 @@ bool ParticleEmitter::HasAliveParticles() {
 }
 
 bool ParticleEmitter::IsEnabled() {
-    return enabled;
+    return props.enabled;
 }
 
 float ParticleEmitter::GetThickness() {
-    return thickness;
+    return props.particleThickness;
 }
 
 void ParticleEmitter::ResurrectParticles() {
@@ -406,50 +243,19 @@ void ParticleEmitter::ResurrectParticles() {
     }
 }
 
-ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, Texture * theTexture, int theType /*= PS_BOX */ ) {
-    texture = theTexture;
+ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ParticleSystemProperties creationProps ) {
     base = theParent;
-    aliveParticles = theParticleCount;
-    type = theType;
-
-    scaling = 0.0f;
-
+    aliveParticles = theParticleCount; 
     g_device->CreateVertexBuffer( theParticleCount * 4 * sizeof( SParticleVertex ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_MANAGED, &vertexBuffer, 0 );
     g_device->CreateIndexBuffer( theParticleCount * 2 * sizeof( SParticleFace ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_MANAGED, &indexBuffer, 0 );
-
     faces = new SParticleFace[ theParticleCount * 2 ];
     vertices = new SParticleVertex[ theParticleCount * 4 ];
-
-    for( int i = 0; i < theParticleCount; i++ ) {
-        particles.push_back( SParticle( ) );
-    }
-
-    boundingBoxMin = Vector3( -1.0f, -1.0f, -1.0f );
-    boundingBoxMax = Vector3( 1.0f, 1.0f, 1.0f );
-
-    boundingSphereRadius = 50.0f;
-
-    speedDeviationMin = Vector3( -1.0, -1.0, -1.0 );
-    speedDeviationMax = Vector3( 1.0, 1.0, 1.0 );
-
-    colorBegin = Vector3( 0.0f, 0.0f, 0.0f );
-    colorEnd = Vector3( 255.0f, 255.0f, 255.0f );
-
-    autoResurrect = true;
-
-    boundaryLayerThickness = 5.0f;
-
-    lightAffects = false;
-    enabled = true;
-
-    thickness = 1.0f;
-
-    pointSize = 1.0f;
-
+	for( int i = 0; i < theParticleCount; i++ ) {
+		particles.push_back( SParticle()); 
+	}
+	props = creationProps;
     firstTimeUpdate = false;
-
     g_particleEmitters.push_back( this );
-
     ResurrectParticles();
 }
 
@@ -572,4 +378,42 @@ ParticleEmitter::SParticleVertex::SParticleVertex( float theX, float theY, float
     ty = theTextureCoordY;
 
     color = theColor;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// API
+////////////////////////////////////////////////////////////////////////////////////
+
+NodeHandle CreateParticleSystem( int particleNum, ParticleSystemProperties creationProps ) {
+	SceneNode * node = new SceneNode;
+	node->particleEmitter = new ParticleEmitter( node, particleNum, creationProps );
+	return SceneNode::HandleFromPointer( node );
+}
+
+int GetParticleSystemAliveParticles( NodeHandle ps ) {
+	SceneNode * n = SceneNode::CastHandle( ps );
+
+	if( n->particleEmitter ) {
+		return n->particleEmitter->GetAliveParticles();
+	}
+
+	return 0;
+}
+
+void ResurrectDeadParticles( NodeHandle ps ) {
+	SceneNode * n = SceneNode::CastHandle( ps );
+
+	if( n->particleEmitter ) {
+		return n->particleEmitter->ResurrectParticles();
+	}
+};
+
+ParticleSystemProperties * GetParticleSystemProperties( NodeHandle ps ) {
+	SceneNode * n = SceneNode::CastHandle( ps );
+
+	if( n->particleEmitter ) {
+		return &n->particleEmitter->props;
+	}
+
+	return 0;
 }

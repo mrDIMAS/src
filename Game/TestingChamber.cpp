@@ -7,10 +7,9 @@
 
 
 TestingChamber::TestingChamber( ) {
-    scene = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
+    scene = LoadScene( "data/maps/candidates/testingChamber/testingChamber.scene" );
 
     SetPosition( player->body, GetPosition( FindByName("PlayerPosition") ) + Vector3( 0, 1, 0 ) );
-    Animate( FindByName( "Torus001"), 0.1, 1 );
 
     Item * fuelCanister = new Item( FindByName( "FuelCanister" ), Item::FuelCanister );
     Item * detonator = new Item( FindByName( "Detonator" ), Item::Detonator );

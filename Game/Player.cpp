@@ -290,7 +290,8 @@ void Player::UpdateMouseLook() {
         }
     }
 
-    SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch + damagePitchOffset ) );
+    //SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch + damagePitchOffset ) );
+	SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch ) );
     SetRotation( body, Quaternion( Vector3( 0, 1, 0 ), yaw ) );
 }
 
@@ -311,7 +312,7 @@ void Player::UpdateJumping() {
 
     if( gravity.y >= jumpTo.y ) {
         if( !landed ) {
-            damagePitchOffset.SetTarget( 20.0f );
+            //damagePitchOffset.SetTarget( 20.0f );
         }
         landed = true;
     }
@@ -716,13 +717,14 @@ Player::UpdateEnvironmentDamaging
 ========
 */
 void Player::UpdateEnvironmentDamaging() {
+	/*
     for( int i = 0; i < GetContactCount( body ); i++ ) {
         Contact contact = GetContact( body, i );
 
         if( contact.impulse > 30 ) {
             Damage( contact.impulse / 5 );
         }
-    }
+    }*/
 }
 
 /*

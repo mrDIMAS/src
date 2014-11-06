@@ -97,7 +97,7 @@ void main( ) {
             DrawGUIText( Format( "DIPs: %d\nTC: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 100, 100, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
         }
         screamer->Update();
-        RenderWorld( );
+        RenderWorld( g_dt );
         g_dt = GetElapsedTimeInMilliSeconds( dtTimer ) / 1000.0f;
     }
 

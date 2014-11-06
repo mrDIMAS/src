@@ -61,20 +61,12 @@ SceneNode::SceneNode( ) {
     inFrustum = false;
     parent = 0;
     body = 0;
-    frameEnd = 0;
-    frameStart = 0;
-
+	totalFrames = 0;
     skinned = false;
     trimesh = 0;
     visible = true;
-    animationFrame = 0;
     animationEnabled = false;
-    animationMode = 0;
-    frameEnd = 0;
-    frameStart = 0;
     scene = 0;
-    frameInterpolationCoefficient = 0;
-    animationSpeedFramePerSecond = 1;
     localTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
     globalTransform = localTransform;
     numContacts = 0;
@@ -82,7 +74,7 @@ SceneNode::SceneNode( ) {
     fDepthHack = 0;
     particleEmitter = 0;
     albedo = 0.0f;
-
+	currentAnimation = nullptr;
     g_nodes.push_back( this );
 }
 
@@ -93,10 +85,11 @@ void SceneNode::SetConvexBody() {
 
     btConvexHullShape * convex = new btConvexHullShape();
 
-    for( auto mesh : meshes )
+    for( auto mesh : meshes ) {
         for( auto & vertex : mesh->vertices ) {
             convex->addPoint ( btVector3( vertex.coords.x, vertex.coords.y, vertex.coords.z ));
         }
+	}
 
     btVector3 inertia ( 0.0f, 0.0f, 0.0f );
     convex->calculateLocalInertia ( 1, inertia );
@@ -270,6 +263,8 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
 
     SceneNode * scene = new SceneNode;
 
+	scene->totalFrames = framesCount;
+
     string lightmapFilename;
     Texture * lightMapTexture = 0;
     if( g_rendererType == Renderer::TypeLightMapRenderer ) {
@@ -308,14 +303,9 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
 
         if( keyframeCount ) {
             node->localTransform = *node->keyframes[ 0 ];
-            node->frameEnd = 0;
-            node->frameStart = 0;
         }
 
-        if( node->skinned ) {
-            node->frameEnd = 0;
-            node->frameStart = 0;
-        }
+		node->totalFrames = framesCount;
 
         for( int i = 0; i < meshCount; i++ ) {
             Mesh * mesh = new Mesh( node );
@@ -375,7 +365,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
                         w.bones[ j ].weight = reader.GetFloat();
                     }
 
-                    mesh->weights.push_back( w );
+                    mesh->weightTable.push_back( w );
                 }
             }
 
@@ -431,33 +421,39 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
     return scene;
 }
 
-bool SceneNode::IsAnimating() {
+bool SceneNode::IsAnimationEnabled() {
     bool animCount = animationEnabled;
 
     for( auto child : childs ) {
-        animCount |= child->IsAnimating();
+        animCount |= child->IsAnimationEnabled();
     }
 
     return animCount;
 }
 
-btTransform SceneNode::GetInterpolatedTransform( btTransform * tr1, btTransform * tr2, float t ) {
-    btQuaternion quat = tr1->getRotation().slerp ( tr2->getRotation(), t );
-    btVector3 pos = tr1->getOrigin().lerp ( tr2->getOrigin(), t );
-    return btTransform ( quat, pos );
-}
 
 void SceneNode::PerformAnimation() {
+	if( currentAnimation ) {
+		if( currentAnimation->beginFrame < 0 ) {
+			currentAnimation->beginFrame = 0;
+		}
+		if( currentAnimation->endFrame > totalFrames ) {
+			currentAnimation->endFrame = totalFrames;
+		}
+		if( currentAnimation->currentFrame > currentAnimation->endFrame ) {
+			currentAnimation->currentFrame = currentAnimation->endFrame;
+		}
+		if( currentAnimation->currentFrame < 0 ) {
+			currentAnimation->currentFrame = 0;
+		}
+	}
     if ( skinned ) {
-        int i = 0;
-
-        parent = 0;
-
+        int vertexNumber = 0;
+        parent = nullptr;
         for( auto mesh : meshes ) {
-            vector< Vertex > temp = mesh->vertices;
-
+            mesh->skinningBuffer = mesh->vertices;
             for( auto & vertex : mesh->vertices ) {
-                Mesh::Weight & weight = mesh->weights[ i ];
+                Mesh::Weight & weight = mesh->weightTable[ vertexNumber ];
 
                 btVector3 initialPosition = btVector3( vertex.coords.x, vertex.coords.y, vertex.coords.z );
                 btVector3 initialNormal = btVector3( vertex.normals.x, vertex.normals.y, vertex.normals.z );
@@ -467,7 +463,7 @@ void SceneNode::PerformAnimation() {
                 btVector3 newTangent = btVector3( 0, 0, 0 );
 
                 for( int j = 0; j < weight.boneCount; j++ ) {
-                    Mesh::BoneWeight & bone = weight.bones[ j ];
+                    Mesh::Bone & bone = weight.bones[ j ];
                     SceneNode * boneNode = scene->childs[ bone.id ];
 
                     btTransform transform = ( boneNode->globalTransform * boneNode->invBoneBindTransform ) * globalTransform;
@@ -476,52 +472,43 @@ void SceneNode::PerformAnimation() {
                     newTangent += transform.getBasis() * initialTangent * bone.weight;
                 }
 
-                vertex.coords.x = newPosition.x();
-                vertex.coords.y = newPosition.y();
-                vertex.coords.z = newPosition.z();
+                vertex.coords = Vector3( newPosition.m_floats );
+                vertex.normals = Vector3( newNormal.m_floats );
+                vertex.tangents = Vector3( newTangent.m_floats );
 
-                vertex.normals.x = newNormal.x();
-                vertex.normals.y = newNormal.y();
-                vertex.normals.z = newNormal.z();
-
-                vertex.tangents.x = newTangent.x();
-                vertex.tangents.y = newTangent.y();
-                vertex.tangents.z = newTangent.z();
+				vertexNumber++;
             }
-
             mesh->UpdateBuffers();
-
-            mesh->vertices = temp;
+            mesh->vertices = mesh->skinningBuffer;
         }
     } else {
-        // keyframes animation
-        if ( keyframes.size() ) {
-            btTransform * currentFrameTransform = keyframes.at( animationFrame );
-            btTransform * nextFrameTransform = keyframes.at( animationFrame + 1 );
+		if( currentAnimation ) {
+			if ( keyframes.size() ) {
+				btTransform * currentFrameTransform = keyframes[ currentAnimation->currentFrame ];
+				btTransform * nextFrameTransform = keyframes[ currentAnimation->currentFrame + 1 ];
 
-            localTransform = GetInterpolatedTransform ( currentFrameTransform, nextFrameTransform, frameInterpolationCoefficient );
-        }
+				localTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), currentAnimation->interpolator ));
+				localTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), currentAnimation->interpolator ));            
+			}
+		}
     }
-
-    if ( !animationEnabled ) {
-        return;
-    }
-
-    if ( frameInterpolationCoefficient >= 1 ) {
-        animationFrame++;
-
-        if ( animationFrame > frameEnd ) {
-            if ( animationMode == 1 ) {
-                animationFrame = frameStart;
-            } else {
-                animationEnabled = 0;
-            }
-        };
-
-        frameInterpolationCoefficient = 0;
-    }
-
-    frameInterpolationCoefficient += animationSpeedFramePerSecond;
+    if ( animationEnabled ) {
+		if( currentAnimation ) {
+			if ( currentAnimation->interpolator >= 1.0f ) {
+				currentAnimation->currentFrame++;
+				if ( currentAnimation->currentFrame >= ( currentAnimation->endFrame - 1 ) ) {
+					if ( currentAnimation->looped ) {
+						currentAnimation->currentFrame = currentAnimation->beginFrame;
+					} else {
+						currentAnimation->currentFrame = currentAnimation->beginFrame;
+						animationEnabled = false;
+					}
+				};
+				currentAnimation->interpolator = 0.0f;
+			}
+			currentAnimation->interpolator += g_dt / currentAnimation->timeSeconds;
+		}
+	}
 }
 
 void SceneNode::Freeze() {
@@ -540,15 +527,16 @@ void SceneNode::Unfreeze() {
     frozen = false;
 }
 
-void SceneNode::Animate( float speed, int mode ) {
-    animationMode = mode;
-    animationSpeedFramePerSecond = speed;
-    animationFrame = frameStart;
-    animationEnabled = 1;
+void SceneNode::SetAnimationEnabled( bool state, bool dontAffectChilds ) {
+	if( currentAnimation ) {
+		animationEnabled = state;
 
-    for( auto child : childs ) {
-        child->Animate( speed, mode );
-    }
+		if( !dontAffectChilds ) {
+			for( auto child : childs ) {
+				child->SetAnimationEnabled( state );
+			}
+		}
+	}
 }
 
 void SceneNode::Hide() {
@@ -757,16 +745,6 @@ void SceneNode::ApplyProperties() {
 
 void SceneNode::AttachSound( SoundHandle sound ) {
     sounds.push_back( sound );
-}
-
-void SceneNode::SetAnimationSequence( int begin, int end ) {
-    frameEnd = end;
-    frameStart = begin;
-    animationFrame = begin;
-
-    for( auto child : childs ) {
-        child->SetAnimationSequence( begin, end );
-    }
 }
 
 bool SceneNode::IsNodeInside( SceneNode * node ) {
@@ -1055,6 +1033,15 @@ void SceneNode::SetBody( btRigidBody * theBody ) {
     g_dynamicsWorld->addRigidBody ( body );
 }
 
+void SceneNode::SetAnimation( Animation * newAnim, bool dontAffectChilds ) {
+	currentAnimation = newAnim;
+	if( !dontAffectChilds ) {
+		for( auto child : childs ) {
+			child->SetAnimation( newAnim, false );
+		}
+	}
+}
+
 ////////////////////////////////////////////////////
 // API Functions
 ////////////////////////////////////////////////////
@@ -1183,20 +1170,12 @@ NodeHandle LoadScene( const char * file ) {
     return SceneNode::HandleFromPointer( SceneNode::LoadScene( file ));
 }
 
-int Animating( NodeHandle node ) {
-    return SceneNode::CastHandle( node )->IsAnimating();
-}
-
 void Freeze( NodeHandle node ) {
     SceneNode::CastHandle( node )->Freeze();
 }
 
 void Unfreeze( NodeHandle node ) {
     SceneNode::CastHandle( node )->Unfreeze();
-}
-
-void Animate( NodeHandle node, float speed, int mode ) {
-    SceneNode::CastHandle( node )->Animate( speed, mode );
 }
 
 void HideNode( NodeHandle node ) {
@@ -1225,10 +1204,6 @@ int GetContactCount( NodeHandle node ) {
 
 Contact GetContact( NodeHandle node, int num ) {
     return SceneNode::CastHandle( node )->GetContact( num );
-}
-
-void SetAnimationSequence( NodeHandle node, int begin, int end ) {
-    SceneNode::CastHandle( node )->SetAnimationSequence( begin, end );
 }
 
 int IsNodeInside( NodeHandle node1, NodeHandle node2 ) {
@@ -1353,4 +1328,27 @@ API NodeHandle GetWorldObject( int i ) {
     NodeHandle handle;
     handle.pointer = g_nodes[ i ];
     return handle;
+}
+
+
+// animation
+
+API bool IsAnimationEnabled( NodeHandle node ) {
+	return SceneNode::CastHandle( node )->IsAnimationEnabled();
+}
+
+API void SetAnimationEnabled( NodeHandle node, bool state, bool dontAffectChilds ) {
+	SceneNode::CastHandle( node )->SetAnimationEnabled( state, dontAffectChilds );
+}
+
+API void SetAnimation( NodeHandle node, Animation * newAnim, bool dontAffectChilds ) {
+	SceneNode::CastHandle( node )->SetAnimation( newAnim, dontAffectChilds );
+}
+
+API int GetTotalAnimationFrameCount( NodeHandle node ) {
+	return SceneNode::CastHandle( node )->totalFrames;
+}
+
+API Animation * GetCurrentAnimation( NodeHandle node ) {
+	return SceneNode::CastHandle( node )->currentAnimation;
 }

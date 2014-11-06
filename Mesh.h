@@ -7,7 +7,7 @@ class Octree;
 
 class Mesh {
 public:
-    class BoneWeight {
+    class Bone {
     public:
         float weight;
         int id;
@@ -15,7 +15,7 @@ public:
 
     class Weight {
     public:
-        BoneWeight bones[ 4 ];
+        Bone bones[ 4 ];
         int boneCount;
     };
 
@@ -40,7 +40,8 @@ public:
     Texture * lightMapTexture;
     vector<Vertex> vertices;
     vector<Triangle> triangles;
-    vector<Weight> weights;
+    vector<Weight> weightTable;
+	vector<Vertex> skinningBuffer;
     SceneNode * ownerNode;
     AABB aabb;
     Octree * octree;
