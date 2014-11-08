@@ -318,7 +318,7 @@ void Player::UpdateJumping() {
     }
 
     if( landed ) {
-        jumpTo = Vector3( 0, -70, 0 );
+        jumpTo = Vector3( 0, -30, 0 );
 
         if( CanJump() ) {
             jumpTo = Vector3( 0, 0, 0 );
@@ -436,10 +436,12 @@ void Player::UpdateMoving() {
             }
         }
 
+		//g_dt = 1.0f / 60.0f;
         fov.ChaseTarget( 4.0f * g_dt );
 
         SetFOV( camera->cameraNode, fov );
         speed = speed.Lerp( speedTo, 10.0f * g_dt ) + gravity;
+		
         Move( body, speed * Vector3( 100, 1, 100 ) * g_dt );
     }
 
@@ -466,10 +468,10 @@ void Player::Update( ) {
     if( dead ) {
         return;
     }
-
+	
     tip.AnimateAndDraw();
-    UpdateMouseLook();
-    UpdateMoving();
+    UpdateMouseLook();	
+    UpdateMoving();	
     UpdatePicking();
     UpdateItemsHandling();
     UpdateEnvironmentDamaging();
@@ -519,13 +521,7 @@ void Player::CreateBody() {
     body = CreateSceneNode();
     SetName( body, "Player" );
     SetCapsuleBody( body, 0.95, 0.28 );
-    SetAngularFactor( body, Vector3( 0, 0, 0 ));
-    SetPosition( body, Vector3( 0, 100, 0 ));
-    SetFriction( body, 0 );
-    SetAnisotropicFriction( body, Vector3( 1, 1, 1 ));
-    SetDamping( body, 0, 0 );
-    SetMass( body, 2 );
-    SetGravity( body, Vector3( 0, 0, 0 ));
+    SetupBody();
 }
 
 /*
@@ -629,6 +625,7 @@ void Player::UpdateFright() {
     heartBeatPitch.ChaseTarget( 0.0025f );
     breathPitch.ChaseTarget( 0.0025f );
 
+	/*
     SetVolume( breathSound, breathVolume );
     SetVolume( heartBeatSound, heartBeatVolume );
 
@@ -636,7 +633,7 @@ void Player::UpdateFright() {
     PlaySoundSource( breathSound, true );
 
     SetPitch( breathSound, breathPitch );
-    SetPitch( heartBeatSound, heartBeatPitch );
+    SetPitch( heartBeatSound, heartBeatPitch );*/
 }
 
 /*
@@ -986,6 +983,7 @@ Player::DeserializeWith
 ========
 */
 void Player::DeserializeWith( TextFileStream & in ) {
+	SetupBody();
     SetLocalPosition( body, in.ReadVector3() );
 
     in.ReadBoolean( locked );

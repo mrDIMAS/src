@@ -23,6 +23,7 @@ public:
     float angle;
 
     bool detectPlayer;
+	float speed;
 
     SoundHandle footstepsSounds[ 4 ];
 

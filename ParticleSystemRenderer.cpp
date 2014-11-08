@@ -8,8 +8,8 @@ ParticleSystemRenderer * g_particleSystemRenderer = 0;
 ParticleSystemRenderer::ParticleSystemRenderer() {
     string vertexSource =
         "float4x4 g_world;\n"
-        "float4x4 g_view;\n"
-        "float4x4 g_projection;\n"
+        "float4x4 g_WVP;\n"
+
         "struct VS_INPUT {\n"
         "  float4 position : POSITION;\n"
         "  float2 texcoord : TEXCOORD0;\n"
@@ -24,35 +24,24 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         "  float4 viewPos : TEXCOORD3;\n"
         "};\n"
 
-        "VS_OUTPUT main(VS_INPUT input) {\n"
-        "  VS_OUTPUT output;\n"
-        "  float4x4 worldViewProj = mul(mul(g_world, g_view), g_projection);\n"
-        "  output.position = mul(input.position, worldViewProj);\n"
-        "  output.texcoord = input.texcoord;\n"
-        "  output.color = input.color;\n"
-        "  output.worldPos = mul(input.position, g_world );\n"
+        "VS_OUTPUT main( VS_INPUT input ) {\n"
+		"  VS_OUTPUT output = (VS_OUTPUT)0;\n"
+        "  output.position = mul( input.position, g_WVP );\n"
+		"  output.worldPos = mul( input.position, (float3x3)g_world );\n"
+		"  output.texcoord = input.texcoord;\n"
+		"  output.color = input.color;\n"
         "  output.viewPos = output.position;\n"
         "  return output;\n"
         "};\n";
 
     vertexShader = new VertexShader( vertexSource );
 
-    vView = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_view" );
-    vProj = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_projection" );
+    vWVP = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_WVP" );
     vWorld = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_world" );
 
     string pixelSource =
-        "texture g_diffuseTexture ;\n"
-
-        "sampler texsampler : register( s0 ) = sampler_state {\n"
-        "  Texture = <g_diffuseTexture>;\n"
-        "};\n"
-
-        "texture g_depthTexture ;\n"
-
-        "sampler depthSampler : register( s1 ) = sampler_state {\n"
-        "  Texture = <g_depthTexture>;\n"
-        "};\n"
+        "sampler diffuseSampler : register( s0 );\n"
+        "sampler depthSampler : register( s1 );\n"
 
         "struct PS_INPUT {\n"
         "  float2 texcoord : TEXCOORD0;\n"
@@ -60,71 +49,44 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         "  float3 worldPos : TEXCOORD2;\n"
         "  float4 viewPos : TEXCOORD3;\n"
         "};\n"
-
-        "#define MAX_LIGHTS 5\n"
-
-        "float3 lightDiffuseColor[ MAX_LIGHTS ];\n"
-        "float3 lightPosition[ MAX_LIGHTS ];\n"
-        "float  lightRange[ MAX_LIGHTS ];\n"
-
-        "int litNum = 0;\n"
-        "int withLight = 0;\n"
-
-        "float4x4 invViewProj;\n"
-
+		// lighting
+        "float3 lightDiffuseColor[ 16 ];\n"
+        "float3 lightPosition[ 16 ];\n"
+        "float lightRange[ 16 ];\n"
+        "int lightCount = 0;\n"
+        "int withLight = 0;\n"       
+		// soft particles props
+		"float4x4 invViewProj;\n"
         "float thickness;"
 
-        "float unpackFloatFromVec4i ( const float4 value )\n"
-        "{\n"
-        "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
-
-        "  return dot ( value, bitSh );\n"
-        "}\n"
-
-        "float4 main(PS_INPUT input) : COLOR0\n"
-        "{\n"
-
-        "  input.viewPos /= input.viewPos.w;\n"
-        "  float2 depthCoord = float2( input.viewPos.x  * 0.5 + 0.5, -input.viewPos.y * 0.5 + 0.5);\n"
-
-        // diffuse color is product of texture diffuse color and color
-        "  float4 diffuse = tex2D( texsampler, input.texcoord ) * input.color;\n"
-
-        // get depth from depth map
-        "  float depth = unpackFloatFromVec4i( tex2D( depthSampler, depthCoord ));\n"
-        // restore position from depth
-        "  float4 screenPosition;\n"
-        "  screenPosition.x = depthCoord.x * 2.0f - 1.0f;\n"
-        "  screenPosition.y = -(depthCoord.y * 2.0f - 1.0f);\n"
-        "  screenPosition.z = depth;\n"
-        "  screenPosition.w = 1.0f;\n"
-
-        "  float4 p = mul( screenPosition, invViewProj );\n"
-        "  p /= p.w;\n"
-
-        "  float4 output = float4( 1, 1, 1, 1 );\n"
-
-        // do simple lighting if it's needed
-        "  if( withLight )\n"
-        "  {\n"
-
-        "    output = float4( 0, 0, 0, 0 );\n"
-
-        "    for( int i = 0; i < litNum; i++ )\n"
-        "    {\n"
-        "      float3 lightDir = lightPosition[ i ] - input.worldPos;\n"
-        "      output += float4( (lightDiffuseColor[ i ] * ( lightRange[ i ] / pow( dot(lightDir, lightDir ), 2 )) ).xyz, 0 );\n"
+		// entry point
+		"float4 main(PS_INPUT input) : COLOR0 {\n"
+        "  float4 output = float4( 1.0f, 1.0f, 1.0f, 1.0f );\n"
+        // do simple diffuse lighting
+		"  if( withLight ) {\n"
+        "    output.xyz = float3( 0.0f, 0.0f, 0.0f );\n"
+		"    for( int i = 0; i < lightCount; i++ ) {\n"
+        "      float3 lightDir = lightPosition[i] - input.worldPos;\n"
+        "      output += float4( ( lightDiffuseColor[i] * ( lightRange[i] / pow( dot(lightDir, lightDir ), 2 )) ).xyz, 0.0f );\n"
         "    }\n"
-
-        "    output.w = 1.0;\n"
-
         "  }\n"
-
-        "  output *= diffuse;"
-
+		// apply diffuse color
+        "  output *= tex2D( diffuseSampler, input.texcoord ) * input.color;"
+		// soft particles
+		// restore position from depth
+		"  input.viewPos /= input.viewPos.w;\n"
+		"  float2 depthCoord = float2( input.viewPos.x * 0.5 + 0.5, -input.viewPos.y * 0.5 + 0.5);"
+		"  float4 screenPosition;\n"
+		"  screenPosition.x =  ( depthCoord.x * 2.0f - 1.0f );\n"
+		"  screenPosition.y = -( depthCoord.y * 2.0f - 1.0f );\n"
+		"  screenPosition.z = tex2D( depthSampler, depthCoord ).r;\n"
+		"  screenPosition.w = 1.0f;\n"
+		"  float4 p = mul( screenPosition, invViewProj );\n"
+		"  p /= p.w;\n"
+		// adjust alpha of the fragment accorrding to restored position
         "  output.a *= saturate( thickness * distance( p.xyz, input.worldPos ) );\n"
-
         "  return output ;"
+		//"	return float4( 1,1,1,1);\n"
         "};\n";
 
     pixelShader = new PixelShader( pixelSource );
@@ -132,7 +94,7 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
     pColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightDiffuseColor" );
     pRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
     pPosition = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPosition" );
-    pLightCount = pixelShader->GetConstantTable()->GetConstantByName( 0, "litNum" );
+    pLightCount = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightCount" );
     pWithLight = pixelShader->GetConstantTable()->GetConstantByName( 0, "withLight" );
     pInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
     pThickness = pixelShader->GetConstantTable()->GetConstantByName( 0, "thickness" );
@@ -157,65 +119,47 @@ ParticleSystemRenderer::~ParticleSystemRenderer() {
 void ParticleSystemRenderer::RenderAllParticleSystems() {
     IDirect3DStateBlock9 * state;
     g_device->CreateStateBlock( D3DSBT_ALL, &state );
-
-    vertexShader->Bind();
-    pixelShader->Bind();
-    g_device->SetVertexDeclaration( vd );
-
+	
+	g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
+	g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE );
+	g_device->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
+	
+	g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
     g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE,  D3DMCS_COLOR1 );
-
     g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );
+    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	
+    g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+    g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+    g_device->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD );
 
-    g_device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-    g_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-    g_device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-
-    g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE );
-    g_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-    g_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-    g_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
-
-    g_device->SetRenderState(D3DRS_ZENABLE, TRUE );
-    g_device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE );
-
-    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CCW );
-
-    vertexShader->GetConstantTable()->SetMatrix( g_device, vView, &g_camera->view );
-    vertexShader->GetConstantTable()->SetMatrix( g_device, vProj, &g_camera->projection );
-
+    g_device->SetRenderState( D3DRS_ZENABLE, TRUE );
+    g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+	
     g_deferredRenderer->GetGBuffer()->BindDepthMap( 1 );
 
-    D3DXMATRIX viewProj;
-    D3DXMatrixMultiply( &viewProj, &g_camera->view, &g_camera->projection );
+	pixelShader->Bind();
+    pixelShader->GetConstantTable()->SetMatrix( g_device, pInvViewProj, &g_camera->invViewProjection );
 
-    D3DXMATRIX invViewProj;
-    D3DXMatrixInverse( &invViewProj, 0, &viewProj );
-
-    pixelShader->GetConstantTable()->SetMatrix( g_device, pInvViewProj, &invViewProj );
-
-    for( auto it = g_particleEmitters.begin(); it != g_particleEmitters.end(); ++it ) {
-        ParticleEmitter * ps = *it;
-
-        if( !ps->GetBase()->IsVisible() ) {
+	g_device->SetVertexDeclaration( vd );
+	vertexShader->Bind();
+    for( auto particleEmitter : g_particleEmitters ) {
+        if( !particleEmitter->GetBase()->IsVisible() || !particleEmitter->IsEnabled() || !particleEmitter->HasAliveParticles() ) {
             continue;
         }
 
-        if( !ps->IsEnabled() ) {
-            continue;
-        }
+        particleEmitter->Update();
+        particleEmitter->Bind();
 
-        if( !ps->HasAliveParticles() ) {
-            continue;
-        }
+		D3DXMATRIX mWVP;
+		D3DXMatrixMultiply( &mWVP, &particleEmitter->world, &g_camera->viewProjection );		
+		vertexShader->GetConstantTable()->SetMatrix( g_device, vWVP, &mWVP );
+		vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &particleEmitter->world );
 
-        ps->Update();
+        pixelShader->GetConstantTable()->SetFloat( g_device, pThickness, particleEmitter->GetThickness() );
 
-        ps->Bind();
-
-        vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &ps->GetWorldTransform() );
-        pixelShader->GetConstantTable()->SetFloat( g_device, pThickness, ps->GetThickness() );
-
-        if( ps->IsLightAffects() ) {
+        if( particleEmitter->IsLightAffects() ) {
             vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 1 );
 
             int lightPerPass = 5;
@@ -254,7 +198,7 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
                     pixelShader->GetConstantTable()->SetFloat( g_device, pixelShader->GetConstantTable()->GetConstantElement( pRange, j ), lit->GetRadius() * lit->GetRadius() );
                 }
 
-                ps->Render();
+                particleEmitter->Render();
 
                 for( size_t j = 0; j < (size_t)cnt; j++ ) {
                     affectedLights.erase( affectedLights.begin() );
@@ -262,8 +206,8 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
             }
         } else {
             vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 0 );
-
-            ps->Render();
+			
+            particleEmitter->Render();
         }
 
     }

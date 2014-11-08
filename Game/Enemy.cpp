@@ -63,7 +63,7 @@ void Enemy::Update() {
             }
 
             if( move ) {
-                Move( body, direction * 5.42f + Vector3( 0, -1, 0 ) );
+                Move( body, direction * speed + Vector3( 0, -1, 0 ) );
             }
         }
     }
@@ -120,6 +120,8 @@ Enemy::Enemy( const char * file ) {
 	animAttack = Animation( 32, 44, 0.35, false );
 
 	Animation * anim = GetCurrentAnimation( model );
+
+	speed = 4.0f;
 
 	int a = 0;
 }

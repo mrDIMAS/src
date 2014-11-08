@@ -49,47 +49,30 @@ void main( ) {
 
 	FontHandle font = CreateGUIFont( 16, "Arial", 1, 0 );
 
-	//int ripper = LoadScene( "data/models/ripper/ripper.scene" );
-	/*
-	int particleSystem = CreateParticleSystem( 1000, GetTexture( "data/textures/particles/p1.png" ), PS_BOX );
-	SetParticleSystemSpeedDeviation( particleSystem, Vector3( -0.1, 0.0, -0.1 ),  Vector3(  0.1, 0.4,  0.1 ) );
-	SetParticleSystemBox( particleSystem, Vector3( -100, 0, -100 ), Vector3( 100, 100, 100 ) );
-	SetParticleSystemColors( particleSystem, Vector3( 0, 255, 0 ),  Vector3( 0, 0, 255 ) );
-	SetParticleSystemPointSize( particleSystem, 10 );*/
-	//EnableParticleSystemLighting( particleSystem );
-
-	// SetAmbientColor( Vector3( 1, 1,1 ));
-
-	// SetLightColor( FindByName( "Fspot003" ), Vector3( 255, 0, 0 ));
-
-
 	int counter = 0;
 	int fps = 0;
 
-	//int Omni09 = FindByName( "Omni09" );
-	//SetLightRange( Omni09, 20 );
+	// Particle system test
+	ParticleSystemProperties boxParticleEmitterProps;
+	boxParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
+	boxParticleEmitterProps.type = PS_BOX;
+	boxParticleEmitterProps.speedDeviationMin = Vector3( -0.1, 0.0, -0.1 );
+	boxParticleEmitterProps.speedDeviationMax = Vector3(  0.1, 0.4,  0.1 );
+	boxParticleEmitterProps.boundingBoxMin = Vector3( -10, 0, -10 );
+	boxParticleEmitterProps.boundingBoxMin = Vector3( 10, 10, 10 );
 
-	//DisableFXAA();
-	/*
-	int steamPS = CreateParticleSystem( 35, GetTexture( "data/textures/particles/p1.png"), PS_STREAM );
-	SetParticleSystemSpeedDeviation( steamPS, Vector3( -0.0015, 0.08, -0.0015 ), Vector3( 0.0015, 0.2, 0.0015 ) );
-	SetParticleSystemRadius( steamPS, 0.45f );
-	SetParticleSystemColors( steamPS, Vector3( 255, 255, 255 ),  Vector3( 255, 255, 255 ) );
-	SetParticleSystemPointSize( steamPS, 0.15 );
-	SetParticleSystemThickness( steamPS, 1.5 );
-	SetParticleSystemAutoResurrect( steamPS, true );
-	Attach( steamPS, cameraPivot );*/
+	NodeHandle boxParticleEmitter = CreateParticleSystem( 256, boxParticleEmitterProps );
 
-	ParticleSystemProperties psProps;
-	psProps.texture = GetTexture( "data/textures/particles/p1.png" );
-	psProps.type = PS_BOX;
-	psProps.speedDeviationMin = Vector3( -0.1, 0.0, -0.1 );
-	psProps.speedDeviationMax = Vector3(  0.1, 0.4,  0.1 );
-	psProps.boundingBoxMin = Vector3( -100, 0, -100 );
-	psProps.boundingBoxMin = Vector3( 100, 100, 100 );
+	ParticleSystemProperties streamParticleEmitterProps;
+	streamParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
+	streamParticleEmitterProps.type = PS_STREAM;
+	streamParticleEmitterProps.speedDeviationMin = Vector3( -0.1, 0.0, -0.1 );
+	streamParticleEmitterProps.speedDeviationMax = Vector3(  0.1, 0.4,  0.1 );
+	streamParticleEmitterProps.boundingRadius = 10;
 
-	NodeHandle testParticleSystem = CreateParticleSystem( 256, psProps );
+	NodeHandle streamParticleEmitter = CreateParticleSystem( 256, streamParticleEmitterProps );
 
+	// Animation test
 	NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
 	Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );	
 	SetAnimation( dummy, &idleAnim );
@@ -99,6 +82,8 @@ void main( ) {
 	TimerHandle perfTimer = CreateTimer();
 	int perfTime=0;
 
+	EnablePointLightShadows( false );
+	EnableSpotLightShadows( true );
 	while( !mi::KeyDown( mi::Esc )) {
 
 

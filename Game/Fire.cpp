@@ -9,6 +9,7 @@ Fire::~Fire() {
 }
 
 Fire::Fire( float size, float height ) {
+	/*
     particleSystem = CreateParticleSystem( 64, GetTexture( "data/textures/particles/p1.png"), PS_STREAM );
     SetParticleSystemSpeedDeviation( particleSystem, Vector3( -0.005, 0.08, -0.005 ), Vector3( 0.005, 0.02, 0.005 ) );
     SetParticleSystemBox( particleSystem, Vector3( -size, 0, -size ), Vector3( size, height, size ) );
@@ -20,5 +21,5 @@ Fire::Fire( float size, float height ) {
 
     light = CreateLight( LT_POINT );
     SetLightRange( light, size * 4 );
-    Attach( light, particleSystem );
+    Attach( light, particleSystem );*/
 }

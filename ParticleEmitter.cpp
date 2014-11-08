@@ -28,13 +28,6 @@ void ParticleEmitter::Bind() {
     g_device->SetIndices( indexBuffer );
 }
 
-int ParticleEmitter::GetAliveParticles() {
-    return aliveParticles;
-}
-D3DXMATRIX ParticleEmitter::GetWorldTransform() {
-    return world;
-}
-
 void ParticleEmitter::Update() {
     if( !firstTimeUpdate ) {
         ResurrectParticles();
@@ -45,12 +38,11 @@ void ParticleEmitter::Update() {
 
     base->globalTransform.getBasis().setEulerYPR( 0, 0, 0 );
     GetD3DMatrixFromBulletTransform( base->globalTransform, world );
-    g_device->SetTransform( D3DTS_WORLD, &world );
 
-    D3DXMATRIX mat = g_camera->view;
+    D3DXMATRIX view = g_camera->view;
 
-    Vector3 rightVect = Vector3( mat._11, mat._21, mat._31 ).Normalize();
-    Vector3 upVect = Vector3( mat._12, mat._22, mat._32 ).Normalize();
+    Vector3 rightVect = Vector3( view._11, view._21, view._31 ).Normalize();
+    Vector3 upVect = Vector3( view._12, view._22, view._32 ).Normalize();
 
     Vector3 leftTop = upVect - rightVect;
     Vector3 rightTop = upVect + rightVect;
@@ -59,36 +51,32 @@ void ParticleEmitter::Update() {
 
     int vertexNum = 0, faceNum = 0;
 
-    D3DXMatrixMultiply( &zSorter.worldView, &world, &g_camera->view );
+    D3DXMatrixMultiply( &zSorter.worldView, &world, &view );
     sort( particles.begin(), particles.end(), zSorter );
 
-    for( auto pIter = particles.begin(); pIter != particles.end(); ++pIter ) {
-        SParticle & p = *pIter;
-
+    for( auto & p : particles ) {
         float translucency = CalculateTranslucency( p );
-        p.Move();
-        p.SetTranslucency( translucency );
-        p.SetColor( props.colorBegin.Lerp( props.colorEnd , CalculateColorInterpolationCoefficient( p ) ) );
-        p.SetSize( p.GetSize() + props.scaleFactor );
+        p.position += p.speed;
+        p.translucency = translucency;
+        p.color = props.colorBegin.Lerp( props.colorEnd, CalculateColorInterpolationCoefficient( p ) );
+        p.size += props.scaleFactor;
 
         if( translucency <= 10.0f  ) {
             if( props.autoResurrectDeadParticles ) {
                 ResurrectParticle( p );
             }
         } else {
-            vertices[ vertexNum + 0 ] = SParticleVertex( p.GetPosition() + leftTop * p.GetSize(), 0.0, 0.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
-            vertices[ vertexNum + 1 ] = SParticleVertex( p.GetPosition() + rightTop * p.GetSize(), 1.0, 0.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
-            vertices[ vertexNum + 2 ] = SParticleVertex( p.GetPosition() + rightBottom * p.GetSize(), 1.0, 1.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
-            vertices[ vertexNum + 3 ] = SParticleVertex( p.GetPosition() + leftBottom * p.GetSize(), 0.0, 1.0, RGBAToInt( p.GetColor(), p.GetTranslucency()));
+            vertices[ vertexNum ] = SParticleVertex( p.position + leftTop * p.size, 0.0, 0.0, RGBAToInt( p.color, p.translucency ));
+            vertices[ vertexNum + 1 ] = SParticleVertex( p.position + rightTop * p.size, 1.0, 0.0, RGBAToInt( p.color, p.translucency ));
+            vertices[ vertexNum + 2 ] = SParticleVertex( p.position + rightBottom * p.size, 1.0, 1.0, RGBAToInt( p.color, p.translucency ));
+            vertices[ vertexNum + 3 ] = SParticleVertex( p.position + leftBottom * p.size, 0.0, 1.0, RGBAToInt( p.color, p.translucency ));
 
             // indices
             faces[ faceNum + 0 ] = SParticleFace( vertexNum + 0, vertexNum + 1, vertexNum + 3 );
             faces[ faceNum + 1 ] = SParticleFace( vertexNum + 1, vertexNum + 2, vertexNum + 3 );
 
             ++aliveParticles;
-
             vertexNum += 4;
-
             faceNum += 2;
         }
     }
@@ -118,14 +106,12 @@ float ParticleEmitter::CalculateColorInterpolationCoefficient( const SParticle &
     if( props.type == PS_STREAM ) {
         return GetSphereColorInterpolationCoefficient( particle );
     }
-
     return 0.0f;
 }
 
 float ParticleEmitter::GetSphereColorInterpolationCoefficient( const SParticle & particle ) {
-    float distance2 = particle.GetPosition().Length2();
+    float distance2 = particle.position.Length2();
     float radius2 = props.boundingRadius * props.boundingRadius;
-
     float coefficient = abs( distance2 / radius2 );
     if( coefficient > 1.0f ) {
         coefficient = 1.0f;
@@ -134,28 +120,24 @@ float ParticleEmitter::GetSphereColorInterpolationCoefficient( const SParticle &
 }
 
 float ParticleEmitter::GetBoxColorInterpolationCoefficient( const SParticle & particle ) {
-    float xColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().x, props.boundingBoxMax.x, props.boundingBoxMin.x );
-    float yColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().y, props.boundingBoxMax.y, props.boundingBoxMin.y );
-    float zColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.GetPosition().z, props.boundingBoxMax.z, props.boundingBoxMin.z );
+    float xColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.position.x, props.boundingBoxMax.x, props.boundingBoxMin.x );
+    float yColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.position.y, props.boundingBoxMax.y, props.boundingBoxMin.y );
+    float zColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.position.z, props.boundingBoxMax.z, props.boundingBoxMin.z );
 
     return ( xColorInterpolationCoefficient + yColorInterpolationCoefficient + zColorInterpolationCoefficient ) / 3.0f ;
 }
 
 float ParticleEmitter::GetBox1DColorInterpolationCoefficient( float coord, float maxCoord, float minCoord ) {
     float coefficient = 0;
-
     if( coord > 0 ) {
         coefficient = abs( coord / maxCoord );
     }
-
     if( coord < 0 ) {
         coefficient = abs( coord / minCoord );
     }
-
     if( coefficient > 1.0f ) {
         coefficient = 1.0f;
     }
-
     return coefficient;
 }
 
@@ -170,35 +152,29 @@ float ParticleEmitter::CalculateTranslucency( const SParticle & particle ) {
 }
 
 float ParticleEmitter::GetSphereBoundaryLayerTranslucency( const SParticle & particle ) {
-    float distance2 = particle.GetPosition().Length2();
+    float distance2 = particle.position.Length2();
     float radius2 = props.boundingRadius * props.boundingRadius;
-
     if( distance2 > radius2 ) {
         return 255.0f * radius2 / ( distance2 );
     }
-
     return 255.0f;
 }
 
 float ParticleEmitter::GetBoxBoundaryLayerTranslucency( const SParticle & particle ) {
-    float xTranslucency = GetBox1DTranslucency( particle.GetPosition().x, props.boundingBoxMax.x, props.boundingBoxMin.x );
-    float yTranslucency = GetBox1DTranslucency( particle.GetPosition().y, props.boundingBoxMax.y, props.boundingBoxMin.y );
-    float zTranslucency = GetBox1DTranslucency( particle.GetPosition().z, props.boundingBoxMax.z, props.boundingBoxMin.z );
-
+    float xTranslucency = GetBox1DTranslucency( particle.position.x, props.boundingBoxMax.x, props.boundingBoxMin.x );
+    float yTranslucency = GetBox1DTranslucency( particle.position.y, props.boundingBoxMax.y, props.boundingBoxMin.y );
+    float zTranslucency = GetBox1DTranslucency( particle.position.z, props.boundingBoxMax.z, props.boundingBoxMin.z );
     return ( xTranslucency + yTranslucency + zTranslucency ) / 3.0f;
 }
 
 float ParticleEmitter::GetBox1DTranslucency( float coord, float maxCoord, float minCoord ) {
     float translucency = 1.0f;
-
     if( coord > maxCoord ) {
-        translucency = abs( maxCoord / coord );
+		translucency = abs( maxCoord / coord );
     }
-
     if( coord < minCoord ) {
         translucency = abs( coord / minCoord );
     }
-
     return 255.0f * translucency;
 }
 
@@ -208,17 +184,15 @@ int ParticleEmitter::RGBAToInt( Vector3 color, int alpha ) {
 
 void ParticleEmitter::ResurrectParticle( SParticle & p ) {
     if( props.type == PS_BOX ) {
-        p.SetPosition( RandomVector3( props.boundingBoxMin, Vector3( props.boundingBoxMax.x, props.boundingBoxMin.y, props.boundingBoxMax.z )  ));
-        p.SetSpeed( RandomVector3( props.speedDeviationMin, props.speedDeviationMax ));
+        p.position = RandomVector3( props.boundingBoxMin, Vector3( props.boundingBoxMax.x, props.boundingBoxMin.y, props.boundingBoxMax.z ));
+        p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
+    } else if( props.type == PS_STREAM ) {
+        p.position = Vector3( 0, 0, 0 );
+        p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
     }
 
-    if( props.type == PS_STREAM ) {
-        p.SetPosition( Vector3( 0, 0, 0 ) );
-        p.SetSpeed( RandomVector3( props.speedDeviationMin, props.speedDeviationMax ));
-    }
-
-    p.SetSize( props.pointSize );
-    p.SetTranslucency( 255 );
+    p.size = props.pointSize;
+    p.translucency = 255;
 }
 
 Vector3 ParticleEmitter::RandomVector3( Vector3 & min, Vector3 & max ) {
@@ -238,8 +212,8 @@ float ParticleEmitter::GetThickness() {
 }
 
 void ParticleEmitter::ResurrectParticles() {
-    for( size_t i = 0; i < particles.size(); i++ ) {
-        ResurrectParticle( particles.at( i ));
+    for( auto & particle : particles ) {
+        ResurrectParticle( particle );
     }
 }
 
@@ -261,84 +235,30 @@ ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, P
 
 bool ParticleEmitter::ZSorter::operator()( SParticle & p1, SParticle & p2 ) {
     D3DXVECTOR3 viewSpacePos1;
-    D3DXVec3TransformCoord( &viewSpacePos1, &D3DXVECTOR3( p1.GetPosition().x, p1.GetPosition().y, p1.GetPosition().z ), &worldView );
-
+    D3DXVec3TransformCoord( &viewSpacePos1, &D3DXVECTOR3( p1.position.x, p1.position.y, p1.position.z ), &worldView );
     D3DXVECTOR3 viewSpacePos2;
-    D3DXVec3TransformCoord( &viewSpacePos2, &D3DXVECTOR3( p2.GetPosition().x, p2.GetPosition().y, p2.GetPosition().z ), &worldView );
-
+    D3DXVec3TransformCoord( &viewSpacePos2, &D3DXVECTOR3( p2.position.x, p2.position.y, p2.position.z ), &worldView );
     return viewSpacePos1.z < viewSpacePos2.z;
 }
 
-void ParticleEmitter::SParticle::Move() {
-    position = position + speed;
-}
-
-float ParticleEmitter::SParticle::GetSize() {
-    return size;
-}
-
-void ParticleEmitter::SParticle::SetSize( float theSize ) {
-    size = theSize;
-}
-
-float ParticleEmitter::SParticle::GetTranslucency() {
-    return translucency;
-}
-
-void ParticleEmitter::SParticle::SetTranslucency( float theTranslucency ) {
-    translucency = theTranslucency;
-}
-
-Vector3 ParticleEmitter::SParticle::GetColor() const {
-    return color;
-}
-
-void ParticleEmitter::SParticle::SetColor( const Vector3 & theColor ) {
-    color = theColor;
-}
-
-Vector3 ParticleEmitter::SParticle::GetSpeed() const {
-    return speed;
-}
-
-void ParticleEmitter::SParticle::SetSpeed( const Vector3 & theSpeed ) {
-    speed = theSpeed;
-}
-
-Vector3 ParticleEmitter::SParticle::GetPosition() const {
-    return position;
-}
-
-void ParticleEmitter::SParticle::SetPosition( const btVector3 & thePosition ) {
-    position.x = thePosition.x();
-    position.y = thePosition.y();
-    position.z = thePosition.z();
-}
-
-void ParticleEmitter::SParticle::SetPosition( const Vector3 & thePosition ) {
-    position = thePosition;
-}
-
 ParticleEmitter::SParticle::SParticle() {
-    SetPosition( Vector3( 0, 0, 0 ) );
-    SetSpeed( Vector3( 0, 0, 0 ) );
-    SetColor( Vector3( 255, 255, 255 ));
-    SetTranslucency( 255 );
-    SetSize( 1.0f );
+    position = Vector3( 0, 0, 0 );
+    speed = Vector3( 0, 0, 0 );
+    color = Vector3( 255, 255, 255 );
+    translucency = 255;
+    size = 1.0f;
 }
 
 ParticleEmitter::SParticle::SParticle( const Vector3 & thePosition, const Vector3 & theSpeed, const Vector3 & theColor, float theTranslucency, float theSize ) {
-    SetPosition( thePosition );
-    SetSpeed( theSpeed );
-    SetColor( theColor );
-    SetTranslucency( theTranslucency );
-    SetSize( theSize );
+    position = thePosition;
+    speed = theSpeed;
+    color = theColor;
+    translucency = theTranslucency;
+    size = theSize;
 }
 
 ParticleEmitter::SParticleFace::SParticleFace() {
-    v1 = 0;
-    v2 = 0;
-    v3 = 0;
+    v1 = v2 = v3 = 0;
 }
 
 ParticleEmitter::SParticleFace::SParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex ) {
@@ -348,13 +268,7 @@ ParticleEmitter::SParticleFace::SParticleFace( short theFirstVertex, short theSe
 }
 
 ParticleEmitter::SParticleVertex::SParticleVertex() {
-    x = 0.0f;
-    y = 0.0f;
-    z = 0.0f;
-
-    tx = 0.0f;
-    ty = 0.0f;
-
+    x = y = z = tx = ty = 0.0f;
     color = 0xFFFFFFFF;
 }
 
@@ -369,37 +283,41 @@ ParticleEmitter::SParticleVertex::SParticleVertex( Vector3 thePosition, float th
     color = theColor;
 }
 
-ParticleEmitter::SParticleVertex::SParticleVertex( float theX, float theY, float theZ, float theTextureCoordX, float theTextureCoordY, int theColor ) {
-    x = theX;
-    y = theY;
-    z = theZ;
-
-    tx = theTextureCoordX;
-    ty = theTextureCoordY;
-
-    color = theColor;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////
 // API
 ////////////////////////////////////////////////////////////////////////////////////
 
+/*
+===============
+CreateParticleSystem
+===============
+*/
 NodeHandle CreateParticleSystem( int particleNum, ParticleSystemProperties creationProps ) {
 	SceneNode * node = new SceneNode;
 	node->particleEmitter = new ParticleEmitter( node, particleNum, creationProps );
 	return SceneNode::HandleFromPointer( node );
 }
 
+/*
+ ===============
+ GetParticleSystemAliveParticles
+ ===============
+*/
 int GetParticleSystemAliveParticles( NodeHandle ps ) {
 	SceneNode * n = SceneNode::CastHandle( ps );
 
 	if( n->particleEmitter ) {
-		return n->particleEmitter->GetAliveParticles();
+		return n->particleEmitter->aliveParticles;
 	}
 
 	return 0;
 }
 
+/*
+===============
+ResurrectDeadParticles
+===============
+*/
 void ResurrectDeadParticles( NodeHandle ps ) {
 	SceneNode * n = SceneNode::CastHandle( ps );
 
@@ -408,6 +326,11 @@ void ResurrectDeadParticles( NodeHandle ps ) {
 	}
 };
 
+/*
+===============
+GetParticleSystemProperties
+===============
+*/
 ParticleSystemProperties * GetParticleSystemProperties( NodeHandle ps ) {
 	SceneNode * n = SceneNode::CastHandle( ps );
 

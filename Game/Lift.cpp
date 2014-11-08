@@ -15,7 +15,7 @@ Lift::Lift( NodeHandle object, NodeHandle screen, NodeHandle src, NodeHandle des
 void Lift::Update() {
     Vector3 delta = GetPosition( target ) - GetPosition( body );
 
-    Vector3 speed =  delta.Normalized() * 1.2;
+    Vector3 speed =  delta.Normalized() * 1.2 * g_dt;
 
     float dist2 = delta.Length2();
 

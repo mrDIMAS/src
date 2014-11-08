@@ -21,6 +21,7 @@ bool g_running = true;
 float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 
+/*
 NodeHandle CreateFog( NodeHandle obj, int density ) {
     Vector3 min = GetAABBMin( obj );
     Vector3 max = GetAABBMax( obj );
@@ -34,7 +35,7 @@ NodeHandle CreateFog( NodeHandle obj, int density ) {
     Attach( particleSystem, obj );
     return particleSystem;
 }
-
+*/
 void main( ) {
     Parser config;
     config.ParseFile( "mine.cfg" );
@@ -67,6 +68,7 @@ void main( ) {
     EnablePointLightShadows( false );
     TimerHandle dtTimer = CreateTimer();
 	SetHDREnabled( true );
+	g_dt = 1.0f  / 60.0f;
     while( true ) {
         RestartTimer( dtTimer );
         if( !g_running ) {
@@ -87,18 +89,21 @@ void main( ) {
                 if( FileExist( "quickSave.save" )) {                    
                     SaveLoader( "quickSave.save" ).RestoreWorldState();
                     player->tip.SetNewText( config.GetString( "loaded" ) );
-                }
+                }				
             if( currentLevel ) {
                 currentLevel->DoScenario();
             }
         }
         fpsCounter.RegisterFrame();
         if( g_showFPS ) {
-            DrawGUIText( Format( "DIPs: %d\nTC: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 100, 100, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
+            DrawGUIText( Format( "DIPs: %d\nTCs: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 200, 200, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
         }
         screamer->Update();
         RenderWorld( g_dt );
-        g_dt = GetElapsedTimeInMilliSeconds( dtTimer ) / 1000.0f;
+        g_dt = GetElapsedTimeInSeconds( dtTimer );
+		// lock fps drop on 20fps
+		if( g_dt > 1.0f / 20.0f )
+			g_dt = 1.0f / 20.0f;
     }
 
     if( currentLevel ) {

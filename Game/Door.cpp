@@ -34,7 +34,7 @@ Door::Door( NodeHandle hDoor, float fMaxAngle ) {
 
 void Door::DoInteraction() {
     if( state == State::Closing ) {
-        currentAngle -= 1.0f;
+        currentAngle -= 60.0f * g_dt;
 
         if( currentAngle < 0 ) {
             currentAngle = 0.0f;
@@ -44,7 +44,7 @@ void Door::DoInteraction() {
     }
 
     if( state == State::Opening ) {
-        currentAngle += 1.0f;
+        currentAngle += 60.0f * g_dt;
 
         if( currentAngle > maxAngle ) {
             state = State::Opened;

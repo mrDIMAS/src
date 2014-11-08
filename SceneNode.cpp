@@ -881,7 +881,7 @@ void SceneNode::Move( Vector3 speed ) {
 
 void SceneNode::SetVelocity( Vector3 velocity ) {
     if( body ) {
-        body->setLinearFactor( btVector3( velocity.x, velocity.y, velocity.z ) );
+        body->setLinearVelocity( btVector3( velocity.x, velocity.y, velocity.z ) );
     }
 }
 

@@ -10,9 +10,8 @@ private:
 
     IDirect3DVertexDeclaration9 * vd;
 
-    D3DXHANDLE vView;
-    D3DXHANDLE vProj;
-    D3DXHANDLE vWorld;
+    D3DXHANDLE vWVP;
+	D3DXHANDLE vWorld;
 
     D3DXHANDLE pLightCount;
     D3DXHANDLE pColor;

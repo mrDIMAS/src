@@ -34,7 +34,15 @@ private:
     void SetDirtFootsteps();
     void SetMetalFootsteps();
     void UpdateFright();
-
+	void SetupBody() {
+		SetAngularFactor( body, Vector3( 0, 0, 0 ));
+		SetFriction( body, 0 );
+		SetAnisotropicFriction( body, Vector3( 1, 1, 1 ));
+		SetDamping( body, 0, 0 );
+		SetMass( body, 2 );
+		SetGravity( body, Vector3( 0, 0, 0 ));
+		//SetLinearFactor( body, Vector3( 0, 0, 0 ));
+	}
     Parser localization;
 public:
     explicit Player();

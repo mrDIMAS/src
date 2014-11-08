@@ -5,7 +5,7 @@
 LevelResearchFacility::LevelResearchFacility() {
     scene = LoadScene( "data/maps/release/researchFacility/rf.scene" );
 
-    SetPosition( player->body, GetPosition( FindByName( "PlayerPosition" )));
+    SetLocalPosition( player->body, GetPosition( FindByName( "PlayerPosition" )));
 
     SetReverb( 13 );
 
@@ -62,12 +62,18 @@ LevelResearchFacility::~LevelResearchFacility() {
 }
 
 void LevelResearchFacility::CreateSteam() {
-    steamPS = CreateParticleSystem( 35, GetTexture( "data/textures/particles/p1.png"), PS_STREAM );
-    SetParticleSystemSpeedDeviation( steamPS, Vector3( -0.0015, 0.08, -0.0015 ), Vector3( 0.0015, 0.2, 0.0015 ) );
-    SetParticleSystemRadius( steamPS, 0.4f );
-    SetParticleSystemColors( steamPS, Vector3( 255, 255, 255 ),  Vector3( 255, 255, 255 ) );
-    SetParticleSystemPointSize( steamPS, 0.15 );
-    SetParticleSystemThickness( steamPS, 1.5 );
+	ParticleSystemProperties psProps;
+	psProps.texture = GetTexture( "data/textures/particles/p1.png");
+	psProps.type = PS_STREAM;
+	psProps.speedDeviationMin = Vector3( -0.0015, 0.08, -0.0015 );
+	psProps.speedDeviationMax = Vector3( 0.0015, 0.2, 0.0015 );
+	psProps.boundingRadius = 0.4f;
+	psProps.colorBegin = Vector3( 255, 255, 255 );
+	psProps.colorEnd = Vector3( 255, 255, 255 );
+	psProps.pointSize = 0.15f;
+	psProps.particleThickness = 1.5f;
+	psProps.useLighting = false;
+    steamPS = CreateParticleSystem( 35, psProps );
     SetPosition( steamPS, GetPosition( FindByName( "RFSteamPos" )));
     AttachSound( steamHissSound, steamPS );
 }
@@ -141,7 +147,7 @@ void LevelResearchFacility::DoScenario() {
     if( SoundPlaying( steamHissSound ) && steamPS.IsValid() ) {
         static float steamParticleSize = 0.15f;
 
-        SetParticleSystemPointSize( steamPS, steamParticleSize );
+        GetParticleSystemProperties( steamPS )->pointSize = steamParticleSize;
 
         if( steamParticleSize > 0 ) {
             steamParticleSize -= 0.0005f;

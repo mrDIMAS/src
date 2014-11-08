@@ -10,14 +10,17 @@ LevelMine::LevelMine() {
 
     SetPosition( player->body, GetPosition( FindInObjectByName( scene, "PlayerPosition" )));
 
+	Vector3 placePos = GetPosition( FindInObjectByName( scene, "PlayerPosition" ));
+	Vector3 playerPos = GetPosition( player->body );
+
     player->SetObjective( localization.GetString( "objective1" ));
 
-    AddSheet( new Sheet( FindByName( "Note1" ), localization.GetString( "note1Desc" ), localization.GetString( "note1" ) ) );
-    AddSheet( new Sheet( FindByName( "Note2" ), localization.GetString( "note2Desc" ), localization.GetString( "note2" ) ) );
-    AddSheet( new Sheet( FindByName( "Note3" ), localization.GetString( "note3Desc" ), localization.GetString( "note3" ) ) );
-    AddSheet( new Sheet( FindByName( "Note4" ), localization.GetString( "note4Desc" ), localization.GetString( "note4" ) ) );
-    AddSheet( new Sheet( FindByName( "Note5" ), localization.GetString( "note5Desc" ), localization.GetString( "note5" ) ) );
-    AddSheet( new Sheet( FindByName( "Note6" ), localization.GetString( "note6Desc" ), localization.GetString( "note6" ) ) );
+    AddSheet( new Sheet( FindInObjectByName( scene, "Note1" ), localization.GetString( "note1Desc" ), localization.GetString( "note1" ) ) );
+    AddSheet( new Sheet( FindInObjectByName( scene, "Note2" ), localization.GetString( "note2Desc" ), localization.GetString( "note2" ) ) );
+    AddSheet( new Sheet( FindInObjectByName( scene, "Note3" ), localization.GetString( "note3Desc" ), localization.GetString( "note3" ) ) );
+    AddSheet( new Sheet( FindInObjectByName( scene, "Note4" ), localization.GetString( "note4Desc" ), localization.GetString( "note4" ) ) );
+    AddSheet( new Sheet( FindInObjectByName( scene, "Note5" ), localization.GetString( "note5Desc" ), localization.GetString( "note5" ) ) );
+    AddSheet( new Sheet( FindInObjectByName( scene, "Note6" ), localization.GetString( "note6Desc" ), localization.GetString( "note6" ) ) );
 
     screamerZone = FindInObjectByName( scene, "Screamer1" );
     screamerZone2 = FindInObjectByName( scene, "Screamer2" );
@@ -140,7 +143,7 @@ void LevelMine::DoScenario() {
         return;
     }
 
-    PlayAmbientSounds();
+	PlayAmbientSounds();
 
     if( !stages[ "EnterRockFallZoneWallExp" ] ) {
         if( IsNodeInside( player->body, stoneFallZone )) {

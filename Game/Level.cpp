@@ -128,11 +128,10 @@ void Level::Change( int levelId, bool continueFromSave ) {
             if( player ) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
             }
-
-			if( player ) {
-				SaveLoader( "quickSave.save" ).RestoreWorldState();
-			}
         }
+
+		// loading can take a lot of time, so g_dt becomes a really huge value which can cause annoying bugs
+		// so restart dtTimer
 
         for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
             SetLightFloatingEnabled( GetWorldPointLight( i ), true );

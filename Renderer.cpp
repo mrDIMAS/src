@@ -357,9 +357,10 @@ void Renderer::RenderWorld() {
     pfSystemUpdate();
     // update physics subsystem
     if( g_physicsEnabled ) {
-        const float timeStep = 1.0f / 60.0f;
-        const int subSteps = 4;
-        g_dynamicsWorld->stepSimulation( timeStep, subSteps );
+        //const float timeStep = 1.0f / 60.0f;
+		const float fixedTimeStep = 1.0f / 60.0f;
+        const int subSteps = 2;
+        g_dynamicsWorld->stepSimulation( g_dt, subSteps, fixedTimeStep );
     }
 }
 

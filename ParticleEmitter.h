@@ -11,10 +11,7 @@ public:
         float tx, ty;
         int color;
 
-        SParticleVertex( float theX, float theY, float theZ, float theTextureCoordX, float theTextureCoordY, int theColor );
-
         SParticleVertex( Vector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor );
-
         SParticleVertex( );
     };
 
@@ -30,28 +27,15 @@ public:
     };
 
     class SParticle {
-    private:
+    public:
         Vector3 position;
         Vector3 color;
         Vector3 speed;
         float translucency;
         float size;
 
-    public:
         SParticle( const Vector3 & thePosition, const Vector3 & theSpeed, const Vector3 & theColor, float theTranslucency, float theSize );
         SParticle( );
-        void SetPosition( const Vector3 & thePosition );
-        void SetPosition( const btVector3 & thePosition );
-        Vector3 GetPosition( ) const;
-        void SetSpeed( const Vector3 & theSpeed );
-        Vector3 GetSpeed( ) const;
-        void SetColor( const Vector3 & theColor );
-        Vector3 GetColor( ) const;
-        void SetTranslucency( float theTranslucency );
-        float GetTranslucency();
-        void SetSize( float theSize );
-        float GetSize();
-        void Move( );
     };
 
     class ZSorter {
@@ -102,8 +86,6 @@ public:
     bool IsLightAffects( );
     SceneNode * GetBase();
     void Update( );
-    D3DXMATRIX GetWorldTransform();
-    int GetAliveParticles();
     void Bind();
     void Render();
 };

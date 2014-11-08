@@ -1,7 +1,7 @@
 #ifndef _COMMON_
 #define _COMMON_
 
-#define D3D_DEBUG_INFO
+//#define D3D_DEBUG_INFO
 
 #define _CRT_SECURE_NO_WARNINGS
 
