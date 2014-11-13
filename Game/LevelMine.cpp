@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "ScreenScreamer.h"
 #include "CrawlWay.h"
+#include "Pathfinder.h"
 
 LevelMine::LevelMine() {
     LoadLocalization( "mine.loc" );
@@ -120,9 +121,37 @@ LevelMine::LevelMine() {
     stages[ "ConcreteWallExp" ] = false;
     stages[ "FindObjectObjectiveSet" ] = false;
     stages[ "FoundObjectsForExplosion" ] = false;
+
+	// create paths
+	Path path; path.ScanSceneForPath( scene, "Path" );
+	Path pathOnUpperLevel; pathOnUpperLevel.ScanSceneForPath( scene, "PathOnUpperLevel" );
+	Path pathUpperRight; pathUpperRight.ScanSceneForPath( scene, "PathUpperRight" );
+	Path pathUpperLeft; pathUpperLeft.ScanSceneForPath( scene, "PathUpperLeft" );
+	Path pathToRoom; pathToRoom.ScanSceneForPath( scene, "PathToRoom" );
+	Path pathUpperRightTwo; pathUpperRightTwo.ScanSceneForPath( scene, "PathUpperRightTwo" );
+
+	// cross-path edges
+	path.vertices[17]->AddEdge( pathOnUpperLevel.vertices[0] );
+	pathOnUpperLevel.vertices[6]->AddEdge( pathUpperRight.vertices[0] );
+	pathOnUpperLevel.vertices[8]->AddEdge( pathUpperLeft.vertices[0] );
+	path.vertices[18]->AddEdge( pathToRoom.vertices[0] );
+	pathOnUpperLevel.vertices[12]->AddEdge( pathUpperRightTwo.vertices[0] );
+
+	// concatenate all paths
+	vector<GraphVertex*> allPaths;
+	allPaths.insert( allPaths.end(), path.vertices.begin(), path.vertices.end() );
+	allPaths.insert( allPaths.end(), pathOnUpperLevel.vertices.begin(), pathOnUpperLevel.vertices.end() );
+	allPaths.insert( allPaths.end(), pathUpperRight.vertices.begin(), pathUpperRight.vertices.end() );
+	allPaths.insert( allPaths.end(), pathUpperLeft.vertices.begin(), pathUpperLeft.vertices.end() );
+	allPaths.insert( allPaths.end(), pathToRoom.vertices.begin(), pathToRoom.vertices.end() );
+	allPaths.insert( allPaths.end(), pathUpperRightTwo.vertices.begin(), pathUpperRightTwo.vertices.end() );
+
+	enemy = new Enemy( "data/models/ripper/ripper.scene", allPaths );
+	SetPosition( enemy->body, GetPosition( FindInObjectByName( scene, "EnemyPosition" )));
 }
 
 LevelMine::~LevelMine() {
+	delete enemy;
 // FreeSoundSource( music );
 }
 
@@ -143,7 +172,9 @@ void LevelMine::DoScenario() {
         return;
     }
 
-	SetAmbientColor( Vector3( 30, 30, 30 ));
+	enemy->Think();
+
+	SetAmbientColor( Vector3( 0.08, 0.08, 0.08 ));
 
 	PlayAmbientSounds();
 

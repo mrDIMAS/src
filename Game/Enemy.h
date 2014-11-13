@@ -71,6 +71,7 @@ public:
 	Animation animIdle;
 	Animation animRun;
 	Animation animAttack;
+	Animation animWalk;
 
 	void DrawAnimationDebugInfo( NodeHandle node, int & y );
 
@@ -79,6 +80,7 @@ public:
     void SetCommonAnimation( Animation * anim );
     virtual void SetIdleAnimation( );
     virtual void SetRunAnimation();
+	virtual void SetWalkAnimation();
     virtual void SetRunAndAttackAnimation();
     virtual void SetStayAndAttackAnimation();
     Enemy( const char * file, vector<GraphVertex*> & path );

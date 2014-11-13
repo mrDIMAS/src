@@ -98,8 +98,8 @@ void Menu::Update( ) {
                 }
 
                 if( !currentLevel && startPressed ) {
-                    //Level::Change( g_initialLevel );
-					Level::Change( LXTestingChamber );
+                    Level::Change( g_initialLevel );
+					//Level::Change( LXTestingChamber );
                 }
 
                 startPressed = false;

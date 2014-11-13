@@ -13,6 +13,8 @@ struct Edge {
 	Edge( GraphVertex * destinationVertex, float distanceToDestinationVertex );
 };
 
+
+
 class GraphVertex {
 private:
 	bool used;	
@@ -44,39 +46,14 @@ public:
 	GraphVertex * GetVertexNearestTo( Vector3 position, int * vertexNum = nullptr );
 };
 
-
-/*
-int main() {
-	// route test
-	vector< GraphVertex* > vertex;
-
-	vertex.push_back( new GraphVertex( 0, 0, 0 ));
-	vertex.push_back( new GraphVertex( 1, 2, 0 ));
-	vertex.push_back( new GraphVertex( 1, 5, 0 ));
-	vertex.push_back( new GraphVertex( 4, 4, 0 ));
-	vertex.push_back( new GraphVertex( 4, 2, 0 ));
-	vertex.push_back( new GraphVertex( 7, 2, 0 ));
-
-	vertex[0]->AddEdge( vertex[1] );	
-
-	vertex[1]->AddEdge( vertex[2] );	
-	vertex[1]->AddEdge( vertex[4] );	
-
-	vertex[2]->AddEdge( vertex[3] );	
-	vertex[3]->AddEdge( vertex[4] );	
-
-	vertex[4]->AddEdge( vertex[5] );	
-
-	Pathfinder testRoute;
-
-	for( auto v : vertex )
-		testRoute.AddPoint( v );
-
-	GraphVertex * begin = vertex[1];
-	GraphVertex * end = vertex[3];
-
-	vector< GraphVertex* > out;
-	testRoute.BuildPath( begin, end, out );
-
-
-}*/
+// helper class for Pathfinder
+class Path {
+public:
+	vector< GraphVertex* > vertices;
+	void AddPointAndLinkWithPrevious( GraphVertex * vertex );
+	class NodeSorter {
+	public:
+		bool operator() ( const NodeHandle & node1, const NodeHandle & node2 );
+	};
+	void ScanSceneForPath( NodeHandle scene, string pathBaseName );
+};

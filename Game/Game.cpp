@@ -21,21 +21,6 @@ bool g_running = true;
 float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 
-/*
-NodeHandle CreateFog( NodeHandle obj, int density ) {
-    Vector3 min = GetAABBMin( obj );
-    Vector3 max = GetAABBMax( obj );
-    NodeHandle particleSystem = CreateParticleSystem( density, GetTexture( "data/textures/particles/p1.png" ) );
-    SetParticleSystemSpeedDeviation( particleSystem, Vector3( -0.001, 0.0, -0.001 ),  Vector3(  0.001, 0.0009,  0.001 ) );
-    SetParticleSystemBox( particleSystem, min, max );
-    SetParticleSystemColors( particleSystem, Vector3( 255, 255, 255 ),  Vector3( 255, 255, 255 ) );
-    SetParticleSystemPointSize( particleSystem, 0.5 );
-    EnableParticleSystemLighting( particleSystem );
-    SetParticleSystemThickness( particleSystem, 0.5 );
-    Attach( particleSystem, obj );
-    return particleSystem;
-}
-*/
 void main( ) {
     Parser config;
     config.ParseFile( "mine.cfg" );

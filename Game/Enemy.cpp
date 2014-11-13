@@ -33,11 +33,11 @@ void Enemy::Think() {
 				currentWaypointNum += destWaypointNum - currentWaypointNum > 0 ? 1 : 0;
 			}
 		}
-	}
-
+	} 
+	bool reachPoint = ( destWaypointNum - currentWaypointNum ) < 0 ;
     Vector3 direction = target - GetPosition( body );
 	float heightUnderTarget = direction.y;
-	direction.y = 0; // use XZ plane instead 3D
+	//direction.y = 0; // use XZ plane instead 3D
 
     float distanceToPlayer = direction.Length();
     direction.Normalize();    
@@ -54,8 +54,14 @@ void Enemy::Think() {
 	bool targetTooHigh = heightUnderTarget > 2 * bodyHeight;
 	bool wayObstructed = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer != player->body.pointer;
 	
+	if( wayObstructed ) {
+		action = ActionGoToPlayer;
+	} else {
+		action = ActionChasePlayer;
+	}
+	
 	if( action == ActionChasePlayer ){
-		if( targetTooFar || player->dead || targetTooHigh || wayObstructed ) {
+		if( targetTooFar || player->dead || targetTooHigh ) {
 			SetIdleAnimation();
 			PlaySoundSource( breathSound, true );
 			PauseSoundSource( screamSound );
@@ -102,8 +108,8 @@ void Enemy::Think() {
 		GraphVertex * enemyNearestVertex = pathfinder.GetVertexNearestTo( GetPosition( body ) );
 		if( currentPlayerIndex != lastPlayerIndex ) { // means player has moved to another waypoint
 			pathfinder.BuildPath( enemyNearestVertex, playerNearestVertex, currentPath );			
-			destWaypointNum = GetVertexIndexNearestTo( pathfinder.GetPoint( pathfinder.GetPointCount() - 1 )->position );
-			currentWaypointNum = GetVertexIndexNearestTo( pathfinder.GetPoint( 0 )->position );
+			destWaypointNum = GetVertexIndexNearestTo( currentPath[ currentPath.size() - 1 ]->position );
+			currentWaypointNum = GetVertexIndexNearestTo( currentPath[0]->position );
 			if( currentWaypointNum > destWaypointNum ) {
 				int temp = currentWaypointNum;
 				currentWaypointNum = destWaypointNum;
@@ -113,19 +119,20 @@ void Enemy::Think() {
 		}
 		DrawGUIText( Format( "Src:%d       Dest:%d", currentWaypointNum, destWaypointNum ).c_str(), 100, 100, 200, 200, gui->font, Vector3( 255, 0, 0 ), 1 );
 
+		//SetWalkAnimation();
 		SetRunAnimation();
 	}
 
 	// check doors
 	for( auto d : Door::all ) {
-		if( ( GetPosition( d->door ) - GetPosition( body )).Length2() < 1.5f ) {
+		if( ( GetPosition( d->door ) - GetPosition( body )).Length2() < 2.5f ) {
 			if( d->GetState() == Door::State::Closed ) {
 				d->Open();
 			}
 		}
 	}
 
-	if( move ) {
+	if( move && !reachPoint ) {
 		Vector3 speedVector = direction * runSpeed + Vector3( 0, -1, 0 );
 		Move( body, speedVector );
 	}
@@ -152,6 +159,7 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path ) {
     SetAngularFactor( body, Vector3( 0, 0, 0 ));
     SetPosition( body, Vector3( 5, 1, -2.5 ));
 	SetMass( body, 100 );
+	SetFriction( body, 0 );
 
     model = LoadScene( file );
     Attach( model, body );
@@ -180,7 +188,7 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path ) {
     AttachSound( breathSound, model );
 
     screamSound = CreateSound3D( "data/sounds/scream_creepy_1.ogg" );
-	SetVolume( screamSound, 0 ); // FIX
+	SetVolume( screamSound, 0.5 ); // FIX
     AttachSound( screamSound, model );
 
     detectPlayer = false;
@@ -192,10 +200,11 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path ) {
 
 	// Animations
 	animIdle = Animation( 0, 15, 0.08, true );
-	animRun = Animation( 16, 31, 0.08, true );
-	animAttack = Animation( 32, 44, 0.035, true );
-		
-	runSpeed = 4.0f; 
+	animRun = Animation( 16, 34, 0.08, true );
+	animAttack = Animation( 35, 46, 0.035, true );
+	animWalk = Animation( 47, 58, 0.045, true );
+
+	runSpeed = 3.0f; 
 
 	action = ActionGoToPlayer;
 	patrolDirection = 1;
@@ -203,6 +212,10 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path ) {
 	destWaypointNum = 0;
 	lastPlayerIndex = 0;
 	int a = 0;
+}
+
+void Enemy::SetWalkAnimation() {
+	SetCommonAnimation( &animWalk );
 }
 
 

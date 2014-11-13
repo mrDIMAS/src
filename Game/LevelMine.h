@@ -44,6 +44,8 @@ private:
     float beepSoundTiming;
 
     LightAnimator * explosionFlashAnimator;
+
+	Enemy * enemy;
 public:
     explicit LevelMine( );
     virtual ~LevelMine();
