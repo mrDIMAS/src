@@ -65,10 +65,10 @@ void main( ) {
     SetCursorSettings( GetTexture( "data/gui/cursor.png" ), 32, 32 );
     FPSCounter fpsCounter;
 
-    EnablePointLightShadows( false );
     TimerHandle dtTimer = CreateTimer();
-	SetHDREnabled( true );
+
 	g_dt = 1.0f  / 60.0f;
+	float dtDest = g_dt;
     while( true ) {
         RestartTimer( dtTimer );
         if( !g_running ) {
@@ -99,11 +99,15 @@ void main( ) {
             DrawGUIText( Format( "DIPs: %d\nTCs: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 200, 200, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
         }
         screamer->Update();
+		//g_dt += ( dtDest - g_dt ) * 0.1f;
+		// lock dt, ffs it's annoying to debug this shit
+		g_dt = 1.0f / 60.0f;
         RenderWorld( g_dt );
-        g_dt = GetElapsedTimeInSeconds( dtTimer );
+
+        dtDest = GetElapsedTimeInSeconds( dtTimer );
 		// lock fps drop on 20fps
-		if( g_dt > 1.0f / 20.0f )
-			g_dt = 1.0f / 20.0f;
+		if( dtDest > 1.0f / 20.0f )
+			dtDest = 1.0f / 20.0f;
     }
 
     if( currentLevel ) {

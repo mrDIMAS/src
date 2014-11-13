@@ -70,3 +70,19 @@ void Door::SwitchState() {
         PlaySoundSource( closeSound );
     }
 }
+
+void Door::Close()
+{
+	if( state == State::Opened ) {
+		state = State::Closing;
+		PlaySoundSource( closeSound );
+	}
+}
+
+void Door::Open()
+{
+	if( state == State::Closed ) {
+		state = State::Opening;
+		PlaySoundSource( openSound );
+	}
+}

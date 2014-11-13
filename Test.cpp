@@ -86,7 +86,7 @@ void main( ) {
 	EnableSpotLightShadows( true );
 	while( !mi::KeyDown( mi::Esc )) {
 
-
+		idleAnim.Update();
 		mi::Update();
 
 		if( mi::MouseHit( mi::MouseButton::Right )) {

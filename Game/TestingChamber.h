@@ -2,8 +2,12 @@
 
 #include "Level.h"
 #include "Enemy.h"
+#include "Pathfinder.h"
+
 class TestingChamber : public Level {
 public:
+	vector< GraphVertex* > path;
+
     TestingChamber( );
     ~TestingChamber();
 

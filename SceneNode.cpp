@@ -305,7 +305,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
             node->localTransform = *node->keyframes[ 0 ];
         }
 
-		node->totalFrames = framesCount;
+		node->totalFrames = framesCount - 1; // - 1 because numeration started from zero
 
         for( int i = 0; i < meshCount; i++ ) {
             Mesh * mesh = new Mesh( node );
@@ -421,11 +421,11 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
     return scene;
 }
 
-bool SceneNode::IsAnimationEnabled() {
-    bool animCount = animationEnabled;
+int SceneNode::IsAnimationEnabled() {
+    int animCount = animationEnabled ? 1 : 0;
 
     for( auto child : childs ) {
-        animCount |= child->IsAnimationEnabled();
+        animCount += child->IsAnimationEnabled();
     }
 
     return animCount;
@@ -433,20 +433,6 @@ bool SceneNode::IsAnimationEnabled() {
 
 
 void SceneNode::PerformAnimation() {
-	if( currentAnimation ) {
-		if( currentAnimation->beginFrame < 0 ) {
-			currentAnimation->beginFrame = 0;
-		}
-		if( currentAnimation->endFrame > totalFrames ) {
-			currentAnimation->endFrame = totalFrames;
-		}
-		if( currentAnimation->currentFrame > currentAnimation->endFrame ) {
-			currentAnimation->currentFrame = currentAnimation->endFrame;
-		}
-		if( currentAnimation->currentFrame < 0 ) {
-			currentAnimation->currentFrame = 0;
-		}
-	}
     if ( skinned ) {
         int vertexNumber = 0;
         parent = nullptr;
@@ -483,48 +469,38 @@ void SceneNode::PerformAnimation() {
         }
     } else {
 		if( currentAnimation ) {
-			if ( keyframes.size() ) {
-				btTransform * currentFrameTransform = keyframes[ currentAnimation->currentFrame ];
-				btTransform * nextFrameTransform = keyframes[ currentAnimation->currentFrame + 1 ];
-
-				localTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), currentAnimation->interpolator ));
-				localTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), currentAnimation->interpolator ));            
+			if( animationEnabled ) {
+				if ( keyframes.size() ) {
+					btTransform * currentFrameTransform = keyframes[ currentAnimation->currentFrame ];
+					btTransform * nextFrameTransform = keyframes[ currentAnimation->nextFrame ];
+					localTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), currentAnimation->interpolator ));
+					localTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), currentAnimation->interpolator ));            
+				}
 			}
 		}
-    }
-    if ( animationEnabled ) {
-		if( currentAnimation ) {
-			if ( currentAnimation->interpolator >= 1.0f ) {
-				currentAnimation->currentFrame++;
-				if ( currentAnimation->currentFrame >= ( currentAnimation->endFrame - 1 ) ) {
-					if ( currentAnimation->looped ) {
-						currentAnimation->currentFrame = currentAnimation->beginFrame;
-					} else {
-						currentAnimation->currentFrame = currentAnimation->beginFrame;
-						animationEnabled = false;
-					}
-				};
-				currentAnimation->interpolator = 0.0f;
-			}
-			currentAnimation->interpolator += g_dt / currentAnimation->timeSeconds;
-		}
-	}
+    }   
 }
 
 void SceneNode::Freeze() {
+	frozen = true;
+	if( !body ) {
+		return;
+	}
     body->setAngularFactor( 0 );
     body->setLinearFactor( btVector3( 0, 0, 0 ));
     body->setAngularVelocity( btVector3( 0, 0, 0 ));
     body->setLinearVelocity( btVector3( 0, 0, 0 ));
-    body->setGravity( btVector3( 0, 0, 0 ));
-    frozen = true;
+    body->setGravity( btVector3( 0, 0, 0 ));    
 }
 
 void SceneNode::Unfreeze() {
+ frozen = false;
+	if( !body ) {
+		return;
+	}
     body->setAngularFactor( 1 );
     body->setLinearFactor( btVector3( 1, 1, 1 ));
     body->setGravity( g_dynamicsWorld->getGravity() );
-    frozen = false;
 }
 
 void SceneNode::SetAnimationEnabled( bool state, bool dontAffectChilds ) {
@@ -591,8 +567,9 @@ void SceneNode::UpdateContacts() {
 
         int numContacts = contactManifold->getNumContacts();
 
-        nodeA->numContacts += numContacts;
-        nodeB->numContacts += numContacts;
+		/*
+		nodeA->numContacts += numContacts;
+		nodeB->numContacts += numContacts;*/
 
         if( numContacts > BODY_MAX_CONTACTS ) {
             numContacts = BODY_MAX_CONTACTS;
@@ -600,8 +577,11 @@ void SceneNode::UpdateContacts() {
 
         for (int j = 0 ; j < numContacts; j++ ) {
             btManifoldPoint& pt = contactManifold->getContactPoint(j);
-
+			
             if (pt.getDistance() < 0.f ) {
+				nodeA->numContacts++;
+				nodeB->numContacts++;
+
                 nodeA->contacts[ j ].normal = Vector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
                 nodeB->contacts[ j ].normal = Vector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
                 nodeA->contacts[ j ].position = Vector3( pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
@@ -920,6 +900,11 @@ void SceneNode::SetRotation( Quaternion rotation ) {
 Vector3 SceneNode::GetLookVector() {
     btVector3 look = localTransform.getBasis().getColumn ( 2 );
     return Vector3( look.x(), look.y(), look.z() );
+}
+
+Vector3 SceneNode::GetAbsoluteLookVector() {
+	btVector3 look = globalTransform.getBasis().getColumn ( 2 );
+	return Vector3( look.x(), look.y(), look.z() );
 }
 
 const char * SceneNode::GetName() {
@@ -1298,6 +1283,10 @@ Quaternion GetLocalRotation( NodeHandle node ) {
     return SceneNode::CastHandle( node )->GetLocalRotation();
 }
 
+API Vector3 GetAbsoluteLookVector( NodeHandle node ) {
+	return SceneNode::CastHandle( node )->GetAbsoluteLookVector();
+}
+
 void SetLocalPosition( NodeHandle node, Vector3 pos ) {
     SceneNode * s = SceneNode::CastHandle( node );
     s->localTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
@@ -1333,7 +1322,7 @@ API NodeHandle GetWorldObject( int i ) {
 
 // animation
 
-API bool IsAnimationEnabled( NodeHandle node ) {
+API int IsAnimationEnabled( NodeHandle node ) {
 	return SceneNode::CastHandle( node )->IsAnimationEnabled();
 }
 

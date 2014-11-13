@@ -126,11 +126,12 @@ Player::CanJump
 ========
 */
 bool Player::CanJump( ) {
-    for( int i = 0; i < GetContactCount( body ); i++ )
-        if( GetContact( body, i ).normal.y > 0.5 ) {
-            return true;
-        }
-    return false;
+	NodeHandle legBump = RayTest( GetPosition( body ) + Vector3( 0, 0.1, 0 ), GetPosition( body ) - Vector3( 0, capsuleHeight, 0 ), 0 );
+	if( legBump.IsValid() ) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /*
@@ -139,10 +140,11 @@ Player::GotItemAnyOfType
 ========
 */
 int Player::GotItemAnyOfType( int type ) {
-    for( auto item : inventory.items )
+    for( auto item : inventory.items ) {
         if( item->type == type ) {
             return true;
         }
+	}
     return false;
 }
 
@@ -300,26 +302,26 @@ void Player::UpdateMouseLook() {
 Player::UpdateJumping
 ========
 */
-void Player::UpdateJumping() {
+void Player::UpdateJumping() {	
+	// do ray test, to determine collision with objects above camera
+	NodeHandle headBumpObject = RayTest( GetPosition( body ) + Vector3( 0, capsuleHeight * 0.98, 0 ), GetPosition( body ) + Vector3( 0, 1.02 * capsuleHeight, 0 ), nullptr );
+	
+
     if( mi::KeyHit( (mi::Key)keyJump ) && !locked ) {
-        if( CanJump() ) {
-            jumpTo = Vector3( 0, 30, 0 );
+       if( CanJump() ) {
+            jumpTo = Vector3( 0, 150, 0 );
             landed = false;
-        }
+       }
     }
 
-    gravity = gravity.Lerp( jumpTo, 30.0f * g_dt );
+    gravity = gravity.Lerp( jumpTo, 40.0f * g_dt );
 
     if( gravity.y >= jumpTo.y ) {
-        if( !landed ) {
-            //damagePitchOffset.SetTarget( 20.0f );
-        }
         landed = true;
     }
 
-    if( landed ) {
-        jumpTo = Vector3( 0, -30, 0 );
-
+    if( landed || headBumpObject.IsValid() ) {
+        jumpTo = Vector3( 0, -150, 0 );
         if( CanJump() ) {
             jumpTo = Vector3( 0, 0, 0 );
         }
@@ -337,7 +339,7 @@ void Player::UpdateMoving() {
     for( auto cw : Way::all ) {
         if( cw->IsEnterPicked() ) {
             if( !cw->IsPlayerInside() ) {
-                DrawTip( Format( localization.GetString( "crawlIn" ), GetKeyName( keyUse )));
+                DrawTip( Format( localization.GetString( "crawlIn" ), GetKeyName( keyUse ).c_str()));
             }
 
             if( IsUseButtonHit() ) {
@@ -350,7 +352,7 @@ void Player::UpdateMoving() {
         door->DoInteraction();
 
         if( door->IsPickedByPlayer() ) {
-            DrawTip( Format( localization.GetString( "openClose" ), GetKeyName( keyUse )));
+            DrawTip( Format( localization.GetString( "openClose" ), GetKeyName( keyUse ).c_str()));
 
             if( IsUseButtonHit() ) {
                 door->SwitchState();
@@ -436,13 +438,11 @@ void Player::UpdateMoving() {
             }
         }
 
-		//g_dt = 1.0f / 60.0f;
         fov.ChaseTarget( 4.0f * g_dt );
-
         SetFOV( camera->cameraNode, fov );
-        speed = speed.Lerp( speedTo, 10.0f * g_dt ) + gravity;
-		
-        Move( body, speed * Vector3( 100, 1, 100 ) * g_dt );
+
+        speed = speed.Lerp( speedTo + gravity, 10.0f * g_dt );
+        Move( body, speed * Vector3( 100, 1, 100 ) * g_dt );		
     }
 
     UpdateCameraBob();
@@ -518,9 +518,12 @@ Player::CreateBody
 ========
 */
 void Player::CreateBody() {
+	capsuleRadius = 0.28f;
+	capsuleHeight = 0.95f;
+
     body = CreateSceneNode();
     SetName( body, "Player" );
-    SetCapsuleBody( body, 0.95, 0.28 );
+    SetCapsuleBody( body, capsuleHeight, capsuleRadius );
     SetupBody();
 }
 
@@ -730,6 +733,26 @@ Player::UpdateItemsHandling
 ========
 */
 void Player::UpdateItemsHandling() {
+	if( nearestPicked.IsValid() ) {
+		if( IsUseButtonHit() ) {
+			Item * itm = Item::GetByObject( nearestPicked );
+
+			if( itm ) {
+				AddItem( itm );
+
+				PlaySoundSource( pickupSound );
+			}
+
+			Sheet * sheet = Sheet::GetSheetByObject( nearestPicked );
+
+			if( sheet ) {
+				sheetInHands = sheet;
+				HideNode( sheetInHands->object );
+				PlaySoundSource( Sheet::paperFlip );
+			}
+		}
+	}
+
     if( objectInHands.IsValid() ) {
         Vector3 ppPos = GetPosition( itemPoint );
         Vector3 objectPos = GetPosition( objectInHands );
@@ -751,28 +774,6 @@ void Player::UpdateItemsHandling() {
             SetAngularVelocity( objectInHands, Vector3( 1, 1, 1 ));
 
             objectInHands.Invalidate();
-        }
-
-        if( objectInHands.IsValid() ) {
-            if( IsUseButtonHit() ) {
-                Item * itm = Item::GetByObject( objectInHands );
-
-                if( itm ) {
-                    AddItem( itm );
-
-                    PlaySoundSource( pickupSound );
-                }
-
-                Sheet * sheet = Sheet::GetSheetByObject( objectInHands );
-
-                if( sheet ) {
-                    sheetInHands = sheet;
-                    HideNode( sheetInHands->object );
-                    PlaySoundSource( Sheet::paperFlip );
-                }
-
-                objectInHands.Invalidate();
-            }
         }
     }
 
@@ -807,10 +808,10 @@ void Player::UpdatePicking() {
 
             if( itm ) {
                 pickedObjectDesc = itm->name;
-                pickedObjectDesc += Format( localization.GetString( "itemPick" ), GetKeyName( keyUse));
+                pickedObjectDesc += Format( localization.GetString( "itemPick" ), GetKeyName( keyUse).c_str() );
             } else if( sheet ) {
                 pickedObjectDesc = sheet->desc;
-                pickedObjectDesc += Format( localization.GetString( "sheetPick" ), GetKeyName( keyUse ));
+                pickedObjectDesc += Format( localization.GetString( "sheetPick" ), GetKeyName( keyUse ).c_str() );
             } else {
                 if( IsObjectHasNormalMass( picked ) && !IsNodeFrozen( picked )) {
                     DrawTip( localization.GetString( "objectPick" ) );

@@ -583,6 +583,38 @@ int GetAvailableTextureMemory() {
 
 /*
 ===============
+RayTest
+===============
+*/
+API NodeHandle RayTest( Vector3 begin, Vector3 end, Vector3 * outPickPoint ) {
+	btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
+	btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
+
+	btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
+	g_dynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
+
+	if ( rayCallback.hasHit() ) {
+		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
+		if ( pBody ) {
+			SceneNode * node = ( SceneNode * ) pBody->getUserPointer();
+
+			if ( node ) {
+				if( outPickPoint ) {
+					outPickPoint->x = rayCallback.m_hitPointWorld.x();
+					outPickPoint->y = rayCallback.m_hitPointWorld.y();
+					outPickPoint->z = rayCallback.m_hitPointWorld.z();
+				};
+
+				return SceneNode::HandleFromPointer( node );
+			}
+		}
+	}
+
+	return SceneNode::HandleFromPointer( 0 );
+}
+
+/*
+===============
 RayPick
 ===============
 */

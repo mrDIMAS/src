@@ -10,7 +10,7 @@ public:
         Closing,
         Opening,
     };
-private:
+public:
     NodeHandle door;
 
     float maxAngle;
@@ -30,5 +30,7 @@ public:
     bool IsPickedByPlayer();
     void SwitchState();
     State GetState();
+	void Open( );
+	void Close();
     void DoInteraction();
 };

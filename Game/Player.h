@@ -102,8 +102,9 @@ public:
     float runSpeedMult;
     float headHeight;
     float cameraBobCoeff;
-    float runBobCoeff;    
-    
+    float runBobCoeff;   
+	float capsuleRadius;
+    float capsuleHeight;
     Vector3 speed;
     Vector3 speedTo;
     Vector3 gravity;

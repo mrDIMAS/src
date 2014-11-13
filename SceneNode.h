@@ -73,7 +73,7 @@ public:
     Vector3 GetAABBMin( );
     Vector3 GetAABBMax( );
     static SceneNode * Find( SceneNode * parent, string childName );
-    bool IsAnimationEnabled( );
+    int IsAnimationEnabled( );
     void PerformAnimation( );
     void Freeze( );
     void Unfreeze();
@@ -108,6 +108,7 @@ public:
     bool IsFrozen();
     void SetRotation( Quaternion rotation );
     Vector3 GetLookVector();
+	Vector3 GetAbsoluteLookVector();
     const char * GetName();
     Vector3 GetRightVector();
     Vector3 GetUpVector();

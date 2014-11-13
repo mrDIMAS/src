@@ -193,7 +193,9 @@ void GUIRenderer::RenderRects() {
 
         if( rect.texture ) {
             rect.texture->Bind( 0 );
-        }
+        } else {
+			g_device->SetTexture( 0, nullptr );
+		}
 
         g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 

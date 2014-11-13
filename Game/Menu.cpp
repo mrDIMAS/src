@@ -78,6 +78,8 @@ void Menu::Hide( ) {
 }
 
 void Menu::Update( ) {
+	SetAmbientColor( Vector3( 0, 0, 0 ));
+
     if( visible ) {
         camera->Update();
 
@@ -96,8 +98,8 @@ void Menu::Update( ) {
                 }
 
                 if( !currentLevel && startPressed ) {
-                    Level::Change( g_initialLevel );
-					//Level::Change( LXTestingChamber );
+                    //Level::Change( g_initialLevel );
+					Level::Change( LXTestingChamber );
                 }
 
                 startPressed = false;
@@ -404,7 +406,7 @@ void Menu::LoadConfig() {
         masterVolume->value = config.GetNumber( "masterVolume" );
         g_musicVolume = musicVolume->value = config.GetNumber( "musicVolume" );
         mouseSensivity->value = config.GetNumber( "mouseSens" );
-        fxaaButton->on = config.GetNumber( "masterVolume" );
+        fxaaButton->on = (int)config.GetNumber( "fxaaEnabled" );
 		if( fxaaButton->on ) {
 			EnableFXAA(); 
 		} else {
@@ -421,9 +423,9 @@ void Menu::LoadConfig() {
         wkUse->SetSelected( config.GetNumber( "keyUse" ) );
         wkQuickSave->SetSelected( g_keyQuickSave = config.GetNumber( "keyQuickSave" ) );
         wkQuickLoad->SetSelected( g_keyQuickLoad = config.GetNumber( "keyQuickLoad" ) );
-        spotShadowsButton->on = config.GetNumber( "spotShadowsEnabled" );
+        spotShadowsButton->on = (int)config.GetNumber( "spotShadowsEnabled" );
         EnableSpotLightShadows( spotShadowsButton->on );
-        pointShadowsButton->on = config.GetNumber( "pointShadowsEnabled" );
+        pointShadowsButton->on = (int)config.GetNumber( "pointShadowsEnabled" );
         EnablePointLightShadows( pointShadowsButton->on );
 		SetMasterVolume( masterVolume->value / 100.0f );
 		SetVolume( music, musicVolume->value / 100.0f );

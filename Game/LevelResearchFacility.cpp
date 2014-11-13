@@ -95,6 +95,8 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
+	SetAmbientColor( Vector3( 40, 40, 40 ));
+
     static int stateEnterSteamActivateZone = 0;
     static int stateEnterScaryBarellThrowZone = 0;
     static int stateEnterScreamerZone = 0;
@@ -175,22 +177,24 @@ void LevelResearchFacility::DoScenario() {
         if( IsNodeInside( player->body, spawnRipperZone )) {
             stateEnterSpawnRipperZone = true;
 
-            ripper = new Enemy( "data/models/ripper/ripper.scene" );
-            SetPosition( ripper->body, GetPosition( FindByName( "RipperPosition" )));
+            //ripper = new Enemy( "data/models/ripper/ripper.scene" );
+            //SetPosition( ripper->body, GetPosition( FindByName( "RipperPosition" )));
         }
     }
 
-    if( stateEnterSpawnRipperZone ) {
-        ripper->Update();
-    }
+	if( ripper ) {
+		if( stateEnterSpawnRipperZone ) {
+			ripper->Think();
+		}
 
-    if( !stateEnterRepositionRipperZone ) {
-        if( IsNodeInside( player->body, repositionRipperZone )) {
-            stateEnterRepositionRipperZone = true;
-            ripper->detectPlayer = true;
-            SetPosition( ripper->body, GetPosition( ripperNewPosition ));
-        }
-    }
+		if( !stateEnterRepositionRipperZone ) {
+			if( IsNodeInside( player->body, repositionRipperZone )) {
+				stateEnterRepositionRipperZone = true;
+				ripper->detectPlayer = true;
+				SetPosition( ripper->body, GetPosition( ripperNewPosition ));
+			}
+		}
+	}
 
     if( steamValve->done ) {
         SetPosition( extremeSteamBlock, Vector3( 1000, 1000, 1000 ));

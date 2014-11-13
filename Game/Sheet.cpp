@@ -10,7 +10,6 @@ Sheet::Sheet( NodeHandle object, string desc, string text ) : InteractiveObject(
     this->desc = desc;
     noteTex = GetTexture( "data/textures/generic/note.jpg" );
     sheets.push_back( this );
-
     if( !paperFlip.IsValid() ) {
         paperFlip = CreateSound2D( "data/sounds/paperflip.ogg" );
     }

@@ -55,6 +55,11 @@ void Vector3::operator *= ( const Vector3 & v ) {
     z *= v.z;
 }
 
+float Vector3::Angle( const Vector3 & v ) {
+	btScalar s = btSqrt( Length2() * v.Length2());
+	return acosf( Dot(v) / s );
+}
+
 void Vector3::operator /= ( const Vector3 & v ) {
     x /= v.x;
     y /= v.y;

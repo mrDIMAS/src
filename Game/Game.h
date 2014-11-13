@@ -16,6 +16,10 @@
 #include <fstream>
 #include <vld.h>
 #include <windows.h>
+#include <assert.h>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 enum class FootstepsType {
     Rock,

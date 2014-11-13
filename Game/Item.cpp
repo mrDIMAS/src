@@ -100,20 +100,14 @@ Item::Item( NodeHandle obj, int typ ): InteractiveObject( obj ) {
     if( !loc.IsParsed() ) {
         loc.ParseFile( localizationPath + "items.loc" );
     }
-
-
     onCombineBecomes = 0;
     combinesWith = 0;
-
     Available.push_back( this );
-
     volume = Property( string( loc.GetString( "volume" )) + "\n", "-" );
     mass = Property( string( loc.GetString( "mass" )) + "\n", "-" );
     content = Property( string( loc.GetString( "content" )) + "\n", "-" );
     contentType = Property( string( loc.GetString( "contentType" ))+ "\n", "-" );
-
     inInventory = false;
-
     SetType( typ );
 }
 

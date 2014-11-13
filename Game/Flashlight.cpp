@@ -1,31 +1,21 @@
 #include "Flashlight.h"
 
-
-
-
 void Flashlight::Update() {
     if( on ) {
         rangeDest = onRange;
 
-        float time = GetElapsedTimeInSeconds( chargeTimer );
+        charge -= g_dt / chargeWorkTimeSeconds;
 
-        charge = 1.0f - maxCharge * ( time ) / chargeWorkTimeSeconds;
-
-        if( charge < 0.25f ) {
-            charge = 0.25f;
+        if( charge < 0.1f ) {
+            charge = 0.1f;
         }
     } else {
         rangeDest = 0.0f;
-
-        RestartTimer( chargeTimer );
     }
 
     realRange += ( rangeDest - realRange ) * 0.15f;
-
     SetLightRange( light, realRange * charge );
-
     position = position.Lerp( destPosition, 0.15f );
-
     SetPosition( model, position );
 }
 
@@ -54,8 +44,6 @@ void Flashlight::SwitchOff() {
         on = false;
 
         destPosition = Vector3( -1.0f, -1.0f, -1.0f );
-
-        offTime += GetElapsedTimeInSeconds( chargeTimer );
     }
 }
 
@@ -69,8 +57,6 @@ void Flashlight::Attach( NodeHandle node ) {
 
 void Flashlight::Fuel() {
     charge = maxCharge;
-    offTime = 0.0f;
-    RestartTimer( chargeTimer );
 }
 
 bool Flashlight::GotCharge() {
@@ -88,10 +74,6 @@ Flashlight::Flashlight() {
     offSound = CreateSound2D( "data/sounds/flashlight/off.ogg" );
     outOfChargeSound = CreateSound2D( "data/sounds/flashlight/outofcharge.ogg" );
 
-    chargeTimer = CreateTimer();
-
-    chargeWorkTimeSeconds = 360.0f;
-
     onRange = GetLightRange( light );
 
     realRange = onRange;
@@ -100,7 +82,7 @@ Flashlight::Flashlight() {
     maxCharge = 1.0f;
     charge = maxCharge;
 
-    offTime = 0.0f;
+	chargeWorkTimeSeconds = 120.0f;
 
     on = true;
 }
@@ -111,8 +93,6 @@ void Flashlight::DeserializeWith( TextFileStream & in ) {
     in.ReadFloat( onRange );
     in.ReadFloat( realRange );
     in.ReadFloat( rangeDest );
-    in.ReadFloat( chargeWorkTimeSeconds );
-    in.ReadFloat( offTime );
     in.ReadBoolean( on );
     if( on ) {
         SwitchOn();
@@ -127,7 +107,5 @@ void Flashlight::SerializeWith( TextFileStream & out ) {
     out.WriteFloat( onRange );
     out.WriteFloat( realRange );
     out.WriteFloat( rangeDest );
-    out.WriteFloat( chargeWorkTimeSeconds );
-    out.WriteFloat( offTime );
     out.WriteBoolean( on );
 }

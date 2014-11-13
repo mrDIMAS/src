@@ -11,9 +11,11 @@ public:
     float maxCharge;
     float charge;
     float onRange;
+	
 
     float realRange;
     float rangeDest;
+	float chargeWorkTimeSeconds;
 
     SoundHandle onSound;
     SoundHandle offSound;
@@ -24,13 +26,9 @@ public:
     Vector3 position;
     Vector3 destPosition;
 
-    TimerHandle chargeTimer;
-
-    float chargeWorkTimeSeconds;
+	Vector3 offset;
 
     bool on;
-
-    float offTime;
 
     Flashlight( );
     bool GotCharge();

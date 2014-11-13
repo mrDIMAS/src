@@ -143,6 +143,8 @@ void LevelMine::DoScenario() {
         return;
     }
 
+	SetAmbientColor( Vector3( 30, 30, 30 ));
+
 	PlayAmbientSounds();
 
     if( !stages[ "EnterRockFallZoneWallExp" ] ) {

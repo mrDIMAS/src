@@ -92,6 +92,7 @@ extern FT_Library g_ftLibrary;
 extern IDirect3D9 * g_d3d;
 extern IDirect3DDevice9 * g_device;
 extern IDirect3DVertexDeclaration9 * g_meshVertexDeclaration;
+
 // bullet
 extern btDynamicsWorld * g_dynamicsWorld;
 extern btDefaultCollisionConfiguration * g_defaultCollision;

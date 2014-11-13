@@ -15,7 +15,7 @@ TestingChamber::TestingChamber( ) {
     Item * detonator = new Item( FindByName( "Detonator" ), Item::Detonator );
     Item * wires = new Item( FindByName( "Wires" ), Item::Wires );
 
-    enemy = new Enemy( "data/models/ripper/ripper.scene" );
+    
 
     //CrawlWay * testCw = new CrawlWay( FindInObjectByName( scene, "CrawlBegin"), FindInObjectByName( scene, "CrawlEnd"), FindInObjectByName( scene, "CrawlEnter"),
     //                               FindInObjectByName( scene, "CrawlBeginLeavePoint"), FindInObjectByName( scene, "CrawlEndLeavePoint"));
@@ -23,6 +23,48 @@ TestingChamber::TestingChamber( ) {
                                       FindInObjectByName( scene, "LadderBeginLeavePoint"), FindInObjectByName( scene, "LadderEndLeavePoint"));
 
     Door * door = new Door( FindInObjectByName( scene, "Door" ), 90 );
+
+	SetAmbientColor( Vector3( 200, 200, 200 ));
+
+	// create path, bruteforce!!11
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path00" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path01" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path02" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path03" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path04" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path05" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path06" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path07" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path08" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path09" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path10" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "Path11" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "PathToLadder00" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "PathToLadder01" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "PathToLadder02" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "PathToLadder03" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "PathToLadder04" ))) );
+	path.push_back( new GraphVertex( GetPosition( FindInObjectByName(scene, "PathToLadder05" ))) );
+
+	path[0]->AddEdge( path[1] );
+	path[1]->AddEdge( path[2] );
+	path[2]->AddEdge( path[3] );
+	path[3]->AddEdge( path[4] );
+	path[3]->AddEdge( path[5] );
+	path[4]->AddEdge( path[12] );
+	path[5]->AddEdge( path[6] );
+	path[6]->AddEdge( path[7] );
+	path[7]->AddEdge( path[8] );
+	path[8]->AddEdge( path[9] );
+	path[9]->AddEdge( path[10] );
+	path[10]->AddEdge( path[11] );		
+	path[12]->AddEdge( path[13] );
+	path[13]->AddEdge( path[14] );
+	path[14]->AddEdge( path[15] );
+	path[15]->AddEdge( path[16] );
+	path[16]->AddEdge( path[17] );
+
+	enemy = new Enemy( "data/models/ripper/ripper.scene", path );
 }
 
 TestingChamber::~TestingChamber() {
@@ -38,5 +80,6 @@ void TestingChamber::Hide() {
 }
 
 void TestingChamber::DoScenario() {
-    enemy->Update();
+	SetAmbientColor( Vector3( 200, 200, 200 ));
+    enemy->Think();
 }

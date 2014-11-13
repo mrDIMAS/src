@@ -18,188 +18,189 @@ using namespace std;
 
 class API Vector3 {
 public:
-    union {
-        struct {
-            float x;
-            float y;
-            float z;
-        };
+	union {
+		struct {
+			float x;
+			float y;
+			float z;
+		};
 
-        float elements[ 3 ];
-    };
+		float elements[ 3 ];
+	};
 
 
-    Vector3( );
-    Vector3( float x, float y, float z );
-    Vector3( const Vector3 & v );
-    Vector3( float * v );
-    Vector3 operator + ( const Vector3 & v ) const;
-    Vector3 operator - ( const Vector3 & v ) const;
-    Vector3 operator * ( const Vector3 & v ) const;
-    Vector3 operator * ( const float & f ) const;
-    Vector3 operator / ( const Vector3 & v ) const;
-    Vector3 operator / ( const float & f ) const;
-    void operator *= ( const Vector3 & v );
-    void operator /= ( const Vector3 & v );
-    void operator += ( const Vector3 & v );
-    void operator -= ( const Vector3 & v );
-    void operator = ( const Vector3 & v );
-    bool operator == ( const Vector3 & v );
-    float Length( ) const;
-    float Length2( ) const;
-    Vector3 Normalize( );
-    Vector3 Normalized() const;
-    Vector3 Cross( const Vector3 & v ) const;
-    float Dot( const Vector3 & v ) const;
-    Vector3 Rotate( const Vector3 & axis, float angle );
-    Vector3 Lerp( const Vector3 & v, float t ) const;
+	Vector3( );
+	Vector3( float x, float y, float z );
+	Vector3( const Vector3 & v );
+	Vector3( float * v );
+	Vector3 operator + ( const Vector3 & v ) const;
+	Vector3 operator - ( const Vector3 & v ) const;
+	Vector3 operator * ( const Vector3 & v ) const;
+	Vector3 operator * ( const float & f ) const;
+	Vector3 operator / ( const Vector3 & v ) const;
+	Vector3 operator / ( const float & f ) const;
+	void operator *= ( const Vector3 & v );
+	void operator /= ( const Vector3 & v );
+	void operator += ( const Vector3 & v );
+	void operator -= ( const Vector3 & v );
+	void operator = ( const Vector3 & v );
+	bool operator == ( const Vector3 & v );
+	float Length( ) const;
+	float Length2( ) const;
+	Vector3 Normalize( );
+	Vector3 Normalized() const;
+	Vector3 Cross( const Vector3 & v ) const;
+	float Dot( const Vector3 & v ) const;
+	float Angle( const Vector3 & v );
+	Vector3 Rotate( const Vector3 & axis, float angle );
+	Vector3 Lerp( const Vector3 & v, float t ) const;
 };
 
 static inline Vector3 operator * ( const float & f, const Vector3 & v ) {
-    return Vector3( v.x * f, v.y * f, v.z * f );
+	return Vector3( v.x * f, v.y * f, v.z * f );
 }
 
 static inline Vector3 operator - ( const Vector3 & v ) {
-    return Vector3( -v.x, -v.y, -v.z );
+	return Vector3( -v.x, -v.y, -v.z );
 }
 
 static inline float Lerp( const float & value, const float & from, const float & to, const float & t ) {
-    return from + ( to - from ) * t;
+	return from + ( to - from ) * t;
 }
 
 struct Vector2 {
 public:
-    float x;
-    float y;
+	float x;
+	float y;
 
-    Vector2( ) {
-        x = 0;
-        y = 0;
-    };
+	Vector2( ) {
+		x = 0;
+		y = 0;
+	};
 
-    Vector2( float x, float y ) {
-        this->x = x;
-        this->y = y;
-    };
+	Vector2( float x, float y ) {
+		this->x = x;
+		this->y = y;
+	};
 };
 
 class API Quaternion {
 public:
-    float x;
-    float y;
-    float z;
-    float w;
+	float x;
+	float y;
+	float z;
+	float w;
 
-    Quaternion( );
-    Quaternion( float x, float y, float z, float w );
-    Quaternion( float pitch, float yaw, float roll );
-    Quaternion( const Vector3 & axis, float angle );
+	Quaternion( );
+	Quaternion( float x, float y, float z, float w );
+	Quaternion( float pitch, float yaw, float roll );
+	Quaternion( const Vector3 & axis, float angle );
 };
 
 static inline Quaternion operator *  (const Quaternion& q1, const Quaternion & q2 ) {
-    return Quaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
-                        q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
-                        q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
-                        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
+	return Quaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+		q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
+		q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
+		q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
 }
 
 #define BODY_MAX_CONTACTS ( 4 )
 
 struct Contact {
-    Vector3 normal;
-    Vector3 position;
-    float impulse;
+	Vector3 normal;
+	Vector3 position;
+	float impulse;
 
-    Contact() {
-        impulse = 0;
-    }
+	Contact() {
+		impulse = 0;
+	}
 };
 
 class GUIState {
 public:
-    bool mouseInside;
-    bool mouseLeftClicked;
-    bool mouseRightClicked;
+	bool mouseInside;
+	bool mouseLeftClicked;
+	bool mouseRightClicked;
 
-    GUIState() {
-        mouseInside = false;
-        mouseLeftClicked = false;
-        mouseRightClicked = false;
-    }
+	GUIState() {
+		mouseInside = false;
+		mouseLeftClicked = false;
+		mouseRightClicked = false;
+	}
 };
 
 struct LinePoint {
-    Vector3 position;
-    int color;
+	Vector3 position;
+	int color;
 
-    LinePoint( ) {
-        position = Vector3( 0, 0, 0 );
-        color = 0xFFFFFFFF;
-    }
+	LinePoint( ) {
+		position = Vector3( 0, 0, 0 );
+		color = 0xFFFFFFFF;
+	}
 
-    LinePoint( Vector3 pos, int clr ) {
-        position = pos;
-        color = clr;
-    };
+	LinePoint( Vector3 pos, int clr ) {
+		position = pos;
+		color = clr;
+	};
 
-    LinePoint( Vector3 pos, Vector3 clr ) {
-        position = pos;
+	LinePoint( Vector3 pos, Vector3 clr ) {
+		position = pos;
 
-        int r = (int)clr.x;
-        int g = (int)clr.y;
-        int b = (int)clr.z;
+		int r = (int)clr.x;
+		int g = (int)clr.y;
+		int b = (int)clr.z;
 
-        color = ((((255)&0xFF)<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF));
-    };
+		color = ((((255)&0xFF)<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF));
+	};
 };
 
 enum {
-    LT_POINT,
-    LT_SPOT,
+	LT_POINT,
+	LT_SPOT,
 };
 
 class API RutheniumHandle {
 public:
-    void * pointer;
+	void * pointer;
 
-    explicit RutheniumHandle();
-    virtual ~RutheniumHandle();
+	explicit RutheniumHandle();
+	virtual ~RutheniumHandle();
 
-    virtual bool IsValid();
-    virtual void Invalidate();
+	virtual bool IsValid();
+	virtual void Invalidate();
 };
 
 class API NodeHandle : public RutheniumHandle {
 public:
-    bool operator == ( const NodeHandle & node );
+	bool operator == ( const NodeHandle & node );
 };
 
 class API FontHandle : public RutheniumHandle {
 public:
-    bool operator == ( const FontHandle & node );
+	bool operator == ( const FontHandle & node );
 };
 
 class API TextureHandle : public RutheniumHandle {
 public:
-    static TextureHandle Empty();
-    bool operator == ( const TextureHandle & node );
+	static TextureHandle Empty();
+	bool operator == ( const TextureHandle & node );
 };
 
 class API CubeTextureHandle : public RutheniumHandle {
 public:
-    static CubeTextureHandle Empty();
-    bool operator == ( const CubeTextureHandle & node );
+	static CubeTextureHandle Empty();
+	bool operator == ( const CubeTextureHandle & node );
 };
 
 class API SoundHandle : public RutheniumHandle {
 public:
-    int pfHandle;
-    explicit SoundHandle();
-    virtual ~SoundHandle();
+	int pfHandle;
+	explicit SoundHandle();
+	virtual ~SoundHandle();
 
-    bool operator == ( const SoundHandle & node );
-    virtual bool IsValid();
-    virtual void Invalidate();
+	bool operator == ( const SoundHandle & node );
+	virtual bool IsValid();
+	virtual void Invalidate();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -246,11 +247,11 @@ API bool IsSpotLightShadowsEnabled();
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture sampling
 namespace TextureFilter {
-    enum {
-        Nearest,
-        Linear,
-        Anisotropic
-    };
+	enum {
+		Nearest,
+		Linear,
+		Anisotropic
+	};
 };
 API void SetTextureFiltering( const int & filter, int anisotropicQuality );
 API int GetMaxAnisotropy();
@@ -329,7 +330,9 @@ API void SetLinearFactor( NodeHandle node, Vector3 lin );
 API void SetVelocity( NodeHandle node, Vector3 velocity );
 API void SetAngularVelocity( NodeHandle node, Vector3 velocity );
 API NodeHandle RayPick( int x, int y, Vector3 * outPickPoint = 0 );
+API NodeHandle RayTest( Vector3 begin, Vector3 end, Vector3 * outPickPoint = 0 );
 API Vector3 GetEulerAngles( NodeHandle node );
+API Vector3 GetAbsoluteLookVector( NodeHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions
@@ -386,36 +389,37 @@ API void CreateOctree( NodeHandle node, int splitCriteria = 45 );
 API void DeleteOctree( NodeHandle node );
 
 // Animation
-class Animation {
+class API Animation {
 private:
 	friend class SceneNode;
-	float interpolator;
-public:
 	int beginFrame;
 	int endFrame;
 	int currentFrame;
-	float timeSeconds; // full animation time in seconds, can be 0...+inf
+	int nextFrame;
+	float interpolator;
+public:	
+	float timeSeconds;
 	bool looped;
-
-	explicit Animation() {
-		looped = false;
-		beginFrame = 0;
-		endFrame = 0;
-		currentFrame = 0;
-		timeSeconds = 0.0f;
+	explicit Animation();
+	explicit Animation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
+	void SetFrameInterval( int begin, int end );
+	void SetCurrentFrame( int frame );
+	int GetCurrentFrame() {
+		return currentFrame;
 	}
-
-	explicit Animation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false ) {
-		currentFrame = theBeginFrame;
-		beginFrame = theBeginFrame;
-		endFrame = theEndFrame;
-		timeSeconds = theTimeSeconds;
-		looped = theLooped;
-		interpolator = 0.0f;
+	int GetEndFrame() {
+		return endFrame;
 	}
+	int GetBeginFrame() {
+		return beginFrame;
+	}
+	int GetNextFrame() {
+		return nextFrame;
+	}
+	void Update( );
 };
 
-API bool IsAnimationEnabled( NodeHandle node );
+API int IsAnimationEnabled( NodeHandle node );
 API void SetAnimationEnabled( NodeHandle node, bool state, bool dontAffectChilds = false );
 API void SetAnimation( NodeHandle node, Animation * newAnim, bool dontAffectChilds = false );
 API int GetTotalAnimationFrameCount( NodeHandle node );
@@ -514,185 +518,185 @@ API ParticleSystemProperties * GetParticleSystemProperties( NodeHandle ps );
 ////////////////////////////////////////////////////////////////////////////////////
 namespace mi {
 
-typedef enum {
-    Esc = 1,
-    _1,
-    _2,
-    _3,
-    _4,
-    _5,
-    _6,
-    _7,
-    _8,
-    _9,
-    _0,
-    Minus,
-    Equals,
-    Backspace,
-    Tab,
-    Q,
-    W,
-    E,
-    R,
-    T,
-    Y,
-    U,
-    I,
-    O,
-    P,
-    LeftBracket,
-    RightBracket,
-    Enter,
-    LeftControl,
-    A,
-    S,
-    D,
-    F,
-    G,
-    H,
-    J,
-    K,
-    L,
-    Semicolon,
-    Apostrophe,
-    Grave,
-    LeftShift,
-    BackSlash,
-    Z,
-    X,
-    C,
-    V,
-    B,
-    N,
-    M,
-    Comma,
-    Period,
-    Slash,
-    RightShift,
-    Multiply,
-    LeftAlt,
-    Space,
-    Capital,
-    F1,
-    F2,
-    F3,
-    F4,
-    F5,
-    F6,
-    F7,
-    F8,
-    F9,
-    F10,
-    NumLock,
-    Scroll,
-    NumPad7,
-    NumPad8,
-    NumPad9,
-    SUBTRACT,
-    NUMPAD4,
-    NUMPAD5,
-    NUMPAD6,
-    ADD,
-    NUMPAD1,
-    NUMPAD2,
-    NUMPAD3,
-    NUMPAD0,
-    Decimal,
-    OEM_102,
-    F11,
-    F12,
-    F13,
-    F14,
-    F15,
-    KANA,
-    ABNT_C1,
-    CONVERT,
-    NOCONVERT,
-    YEN,
-    ABNT_C2,
-    NUMPADEQUALS,
-    PREVTRACK,
-    AT,
-    COLON,
-    UNDERLINE,
-    KANJI,
-    STOP,
-    AX,
-    UNLABELED,
-    NEXTTRACK,
-    NUMPADENTER,
-    RCONTROL,
-    MUTE,
-    CALCULATOR,
-    PLAYPAUSE,
-    MEDIASTOP,
-    VOLUMEDOWN,
-    VOLUMEUP,
-    WEBHOME,
-    NUMPADCOMMA,
-    DIVIDE,
-    SYSRQ,
-    RMENU,
-    PAUSE,
-    HOME,
-    UP,
-    PRIOR,
-    LEFT,
-    RIGHT,
-    END,
-    DOWN,
-    NEXT,
-    INSERT,
-    DEL,
-    LWIN,
-    RWIN,
-    APPS,
-    POWER,
-    SLEEP,
-    WAKE,
-    WEBSEARCH,
-    WEBFAVORITES,
-    WEBREFRESH,
-    WEBSTOP,
-    WEBFORWARD,
-    WEBBACK,
-    MYCOMPUTER,
-    MAIL,
-    MEDIASELECT,
-} Key;
+	typedef enum {
+		Esc = 1,
+		_1,
+		_2,
+		_3,
+		_4,
+		_5,
+		_6,
+		_7,
+		_8,
+		_9,
+		_0,
+		Minus,
+		Equals,
+		Backspace,
+		Tab,
+		Q,
+		W,
+		E,
+		R,
+		T,
+		Y,
+		U,
+		I,
+		O,
+		P,
+		LeftBracket,
+		RightBracket,
+		Enter,
+		LeftControl,
+		A,
+		S,
+		D,
+		F,
+		G,
+		H,
+		J,
+		K,
+		L,
+		Semicolon,
+		Apostrophe,
+		Grave,
+		LeftShift,
+		BackSlash,
+		Z,
+		X,
+		C,
+		V,
+		B,
+		N,
+		M,
+		Comma,
+		Period,
+		Slash,
+		RightShift,
+		Multiply,
+		LeftAlt,
+		Space,
+		Capital,
+		F1,
+		F2,
+		F3,
+		F4,
+		F5,
+		F6,
+		F7,
+		F8,
+		F9,
+		F10,
+		NumLock,
+		Scroll,
+		NumPad7,
+		NumPad8,
+		NumPad9,
+		SUBTRACT,
+		NUMPAD4,
+		NUMPAD5,
+		NUMPAD6,
+		ADD,
+		NUMPAD1,
+		NUMPAD2,
+		NUMPAD3,
+		NUMPAD0,
+		Decimal,
+		OEM_102,
+		F11,
+		F12,
+		F13,
+		F14,
+		F15,
+		KANA,
+		ABNT_C1,
+		CONVERT,
+		NOCONVERT,
+		YEN,
+		ABNT_C2,
+		NUMPADEQUALS,
+		PREVTRACK,
+		AT,
+		COLON,
+		UNDERLINE,
+		KANJI,
+		STOP,
+		AX,
+		UNLABELED,
+		NEXTTRACK,
+		NUMPADENTER,
+		RCONTROL,
+		MUTE,
+		CALCULATOR,
+		PLAYPAUSE,
+		MEDIASTOP,
+		VOLUMEDOWN,
+		VOLUMEUP,
+		WEBHOME,
+		NUMPADCOMMA,
+		DIVIDE,
+		SYSRQ,
+		RMENU,
+		PAUSE,
+		HOME,
+		UP,
+		PRIOR,
+		LEFT,
+		RIGHT,
+		END,
+		DOWN,
+		NEXT,
+		INSERT,
+		DEL,
+		LWIN,
+		RWIN,
+		APPS,
+		POWER,
+		SLEEP,
+		WAKE,
+		WEBSEARCH,
+		WEBFAVORITES,
+		WEBREFRESH,
+		WEBSTOP,
+		WEBFORWARD,
+		WEBBACK,
+		MYCOMPUTER,
+		MAIL,
+		MEDIASELECT,
+	} Key;
 
 
 
 
-typedef enum {
-    Left		= 0,
-    Right		= 1,
-    Middle		= 2,
-    Wheel		= 3,
-} MouseButton;
+	typedef enum {
+		Left		= 0,
+		Right		= 1,
+		Middle		= 2,
+		Wheel		= 3,
+	} MouseButton;
 
-typedef enum {
-    UnableToInitializeDirectInput = -1000,
-    UnableToCreateKeyboardDevice,
-    UnableToCreateMouseDevice,
-    DeviceInitializedSuccessfully,
-    DeviceDestroyedSuccessfully,
-} Message;
+	typedef enum {
+		UnableToInitializeDirectInput = -1000,
+		UnableToCreateKeyboardDevice,
+		UnableToCreateMouseDevice,
+		DeviceInitializedSuccessfully,
+		DeviceDestroyedSuccessfully,
+	} Message;
 
-API Message	Init			( void * window );
-API Message	Destroy			( );
-API int		MouseDown		( MouseButton button );
-API int		MouseHit		( MouseButton button );
-API int		MouseX			( );
-API int		MouseY			( );
-API int		MouseWheel		( );
-API int		MouseXSpeed		( );
-API int		MouseYSpeed		( );
-API int		MouseWheelSpeed	( );
-API int		KeyDown			( Key key );
-API int		KeyHit			( Key key );
-API int		KeyUp			( Key key );
-API void		Update			( );
+	API Message	Init			( void * window );
+	API Message	Destroy			( );
+	API int		MouseDown		( MouseButton button );
+	API int		MouseHit		( MouseButton button );
+	API int		MouseX			( );
+	API int		MouseY			( );
+	API int		MouseWheel		( );
+	API int		MouseXSpeed		( );
+	API int		MouseYSpeed		( );
+	API int		MouseWheelSpeed	( );
+	API int		KeyDown			( Key key );
+	API int		KeyHit			( Key key );
+	API int		KeyUp			( Key key );
+	API void		Update			( );
 
 };
 
