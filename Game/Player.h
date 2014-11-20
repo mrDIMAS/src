@@ -59,6 +59,7 @@ public:
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( NodeHandle node );
     void DoFright();
+	void ComputeStealth();
     Item * flashLightItem;
 
     FootstepsType footstepsType;
@@ -75,6 +76,7 @@ public:
     TextureHandle upCursor;
     TextureHandle downCursor;
     TextureHandle statusBar;
+	TextureHandle stealthSign;
 
     SmoothFloat pitch;
     SmoothFloat yaw;
@@ -88,6 +90,8 @@ public:
     SmoothFloat fov;
 	SmoothFloat stealthOffset;
 
+	
+
     float stamina;
     float life;
     float maxLife;
@@ -98,6 +102,7 @@ public:
     float runBobCoeff;   
 	float capsuleRadius;
     float capsuleHeight;
+	float stealthFactor;
 
     Vector3 speed;
     Vector3 speedTo;
@@ -126,6 +131,7 @@ public:
     bool locked;
     bool smoothCamera;
 	bool stealthMode;
+	bool running;
 
     Inventory inventory;
 

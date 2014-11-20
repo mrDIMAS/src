@@ -375,7 +375,7 @@ API NodeHandle GetChild( NodeHandle node, int i );
 API int GetCountChildren( NodeHandle node );
 API bool IsNodeInFrustum( NodeHandle node );
 API void SetAlbedo( NodeHandle node, float albedo );
-
+API bool IsLightViewPoint( NodeHandle node, Vector3 point );
 // Octree manipulation
 // Note, that nodes with octree's optimization can't be moved or modified, so
 // it can be used for large static geometry, like game levels

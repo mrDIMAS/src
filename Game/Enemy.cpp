@@ -54,19 +54,36 @@ void Enemy::Think() {
 	bool targetTooHigh = heightUnderTarget > 2 * bodyHeight;
 	Vector3 toPlayer =  GetPosition( player->camera->cameraNode ) - (GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f);
 	bool playerInView = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
-		
 	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
-	DrawGUIText( Format( "%f", angleToPlayer ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
-	if( playerInView ) {
-		if( angleToPlayer < 45 ) {
-			moveType = MoveTypeChasePlayer;		
-			doPatrol = false;
-			PauseSoundSource( breathSound );
-			PlaySoundSource( screamSound, true );
+	//DrawGUIText( Format( "%f", angleToPlayer ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
+	bool enemySeePlayerAngular = angleToPlayer < 45;
+	float detectDistance = player->stealthFactor * 4.0f;
+	bool playerLightsEnemy = false;
+	if( player->flashlight->on ) {
+		playerLightsEnemy = IsLightViewPoint( player->flashlight->light, GetPosition( body ) ); 
+		if( playerLightsEnemy && playerInView ) {
+			if( !lightedUp ) {
+				RestartTimer( seeTimer );
+				lightedUp = true;
+			}
 		}
+	}
+	if( lightedUp ) {
+		playerLightsEnemy = true;
+		if( GetElapsedTimeInSeconds( seeTimer ) > 1.5f ) {
+			lightedUp = false;
+		}
+	}
+	if( playerInView && ( distanceToPlayer < detectDistance ) && enemySeePlayerAngular || playerLightsEnemy ) {
+		moveType = MoveTypeChasePlayer;		
+		doPatrol = false;
+		PauseSoundSource( breathSound );
+		PlaySoundSource( screamSound, true );
+		runSpeed = 3.0f;
 	} else {
 		moveType = MoveTypeGoToDestination;
 		doPatrol = true;
+		runSpeed = 1.5f;
 		PlaySoundSource( breathSound, true );
 		PauseSoundSource( screamSound );
 	}
@@ -79,7 +96,7 @@ void Enemy::Think() {
 			detectPlayer = false;
 		} else {
 			if( !detectPlayer ) {
-				detectPlayer = IsNodeInFrustum( torsoBone );
+				detectPlayer = true;//IsNodeInFrustum( torsoBone );
 			}
 			if( !player->dead && detectPlayer ) {
 
@@ -92,7 +109,7 @@ void Enemy::Think() {
 						}
 						if( GetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetEndFrame() - 5 && !attackDone ) {
 							attackDone = true;
-							player->Damage( 5 );						
+							player->Damage( 20 );						
 							PlaySoundSource( hitFleshWithAxeSound, true );
 						}
 					} else {
@@ -130,7 +147,12 @@ void Enemy::Think() {
 	}
 
 	if( move && !reachPoint ) {
-		Vector3 speedVector = direction * runSpeed + Vector3( 0, -.1, 0 );
+		pathLen += 0.1f;
+		if( abs( pathLen - lastPathLen ) > 3 ) {
+			lastPathLen = pathLen;
+			PlaySoundSource( footstepsSounds[ rand() % 4 ]);
+		}
+		Vector3 speedVector = direction * runSpeed;// + Vector3( 0, -.1, 0 );
 		Move( body, speedVector );
 	}
 
@@ -145,7 +167,7 @@ void Enemy::Think() {
 	animIdle.Update();
 	animRun.Update();
 
-	DrawGUIText( Format( "Patrol:%d", doPatrol ? 1 : 0 ).c_str(), 100, 100, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
+	//DrawGUIText( Format( "Patrol:%d", doPatrol ? 1 : 0 ).c_str(), 100, 100, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
 }
 
 Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) {
@@ -153,6 +175,8 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 	patrolPoints = patrol;
 	currentPatrolPoint = 0;
 
+	pathLen = 0.0f;
+	lastPathLen = 0.0f;
 	bodyHeight = 1.0f;
 
     body = CreateSceneNode();
@@ -179,12 +203,14 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 
 	CreateAnimations();
 	
-	runSpeed = 3.0f; 
+	runSpeed = 1.5f; 
 
 	moveType = MoveTypeGoToDestination;
 
 	destWaypointNum = 0;
 	lastDestIndex = -1;
+	lightedUp = false;
+	seeTimer = CreateTimer();
 	int a = 0;
 }
 
@@ -268,11 +294,12 @@ void Enemy::CreateSounds()
 
 	breathSound = CreateSound3D( "data/sounds/breath1.ogg" );
 	AttachSound( breathSound, body );
+	SetVolume( breathSound, 0.5f );
 	SetRolloffFactor( breathSound, 20 );
 	SetSoundReferenceDistance( breathSound, 5 );
 
 	screamSound = CreateSound3D( "data/sounds/scream_creepy_1.ogg" );
-	SetVolume( screamSound, 0.5 ); // FIX
+	SetVolume( screamSound, 1.0f );
 	AttachSound( screamSound, body );    
 	SetRolloffFactor( screamSound, 20 );
 	SetSoundReferenceDistance( screamSound, 5 );
@@ -281,6 +308,12 @@ void Enemy::CreateSounds()
 	footstepsSounds[ 1 ] = CreateSound3D( "data/sounds/step2.ogg" );
 	footstepsSounds[ 2 ] = CreateSound3D( "data/sounds/step3.ogg" );
 	footstepsSounds[ 3 ] = CreateSound3D( "data/sounds/step4.ogg" );
+	for( int i = 0; i < 4; i++ ) {
+		AttachSound( footstepsSounds[i], body );   
+		SetVolume( footstepsSounds[i], 0.75f );
+		SetRolloffFactor( footstepsSounds[i], 10 );
+		SetSoundReferenceDistance( footstepsSounds[i], 5 );
+	}
 }
 
 int Enemy::GetVertexIndexNearestTo( Vector3 position )

@@ -1,25 +1,25 @@
 #include "FXAA.h"
 
 void FXAA::DoAntialiasing( IDirect3DTexture9 * outTexture ) {
-    g_device->SetRenderTarget( 0, backBufferRT );
-    g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+    CheckDXError( g_device->SetRenderTarget( 0, backBufferRT ));
+    CheckDXError( g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
 
-    g_device->SetTexture( 0, outTexture );
+    CheckDXError( g_device->SetTexture( 0, outTexture ));
 
     effectsQuad->Bind();
     pixelShader->Bind();
 
-    pixelShader->GetConstantTable()->SetFloat( g_device, screenWidth, g_width );
-    pixelShader->GetConstantTable()->SetFloat( g_device, screenHeight, g_height );
+    CheckDXError( pixelShader->GetConstantTable()->SetFloat( g_device, screenWidth, g_width ));
+    CheckDXError( pixelShader->GetConstantTable()->SetFloat( g_device, screenHeight, g_height ));
 
-    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-    g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-    g_device->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL);
-    g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ZENABLE, FALSE );
+    CheckDXError( g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
+    CheckDXError( g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL));
+    CheckDXError( g_device->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL));
+    CheckDXError( g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO ));
+    CheckDXError( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ZENABLE, FALSE ));
 
     effectsQuad->Render();
 }
@@ -144,8 +144,8 @@ FXAA::FXAA() {
         MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
     }
 
-    texture->GetSurfaceLevel( 0, &renderTarget );
-    g_device->GetRenderTarget( 0, &backBufferRT );
+    CheckDXError( texture->GetSurfaceLevel( 0, &renderTarget ));
+    CheckDXError( g_device->GetRenderTarget( 0, &backBufferRT ));
 
     effectsQuad = new EffectsQuad;
 }

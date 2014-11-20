@@ -37,6 +37,11 @@ public:
     SoundHandle breathSound;
     SoundHandle screamSound;
 
+	bool lightedUp;
+	TimerHandle seeTimer;
+
+	float lastPathLen;
+	float pathLen;
 	enum {
 		MoveTypeChasePlayer,
 		MoveTypeGoToDestination,		

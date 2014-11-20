@@ -68,6 +68,8 @@ Player::Player() {
 
     currentWay = nullptr;
 
+	stealthSign = GetTexture( "data/textures/effects/eye.png" );
+
     LoadGUIElements();
     CreateBody();
     CreateCamera();
@@ -335,8 +337,6 @@ Player::UpdateMoving
 ========
 */
 void Player::UpdateMoving() {
-    static int stepPlayed = 0;
-
     for( auto cw : Way::all ) {
         if( cw->IsEnterPicked() ) {
             if( !cw->IsPlayerInside() ) {
@@ -432,12 +432,14 @@ void Player::UpdateMoving() {
         runBobCoeff = 1.0f;
         fov.SetTarget( fov.GetMin() );
 
+		running = false;
         if( mi::KeyDown( (mi::Key)keyRun ) && moved ) {
             if( stamina > 0 ) {
                 speedTo = speedTo * runSpeedMult;
                 stamina -= 8.0f * g_dt ;
                 fov.SetTarget( fov.GetMax() );
                 runBobCoeff = 1.425f;
+				running = true;
             }
         } else {
             if( stamina < maxStamina ) {
@@ -459,6 +461,64 @@ void Player::UpdateMoving() {
 
 /*
 ========
+Player::ComputeStealth
+========
+*/
+void Player::ComputeStealth() {
+	bool inLight = false;
+	Vector3 pos = GetPosition( body );
+	NodeHandle affectLight;
+	for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
+		if( IsLightViewPoint( GetWorldPointLight( i ), pos )) {
+			inLight = true;
+			affectLight = GetWorldPointLight( i );
+			break;
+		}
+	}
+	if( !inLight ) {
+		for( int i = 0; i < GetWorldSpotLightCount(); i++ ) {
+			if( IsLightViewPoint( GetWorldSpotLight( i ), pos )) {
+				inLight = true;
+				affectLight = GetWorldSpotLight( i );
+				break;
+			}
+		}
+	}
+
+	if( flashlight->on ) {
+		inLight = true;
+	}
+
+	stealthFactor = 0.0f;
+		
+	if( inLight ) {
+		stealthFactor += stealthMode ? 0.25f : 0.5f;
+		stealthFactor += moved ? 0.5f : 0.0f;
+		stealthFactor += running ? 1.0f : 0.0f;
+	} else {
+		stealthFactor += stealthMode ? 0.0f : 0.25f;
+		stealthFactor += moved ? 0.1f : 0.0f;
+		stealthFactor += running ? 0.25f : 0.0f;
+	}
+
+
+	for( auto snd : footsteps ) {
+		if( stealthMode ) {
+			SetVolume( snd, 0.15f );
+		} else {
+			SetVolume( snd, 0.4f );
+		}
+	}
+
+	int alpha = ( 255 * ( ( stealthFactor > 1.05f ) ? 1.0f : ( stealthFactor + 0.05f ) ) );
+	if (alpha > 255 )
+		alpha = 255;
+	Vector3 color = ( stealthFactor < 1.05f ) ? Vector3( 255, 255, 255 ) : Vector3( 255, 0, 0 );
+	DrawGUIRect( GetResolutionWidth() / 2 - 32, 200, 64, 32, stealthSign, color, alpha );
+	//DrawGUIText( Format( "%f, %d ", stealthFactor, alpha ).c_str(), 100, 300,100,100, gui->font, Vector3( 255, 0, 222), 0 );
+}
+/*
+========
 Player::Update
 ========
 */
@@ -476,11 +536,11 @@ void Player::Update( ) {
 
     if( dead ) {
         return;
-    }
-	
+	}	
     tip.AnimateAndDraw();
     UpdateMouseLook();	
     UpdateMoving();	
+	ComputeStealth();
     UpdatePicking();
     UpdateItemsHandling();
     UpdateEnvironmentDamaging();

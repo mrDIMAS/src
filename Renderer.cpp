@@ -296,8 +296,8 @@ void Renderer::RenderWorld() {
     // build view and projection matrices, frustum, also attach sound listener to camera
     g_camera->Update();
     // set these transforms, for render passes which uses FFP
-    g_device->SetTransform( D3DTS_VIEW, &g_camera->view );
-    g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection );
+    CheckDXError( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
+    CheckDXError( g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
     // precalculations
     for( auto node : g_nodes ) {
         node->CalculateGlobalTransform();
@@ -316,7 +316,7 @@ void Renderer::RenderWorld() {
         light->DoFloating();
     }
     // begin dx scene
-    g_device->BeginScene();
+    CheckDXError( g_device->BeginScene());
     // begin rendering into G-Buffer
     g_deferredRenderer->BeginFirstPass();
     // render from current camera
@@ -345,8 +345,8 @@ void Renderer::RenderWorld() {
     // render light flares without writing to z-buffer
     Light::RenderLightFlares();
     // finalize
-    g_device->EndScene();
-    g_device->Present( 0, 0, 0, 0 );
+    CheckDXError( g_device->EndScene());
+    CheckDXError( g_device->Present( 0, 0, 0, 0 ));
     // grab info about node's physic contacts 
     SceneNode::UpdateContacts( );
     // update sound subsystem

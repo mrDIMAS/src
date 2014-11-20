@@ -91,6 +91,8 @@ void LevelArrival::DoScenario() {
         return;
     }
 
+	SetAmbientColor( Vector3( 0.06, 0.06, 0.06 ));
+
     PlayAmbientSounds();
 
     PlaySoundSource( generatorSound );

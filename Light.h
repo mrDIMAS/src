@@ -24,6 +24,7 @@ public:
     float cosHalfOuterAngle;
     bool floating;
 	float brightness;
+	int type;
     Vector3 floatMin;
     Vector3 floatMax;
     Vector3 floatTo;

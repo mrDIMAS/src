@@ -36,6 +36,7 @@ Light::Light( int type ) {
     spotTexture = nullptr;
     floating = false;
 	brightness = 1.0f;
+	this->type = type;
     if( type == LT_POINT ) {
         g_pointLights.push_back( this );
         if( defaultPointCubeTexture ) {
@@ -489,4 +490,29 @@ API void SetSpotTexture( NodeHandle node, TextureHandle texture ) {
     }
 
     l->SetSpotTexture( (Texture*)texture.pointer );
+}
+
+/*
+==========
+IsLightViewPoint
+==========
+*/
+API bool IsLightViewPoint( NodeHandle node, Vector3 point ) {
+	Light * l = Light::GetLightByHandle( node );
+
+	if( !l ) {
+		return false;
+	}
+
+	if( l->type == LT_SPOT ) {
+		bool inFrustum = l->frustum.IsPointInside( point );
+
+		if( inFrustum ) {
+			return ( Vector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
+		}
+	}
+	else {
+		return (Vector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
+	}
+	return false;
 }
