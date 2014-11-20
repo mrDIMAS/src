@@ -4,18 +4,18 @@ ForwardRenderer * g_forwardRenderer = nullptr;
 
 void ForwardRenderer::RenderMeshes() {
     IDirect3DStateBlock9 * state = nullptr;
-    g_device->CreateStateBlock( D3DSBT_ALL, &state );
+    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
     pixelShader->Bind();
     vertexShader->Bind();
 
-    g_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-    g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
-    g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-    g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    CheckDXError( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW ));
+    CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
 
     for( auto group : renderList ) {
         IDirect3DTexture9 * diffuseTexture = group.first;
@@ -28,15 +28,15 @@ void ForwardRenderer::RenderMeshes() {
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
 
-            g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-            g_device->SetPixelShaderConstantF( 0, &mesh->opacity, 1 );
+            CheckDXError( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+            CheckDXError( g_device->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
 
             mesh->BindBuffers();
             mesh->Render();
         }
     }
 
-    state->Apply();
+    CheckDXError( state->Apply());
     state->Release();
 }
 

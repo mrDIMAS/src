@@ -151,20 +151,16 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
         D3DDECL_END()
     };
 
-    g_device->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ) ;
-    g_device->SetVertexDeclaration ( g_meshVertexDeclaration );
-
-    g_device->SetRenderState ( D3DRS_LIGHTING, FALSE );
-
-    g_device->SetRenderState ( D3DRS_ZENABLE, TRUE );
-    g_device->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-    g_device->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-
-    g_device->SetRenderState ( D3DRS_ALPHAREF, 100 );
-    g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, TRUE );
-    g_device->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-
-    g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
+    CheckDXError( g_device->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ));
+    CheckDXError( g_device->SetVertexDeclaration ( g_meshVertexDeclaration ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_LIGHTING, FALSE ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ZENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHAREF, 100 ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW ));
 
     D3DCAPS9 caps;
     g_device->GetDeviceCaps( &caps );
@@ -178,15 +174,15 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
         abort();
     }
 
-    g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-    g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-    g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, caps.MaxAnisotropy );
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC ));
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR ));
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC ));
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, caps.MaxAnisotropy ));
 
-    g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-    g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-    g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, caps.MaxAnisotropy );
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC ));
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR ));
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC ));
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, caps.MaxAnisotropy ));
 
     CreatePhysics( );
     pfSystemInit( );
@@ -381,7 +377,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
             continue;
         }
         // bind diffuse texture
-        g_device->SetTexture( 0, diffuseTexture );
+        CheckDXError( g_device->SetTexture( 0, diffuseTexture ));
         // each group has same texture
         g_textureChanges++;
         for( auto meshIterator : meshes ) {
@@ -535,15 +531,15 @@ void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
     if( mipFilter == TextureFilter::Nearest ) {
         mipFilter = D3DTEXF_POINT;
     }
-    g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter );
-    g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter );
-    g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter );
-    g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter ));
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter ));
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter ));
+    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
 
-    g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter );
-    g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter );
-    g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter );
-    g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality );
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter ));
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter ));
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter ));
+    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
 }
 /*
 ===============
@@ -669,7 +665,7 @@ GetMaxAnisotropy
 */
 int GetMaxAnisotropy() {
     D3DCAPS9 caps;
-    g_device->GetDeviceCaps( &caps );
+    CheckDXError( g_device->GetDeviceCaps( &caps ));
 
     return caps.MaxAnisotropy;
 }

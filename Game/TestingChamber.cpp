@@ -64,7 +64,12 @@ TestingChamber::TestingChamber( ) {
 	path[15]->AddEdge( path[16] );
 	path[16]->AddEdge( path[17] );
 
-	enemy = new Enemy( "data/models/ripper/ripper.scene", path );
+	vector< GraphVertex* > patrolPoints;
+	patrolPoints.push_back( path[0] );
+	patrolPoints.push_back( path[5] );
+	patrolPoints.push_back( path[8] );
+
+	enemy = new Enemy( "data/models/ripper/ripper.scene", path, patrolPoints );
 }
 
 TestingChamber::~TestingChamber() {

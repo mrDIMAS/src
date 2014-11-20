@@ -25,6 +25,7 @@
 #include "ProjectF.h"
 #include <queue>
 #include "ft2build.h"
+#include <DxErr.h>
 #include FT_FREETYPE_H
 //#include "vld.h"
 
@@ -50,6 +51,7 @@
 #pragma comment( lib, "ProjectF")
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
+#pragma comment( lib, "dxerr" )
 
 using namespace std;
 
@@ -126,5 +128,14 @@ extern bool g_hdrEnabled;
 // shadow settings
 extern bool g_usePointLightShadows;
 extern bool g_useSpotLightShadows;
+
+static void CheckDXError( HRESULT errCode ) {
+	if( FAILED( errCode )) {
+		char buf[1024];
+		sprintf_s( buf, "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
+		MessageBoxA( 0, buf, "Fatal error", MB_OK | MB_ICONERROR );
+		exit( -1 );
+	}
+}
 
 #endif

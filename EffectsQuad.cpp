@@ -1,23 +1,23 @@
 #include "EffectsQuad.h"
 
 void EffectsQuad::Render() {
-    g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
-    g_device->SetVertexDeclaration( vertexDeclaration );
-    g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+    CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
+    CheckDXError( g_device->SetVertexDeclaration( vertexDeclaration ));
+    CheckDXError( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     if( debug ) {
-        g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-        g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+        CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
+        CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
     }
 }
 
 void EffectsQuad::Bind() {
     if( debug ) {
         debugPixelShader->Bind();
-        g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-        g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+        CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+        CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
     }
     vertexShader->Bind();
-    vertexShader->GetConstantTable()->SetMatrix( g_device, v2Proj, &orthoProjection );
+    CheckDXError( vertexShader->GetConstantTable()->SetMatrix( g_device, v2Proj, &orthoProjection ));
 }
 
 EffectsQuad::~EffectsQuad() {
@@ -44,14 +44,14 @@ void EffectsQuad::SetSize( float width, float height ) {
 
 		void * data = 0;
 
-		vertexBuffer->Lock( 0, 0, &data, 0 );
+		CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
 		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		vertexBuffer->Unlock( );
+		CheckDXError( vertexBuffer->Unlock( ));
 	}
 }
 
 EffectsQuad::EffectsQuad( bool bDebug ) {
-    g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+    CheckDXError( g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
     debug = bDebug;
     debugPixelShader = nullptr;
@@ -63,9 +63,9 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
         void * data = 0;
 
-        vertexBuffer->Lock( 0, 0, &data, 0 );
+        CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        vertexBuffer->Unlock( );
+        CheckDXError( vertexBuffer->Unlock( ));
     } else {
         int size = 500; 
         QuadVertex vertices[ ] = { 
@@ -74,9 +74,9 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
         void * data = 0;
 
-        vertexBuffer->Lock( 0, 0, &data, 0 );
+        CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        vertexBuffer->Unlock( );
+        CheckDXError( vertexBuffer->Unlock( ));
 
         string debugPixelShaderSource = 
             "sampler diffuse : register( s4 );\n"
@@ -95,7 +95,7 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         D3DDECL_END()
     };
 
-    g_device->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
+    CheckDXError( g_device->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration ));
 
     string vertexSourcePassTwo =
         "float4x4 g_projection;\n"
@@ -123,14 +123,3 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
     D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, g_width, g_height, 0, 0, 1024 );
 }
-
-/*
-EffectsQuad::QuadVertex::QuadVertex( float ax, float ay, float az, float atx, float aty ) {
-    x = ax;
-    y = ay;
-    z = az;
-
-    tx = atx;
-    ty = aty;
-}
-*/

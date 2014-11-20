@@ -34,15 +34,7 @@ private:
     void SetDirtFootsteps();
     void SetMetalFootsteps();
     void UpdateFright();
-	void SetupBody() {
-		SetAngularFactor( body, Vector3( 0, 0, 0 ));
-		SetFriction( body, 0 );
-		SetAnisotropicFriction( body, Vector3( 1, 1, 1 ));
-		SetDamping( body, 0, 0 );
-		SetMass( body, 2 );
-		SetGravity( body, Vector3( 0, 0, 0 ));
-		//SetLinearFactor( body, Vector3( 0, 0, 0 ));
-	}
+	void SetupBody();
     Parser localization;
 public:
     explicit Player();
@@ -94,6 +86,7 @@ public:
     SmoothFloat heartBeatPitch;
     SmoothFloat breathPitch;
     SmoothFloat fov;
+	SmoothFloat stealthOffset;
 
     float stamina;
     float life;
@@ -105,6 +98,7 @@ public:
     float runBobCoeff;   
 	float capsuleRadius;
     float capsuleHeight;
+
     Vector3 speed;
     Vector3 speedTo;
     Vector3 gravity;
@@ -112,6 +106,8 @@ public:
     Vector3 cameraOffset;
     Vector3 cameraBob;
     Vector3 frameColor;
+	 
+
     Way * currentWay;
 
     SoundHandle lighterCloseSound;
@@ -129,6 +125,7 @@ public:
     bool moved;
     bool locked;
     bool smoothCamera;
+	bool stealthMode;
 
     Inventory inventory;
 

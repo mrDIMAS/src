@@ -146,8 +146,24 @@ LevelMine::LevelMine() {
 	allPaths.insert( allPaths.end(), pathToRoom.vertices.begin(), pathToRoom.vertices.end() );
 	allPaths.insert( allPaths.end(), pathUpperRightTwo.vertices.begin(), pathUpperRightTwo.vertices.end() );
 
-	enemy = new Enemy( "data/models/ripper/ripper.scene", allPaths );
+	vector< GraphVertex* > patrolPoints;
+	patrolPoints.push_back( path.vertices[0] );
+	patrolPoints.push_back( path.vertices[ path.vertices.size() - 1 ] );
+	patrolPoints.push_back( pathOnUpperLevel.vertices[0] );
+	patrolPoints.push_back( pathOnUpperLevel.vertices[ pathOnUpperLevel.vertices.size() - 1 ] );
+	patrolPoints.push_back( pathUpperRight.vertices[0] );
+	patrolPoints.push_back( pathUpperRight.vertices[ pathUpperRight.vertices.size() - 1 ] );
+	patrolPoints.push_back( pathUpperLeft.vertices[0] );
+	patrolPoints.push_back( pathUpperLeft.vertices[ pathUpperLeft.vertices.size() - 1 ] );
+	patrolPoints.push_back( pathUpperRightTwo.vertices[0] );
+	patrolPoints.push_back( pathUpperRightTwo.vertices[ pathUpperRightTwo.vertices.size() - 1 ] );
+	patrolPoints.push_back( pathToRoom.vertices[0] );
+	patrolPoints.push_back( pathToRoom.vertices[ pathToRoom.vertices.size() - 1 ] );
+
+	enemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
 	SetPosition( enemy->body, GetPosition( FindInObjectByName( scene, "EnemyPosition" )));
+
+	SetSkybox( player->camera->cameraNode, 0 );
 }
 
 LevelMine::~LevelMine() {

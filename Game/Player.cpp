@@ -32,11 +32,12 @@ Player::Player() {
     pitch = SmoothFloat( 0.0f, -89.9f, 89.9f );
     yaw = SmoothFloat( 0.0f );
     damagePitchOffset = SmoothFloat( 0.0f );
-
+	stealthOffset = SmoothFloat( 0.0f, -0.45f, 0.0f );
     // State vars
     dead = false;
     landed = false;
     locked = false;
+	stealthMode = false;
 
     sheetInHands = nullptr;
 
@@ -360,7 +361,13 @@ void Player::UpdateMoving() {
         }
     }
 
+	if( mi::KeyHit( mi::C )) {
+		stealthMode = !stealthMode;
+	}
+
     if( currentWay ) {
+		stealthMode = false;
+
         currentWay->DoEntering();
 
         if( !currentWay->IsFreeLook() ) {
@@ -438,6 +445,8 @@ void Player::UpdateMoving() {
             }
         }
 
+		speedTo = speedTo * ( stealthMode ? 0.4f : 1.0f ) ;
+
         fov.ChaseTarget( 4.0f * g_dt );
         SetFOV( camera->cameraNode, fov );
 
@@ -500,7 +509,7 @@ Player::CreateCamera
 void Player::CreateCamera() {
     camera = new GameCamera( fov );
     Attach( camera->cameraNode, body );
-    SetSkybox( camera->cameraNode, "data/textures/skyboxes/night4/nnksky01");
+    
 
     // Pick
     pickPoint = CreateSceneNode();
@@ -663,9 +672,14 @@ void Player::UpdateCameraBob() {
     } else {
         cameraBobCoeff = 0;
     }
-
+	if( stealthMode ) {
+		stealthOffset.SetTarget( stealthOffset.GetMin() );
+	} else {
+		stealthOffset.SetTarget( stealthOffset.GetMax() );
+	}
+	stealthOffset.ChaseTarget( 0.15f );
     cameraOffset = cameraOffset.Lerp( cameraBob, 0.25f );
-    SetPosition( camera->cameraNode, cameraOffset );
+    SetPosition( camera->cameraNode, cameraOffset + Vector3( 0.0f, stealthOffset, 0.0f ) );
 }
 
 /*
@@ -1052,6 +1066,8 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadInteger( keyInventory );
     in.ReadInteger( keyUse );
 
+	stealthMode = in.ReadBoolean();
+
     flashlight->DeserializeWith( in );
 
     tip.Deserialize( in );
@@ -1131,7 +1147,20 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteInteger( keyInventory );
     out.WriteInteger( keyUse );
 
+	out.WriteBoolean( stealthMode );
+
     flashlight->SerializeWith( out );
 
     tip.Serialize( out );
+}
+
+void Player::SetupBody()
+{
+	SetAngularFactor( body, Vector3( 0, 0, 0 ));
+	SetFriction( body, 0 );
+	SetAnisotropicFriction( body, Vector3( 1, 1, 1 ));
+	SetDamping( body, 0, 0 );
+	SetMass( body, 2 );
+	SetGravity( body, Vector3( 0, 0, 0 ));
+	//SetLinearFactor( body, Vector3( 0, 0, 0 ));
 }

@@ -71,6 +71,7 @@ LevelArrival::LevelArrival( ) {
     stages[ "DoneStrangeSoundPlayed" ] = false;
     stages[ "DoneRocksFall" ] = false;
 
+	SetSkybox( player->camera->cameraNode, "data/textures/skyboxes/night4/nnksky01");
 }
 
 LevelArrival::~LevelArrival() {

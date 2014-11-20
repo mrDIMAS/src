@@ -669,8 +669,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         RenderScreenQuad();
     }
 
-    g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
-    g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
+    CheckDXError( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER ));
+    CheckDXError( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER ));
 
     // Render spot lights
     for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
@@ -714,8 +714,6 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		}
 	}
 
-
-
-    state->Apply();
+    CheckDXError( state->Apply());
     state->Release();
 }

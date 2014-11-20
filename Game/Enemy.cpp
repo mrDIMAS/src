@@ -9,24 +9,9 @@ void Enemy::Think() {
         return;
     }
 
-	if( action == ActionChasePlayer ) {
+	if( moveType == MoveTypeChasePlayer ) {
 		target = GetPosition( player->body );
-	} else if( action == ActionPatrol ) {
-		if( currentPath.size() ) {
-			target = currentPath[currentWaypointNum]->position;
-			if( ( target - GetPosition( body ) ).Length2() < 0.5f ) {
-				currentWaypointNum += patrolDirection;
-				if( currentWaypointNum >= ( currentPath.size() )) {
-					patrolDirection = -1;
-					currentWaypointNum = currentPath.size() - 1;
-				}
-				if( currentWaypointNum < 0 ) {
-					patrolDirection = 1;
-					currentWaypointNum = 0;
-				}
-			}
-		}
-	} else if( action == ActionGoToPlayer ) {		
+	} else if( moveType == MoveTypeGoToDestination ) {		
 		if( currentPath.size() ) {
 			target = currentPath[currentWaypointNum]->position;
 			if( ( target - GetPosition( body ) ).Length2() < 0.5f ) {
@@ -34,7 +19,22 @@ void Enemy::Think() {
 			}
 		}
 	} 
+	
 	bool reachPoint = ( destWaypointNum - currentWaypointNum ) < 0 ;
+
+	if( doPatrol ) {
+		moveType = MoveTypeGoToDestination ;
+		if( destWaypointNum - currentWaypointNum == 0 ) {
+			currentPatrolPoint++;
+			if( currentPatrolPoint >= patrolPoints.size() ) {
+				currentPatrolPoint = 0;
+			}
+		}
+		destination = patrolPoints[currentPatrolPoint]->position;
+	} else { 
+		destination = GetPosition( player->body );
+	}
+
     Vector3 direction = target - GetPosition( body );
 	float heightUnderTarget = direction.y;
 	//direction.y = 0; // use XZ plane instead 3D
@@ -52,38 +52,47 @@ void Enemy::Think() {
     bool move = true;
 	bool targetTooFar = distanceToPlayer > 10.0f;
 	bool targetTooHigh = heightUnderTarget > 2 * bodyHeight;
-	bool wayObstructed = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer != player->body.pointer;
-	
-	if( wayObstructed ) {
-		action = ActionGoToPlayer;
+	Vector3 toPlayer =  GetPosition( player->camera->cameraNode ) - (GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f);
+	bool playerInView = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
+		
+	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
+	DrawGUIText( Format( "%f", angleToPlayer ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
+	if( playerInView ) {
+		if( angleToPlayer < 45 ) {
+			moveType = MoveTypeChasePlayer;		
+			doPatrol = false;
+			PauseSoundSource( breathSound );
+			PlaySoundSource( screamSound, true );
+		}
 	} else {
-		action = ActionChasePlayer;
+		moveType = MoveTypeGoToDestination;
+		doPatrol = true;
+		PlaySoundSource( breathSound, true );
+		PauseSoundSource( screamSound );
 	}
-	
-	if( action == ActionChasePlayer ){
+
+	if( moveType == MoveTypeChasePlayer ){
 		if( targetTooFar || player->dead || targetTooHigh ) {
+			doPatrol = true;
+			moveType = MoveTypeGoToDestination;
 			SetIdleAnimation();
-			PlaySoundSource( breathSound, true );
-			PauseSoundSource( screamSound );
 			detectPlayer = false;
 		} else {
 			if( !detectPlayer ) {
 				detectPlayer = IsNodeInFrustum( torsoBone );
 			}
 			if( !player->dead && detectPlayer ) {
-				PauseSoundSource( breathSound );
-				PlaySoundSource( screamSound, true );
+
 				if( distanceToPlayer < 4.0f ) {				
 					if( distanceToPlayer < 1 ) {
 						move = false;					
 						SetStayAndAttackAnimation();         
-
 						if( GetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetBeginFrame() ) {
 							attackDone = false;
 						}
 						if( GetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetEndFrame() - 5 && !attackDone ) {
 							attackDone = true;
-							player->Damage( 20 );						
+							player->Damage( 5 );						
 							PlaySoundSource( hitFleshWithAxeSound, true );
 						}
 					} else {
@@ -94,20 +103,11 @@ void Enemy::Think() {
 				}				
 			}
 		}
-	} else if( action == ActionPatrol ) {
-		if( needRebuildPath ) {
-			GraphVertex * begin = pathfinder.GetPoint( 0 );
-			GraphVertex * end = pathfinder.GetPoint( pathfinder.GetPointCount() - 1 );
-			pathfinder.BuildPath( begin, end, currentPath );
-			currentWaypointNum = 0;
-			needRebuildPath = false;
-		} 
-		SetRunAnimation();
-	} else if( action == ActionGoToPlayer ) {
-		GraphVertex * playerNearestVertex = pathfinder.GetVertexNearestTo( GetPosition( player->body ), &currentPlayerIndex);
+	} else if( moveType == MoveTypeGoToDestination ) {
+		GraphVertex * destNearestVertex = pathfinder.GetVertexNearestTo( destination, &currentDestIndex);
 		GraphVertex * enemyNearestVertex = pathfinder.GetVertexNearestTo( GetPosition( body ) );
-		if( currentPlayerIndex != lastPlayerIndex ) { // means player has moved to another waypoint
-			pathfinder.BuildPath( enemyNearestVertex, playerNearestVertex, currentPath );			
+		if( currentDestIndex != lastDestIndex ) { // means player has moved to another waypoint
+			pathfinder.BuildPath( enemyNearestVertex, destNearestVertex, currentPath );			
 			destWaypointNum = GetVertexIndexNearestTo( currentPath[ currentPath.size() - 1 ]->position );
 			currentWaypointNum = GetVertexIndexNearestTo( currentPath[0]->position );
 			if( currentWaypointNum > destWaypointNum ) {
@@ -115,11 +115,8 @@ void Enemy::Think() {
 				currentWaypointNum = destWaypointNum;
 				destWaypointNum = temp;
 			}
-			lastPlayerIndex = currentPlayerIndex;
+			lastDestIndex = currentDestIndex;
 		}
-		DrawGUIText( Format( "Src:%d       Dest:%d", currentWaypointNum, destWaypointNum ).c_str(), 100, 100, 200, 200, gui->font, Vector3( 255, 0, 0 ), 1 );
-
-		//SetWalkAnimation();
 		SetRunAnimation();
 	}
 
@@ -133,7 +130,7 @@ void Enemy::Think() {
 	}
 
 	if( move && !reachPoint ) {
-		Vector3 speedVector = direction * runSpeed + Vector3( 0, -1, 0 );
+		Vector3 speedVector = direction * runSpeed + Vector3( 0, -.1, 0 );
 		Move( body, speedVector );
 	}
 
@@ -147,10 +144,14 @@ void Enemy::Think() {
 	animAttack.Update();
 	animIdle.Update();
 	animRun.Update();
+
+	DrawGUIText( Format( "Patrol:%d", doPatrol ? 1 : 0 ).c_str(), 100, 100, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
 }
 
-Enemy::Enemy( const char * file, vector<GraphVertex*> & path ) {
+Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) {
 	pathfinder.SetVertices( path );
+	patrolPoints = patrol;
+	currentPatrolPoint = 0;
 
 	bodyHeight = 1.0f;
 
@@ -165,52 +166,25 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path ) {
     Attach( model, body );
     SetPosition( model, Vector3( 0, -0.5f, 0 ));
 
-	// Find bodyparts
-    rightLeg = FindInObjectByName( model, "RightLeg" );
-    leftLeg = FindInObjectByName( model, "LeftLeg" );
-    rightLegDown = FindInObjectByName( model, "RightLegDown" );
-    leftLegDown = FindInObjectByName( model, "LeftLegDown" );
-    torsoBone = FindInObjectByName( model, "Torso" );
-	attackHand = FindInObjectByName( model, "AttackHand" );
-	head = FindInObjectByName( model, "HeadBone" );
+	FindBodyparts();
 
-    //SetIdleAnimation();
-
-    angleTo = 0.0f;
+	angleTo = 0.0f;
     angle = 0.0f;
 
     damageTimer = CreateTimer();
 
-    hitFleshWithAxeSound = CreateSound3D( "data/sounds/armor_axe_flesh.ogg" );
-    AttachSound( hitFleshWithAxeSound, FindInObjectByName( model, "AttackHand" ));
+	CreateSounds();
 
-    breathSound = CreateSound3D( "data/sounds/breath1.ogg" );
-    AttachSound( breathSound, model );
+	detectPlayer = false;
 
-    screamSound = CreateSound3D( "data/sounds/scream_creepy_1.ogg" );
-	SetVolume( screamSound, 0.5 ); // FIX
-    AttachSound( screamSound, model );
-
-    detectPlayer = false;
-
-    footstepsSounds[ 0 ] = CreateSound3D( "data/sounds/step1.ogg" );
-    footstepsSounds[ 1 ] = CreateSound3D( "data/sounds/step2.ogg" );
-    footstepsSounds[ 2 ] = CreateSound3D( "data/sounds/step3.ogg" );
-    footstepsSounds[ 3 ] = CreateSound3D( "data/sounds/step4.ogg" );
-
-	// Animations
-	animIdle = Animation( 0, 15, 0.08, true );
-	animRun = Animation( 16, 34, 0.08, true );
-	animAttack = Animation( 35, 46, 0.035, true );
-	animWalk = Animation( 47, 58, 0.045, true );
-
+	CreateAnimations();
+	
 	runSpeed = 3.0f; 
 
-	action = ActionGoToPlayer;
-	patrolDirection = 1;
-	needRebuildPath = true;
+	moveType = MoveTypeGoToDestination;
+
 	destWaypointNum = 0;
-	lastPlayerIndex = 0;
+	lastDestIndex = -1;
 	int a = 0;
 }
 
@@ -276,4 +250,61 @@ void Enemy::DrawAnimationDebugInfo( NodeHandle node, int & y )
 	for( int i = 0; i < GetCountChildren( node ); i++ ) {
 		DrawAnimationDebugInfo( GetChild( node, i ), y );
 	}
+}
+
+void Enemy::CreateAnimations()
+{
+	// Animations
+	animIdle = Animation( 0, 15, 0.08, true );
+	animRun = Animation( 16, 34, 0.08, true );
+	animAttack = Animation( 35, 46, 0.035, true );
+	animWalk = Animation( 47, 58, 0.045, true );
+}
+
+void Enemy::CreateSounds()
+{
+	hitFleshWithAxeSound = CreateSound3D( "data/sounds/armor_axe_flesh.ogg" );
+	AttachSound( hitFleshWithAxeSound, FindInObjectByName( model, "AttackHand" ));
+
+	breathSound = CreateSound3D( "data/sounds/breath1.ogg" );
+	AttachSound( breathSound, body );
+	SetRolloffFactor( breathSound, 20 );
+	SetSoundReferenceDistance( breathSound, 5 );
+
+	screamSound = CreateSound3D( "data/sounds/scream_creepy_1.ogg" );
+	SetVolume( screamSound, 0.5 ); // FIX
+	AttachSound( screamSound, body );    
+	SetRolloffFactor( screamSound, 20 );
+	SetSoundReferenceDistance( screamSound, 5 );
+
+	footstepsSounds[ 0 ] = CreateSound3D( "data/sounds/step1.ogg" );
+	footstepsSounds[ 1 ] = CreateSound3D( "data/sounds/step2.ogg" );
+	footstepsSounds[ 2 ] = CreateSound3D( "data/sounds/step3.ogg" );
+	footstepsSounds[ 3 ] = CreateSound3D( "data/sounds/step4.ogg" );
+}
+
+int Enemy::GetVertexIndexNearestTo( Vector3 position )
+{
+	if( currentPath.size() == 0 ) {
+		return 0;
+	};
+	int nearestIndex = 0;
+	for( int i = 0; i < currentPath.size(); i++ ) {
+		if( ( currentPath[i]->position - position ).Length2() < ( currentPath[nearestIndex]->position - position ).Length2() ) {
+			nearestIndex = i;
+		}
+
+	}
+	return nearestIndex;
+}
+
+void Enemy::FindBodyparts()
+{
+	rightLeg = FindInObjectByName( model, "RightLeg" );
+	leftLeg = FindInObjectByName( model, "LeftLeg" );
+	rightLegDown = FindInObjectByName( model, "RightLegDown" );
+	leftLegDown = FindInObjectByName( model, "LeftLegDown" );
+	torsoBone = FindInObjectByName( model, "Torso" );
+	attackHand = FindInObjectByName( model, "AttackHand" );
+	head = FindInObjectByName( model, "HeadBone" );
 }

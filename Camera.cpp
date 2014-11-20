@@ -39,7 +39,15 @@ void Camera::Update() {
 }
 
 void Camera::SetSkyBox( const char * path ) {
-    skybox = new Skybox( path );
+	if( path ) {
+		skybox = new Skybox( path );
+	} else {
+		if( skybox ) {
+			delete skybox;
+
+			skybox = nullptr;
+		}
+	}
 }
 
 void Camera::CalculateInverseViewProjection() {

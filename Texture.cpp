@@ -32,7 +32,7 @@ Texture::~Texture( ) {
 }
 
 void Texture::Bind( int level ) {
-    g_device->SetTexture( level, texture );
+    CheckDXError( g_device->SetTexture( level, texture ));
 }
 
 IDirect3DTexture9 * Texture::GetInterface() {

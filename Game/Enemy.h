@@ -6,18 +6,22 @@
 class Enemy {
 public:
 	vector< GraphVertex* > currentPath;
+	vector< GraphVertex* > patrolPoints;
 	int currentWaypointNum;
 	int destWaypointNum;
-	int lastPlayerIndex;
-	bool needRebuildPath;
-	int patrolDirection;
-	int currentPlayerIndex;
+	int lastDestIndex;
+	int currentDestIndex;
+
+	bool doPatrol;
+	int currentPatrolPoint;
+
 	Pathfinder pathfinder;
 
     NodeHandle model;
     NodeHandle body;
 
 	Vector3 target;
+	Vector3 destination;
 
     NodeHandle rightLeg;
     NodeHandle leftLeg;
@@ -34,26 +38,13 @@ public:
     SoundHandle screamSound;
 
 	enum {
-		ActionPatrol,
-		ActionChasePlayer,
-		ActionGoToPlayer,
+		MoveTypeChasePlayer,
+		MoveTypeGoToDestination,		
 	};
 
-	int GetVertexIndexNearestTo( Vector3 position ) {
-		if( currentPath.size() == 0 ) {
-			return 0;
-		};
-		int nearestIndex = 0;
-		for( int i = 0; i < currentPath.size(); i++ ) {
-			if( ( currentPath[i]->position - position ).Length2() < ( currentPath[nearestIndex]->position - position ).Length2() ) {
-				nearestIndex = i;
-			}
-
-		}
-		return nearestIndex;
-	}
+	int GetVertexIndexNearestTo( Vector3 position );
 	
-	int action;
+	int moveType;
 
 	bool attackDone;
 
@@ -74,7 +65,6 @@ public:
 	Animation animWalk;
 
 	void DrawAnimationDebugInfo( NodeHandle node, int & y );
-
     void SetLegsAnimation( Animation * anim );
     void SetTorsoAnimation( Animation * anim );
     void SetCommonAnimation( Animation * anim );
@@ -83,6 +73,11 @@ public:
 	virtual void SetWalkAnimation();
     virtual void SetRunAndAttackAnimation();
     virtual void SetStayAndAttackAnimation();
-    Enemy( const char * file, vector<GraphVertex*> & path );
-    void Think();
+    Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
+
+	void FindBodyparts();
+
+	void CreateSounds();
+	void CreateAnimations();
+	void Think();
 }; 

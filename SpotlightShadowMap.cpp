@@ -11,30 +11,28 @@ void SpotlightShadowMap::BindSpotShadowMap( int index ) {
 
 void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight ) {
     IDirect3DStateBlock9 * state;
-    g_device->CreateStateBlock( D3DSBT_ALL, &state );
-
-    g_device->SetRenderTarget( 0, spotSurface );
-    g_device->SetDepthStencilSurface( depthStencil );
-    g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
-
-    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-    g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ZENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXError( g_device->SetRenderTarget( 0, spotSurface ));
+    CheckDXError( g_device->SetDepthStencilSurface( depthStencil ));
+    CheckDXError( g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    CheckDXError( g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
+    CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ZENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ZWRITEENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
 
     pixelShader->Bind();
     vertexShader->Bind();
 
     spotLight->BuildSpotProjectionMatrixAndFrustum();
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
-    g_device->GetTexture( 0, &prevZeroSamplerTexture );
+    CheckDXError( g_device->GetTexture( 0, &prevZeroSamplerTexture ));
 
     for( auto meshGroupIter : Mesh::meshes ) {
         auto & group = meshGroupIter.second;
-        g_device->SetTexture( 0, meshGroupIter.first );
+        CheckDXError( g_device->SetTexture( 0, meshGroupIter.first ));
         for( auto mesh : group ) {
             // if owner of mesh is visible
             if( mesh->ownerNode->IsVisible()) {
@@ -45,7 +43,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
                         D3DXMATRIX world, wvp; 
                         GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
                         D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
-                        g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+                        CheckDXError( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
                         mesh->BindBuffers();
                         mesh->Render();
                     //}
@@ -54,14 +52,14 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
         };
     }
 
-    g_device->SetTexture( 0, prevZeroSamplerTexture );
+    CheckDXError( g_device->SetTexture( 0, prevZeroSamplerTexture ));
 
-    state->Apply();
+    CheckDXError( state->Apply());
     state->Release();
 
     // revert to the last used render target
-    g_device->SetRenderTarget( rtIndex, lastUsedRT );
-    g_device->SetDepthStencilSurface( defaultDepthStencil );
+    CheckDXError( g_device->SetRenderTarget( rtIndex, lastUsedRT ));
+    CheckDXError( g_device->SetDepthStencilSurface( defaultDepthStencil ));
 }
 
 SpotlightShadowMap::~SpotlightShadowMap() {
@@ -75,10 +73,10 @@ SpotlightShadowMap::SpotlightShadowMap( float size ) {
     iSize = size;
 
     // create shadow maps
-    D3DXCreateTexture( g_device, size, size, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap );
+    CheckDXError( D3DXCreateTexture( g_device, size, size, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap ));
 
     // get surfaces
-    spotShadowMap->GetSurfaceLevel( 0, &spotSurface );
+    CheckDXError( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
 
     // create shader to render shadowmaps
     string vertexShaderSource = 
@@ -108,6 +106,6 @@ SpotlightShadowMap::SpotlightShadowMap( float size ) {
 
     pixelShader = new PixelShader( pixelShaderSource );
 
-    g_device->GetDepthStencilSurface( &defaultDepthStencil );
-    g_device->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 );
+    CheckDXError( g_device->GetDepthStencilSurface( &defaultDepthStencil ));
+    CheckDXError( g_device->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));
 }

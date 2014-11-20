@@ -1,7 +1,7 @@
 #include "Shader.h"
 
 void VertexShader::Bind() {
-    g_device->SetVertexShader( shader );
+    CheckDXError( g_device->SetVertexShader( shader ));
 }
 
 ID3DXConstantTable * VertexShader::GetConstantTable() {
@@ -28,11 +28,11 @@ VertexShader::VertexShader( string source ) {
         exit( -1 );
     }
 
-    g_device->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader );
+    CheckDXError( g_device->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }
 
 void PixelShader::Bind() {
-    g_device->SetPixelShader( shader );
+    CheckDXError( g_device->SetPixelShader( shader ));
 }
 
 ID3DXConstantTable * PixelShader::GetConstantTable() {
@@ -59,5 +59,5 @@ PixelShader::PixelShader( string source ) {
         exit( -1 );
     }
 
-    g_device->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader );
+    CheckDXError( g_device->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }

@@ -16,7 +16,7 @@ ParticleEmitter::~ParticleEmitter() {
 }
 
 void ParticleEmitter::Render() {
-    g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, aliveParticles * 4, 0, aliveParticles * 2 );
+    CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, aliveParticles * 4, 0, aliveParticles * 2 ));
 }
 
 void ParticleEmitter::Bind() {
@@ -24,8 +24,8 @@ void ParticleEmitter::Bind() {
 	if( texPtr ) {
 		texPtr->Bind( 0 );
 	}
-    g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( SParticleVertex ));
-    g_device->SetIndices( indexBuffer );
+    CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( SParticleVertex )));
+    CheckDXError( g_device->SetIndices( indexBuffer ));
 }
 
 void ParticleEmitter::Update() {
@@ -220,8 +220,8 @@ void ParticleEmitter::ResurrectParticles() {
 ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ParticleSystemProperties creationProps ) {
     base = theParent;
     aliveParticles = theParticleCount; 
-    g_device->CreateVertexBuffer( theParticleCount * 4 * sizeof( SParticleVertex ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_MANAGED, &vertexBuffer, 0 );
-    g_device->CreateIndexBuffer( theParticleCount * 2 * sizeof( SParticleFace ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_MANAGED, &indexBuffer, 0 );
+    CheckDXError( g_device->CreateVertexBuffer( theParticleCount * 4 * sizeof( SParticleVertex ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_MANAGED, &vertexBuffer, 0 ));
+    CheckDXError( g_device->CreateIndexBuffer( theParticleCount * 2 * sizeof( SParticleFace ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_MANAGED, &indexBuffer, 0 ));
     faces = new SParticleFace[ theParticleCount * 2 ];
     vertices = new SParticleVertex[ theParticleCount * 4 ];
 	for( int i = 0; i < theParticleCount; i++ ) {

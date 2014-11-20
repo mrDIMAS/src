@@ -106,7 +106,7 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         D3DDECL_END()
     };
 
-    g_device->CreateVertexDeclaration( vdElem, &vd );
+    CheckDXError( g_device->CreateVertexDeclaration( vdElem, &vd ));
 }
 
 ParticleSystemRenderer::~ParticleSystemRenderer() {
@@ -118,29 +118,29 @@ ParticleSystemRenderer::~ParticleSystemRenderer() {
 
 void ParticleSystemRenderer::RenderAllParticleSystems() {
     IDirect3DStateBlock9 * state;
-    g_device->CreateStateBlock( D3DSBT_ALL, &state );
+    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 	
-	g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-	g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE );
-	g_device->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
+	CheckDXError( g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE ));
+	CheckDXError( g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE ));
+	CheckDXError( g_device->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE ));
 	
-	g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE,  D3DMCS_COLOR1 );
-    g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE,  D3DMCS_COLOR1 ));
+    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
 	
-    g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-    g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
-    g_device->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD );
+    CheckDXError( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA ));
+    CheckDXError( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA ));
+    CheckDXError( g_device->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD ));
 
-    g_device->SetRenderState( D3DRS_ZENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    CheckDXError( g_device->SetRenderState( D3DRS_ZENABLE, TRUE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
+    CheckDXError( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
 	
     g_deferredRenderer->GetGBuffer()->BindDepthMap( 1 );
 
 	pixelShader->Bind();
-    pixelShader->GetConstantTable()->SetMatrix( g_device, pInvViewProj, &g_camera->invViewProjection );
+    CheckDXError( pixelShader->GetConstantTable()->SetMatrix( g_device, pInvViewProj, &g_camera->invViewProjection ));
 
 	g_device->SetVertexDeclaration( vd );
 	vertexShader->Bind();
@@ -154,13 +154,13 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 
 		D3DXMATRIX mWVP;
 		D3DXMatrixMultiply( &mWVP, &particleEmitter->world, &g_camera->viewProjection );		
-		vertexShader->GetConstantTable()->SetMatrix( g_device, vWVP, &mWVP );
-		vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &particleEmitter->world );
+		CheckDXError( vertexShader->GetConstantTable()->SetMatrix( g_device, vWVP, &mWVP ));
+		CheckDXError( vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &particleEmitter->world ));
 
-        pixelShader->GetConstantTable()->SetFloat( g_device, pThickness, particleEmitter->GetThickness() );
+        CheckDXError( pixelShader->GetConstantTable()->SetFloat( g_device, pThickness, particleEmitter->GetThickness() ));
 
         if( particleEmitter->IsLightAffects() ) {
-            vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 1 );
+            CheckDXError( vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 1 ));
 
             int lightPerPass = 5;
             int passCount = 1;//ceil( (float)g_lights.size() / (float)lightPerPass );
@@ -187,15 +187,15 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
             for( int passNum = 0; passNum < passCount; passNum++ ) {
                 cnt = affectedLights.size() > (size_t)lightPerPass ? lightPerPass : affectedLights.size();
 
-                vertexShader->GetConstantTable()->SetInt( g_device, pLightCount, cnt );
+                CheckDXError( vertexShader->GetConstantTable()->SetInt( g_device, pLightCount, cnt ));
 
                 for( size_t j = 0; j < (size_t)cnt; j++ ) {
                     Light * lit = affectedLights.at( j );
 
                     D3DXHANDLE nPos = pixelShader->GetConstantTable()->GetConstantElement( pPosition, j );
-                    pixelShader->GetConstantTable()->SetFloatArray( g_device, nPos, lit->globalTransform.getOrigin().m_floats, 3 );
-                    pixelShader->GetConstantTable()->SetFloatArray( g_device, pixelShader->GetConstantTable()->GetConstantElement( pColor, j ), lit->GetColor().elements, 3 );
-                    pixelShader->GetConstantTable()->SetFloat( g_device, pixelShader->GetConstantTable()->GetConstantElement( pRange, j ), lit->GetRadius() * lit->GetRadius() );
+                    CheckDXError( pixelShader->GetConstantTable()->SetFloatArray( g_device, nPos, lit->globalTransform.getOrigin().m_floats, 3 ));
+                    CheckDXError( pixelShader->GetConstantTable()->SetFloatArray( g_device, pixelShader->GetConstantTable()->GetConstantElement( pColor, j ), lit->GetColor().elements, 3 ));
+                    CheckDXError( pixelShader->GetConstantTable()->SetFloat( g_device, pixelShader->GetConstantTable()->GetConstantElement( pRange, j ), lit->GetRadius() * lit->GetRadius() ));
                 }
 
                 particleEmitter->Render();
@@ -205,13 +205,13 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
                 }
             }
         } else {
-            vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 0 );
+            CheckDXError( vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 0 ));
 			
             particleEmitter->Render();
         }
 
     }
 
-    state->Apply();
+    CheckDXError( state->Apply());
     state->Release();
 }
