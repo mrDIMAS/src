@@ -15,6 +15,7 @@ Level * currentLevel = 0;
 int Level::curLevelID = 0;
 
 Level::Level() {
+	typeNum = 0; //undefined
     music.Invalidate();
 }
 
@@ -216,4 +217,15 @@ void Level::SerializeWith( TextFileStream & out ) {
 
 void Level::AddSound( SoundHandle sound ) {
     sounds.push_back( sound );
+}
+
+void Level::PlayAmbientSounds()
+{
+	ambSoundSet.DoRandomPlaying();
+}
+
+void Level::AddAmbientSound( SoundHandle sound )
+{
+	sounds.push_back( sound );
+	ambSoundSet.AddSound( sound );
 }

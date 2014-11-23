@@ -4,6 +4,8 @@
 
 
 LevelArrival::LevelArrival( ) {
+	typeNum = 2;
+
     // Load localization
     LoadLocalization( "arrival.loc" );
 

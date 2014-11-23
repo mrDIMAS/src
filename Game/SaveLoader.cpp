@@ -3,6 +3,10 @@
 #include "Way.h"
 
 void SaveLoader::RestoreWorldState() {
+	int levNum = ReadInteger();
+	
+	Level::Change( levNum );
+
     if( currentLevel ) {
         currentLevel->DeserializeWith( *this );
     }

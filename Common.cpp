@@ -140,5 +140,15 @@ void ParseFile( string fn, map<string,string> & values) {
     };
 }
 
+void CheckDXError( HRESULT errCode )
+{
+	if( FAILED( errCode )) {
+		char buf[1024];
+		sprintf_s( buf, "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
+		MessageBoxA( 0, buf, "Fatal error", MB_OK | MB_ICONERROR );
+		exit( -1 );
+	}
+}
+
 
 

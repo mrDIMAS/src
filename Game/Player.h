@@ -15,7 +15,7 @@
 #include "Tip.h"
 
 class Player {
-private:
+public:
     void LoadSounds();
     void CreateBody();
     void CreateCamera();
@@ -145,6 +145,7 @@ public:
     int keyRun;
     int keyInventory;
     int keyUse;
+	int keyStealth;
 
     string placeDesc;
     string pickedObjectDesc;

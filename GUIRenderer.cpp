@@ -236,8 +236,8 @@ void GUIRenderer::RenderCursor() {
 
     CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
 
-    int x = mi::MouseX();
-    int y = mi::MouseY();
+    int x = GetMouseX();
+    int y = GetMouseY();
     int w = g_cursor->w;
     int h = g_cursor->h;
     int color = 0xFFFFFFFF;

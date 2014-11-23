@@ -1,5 +1,6 @@
 #include "Lift.h"
 #include "Player.h"
+#include "Utils.h"
 
 Lift::Lift( NodeHandle object, NodeHandle screen, NodeHandle src, NodeHandle dest, SoundHandle motorIS ) {
     body = object;
@@ -44,9 +45,9 @@ void Lift::Update() {
     }
 
     if( player->nearestPicked == scr ) {
-        DrawGUIText( "[E] - вверх/вниз", g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
-
-        if( mi::KeyHit( mi::E )) {
+        DrawGUIText( Format( player->localization.GetString( "liftUpDown" ), GetKeyName( player->keyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+		
+        if( IsKeyHit( player->keyUse )) {
             if( arrived ) {
                 if( target == sourcePoint ) {
                     target = destPoint;

@@ -6,6 +6,7 @@
 #include "LevelMine.h"
 #include "SaveWriter.h"
 #include "SaveLoader.h"
+#include "Utils.h"
 
 Menu * menu = 0;
 bool g_continueGame = false;
@@ -28,7 +29,8 @@ Menu::Menu( ) {
     autosaveNotify = false; // FIXED: set it to true when build release version
     textFont = CreateGUIFont( 16, "Arial", false, false );
     textBackgroundFont = CreateGUIFont( 21, "Arial", false, false );
-
+	loadSaveGameName = "";
+	loadFromSave = false;
     CreateCamera();
     LoadSounds();
     LoadTextures();
@@ -83,31 +85,30 @@ void Menu::Update( ) {
     if( visible ) {
         camera->Update();
 
-        if( mi::KeyHit( mi::Esc ) ) {
+        if( IsKeyHit( KEY_Esc ) ) {
             returnToGameByEsc = currentLevel != nullptr;
         }
 
-        if( startPressed || continuePressed || returnToGameByEsc ) {
+        if( startPressed || continuePressed || returnToGameByEsc || loadFromSave ) {
             camera->FadeOut();
 
             buttonsXOffset -= 6;
 
             if( camera->FadeComplete() ) {
                 if( !currentLevel && continuePressed ) {
-                    Level::Change( continueLevelName, true );
+					SaveLoader( "lastGame.save" ).RestoreWorldState();
                 }
-
+				if( loadFromSave ) {
+					SaveLoader( loadSaveGameName ).RestoreWorldState();
+				}
                 if( !currentLevel && startPressed ) {
                     Level::Change( g_initialLevel );
-					//Level::Change( LXTestingChamber );
                 }
-
                 startPressed = false;
                 continuePressed = false;
                 returnToGameByEsc = false;
-
+				loadFromSave = false;
                 Hide();
-
                 return;
             }
         }
@@ -140,18 +141,25 @@ void Menu::Update( ) {
 
         GUIState continueGame;
         GUIState start;
+		GUIState saveGame;
+		GUIState loadGame;
         GUIState options;
         GUIState authors;
         GUIState exit;
 
         if( !autosaveNotify ) {
+			int saveGamePosX = ( page == Page::SaveGame ) ? mainButtonsX + 20 : mainButtonsX;
+			int loadGamePosX = ( page == Page::LoadGame ) ? mainButtonsX + 20 : mainButtonsX;
+			int optionsPosX = ( page == Page::Options || page == Page::OptionsGraphics || page == Page::OptionsKeys || page == Page::OptionsCommon ) ? mainButtonsX + 20 : mainButtonsX;
             if( currentLevel || canContinueGameFromLast ) {
-                continueGame = DrawGUIButton( mainButtonsX, g_resH - 3.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+                continueGame = DrawGUIButton( mainButtonsX, g_resH - 4.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             }
             if( !currentLevel ) {
-                start = DrawGUIButton( mainButtonsX, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+                start = DrawGUIButton( mainButtonsX, g_resH - 3.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             }
-            options = DrawGUIButton( mainButtonsX, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+			saveGame = DrawGUIButton( saveGamePosX, g_resH - 3.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "saveButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+			loadGame = DrawGUIButton( loadGamePosX, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "loadButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            options = DrawGUIButton( optionsPosX, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             authors = DrawGUIButton( mainButtonsX, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
             exit = DrawGUIButton( mainButtonsX, g_resH - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
         } else {
@@ -218,6 +226,59 @@ void Menu::Update( ) {
 				SetVolume( currentLevel->music, g_musicVolume );
 			}
         }
+
+		if( page == Page::LoadGame ) {
+			float x = buttonsXOffset + 200;
+			float y = g_resH - 4.0 * distBetweenButtons;
+
+			float buttonWidth = 80;
+			float buttonHeight = 32;
+			float textX = x + buttonWidth * 1.5f;
+
+			vector< string > names;
+			GetFilesWithDefExt( "*.save", names );
+
+			for( int i = 0; i < names.size(); i++ ) {
+				GUIState save = DrawGUIButton( x, y, 128, 32, buttonImage, names[i].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+				if( save.mouseLeftClicked ) {
+					loadSaveGameName = names[i];
+					loadFromSave = true;
+					SetPage( Page::Main );
+				}
+				y += 1.1f * buttonHeight;
+			}
+		}
+		
+		if( page == Page::SaveGame ) {
+			float x = buttonsXOffset + 200;
+			float y = g_resH - 4.0 * distBetweenButtons;
+
+			float buttonWidth = 80;
+			float buttonHeight = 32;
+			float textX = x + buttonWidth * 1.5f;
+
+			vector< string > names;
+			GetFilesWithDefExt( "*.save", names );
+
+			for( int i = names.size() - 1; i < 6; i++ ) {
+				string saveName = "Slot";
+				saveName += ( (char)i + (char)'0' );
+				saveName += ".save";
+				names.push_back( saveName );
+			}
+
+			for( int i = 0; i < names.size(); i++ ) {
+				GUIState save = DrawGUIButton( x, y, 128, 32, buttonImage, names[i].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+				if( save.mouseLeftClicked ) {
+					if( currentLevel ) {
+						SaveWriter( names[i] ).SaveWorldState();
+						SetPage( Page::Main );
+						break;
+					}
+				}
+				y += 1.1f * buttonHeight;
+			}
+		}
 
         if( page == Page::OptionsGraphics ) {
             float x = buttonsXOffset + 200;
@@ -316,7 +377,6 @@ void Menu::Update( ) {
                 exitPressed = true;
                 if( player && currentLevel ) {
                     if( !player->dead ) {
-                        WriteProgressConfig();
                         SaveWriter( "lastGame.save" ).SaveWorldState();
                     }
                 }
@@ -325,12 +385,13 @@ void Menu::Update( ) {
             if( continueGame.mouseLeftClicked ) {
                 continuePressed = true;
                 SetPage( Page::Main );
-                if( !currentLevel ) {
-                    Parser progress;
-                    progress.ParseFile( "progress.cfg" );
-                    continueLevelName = progress.GetNumber( "lastLevel" );
-                }
             }
+			if( loadGame.mouseLeftClicked ) {
+				SetPage( Page::LoadGame );
+			}
+			if( saveGame.mouseLeftClicked ) {
+				SetPage( Page::SaveGame );
+			}
             if( options.mouseLeftClicked ) {
                 SetPage( Page::Options );
             }
@@ -339,7 +400,7 @@ void Menu::Update( ) {
             }
         }
     } else {
-        if( mi::KeyHit( mi::Esc ) ) {
+        if( IsKeyHit( KEY_Esc ) ) {
             menu->Show();
         }
     }
@@ -510,10 +571,4 @@ Menu::~Menu() {
     delete pointShadowsButton;
 	delete hdrButton;
     delete spotShadowsButton;
-}
-
-void Menu::WriteProgressConfig() {
-    ofstream out( "progress.cfg" );
-    WriteInteger( out, "lastLevel", (int)Level::curLevelID );
-    out.close();
 }

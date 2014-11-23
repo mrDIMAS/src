@@ -261,7 +261,7 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     SetActiveWindow ( window );
     SetForegroundWindow ( window );
     // init input
-    mi::Init( &window );
+    InputInit( &window );
     // success
     return 1;
 }

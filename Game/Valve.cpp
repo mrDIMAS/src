@@ -1,5 +1,6 @@
 #include "Valve.h"
 #include "Player.h"
+#include "Utils.h"
 
 Valve::Valve( NodeHandle obj, Vector3 axis, int turnCount ) {
     object = obj;
@@ -16,9 +17,9 @@ void Valve::Update() {
     }
 
     if( player->nearestPicked == object ) {
-        DrawGUIText( "[E] - вращать", g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+        DrawGUIText( Format( player->localization.GetString( "turnObject" ), GetKeyName( player->keyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
-        if( mi::KeyDown( mi::E )) {
+        if( IsKeyDown( player->keyUse )) {
             angle += 5;
 
             if( angle >= 360 * tc ) {

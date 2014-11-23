@@ -4,6 +4,8 @@
 #include "Way.h"
 
 void SaveWriter::SaveWorldState() {
+	WriteInteger( currentLevel->typeNum );
+
     if( currentLevel ) {
         currentLevel->SerializeWith( *this );
     }

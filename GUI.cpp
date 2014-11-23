@@ -72,15 +72,15 @@ API GUIState DrawGUIButton( int x, int y, int w, int h, TextureHandle texture, c
 
     memset( &state, 0, sizeof( GUIState ));
 
-    int mx = mi::MouseX();
-    int my = mi::MouseY();
+    int mx = GetMouseX();
+    int my = GetMouseY();
 
     if( mx > x && mx < ( x + w ) && my > y && my < ( y + h ) ) {
         state.mouseInside = 1;
-        if( mi::MouseHit( mi::Left )) {
+        if( IsMouseHit( MB_Left )) {
             state.mouseLeftClicked = true;
         }
-        if( mi::MouseHit( mi::Right )) {
+        if( IsMouseHit( MB_Right )) {
             state.mouseRightClicked = true;
         }
 

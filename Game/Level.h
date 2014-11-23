@@ -28,11 +28,12 @@ private:
     vector<SoundHandle> sounds;
     virtual void OnSerialize( TextFileStream & out ) = 0;
     virtual void OnDeserialize( TextFileStream & in ) = 0;
-    AmbientSoundSet ambSoundSet;
+    AmbientSoundSet ambSoundSet;	
 protected:
     Parser localization;
-    NodeHandle scene;    
+    NodeHandle scene;    	
 public:
+	int typeNum;
 	SoundHandle music;
     map<string, bool > stages;
     void AddItem( Item * item );
@@ -45,13 +46,8 @@ public:
     void AddLift( Lift * lift );
     void AddSound( SoundHandle sound );
     void LoadLocalization( string fn );
-    void AddAmbientSound( SoundHandle sound ) {
-        sounds.push_back( sound );
-        ambSoundSet.AddSound( sound );
-    }
-    void PlayAmbientSounds() {
-        ambSoundSet.DoRandomPlaying();
-    }
+    void AddAmbientSound( SoundHandle sound );
+    void PlayAmbientSounds();
     explicit Level();
     virtual ~Level();
     virtual void DoScenario() = 0;

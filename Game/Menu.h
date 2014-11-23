@@ -20,6 +20,8 @@ public:
         OptionsKeys,
         OptionsCommon,
         OptionsGraphics,
+		SaveGame,
+		LoadGame,
     };
 
     explicit Menu( );
@@ -28,7 +30,6 @@ public:
     void WriteFloat( ofstream & stream, string name, float value );
     void WriteInteger( ofstream & stream, string name, int value );
     void Writestring( ofstream & stream, string name, string value );
-    void WriteProgressConfig();
     void WriteConfig();
     void SetPlayerControls();
     void LoadConfig();
@@ -60,7 +61,8 @@ public:
     bool returnToGameByEsc;
     bool autosaveNotify;
     bool exitingGame;
-
+	string loadSaveGameName;
+	bool loadFromSave;
     float buttonsXOffset;
     int continueLevelName;
     SoundHandle pickSound;

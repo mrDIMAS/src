@@ -52,15 +52,16 @@ Player::Player() {
 
     // Control vars
     mouseSens = 0.5f;
-    keyMoveForward = mi::W;
-    keyMoveBackward = mi::S;
-    keyStrafeLeft = mi::A;
-    keyStrafeRight = mi::D;
-    keyJump = mi::Space;
-    keyFlashLight = mi::F;
-    keyRun = mi::LeftShift;
-    keyInventory = mi::Tab;
-    keyUse = mi::E;
+    keyMoveForward = KEY_W;
+    keyMoveBackward = KEY_S;
+    keyStrafeLeft = KEY_A;
+    keyStrafeRight = KEY_D;
+    keyJump = KEY_Space;
+    keyFlashLight = KEY_F;
+    keyRun = KEY_LeftShift;
+    keyInventory = KEY_Tab;
+    keyUse = KEY_E;
+	keyStealth = KEY_C;
 
     // GUI vars
     staminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
@@ -224,7 +225,7 @@ Player::UpdateInventory
 ========
 */
 void Player::UpdateInventory() {
-    if( mi::KeyHit( (mi::Key)keyInventory ) && !locked ) {
+    if( IsKeyHit( keyInventory ) && !locked ) {
         inventory.opened = !inventory.opened;
     }
 
@@ -275,8 +276,8 @@ void Player::UpdateMouseLook() {
                 mouseSpeed = 0.0f;
             }
         }
-        pitch.SetTarget( pitch.GetTarget() + mi::MouseYSpeed() * mouseSpeed );
-        yaw.SetTarget( yaw.GetTarget() - mi::MouseXSpeed() * mouseSpeed );
+        pitch.SetTarget( pitch.GetTarget() + GetMouseYSpeed() * mouseSpeed );
+        yaw.SetTarget( yaw.GetTarget() - GetMouseXSpeed() * mouseSpeed );
     }
     
     damagePitchOffset.ChaseTarget( 20.0f * g_dt );
@@ -310,7 +311,7 @@ void Player::UpdateJumping() {
 	NodeHandle headBumpObject = RayTest( GetPosition( body ) + Vector3( 0, capsuleHeight * 0.98, 0 ), GetPosition( body ) + Vector3( 0, 1.02 * capsuleHeight, 0 ), nullptr );
 	
 
-    if( mi::KeyHit( (mi::Key)keyJump ) && !locked ) {
+    if( IsKeyHit( keyJump ) && !locked ) {
        if( CanJump() ) {
             jumpTo = Vector3( 0, 150, 0 );
             landed = false;
@@ -361,7 +362,7 @@ void Player::UpdateMoving() {
         }
     }
 
-	if( mi::KeyHit( mi::C )) {
+	if( IsKeyHit( keyStealth )) {
 		stealthMode = !stealthMode;
 	}
 
@@ -377,11 +378,11 @@ void Player::UpdateMoving() {
         if( currentWay->IsPlayerInside() ) {
             bool move = false;
 
-            if( mi::KeyDown( (mi::Key)keyMoveForward )) {
+            if( IsKeyDown( keyMoveForward )) {
                 currentWay->SetDirection( Way::Direction::Forward );
                 move = true;
             }
-            if( mi::KeyDown( (mi::Key)keyMoveBackward )) {
+            if( IsKeyDown( keyMoveBackward )) {
                 currentWay->SetDirection( Way::Direction::Backward );
                 move = true;
             }
@@ -407,16 +408,16 @@ void Player::UpdateMoving() {
         speedTo = Vector3( 0, 0, 0 );
 
         if( !locked ) {
-            if( mi::KeyDown( (mi::Key)keyMoveForward )) {
+            if( IsKeyDown( keyMoveForward )) {
                 speedTo = speedTo + look;
             }
-            if( mi::KeyDown( (mi::Key)keyMoveBackward )) {
+            if( IsKeyDown( keyMoveBackward )) {
                 speedTo = speedTo - look;
             }
-            if( mi::KeyDown( (mi::Key)keyStrafeLeft )) {
+            if( IsKeyDown( keyStrafeLeft )) {
                 speedTo = speedTo + right;
             }
-            if( mi::KeyDown( (mi::Key)keyStrafeRight )) {
+            if( IsKeyDown( keyStrafeRight )) {
                 speedTo = speedTo - right;
             }
         }
@@ -433,7 +434,7 @@ void Player::UpdateMoving() {
         fov.SetTarget( fov.GetMin() );
 
 		running = false;
-        if( mi::KeyDown( (mi::Key)keyRun ) && moved ) {
+        if( IsKeyDown( keyRun ) && moved ) {
             if( stamina > 0 ) {
                 speedTo = speedTo * runSpeedMult;
                 stamina -= 8.0f * g_dt ;
@@ -755,7 +756,7 @@ void Player::DrawSheetInHands() {
 
         pickedObjectDesc += localization.GetString( "sheetOpen" );
 
-        if( mi::MouseHit( mi::Right )) {
+        if( IsMouseHit( MB_Right )) {
             ShowNode( sheetInHands->object );
             sheetInHands = 0;
             PlaySoundSource( Sheet::paperFlip );
@@ -831,12 +832,12 @@ void Player::UpdateItemsHandling() {
         Vector3 ppPos = GetPosition( itemPoint );
         Vector3 objectPos = GetPosition( objectInHands );
         Vector3 dir = ppPos - objectPos;
-        if( mi::MouseDown( mi::Left ) ) {
+        if( IsMouseDown( MB_Left ) ) {
             Move( objectInHands,  dir * 6 );
 
             SetAngularVelocity( objectInHands, Vector3( 0, 0, 0 ));
 
-            if( mi::MouseDown( mi::Right ) ) {
+            if( IsMouseDown( MB_Right ) ) {
                 if( UseStamina( GetMass( objectInHands )  )) {
                     Move( objectInHands, ( ppPos - GetPosition( camera->cameraNode )).Normalize() * 6 );
                 }
@@ -851,7 +852,7 @@ void Player::UpdateItemsHandling() {
         }
     }
 
-    if( !mi::MouseDown( mi::Left )) {
+    if( !IsMouseDown( MB_Left )) {
         objectThrown = false;
     }
 }
@@ -892,7 +893,7 @@ void Player::UpdatePicking() {
                 }
             }
 
-            if( mi::MouseDown( mi::Left ) ) {
+            if( IsMouseDown( MB_Left ) ) {
                 if( IsObjectHasNormalMass( picked )) {
                     if( !IsNodeFrozen( picked ) && !objectThrown ) {
                         objectInHands = picked;
@@ -933,7 +934,7 @@ void Player::UpdateFlashLight() {
 
     flashLightItem->content = flashlight->charge;
 
-    if( mi::KeyHit( (mi::Key)keyFlashLight ) && !locked ) {
+    if( IsKeyHit( keyFlashLight ) && !locked ) {
         flashlight->Switch();
     }
 }
@@ -1040,7 +1041,7 @@ Player::IsUseButtonHit
 ========
 */
 bool Player::IsUseButtonHit() {
-    return mi::KeyHit( (mi::Key)keyUse );
+    return IsKeyHit( keyUse );
 }
 
 /*

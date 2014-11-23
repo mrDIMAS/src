@@ -17,9 +17,8 @@ void WaitKeyButton::Draw( float x, float y, TextureHandle buttonImage, const cha
 
     if( grabKey ) {
         for( int i = 0; i < 255; i++ ) {
-            if( mi::KeyDown( (mi::Key)i )) {
+            if( IsKeyDown( i )) {
                 SetSelected( i );
-
                 grabKey = false;
             }
         }

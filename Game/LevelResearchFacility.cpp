@@ -1,44 +1,48 @@
 #include "LevelResearchFacility.h"
 #include "Player.h"
 #include "Door.h"
+#include "Utils.h"
 
 LevelResearchFacility::LevelResearchFacility() {
+	typeNum = 4;
+
     scene = LoadScene( "data/maps/release/researchFacility/rf.scene" );
 
-    SetLocalPosition( player->body, GetPosition( FindByName( "PlayerPosition" )));
+    SetLocalPosition( player->body, GetPosition( FindInObjectByName( scene, "PlayerPosition" )));
 
     SetReverb( 13 );
 
-    steamActivateZone = FindByName( "SteamActivateZone" );
+    steamActivateZone = FindInObjectByName( scene, "SteamActivateZone" );
 
     steamHissSound = CreateSound3D( "data/sounds/steamhiss.ogg" );
 
-    AddLift( lift1 = new Lift( FindByName( "Lift1" ), FindByName( "Lift1Screen"), FindByName( "Lift1Source" ), FindByName("Lift1Dest" ), CreateSound3D( "data/sounds/motor_idle.ogg")));
+    AddLift( lift1 = new Lift( FindInObjectByName( scene, "Lift1" ), FindInObjectByName( scene, "Lift1Screen"), 
+		FindInObjectByName( scene, "Lift1Source" ), FindInObjectByName( scene, "Lift1Dest" ), CreateSound3D( "data/sounds/motor_idle.ogg")));
 
-    fan1 = new Fan( FindByName( "Fan" ), 15, Vector3( 0, 1, 0 ), CreateSound3D( "data/sounds/fan.ogg" ));
-    fan2 = new Fan( FindByName( "Fan2" ), 15, Vector3( 0, 1, 0 ), CreateSound3D( "data/sounds/fan.ogg" ));
+    fan1 = new Fan( FindInObjectByName( scene, "Fan" ), 15, Vector3( 0, 1, 0 ), CreateSound3D( "data/sounds/fan.ogg" ));
+    fan2 = new Fan( FindInObjectByName( scene, "Fan2" ), 15, Vector3( 0, 1, 0 ), CreateSound3D( "data/sounds/fan.ogg" ));
 
 
-    scaryBarellThrowZone = FindByName( "ScaryBarellThrowZone" );
+    scaryBarellThrowZone = FindInObjectByName( scene, "ScaryBarellThrowZone" );
 
     leverSound = CreateSound3D( "data/sounds/lever.ogg");
 
-    AddValve( steamValve = new Valve( FindByName( "SteamValve" ), Vector3( 0, 1, 0 )));
+    AddValve( steamValve = new Valve( FindInObjectByName( scene, "SteamValve" ), Vector3( 0, 1, 0 )));
 	SoundHandle steamHis = CreateSound3D( "data/sounds/steamhiss_loop.ogg" ) ;
 	AddSound( steamHis );
-    extemeSteam = new SteamStream( FindByName( "ExtremeSteam"), Vector3( -0.0015, -0.1, -0.0015 ), Vector3( 0.0015, -0.45, 0.0015 ), steamHis );
+    extemeSteam = new SteamStream( FindInObjectByName( scene, "ExtremeSteam"), Vector3( -0.0015, -0.1, -0.0015 ), Vector3( 0.0015, -0.45, 0.0015 ), steamHis );
 
     SetAmbientColor( Vector3( 0, 0, 0 ));
 
-    doorOpenLever = FindByName( "DoorOpenLever" );
-    lockedDoor = FindByName( "LockedDoor" );
-    spawnRipperZone = FindByName( "SpawnRipperZone" );
+    doorOpenLever = FindInObjectByName( scene, "DoorOpenLever" );
+    lockedDoor = FindInObjectByName( scene, "LockedDoor" );
+    spawnRipperZone = FindInObjectByName( scene, "SpawnRipperZone" );
 
-    ripperNewPosition = FindByName( "RipperNewPosition");
-    repositionRipperZone = FindByName( "RepositionRipperZone");
+    ripperNewPosition = FindInObjectByName( scene, "RipperNewPosition");
+    repositionRipperZone = FindInObjectByName( scene, "RepositionRipperZone");
 
-    extremeSteamBlock = FindByName( "ExtremeSteamBlock" );
-    extremeSteamHurtZone = FindByName( "ExtremeSteamHurtZone" );
+    extremeSteamBlock = FindInObjectByName( scene, "ExtremeSteamBlock" );
+    extremeSteamHurtZone = FindInObjectByName( scene, "ExtremeSteamHurtZone" );
 
     CreatePowerUpSequence();
 
@@ -74,7 +78,7 @@ void LevelResearchFacility::CreateSteam() {
 	psProps.particleThickness = 1.5f;
 	psProps.useLighting = false;
     steamPS = CreateParticleSystem( 35, psProps );
-    SetPosition( steamPS, GetPosition( FindByName( "RFSteamPos" )));
+    SetPosition( steamPS, GetPosition( FindInObjectByName( scene, "RFSteamPos" )));
     AttachSound( steamHissSound, steamPS );
 }
 
@@ -123,7 +127,7 @@ void LevelResearchFacility::DoScenario() {
 
     if( !stateEnterScaryBarellThrowZone ) {
         if( IsNodeInside( player->body, scaryBarellThrowZone )) {
-            SetPosition( FindByName( "ScaryBarell" ), GetPosition( FindByName( "ScaryBarellPos" )));
+            SetPosition( FindInObjectByName( scene, "ScaryBarell" ), GetPosition( FindInObjectByName( scene, "ScaryBarellPos" )));
 
             stateEnterScaryBarellThrowZone = 1;
         }
@@ -162,9 +166,9 @@ void LevelResearchFacility::DoScenario() {
 
     if( !stateDoorUnlocked ) {
         if( player->nearestPicked == doorOpenLever ) {
-            DrawGUIText( "[E] - открыть дверь", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+            DrawGUIText( Format( "[%s] - открыть дверь", GetKeyName( player->keyUse )).c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
-            if( mi::KeyDown( mi::E )) {
+            if( IsKeyDown( player->keyUse )) {
                 SetRotation( doorOpenLever, Quaternion( 0, -20, 0 ));
                 SetPosition( lockedDoor, Vector3( 1000, 1000, 1000 )); // far far away :D
 
@@ -227,7 +231,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
             }
         }
 
-        if( mi::KeyHit( mi::E )) {
+        if( IsKeyHit( player->keyUse )) {
             for( int i = 0; i < 3; i++ ) {
                 ItemPlace * fuse = fusePlace[i];
 
@@ -245,14 +249,14 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
     if( fuseInsertedCount >= 3 ) {
         if( player->nearestPicked == powerLever ) {
-            DrawGUIText( "[E] - включить питание", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+            DrawGUIText( Format( player->localization.GetString("powerUp"), GetKeyName( player->keyUse )).c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
-            if( mi::KeyHit( mi::E ) && !powerOn ) {
-                SetLightColor( FindByName("PowerLamp"), Vector3( 0, 255, 0 ) );
+            if( IsKeyHit( player->keyUse ) && !powerOn ) {
+                SetLightColor( FindInObjectByName( scene, "PowerLamp"), Vector3( 0, 255, 0 ) );
 
                 PlaySoundSource( leverSound, 1 );
 
-                powerSparks = new Sparks( FindByName( "PowerLeverSnd" ), CreateSound3D( "data/sounds/sparks.ogg" ));
+                powerSparks = new Sparks( FindInObjectByName( scene, "PowerLeverSnd" ), CreateSound3D( "data/sounds/sparks.ogg" ));
 
                 ShowNode( powerLeverOnModel );
                 HideNode( powerLeverOffModel );

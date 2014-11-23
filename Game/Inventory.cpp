@@ -28,7 +28,7 @@ Inventory::Inventory() {
 }
 
 bool Inventory::IsMouseInside( int x, int y, int w, int h ) {
-    return mi::MouseX() > x && mi::MouseX() < ( x + w ) && mi::MouseY() > y && mi::MouseY() < ( y + h );
+    return GetMouseX() > x && GetMouseX() < ( x + w ) && GetMouseY() > y && GetMouseY() < ( y + h );
 }
 
 void Inventory::DoCombine() {
@@ -70,7 +70,7 @@ void Inventory::Update() {
     if( forUse ) {
         HideCursor();
         DrawGUIRect( screenCenterX, screenCenterY, 64, 64, forUse->img, whiteColor, 255 );
-        if( mi::MouseHit( mi::MouseButton::Left )) {
+        if( IsMouseHit( MB_Left )) {
             forUse = 0;
             selected = 0;
         }
@@ -131,7 +131,7 @@ void Inventory::Update() {
         DrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, cellWidth - 2 * combineBoxSpacing, cellHeight - 2 * combineBoxSpacing, combineItemFirst->img );
         if( IsMouseInside( buttonsX, combineBoxY, cellWidth, cellHeight )) {
             combineColor1 = Vector3( 255, 0, 0 );
-            if( mi::MouseHit( mi::MouseButton::Left )) {
+            if( IsMouseHit( MB_Left )) {
                 combineItemFirst = 0;
             }
         }
@@ -140,7 +140,7 @@ void Inventory::Update() {
         DrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * cellHeight + combineBoxSpacing, cellWidth - 2 * combineBoxSpacing, cellHeight - 2 * combineBoxSpacing, combineItemSecond->img );
         if( IsMouseInside( buttonsX, combineBoxY + 1.2f * cellHeight, cellWidth, cellHeight )) {
             combineColor2 = Vector3( 255, 0, 0 );
-            if( mi::MouseHit( mi::MouseButton::Left )) {
+            if( IsMouseHit( MB_Left )) {
                 combineItemSecond = 0;
             }
         }
@@ -196,7 +196,7 @@ void Inventory::Update() {
                 alpha = 255;
                 if( item != combineItemFirst && item != combineItemSecond ) {
                     picked = item;
-                    if( mi::MouseHit( mi::MouseButton::Left )) {
+                    if( IsMouseHit( MB_Left )) {
                         pressed = true;
                         selected = item;
                     }
@@ -204,7 +204,7 @@ void Inventory::Update() {
             }
             DrawGUIRect( cellX, cellY, cellWidth, cellHeight, cellTexture, color, alpha );
             if( picked ) {
-                if( mi::MouseHit( mi::MouseButton::Right ) && combinePick ) {
+                if( IsMouseHit( MB_Right ) && combinePick ) {
                     if( combineItemFirst == 0 ) {
                         if( picked != combineItemFirst ) {
                             combineItemFirst = picked;

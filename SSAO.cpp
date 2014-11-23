@@ -62,30 +62,31 @@ void SSAO::FillAOMap() {
     aoPixelShader->GetConstantTable()->SetFloat( g_device, aoDistScale, distScale );
     aoPixelShader->GetConstantTable()->SetFloat( g_device, aoBias, bias );
 
-    if( mi::KeyDown( mi::T )) {
+	/*
+    if( IsKeyDown( KEY_T )) {
         radius += 0.02f;
     }
-    if( mi::KeyDown( mi::G ))
+    if( IsKeyDown( KEY_G ))
         if( radius > 0.02f ) {
             radius -= 0.02f;
         }
 
-    if( mi::KeyDown( mi::Y )) {
+    if( IsKeyDown( Y )) {
         distScale += 0.02f;
     }
-    if( mi::KeyDown( mi::H ))
+    if( IsKeyDown( H ))
         if( distScale > 0.02f ) {
             distScale -= 0.02f;
         }
 
-    if( mi::KeyDown( mi::R )) {
+    if( IsKeyDown( R )) {
         bias += 0.02f;
     }
-    if( mi::KeyDown( mi::F ))
+    if( IsKeyDown( F ))
         if( bias > 0.02f ) {
             bias -= 0.02f;
         }
-
+		*/
     screenQuad->Render();
 }
 

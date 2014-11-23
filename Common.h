@@ -2,7 +2,7 @@
 #define _COMMON_
 
 //#define D3D_DEBUG_INFO
-
+#define INITGUID
 #define _CRT_SECURE_NO_WARNINGS
 
 #define DIRECTINPUT_VERSION 0x0800
@@ -26,6 +26,8 @@
 #include <queue>
 #include "ft2build.h"
 #include <DxErr.h>
+#include <windows.h>
+#include <dinput.h>
 #include FT_FREETYPE_H
 //#include "vld.h"
 
@@ -52,6 +54,8 @@
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
 #pragma comment( lib, "dxerr" )
+#pragma comment( lib, "dinput8.lib" )
+#pragma comment( lib, "dxguid.lib" )
 
 using namespace std;
 
@@ -129,13 +133,6 @@ extern bool g_hdrEnabled;
 extern bool g_usePointLightShadows;
 extern bool g_useSpotLightShadows;
 
-static void CheckDXError( HRESULT errCode ) {
-	if( FAILED( errCode )) {
-		char buf[1024];
-		sprintf_s( buf, "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
-		MessageBoxA( 0, buf, "Fatal error", MB_OK | MB_ICONERROR );
-		exit( -1 );
-	}
-}
+extern void CheckDXError( HRESULT errCode );
 
 #endif

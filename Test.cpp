@@ -84,18 +84,18 @@ void main( ) {
 
 	EnablePointLightShadows( false );
 	EnableSpotLightShadows( true );
-	while( !mi::KeyDown( mi::Esc )) {
+	while( !IsKeyDown( KEY_Esc )) {
 
 		idleAnim.Update();
-		mi::Update();
+		InputUpdate();
 
-		if( mi::MouseHit( mi::MouseButton::Right )) {
+		if( IsMouseHit( MB_Right )) {
 			SetHDREnabled( !IsHDREnabled() );
 		}
 		Vector3 speed;
 
-		pitchTo += mi::MouseYSpeed() / 2.0;
-		yawTo += -mi::MouseXSpeed() / 2.0;
+		pitchTo += GetMouseYSpeed() / 2.0;
+		yawTo += -GetMouseXSpeed() / 2.0;
 
 		pitch = pitch + ( pitchTo - pitch ) * 0.2f;
 		yaw = yaw + ( yawTo - yaw ) * 0.2f;
@@ -111,20 +111,20 @@ void main( ) {
 		//DrawGUIRect( 0, 0, 200, 200, 0 );
 		//    DrawGUIText( "TEST", 200, 200, 100, 100, font, Vector3( 255, 0, 0 ) );
 
-		if( mi::KeyDown( mi::W )) {
+		if( IsKeyDown( KEY_W )) {
 			speed = speed + look;
 		}
-		if( mi::KeyDown( mi::S )) {
+		if( IsKeyDown( KEY_S )) {
 			speed = speed - look;
 		}
-		if( mi::KeyDown( mi::A )) {
+		if( IsKeyDown( KEY_A )) {
 			speed = speed + right;
 		}
-		if( mi::KeyDown( mi::D )) {
+		if( IsKeyDown( KEY_D )) {
 			speed = speed - right;
 		}
 
-		if( mi::KeyHit( mi::Q )) {
+		if( IsKeyHit( KEY_Q )) {
 			cameraNum = 1 - cameraNum;
 
 			if( cameraNum ) {

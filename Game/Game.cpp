@@ -13,8 +13,8 @@
 float g_resW;
 float g_resH;
 float g_dt = 1.0f;
-int g_keyQuickSave = mi::Key::F5;
-int g_keyQuickLoad = mi::Key::F9;
+int g_keyQuickSave = KEY_F5;
+int g_keyQuickLoad = KEY_F9;
 string localizationPath;
 bool g_showFPS = false;
 bool g_running = true;
@@ -52,6 +52,8 @@ void main( ) {
 
     TimerHandle dtTimer = CreateTimer();
 
+
+
 	g_dt = 1.0f  / 60.0f;
 	float dtDest = g_dt;
     while( true ) {
@@ -59,18 +61,18 @@ void main( ) {
         if( !g_running ) {
             break;
         }
-        mi::Update();
+        InputUpdate();
         if( player ) {
             player->Update();
         }
         menu->Update();
         InteractiveObject::UpdateAll();
         if( !menu->visible ) {
-            if( mi::KeyHit( (mi::Key)g_keyQuickSave )) {
+            if( IsKeyHit( g_keyQuickSave )) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
                 player->tip.SetNewText( config.GetString( "saved" ) );
             }
-            if( mi::KeyHit( (mi::Key)g_keyQuickLoad ))
+            if( IsKeyHit( g_keyQuickLoad ))
                 if( FileExist( "quickSave.save" )) {                    
                     SaveLoader( "quickSave.save" ).RestoreWorldState();
                     player->tip.SetNewText( config.GetString( "loaded" ) );

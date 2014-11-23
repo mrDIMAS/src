@@ -34,7 +34,7 @@ void LevelIntroduction::DoScenario() {
 
     DrawGUIText( text.c_str(), scx - w / 2, scy - h / 2, w, h, gui->font, Vector3( 255, 255, 255 ), 0, textAlpha );
 
-    if( GetElapsedTimeInSeconds( textTimer ) >= 22 || mi::KeyHit( mi::Space ) ) {
+    if( GetElapsedTimeInSeconds( textTimer ) >= 22 || IsKeyHit( KEY_Space ) ) {
         intro = false;
     }
 
@@ -59,6 +59,7 @@ LevelIntroduction::LevelIntroduction() {
     textAlphaTo = 255.0f;
     textTimer = CreateTimer( );
     intro = true;
+	typeNum = 1;
     LoadLocalization( "intro.loc" );
     text = localization.GetString( "intro" );
 }

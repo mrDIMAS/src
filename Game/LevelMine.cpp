@@ -3,8 +3,11 @@
 #include "ScreenScreamer.h"
 #include "CrawlWay.h"
 #include "Pathfinder.h"
+#include "Utils.h"
 
 LevelMine::LevelMine() {
+	typeNum = 3;
+
     LoadLocalization( "mine.loc" );
 
     scene = LoadScene( "data/maps/release/mine/mine.scene");
@@ -240,7 +243,7 @@ void LevelMine::DoScenario() {
         if( player->nearestPicked == detonator ) {
             DrawGUIText( localization.GetString( "detonator" ), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
 
-            if( mi::KeyHit( mi::E ) && readyExplosivesCount >= 4 && !detonatorActivated ) {
+            if( IsKeyHit( player->keyUse ) && readyExplosivesCount >= 4 && !detonatorActivated ) {
                 detonatorActivated = 1;
 
                 RestartTimer( explosionTimer );
@@ -337,11 +340,11 @@ void LevelMine::UpdateExplodeSequence() {
             ItemPlace * dp = detonatorPlace[i];
 
             if( dp->IsPickedByPlayer() ) {
-                DrawGUIText( "[E] - прикрепить предмет", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+                DrawGUIText( Format( player->localization.GetString( "putItem"), GetKeyName( player->keyUse )).c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
             }
         }
 
-        if( mi::KeyHit( mi::E )) {
+        if( IsKeyHit( player->keyUse )) {
             for( int i = 0; i < 4; i++ ) {
                 ItemPlace * dp = detonatorPlace[i];
 
