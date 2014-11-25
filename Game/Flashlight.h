@@ -12,10 +12,12 @@ public:
     float charge;
     float onRange;
 	
+	Vector3 offset;
 
     float realRange;
     float rangeDest;
 	float chargeWorkTimeSeconds;
+	float bobArg;
 
     SoundHandle onSound;
     SoundHandle offSound;
@@ -25,8 +27,6 @@ public:
 
     Vector3 position;
     Vector3 destPosition;
-
-	Vector3 offset;
 
     bool on;
 

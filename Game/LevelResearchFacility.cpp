@@ -194,7 +194,6 @@ void LevelResearchFacility::DoScenario() {
 		if( !stateEnterRepositionRipperZone ) {
 			if( IsNodeInside( player->body, repositionRipperZone )) {
 				stateEnterRepositionRipperZone = true;
-				ripper->detectPlayer = true;
 				SetPosition( ripper->body, GetPosition( ripperNewPosition ));
 			}
 		}

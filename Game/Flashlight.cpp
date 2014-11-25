@@ -1,4 +1,5 @@
 #include "Flashlight.h"
+#include "Player.h"
 
 void Flashlight::Update() {
     if( on ) {
@@ -16,7 +17,16 @@ void Flashlight::Update() {
     realRange += ( rangeDest - realRange ) * 0.15f;
     SetLightRange( light, realRange * charge );
     position = position.Lerp( destPosition, 0.15f );
-    SetPosition( model, position );
+    SetPosition( model, position + offset );
+
+	if( player->moved ) {
+		if( player->running ) {
+			bobArg += 0.175f;
+		} else {
+			bobArg += 0.125f;
+		}
+		offset = Vector3( cosf( bobArg * 0.5f ) * 0.02f, sinf( bobArg ) * 0.02f, 0.0f );
+	}
 }
 
 void Flashlight::Switch() {
@@ -83,7 +93,7 @@ Flashlight::Flashlight() {
     charge = maxCharge;
 
 	chargeWorkTimeSeconds = 120.0f;
-
+	bobArg = 0.0f;
     on = true;
 }
 

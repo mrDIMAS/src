@@ -67,6 +67,7 @@ public:
     GameCamera * camera;
 
     NodeHandle body;
+	NodeHandle head;
     NodeHandle pickPoint;
     NodeHandle itemPoint;
     NodeHandle objectInHands;
@@ -89,8 +90,7 @@ public:
     SmoothFloat breathPitch;
     SmoothFloat fov;
 	SmoothFloat stealthOffset;
-
-	
+	SmoothFloat headAngle;
 
     float stamina;
     float life;
@@ -146,6 +146,8 @@ public:
     int keyInventory;
     int keyUse;
 	int keyStealth;
+	int keyLookLeft;
+	int keyLookRight;
 
     string placeDesc;
     string pickedObjectDesc;

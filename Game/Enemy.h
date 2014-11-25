@@ -37,8 +37,8 @@ public:
     SoundHandle breathSound;
     SoundHandle screamSound;
 
-	bool lightedUp;
-	TimerHandle seeTimer;
+	bool playerDetected;
+	TimerHandle detectedTimer;
 
 	float lastPathLen;
 	float pathLen;
@@ -57,7 +57,6 @@ public:
     float angle;
 	float bodyHeight;
 
-    bool detectPlayer;
 	float runSpeed;
 
     SoundHandle footstepsSounds[ 4 ];

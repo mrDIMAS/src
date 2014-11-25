@@ -17,7 +17,7 @@ Player::Player() {
     maxStamina = 100.0f;
     stamina = maxStamina;
 
-    fov = SmoothFloat( 75.0f, 75.0f, 90.0f );
+    fov = SmoothFloat( 75.0f, 75.0f, 80.0f );
 
     // Run vars
     runSpeedMult = 2.5f;
@@ -33,6 +33,7 @@ Player::Player() {
     yaw = SmoothFloat( 0.0f );
     damagePitchOffset = SmoothFloat( 0.0f );
 	stealthOffset = SmoothFloat( 0.0f, -0.45f, 0.0f );
+	headAngle = SmoothFloat( 0.0f, -12.50f, 12.50f );
     // State vars
     dead = false;
     landed = false;
@@ -42,7 +43,7 @@ Player::Player() {
     sheetInHands = nullptr;
 
     // Camera bob vars
-    headHeight = 0.4;
+
     cameraBob = Vector3( 0, headHeight, 0 );
     runBobCoeff = 1.0f;
     cameraBobCoeff = 0;
@@ -60,9 +61,10 @@ Player::Player() {
     keyFlashLight = KEY_F;
     keyRun = KEY_LeftShift;
     keyInventory = KEY_Tab;
-    keyUse = KEY_E;
+    keyUse = KEY_R;
 	keyStealth = KEY_C;
-
+	keyLookLeft = KEY_Q;
+	keyLookRight = KEY_E;
     // GUI vars
     staminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
     healthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
@@ -299,6 +301,16 @@ void Player::UpdateMouseLook() {
     //SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch + damagePitchOffset ) );
 	SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch ) );
     SetRotation( body, Quaternion( Vector3( 0, 1, 0 ), yaw ) );
+
+	headAngle.SetTarget( 0.0f );
+	if( IsKeyDown( keyLookLeft )) {
+		headAngle.SetTarget( headAngle.GetMin() );
+	}
+	if( IsKeyDown( keyLookRight )) {
+		headAngle.SetTarget( headAngle.GetMax() );
+	}
+	headAngle.ChaseTarget( 17.0f * g_dt );
+	SetRotation( head, Quaternion( Vector3( 0, 0, 1 ), headAngle ));
 }
 
 /*
@@ -568,9 +580,15 @@ Player::CreateCamera
 ========
 */
 void Player::CreateCamera() {
+	headHeight = 2.4;
+
+	head = CreateSceneNode();
+	Attach( head, body );
+	SetPosition( head, Vector3( 0, -2.0f, 0.0f ));
     camera = new GameCamera( fov );
-    Attach( camera->cameraNode, body );
-    
+    Attach( camera->cameraNode, head );
+	cameraOffset = Vector3( 0, headHeight, 0 );
+    cameraBob = Vector3( 0, headHeight, 0 );
 
     // Pick
     pickPoint = CreateSceneNode();
@@ -609,14 +627,22 @@ void Player::SetRockFootsteps() {
 
     footsteps.clear();
 
-    footsteps.push_back( CreateSound3D( "data/sounds/step1.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/step2.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/step3.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/step4.ogg" ) );
+    footsteps.push_back( CreateSound3D( "data/sounds/stonestep1.ogg" ) );
+    footsteps.push_back( CreateSound3D( "data/sounds/stonestep2.ogg" ) );
+    footsteps.push_back( CreateSound3D( "data/sounds/stonestep3.ogg" ) );
+    footsteps.push_back( CreateSound3D( "data/sounds/stonestep4.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep5.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep6.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep7.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep8.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep9.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep10.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep11.ogg" ) );
+	footsteps.push_back( CreateSound3D( "data/sounds/stonestep12.ogg" ) );
 
     for( auto s : footsteps ) {
         AttachSound( s, body );
-        SetVolume( s, 0.35f );
+        SetVolume( s, 0.45f );
     }
 
     footstepsType = FootstepsType::Rock;
@@ -1132,6 +1158,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     flashlight->DeserializeWith( in );
 
     tip.Deserialize( in );
+	headAngle.Deserialize( in );
 
     camera->FadePercent( 100 );
     camera->SetFadeColor( Vector3( 255, 255, 255 ) );
@@ -1213,6 +1240,7 @@ void Player::SerializeWith( TextFileStream & out ) {
     flashlight->SerializeWith( out );
 
     tip.Serialize( out );
+	headAngle.Serialize( out );
 }
 
 void Player::SetupBody()

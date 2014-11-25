@@ -51,35 +51,53 @@ void Enemy::Think() {
 
     bool move = true;
 	bool targetTooFar = distanceToPlayer > 10.0f;
-	bool targetTooHigh = heightUnderTarget > 2 * bodyHeight;
 	Vector3 toPlayer =  GetPosition( player->camera->cameraNode ) - (GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f);
 	bool playerInView = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
 	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
 	//DrawGUIText( Format( "%f", angleToPlayer ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
-	bool enemySeePlayerAngular = angleToPlayer < 45;
-	float detectDistance = player->stealthFactor * 4.0f;
-	bool playerLightsEnemy = false;
+	
+	bool enemyDetectPlayer = false;
 	if( player->flashlight->on ) {
-		playerLightsEnemy = IsLightViewPoint( player->flashlight->light, GetPosition( body ) ); 
-		if( playerLightsEnemy && playerInView ) {
-			if( !lightedUp ) {
-				RestartTimer( seeTimer );
-				lightedUp = true;
+		// if we light up enemy, he detects player
+		enemyDetectPlayer = IsLightViewPoint( player->flashlight->light, GetPosition( body ) ); 
+		if( enemyDetectPlayer && playerInView ) {
+			if( !playerDetected ) {
+				RestartTimer( detectedTimer );
+				playerDetected = true; 
 			}
 		}
 	}
-	if( lightedUp ) {
-		playerLightsEnemy = true;
-		if( GetElapsedTimeInSeconds( seeTimer ) > 1.5f ) {
-			lightedUp = false;
+
+	float detectDistance = player->stealthFactor * 10.0f;
+	// player right in front of enemy
+	if( playerInView && ( distanceToPlayer < detectDistance ) && ( angleToPlayer < 45 ) ) {
+		if( !playerDetected ) {
+			RestartTimer( detectedTimer );
+			playerDetected = true; 
 		}
 	}
-	if( playerInView && ( distanceToPlayer < detectDistance ) && enemySeePlayerAngular || playerLightsEnemy ) {
+
+	// enemy doesn't see player, but can hear he, if he moved
+	if( player->stealthFactor >= 0.3f && player->moved && ( distanceToPlayer < 5.0f )) {
+		if( !playerDetected ) {
+			RestartTimer( detectedTimer );
+			playerDetected = true; 
+		}
+	}
+
+	if( playerDetected ) {
+		enemyDetectPlayer = true;
+		if( GetElapsedTimeInSeconds( detectedTimer ) > 2.5f ) {
+			playerDetected = false;
+		}
+	}
+	if( enemyDetectPlayer ) {
 		moveType = MoveTypeChasePlayer;		
 		doPatrol = false;
 		PauseSoundSource( breathSound );
 		PlaySoundSource( screamSound, true );
 		runSpeed = 3.0f;
+
 	} else {
 		moveType = MoveTypeGoToDestination;
 		doPatrol = true;
@@ -89,17 +107,12 @@ void Enemy::Think() {
 	}
 
 	if( moveType == MoveTypeChasePlayer ){
-		if( targetTooFar || player->dead || targetTooHigh ) {
+		if( targetTooFar || player->dead ) {
 			doPatrol = true;
 			moveType = MoveTypeGoToDestination;
 			SetIdleAnimation();
-			detectPlayer = false;
 		} else {
-			if( !detectPlayer ) {
-				detectPlayer = true;//IsNodeInFrustum( torsoBone );
-			}
-			if( !player->dead && detectPlayer ) {
-
+			if( !player->dead ) {
 				if( distanceToPlayer < 4.0f ) {				
 					if( distanceToPlayer < 1 ) {
 						move = false;					
@@ -199,8 +212,6 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 
 	CreateSounds();
 
-	detectPlayer = false;
-
 	CreateAnimations();
 	
 	runSpeed = 1.5f; 
@@ -209,8 +220,8 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 
 	destWaypointNum = 0;
 	lastDestIndex = -1;
-	lightedUp = false;
-	seeTimer = CreateTimer();
+	playerDetected = false;
+	detectedTimer = CreateTimer();
 	int a = 0;
 }
 

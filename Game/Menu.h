@@ -92,7 +92,7 @@ public:
     WaitKeyButton * wkUse;
     WaitKeyButton * wkQuickSave;
     WaitKeyButton * wkQuickLoad;
-
+	WaitKeyButton * wkStealth;
 
     Vector3 cameraInitialPosition;
     Vector3 cameraAnimationOffset;

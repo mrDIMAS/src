@@ -365,6 +365,9 @@ void Menu::Update( ) {
 
             y += 32 * 1.1f;
             wkQuickLoad->Draw( x, y, smallButtonImage, loc.GetString( "quickLoad" ) );
+
+			y += 32 * 1.1f;
+			wkStealth->Draw( x, y, smallButtonImage, loc.GetString( "stealth" ) );
         }
 
         if( !startPressed && !returnToGameByEsc ) {
@@ -442,6 +445,7 @@ void Menu::CreateWaitKeys() {
     wkUse = new WaitKeyButton();
     wkQuickLoad = new WaitKeyButton();
     wkQuickSave = new WaitKeyButton();
+	wkStealth = new WaitKeyButton();
 }
 
 void Menu::CreateRadioButtons() {
@@ -484,6 +488,7 @@ void Menu::LoadConfig() {
         wkUse->SetSelected( config.GetNumber( "keyUse" ) );
         wkQuickSave->SetSelected( g_keyQuickSave = config.GetNumber( "keyQuickSave" ) );
         wkQuickLoad->SetSelected( g_keyQuickLoad = config.GetNumber( "keyQuickLoad" ) );
+		wkStealth->SetSelected(  config.GetNumber( "keyStealth" ) );
         spotShadowsButton->on = (int)config.GetNumber( "spotShadowsEnabled" );
         EnableSpotLightShadows( spotShadowsButton->on );
         pointShadowsButton->on = (int)config.GetNumber( "pointShadowsEnabled" );
@@ -505,6 +510,7 @@ void Menu::SetPlayerControls() {
         player->keyFlashLight = wkFlashLight->selectedKey;
         player->keyInventory = wkInventory->selectedKey;
         player->keyUse = wkUse->selectedKey;
+		player->keyStealth = wkStealth->selectedKey;
     }
 }
 
@@ -528,6 +534,7 @@ void Menu::WriteConfig() {
     WriteInteger( config, "spotShadowsEnabled", IsSpotLightShadowsEnabled() ? 1 : 0  );
     WriteInteger( config, "pointShadowsEnabled", IsPointLightShadowsEnabled() ? 1 : 0  );
 	WriteInteger( config, "hdrEnabled", IsHDREnabled() ? 1 : 0  );
+	WriteInteger( config, "keyStealth", wkStealth->selectedKey );
     config.close();
 }
 
@@ -571,4 +578,5 @@ Menu::~Menu() {
     delete pointShadowsButton;
 	delete hdrButton;
     delete spotShadowsButton;
+	delete wkStealth;
 }
