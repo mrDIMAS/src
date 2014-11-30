@@ -42,6 +42,9 @@ public:
 	D3DXHANDLE vProj;
 	D3DXHANDLE pColor;
 
+	// array for word wrap
+	vector< string > words;
+
 	TextRenderer( );
 
 	void SetFont( BitmapFont * cfont );
