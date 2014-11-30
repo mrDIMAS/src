@@ -55,13 +55,22 @@ void ParticleEmitter::Update() {
     sort( particles.begin(), particles.end(), zSorter );
 
     for( auto & p : particles ) {
-        float translucency = CalculateTranslucency( p );
         p.position += p.speed;
-        p.translucency = translucency;
-        p.color = props.colorBegin.Lerp( props.colorEnd, CalculateColorInterpolationCoefficient( p ) );
+
+		float insideCoeff = 1.0f;
+		if( props.type == PS_BOX ) {
+			insideCoeff = ( p.position - Vector3( base->globalTransform.getOrigin().m_floats )).Length2() / ( props.boundingBoxMax - props.boundingBoxMin ).Length2();
+		} else {
+			insideCoeff = ( p.position - Vector3( base->globalTransform.getOrigin().m_floats )).Length2() / props.boundingRadius;
+		}
+		if( insideCoeff > 1.0f ) {
+			insideCoeff = 1.0f;
+		}
+		p.color = props.colorBegin.Lerp( props.colorEnd, insideCoeff );
+		p.translucency = 255.0f * ( 1.0f - insideCoeff );
         p.size += props.scaleFactor;
 
-        if( translucency <= 10.0f  ) {
+        if( p.translucency <= 1.0f  ) {
             if( props.autoResurrectDeadParticles ) {
                 ResurrectParticle( p );
             }
@@ -99,93 +108,14 @@ bool ParticleEmitter::IsLightAffects() {
     return props.useLighting;
 }
 
-float ParticleEmitter::CalculateColorInterpolationCoefficient( const SParticle & particle ) {
-    if( props.type == PS_BOX ) {
-        return GetBoxColorInterpolationCoefficient( particle );
-    }
-    if( props.type == PS_STREAM ) {
-        return GetSphereColorInterpolationCoefficient( particle );
-    }
-    return 0.0f;
-}
-
-float ParticleEmitter::GetSphereColorInterpolationCoefficient( const SParticle & particle ) {
-    float distance2 = particle.position.Length2();
-    float radius2 = props.boundingRadius * props.boundingRadius;
-    float coefficient = abs( distance2 / radius2 );
-    if( coefficient > 1.0f ) {
-        coefficient = 1.0f;
-    }
-    return coefficient;
-}
-
-float ParticleEmitter::GetBoxColorInterpolationCoefficient( const SParticle & particle ) {
-    float xColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.position.x, props.boundingBoxMax.x, props.boundingBoxMin.x );
-    float yColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.position.y, props.boundingBoxMax.y, props.boundingBoxMin.y );
-    float zColorInterpolationCoefficient = GetBox1DColorInterpolationCoefficient( particle.position.z, props.boundingBoxMax.z, props.boundingBoxMin.z );
-
-    return ( xColorInterpolationCoefficient + yColorInterpolationCoefficient + zColorInterpolationCoefficient ) / 3.0f ;
-}
-
-float ParticleEmitter::GetBox1DColorInterpolationCoefficient( float coord, float maxCoord, float minCoord ) {
-    float coefficient = 0;
-    if( coord > 0 ) {
-        coefficient = abs( coord / maxCoord );
-    }
-    if( coord < 0 ) {
-        coefficient = abs( coord / minCoord );
-    }
-    if( coefficient > 1.0f ) {
-        coefficient = 1.0f;
-    }
-    return coefficient;
-}
-
-float ParticleEmitter::CalculateTranslucency( const SParticle & particle ) {
-    if( props.type == PS_BOX ) {
-        return GetBoxBoundaryLayerTranslucency( particle );
-    }
-    if( props.type == PS_STREAM ) {
-        return GetSphereBoundaryLayerTranslucency( particle );
-    }
-    return 255.0f;
-}
-
-float ParticleEmitter::GetSphereBoundaryLayerTranslucency( const SParticle & particle ) {
-    float distance2 = particle.position.Length2();
-    float radius2 = props.boundingRadius * props.boundingRadius;
-    if( distance2 > radius2 ) {
-        return 255.0f * radius2 / ( distance2 );
-    }
-    return 255.0f;
-}
-
-float ParticleEmitter::GetBoxBoundaryLayerTranslucency( const SParticle & particle ) {
-    float xTranslucency = GetBox1DTranslucency( particle.position.x, props.boundingBoxMax.x, props.boundingBoxMin.x );
-    float yTranslucency = GetBox1DTranslucency( particle.position.y, props.boundingBoxMax.y, props.boundingBoxMin.y );
-    float zTranslucency = GetBox1DTranslucency( particle.position.z, props.boundingBoxMax.z, props.boundingBoxMin.z );
-    return ( xTranslucency + yTranslucency + zTranslucency ) / 3.0f;
-}
-
-float ParticleEmitter::GetBox1DTranslucency( float coord, float maxCoord, float minCoord ) {
-    float translucency = 1.0f;
-    if( coord > maxCoord ) {
-		translucency = abs( maxCoord / coord );
-    }
-    if( coord < minCoord ) {
-        translucency = abs( coord / minCoord );
-    }
-    return 255.0f * translucency;
-}
-
 int ParticleEmitter::RGBAToInt( Vector3 color, int alpha ) {
     return D3DCOLOR_ARGB( alpha, (int)color.x, (int)color.y, (int)color.z );
 }
 
 void ParticleEmitter::ResurrectParticle( SParticle & p ) {
     if( props.type == PS_BOX ) {
-        p.position = RandomVector3( props.boundingBoxMin, Vector3( props.boundingBoxMax.x, props.boundingBoxMin.y, props.boundingBoxMax.z ));
-        p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
+        p.position = RandomVector3( props.boundingBoxMin, props.boundingBoxMax );
+		p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
     } else if( props.type == PS_STREAM ) {
         p.position = Vector3( 0, 0, 0 );
         p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );

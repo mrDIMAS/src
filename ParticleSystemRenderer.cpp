@@ -39,9 +39,10 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
     vWVP = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_WVP" );
     vWorld = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_world" );
 
+#define PS_LIGHT_PER_PASS_COUNT 32
+
     string pixelSource =
         "sampler diffuseSampler : register( s0 );\n"
-        "sampler depthSampler : register( s1 );\n"
 
         "struct PS_INPUT {\n"
         "  float2 texcoord : TEXCOORD0;\n"
@@ -50,9 +51,9 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         "  float4 viewPos : TEXCOORD3;\n"
         "};\n"
 		// lighting
-        "float3 lightDiffuseColor[ 16 ];\n"
-        "float3 lightPosition[ 16 ];\n"
-        "float lightRange[ 16 ];\n"
+        "float3 lightDiffuseColor[ 32 ];\n"
+        "float3 lightPosition[ 32 ];\n"
+        "float lightRange[ 32 ];\n"
         "int lightCount = 0;\n"
         "int withLight = 0;\n"       
 		// soft particles props
@@ -72,21 +73,7 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         "  }\n"
 		// apply diffuse color
         "  output *= tex2D( diffuseSampler, input.texcoord ) * input.color;"
-		// soft particles
-		// restore position from depth
-		"  input.viewPos /= input.viewPos.w;\n"
-		"  float2 depthCoord = float2( input.viewPos.x * 0.5 + 0.5, -input.viewPos.y * 0.5 + 0.5);"
-		"  float4 screenPosition;\n"
-		"  screenPosition.x =  ( depthCoord.x * 2.0f - 1.0f );\n"
-		"  screenPosition.y = -( depthCoord.y * 2.0f - 1.0f );\n"
-		"  screenPosition.z = tex2D( depthSampler, depthCoord ).r;\n"
-		"  screenPosition.w = 1.0f;\n"
-		"  float4 p = mul( screenPosition, invViewProj );\n"
-		"  p /= p.w;\n"
-		// adjust alpha of the fragment accorrding to restored position
-        "  output.a *= saturate( thickness * distance( p.xyz, input.worldPos ) );\n"
         "  return output ;"
-		//"	return float4( 1,1,1,1);\n"
         "};\n";
 
     pixelShader = new PixelShader( pixelSource );
@@ -96,8 +83,6 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
     pPosition = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPosition" );
     pLightCount = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightCount" );
     pWithLight = pixelShader->GetConstantTable()->GetConstantByName( 0, "withLight" );
-    pInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
-    pThickness = pixelShader->GetConstantTable()->GetConstantByName( 0, "thickness" );
 
     D3DVERTEXELEMENT9 vdElem[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -137,10 +122,7 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
     CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
     CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
 	
-    g_deferredRenderer->GetGBuffer()->BindDepthMap( 1 );
-
 	pixelShader->Bind();
-    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetMatrix( g_device, pInvViewProj, &g_camera->invViewProjection ));
 
 	g_device->SetVertexDeclaration( vd );
 	vertexShader->Bind();
@@ -157,59 +139,35 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 		CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, vWVP, &mWVP ));
 		CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &particleEmitter->world ));
 
-        CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_device, pThickness, particleEmitter->GetThickness() ));
-
         if( particleEmitter->IsLightAffects() ) {
             CheckDXErrorFatal( vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 1 ));
-
-            int lightPerPass = 5;
-            int passCount = 1;//ceil( (float)g_lights.size() / (float)lightPerPass );
-
-            int cnt = 0;
-
-            vector< Light*> affectedLights;
-
-            // draw mesh with each light
-            for( size_t j = 0; j < g_pointLights.size(); j++ ) {
+			// grab all light which have effect on this particle system
+            affectedLights.clear();
+			for( size_t j = 0; j < g_pointLights.size(); j++ ) {
                 Light * light = g_pointLights.at( j );
-
                 if( !light->IsVisible() ) {
                     continue;
                 }
-
                 if( light->GetRadius() < 0.1 ) {
                     continue;
                 }
-
                 affectedLights.push_back( light );
             }
-
-            for( int passNum = 0; passNum < passCount; passNum++ ) {
-                cnt = affectedLights.size() > (size_t)lightPerPass ? lightPerPass : affectedLights.size();
-
-                CheckDXErrorFatal( vertexShader->GetConstantTable()->SetInt( g_device, pLightCount, cnt ));
-
-                for( size_t j = 0; j < (size_t)cnt; j++ ) {
-                    Light * lit = affectedLights.at( j );
-
-                    D3DXHANDLE nPos = pixelShader->GetConstantTable()->GetConstantElement( pPosition, j );
-                    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, nPos, lit->globalTransform.getOrigin().m_floats, 3 ));
-                    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, pixelShader->GetConstantTable()->GetConstantElement( pColor, j ), lit->GetColor().elements, 3 ));
-                    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_device, pixelShader->GetConstantTable()->GetConstantElement( pRange, j ), lit->GetRadius() * lit->GetRadius() ));
-                }
-
-                particleEmitter->Render();
-
-                for( size_t j = 0; j < (size_t)cnt; j++ ) {
-                    affectedLights.erase( affectedLights.begin() );
-                }
-            }
+			// set pixel shader constants
+            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetInt( g_device, pLightCount, affectedLights.size() ));
+			int constantNum = 0;
+			for( auto lit : affectedLights ) {
+				D3DXHANDLE nPos = pixelShader->GetConstantTable()->GetConstantElement( pPosition, constantNum );
+				CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, nPos, lit->globalTransform.getOrigin().m_floats, 3 ));
+				CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, pixelShader->GetConstantTable()->GetConstantElement( pColor, constantNum ), lit->GetColor().elements, 3 ));
+				CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_device, pixelShader->GetConstantTable()->GetConstantElement( pRange, constantNum ), lit->GetRadius() * lit->GetRadius() * lit->GetRadius() ));
+				constantNum++;
+			}
         } else {
-            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 0 ));
-			
-            particleEmitter->Render();
+            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetInt( g_device, pWithLight, 0 ));            
         }
 
+		particleEmitter->Render();
     }
 
     CheckDXErrorFatal( state->Apply());

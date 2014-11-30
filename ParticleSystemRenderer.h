@@ -19,8 +19,8 @@ private:
     D3DXHANDLE pPosition;
     D3DXHANDLE pWithLight;
 
-    D3DXHANDLE pInvViewProj;
-    D3DXHANDLE pThickness;
+
+	vector< Light*> affectedLights;
 public:
     ParticleSystemRenderer();
     ~ParticleSystemRenderer();

@@ -56,13 +56,18 @@ void main( ) {
 	ParticleSystemProperties boxParticleEmitterProps;
 	boxParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
 	boxParticleEmitterProps.type = PS_BOX;
-	boxParticleEmitterProps.speedDeviationMin = Vector3( -0.1, 0.0, -0.1 );
-	boxParticleEmitterProps.speedDeviationMax = Vector3(  0.1, 0.4,  0.1 );
-	boxParticleEmitterProps.boundingBoxMin = Vector3( -10, 0, -10 );
-	boxParticleEmitterProps.boundingBoxMin = Vector3( 10, 10, 10 );
+	boxParticleEmitterProps.useLighting = true;
+	boxParticleEmitterProps.autoResurrectDeadParticles = true;
+	boxParticleEmitterProps.speedDeviationMin = Vector3( -0.05, 0.0, -0.05 );
+	boxParticleEmitterProps.speedDeviationMax = Vector3(  0.05, 0.05,  0.05 );
+	boxParticleEmitterProps.boundingBoxMin = Vector3( -5, 0, -5 );
+	boxParticleEmitterProps.boundingBoxMax = Vector3( 5, 5, 5 );
+	boxParticleEmitterProps.colorBegin = Vector3( 255, 0, 0 );
+	boxParticleEmitterProps.colorEnd = Vector3( 0, 255, 0 );
 
-	NodeHandle boxParticleEmitter = CreateParticleSystem( 256, boxParticleEmitterProps );
+	NodeHandle boxParticleEmitter = CreateParticleSystem( 1024, boxParticleEmitterProps );
 
+	/*
 	ParticleSystemProperties streamParticleEmitterProps;
 	streamParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
 	streamParticleEmitterProps.type = PS_STREAM;
@@ -71,7 +76,7 @@ void main( ) {
 	streamParticleEmitterProps.boundingRadius = 10;
 
 	NodeHandle streamParticleEmitter = CreateParticleSystem( 256, streamParticleEmitterProps );
-
+	*/
 	// Animation test
 	//NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
 	//Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );	

@@ -65,14 +65,6 @@ public:
 
 	ParticleSystemProperties props;
 
-	float GetBoxColorInterpolationCoefficient( const SParticle & particle );
-	float GetSphereColorInterpolationCoefficient( const SParticle & particle );
-	float CalculateColorInterpolationCoefficient( const SParticle & particle );
-	float GetBoxBoundaryLayerTranslucency( const SParticle & particle );
-	float GetSphereBoundaryLayerTranslucency( const SParticle & particle );
-	float CalculateTranslucency( const SParticle & particle );
-	float GetBox1DColorInterpolationCoefficient( float coord, float maxCoord, float minCoord );
-	float GetBox1DTranslucency( float coord, float maxCoord, float minCoord );
 	int RGBAToInt( Vector3 color, int alpha );
 	Vector3 RandomVector3( Vector3 & min, Vector3 & max );
 public:

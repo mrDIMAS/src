@@ -321,7 +321,7 @@ void Renderer::RenderWorld() {
     // render all opacity meshes with forward renderer
     g_forwardRenderer->RenderMeshes();
     // render particles after all, cause deferred shading doesnt support transparency    
-    //g_particleSystemRenderer->RenderAllParticleSystems();
+    g_particleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
     g_guiRenderer->RenderAllGUIElements();
     // render light flares without writing to z-buffer

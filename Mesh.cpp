@@ -71,14 +71,14 @@ void Mesh::UpdateVertexBuffer() {
     CheckDXErrorFatal( vertexBuffer->Unlock());
 }
 
-void Mesh::UpdateIndexBuffer( vector< Triangle > & idc ) {
-    int sizeBytes = idc.size() * 3 * sizeof( unsigned short );
+void Mesh::UpdateIndexBuffer( vector< Triangle > & triangles ) {
+    int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
     if( !indexBuffer ) {
         CheckDXErrorFatal( g_device->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
     }
     void * indexData = 0;
     CheckDXErrorFatal( indexBuffer->Lock( 0, 0, &indexData, 0 ));
-    memcpy( indexData, &idc[ 0 ], sizeBytes );
+    memcpy( indexData, &triangles[ 0 ], sizeBytes );
     CheckDXErrorFatal( indexBuffer->Unlock());
 }
 
