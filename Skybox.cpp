@@ -4,24 +4,24 @@
 
 void Skybox::WriteToIndexBuffer( IDirect3DIndexBuffer9 * ib, vector< unsigned short > & indices ) {
     void * indexData = 0;
-    CheckDXError( ib->Lock( 0, 0, &indexData, 0 ));
+    CheckDXErrorFatal( ib->Lock( 0, 0, &indexData, 0 ));
     memcpy( indexData, &indices[ 0 ], indices.size() * sizeof( unsigned short ) );
-    CheckDXError( ib->Unlock());
+    CheckDXErrorFatal( ib->Unlock());
 }
 
 void Skybox::WriteToVertexBuffer( IDirect3DVertexBuffer9 * vb, vector< Vertex > & vertices ) {
     void * vertexData = 0;
-	CheckDXError( vb->Lock( 0, 0, &vertexData, 0 ));
+	CheckDXErrorFatal( vb->Lock( 0, 0, &vertexData, 0 ));
     memcpy( vertexData, &vertices[ 0 ], vertices.size() * sizeof( Vertex ) );
-    CheckDXError( vb->Unlock());
+    CheckDXErrorFatal( vb->Unlock());
 }
 
 void Skybox::CreateVertexBuffer( size_t size, IDirect3DVertexBuffer9 ** vb ) {
-    CheckDXError( g_device->CreateVertexBuffer( size,D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1, D3DPOOL_DEFAULT, vb, 0 ));
+    CheckDXErrorFatal( g_device->CreateVertexBuffer( size,D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1, D3DPOOL_DEFAULT, vb, 0 ));
 }
 
 void Skybox::CreateIndexBuffer( size_t size, IDirect3DIndexBuffer9 ** ib ) {
-    CheckDXError( g_device->CreateIndexBuffer( size,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0 ));
+    CheckDXErrorFatal( g_device->CreateIndexBuffer( size,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0 ));
 }
 
 Skybox::~Skybox() {
@@ -119,44 +119,44 @@ Skybox::Skybox( const char * path ) {
 
 void Skybox::Render( const btVector3 & pos ) {
     IDirect3DStateBlock9 * state;
-    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
-    CheckDXError( g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ZENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ZWRITEENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ZENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ZWRITEENABLE, FALSE ));
 
-    CheckDXError( g_device->SetVertexShader ( 0 ));
-    CheckDXError( g_device->SetPixelShader ( 0 ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE ));
+    CheckDXErrorFatal( g_device->SetVertexShader ( 0 ));
+    CheckDXErrorFatal( g_device->SetPixelShader ( 0 ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE ));
 
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP ));
 
     D3DXMATRIX view;
     D3DXMatrixTranslation ( &view, pos.x(), pos.y(), pos.z() );
-    CheckDXError( g_device->SetTransform ( D3DTS_WORLD, &view ));
+    CheckDXErrorFatal( g_device->SetTransform ( D3DTS_WORLD, &view ));
 
-    CheckDXError( g_device->SetIndices( ib ));
+    CheckDXErrorFatal( g_device->SetIndices( ib ));
     forw->Bind( 0 );
-    CheckDXError( g_device->SetStreamSource( 0, vbForw, 0, sizeof( Vertex )));
-    CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vbForw, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     back->Bind( 0 );
-    CheckDXError( g_device->SetStreamSource( 0, vbBack, 0, sizeof( Vertex )));
-    CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vbBack, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     right->Bind( 0 );
-    CheckDXError( g_device->SetStreamSource( 0, vbRight, 0, sizeof( Vertex )));
-    CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vbRight, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     left->Bind( 0 );
-    CheckDXError( g_device->SetStreamSource( 0, vbLeft, 0, sizeof( Vertex )));
-    CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vbLeft, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     up->Bind( 0 );
-    CheckDXError( g_device->SetStreamSource( 0, vbUp, 0, sizeof( Vertex )));
-    CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vbUp, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
-    CheckDXError( state->Apply());
+    CheckDXErrorFatal( state->Apply());
     state->Release();
 }

@@ -67,15 +67,15 @@ void InputUpdate( ) {
 API void InputInit( void * window ) {
     HINSTANCE hInstance = GetModuleHandle( 0 );
     hwnd = (HWND)(*(HWND*)window);
-    CheckDXError( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL));
-    CheckDXError( pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL ));
-    CheckDXError( pKeyboard->SetDataFormat( &c_dfDIKeyboard ));
-    CheckDXError( pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
-	CheckDXError( pKeyboard->Acquire());
-	CheckDXError( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL ));
-    CheckDXError( pMouse->SetDataFormat(&c_dfDIMouse));
-    CheckDXError( pMouse->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
-    CheckDXError( pMouse->Acquire());
+    CheckDXErrorFatal( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL));
+    CheckDXErrorFatal( pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL ));
+    CheckDXErrorFatal( pKeyboard->SetDataFormat( &c_dfDIKeyboard ));
+    CheckDXErrorFatal( pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
+	CheckDXErrorFatal( pKeyboard->Acquire());
+	CheckDXErrorFatal( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL ));
+    CheckDXErrorFatal( pMouse->SetDataFormat(&c_dfDIMouse));
+    CheckDXErrorFatal( pMouse->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
+    CheckDXErrorFatal( pMouse->Acquire());
 	RECT initialWindowRect;
     GetWindowRect( hwnd, &initialWindowRect );
     GetClientRect( hwnd, &windowRect );
@@ -86,9 +86,9 @@ API void InputInit( void * window ) {
 };
 
 API void InputDestroy() {
-	CheckDXError( pMouse->Unacquire());
+	CheckDXErrorFatal( pMouse->Unacquire());
 	pMouse->Release();
-	CheckDXError( pKeyboard->Unacquire());
+	CheckDXErrorFatal( pKeyboard->Unacquire());
 	pKeyboard->Release();
 	pInput->Release();
 };

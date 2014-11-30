@@ -28,6 +28,7 @@
 #include <DxErr.h>
 #include <windows.h>
 #include <dinput.h>
+#include <fstream>
 #include FT_FREETYPE_H
 //#include "vld.h"
 
@@ -75,6 +76,7 @@ class Cursor;
 class Vertex;
 class Vertex2D;
 class FPSCounter;
+class TextRenderer;
 
 #define MEMORY_VALID_VALUE ( 0xDEADBEEF )
 
@@ -90,7 +92,6 @@ extern float g_width;
 extern float g_height;
 extern int g_dips;
 extern int g_rendererType;
-extern FontHandle g_font;
 extern float g_dt;
 
 extern FT_Library g_ftLibrary;
@@ -106,7 +107,6 @@ extern btCollisionDispatcher * g_collisionDispatcher;
 extern btBroadphaseInterface * g_broadphase;
 extern btSequentialImpulseConstraintSolver * g_solver;
 // common
-extern HWND window;
 extern bool g_fxaaEnabled;
 extern vector< SceneNode* > g_nodes;
 extern vector< Light* > g_pointLights;
@@ -121,6 +121,7 @@ extern PostProcessing * g_postProcessing;
 extern ParticleSystemRenderer * g_particleSystemRenderer;
 extern ForwardRenderer * g_forwardRenderer;
 extern GUIRenderer * g_guiRenderer;
+extern TextRenderer * g_textRenderer;
 extern Cursor * g_cursor;
 extern Renderer * g_renderer;
 extern int g_fps;
@@ -128,11 +129,18 @@ extern FPSCounter g_fpsCounter;
 extern bool g_physicsEnabled;
 extern bool g_engineRunning;
 extern bool g_hdrEnabled;
+extern string g_texturePath;
+extern ofstream g_log;
 
 // shadow settings
 extern bool g_usePointLightShadows;
 extern bool g_useSpotLightShadows;
 
-extern void CheckDXError( HRESULT errCode );
+extern void CheckDXErrorFatal( HRESULT errCode );
+extern void CreateLogFile();
+extern void LogMessage( string message );
+extern void CloseLogFile();
+extern void LogError( string message );
+extern string Format( const char * format, ... );
 
 #endif

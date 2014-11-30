@@ -7,10 +7,9 @@ public:
     Vector3 coords;
     Vector3 normals;
     Vector2 texCoords;
-    Vector2 texCoords2;
     Vector3 tangents;
 
-    Vertex( Vector3 & theCoords, Vector3 & theNormals, Vector2 & theTexCoords, Vector3 & theTangents, Vector2 & theTexCoords2 );
+    Vertex( Vector3 & theCoords, Vector3 & theNormals, Vector2 & theTexCoords, Vector3 & theTangents );
     Vertex( float x, float y, float z, float tx, float ty );
     Vertex( );
 };

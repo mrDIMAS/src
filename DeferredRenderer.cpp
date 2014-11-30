@@ -669,8 +669,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         RenderScreenQuad();
     }
 
-    CheckDXError( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER ));
-    CheckDXError( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER ));
+    CheckDXErrorFatal( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER ));
+    CheckDXErrorFatal( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER ));
 
     // Render spot lights
     for( unsigned int i = 0; i < g_spotLights.size(); i++ ) {
@@ -714,6 +714,28 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		}
 	}
 
-    CheckDXError( state->Apply());
+	//g_renderer->testFont->RenderAtlas( debugQuad );
+
+    CheckDXErrorFatal( state->Apply());
     state->Release();
+}
+
+void DeferredRenderer::SetPointLightShadowMapSize( int size )
+{
+	if( size != pointShadowMap->iSize ) {
+		if( pointShadowMap ) {
+			delete pointShadowMap;
+		}
+		pointShadowMap = new PointlightShadowMap( size );
+	}
+}
+
+void DeferredRenderer::SetSpotLightShadowMapSize( int size )
+{
+	if( size != spotShadowMap->iSize ) {
+		if( spotShadowMap ) {
+			delete spotShadowMap;
+		}
+		spotShadowMap = new SpotlightShadowMap( size );
+	}
 }

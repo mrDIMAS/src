@@ -7,23 +7,20 @@
 #include "Texture.h"
 #include "Renderer.h"
 #include "Physics.h"
-#include "SingleRTDeferredRenderer.h"
 #include "MultipleRTDeferredRenderer.h"
 #include "FXAA.h"
 #include "FPSCounter.h"
 #include "ForwardRenderer.h"
-#include "FTFont.h"
+#include "BitmapFont.h"
+#include "TextRenderer.h"
 
 Renderer * g_renderer = 0;
 
-int g_rendererType = Renderer::TypeDeferredRenderer;
-FontHandle g_font;
 IDirect3D9 * g_d3d = 0;
 IDirect3DDevice9 * g_device = 0;
 IDirect3DVertexDeclaration9 * g_meshVertexDeclaration = 0;
-vector< SceneNode* > g_nodes;
-HWND window;
-bool g_hdrEnabled = false;
+
+
 
 float g_width = 0;
 float g_height = 0;
@@ -37,9 +34,8 @@ FPSCounter g_fpsCounter;
 bool g_usePointLightShadows = true;
 bool g_useSpotLightShadows = true;
 bool g_engineRunning = true;
+bool g_hdrEnabled = false;
 
-IDirect3DTexture9 * g_renderTexture = 0;
-IDirect3DSurface9 * g_renderSurface = 0;
 IDirect3DSurface9 * g_backbufferSurface = 0;
 
 Vector3 g_ambientColor = Vector3( 0.05, 0.05, 0.05 );
@@ -80,6 +76,7 @@ Renderer::~Renderer() {
     }
     Physics::DestructWorld();
     pfSystemDestroy();
+	CloseLogFile();
 }
 
 Renderer::Renderer( int width, int height, int fullscreen ) {
@@ -93,11 +90,32 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
         return;
     }
 
-    g_d3d = Direct3DCreate9( D3D_SDK_VERSION );
+	CreateLogFile();
 
-    if( !g_d3d ) {
-        return;
-    }
+	// try to create Direct3D9
+	g_d3d = Direct3DCreate9( D3D_SDK_VERSION );
+
+	// epic fail
+	if( !g_d3d ) {
+		MessageBoxA( 0, "Failed to Direct3DCreate9! Ensure, that you have latest video drivers! Engine initialization failed!", "ERROR", MB_OK | MB_ICONERROR );
+		CloseLogFile();
+		exit( -1 );
+	}
+
+	// check d3d caps, to ensure, that user have modern hardware
+	D3DCAPS9 dCaps;
+	CheckDXErrorFatal( g_d3d->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps ));
+
+	unsigned char psVerHi = D3DSHADER_VERSION_MAJOR( dCaps.PixelShaderVersion );
+	unsigned char psVerLo = D3DSHADER_VERSION_MINOR( dCaps.PixelShaderVersion );
+
+	// epic fail
+	if( psVerHi < 2 ) {
+		MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
+		CloseLogFile();
+		g_d3d->Release();
+		exit( -1 );
+	}
 
     g_width = width;
     g_height = height;
@@ -107,7 +125,7 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
 
     // present parameters
     D3DPRESENT_PARAMETERS presentParameters = { 0 };
-    presentParameters.BackBufferCount = 1;
+    presentParameters.BackBufferCount = 2;
     presentParameters.EnableAutoDepthStencil = TRUE;
     presentParameters.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
     presentParameters.AutoDepthStencilFormat = D3DFMT_D24S8;
@@ -130,74 +148,42 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    if ( FAILED ( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &g_device ) ) ) {
-        if ( FAILED ( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_MIXED_VERTEXPROCESSING, &presentParameters, &g_device ) ) ) {
-            if ( FAILED ( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &presentParameters, &g_device ) ) ) {
-                MessageBoxA( 0, "Failed to create Direct3D 9 Device", "Epic fail", 0 );
+    CheckDXErrorFatal( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &g_device ));
 
-                abort();
-
-                return;
-            }
-        }
-    }
-
-    D3DVERTEXELEMENT9 vd[ ] = {
+	// create main "pipeline" vertex declaration
+	D3DVERTEXELEMENT9 vd[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
         { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
         { 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-        { 0, 32, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-        { 0, 40, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
+        { 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
         D3DDECL_END()
     };
 
-    CheckDXError( g_device->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ));
-    CheckDXError( g_device->SetVertexDeclaration ( g_meshVertexDeclaration ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_LIGHTING, FALSE ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ZENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHAREF, 100 ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL ));
-    CheckDXError( g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW ));
+    CheckDXErrorFatal( g_device->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ));
 
-    D3DCAPS9 caps;
-    g_device->GetDeviceCaps( &caps );
-
-    unsigned char psVerHi = D3DSHADER_VERSION_MAJOR( caps.PixelShaderVersion );
-    unsigned char psVerLo = D3DSHADER_VERSION_MINOR( caps.PixelShaderVersion );
-
-    if( psVerHi < 2 ) {
-        MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
-
-        abort();
-    }
-
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, caps.MaxAnisotropy ));
-
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC ));
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR ));
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC ));
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, caps.MaxAnisotropy ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_LIGHTING, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ZENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ALPHAREF, 100 ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ALPHATESTENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL ));
+    CheckDXErrorFatal( g_device->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW ));
+	
+	CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR ));
 
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
     
-    if( caps.NumSimultaneousRTs < 3 ) {
-        g_deferredRenderer = new SingleRTDeferredRenderer();
-    } else {
-        g_deferredRenderer = new MultipleRTDeferredRenderer();
-    }
+    g_deferredRenderer = new MultipleRTDeferredRenderer();
     g_forwardRenderer = new ForwardRenderer();
     g_particleSystemRenderer = new ParticleSystemRenderer();
-
+	g_textRenderer = new TextRenderer();
     g_guiRenderer = new GUIRenderer();
-    g_font = g_guiRenderer->CreateFont( 12, "Arial", 0, 0 );
     g_renderer = this;
     performanceTimer = new Timer;
 
@@ -205,8 +191,6 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     if( FT_Init_FreeType( &g_ftLibrary ) ) {
         throw std::runtime_error( "Unable to initialize FreeType 2.53" );
     }
-
-    FTFont ftTest( "data/fonts/font.ttf" );
 }
 
 /*
@@ -228,8 +212,8 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     // get instance of this process
     HINSTANCE instance = GetModuleHandle ( 0 );
     // setup window class
-    const char * className = "Mine";
-    WNDCLASSEXA wcx = { 0 };
+    const wchar_t * className = L"Mine";
+    WNDCLASSEXW wcx = { 0 };
     wcx.cbSize = sizeof ( wcx );
     wcx.hCursor = LoadCursor ( NULL, IDC_ARROW );
     wcx.hbrBackground = ( HBRUSH ) ( COLOR_WINDOW + 1 );
@@ -237,7 +221,7 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     wcx.lpfnWndProc = WindowProcess;
     wcx.lpszClassName = className;
     wcx.style = CS_HREDRAW | CS_VREDRAW;
-    RegisterClassExA ( &wcx );    
+    RegisterClassExW ( &wcx );    
     DWORD style;    
     if ( !fullscreen ) {
         // windowed style prevent device lost
@@ -250,7 +234,7 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     // make client region fits to the current resolution
     AdjustWindowRect ( &wRect, style, 0 );
     // create window
-    window = CreateWindowA ( className, "Mine", style, 0, 0, wRect.right - wRect.left, wRect.bottom - wRect.top, 0, 0, instance, 0 );
+    window = CreateWindowW( className, className, style, 0, 0, wRect.right - wRect.left, wRect.bottom - wRect.top, 0, 0, instance, 0 );
 
     if( !window ) { // fail
         return 0;
@@ -296,8 +280,8 @@ void Renderer::RenderWorld() {
     // build view and projection matrices, frustum, also attach sound listener to camera
     g_camera->Update();
     // set these transforms, for render passes which uses FFP
-    CheckDXError( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
-    CheckDXError( g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
     // precalculations
     for( auto node : g_nodes ) {
         node->CalculateGlobalTransform();
@@ -316,37 +300,35 @@ void Renderer::RenderWorld() {
         light->DoFloating();
     }
     // begin dx scene
-    CheckDXError( g_device->BeginScene());
+    CheckDXErrorFatal( g_device->BeginScene());
     // begin rendering into G-Buffer
     g_deferredRenderer->BeginFirstPass();
+	// setup samplers
+	CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC ));	
+	CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC ));
+
     // render from current camera
-    SingleRTDeferredRenderer * singleRT = dynamic_cast< SingleRTDeferredRenderer* >( g_deferredRenderer );
-    if( !singleRT ) { // multiple RT's rendering
-        RenderMeshesIntoGBuffer();
-    } else { // single RT for poor videocards
-        // diffuse pass
-        singleRT->SetDiffusePass();
-        RenderMeshesIntoGBuffer();
-        // normal pass
-        singleRT->SetNormalPass();
-        RenderMeshesIntoGBuffer();
-        // depth pass
-        singleRT->SetDepthPass();
-        RenderMeshesIntoGBuffer();
-    }  
+    RenderMeshesIntoGBuffer();
+	// set samplers to linear filtering
+	CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR ));
+	CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR ));
     // end render into G-Buffer and do a lighting passes
     g_deferredRenderer->EndFirstPassAndDoSecondPass();
     // render all opacity meshes with forward renderer
     g_forwardRenderer->RenderMeshes();
     // render particles after all, cause deferred shading doesnt support transparency    
-    g_particleSystemRenderer->RenderAllParticleSystems();
+    //g_particleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
     g_guiRenderer->RenderAllGUIElements();
     // render light flares without writing to z-buffer
     Light::RenderLightFlares();
     // finalize
-    CheckDXError( g_device->EndScene());
-    CheckDXError( g_device->Present( 0, 0, 0, 0 ));
+    CheckDXErrorFatal( g_device->EndScene());
+    CheckDXErrorFatal( g_device->Present( 0, 0, 0, 0 ));
     // grab info about node's physic contacts 
     SceneNode::UpdateContacts( );
     // update sound subsystem
@@ -377,7 +359,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
             continue;
         }
         // bind diffuse texture
-        CheckDXError( g_device->SetTexture( 0, diffuseTexture ));
+        CheckDXErrorFatal( g_device->SetTexture( 0, diffuseTexture ));
         // each group has same texture
         g_textureChanges++;
         for( auto meshIterator : meshes ) {
@@ -531,15 +513,15 @@ void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
     if( mipFilter == TextureFilter::Nearest ) {
         mipFilter = D3DTEXF_POINT;
     }
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter ));
-    CheckDXError( g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
 
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter ));
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter ));
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter ));
-    CheckDXError( g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter ));
+    CheckDXErrorFatal( g_device->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
 }
 /*
 ===============
@@ -665,7 +647,7 @@ GetMaxAnisotropy
 */
 int GetMaxAnisotropy() {
     D3DCAPS9 caps;
-    CheckDXError( g_device->GetDeviceCaps( &caps ));
+    CheckDXErrorFatal( g_device->GetDeviceCaps( &caps ));
 
     return caps.MaxAnisotropy;
 }

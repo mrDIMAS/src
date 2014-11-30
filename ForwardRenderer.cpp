@@ -4,18 +4,18 @@ ForwardRenderer * g_forwardRenderer = nullptr;
 
 void ForwardRenderer::RenderMeshes() {
     IDirect3DStateBlock9 * state = nullptr;
-    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
     pixelShader->Bind();
     vertexShader->Bind();
 
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW ));
-    CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
 
     for( auto group : renderList ) {
         IDirect3DTexture9 * diffuseTexture = group.first;
@@ -28,15 +28,15 @@ void ForwardRenderer::RenderMeshes() {
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
 
-            CheckDXError( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-            CheckDXError( g_device->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
+            CheckDXErrorFatal( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+            CheckDXErrorFatal( g_device->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
 
             mesh->BindBuffers();
             mesh->Render();
         }
     }
 
-    CheckDXError( state->Apply());
+    CheckDXErrorFatal( state->Apply());
     state->Release();
 }
 

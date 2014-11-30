@@ -27,8 +27,8 @@ Menu::Menu( ) {
     exitingGame = false;
     returnToGameByEsc = false;
     autosaveNotify = false; // FIXED: set it to true when build release version
-    textFont = CreateGUIFont( 16, "Arial", false, false );
-    textBackgroundFont = CreateGUIFont( 21, "Arial", false, false );
+    textFont = CreateGUIFont( 14, "data/fonts/font1.otf", false, false );
+    textBackgroundFont = CreateGUIFont( 18, "data/fonts/font1.otf", false, false );
 	loadSaveGameName = "";
 	loadFromSave = false;
     CreateCamera();

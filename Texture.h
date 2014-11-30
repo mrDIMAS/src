@@ -6,9 +6,12 @@ class Texture {
 private:
     explicit Texture( );
     IDirect3DTexture9 * texture;
+	int height;
+	int width;
+	int bpp;
 public:
     string name;
-    static map< string, Texture* > all;
+    static map< string, Texture* > textures;
     virtual ~Texture( );
     void Bind( int level );
     IDirect3DTexture9 * GetInterface();

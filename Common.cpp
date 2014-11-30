@@ -1,4 +1,7 @@
 #include "Common.h"
+#include "Utility.h"
+
+ofstream g_log;
 
 void ParseString ( string str, map<string,string> & values ) {
     if ( str.size() <= 1 ) {
@@ -140,15 +143,30 @@ void ParseFile( string fn, map<string,string> & values) {
     };
 }
 
-void CheckDXError( HRESULT errCode )
-{
+void CheckDXErrorFatal( HRESULT errCode ) {
 	if( FAILED( errCode )) {
-		char buf[1024];
-		sprintf_s( buf, "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
-		MessageBoxA( 0, buf, "Fatal error", MB_OK | MB_ICONERROR );
+		string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
+		LogMessage( message );
+		MessageBoxA( 0, message.c_str(), "Fatal error", MB_OK | MB_ICONERROR );
 		exit( -1 );
 	}
 }
 
+void CreateLogFile() {
+	g_log.open( "ruthenium.log" );
+}
 
+void LogMessage( string message ) {
+	g_log << message << endl;
+}
 
+void LogError( string message ) {
+	g_log << message << endl;
+	g_log.close();
+	MessageBoxA( 0, message.c_str(), "Fatal error", MB_OK | MB_ICONERROR );
+	exit( -1 );
+}
+
+void CloseLogFile() {
+	g_log.close();
+}

@@ -60,26 +60,26 @@ Mesh::~Mesh() {
 void Mesh::UpdateVertexBuffer() {
     int sizeBytes = vertices.size() * sizeof( Vertex );
     if( !vertexBuffer ) {
-        CheckDXError( g_device->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+        CheckDXErrorFatal( g_device->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
     }
     if( vertices.size() == 0 ) {
         return;
     }
     void * vertexData = 0;
-    CheckDXError( vertexBuffer->Lock( 0, 0, &vertexData, 0 ));
+    CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &vertexData, 0 ));
     memcpy( vertexData, &vertices[ 0 ], sizeBytes );
-    CheckDXError( vertexBuffer->Unlock());
+    CheckDXErrorFatal( vertexBuffer->Unlock());
 }
 
 void Mesh::UpdateIndexBuffer( vector< Triangle > & idc ) {
     int sizeBytes = idc.size() * 3 * sizeof( unsigned short );
     if( !indexBuffer ) {
-        CheckDXError( g_device->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
+        CheckDXErrorFatal( g_device->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
     }
     void * indexData = 0;
-    CheckDXError( indexBuffer->Lock( 0, 0, &indexData, 0 ));
+    CheckDXErrorFatal( indexBuffer->Lock( 0, 0, &indexData, 0 ));
     memcpy( indexData, &idc[ 0 ], sizeBytes );
-    CheckDXError( indexBuffer->Unlock());
+    CheckDXErrorFatal( indexBuffer->Unlock());
 }
 
 SceneNode * Mesh::GetParentNode() {
@@ -100,15 +100,15 @@ Texture * Mesh::GetNormalTexture() {
 }
 
 void Mesh::BindBuffers() {
-    CheckDXError( g_device->SetVertexDeclaration( g_meshVertexDeclaration ));
-    CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( g_device->SetVertexDeclaration( g_meshVertexDeclaration ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex )));
     if( octree ) {
         vector< Triangle > & id = octree->GetTrianglesToRender();
         if( id.size() ) {
             UpdateIndexBuffer( id );
         }
     }
-    CheckDXError( g_device->SetIndices( indexBuffer ));
+    CheckDXErrorFatal( g_device->SetIndices( indexBuffer ));
 }
 
 void Mesh::Render() {
@@ -118,10 +118,10 @@ void Mesh::Render() {
         DrawGUIText( Format( "Nodes: %d, Triangles: %d", octree->visibleNodes, octree->visibleTriangles ).c_str(), 40, 40, 100, 50, g_font, Vector3( 255, 0, 0 ), 1 );
 #endif
         if( octree->visibleTris.size() ) {
-            CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, octree->visibleTris.size() ));
+            CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, octree->visibleTris.size() ));
         }
     } else {
-        CheckDXError( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, triangles.size() ));
+        CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, triangles.size() ));
     }
 
     // each mesh renders in one DIP

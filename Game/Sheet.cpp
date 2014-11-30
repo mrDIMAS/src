@@ -15,7 +15,7 @@ Sheet::Sheet( NodeHandle object, string desc, string text ) : InteractiveObject(
     }
 
     if( !sheetFont.IsValid() ) {
-        sheetFont = CreateGUIFont( 20, "Arial", 0, 0 );
+        sheetFont = CreateGUIFont( 16, "data/fonts/font1.otf", 0, 0 );
     }
 }
 

@@ -195,12 +195,12 @@ void Light::RenderLightFlares() {
         return;
     }
     IDirect3DStateBlock9 * state;
-    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ZWRITEENABLE, false ));        
-    CheckDXError( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
-    CheckDXError( g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
-    CheckDXError( g_device->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
-    CheckDXError( g_device->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
+    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, false ));        
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
+    CheckDXErrorFatal( g_device->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
     D3DXMATRIX world, scale;
     for( auto light : lights ) {
         if( !light->flareTexture ) {
@@ -215,10 +215,10 @@ void Light::RenderLightFlares() {
         D3DXMatrixScaling( &scale, flareScale, flareScale, flareScale );
         D3DXMatrixMultiply( &world, &world, &scale );
         light->flareTexture->Bind( 0 );            
-        CheckDXError( g_device->SetTransform( D3DTS_WORLD, &world ));
-        CheckDXError( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+        CheckDXErrorFatal( g_device->SetTransform( D3DTS_WORLD, &world ));
+        CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     }
-    CheckDXError( state->Apply());
+    CheckDXErrorFatal( state->Apply());
     state->Release();
 }
 
@@ -239,7 +239,7 @@ void Light::SetFlare( Texture * texture ) {
         {  0.5f,  0.5f, 1.0f, 0.0f, 0.0f },
         {  0.5f, -0.5f, 1.0f, 1.0f, 0.0f },
         { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f }};
-        CheckDXError( g_device->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
+        CheckDXErrorFatal( g_device->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
     }
     flareTexture = texture;
 }

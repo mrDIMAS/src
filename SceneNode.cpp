@@ -9,6 +9,8 @@
 #include "Vertex.h"
 #include "Renderer.h"
 
+vector< SceneNode* > g_nodes;
+
 SceneNode * SceneNode::CastHandle( NodeHandle handle ) {
     SceneNode * n = reinterpret_cast< SceneNode *>( handle.pointer );
 
@@ -254,8 +256,6 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
         return 0;
     }
 
-    string pathToRes = "data/textures/generic/";
-
     int numObjects = reader.GetInteger();
     int numMeshes = reader.GetInteger();
     int numLights = reader.GetInteger();
@@ -264,21 +264,6 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
     SceneNode * scene = new SceneNode;
 
 	scene->totalFrames = framesCount;
-
-    string lightmapFilename;
-    Texture * lightMapTexture = 0;
-    if( g_rendererType == Renderer::TypeLightMapRenderer ) {
-        string path = file;
-        int lastDelimPos = path.find_last_of( "/" );
-        string filename = path.substr( lastDelimPos, path.find_last_of( "." ) - lastDelimPos );
-        path = path.substr( 0, lastDelimPos );
-
-        lightmapFilename = path + filename + ".jpg";
-
-        int a = 0;
-
-        lightMapTexture = Texture::Require( lightmapFilename );
-    }
 
     for ( int meshObjectNum = 0; meshObjectNum < numMeshes; meshObjectNum++ ) {
         SceneNode * node = new SceneNode;
@@ -330,14 +315,13 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
                 v.coords = reader.GetBareVector();
                 v.normals = reader.GetBareVector();
                 v.texCoords = reader.GetBareVector2();
-                v.texCoords2 = reader.GetBareVector2();
+                Vector2 tc2 = reader.GetBareVector2(); // just read secondary texcoords, but don't add it to the mesh. need to compatibility
                 v.tangents = reader.GetBareVector();
 
                 mesh->vertices.push_back( v );
             }
 
             //mesh->aabb = AABB( mesh->vertices );
-            mesh->lightMapTexture = lightMapTexture;
 
             mesh->triangles.reserve( indexCount );
 
@@ -349,8 +333,8 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
                 mesh->triangles.push_back( Mesh::Triangle( a, b, c ));
             }
 
-            mesh->diffuseTexture = Texture::Require( pathToRes + diffuse );
-            mesh->normalMapTexture = Texture::Require( pathToRes + normal );
+            mesh->diffuseTexture = Texture::Require( g_texturePath + diffuse );
+            mesh->normalMapTexture = Texture::Require( g_texturePath + normal );
 
             node->meshes.push_back( mesh );
 

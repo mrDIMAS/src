@@ -4,7 +4,6 @@
 #include "GBuffer.h"
 #include "EffectsQuad.h"
 #include "FXAA.h"
-#include "SSAO.h"
 #include "SpotlightShadowMap.h"
 #include "PointlightShadowMap.h"
 #include "HDR.h"
@@ -112,7 +111,6 @@ public:
     Pass2SpotLight * pass2SpotLight;
 
     FXAA * fxaa;
-    SSAO * ssao;
     SpotlightShadowMap * spotShadowMap;
     PointlightShadowMap * pointShadowMap;
 	HDRRenderer * hdrRenderer;
@@ -135,22 +133,8 @@ public:
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;
     
-    void SetSpotLightShadowMapSize( int size ) {
-        if( size != spotShadowMap->iSize ) {
-            if( spotShadowMap ) {
-                delete spotShadowMap;
-            }
-            spotShadowMap = new SpotlightShadowMap( size );
-        }
-    }
+    void SetSpotLightShadowMapSize( int size );
 
-    void SetPointLightShadowMapSize( int size ) {
-        if( size != pointShadowMap->iSize ) {
-            if( pointShadowMap ) {
-                delete pointShadowMap;
-            }
-            pointShadowMap = new PointlightShadowMap( size );
-        }
-    }
+    void SetPointLightShadowMapSize( int size );
     void EndFirstPassAndDoSecondPass();
 };

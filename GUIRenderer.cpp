@@ -3,6 +3,8 @@
 #include "Texture.h"
 #include "Cursor.h"
 #include "Vertex.h"
+#include "TextRenderer.h"
+#include "BitmapFont.h"
 
 GUIRenderer * g_guiRenderer = 0;
 
@@ -10,8 +12,8 @@ GUIRenderer::GUIRenderer() {
     int maxLineCount = 16536;
 
     sizeOfRectBytes = 6 * sizeof( Vertex2D  );
-    CheckDXError( g_device->CreateVertexBuffer( sizeOfRectBytes, D3DUSAGE_DYNAMIC, D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
-    CheckDXError( g_device->CreateVertexBuffer( maxLineCount * 2 * sizeof( LinePoint ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &lineVertexBuffer, 0 ));
+    CheckDXErrorFatal( g_device->CreateVertexBuffer( sizeOfRectBytes, D3DUSAGE_DYNAMIC, D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+    CheckDXErrorFatal( g_device->CreateVertexBuffer( maxLineCount * 2 * sizeof( LinePoint ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &lineVertexBuffer, 0 ));
 
     D3DVERTEXELEMENT9 guivd[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -20,7 +22,7 @@ GUIRenderer::GUIRenderer() {
         D3DDECL_END()
     };
 
-    CheckDXError( g_device->CreateVertexDeclaration( guivd, &vertDecl ));
+    CheckDXErrorFatal( g_device->CreateVertexDeclaration( guivd, &vertDecl ));
 
     D3DVERTEXELEMENT9 linevd[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -28,18 +30,18 @@ GUIRenderer::GUIRenderer() {
         D3DDECL_END()
     };
 
-    CheckDXError( g_device->CreateVertexDeclaration( linevd, &lineDecl )) ;
+    CheckDXErrorFatal( g_device->CreateVertexDeclaration( linevd, &lineDecl )) ;
 
     D3DVIEWPORT9 vp;
-    CheckDXError( g_device->GetViewport( &vp ));
+    CheckDXErrorFatal( g_device->GetViewport( &vp ));
     D3DXMatrixOrthoOffCenterLH ( &orthoMatrix, 0, vp.Width, vp.Height, 0, 0, 1024 );
 }
 
 GUIRenderer::~GUIRenderer() {
-    CheckDXError( vertexBuffer->Release());
-    CheckDXError( vertDecl->Release());
-    CheckDXError( lineDecl->Release());
-    CheckDXError( lineVertexBuffer->Release());
+    CheckDXErrorFatal( vertexBuffer->Release());
+    CheckDXErrorFatal( vertDecl->Release());
+    CheckDXErrorFatal( lineDecl->Release());
+    CheckDXErrorFatal( lineVertexBuffer->Release());
 
     for( size_t i = 0; i < fonts.size(); i++ ) {
         fonts.at( i )->Release();
@@ -47,12 +49,14 @@ GUIRenderer::~GUIRenderer() {
 }
 
 FontHandle GUIRenderer::CreateFont( int size, const char * name, int italic, int underlined ) {
+	/*
     ID3DXFont * font;
 
     D3DXCreateFontA( g_device, size, 0 , FW_BOLD, 0, italic, RUSSIAN_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, name, &font );
 
     fonts.push_back( font );
-
+	*/
+	BitmapFont * font = new BitmapFont( name, size );
     FontHandle handle;
     handle.pointer = font;
 
@@ -90,20 +94,20 @@ void GUIRenderer::DrawWireBox( LinePoint min, LinePoint max ) {
 
 void GUIRenderer::RenderAllGUIElements() {
     // Set default shaders
-    CheckDXError( g_device->SetVertexShader( 0 ));
-    CheckDXError( g_device->SetPixelShader( 0 ));
+    CheckDXErrorFatal( g_device->SetVertexShader( 0 ));
+    CheckDXErrorFatal( g_device->SetPixelShader( 0 ));
 
     // Set render states
-    CheckDXError( g_device->SetRenderState( D3DRS_LIGHTING, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_LIGHTING, FALSE ));
 
     D3DXMATRIX identity;
     D3DXMatrixIdentity( &identity );
 
-    CheckDXError( g_device->SetTransform( D3DTS_WORLD, &identity ));
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_WORLD, &identity ));
 
     RenderLines();
 
-    CheckDXError( g_device->SetTransform( D3DTS_VIEW, &identity ));
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_VIEW, &identity ));
     RenderRects();
     RenderTexts();
     if( g_cursor ) {
@@ -113,11 +117,11 @@ void GUIRenderer::RenderAllGUIElements() {
 
 void GUIRenderer::RenderLines() {
     IDirect3DStateBlock9 * state;
-    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ) );
-    CheckDXError( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
+    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ) );
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
 
     void * data = nullptr;
-    CheckDXError( lineVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD ));
+    CheckDXErrorFatal( lineVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD ));
 
     int linesToRender = 0;
     while( !lines.empty() ) {
@@ -138,14 +142,14 @@ void GUIRenderer::RenderLines() {
         lines.pop();
     }
 
-    CheckDXError( lineVertexBuffer->Unlock( ));
-    CheckDXError( g_device->SetVertexDeclaration( lineDecl ));
-    CheckDXError( g_device->SetStreamSource( 0, lineVertexBuffer, 0, sizeof( LinePoint )));
+    CheckDXErrorFatal( lineVertexBuffer->Unlock( ));
+    CheckDXErrorFatal( g_device->SetVertexDeclaration( lineDecl ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, lineVertexBuffer, 0, sizeof( LinePoint )));
 
     if( linesToRender )
-        CheckDXError( g_device->DrawPrimitive( D3DPT_LINELIST, 0, linesToRender ));
+        CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_LINELIST, 0, linesToRender ));
 
-    CheckDXError( state->Apply() );
+    CheckDXErrorFatal( state->Apply() );
     state->Release();
 }
 
@@ -153,26 +157,23 @@ void GUIRenderer::RenderTexts() {
     while( !texts.empty() ) {
         Text & t = texts.front();
 
-        RECT r;
-
-        r.left = t.x;
-        r.top = t.y;
-        r.right = t.x + t.w;
-        r.bottom = t.y + t.h;
-
-        t.font->DrawTextA( 0, t.text.c_str(), -1, &r, DT_WORDBREAK | DT_NOCLIP | t.textAlign, t.color );
+		g_textRenderer->SetRect( t.x, t.y, t.w, t.h );
+		g_textRenderer->SetFont( t.font );
+		g_textRenderer->SetColor( t.color );
+		g_textRenderer->SetAlignment( t.textAlign );
+		g_textRenderer->RenderText( t.text );
 
         texts.pop();
-    }
+    };
 }
 
 void GUIRenderer::RenderRects() {
     IDirect3DStateBlock9 * state;
-    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
     PrepareToDraw2D();
 
-    CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
 
     void * data = nullptr;
     Vertex2D vertices[6];
@@ -187,54 +188,54 @@ void GUIRenderer::RenderRects() {
         vertices[ 4 ] = Vertex2D( rect.x + rect.w,  rect.y + rect.h,  0, 1, 1, rect.color );
         vertices[ 5 ] = Vertex2D( rect.x,           rect.y + rect.h,  0, 0, 1, rect.color );
 
-        CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
+        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
         memcpy( data, vertices, sizeOfRectBytes );
-        CheckDXError( vertexBuffer->Unlock( ));
+        CheckDXErrorFatal( vertexBuffer->Unlock( ));
 
         if( rect.texture ) {
             rect.texture->Bind( 0 );
         } else {
 			g_device->SetTexture( 0, nullptr );
 		}
-        CheckDXError( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
-        CheckDXError( g_device->SetTexture( 0, 0 ));
+        CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+        CheckDXErrorFatal( g_device->SetTexture( 0, 0 ));
         rects.pop();
     }
 
-    CheckDXError( state->Apply());
-    CheckDXError( state->Release());
+    CheckDXErrorFatal( state->Apply());
+    CheckDXErrorFatal( state->Release());
 }
 
 void GUIRenderer::PrepareToDraw2D() {
-    CheckDXError( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ZENABLE, FALSE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE));
-    CheckDXError( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
-    CheckDXError( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
-    CheckDXError( g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_COLOR1 ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
-    CheckDXError( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
-    CheckDXError( g_device->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD));
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_COLOR1 ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
 
-    CheckDXError( g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE ));
-    CheckDXError( g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE ));
-    CheckDXError( g_device->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE ));
+    CheckDXErrorFatal( g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE ));
+    CheckDXErrorFatal( g_device->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE ));
+    CheckDXErrorFatal( g_device->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE ));
 
-    CheckDXError( g_device->SetTransform( D3DTS_PROJECTION, &orthoMatrix ));
+    CheckDXErrorFatal( g_device->SetTransform( D3DTS_PROJECTION, &orthoMatrix ));
 
-    CheckDXError( g_device->SetVertexDeclaration( vertDecl ));
+    CheckDXErrorFatal( g_device->SetVertexDeclaration( vertDecl ));
 }
 
 void GUIRenderer::RenderCursor() {
     IDirect3DStateBlock9 * state;
-    CheckDXError( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
     PrepareToDraw2D();
 
-    CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
 
     int x = GetMouseX();
     int y = GetMouseY();
@@ -251,16 +252,16 @@ void GUIRenderer::RenderCursor() {
     vertices[ 5 ] = Vertex2D( x,      y + h,  0, 0, 1, color );
 
     void * data = nullptr;
-    CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
+    CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
     memcpy( data, vertices, sizeOfRectBytes );
-    CheckDXError( vertexBuffer->Unlock( ));
+    CheckDXErrorFatal( vertexBuffer->Unlock( ));
 
     if( g_cursor->tex && g_cursor->visible ) {
         g_cursor->tex->Bind( 0 );
-        CheckDXError( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+        CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     }
 
-    CheckDXError( state->Apply());
+    CheckDXErrorFatal( state->Apply());
     state->Release();
 }
 
@@ -275,7 +276,7 @@ GUIRenderer::Text::Text( string theText, float theX, float theY, float theWidth,
     w = theWidth;
     h = theHeight;
     text = theText;
-    font = (ID3DXFont*)( theFont.pointer );
+    font = (BitmapFont *)theFont.pointer;//(ID3DXFont*)( theFont.pointer );
 
     if( theTextAlign == 0 ) {
         textAlign = DT_LEFT;
@@ -283,7 +284,7 @@ GUIRenderer::Text::Text( string theText, float theX, float theY, float theWidth,
     if( theTextAlign == 1 ) {
         textAlign = DT_CENTER | DT_VCENTER;
     }
-    color = D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
+    color = theColor / 255.0f;//D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
 }
 
 GUIRenderer::Rect::Rect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, Vector3 theColor, int theAlpha ) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shader.h"
+#include "BitmapFont.h"
 
 class GUIRenderer {
 public:
@@ -23,7 +24,8 @@ public:
 
     class Text {
     private:
-        ID3DXFont * font;
+        //ID3DXFont * font;
+		BitmapFont * font;
 
         string text;
 
@@ -32,7 +34,8 @@ public:
         float w;
         float h;
 
-        int color;
+        //int color;
+		Vector3 color;
         int textAlign;
     public:
         friend class GUIRenderer;

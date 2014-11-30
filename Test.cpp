@@ -47,7 +47,7 @@ void main( ) {
 	float pitch = 0, yaw = 0;
 	int cameraNum = 0;
 
-	FontHandle font = CreateGUIFont( 16, "Arial", 1, 0 );
+	FontHandle font = CreateGUIFont( 12, "data/fonts/font1.otf", 1, 0 );
 
 	int counter = 0;
 	int fps = 0;
@@ -73,9 +73,9 @@ void main( ) {
 	NodeHandle streamParticleEmitter = CreateParticleSystem( 256, streamParticleEmitterProps );
 
 	// Animation test
-	NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
-	Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );	
-	SetAnimation( dummy, &idleAnim );
+	//NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
+	//Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );	
+	//SetAnimation( dummy, &idleAnim );
 
 	TimerHandle timer = CreateTimer();
 
@@ -86,7 +86,7 @@ void main( ) {
 	EnableSpotLightShadows( true );
 	while( !IsKeyDown( KEY_Esc )) {
 
-		idleAnim.Update();
+		//idleAnim.Update();
 		InputUpdate();
 
 		if( IsMouseHit( MB_Right )) {
@@ -134,9 +134,9 @@ void main( ) {
 			}
 		}
 
-		if( !IsAnimationEnabled( dummy )) {
-			SetAnimationEnabled( dummy, true );
-		}
+		//if( !IsAnimationEnabled( dummy )) {
+		//	SetAnimationEnabled( dummy, true );
+		//}
 
 		Move( cameraPivot, speed * Vector3( 100, 1, 100 ));
 		SetRotation( camera, pitchRotation );
@@ -150,8 +150,8 @@ void main( ) {
 			counter = 0;
 		}
 		char buf[ 128 ];
-		sprintf( buf, "DIPs: %d\nTC: %d\nFPS: %d\nAvailable Vid Mem, Mb: %i\nHDR: %i", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)IsHDREnabled()  );
-		DrawGUIText( buf, 0, 0, 200, 100, font, Vector3( 255, 0, 255 ), 0, 100 );
+		sprintf( buf, "DIPs: %d\nTC: %d\nFPS: %d\nAvailable Vid Mem, Mb: %i\nHDR: %i\n¿¡¬√ƒ≈®∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄‹€›ﬁﬂ", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)IsHDREnabled()  );
+		DrawGUIText( buf, 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
 		RestartTimer( perfTimer );
 		RenderWorld( 1.0f / 60.0f ); // fixed FPS
 		perfTime=GetElapsedTimeInMilliSeconds( perfTimer );

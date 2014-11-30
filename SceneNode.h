@@ -11,43 +11,45 @@ public:
     volatile int memoryTag;
 
     SceneNode * parent;
+	SceneNode * scene; 
+
     vector<SceneNode*> childs;
+	vector<Mesh*> meshes;  
+	vector<SoundHandle> sounds;
+	vector<btTransform*> keyframes;
+
+	map<string,string> properties;
 
     btTransform invBoneBindTransform;
-    btRigidBody * body;
-    map<string,string> properties;
+
+    btRigidBody * body;   
     
-    string name;
-    vector<Mesh*> meshes;    
-    bool visible;
-    btTriangleMesh * trimesh;
+    string name;     
     
-    Contact contacts[ BODY_MAX_CONTACTS ];
-    int numContacts;
-    vector<SoundHandle> sounds;
-    bool frozen;
+    btTriangleMesh * trimesh;   
+    
     SoundHandle hitSound;
     SoundHandle idleSound;
+
     float albedo;
     float fDepthHack;
-    SceneNode * scene;
-    bool inFrustum;
-
-	/*
-	===========
-	animation
-	===========
-	*/
-	vector< btTransform* > keyframes;
+	
 	Animation * currentAnimation;
+
 	bool animationEnabled;
 	bool skinned;
+	bool inFrustum;
+	bool frozen;
+	bool visible;
+
+	Contact contacts[ BODY_MAX_CONTACTS ];
+
+	int numContacts;
 	int totalFrames;
 public:
     // Components
     ParticleEmitter * particleEmitter;
 
-    //
     btTransform globalTransform;
     btTransform localTransform;
 
@@ -116,6 +118,7 @@ public:
     bool IsRenderable();
     bool IsVisible();
     Vector3 GetLocalPosition();
+
     static void UpdateContacts( );
     static SceneNode * FindByName( const char * name );
     static SceneNode * FindInObjectByName( SceneNode * node, const char * name );

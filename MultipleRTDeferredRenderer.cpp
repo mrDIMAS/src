@@ -25,10 +25,10 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
     D3DXMatrixMultiply( &vwp, &world, &g_camera->viewProjection );
 
     pixelShaderPassOne->Bind();
-    CheckDXError( pixelShaderPassOne->GetConstantTable()->SetFloat( g_device, pAlbedo, mesh->GetParentNode()->albedo ));
+    CheckDXErrorFatal( pixelShaderPassOne->GetConstantTable()->SetFloat( g_device, pAlbedo, mesh->GetParentNode()->albedo ));
 
-    CheckDXError( vertexShaderPassOne->GetConstantTable()->SetMatrix( g_device, v1WVP, &vwp ));
-    CheckDXError( vertexShaderPassOne->GetConstantTable()->SetMatrix( g_device, v1World, &world ));
+    CheckDXErrorFatal( vertexShaderPassOne->GetConstantTable()->SetMatrix( g_device, v1WVP, &vwp ));
+    CheckDXErrorFatal( vertexShaderPassOne->GetConstantTable()->SetMatrix( g_device, v1World, &world ));
 
     mesh->Render();
 
@@ -41,11 +41,11 @@ void MultipleRTDeferredRenderer::BeginFirstPass() {
 
     gBuffer->BindRenderTargets();
 
-    CheckDXError( g_device->Clear( 0, 0, clearFlags, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    CheckDXErrorFatal( g_device->Clear( 0, 0, clearFlags, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
     vertexShaderPassOne->Bind();
 
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXError( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
 }
 
 MultipleRTDeferredRenderer::MultipleRTDeferredRenderer() {

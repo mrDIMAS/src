@@ -1,23 +1,23 @@
 #include "EffectsQuad.h"
 
 void EffectsQuad::Render() {
-    CheckDXError( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
-    CheckDXError( g_device->SetVertexDeclaration( vertexDeclaration ));
-    CheckDXError( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+    CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
+    CheckDXErrorFatal( g_device->SetVertexDeclaration( vertexDeclaration ));
+    CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     if( debug ) {
-        CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
-        CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
+        CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
+        CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
     }
 }
 
 void EffectsQuad::Bind() {
     if( debug ) {
         debugPixelShader->Bind();
-        CheckDXError( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-        CheckDXError( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+        CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+        CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
     }
     vertexShader->Bind();
-    CheckDXError( vertexShader->GetConstantTable()->SetMatrix( g_device, v2Proj, &orthoProjection ));
+    CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, v2Proj, &orthoProjection ));
 }
 
 EffectsQuad::~EffectsQuad() {
@@ -44,14 +44,14 @@ void EffectsQuad::SetSize( float width, float height ) {
 
 		void * data = 0;
 
-		CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
+		CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
 		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		CheckDXError( vertexBuffer->Unlock( ));
+		CheckDXErrorFatal( vertexBuffer->Unlock( ));
 	}
 }
 
 EffectsQuad::EffectsQuad( bool bDebug ) {
-    CheckDXError( g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+    CheckDXErrorFatal( g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
     debug = bDebug;
     debugPixelShader = nullptr;
@@ -63,9 +63,9 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
         void * data = 0;
 
-        CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
+        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        CheckDXError( vertexBuffer->Unlock( ));
+        CheckDXErrorFatal( vertexBuffer->Unlock( ));
     } else {
         int size = 500; 
         QuadVertex vertices[ ] = { 
@@ -74,16 +74,14 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
         void * data = 0;
 
-        CheckDXError( vertexBuffer->Lock( 0, 0, &data, 0 ));
+        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        CheckDXError( vertexBuffer->Unlock( ));
+        CheckDXErrorFatal( vertexBuffer->Unlock( ));
 
         string debugPixelShaderSource = 
             "sampler diffuse : register( s4 );\n"
             "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
-            //"   return tex2D( diffuse, texCoord );\n"
-			"   float r = tex2D( diffuse, texCoord ).r;\n"
-			"	return float4( r, r, r, 1.0f );\n"
+            "   return tex2D( diffuse, texCoord );\n"
             "};\n";
         
         debugPixelShader = new PixelShader( debugPixelShaderSource );
@@ -95,7 +93,7 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         D3DDECL_END()
     };
 
-    CheckDXError( g_device->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration ));
+    CheckDXErrorFatal( g_device->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration ));
 
     string vertexSourcePassTwo =
         "float4x4 g_projection;\n"

@@ -37,7 +37,6 @@ public:
     IDirect3DIndexBuffer9 * indexBuffer;
     Texture * diffuseTexture;
     Texture * normalMapTexture;
-    Texture * lightMapTexture;
     vector<Vertex> vertices;
     vector<Triangle> triangles;
     vector<Weight> weightTable;
