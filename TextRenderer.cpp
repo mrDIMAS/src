@@ -2,7 +2,6 @@
 
 TextRenderer * g_textRenderer = nullptr;
 
-
 void TextRenderer::RenderText( string text ) {
 	// write vertices
 	TextQuad * quad = nullptr;
@@ -11,13 +10,51 @@ void TextRenderer::RenderText( string text ) {
 	int caretX = renderRect.left;
 	int caretY = renderRect.top;
 
+	int lines, height, avWidth, avSymbolWidth ;
+	ComputeTextMetrics( text, lines, height, avWidth, avSymbolWidth );
+
 	if( alignment ) {
-		int lines, height, avWidth ;
-		ComputeTextMetrics( text, lines, height, avWidth );
 		caretY = renderRect.top + (( renderRect.bottom - renderRect.top ) - height ) / 2.0f;
 		caretX = renderRect.left + (( renderRect.right - renderRect.left ) - avWidth ) / 2.0f;
 	}
 
+	vector< string > words;
+	char buf[1024];
+	sprintf( buf, text.c_str() );
+	char * ptr = strtok( buf, "\n \t" );
+	while( ptr ) {
+		words.push_back( ptr );
+		ptr = strtok( 0, "\n \t" );
+	}
+	
+	for( auto & word : words ) {
+		if( caretX + word.size() * avSymbolWidth > renderRect.right ) {
+			caretX = renderRect.left;
+			caretY += font->glyphSize;
+		}
+		word.push_back( ' ' );
+		for( unsigned char symbol : word ) {
+			BitmapFont::CharMetrics & charMetr = font->charsMetrics[ symbol ];
+
+			int currentX = caretX + charMetr.bitmapLeft;
+			int currentY = caretY - charMetr.bitmapTop + font->glyphSize;
+
+			quad->v1 = TextVertex( Vector3( currentX,					currentY,					0.0f ), charMetr.texCoords[0] );
+			quad->v2 = TextVertex( Vector3( currentX + font->glyphSize, currentY,					0.0f ), charMetr.texCoords[1] );
+			quad->v3 = TextVertex( Vector3( currentX + font->glyphSize, currentY + font->glyphSize, 0.0f ), charMetr.texCoords[2] );
+			quad->v4 = TextVertex( Vector3( currentX,					currentY + font->glyphSize, 0.0f ), charMetr.texCoords[3] );
+
+			caretX += charMetr.advanceX;
+
+			if( caretX >= renderRect.right || symbol == '\n' ) {
+				caretX = renderRect.left;
+				caretY += font->glyphSize;
+			}
+
+			quad++;
+		}
+	}
+		/*
 	for( unsigned char symbol : text ) {
 		BitmapFont::CharMetrics & charMetr = font->charsMetrics[ symbol ];
 
@@ -37,7 +74,7 @@ void TextRenderer::RenderText( string text ) {
 		}
 
 		quad++;
-	}
+	}*/
 
 	CheckDXErrorFatal( vertexBuffer->Unlock());
 
@@ -82,7 +119,7 @@ void TextRenderer::RenderText( string text ) {
 }
 
 
-void TextRenderer::ComputeTextMetrics( const string & text, int & lines, int & height, int & avWidth ) {
+void TextRenderer::ComputeTextMetrics( const string & text, int & lines, int & height, int & avWidth, int & avSymbolWidth  ) {
 	lines = 1;
 
 	int caretX = renderRect.left;
@@ -105,6 +142,7 @@ void TextRenderer::ComputeTextMetrics( const string & text, int & lines, int & h
 		}
 	}
 
+	avSymbolWidth = (float)totalWidth / (float)text.size();
 	avWidth = (float)totalWidth / (float)lines;
 	height = (float)totalHeight / (float)text.size();
 }

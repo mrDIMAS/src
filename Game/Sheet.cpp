@@ -30,7 +30,7 @@ void Sheet::Draw( ) {
     int h = 600;
 
     DrawGUIRect( cx - w / 2, cy - h / 2, w, h, noteTex );
-    DrawGUIText( txt.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 20, h - 20, sheetFont, Vector3( 0, 0, 0 ), 0, 255 );
+    DrawGUIText( txt.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, sheetFont, Vector3( 0, 0, 0 ), 0, 255 );
 }
 
 Sheet * Sheet::GetSheetByObject( NodeHandle o ) {

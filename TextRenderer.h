@@ -47,7 +47,7 @@ public:
 	void SetFont( BitmapFont * cfont );
 	void SetAlignment( int al );
 	void SetRect( int x, int y, int w, int h );
-	void ComputeTextMetrics( const string & text, int & lines, int & height, int & avWidth );
+	void ComputeTextMetrics( const string & text, int & lines, int & height, int & avWidth, int & avSymbolWidth );
 
 	void SetColor( Vector3 color );
 	void PrepareToDraw2D();

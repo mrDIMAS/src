@@ -150,8 +150,9 @@ void main( ) {
 			counter = 0;
 		}
 		char buf[ 128 ];
-		sprintf( buf, "DIPs: %d\nTC: %d\nFPS: %d\nAvailable Vid Mem, Mb: %i\nHDR: %i\nјЅ¬√ƒ≈®∆«»… ЋћЌќѕ–—“”‘’÷„ЎўЏ№џЁёя", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)IsHDREnabled()  );
-		DrawGUIText( buf, 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
+		//sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)IsHDREnabled()  );
+		//DrawGUIText( buf, 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
+		DrawGUIText( "Ёто текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
 		RestartTimer( perfTimer );
 		RenderWorld( 1.0f / 60.0f ); // fixed FPS
 		perfTime=GetElapsedTimeInMilliSeconds( perfTimer );
