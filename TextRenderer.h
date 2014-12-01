@@ -42,6 +42,7 @@ public:
 	D3DXHANDLE vProj;
 	D3DXHANDLE pColor;
 
+	float alpha;
 	// array for word wrap
 	vector< string > words;
 
@@ -50,6 +51,7 @@ public:
 	void SetFont( BitmapFont * cfont );
 	void SetAlignment( int al );
 	void SetRect( int x, int y, int w, int h );
+	void SetAlpha( float a );
 	void ComputeTextMetrics( const string & text, int & lines, int & height, int & avWidth, int & avSymbolWidth );
 
 	void SetColor( Vector3 color );

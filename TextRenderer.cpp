@@ -92,10 +92,12 @@ void TextRenderer::RenderText( string text ) {
 	pixelShader->Bind();
 	vertexShader->Bind();
 	CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, vProj, &orthoMatrix ));
-	CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, pColor, textColor.elements, 3 ));
+	float clr[ 4 ] = { textColor.x, textColor.y, textColor.z, alpha };
+	CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, pColor, clr, 4 ));
 	CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
 	CheckDXErrorFatal( g_device->SetIndices( indexBuffer ));
 	CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, text.size() * 4, 0, text.size() * 2 ));
+	g_dips++;
 
 	CheckDXErrorFatal( state->Apply( ) );
 	state->Release();
@@ -192,10 +194,10 @@ TextRenderer::TextRenderer() {
 
 	string pixelShaderSource = 
 		"sampler diffuse : register( s0 );\n"
-		"float3 color;\n"
+		"float4 color;\n"
 		"float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
 		"	float4 texel = tex2D( diffuse, texCoord );\n"
-		"	return float4( color.x, color.y, color.z, texel.a );\n"			
+		"	return float4( color.r, color.g, color.b, color.a * texel.a );\n"			
 		"};\n";
 
 	pixelShader = new PixelShader( pixelShaderSource );
@@ -203,6 +205,7 @@ TextRenderer::TextRenderer() {
 	pColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "color" );
 
 	SetColor( Vector3( 1.0f, 1.0f, 1.0f ));
+	SetAlpha( 1.0f );
 	SetAlignment( 0 );
 }
 
@@ -214,6 +217,11 @@ void TextRenderer::SetColor( Vector3 color )
 void TextRenderer::SetAlignment( int al )
 {
 	alignment = al;
+}
+
+void TextRenderer::SetAlpha( float a )
+{
+	alpha = a;
 }
 
 TextRenderer::TextVertex::TextVertex( Vector3 cp, Vector2 tp ) {

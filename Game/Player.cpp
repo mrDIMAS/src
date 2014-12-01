@@ -1158,7 +1158,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     flashlight->DeserializeWith( in );
 
     tip.Deserialize( in );
-	headAngle.Deserialize( in );
+	//headAngle.Deserialize( in );
 
     camera->FadePercent( 100 );
     camera->SetFadeColor( Vector3( 255, 255, 255 ) );
@@ -1240,7 +1240,7 @@ void Player::SerializeWith( TextFileStream & out ) {
     flashlight->SerializeWith( out );
 
     tip.Serialize( out );
-	headAngle.Serialize( out );
+	//headAngle.Serialize( out );
 }
 
 void Player::SetupBody()

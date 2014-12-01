@@ -180,7 +180,7 @@ void Menu::Update( ) {
             int x = ( g_resW - w ) / 2;
             int y = ( g_resH - h ) / 2;
             DrawGUIRect( x, y, w, h, TextureHandle::Empty() );
-            DrawGUIText( loc.GetString( "authorsText" ), x, y, w, h, gui->font, Vector3( 255, 127, 127 ), 1 );
+            DrawGUIText( loc.GetString( "authorsText" ), x + 50, y + 50, w - 100, h - 100, gui->font, Vector3( 255, 127, 127 ), 0 );
         }
 
         if( page == Page::Options ) { // options window

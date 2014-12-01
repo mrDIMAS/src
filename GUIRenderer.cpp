@@ -160,6 +160,7 @@ void GUIRenderer::RenderTexts() {
 		g_textRenderer->SetRect( t.x, t.y, t.w, t.h );
 		g_textRenderer->SetFont( t.font );
 		g_textRenderer->SetColor( t.color );
+		g_textRenderer->SetAlpha( t.alpha );
 		g_textRenderer->SetAlignment( t.textAlign );
 		g_textRenderer->RenderText( t.text );
 
@@ -197,6 +198,8 @@ void GUIRenderer::RenderRects() {
         } else {
 			g_device->SetTexture( 0, nullptr );
 		}
+
+		g_dips++;
         CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
         CheckDXErrorFatal( g_device->SetTexture( 0, 0 ));
         rects.pop();
@@ -284,6 +287,7 @@ GUIRenderer::Text::Text( string theText, float theX, float theY, float theWidth,
     if( theTextAlign == 1 ) {
         textAlign = DT_CENTER | DT_VCENTER;
     }
+	alpha = (float)theAlpha / 255.0f;
     color = theColor / 255.0f;//D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
 }
 

@@ -16,6 +16,7 @@ ParticleEmitter::~ParticleEmitter() {
 }
 
 void ParticleEmitter::Render() {
+	g_dips++;
     CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, aliveParticles * 4, 0, aliveParticles * 2 ));
 }
 

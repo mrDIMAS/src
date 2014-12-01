@@ -52,6 +52,7 @@ void main( ) {
 	int counter = 0;
 	int fps = 0;
 
+	/*
 	// Particle system test
 	ParticleSystemProperties boxParticleEmitterProps;
 	boxParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
@@ -64,19 +65,19 @@ void main( ) {
 	boxParticleEmitterProps.boundingBoxMax = Vector3( 5, 5, 5 );
 	boxParticleEmitterProps.colorBegin = Vector3( 255, 0, 0 );
 	boxParticleEmitterProps.colorEnd = Vector3( 0, 255, 0 );
-
+	
 	NodeHandle boxParticleEmitter = CreateParticleSystem( 1024, boxParticleEmitterProps );
-
-	/*
+	*/
+	
 	ParticleSystemProperties streamParticleEmitterProps;
 	streamParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
 	streamParticleEmitterProps.type = PS_STREAM;
-	streamParticleEmitterProps.speedDeviationMin = Vector3( -0.1, 0.0, -0.1 );
-	streamParticleEmitterProps.speedDeviationMax = Vector3(  0.1, 0.4,  0.1 );
-	streamParticleEmitterProps.boundingRadius = 10;
+	streamParticleEmitterProps.speedDeviationMin = Vector3( -0.01, 0.0, -0.01 );
+	streamParticleEmitterProps.speedDeviationMax = Vector3(  0.01, 0.8,  0.01 );
+	streamParticleEmitterProps.boundingRadius = 50;
 
 	NodeHandle streamParticleEmitter = CreateParticleSystem( 256, streamParticleEmitterProps );
-	*/
+	
 	// Animation test
 	//NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
 	//Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );	

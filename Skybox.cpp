@@ -157,6 +157,7 @@ void Skybox::Render( const btVector3 & pos ) {
     CheckDXErrorFatal( g_device->SetStreamSource( 0, vbUp, 0, sizeof( Vertex )));
     CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
+	g_dips +=5 ;
     CheckDXErrorFatal( state->Apply());
     state->Release();
 }

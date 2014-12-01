@@ -54,7 +54,7 @@ void Enemy::Think() {
 	Vector3 toPlayer =  GetPosition( player->camera->cameraNode ) - (GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f);
 	bool playerInView = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
 	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
-	//DrawGUIText( Format( "%f", angleToPlayer ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
+	DrawGUIText( Format( "PW: %d", playerInView ? 1 : 0 ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
 	
 	bool enemyDetectPlayer = false;
 	if( player->flashlight->on ) {

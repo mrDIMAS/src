@@ -35,6 +35,7 @@ public:
         float h;
 
         //int color;
+		float alpha;
 		Vector3 color;
         int textAlign;
     public:
