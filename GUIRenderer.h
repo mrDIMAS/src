@@ -3,73 +3,47 @@
 #include "Shader.h"
 #include "BitmapFont.h"
 
-class GUIRenderer {
+class GUIText {
 public:
-    class Rect {
-    private:
-        float x;
-        float y;
-        float w;
-        float h;
+	BitmapFont * font;
+	string text;
+	RECT rect;
+	int color;
+	int textAlign;
+	GUIText( string theText, float theX, float theY, float theWidth, float theHeight, Vector3 theColor, int theAlpha, int theTextAlign, FontHandle theFont );
+};
 
-        Texture * texture;
+class GUIRect {
+public:
+	float x;
+	float y;
+	float w;
+	float h;
+	Texture * texture;
+	int color;
+	GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, Vector3 theColor, int theAlpha );
+};
 
-        int color;
+class GUILine {
+public:
+	LinePoint begin;
+	LinePoint end;
+	GUILine( const LinePoint & theBegin, const LinePoint & theEnd );
+};
 
-    public:
-        friend class GUIRenderer;
-
-        Rect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, Vector3 theColor, int theAlpha );
-    };
-
-    class Text {
-    private:
-        //ID3DXFont * font;
-		BitmapFont * font;
-
-        string text;
-
-        float x;
-        float y;
-        float w;
-        float h;
-
-        //int color;
-		float alpha;
-		Vector3 color;
-        int textAlign;
-    public:
-        friend class GUIRenderer;
-
-        Text( string theText, float theX, float theY, float theWidth, float theHeight, Vector3 theColor, int theAlpha, int theTextAlign, FontHandle theFont );
-    };
-
-    class Line {
-    private:
-        LinePoint begin;
-        LinePoint end;
-
-    public:
-        friend class GUIRenderer;
-
-        Line( const LinePoint & theBegin, const LinePoint & theEnd );
-    };
-
+class GUIRenderer {
 private:
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DVertexBuffer9 * lineVertexBuffer;
     IDirect3DVertexDeclaration9 * lineDecl;
     IDirect3DVertexDeclaration9 * vertDecl;
     vector<ID3DXFont*> fonts;
-    queue<Text> texts;
-    queue<Rect> rects;
-    queue<Line> lines;
-
-    int maxLineCount;
+    map<BitmapFont*,vector<GUIText>> texts;
+    queue<GUIRect> rects;
+    queue<GUILine> lines;
+	int maxLineCount;
     int sizeOfRectBytes;
-
     D3DXMATRIX orthoMatrix;
-
     void RenderLines();
     void RenderRects();
     void RenderTexts();
@@ -79,9 +53,9 @@ public:
     GUIRenderer();
     ~GUIRenderer();
     FontHandle CreateFont( int size, const char * name, int italic, int underlined );
-    void RenderRect( const Rect & r );
-    void RenderText( const Text & text );
-    void Render3DLine( const Line & line );
+    void RenderRect( const GUIRect & r );
+    void RenderText( const GUIText & text );
+    void Render3DLine( const GUILine & line );
     void DrawWireBox( LinePoint min, LinePoint max );
     void RenderAllGUIElements();
 };

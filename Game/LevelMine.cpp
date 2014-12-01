@@ -392,14 +392,14 @@ void LevelMine::CreateItems() {
     AddItem( fuel[1] = new Item( FindInObjectByName( scene, "Fuel2" ), Item::FuelCanister ));
 }
 
-void LevelMine::OnDeserialize( TextFileStream & in )
-{
+void LevelMine::OnDeserialize( TextFileStream & in ) {
     in.ReadBoolean( detonatorActivated );
     in.ReadFloat( beepSoundTiming );
+	enemy->Deserialize( in );
 }
 
-void LevelMine::OnSerialize( TextFileStream & out )
-{
+void LevelMine::OnSerialize( TextFileStream & out ) {
     out.WriteBoolean( detonatorActivated );
     out.WriteFloat( beepSoundTiming );
+	enemy->Serialize( out );
 }

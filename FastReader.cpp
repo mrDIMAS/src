@@ -87,13 +87,12 @@ int FastReader::GetInteger() {
 
 FastReader::~FastReader() {
     delete data;
-
     data = 0;
 }
 
 bool FastReader::ReadFile( const char * fileName ) {
     FILE * f;
-    fopen_s ( &f, fileName, "rb" );
+    f = fopen( fileName, "rb" );
 
     if ( !f ) {
         return false;

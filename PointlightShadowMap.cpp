@@ -104,6 +104,8 @@ PointlightShadowMap::~PointlightShadowMap() {
     }
     shadowCube->Release();
     depthStencil->Release();
+	delete pixelShader;
+	delete vertexShader;
 }
 
 PointlightShadowMap::PointlightShadowMap( int faceSize ) {

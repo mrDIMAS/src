@@ -2,6 +2,7 @@
 #include "Level.h"
 #include "Player.h"
 #include "Way.h"
+#include "Enemy.h"
 
 void SaveWriter::SaveWorldState() {
 	WriteInteger( currentLevel->typeNum );

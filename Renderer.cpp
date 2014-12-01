@@ -36,33 +36,33 @@ bool g_useSpotLightShadows = true;
 bool g_engineRunning = true;
 bool g_hdrEnabled = false;
 
-IDirect3DSurface9 * g_backbufferSurface = 0;
-
 Vector3 g_ambientColor = Vector3( 0.05, 0.05, 0.05 );
 
 vector< Light*> affectedLights;
 
 Renderer::~Renderer() {
+	for( auto fnt : BitmapFont::fonts ) {
+		delete fnt;
+	}
+	for( auto tmr : Timer::timers ) {
+		delete tmr;
+	}
+	for( auto & kv : CubeTexture::all ) {
+		delete kv.second;
+	}
+	FT_Done_FreeType( g_ftLibrary );
+	delete g_textRenderer;
     delete g_particleSystemRenderer;
-    if( g_deferredRenderer ) {
-        delete g_deferredRenderer;
-    }
-    if( g_guiRenderer ) {
-        delete g_guiRenderer;
-    }
+    delete g_deferredRenderer;
+    delete g_guiRenderer;
     while( g_nodes.size() ) {
         delete g_nodes.front();
     }
     if( g_forwardRenderer ) {
         delete g_forwardRenderer;
     }
-    for( auto texPair : CubeTexture::all ) {
-        texPair.second->cubeTexture->Release();
-    }
     Texture::DeleteAll();
-    if( g_meshVertexDeclaration ) {
-        g_meshVertexDeclaration->Release();
-    }
+	g_meshVertexDeclaration->Release();
     int counter = 0;
     if( g_device ) {
         while( g_device->Release() ) {

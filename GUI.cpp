@@ -29,7 +29,7 @@ void ShowCursor( ) {
 }
 
 void DrawGUIRect( float x, float y, float w, float h, TextureHandle texture, Vector3 color, int alpha ) {
-    g_guiRenderer->RenderRect( GUIRenderer::Rect( x, y, w, h, reinterpret_cast< Texture*>( texture.pointer ), color, alpha ));
+    g_guiRenderer->RenderRect( GUIRect( x, y, w, h, reinterpret_cast< Texture*>( texture.pointer ), color, alpha ));
 }
 
 FontHandle CreateGUIFont( int size, const char * name, int italic, int underlined ) {
@@ -37,11 +37,11 @@ FontHandle CreateGUIFont( int size, const char * name, int italic, int underline
 }
 
 void DrawGUIText( const char * text, int x, int y, int w, int h, FontHandle font, Vector3 color, int textAlign, int alpha /*= 255 */ ) {
-    g_guiRenderer->RenderText( GUIRenderer::Text( text, x, y, w, h, color, alpha, textAlign, font ));
+    g_guiRenderer->RenderText( GUIText( text, x, y, w, h, color, alpha, textAlign, font ));
 }
 
 void Draw3DLine( LinePoint begin, LinePoint end ) {
-    g_guiRenderer->Render3DLine( GUIRenderer::Line( begin, end ));
+    g_guiRenderer->Render3DLine( GUILine( begin, end ));
 }
 
 void DrawWireBox( LinePoint min, LinePoint max ) {

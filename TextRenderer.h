@@ -4,26 +4,24 @@
 #include "BitmapFont.h"
 #include "Shader.h"
 
+class GUIText;
+
 class TextRenderer {
 public:
 	int maxChars;
-	BitmapFont * font;
-	RECT renderRect;
 
 	D3DXMATRIX orthoMatrix;
 
-	Vector3 textColor;
 	IDirect3DVertexBuffer9 * vertexBuffer;
 	IDirect3DIndexBuffer9 * indexBuffer;
 	IDirect3DVertexDeclaration9 * vertexDeclaration;
-
-	int alignment;
 
 	class TextVertex {
 	public:
 		Vector3 p;
 		Vector2 t;
-		TextVertex( Vector3 cp, Vector2 tp );
+		DWORD color;
+		TextVertex( Vector3 cp, Vector2 tp, DWORD clr );
 	};
 
 	class TextQuad {
@@ -40,22 +38,13 @@ public:
 	PixelShader * pixelShader;
 
 	D3DXHANDLE vProj;
-	D3DXHANDLE pColor;
 
-	float alpha;
 	// array for word wrap
 	vector< string > words;
 
-	TextRenderer( );
-
-	void SetFont( BitmapFont * cfont );
-	void SetAlignment( int al );
-	void SetRect( int x, int y, int w, int h );
-	void SetAlpha( float a );
-	void ComputeTextMetrics( const string & text, int & lines, int & height, int & avWidth, int & avSymbolWidth );
-
-	void SetColor( Vector3 color );
+	explicit TextRenderer( );
+	virtual ~TextRenderer( );
+	void ComputeTextMetrics( GUIText & guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );
 	void PrepareToDraw2D();
-
-	void RenderText( string text );
+	void RenderTextGroup( vector<GUIText> & textGroup, BitmapFont * font );
 };

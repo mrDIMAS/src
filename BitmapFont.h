@@ -31,8 +31,14 @@ public:
 		unsigned char a;
 	} ARGB8Pixel;
 
+	static vector< BitmapFont* > fonts;
 	vector< CharMetrics > charsMetrics;
     explicit BitmapFont( const char * file, int size );
+	virtual ~BitmapFont( ) {
+		if( atlas ) {
+			atlas->Release();		
+		}
+	}
 	void RenderAtlas( EffectsQuad * quad );
 	void RenderText( string text, int x, int y );
 }; 

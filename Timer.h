@@ -15,4 +15,6 @@ public:
     double GetElapsedTimeInSeconds( );
     double GetElapsedTimeInMilliSeconds( );
     double GetElapsedTimeInMicroSeconds( );
+
+	static vector<Timer*> timers;
 };

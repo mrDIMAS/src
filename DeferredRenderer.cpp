@@ -39,43 +39,19 @@ DeferredRenderer::DeferredRenderer() {
 }
 
 DeferredRenderer::~DeferredRenderer() {
-    if( gBuffer ) {
-        delete gBuffer;
-    }
-    if( icosphere ) {
-        icosphere->Release();
-    }
-    if( cone ) {
-        cone->Release();
-    }
-    if( effectsQuad ) {
-        delete effectsQuad;
-    }
-    if( pass2SpotLight ) {
-        delete pass2SpotLight;
-    }
-    if( pass2AmbientLight ) {
-        delete pass2AmbientLight;
-    }
-    if( pass2PointLight ) {
-        delete pass2PointLight;
-    }
-    if( bvRenderer ) {
-        delete bvRenderer;
-    }
-    if( spotShadowMap ) {
-        delete spotShadowMap;
-    }
-    if( fxaa ) {
-        delete fxaa;
-    }
-    if( pointShadowMap ) {
-        delete pointShadowMap;
-    }
-	if( hdrRenderer ) {
-		delete hdrRenderer;
-	}
-
+	icosphere->Release();
+	cone->Release();
+    delete gBuffer;
+    delete effectsQuad;
+	delete pass2SpotLight;
+    delete pass2AmbientLight;
+    delete pass2PointLight;
+    delete bvRenderer;
+    delete spotShadowMap;
+    delete fxaa;
+    delete pointShadowMap;
+	delete hdrRenderer;
+	delete debugQuad;
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {

@@ -2,6 +2,7 @@
 #include "Utility.h"
 
 FT_Library g_ftLibrary;
+vector< BitmapFont* > BitmapFont::fonts;
 
 void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
 	CheckDXErrorFatal( g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
@@ -99,6 +100,8 @@ BitmapFont::BitmapFont( const char * file, int size ) {
 			subRectRow++;
 		}
 	}
-
+	FT_Done_Face( face );
+	atlasSurface->Release();
+	BitmapFont::fonts.push_back( this );
 	CheckDXErrorFatal( atlasSurface->UnlockRect());
 }

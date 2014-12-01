@@ -84,4 +84,7 @@ public:
 	void CreateSounds();
 	void CreateAnimations();
 	void Think();
+
+	void Serialize( TextFileStream & out );
+	void Deserialize( TextFileStream & in );
 }; 

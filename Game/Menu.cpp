@@ -579,4 +579,5 @@ Menu::~Menu() {
 	delete hdrButton;
     delete spotShadowsButton;
 	delete wkStealth;
+	delete fpsButton;
 }

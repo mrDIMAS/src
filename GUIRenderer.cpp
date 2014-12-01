@@ -49,47 +49,43 @@ GUIRenderer::~GUIRenderer() {
 }
 
 FontHandle GUIRenderer::CreateFont( int size, const char * name, int italic, int underlined ) {
-	/*
-    ID3DXFont * font;
-
-    D3DXCreateFontA( g_device, size, 0 , FW_BOLD, 0, italic, RUSSIAN_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, name, &font );
-
-    fonts.push_back( font );
-	*/
 	BitmapFont * font = new BitmapFont( name, size );
     FontHandle handle;
     handle.pointer = font;
-
     return handle;
 }
 
-void GUIRenderer::RenderRect( const Rect & r ) {
+void GUIRenderer::RenderRect( const GUIRect & r ) {
     rects.push( r );
 }
 
-void GUIRenderer::RenderText( const Text & text ) {
-    texts.push( text );
+void GUIRenderer::RenderText( const GUIText & text ) {
+    auto iter = texts.find( text.font );
+	if( iter == texts.end() ) {
+		texts[ text.font ] = vector<GUIText>();
+	}
+	texts[ text.font ].push_back( text );
 }
 
-void GUIRenderer::Render3DLine( const Line & line ) {
+void GUIRenderer::Render3DLine( const GUILine & line ) {
     lines.push( line );
 }
 
 void GUIRenderer::DrawWireBox( LinePoint min, LinePoint max ) {
     Vector3 lmin = min.position;
     Vector3 lmax = max.position;
-    Render3DLine( Line( LinePoint( Vector3(lmin.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmin.y, lmin.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmax.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmax.y, lmin.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmax.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmax.y, lmin.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmin.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmin.y, lmin.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmin.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmin.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmax.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmin.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmax.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmin.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmin.x, lmin.y, lmax.z), min.color ), LinePoint( Vector3(lmax.x, lmin.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmax.x, lmin.y, lmax.z), min.color ), LinePoint( Vector3(lmax.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmax.x, lmax.y, lmax.z), min.color ), LinePoint( Vector3(lmin.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( Line( LinePoint( Vector3(lmin.x, lmax.y, lmax.z), min.color ), LinePoint( Vector3(lmin.x, lmin.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmin.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmin.y, lmin.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmax.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmax.y, lmin.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmax.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmax.y, lmin.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmin.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmin.y, lmin.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmin.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmin.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmax.x, lmin.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmin.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmax.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmax.x, lmax.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmin.x, lmax.y, lmin.z), min.color ), LinePoint( Vector3(lmin.x, lmax.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmin.x, lmin.y, lmax.z), min.color ), LinePoint( Vector3(lmax.x, lmin.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmax.x, lmin.y, lmax.z), min.color ), LinePoint( Vector3(lmax.x, lmax.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmax.x, lmax.y, lmax.z), min.color ), LinePoint( Vector3(lmin.x, lmax.y, lmax.z), max.color )));
+    Render3DLine( GUILine( LinePoint( Vector3(lmin.x, lmax.y, lmax.z), min.color ), LinePoint( Vector3(lmin.x, lmin.y, lmax.z), max.color )));
 }
 
 void GUIRenderer::RenderAllGUIElements() {
@@ -125,7 +121,7 @@ void GUIRenderer::RenderLines() {
 
     int linesToRender = 0;
     while( !lines.empty() ) {
-        Line line = lines.front();
+        GUILine line = lines.front();
 
         const int pointCount = 2;
 
@@ -154,18 +150,14 @@ void GUIRenderer::RenderLines() {
 }
 
 void GUIRenderer::RenderTexts() {
-    while( !texts.empty() ) {
-        Text & t = texts.front();
+	for( auto & kv : texts ) {
+		g_textRenderer->RenderTextGroup( kv.second, kv.first );
+	}
 
-		g_textRenderer->SetRect( t.x, t.y, t.w, t.h );
-		g_textRenderer->SetFont( t.font );
-		g_textRenderer->SetColor( t.color );
-		g_textRenderer->SetAlpha( t.alpha );
-		g_textRenderer->SetAlignment( t.textAlign );
-		g_textRenderer->RenderText( t.text );
-
-        texts.pop();
-    };
+	// clear text groups
+	for( auto & kv : texts ) {
+		kv.second.clear();
+	}	
 }
 
 void GUIRenderer::RenderRects() {
@@ -180,7 +172,7 @@ void GUIRenderer::RenderRects() {
     Vertex2D vertices[6];
 
     while( !rects.empty() ) {
-        Rect rect = rects.front();
+        GUIRect rect = rects.front();
 
         vertices[ 0 ] = Vertex2D( rect.x,           rect.y,           0, 0, 0, rect.color );
         vertices[ 1 ] = Vertex2D( rect.x + rect.w,  rect.y,           0, 1, 0, rect.color );
@@ -268,30 +260,23 @@ void GUIRenderer::RenderCursor() {
     state->Release();
 }
 
-GUIRenderer::Line::Line( const LinePoint & theBegin, const LinePoint & theEnd ) {
+GUILine::GUILine( const LinePoint & theBegin, const LinePoint & theEnd ) {
     end = theEnd;
     begin = theBegin;
 }
 
-GUIRenderer::Text::Text( string theText, float theX, float theY, float theWidth, float theHeight, Vector3 theColor, int theAlpha, int theTextAlign, FontHandle theFont ) {
-    x = theX;
-    y = theY;
-    w = theWidth;
-    h = theHeight;
+GUIText::GUIText( string theText, float theX, float theY, float theWidth, float theHeight, Vector3 theColor, int theAlpha, int theTextAlign, FontHandle theFont ) {
+	rect.left = theX;
+	rect.top = theY;
+	rect.right = theX + theWidth;
+	rect.bottom = theY + theHeight;
     text = theText;
-    font = (BitmapFont *)theFont.pointer;//(ID3DXFont*)( theFont.pointer );
-
-    if( theTextAlign == 0 ) {
-        textAlign = DT_LEFT;
-    }
-    if( theTextAlign == 1 ) {
-        textAlign = DT_CENTER | DT_VCENTER;
-    }
-	alpha = (float)theAlpha / 255.0f;
-    color = theColor / 255.0f;//D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
+    font = (BitmapFont *)theFont.pointer;
+    textAlign = theTextAlign;
+    color = D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
 }
 
-GUIRenderer::Rect::Rect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, Vector3 theColor, int theAlpha ) {
+GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, Vector3 theColor, int theAlpha ) {
     x = theX;
     y = theY;
     w = theWidth;

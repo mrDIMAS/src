@@ -99,7 +99,7 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
-	SetAmbientColor( Vector3( 40, 40, 40 ));
+	SetAmbientColor( Vector3( 5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f ));
 
     static int stateEnterSteamActivateZone = 0;
     static int stateEnterScaryBarellThrowZone = 0;
@@ -226,7 +226,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
             ItemPlace * fuse = fusePlace[i];
 
             if( fuse->IsPickedByPlayer() ) {
-                DrawGUIText( "[E] - вставить предохранитель", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+                DrawGUIText( Format( "[%s] - вставить предохранитель", GetKeyName( player->keyUse )).c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
             }
         }
 

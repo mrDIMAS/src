@@ -54,7 +54,7 @@ void Enemy::Think() {
 	Vector3 toPlayer =  GetPosition( player->camera->cameraNode ) - (GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f);
 	bool playerInView = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
 	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
-	DrawGUIText( Format( "PW: %d", playerInView ? 1 : 0 ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
+
 	
 	bool enemyDetectPlayer = false;
 	if( player->flashlight->on ) {
@@ -78,12 +78,14 @@ void Enemy::Think() {
 	}
 
 	// enemy doesn't see player, but can hear he, if he moved
-	if( player->stealthFactor >= 0.3f && player->moved && ( distanceToPlayer < 5.0f )) {
+	if( playerInView && ( player->stealthFactor >= 0.3f && player->moved && ( distanceToPlayer < 5.0f ))) {
 		if( !playerDetected ) {
 			RestartTimer( detectedTimer );
 			playerDetected = true; 
 		}
 	}
+
+	DrawGUIText( Format( "PD: %d", playerDetected ? 1 : 0 ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
 
 	if( playerDetected ) {
 		enemyDetectPlayer = true;
@@ -91,13 +93,13 @@ void Enemy::Think() {
 			playerDetected = false;
 		}
 	}
+
 	if( enemyDetectPlayer ) {
 		moveType = MoveTypeChasePlayer;		
 		doPatrol = false;
 		PauseSoundSource( breathSound );
 		PlaySoundSource( screamSound, true );
 		runSpeed = 3.0f;
-
 	} else {
 		moveType = MoveTypeGoToDestination;
 		doPatrol = true;
@@ -289,8 +291,7 @@ void Enemy::DrawAnimationDebugInfo( NodeHandle node, int & y )
 	}
 }
 
-void Enemy::CreateAnimations()
-{
+void Enemy::CreateAnimations() {
 	// Animations
 	animIdle = Animation( 0, 15, 0.08, true );
 	animRun = Animation( 16, 34, 0.08, true );
@@ -298,8 +299,7 @@ void Enemy::CreateAnimations()
 	animWalk = Animation( 47, 58, 0.045, true );
 }
 
-void Enemy::CreateSounds()
-{
+void Enemy::CreateSounds() {
 	hitFleshWithAxeSound = CreateSound3D( "data/sounds/armor_axe_flesh.ogg" );
 	AttachSound( hitFleshWithAxeSound, FindInObjectByName( model, "AttackHand" ));
 
@@ -327,8 +327,7 @@ void Enemy::CreateSounds()
 	}
 }
 
-int Enemy::GetVertexIndexNearestTo( Vector3 position )
-{
+int Enemy::GetVertexIndexNearestTo( Vector3 position ) {
 	if( currentPath.size() == 0 ) {
 		return 0;
 	};
@@ -342,8 +341,7 @@ int Enemy::GetVertexIndexNearestTo( Vector3 position )
 	return nearestIndex;
 }
 
-void Enemy::FindBodyparts()
-{
+void Enemy::FindBodyparts() {
 	rightLeg = FindInObjectByName( model, "RightLeg" );
 	leftLeg = FindInObjectByName( model, "LeftLeg" );
 	rightLegDown = FindInObjectByName( model, "RightLegDown" );
@@ -351,4 +349,12 @@ void Enemy::FindBodyparts()
 	torsoBone = FindInObjectByName( model, "Torso" );
 	attackHand = FindInObjectByName( model, "AttackHand" );
 	head = FindInObjectByName( model, "HeadBone" );
+}
+
+void Enemy::Serialize( TextFileStream & out ) {
+	out.WriteVector3( GetPosition( body ));
+}
+
+void Enemy::Deserialize( TextFileStream & in ) {
+	SetPosition( body, in.ReadVector3( ));
 }

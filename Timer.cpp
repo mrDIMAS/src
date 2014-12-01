@@ -1,5 +1,7 @@
 #include "Timer.h"
 
+vector<Timer*> Timer::timers;
+
 double Timer::GetElapsedTimeInMicroSeconds() {
     return GetTimeInMicroSeconds() - lastTime;
 }
@@ -35,6 +37,7 @@ void Timer::RestartTimer() {
 }
 
 Timer::Timer() {
+	timers.push_back( this );
     QueryPerformanceFrequency ( &freq );
     RestartTimer();
 }

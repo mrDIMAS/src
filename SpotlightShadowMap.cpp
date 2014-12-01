@@ -63,6 +63,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 }
 
 SpotlightShadowMap::~SpotlightShadowMap() {
+	spotSurface->Release();
     spotShadowMap->Release();
     depthStencil->Release();
     delete pixelShader;

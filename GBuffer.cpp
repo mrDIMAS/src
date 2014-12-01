@@ -20,25 +20,16 @@ GBuffer::GBuffer() {
 }
 
 GBuffer::~GBuffer() {
-    if( depthMap ) {
-        depthMap->Release();
-    }
-    if( normalMap ) {
-        normalMap->Release();
-    }
-    if( diffuseMap ) {
-        diffuseMap->Release();
-    }
-
-    if( depthSurface ) {
-        depthSurface->Release();
-    }
-    if( normalSurface ) {
-        normalSurface->Release();
-    }
-    if( diffuseSurface ) {
-        diffuseSurface->Release();
-    }
+	g_device->SetRenderTarget( 0, backSurface );
+	g_device->SetRenderTarget( 1, 0 );
+	g_device->SetRenderTarget( 2, 0 );
+	depthSurface->Release();
+	normalSurface->Release();
+	diffuseSurface->Release();
+	backSurface->Release();
+	while( depthMap->Release() );	
+	while( normalMap->Release());
+	while( diffuseMap->Release());
 }
 
 void GBuffer::BindRenderTargets() {

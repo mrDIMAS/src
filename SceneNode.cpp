@@ -253,6 +253,8 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
     FastReader reader;
 
     if ( !reader.ReadFile( file ) ) {
+		MessageBoxA( 0, Format( "Unable to load '%s' scene!", file ).c_str(), 0, MB_OK | MB_ICONERROR );
+		exit( -1 );
         return 0;
     }
 

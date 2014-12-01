@@ -25,15 +25,21 @@ void HDRRenderer::SetAsRenderTarget() {
 }
 
 HDRRenderer::~HDRRenderer() {
+	scaledSceneSurf->Release();
+	scaledScene->Release();
 	hdrSurface->Release();
 	hdrTexture->Release();
 	delete screenQuad;
 	delete toneMapShader;
+	delete scaleScenePixelShader;
+	delete adaptationPixelShader;
+	delete downScalePixelShader;
 	for( int i = 0; i < DOWNSAMPLE_COUNT; i++ )
 		downSampSurf[ i ]->Release();
 	for( int i = 0; i < DOWNSAMPLE_COUNT; i++ )
 		downSampTex[ i ]->Release();
-	delete downScalePixelShader;
+	adaptedLuminanceLast->Release();
+	adaptedLuminanceCurrent->Release();
 }
 
 HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
