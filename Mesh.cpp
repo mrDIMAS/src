@@ -115,7 +115,7 @@ void Mesh::Render() {
     if( octree ) {
 #ifdef _OCTREE_DEBUG
         octree->VisualizeHierarchy();
-        DrawGUIText( Format( "Nodes: %d, Triangles: %d", octree->visibleNodes, octree->visibleTriangles ).c_str(), 40, 40, 100, 50, g_font, Vector3( 255, 0, 0 ), 1 );
+        ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", octree->visibleNodes, octree->visibleTriangles ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( octree->visibleTris.size() ) {
             CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, octree->visibleTris.size() ));

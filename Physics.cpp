@@ -25,11 +25,11 @@ void Physics::DestructWorld() {
     }
 }
 
-void PausePhysics() {
+void ruPausePhysics() {
     g_physicsEnabled = false;
 }
 
-void ResumePhysics() {
+void ruResumePhysics() {
     g_physicsEnabled = true;
 }
 

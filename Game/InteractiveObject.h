@@ -5,14 +5,14 @@
 
 class InteractiveObject {
 public:
-    NodeHandle object;
+    ruNodeHandle object;
     float flashAlbedo;
     float flashAlbedoTo;
     float flashSpeed;
     bool flashDirection;
     static vector< InteractiveObject* > objects;
 
-    InteractiveObject( NodeHandle object );
+    InteractiveObject( ruNodeHandle object );
     ~InteractiveObject();
     void UpdateFlashing();
 

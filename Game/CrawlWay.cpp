@@ -4,19 +4,19 @@
 
 void CrawlWay::DoPlayerCrawling() {
     if( !entering ) {
-        Vector3 direction = GetPosition( target ) - GetPosition( player->body );
+        ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
 
         float distance = direction.Length();
 
         direction.Normalize();
 
         if( !leave ) {
-            Move( player->body, direction * 0.75f );
+            ruMoveNode( player->body, direction * 0.75f );
 
             if( distance < 0.25f ) {
                 leave = true;
 
-                if( (GetPosition( player->body ) - GetPosition( end )).Length2() < (GetPosition( player->body ) - GetPosition( begin )).Length2()) {
+                if( (ruGetNodePosition( player->body ) - ruGetNodePosition( end )).Length2() < (ruGetNodePosition( player->body ) - ruGetNodePosition( begin )).Length2()) {
                     target = endLeavePoint;
                 } else {
                     target = beginLeavePoint;
@@ -29,7 +29,7 @@ void CrawlWay::DoPlayerCrawling() {
 }
 
 void CrawlWay::LookAtTarget() {
-    Vector3 direction = GetPosition( target ) - GetPosition( player->camera->cameraNode );
+    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->camera->cameraNode );
 
     player->yaw = atan2f( direction.x, direction.z ) * 180.0f / 3.14159f;
     player->yaw = ( player->yaw > 0 ? player->yaw : ( 360 + player->yaw ) );
@@ -42,7 +42,7 @@ void CrawlWay::SetDirection( Direction direction ) {
 
 }
 
-CrawlWay::CrawlWay( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint )
+CrawlWay::CrawlWay( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
     : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
 
 }
@@ -52,21 +52,21 @@ CrawlWay::~CrawlWay() {
 }
 
 void CrawlWay::DoLeave() {
-    Vector3 direction = GetPosition( target ) - GetPosition( player->body );
+    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
 
     float distance = direction.Length();
 
     direction.Normalize();
 
-    Move( player->body, direction * 0.75f );
+    ruMoveNode( player->body, direction * 0.75f );
 
     if( distance < 0.25f ) {
         leave = false;
 
         inside = false;
 
-        Unfreeze( player->body );
+        ruUnfreeze( player->body );
 
-        Move( player->body, Vector3( 0, 0, 0 ));
+        ruMoveNode( player->body, ruVector3( 0, 0, 0 ));
     }
 }

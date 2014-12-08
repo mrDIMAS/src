@@ -7,7 +7,7 @@ private:
     void DoLeave();
     FootstepsType footsteps;
 public:
-    Ladder( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint );
+    Ladder( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint );
 
     virtual void LookAtTarget() final;
     virtual void DoPlayerCrawling() final;

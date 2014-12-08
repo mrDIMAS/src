@@ -21,7 +21,7 @@ public:
 		int bitmapTop;
 		int bitmapLeft;
 
-		Vector2 texCoords[4]; // texture coords in atlas
+		ruVector2 texCoords[4]; // texture coords in atlas
 	} CharMetrics;
 
 	typedef struct ARGB8Pixel_s {

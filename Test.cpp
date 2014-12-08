@@ -8,36 +8,36 @@
 using namespace std;
 
 void main( ) {
-	Vector3 v1( 10, 20, 30 );
-	Vector3 v2( 30, 20, 10 );
+	ruVector3 v1( 10, 20, 30 );
+	ruVector3 v2( 30, 20, 10 );
 
-	Vector3 v3 = v1 - v2;
+	ruVector3 v3 = v1 - v2;
 
 	v3 = v1 + v2;
-	v3 *= Vector3( 10, 10, 10 );
+	v3 *= ruVector3( 10, 10, 10 );
 
 	v3 = 10 * v1 ;
 
-	CreateRenderer( 0, 0, 0 );
+	ruCreateRenderer( 0, 0, 0, 0 );
 
-	SetPointDefaultTexture( GetCubeTexture( "data/textures/generic/pointCube.dds" ));
-	SetSpotDefaultTexture( GetTexture( "data/textures/generic/spotlight.jpg" ));
+	ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
+	ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
 
-	NodeHandle cameraPivot = CreateSceneNode();
-	SetCapsuleBody( cameraPivot, 6, 2 );
-	SetAngularFactor( cameraPivot, Vector3( 0, 0, 0 ));
-	SetPosition( cameraPivot, Vector3( 0, 5, 0 ));
+	ruNodeHandle cameraPivot = ruCreateSceneNode();
+	ruSetCapsuleBody( cameraPivot, 6, 2 );
+	ruSetAngularFactor( cameraPivot, ruVector3( 0, 0, 0 ));
+	ruSetNodePosition( cameraPivot, ruVector3( 0, 5, 0 ));
 
-	NodeHandle testCamera = CreateCamera( 90 );
-	SetPosition( testCamera, Vector3( 10, 50, -100 ));
+	ruNodeHandle testCamera = ruCreateCamera( 90 );
+	ruSetNodePosition( testCamera, ruVector3( 10, 50, -100 ));
 
-	NodeHandle camera = CreateCamera( 60 );
-	Attach( camera, cameraPivot );
-	SetSkybox( camera, "data/textures/skyboxes/test/red_sky");
-	SetPosition( camera, Vector3( 0, 6, 0 ));
+	ruNodeHandle camera = ruCreateCamera( 60 );
+	ruAttachNode( camera, cameraPivot );
+	ruSetCameraSkybox( camera, "data/textures/skyboxes/test/red_sky");
+	ruSetNodePosition( camera, ruVector3( 0, 6, 0 ));
 
 	//int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
-	NodeHandle node = LoadScene( "data/newFormat.scene" );
+	ruNodeHandle node = ruLoadScene( "data/newFormat.scene" );
 
 	//int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
@@ -47,11 +47,14 @@ void main( ) {
 	float pitch = 0, yaw = 0;
 	int cameraNum = 0;
 
-	FontHandle font = CreateGUIFont( 12, "data/fonts/font1.otf", 1, 0 );
+	ruFontHandle font = ruCreateGUIFont( 12, "data/fonts/font1.otf", 1, 0 );
+	ruFontHandle font2 = ruCreateGUIFont( 16, "data/fonts/font1.otf", 1, 0 );
+	ruFontHandle font3 = ruCreateGUIFont( 20, "data/fonts/font1.otf", 1, 0 );
 
 	int counter = 0;
 	int fps = 0;
 
+	ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
 	/*
 	// Particle system test
 	ParticleSystemProperties boxParticleEmitterProps;
@@ -69,74 +72,80 @@ void main( ) {
 	NodeHandle boxParticleEmitter = CreateParticleSystem( 1024, boxParticleEmitterProps );
 	*/
 	
-	ParticleSystemProperties streamParticleEmitterProps;
-	streamParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
+	ruParticleSystemProperties streamParticleEmitterProps;
+	streamParticleEmitterProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
 	streamParticleEmitterProps.type = PS_STREAM;
-	streamParticleEmitterProps.speedDeviationMin = Vector3( -0.01, 0.0, -0.01 );
-	streamParticleEmitterProps.speedDeviationMax = Vector3(  0.01, 0.8,  0.01 );
+	streamParticleEmitterProps.speedDeviationMin = ruVector3( -0.01, 0.0, -0.01 );
+	streamParticleEmitterProps.speedDeviationMax = ruVector3(  0.01, 0.8,  0.01 );
 	streamParticleEmitterProps.boundingRadius = 50;
 
-	NodeHandle streamParticleEmitter = CreateParticleSystem( 256, streamParticleEmitterProps );
+	ruNodeHandle streamParticleEmitter = ruCreateParticleSystem( 256, streamParticleEmitterProps );
 	
 	// Animation test
 	//NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
 	//Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );	
 	//SetAnimation( dummy, &idleAnim );
 
-	TimerHandle timer = CreateTimer();
+	ruTimerHandle timer = ruCreateTimer();
 
-	TimerHandle perfTimer = CreateTimer();
+	ruTimerHandle perfTimer = ruCreateTimer();
 	int perfTime=0;
 
-	EnablePointLightShadows( false );
-	EnableSpotLightShadows( true );
-	while( !IsKeyDown( KEY_Esc )) {
+	ruEnablePointLightShadows( false );
+	ruEnableSpotLightShadows( false );
+	while( !ruIsKeyDown( KEY_Esc )) {
 
 		//idleAnim.Update();
-		InputUpdate();
+		ruInputUpdate();
 
-		if( IsMouseHit( MB_Right )) {
-			SetHDREnabled( !IsHDREnabled() );
+		if( ruIsMouseHit( MB_Right )) {
+			ruSetHDREnabled( !ruIsHDREnabled() );
 		}
-		Vector3 speed;
+		ruVector3 speed;
 
-		pitchTo += GetMouseYSpeed() / 2.0;
-		yawTo += -GetMouseXSpeed() / 2.0;
+		pitchTo += ruGetMouseYSpeed() / 2.0;
+		yawTo += -ruGetMouseXSpeed() / 2.0;
 
 		pitch = pitch + ( pitchTo - pitch ) * 0.2f;
 		yaw = yaw + ( yawTo - yaw ) * 0.2f;
 
-		Quaternion pitchRotation( Vector3( 1, 0, 0 ), pitch );
-		Quaternion yawRotation( Vector3( 0, 1, 0 ), yaw );
+		ruQuaternion pitchRotation( ruVector3( 1, 0, 0 ), pitch );
+		ruQuaternion yawRotation( ruVector3( 0, 1, 0 ), yaw );
 
-		Vector3 look = GetLookVector( cameraPivot );
-		Vector3 right = GetRightVector( cameraPivot );
+		ruVector3 look = ruGetNodeLookVector( cameraPivot );
+		ruVector3 right = ruGetNodeRightVector( cameraPivot );
 
 		//SetPosition( Omni09, GetPosition( camera ));
 
 		//DrawGUIRect( 0, 0, 200, 200, 0 );
 		//    DrawGUIText( "TEST", 200, 200, 100, 100, font, Vector3( 255, 0, 0 ) );
 
-		if( IsKeyDown( KEY_W )) {
+		if( ruIsKeyHit( KEY_1 )) {
+			ruSetRenderQuality( 0 );
+		}
+		if( ruIsKeyHit( KEY_2 )) {
+			ruSetRenderQuality( 1 );
+		}
+		if( ruIsKeyDown( KEY_W )) {
 			speed = speed + look;
 		}
-		if( IsKeyDown( KEY_S )) {
+		if( ruIsKeyDown( KEY_S )) {
 			speed = speed - look;
 		}
-		if( IsKeyDown( KEY_A )) {
+		if( ruIsKeyDown( KEY_A )) {
 			speed = speed + right;
 		}
-		if( IsKeyDown( KEY_D )) {
+		if( ruIsKeyDown( KEY_D )) {
 			speed = speed - right;
 		}
 
-		if( IsKeyHit( KEY_Q )) {
+		if( ruIsKeyHit( KEY_Q )) {
 			cameraNum = 1 - cameraNum;
 
 			if( cameraNum ) {
-				SetCamera( testCamera );
+				ruSetActiveCamera( testCamera );
 			} else {
-				SetCamera( camera );
+				ruSetActiveCamera( camera );
 			}
 		}
 
@@ -144,27 +153,31 @@ void main( ) {
 		//	SetAnimationEnabled( dummy, true );
 		//}
 
-		Move( cameraPivot, speed * Vector3( 100, 1, 100 ));
-		SetRotation( camera, pitchRotation );
-		SetRotation( cameraPivot, yawRotation );
+		ruMoveNode( cameraPivot, speed * ruVector3( 100, 1, 100 ));
+		ruSetNodeRotation( camera, pitchRotation );
+		ruSetNodeRotation( cameraPivot, yawRotation );
 
 		counter++;
 
-		if( GetElapsedTimeInSeconds( timer ) >= 1 ) {
-			RestartTimer( timer );
+		if( ruGetElapsedTimeInSeconds( timer ) >= 1 ) {
+			ruRestartTimer( timer );
 			fps = counter;
 			counter = 0;
 		}
 		char buf[ 128 ];
-		//sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", DIPs(), TextureUsedPerFrame(), fps, GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)IsHDREnabled()  );
-		//DrawGUIText( buf, 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
-		DrawGUIText( "Это текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
-		RestartTimer( perfTimer );
-		RenderWorld( 1.0f / 60.0f ); // fixed FPS
-		perfTime=GetElapsedTimeInMilliSeconds( perfTimer );
+		ruDrawGUIRect( 400, 400, 34, 34, ruTextureHandle::Empty() );
+		sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruDIPs(), ruTextureUsedPerFrame(), fps, ruGetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruIsHDREnabled()  );
+		ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
+		//DrawGUIText( "Это текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
+		ruDrawGUIText( "Простой текст", 200, 0, 100, 100, font2, ruVector3( 255, 0, 255 ), 0, 100 );
+		ruDrawGUIText( "Простой текст", 400, 0, 100, 100, font3, ruVector3( 255, 0, 255 ), 0, 100 );
+		
+		ruRestartTimer( perfTimer );
+		ruRenderWorld( 1.0f / 60.0f ); // fixed FPS
+		perfTime=ruGetElapsedTimeInMilliSeconds( perfTimer );
 	}
 
-	FreeRenderer();
+	ruFreeRenderer();
 }
 
 #endif

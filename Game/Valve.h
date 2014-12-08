@@ -4,8 +4,8 @@
 
 class Valve {
 public:
-    NodeHandle object;
-    Vector3 tAxis;
+    ruNodeHandle object;
+    ruVector3 tAxis;
 
     float angle;
     bool done;
@@ -13,6 +13,6 @@ public:
 
     float value;
 
-    Valve( NodeHandle obj, Vector3 axis, int turnCount = 2 );
+    Valve( ruNodeHandle obj, ruVector3 axis, int turnCount = 2 );
     void Update();
 };

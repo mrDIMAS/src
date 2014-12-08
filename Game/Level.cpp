@@ -20,7 +20,7 @@ Level::Level() {
 }
 
 Level::~Level() {
-    FreeSceneNode( scene );
+    ruFreeSceneNode( scene );
 
     for( auto item : items )
         if( !item->inInventory ) {
@@ -56,7 +56,7 @@ Level::~Level() {
     }
 
     for( auto sound : sounds ) {
-        FreeSoundSource( sound );
+        ruFreeSound( sound );
     }
 }
 
@@ -65,17 +65,17 @@ void Level::LoadLocalization( string fn ) {
 }
 
 void Level::Hide() {
-    HideNode( scene );
+    ruHideNode( scene );
     for( auto & sound : sounds ) {
-        PauseSoundSource( sound );
+        ruPauseSound( sound );
     }
 }
 
 void Level::Show() {
-    ShowNode( scene );
+    ruShowNode( scene );
     for( auto & sound : sounds ) {
-        if( IsSoundPaused( sound )) {
-            PlaySoundSource( sound );
+        if( ruIsSoundPaused( sound )) {
+            ruPlaySound( sound );
         }
 	}
 }
@@ -86,10 +86,10 @@ void Level::Change( int levelId, bool continueFromSave ) {
     static int lastLevel = 0;
 
     if( lastLevel != Level::curLevelID ) {
-        DrawGUIText( menu->loc.GetString( "loading" ), GetResolutionWidth() / 2 - 64, GetResolutionHeight() / 2 - 64, 128, 128, gui->font, Vector3( 255, 255, 0), 1 );
+        ruDrawGUIText( menu->loc.GetString( "loading" ), ruGetResolutionWidth() / 2 - 64, ruGetResolutionHeight() / 2 - 64, 128, 128, gui->font, ruVector3( 255, 255, 0), 1 );
 
         // draw 'loading' string
-        RenderWorld( 1.0f / 60.0f );
+        ruRenderWorld( 1.0f / 60.0f );
 
         lastLevel = Level::curLevelID;
 
@@ -134,10 +134,10 @@ void Level::Change( int levelId, bool continueFromSave ) {
 		// loading can take a lot of time, so g_dt becomes a really huge value which can cause annoying bugs
 		// so restart dtTimer
 
-        for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
-            SetLightFloatingEnabled( GetWorldPointLight( i ), true );
+        for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
+            ruSetLightFloatingEnabled( ruGetWorldPointLight( i ), true );
             float d = 0.1f;
-            SetLightFloatingLimits( GetWorldPointLight( i ), Vector3( -d, -d, -d ), Vector3( d, d, d ) );
+            ruSetLightFloatingLimits( ruGetWorldPointLight( i ), ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
         }
     }
 }
@@ -178,14 +178,14 @@ void Level::DeserializeWith( TextFileStream & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.Readstring();
-        NodeHandle node = FindInObjectByName( scene, name.c_str() );
-        SetLocalPosition( node, in.ReadVector3() );
-        SetLocalRotation( node, in.ReadQuaternion() );
+        ruNodeHandle node = ruFindInObjectByName( scene, name.c_str() );
+        ruSetNodeLocalPosition( node, in.ReadVector3() );
+        ruSetNodeLocalRotation( node, in.ReadQuaternion() );
         bool visible = in.ReadBoolean();
         if( visible ) {
-            ShowNode( node );
+            ruShowNode( node );
         } else {
-            HideNode( node );
+            ruHideNode( node );
         }
     }
     int countStages = in.ReadInteger();
@@ -198,14 +198,14 @@ void Level::DeserializeWith( TextFileStream & in ) {
 }
 
 void Level::SerializeWith( TextFileStream & out ) {
-    int childCount = GetCountChildren( scene );
+    int childCount = ruGetNodeCountChildren( scene );
     out.WriteInteger( childCount );
     for( int i = 0; i < childCount; i++ ) {
-        NodeHandle node = GetChild( scene, i );
-        out.Writestring( GetName( node ));
-        out.WriteVector3( GetLocalPosition( node ));
-        out.WriteQuaternion( GetLocalRotation( node ));
-        out.WriteBoolean( IsNodeVisible( node ));
+        ruNodeHandle node = ruGetNodeChild( scene, i );
+        out.Writestring( ruGetNodeName( node ));
+        out.WriteVector3( ruGetNodeLocalPosition( node ));
+        out.WriteQuaternion( ruGetNodeLocalRotation( node ));
+        out.WriteBoolean( ruIsNodeVisible( node ));
     }
     out.WriteInteger( stages.size());
     for( auto stage : stages ) {
@@ -215,7 +215,7 @@ void Level::SerializeWith( TextFileStream & out ) {
     OnSerialize( out );
 }
 
-void Level::AddSound( SoundHandle sound ) {
+void Level::AddSound( ruSoundHandle sound ) {
     sounds.push_back( sound );
 }
 
@@ -224,7 +224,7 @@ void Level::PlayAmbientSounds()
 	ambSoundSet.DoRandomPlaying();
 }
 
-void Level::AddAmbientSound( SoundHandle sound )
+void Level::AddAmbientSound( ruSoundHandle sound )
 {
 	sounds.push_back( sound );
 	ambSoundSet.AddSound( sound );

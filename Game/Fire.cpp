@@ -4,8 +4,8 @@
 
 
 Fire::~Fire() {
-    FreeSceneNode( light );
-    FreeSceneNode( particleSystem );
+    ruFreeSceneNode( light );
+    ruFreeSceneNode( particleSystem );
 }
 
 Fire::Fire( float size, float height ) {

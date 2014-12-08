@@ -70,10 +70,10 @@ BitmapFont::BitmapFont( const char * file, int size ) {
 		cm.offsetY = face->glyph->metrics.height >> 6;
 		cm.advanceX = face->glyph->advance.x >> 6;
 		cm.advanceY = face->glyph->advance.y >> 6;
-		cm.texCoords[0] = Vector2( tcX		   , tcY		  );
-		cm.texCoords[1] = Vector2( tcX + tcStep, tcY	      );
-		cm.texCoords[2] = Vector2( tcX + tcStep, tcY + tcStep );
-		cm.texCoords[3] = Vector2( tcX		   , tcY + tcStep );
+		cm.texCoords[0] = ruVector2( tcX		   , tcY		  );
+		cm.texCoords[1] = ruVector2( tcX + tcStep, tcY	      );
+		cm.texCoords[2] = ruVector2( tcX + tcStep, tcY + tcStep );
+		cm.texCoords[3] = ruVector2( tcX		   , tcY + tcStep );
 		cm.bitmapTop = face->glyph->bitmap_top;
 		cm.bitmapLeft = face->glyph->bitmap_left;
 		cm.bitmapWidth = bitmap->width;

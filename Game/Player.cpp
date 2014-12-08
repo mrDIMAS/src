@@ -10,7 +10,7 @@ Player * player = 0;
 Player::Player
 ========
 */
-Player::Player() {
+Player::Player() : Actor( 1.0f, 0.2f ) {
     localization.ParseFile( localizationPath + "player.loc" );
 
     // Stamina vars
@@ -44,12 +44,12 @@ Player::Player() {
 
     // Camera bob vars
 
-    cameraBob = Vector3( 0, headHeight, 0 );
+    cameraBob = ruVector3( 0, headHeight, 0 );
     runBobCoeff = 1.0f;
     cameraBobCoeff = 0;
 
     // Effects vars
-    frameColor = Vector3( 1.0f, 1.0f, 1.0f );
+    frameColor = ruVector3( 1.0f, 1.0f, 1.0f );
 
     // Control vars
     mouseSens = 0.5f;
@@ -71,15 +71,16 @@ Player::Player() {
 
     currentWay = nullptr;
 
-	stealthSign = GetTexture( "data/textures/effects/eye.png" );
+	stealthSign = ruGetTexture( "data/textures/effects/eye.png" );
 
     LoadGUIElements();
-    CreateBody();
     CreateCamera();
     CreateFlashLight();
     LoadSounds();
     CompleteObjective();
     SetDirtFootsteps();
+
+	ruSetNodeName( body, "Player" );
 }
 
 /*
@@ -113,16 +114,16 @@ void Player::DrawStatusBar() {
     int w = 512.0f / scale;
     int h = 256.0f / scale;
 
-    DrawGUIRect( 0, GetResolutionHeight() - h, w, h, statusBar, Vector3( 255, 255, 255 ), staminaAlpha );
+    ruDrawGUIRect( 0, ruGetResolutionHeight() - h, w, h, statusBar, ruVector3( 255, 255, 255 ), staminaAlpha );
 
     int segCount = stamina / 5;
     for( int i = 0; i < segCount; i++ ) {
-        DrawGUIRect( 44 + i * ( 8 + 2 ), GetResolutionHeight() - 3 * 15, 8, 16, gui->staminaBarImg, Vector3( 255, 255, 255 ), staminaAlpha );
+        ruDrawGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 3 * 15, 8, 16, gui->staminaBarImg, ruVector3( 255, 255, 255 ), staminaAlpha );
     }
 
     segCount = life / 5;
     for( int i = 0; i < segCount; i++ ) {
-        DrawGUIRect( 44 + i * ( 8 + 2 ), GetResolutionHeight() - 4 * 26, 8, 16, gui->lifeBarImg, Vector3( 255, 255, 255 ), healthAlpha );
+        ruDrawGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, gui->lifeBarImg, ruVector3( 255, 255, 255 ), healthAlpha );
     }
 }
 
@@ -132,7 +133,7 @@ Player::CanJump
 ========
 */
 bool Player::CanJump( ) {
-	NodeHandle legBump = RayTest( GetPosition( body ) + Vector3( 0, 0.1, 0 ), GetPosition( body ) - Vector3( 0, capsuleHeight, 0 ), 0 );
+	ruNodeHandle legBump = ruCastRay( ruGetNodePosition( body ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( body ) - ruVector3( 0, capsuleHeight, 0 ), 0 );
 	if( legBump.IsValid() ) {
 		return true;
 	} else {
@@ -181,10 +182,10 @@ void Player::Damage( float dmg ) {
 
     if( life < 0 ) {
         if( !dead ) {
-            SetAngularFactor( body, Vector3( 1, 1, 1 ));
-            SetFriction( body, 1 );
-            SetAnisotropicFriction( body, Vector3( 1, 1, 1 ));
-            Move( body, Vector3( 1,1,1));
+            ruSetAngularFactor( body, ruVector3( 1, 1, 1 ));
+            ruSetNodeFriction( body, 1 );
+            ruSetNodeAnisotropicFriction( body, ruVector3( 1, 1, 1 ));
+            ruMoveNode( body, ruVector3( 1,1,1));
         }
 
         dead = true;
@@ -193,7 +194,7 @@ void Player::Damage( float dmg ) {
         flashlight->SwitchOff();
 
         camera->FadePercent( 5 );
-        camera->SetFadeColor( Vector3( 70, 0, 0 ) );
+        camera->SetFadeColor( ruVector3( 70, 0, 0 ) );
     }
 }
 
@@ -212,11 +213,11 @@ void Player::AddItem( Item * itm ) {
             return;
         }
 
-    Freeze( itm->object );
-    Detach( itm->object );
+    ruFreeze( itm->object );
+    ruDetachNode( itm->object );
     itm->inInventory = true;
 
-    SetPosition( itm->object, Vector3( 10000, 10000, 10000 )); // far far away
+    ruSetNodePosition( itm->object, ruVector3( 10000, 10000, 10000 )); // far far away
 
     inventory.items.push_back( itm );
 }
@@ -227,7 +228,7 @@ Player::UpdateInventory
 ========
 */
 void Player::UpdateInventory() {
-    if( IsKeyHit( keyInventory ) && !locked ) {
+    if( ruIsKeyHit( keyInventory ) && !locked ) {
         inventory.opened = !inventory.opened;
     }
 
@@ -278,8 +279,8 @@ void Player::UpdateMouseLook() {
                 mouseSpeed = 0.0f;
             }
         }
-        pitch.SetTarget( pitch.GetTarget() + GetMouseYSpeed() * mouseSpeed );
-        yaw.SetTarget( yaw.GetTarget() - GetMouseXSpeed() * mouseSpeed );
+        pitch.SetTarget( pitch.GetTarget() + ruGetMouseYSpeed() * mouseSpeed );
+        yaw.SetTarget( yaw.GetTarget() - ruGetMouseXSpeed() * mouseSpeed );
     }
     
     damagePitchOffset.ChaseTarget( 20.0f * g_dt );
@@ -299,18 +300,18 @@ void Player::UpdateMouseLook() {
     }
 
     //SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch + damagePitchOffset ) );
-	SetRotation( camera->cameraNode, Quaternion( Vector3( 1, 0, 0 ), pitch ) );
-    SetRotation( body, Quaternion( Vector3( 0, 1, 0 ), yaw ) );
+	ruSetNodeRotation( camera->cameraNode, ruQuaternion( ruVector3( 1, 0, 0 ), pitch ) );
+    ruSetNodeRotation( body, ruQuaternion( ruVector3( 0, 1, 0 ), yaw ) );
 
 	headAngle.SetTarget( 0.0f );
-	if( IsKeyDown( keyLookLeft )) {
+	if( ruIsKeyDown( keyLookLeft )) {
 		headAngle.SetTarget( headAngle.GetMin() );
 	}
-	if( IsKeyDown( keyLookRight )) {
+	if( ruIsKeyDown( keyLookRight )) {
 		headAngle.SetTarget( headAngle.GetMax() );
 	}
 	headAngle.ChaseTarget( 17.0f * g_dt );
-	SetRotation( head, Quaternion( Vector3( 0, 0, 1 ), headAngle ));
+	ruSetNodeRotation( head, ruQuaternion( ruVector3( 0, 0, 1 ), headAngle ));
 }
 
 /*
@@ -320,12 +321,12 @@ Player::UpdateJumping
 */
 void Player::UpdateJumping() {	
 	// do ray test, to determine collision with objects above camera
-	NodeHandle headBumpObject = RayTest( GetPosition( body ) + Vector3( 0, capsuleHeight * 0.98, 0 ), GetPosition( body ) + Vector3( 0, 1.02 * capsuleHeight, 0 ), nullptr );
+	ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( body ) + ruVector3( 0, capsuleHeight * 0.98, 0 ), ruGetNodePosition( body ) + ruVector3( 0, 1.02 * capsuleHeight, 0 ), nullptr );
 	
 
-    if( IsKeyHit( keyJump ) && !locked ) {
+    if( ruIsKeyHit( keyJump ) && !locked ) {
        if( CanJump() ) {
-            jumpTo = Vector3( 0, 150, 0 );
+            jumpTo = ruVector3( 0, 150, 0 );
             landed = false;
        }
     }
@@ -337,9 +338,9 @@ void Player::UpdateJumping() {
     }
 
     if( landed || headBumpObject.IsValid() ) {
-        jumpTo = Vector3( 0, -150, 0 );
+        jumpTo = ruVector3( 0, -150, 0 );
         if( CanJump() ) {
-            jumpTo = Vector3( 0, 0, 0 );
+            jumpTo = ruVector3( 0, 0, 0 );
         }
     };
 }
@@ -374,7 +375,7 @@ void Player::UpdateMoving() {
         }
     }
 
-	if( IsKeyHit( keyStealth )) {
+	if( ruIsKeyHit( keyStealth )) {
 		stealthMode = !stealthMode;
 	}
 
@@ -390,11 +391,11 @@ void Player::UpdateMoving() {
         if( currentWay->IsPlayerInside() ) {
             bool move = false;
 
-            if( IsKeyDown( keyMoveForward )) {
+            if( ruIsKeyDown( keyMoveForward )) {
                 currentWay->SetDirection( Way::Direction::Forward );
                 move = true;
             }
-            if( IsKeyDown( keyMoveBackward )) {
+            if( ruIsKeyDown( keyMoveBackward )) {
                 currentWay->SetDirection( Way::Direction::Backward );
                 move = true;
             }
@@ -408,28 +409,28 @@ void Player::UpdateMoving() {
                     currentWay = nullptr;
                 }
             } else {
-                Move( player->body, Vector3( 0, 0, 0 ));
+                ruMoveNode( player->body, ruVector3( 0, 0, 0 ));
 
                 moved = false;
             }
         }
     } else {
-        Vector3 look = GetLookVector( body );
-        Vector3 right = GetRightVector( body );
+        ruVector3 look = ruGetNodeLookVector( body );
+        ruVector3 right = ruGetNodeRightVector( body );
 
-        speedTo = Vector3( 0, 0, 0 );
+        speedTo = ruVector3( 0, 0, 0 );
 
         if( !locked ) {
-            if( IsKeyDown( keyMoveForward )) {
+            if( ruIsKeyDown( keyMoveForward )) {
                 speedTo = speedTo + look;
             }
-            if( IsKeyDown( keyMoveBackward )) {
+            if( ruIsKeyDown( keyMoveBackward )) {
                 speedTo = speedTo - look;
             }
-            if( IsKeyDown( keyStrafeLeft )) {
+            if( ruIsKeyDown( keyStrafeLeft )) {
                 speedTo = speedTo + right;
             }
-            if( IsKeyDown( keyStrafeRight )) {
+            if( ruIsKeyDown( keyStrafeRight )) {
                 speedTo = speedTo - right;
             }
         }
@@ -446,7 +447,7 @@ void Player::UpdateMoving() {
         fov.SetTarget( fov.GetMin() );
 
 		running = false;
-        if( IsKeyDown( keyRun ) && moved ) {
+        if( ruIsKeyDown( keyRun ) && moved ) {
             if( stamina > 0 ) {
                 speedTo = speedTo * runSpeedMult;
                 stamina -= 8.0f * g_dt ;
@@ -463,10 +464,10 @@ void Player::UpdateMoving() {
 		speedTo = speedTo * ( stealthMode ? 0.4f : 1.0f ) ;
 
         fov.ChaseTarget( 4.0f * g_dt );
-        SetFOV( camera->cameraNode, fov );
+        ruSetCameraFOV( camera->cameraNode, fov );
 
         speed = speed.Lerp( speedTo + gravity, 10.0f * g_dt );
-        Move( body, speed * Vector3( 100, 1, 100 ) * g_dt );		
+		Move( speed * ruVector3( 100, 1, 100 ), g_dt );
     }
 
     UpdateCameraBob();
@@ -479,20 +480,20 @@ Player::ComputeStealth
 */
 void Player::ComputeStealth() {
 	bool inLight = false;
-	Vector3 pos = GetPosition( body );
-	NodeHandle affectLight;
-	for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
-		if( IsLightViewPoint( GetWorldPointLight( i ), pos )) {
+	ruVector3 pos = ruGetNodePosition( body );
+	ruNodeHandle affectLight;
+	for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
+		if( ruIsLightSeePoint( ruGetWorldPointLight( i ), pos )) {
 			inLight = true;
-			affectLight = GetWorldPointLight( i );
+			affectLight = ruGetWorldPointLight( i );
 			break;
 		}
 	}
 	if( !inLight ) {
-		for( int i = 0; i < GetWorldSpotLightCount(); i++ ) {
-			if( IsLightViewPoint( GetWorldSpotLight( i ), pos )) {
+		for( int i = 0; i < ruGetWorldSpotLightCount(); i++ ) {
+			if( ruIsLightSeePoint( ruGetWorldSpotLight( i ), pos )) {
 				inLight = true;
-				affectLight = GetWorldSpotLight( i );
+				affectLight = ruGetWorldSpotLight( i );
 				break;
 			}
 		}
@@ -517,17 +518,17 @@ void Player::ComputeStealth() {
 
 	for( auto snd : footsteps ) {
 		if( stealthMode ) {
-			SetVolume( snd, 0.15f );
+			ruSetSoundVolume( snd, 0.15f );
 		} else {
-			SetVolume( snd, 0.4f );
+			ruSetSoundVolume( snd, 0.4f );
 		}
 	}
 
 	int alpha = ( 255 * ( ( stealthFactor > 1.05f ) ? 1.0f : ( stealthFactor + 0.05f ) ) );
 	if (alpha > 255 )
 		alpha = 255;
-	Vector3 color = ( stealthFactor < 1.05f ) ? Vector3( 255, 255, 255 ) : Vector3( 255, 0, 0 );
-	DrawGUIRect( GetResolutionWidth() / 2 - 32, 200, 64, 32, stealthSign, color, alpha );
+	ruVector3 color = ( stealthFactor < 1.05f ) ? ruVector3( 255, 255, 255 ) : ruVector3( 255, 0, 0 );
+	ruDrawGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, stealthSign, color, alpha );
 	//DrawGUIText( Format( "%f, %d ", stealthFactor, alpha ).c_str(), 100, 300,100,100, gui->font, Vector3( 255, 0, 222), 0 );
 }
 /*
@@ -568,10 +569,10 @@ Player::LoadGUIElements
 ========
 */
 void Player::LoadGUIElements() {
-    upCursor = GetTexture( "data/gui/up.png" );
-    downCursor = GetTexture( "data/gui/down.png" );
-    pickupSound = CreateSound2D( "data/sounds/menuhit.ogg" );
-    statusBar = GetTexture( "data/gui/statusbar.png" );
+    upCursor = ruGetTexture( "data/gui/up.png" );
+    downCursor = ruGetTexture( "data/gui/down.png" );
+    pickupSound = ruLoadSound2D( "data/sounds/menuhit.ogg" );
+    statusBar = ruGetTexture( "data/gui/statusbar.png" );
 }
 
 /*
@@ -582,37 +583,22 @@ Player::CreateCamera
 void Player::CreateCamera() {
 	headHeight = 2.4;
 
-	head = CreateSceneNode();
-	Attach( head, body );
-	SetPosition( head, Vector3( 0, -2.0f, 0.0f ));
+	head = ruCreateSceneNode();
+	ruAttachNode( head, body );
+	ruSetNodePosition( head, ruVector3( 0, -2.0f, 0.0f ));
     camera = new GameCamera( fov );
-    Attach( camera->cameraNode, head );
-	cameraOffset = Vector3( 0, headHeight, 0 );
-    cameraBob = Vector3( 0, headHeight, 0 );
+    ruAttachNode( camera->cameraNode, head );
+	cameraOffset = ruVector3( 0, headHeight, 0 );
+    cameraBob = ruVector3( 0, headHeight, 0 );
 
     // Pick
-    pickPoint = CreateSceneNode();
-    Attach( pickPoint, camera->cameraNode );
-    SetPosition( pickPoint, Vector3( 0, 0, 0.1 ));
+    pickPoint = ruCreateSceneNode();
+    ruAttachNode( pickPoint, camera->cameraNode );
+    ruSetNodePosition( pickPoint, ruVector3( 0, 0, 0.1 ));
 
-    itemPoint = CreateSceneNode();
-    Attach( itemPoint, camera->cameraNode );
-    SetPosition( itemPoint, Vector3( 0, 0, 1.0f ));
-}
-
-/*
-========
-Player::CreateBody
-========
-*/
-void Player::CreateBody() {
-	capsuleRadius = 0.28f;
-	capsuleHeight = 0.95f;
-
-    body = CreateSceneNode();
-    SetName( body, "Player" );
-    SetCapsuleBody( body, capsuleHeight, capsuleRadius );
-    SetupBody();
+    itemPoint = ruCreateSceneNode();
+    ruAttachNode( itemPoint, camera->cameraNode );
+    ruSetNodePosition( itemPoint, ruVector3( 0, 0, 1.0f ));
 }
 
 /*
@@ -622,27 +608,27 @@ Player::SetRockFootsteps
 */
 void Player::SetRockFootsteps() {
     for( auto s : footsteps ) {
-        FreeSoundSource( s );
+        ruFreeSound( s );
     }
 
     footsteps.clear();
 
-    footsteps.push_back( CreateSound3D( "data/sounds/stonestep1.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/stonestep2.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/stonestep3.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/stonestep4.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep5.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep6.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep7.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep8.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep9.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep10.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep11.ogg" ) );
-	footsteps.push_back( CreateSound3D( "data/sounds/stonestep12.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep1.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep2.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep3.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep4.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep5.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep6.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep7.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep8.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep9.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep10.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep11.ogg" ) );
+	footsteps.push_back( ruLoadSound3D( "data/sounds/stonestep12.ogg" ) );
 
     for( auto s : footsteps ) {
-        AttachSound( s, body );
-        SetVolume( s, 0.45f );
+        ruAttachSound( s, body );
+        ruSetSoundVolume( s, 0.45f );
     }
 
     footstepsType = FootstepsType::Rock;
@@ -655,19 +641,19 @@ Player::SetDirtFootsteps
 */
 void Player::SetDirtFootsteps() {
     for( auto s : footsteps ) {
-        FreeSoundSource( s );
+        ruFreeSound( s );
     }
 
     footsteps.clear();
 
-    footsteps.push_back( CreateSound3D( "data/sounds/dirt1.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/dirt2.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/dirt3.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/dirt4.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/dirt1.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/dirt2.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/dirt3.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/dirt4.ogg" ) );
 
     for( auto s : footsteps ) {
-        AttachSound( s, body );
-        SetVolume( s, 0.45f );
+        ruAttachSound( s, body );
+        ruSetSoundVolume( s, 0.45f );
     }
 
     footstepsType = FootstepsType::Dirt;
@@ -679,17 +665,17 @@ Player::LoadSounds
 ========
 */
 void Player::LoadSounds() {
-    lighterCloseSound = CreateSound3D( "data/sounds/lighter_close.ogg" );
-    lighterOpenSound = CreateSound3D( "data/sounds/lighter_open.ogg" );
+    lighterCloseSound = ruLoadSound3D( "data/sounds/lighter_close.ogg" );
+    lighterOpenSound = ruLoadSound3D( "data/sounds/lighter_open.ogg" );
 
-    AttachSound( lighterCloseSound, camera->cameraNode );
-    AttachSound( lighterOpenSound, camera->cameraNode );
+    ruAttachSound( lighterCloseSound, camera->cameraNode );
+    ruAttachSound( lighterOpenSound, camera->cameraNode );
 
-    heartBeatSound = CreateSound2D( "data/sounds/heart.ogg" );
-    breathSound = CreateSound2D( "data/sounds/breath.ogg" );
+    heartBeatSound = ruLoadSound2D( "data/sounds/heart.ogg" );
+    breathSound = ruLoadSound2D( "data/sounds/breath.ogg" );
 
-    SetSoundReferenceDistance( heartBeatSound, 100.0f );
-    SetSoundReferenceDistance( breathSound, 100.0f );
+    ruSetSoundReferenceDistance( heartBeatSound, 100.0f );
+    ruSetSoundReferenceDistance( breathSound, 100.0f );
 
     breathVolume = SmoothFloat( 0.1f );
     heartBeatVolume = SmoothFloat( 0.15f );
@@ -744,18 +730,18 @@ void Player::UpdateCameraBob() {
     static int stepPlayed = 0;
 
     if( moved ) {
-        cameraBobCoeff += 0.115 * runBobCoeff;
+        cameraBobCoeff += 7.5 * runBobCoeff * g_dt;
 
         float xOffset = sinf( cameraBobCoeff ) * ( runBobCoeff * runBobCoeff ) * 0.075f;
         float yOffset = abs( xOffset );
 
-        if( yOffset < 0.02 && !SoundPlaying( footsteps[ stepPlayed ] ) ) {
+        if( yOffset < 0.02 && !ruIsSoundPlaying( footsteps[ stepPlayed ] ) ) {
             stepPlayed = rand() % footsteps.size();
 
-            PlaySoundSource( footsteps[ stepPlayed ]);
+            ruPlaySound( footsteps[ stepPlayed ]);
         }
 
-        cameraBob = Vector3( xOffset, yOffset + headHeight, 0 );
+        cameraBob = ruVector3( xOffset, yOffset + headHeight, 0 );
     } else {
         cameraBobCoeff = 0;
     }
@@ -766,7 +752,7 @@ void Player::UpdateCameraBob() {
 	}
 	stealthOffset.ChaseTarget( 0.15f );
     cameraOffset = cameraOffset.Lerp( cameraBob, 0.25f );
-    SetPosition( camera->cameraNode, cameraOffset + Vector3( 0.0f, stealthOffset, 0.0f ) );
+    ruSetNodePosition( camera->cameraNode, cameraOffset + ruVector3( 0.0f, stealthOffset, 0.0f ) );
 }
 
 /*
@@ -782,10 +768,8 @@ void Player::DrawSheetInHands() {
 
         pickedObjectDesc += localization.GetString( "sheetOpen" );
 
-        if( IsMouseHit( MB_Right )) {
-            ShowNode( sheetInHands->object );
-            sheetInHands = 0;
-            PlaySoundSource( Sheet::paperFlip );
+        if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( sheetInHands->object) - ruGetNodePosition( body )).Length2() > 2 ) {
+			CloseCurrentSheet();
         }
     }
 }
@@ -799,17 +783,17 @@ void Player::DescribePickedObject() {
     // Change cursor first
     if( nearestPicked.IsValid() ) {
         if( IsObjectHasNormalMass( nearestPicked )) {
-            DrawGUIRect( GetResolutionWidth() / 2 - 16, GetResolutionHeight() / 2 - 16, 32, 32, upCursor, Vector3( 255, 255, 255 ), 180 );
+            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, upCursor, ruVector3( 255, 255, 255 ), 180 );
         }
     } else {
         if( objectInHands.IsValid() ) {
-            DrawGUIRect( GetResolutionWidth() / 2 - 16, GetResolutionHeight() / 2 - 16, 32, 32, downCursor, Vector3( 255, 255, 255 ), 180 );
+            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, downCursor, ruVector3( 255, 255, 255 ), 180 );
         } else {
-            DrawGUIText( "+", GetResolutionWidth() / 2 - 16, GetResolutionHeight() / 2 - 16, 32, 32, gui->font, Vector3( 255, 0, 0 ), 1, 180 );
+            ruDrawGUIText( "+", ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, gui->font, ruVector3( 255, 0, 0 ), 1, 180 );
         }
     }
     // Then describe object
-    DrawGUIText( pickedObjectDesc.c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+    ruDrawGUIText( pickedObjectDesc.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
 }
 
 /*
@@ -841,44 +825,48 @@ void Player::UpdateItemsHandling() {
 			if( itm ) {
 				AddItem( itm );
 
-				PlaySoundSource( pickupSound );
+				ruPlaySound( pickupSound );
 			}
 
 			Sheet * sheet = Sheet::GetSheetByObject( nearestPicked );
 
-			if( sheet ) {
-				sheetInHands = sheet;
-				HideNode( sheetInHands->object );
-				PlaySoundSource( Sheet::paperFlip );
+			if( sheetInHands ) {
+				CloseCurrentSheet();
+			} else {
+				if( sheet ) {
+					sheetInHands = sheet;
+					ruHideNode( sheetInHands->object );
+					ruPlaySound( Sheet::paperFlip );
+				}
 			}
 		}
 	}
 
     if( objectInHands.IsValid() ) {
-        Vector3 ppPos = GetPosition( itemPoint );
-        Vector3 objectPos = GetPosition( objectInHands );
-        Vector3 dir = ppPos - objectPos;
-        if( IsMouseDown( MB_Left ) ) {
-            Move( objectInHands,  dir * 6 );
+        ruVector3 ppPos = ruGetNodePosition( itemPoint );
+        ruVector3 objectPos = ruGetNodePosition( objectInHands );
+        ruVector3 dir = ppPos - objectPos;
+        if( ruIsMouseDown( MB_Left ) ) {
+            ruMoveNode( objectInHands,  dir * 6 );
 
-            SetAngularVelocity( objectInHands, Vector3( 0, 0, 0 ));
+            ruSetNodeAngularVelocity( objectInHands, ruVector3( 0, 0, 0 ));
 
-            if( IsMouseDown( MB_Right ) ) {
-                if( UseStamina( GetMass( objectInHands )  )) {
-                    Move( objectInHands, ( ppPos - GetPosition( camera->cameraNode )).Normalize() * 6 );
+            if( ruIsMouseDown( MB_Right ) ) {
+                if( UseStamina( ruGetNodeMass( objectInHands )  )) {
+                    ruMoveNode( objectInHands, ( ppPos - ruGetNodePosition( camera->cameraNode )).Normalize() * 6 );
                 }
 
                 objectThrown = true;
                 objectInHands.Invalidate();
             }
         } else {
-            SetAngularVelocity( objectInHands, Vector3( 1, 1, 1 ));
+            ruSetNodeAngularVelocity( objectInHands, ruVector3( 1, 1, 1 ));
 
             objectInHands.Invalidate();
         }
     }
 
-    if( !IsMouseDown( MB_Left )) {
+    if( !ruIsMouseDown( MB_Left )) {
         objectThrown = false;
     }
 }
@@ -889,17 +877,17 @@ Player::UpdatePicking
 ========
 */
 void Player::UpdatePicking() {
-    Vector3 pickPosition;
+    ruVector3 pickPosition;
 
-    picked = RayPick( GetResolutionWidth() / 2, GetResolutionHeight() / 2, &pickPosition );
+    picked = ruRayPick( ruGetResolutionWidth() / 2, ruGetResolutionHeight() / 2, &pickPosition );
 
     nearestPicked.Invalidate();
 
     if( picked.IsValid() && !objectInHands.IsValid() && !locked  ) {
         objectInHands.Invalidate();
 
-        Vector3 ppPos = GetPosition( pickPoint );
-        Vector3 dir = ppPos - pickPosition;
+        ruVector3 ppPos = ruGetNodePosition( pickPoint );
+        ruVector3 dir = ppPos - pickPosition;
 
         Item * itm = Item::GetByObject( picked );
         Sheet * sheet = Sheet::GetSheetByObject( picked );
@@ -914,19 +902,17 @@ void Player::UpdatePicking() {
                 pickedObjectDesc = sheet->desc;
                 pickedObjectDesc += Format( localization.GetString( "sheetPick" ), GetKeyName( keyUse ).c_str() );
             } else {
-                if( IsObjectHasNormalMass( picked ) && !IsNodeFrozen( picked )) {
+                if( IsObjectHasNormalMass( picked ) && !ruIsNodeFrozen( picked )) {
                     DrawTip( localization.GetString( "objectPick" ) );
                 }
             }
 
-            if( IsMouseDown( MB_Left ) ) {
+            if( ruIsMouseDown( MB_Left ) ) {
                 if( IsObjectHasNormalMass( picked )) {
-                    if( !IsNodeFrozen( picked ) && !objectThrown ) {
-                        objectInHands = picked;
-                    }
-                } else {
-                    DrawTip( localization.GetString( "tooHeavy" ) );
-                }
+					if( !ruIsNodeFrozen( picked ) && !objectThrown ) {
+						objectInHands = picked;
+					}
+				}
             }
         }
 
@@ -960,7 +946,7 @@ void Player::UpdateFlashLight() {
 
     flashLightItem->content = flashlight->charge;
 
-    if( IsKeyHit( keyFlashLight ) && !locked ) {
+    if( ruIsKeyHit( keyFlashLight ) && !locked ) {
         flashlight->Switch();
     }
 }
@@ -972,7 +958,7 @@ Player::DrawGUIElements
 */
 void Player::DrawGUIElements() {
     int alpha = placeDescTimer < 50 ? 255.0f * (float)placeDescTimer / 50.0f : 255;
-    DrawGUIText( placeDesc.c_str(), GetResolutionWidth() - 300, GetResolutionHeight() - 200, 200, 200, gui->font, Vector3( 255, 255, 255 ), 1, alpha );
+    ruDrawGUIText( placeDesc.c_str(), ruGetResolutionWidth() - 300, ruGetResolutionHeight() - 200, 200, 200, gui->font, ruVector3( 255, 255, 255 ), 1, alpha );
 
     if( placeDescTimer ) {
         placeDescTimer--;
@@ -1017,19 +1003,19 @@ Player::SetMetalFootsteps
 */
 void Player::SetMetalFootsteps() {
     for( auto s : footsteps ) {
-        FreeSoundSource( s );
+        ruFreeSound( s );
     }
 
     footsteps.clear();
 
-    footsteps.push_back( CreateSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step1.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step2.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step3.ogg" ) );
-    footsteps.push_back( CreateSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step4.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step1.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step2.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step3.ogg" ) );
+    footsteps.push_back( ruLoadSound3D( "data/sounds/footsteps/FootStep_shoe_metal_step4.ogg" ) );
 
     for( auto s : footsteps ) {
-        AttachSound( s, body );
-        SetVolume( s, 0.55f );
+        ruAttachSound( s, body );
+        ruSetSoundVolume( s, 0.55f );
     }
 
     footstepsType = FootstepsType::Metal;
@@ -1058,7 +1044,7 @@ Player::DrawTip
 ========
 */
 void Player::DrawTip( string text ) {
-    DrawGUIText( text.c_str(), GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+    ruDrawGUIText( text.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
 }
 
 /*
@@ -1067,7 +1053,7 @@ Player::IsUseButtonHit
 ========
 */
 bool Player::IsUseButtonHit() {
-    return IsKeyHit( keyUse );
+    return ruIsKeyHit( keyUse );
 }
 
 /*
@@ -1075,8 +1061,8 @@ bool Player::IsUseButtonHit() {
 Player::IsObjectHasNormalMass
 ========
 */
-bool Player::IsObjectHasNormalMass( NodeHandle node ) {
-    return GetMass( node ) > 0 && GetMass( node ) < 40;
+bool Player::IsObjectHasNormalMass( ruNodeHandle node ) {
+    return ruGetNodeMass( node ) > 0 && ruGetNodeMass( node ) < 40;
 }
 
 /*
@@ -1085,8 +1071,7 @@ Player::DeserializeWith
 ========
 */
 void Player::DeserializeWith( TextFileStream & in ) {
-	SetupBody();
-    SetLocalPosition( body, in.ReadVector3() );
+    ruSetNodeLocalPosition( body, in.ReadVector3() );
 
     in.ReadBoolean( locked );
     in.ReadBoolean( smoothCamera );
@@ -1102,9 +1087,9 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadVector3( gravity );
     in.ReadVector3( jumpTo );
 
-    currentWay = Way::GetByObject( FindByName( in.Readstring().c_str() ));
+    currentWay = Way::GetByObject( ruFindByName( in.Readstring().c_str() ));
     if( currentWay ) {
-        Freeze( player->body );
+        ruFreeze( player->body );
     }
 
     in.ReadBoolean( landed );
@@ -1141,7 +1126,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     heartBeatPitch.Deserialize( in );
     breathPitch.Deserialize( in );
 
-    sheetInHands = Sheet::GetByObject( FindByName( in.Readstring().c_str() ));
+    sheetInHands = Sheet::GetByObject( ruFindByName( in.Readstring().c_str() ));
 
     in.ReadInteger( keyMoveForward );
     in.ReadInteger( keyMoveBackward );
@@ -1161,8 +1146,8 @@ void Player::DeserializeWith( TextFileStream & in ) {
 	//headAngle.Deserialize( in );
 
     camera->FadePercent( 100 );
-    camera->SetFadeColor( Vector3( 255, 255, 255 ) );
-    SetFriction( body, 0 );
+    camera->SetFadeColor( ruVector3( 255, 255, 255 ) );
+    ruSetNodeFriction( body, 0 );
 }
 
 /*
@@ -1171,9 +1156,9 @@ Player::SerializeWith
 ========
 */
 void Player::SerializeWith( TextFileStream & out ) {    
-    Unfreeze( body );
-    out.WriteVector3( GetLocalPosition( body ));
-    SetAngularFactor( body, Vector3( 0, 0, 0 ));
+    ruUnfreeze( body );
+    out.WriteVector3( ruGetNodeLocalPosition( body ));
+    ruSetAngularFactor( body, ruVector3( 0, 0, 0 ));
 
     out.WriteBoolean( locked );
     out.WriteBoolean( smoothCamera );
@@ -1187,7 +1172,7 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteVector3( gravity );
     out.WriteVector3( jumpTo );
 
-    out.Writestring( currentWay ? GetName( currentWay->GetEnterZone()) : "undefinedWay" );
+    out.Writestring( currentWay ? ruGetNodeName( currentWay->GetEnterZone()) : "undefinedWay" );
 
     out.WriteBoolean( landed );
     out.WriteFloat( stamina );
@@ -1223,7 +1208,7 @@ void Player::SerializeWith( TextFileStream & out ) {
     heartBeatPitch.Serialize( out );
     breathPitch.Serialize( out );
 
-    out.Writestring( sheetInHands ? GetName( sheetInHands->object ) : "undefinedSheet" );
+    out.Writestring( sheetInHands ? ruGetNodeName( sheetInHands->object ) : "undefinedSheet" );
 
     out.WriteInteger( keyMoveForward );
     out.WriteInteger( keyMoveBackward );
@@ -1241,15 +1226,4 @@ void Player::SerializeWith( TextFileStream & out ) {
 
     tip.Serialize( out );
 	//headAngle.Serialize( out );
-}
-
-void Player::SetupBody()
-{
-	SetAngularFactor( body, Vector3( 0, 0, 0 ));
-	SetFriction( body, 0 );
-	SetAnisotropicFriction( body, Vector3( 1, 1, 1 ));
-	SetDamping( body, 0, 0 );
-	SetMass( body, 2 );
-	SetGravity( body, Vector3( 0, 0, 0 ));
-	//SetLinearFactor( body, Vector3( 0, 0, 0 ));
 }

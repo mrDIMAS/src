@@ -22,7 +22,7 @@ int windowOffsetX = 0;
 int windowOffsetY = 0;
 RECT windowRect;
 
-void InputUpdate( ) {
+void ruInputUpdate( ) {
     if( pKeyboard->GetDeviceState( sizeof( g_keys ),( void * )&g_keys ) == DIERR_INPUTLOST ) {
         pKeyboard->Acquire();
     }
@@ -64,7 +64,7 @@ void InputUpdate( ) {
     memcpy( g_mousePressed, mouseData.rgbButtons, sizeof( g_mousePressed ));
 };
 
-API void InputInit( void * window ) {
+RUAPI void ruInputInit( void * window ) {
     HINSTANCE hInstance = GetModuleHandle( 0 );
     hwnd = (HWND)(*(HWND*)window);
     CheckDXErrorFatal( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL));
@@ -85,7 +85,7 @@ API void InputInit( void * window ) {
     GetClientRect( hwnd, &windowRect );
 };
 
-API void InputDestroy() {
+RUAPI void ruInputDestroy() {
 	CheckDXErrorFatal( pMouse->Unacquire());
 	pMouse->Release();
 	CheckDXErrorFatal( pKeyboard->Unacquire());
@@ -93,19 +93,19 @@ API void InputDestroy() {
 	pInput->Release();
 };
 
-int IsKeyDown( int key ) {
+int ruIsKeyDown( int key ) {
     return g_keys[ key ];
 };
 
-int IsKeyHit( int key ) {
+int ruIsKeyHit( int key ) {
     return g_keysHit[ key ];
 };
 
-int	IsKeyUp	( int key ) {
+int	ruIsKeyUp	( int key ) {
     return g_keysUp[ key ];
 }
 
-int IsMouseDown( int button ) {
+int ruIsMouseDown( int button ) {
     if( (int)button >= 4 ) {
         return 0;
     }
@@ -113,30 +113,30 @@ int IsMouseDown( int button ) {
     return mouseData.rgbButtons[ button ];
 }
 
-int IsMouseHit( int button ) {
+int ruIsMouseHit( int button ) {
     return g_mouseHit[ button ];
 }
 
-int GetMouseX( ) {
+int ruGetMouseX( ) {
     return mouseX;
 }
 
-int GetMouseY( ) {
+int ruGetMouseY( ) {
     return mouseY;
 }
 
-int GetMouseWheel( ) {
+int ruGetMouseWheel( ) {
     return mouseWheel;
 }
 
-int GetMouseXSpeed( ) {
+int ruGetMouseXSpeed( ) {
     return mouseData.lX;
 }
 
-int GetMouseYSpeed( ) {
+int ruGetMouseYSpeed( ) {
     return mouseData.lY;
 }
 
-int GetMouseWheelSpeed( ) {
+int ruGetMouseWheelSpeed( ) {
     return mouseData.lZ;
 }

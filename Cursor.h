@@ -10,7 +10,7 @@ public:
     Texture * tex;
 
     Cursor();
-    void Setup( TextureHandle texture, int w, int h );
+    void Setup( ruTextureHandle texture, int w, int h );
     void Show();
     void Hide();
 };

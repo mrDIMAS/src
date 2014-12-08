@@ -19,13 +19,13 @@ void TextFileStream::WriteBoolean( bool b ) {
     stream << b << endl;
 }
 
-void TextFileStream::WriteVector3( Vector3 v ) {
+void TextFileStream::WriteVector3( ruVector3 v ) {
     WriteFloat( v.x );
     WriteFloat( v.y );
     WriteFloat( v.z );
 }
 
-void TextFileStream::WriteQuaternion( Quaternion q ) {
+void TextFileStream::WriteQuaternion( ruQuaternion q ) {
     WriteFloat( q.x );
     WriteFloat( q.y );
     WriteFloat( q.z );
@@ -72,22 +72,22 @@ void TextFileStream::ReadBoolean( bool & b ) {
     stream >> b;
 }
 
-Vector3 TextFileStream::ReadVector3() {
-    Vector3 v;
+ruVector3 TextFileStream::ReadVector3() {
+    ruVector3 v;
     stream >> v.x;
     stream >> v.y;
     stream >> v.z;
     return v;
 }
 
-void TextFileStream::ReadVector3( Vector3 & v ) {
+void TextFileStream::ReadVector3( ruVector3 & v ) {
     stream >> v.x;
     stream >> v.y;
     stream >> v.z;
 }
 
-Quaternion TextFileStream::ReadQuaternion() {
-    Quaternion q;
+ruQuaternion TextFileStream::ReadQuaternion() {
+    ruQuaternion q;
     stream >> q.x;
     stream >> q.y;
     stream >> q.z;
@@ -95,7 +95,7 @@ Quaternion TextFileStream::ReadQuaternion() {
     return q;
 }
 
-void TextFileStream::ReadQuaternion( Quaternion & q ) {
+void TextFileStream::ReadQuaternion( ruQuaternion & q ) {
     stream >> q.x;
     stream >> q.y;
     stream >> q.z;

@@ -14,7 +14,7 @@ CubeTexture * Light::defaultPointCubeTexture = nullptr;
 Light::GetLightByHandle
 ==========
 */
-Light * Light::GetLightByHandle( NodeHandle handle ) {
+Light * Light::GetLightByHandle( ruNodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
     Light * light = dynamic_cast< Light* >( n );
     if( !light ) {
@@ -29,7 +29,7 @@ Light::Light
 ==========
 */
 Light::Light( int type ) {
-    color = Vector3( 1.0f, 1.0f, 1.0f );
+    color = ruVector3( 1.0f, 1.0f, 1.0f );
     radius = 1.0f;
     flareTexture = nullptr;    
     pointTexture = nullptr;
@@ -56,7 +56,7 @@ Light::Light( int type ) {
 Light::SetColor
 ==========
 */
-void Light::SetColor( const Vector3 & theColor ) {
+void Light::SetColor( const ruVector3 & theColor ) {
     color.x = theColor.x / 255.0f;
     color.y = theColor.y / 255.0f;
     color.z = theColor.z / 255.0f;
@@ -67,7 +67,7 @@ void Light::SetColor( const Vector3 & theColor ) {
 Light::GetColor
 ==========
 */
-Vector3 Light::GetColor() const {
+ruVector3 Light::GetColor() const {
     return color;
 }
 
@@ -264,7 +264,7 @@ void Light::DoFloating()
     }
 }
 
-Vector3 Light::GetRealPosition()
+ruVector3 Light::GetRealPosition()
 {
     if( floating ) {
         return GetPosition() + floatOffset;
@@ -281,7 +281,7 @@ Vector3 Light::GetRealPosition()
 GetWorldSpotLightCount
 ==========
 */
-int GetWorldSpotLightCount() {
+int ruGetWorldSpotLightCount() {
     return g_spotLights.size();
 }
 
@@ -290,8 +290,8 @@ int GetWorldSpotLightCount() {
 GetWorldSpotLight
 ==========
 */
-NodeHandle GetWorldSpotLight( int n ) {
-    NodeHandle handle;
+ruNodeHandle ruGetWorldSpotLight( int n ) {
+    ruNodeHandle handle;
     if( n >= g_spotLights.size() || n < 0 ) {
         return handle;
     } else {
@@ -305,7 +305,7 @@ NodeHandle GetWorldSpotLight( int n ) {
 GetWorldPointLightCount
 ==========
 */
-int GetWorldPointLightCount() {
+int ruGetWorldPointLightCount() {
     return g_pointLights.size();
 }
 
@@ -314,8 +314,8 @@ int GetWorldPointLightCount() {
 GetWorldPointLight
 ==========
 */
-NodeHandle GetWorldPointLight( int n ){
-    NodeHandle handle;
+ruNodeHandle ruGetWorldPointLight( int n ){
+    ruNodeHandle handle;
     if( n >= g_pointLights.size() || n < 0 ) {
         return handle;
     } else {
@@ -329,7 +329,7 @@ NodeHandle GetWorldPointLight( int n ){
 SetLightFlare
 ==========
 */
-void SetLightFlare( NodeHandle node, TextureHandle flareTexture ) {
+void ruSetLightFlare( ruNodeHandle node, ruTextureHandle flareTexture ) {
     Light::GetLightByHandle( node )->flareTexture = (Texture *)flareTexture.pointer;
 }
 
@@ -338,7 +338,7 @@ void SetLightFlare( NodeHandle node, TextureHandle flareTexture ) {
 SetLightDefaultFlare
 ==========
 */
-void SetLightDefaultFlare( TextureHandle defaultFlareTexture ) {
+void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture ) {
     // FIX
 }
 
@@ -347,7 +347,7 @@ void SetLightDefaultFlare( TextureHandle defaultFlareTexture ) {
 SetSpotDefaultTexture
 ==========
 */
-void SetSpotDefaultTexture( TextureHandle defaultSpotTexture ) {
+void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
     Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
     for( auto spot : g_spotLights ) {
         if( !spot->spotTexture ) {
@@ -361,7 +361,7 @@ void SetSpotDefaultTexture( TextureHandle defaultSpotTexture ) {
 SetPointDefaultTexture
 ==========
 */
-void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture ) {
+void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture ) {
     Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
     for( auto point : g_pointLights ) {
         if( !point->pointTexture ) {
@@ -375,7 +375,7 @@ void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture ) {
 SetPointTexture
 ==========
 */
-void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture ) {
+void ruSetLightPointTexture( ruNodeHandle node, ruCubeTextureHandle cubeTexture ) {
     Light::GetLightByHandle( node )->SetPointTexture( (CubeTexture*)cubeTexture.pointer );
 }
 
@@ -384,7 +384,7 @@ void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture ) {
 CreateLight
 ==========
 */
-NodeHandle CreateLight( int type  ) {
+ruNodeHandle ruCreateLight( int type  ) {
     return SceneNode::HandleFromPointer( new Light( type ) );
 }
 
@@ -393,7 +393,7 @@ NodeHandle CreateLight( int type  ) {
 SetConeAngles
 ==========
 */
-API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle ) {
+RUAPI void ruSetConeAngles( ruNodeHandle node, float innerAngle, float outerAngle ) {
     Light::GetLightByHandle( node )->SetConeAngles( innerAngle, outerAngle );
 }
 
@@ -402,11 +402,11 @@ API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle ) {
 SetLightRange
 ==========
 */
-API void SetLightRange( NodeHandle node, float rad ) {
+RUAPI void ruSetLightRange( ruNodeHandle node, float rad ) {
     Light * l = Light::GetLightByHandle( node );
     if( l ) {
-        for( int i = 0; i < GetCountChildren( node ); i++ ) {
-            SetLightRange( GetChild( node, i ), rad );
+        for( int i = 0; i < ruGetNodeCountChildren( node ); i++ ) {
+            ruSetLightRange( ruGetNodeChild( node, i ), rad );
         }
         l->SetRadius( rad );
     }
@@ -417,7 +417,7 @@ API void SetLightRange( NodeHandle node, float rad ) {
 SetLightFloatingLimits
 ==========
 */
-API void SetLightFloatingLimits( NodeHandle node, Vector3 floatMin, Vector3 floatMax ) {
+RUAPI void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVector3 floatMax ) {
     Light * l = Light::GetLightByHandle( node );
     if( l ) {
         l->floatMax = floatMax;
@@ -430,7 +430,7 @@ API void SetLightFloatingLimits( NodeHandle node, Vector3 floatMin, Vector3 floa
 SetLightFloatingEnabled
 ==========
 */
-API void SetLightFloatingEnabled( NodeHandle node, bool state ) {
+RUAPI void ruSetLightFloatingEnabled( ruNodeHandle node, bool state ) {
     Light::GetLightByHandle( node )->floating = state;
 }
 
@@ -439,7 +439,7 @@ API void SetLightFloatingEnabled( NodeHandle node, bool state ) {
 IsLightFloatingEnabled
 ==========
 */
-bool IsLightFloatingEnabled( NodeHandle node ) {
+bool ruIsLightFloatingEnabled( ruNodeHandle node ) {
     return Light::GetLightByHandle( node )->floating;
 }
 
@@ -448,15 +448,15 @@ bool IsLightFloatingEnabled( NodeHandle node ) {
 SetLightColor
 ==========
 */
-API void SetLightColor( NodeHandle node, Vector3 clr ) {
+RUAPI void ruSetLightColor( ruNodeHandle node, ruVector3 clr ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
         return;
     }
 
-    for( int i = 0; i < GetCountChildren( node ); i++ ) {
-        SetLightColor( GetChild( node, i ), clr );
+    for( int i = 0; i < ruGetNodeCountChildren( node ); i++ ) {
+        ruSetLightColor( ruGetNodeChild( node, i ), clr );
     }
 
     l->SetColor( clr );
@@ -467,7 +467,7 @@ API void SetLightColor( NodeHandle node, Vector3 clr ) {
 GetLightRange
 ==========
 */
-API float GetLightRange( NodeHandle node ) {
+RUAPI float ruGetLightRange( ruNodeHandle node ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
@@ -482,7 +482,7 @@ API float GetLightRange( NodeHandle node ) {
 SetSpotTexture
 ==========
 */
-API void SetSpotTexture( NodeHandle node, TextureHandle texture ) {
+RUAPI void ruSetLightSpotTexture( ruNodeHandle node, ruTextureHandle texture ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
@@ -497,7 +497,7 @@ API void SetSpotTexture( NodeHandle node, TextureHandle texture ) {
 IsLightViewPoint
 ==========
 */
-API bool IsLightViewPoint( NodeHandle node, Vector3 point ) {
+RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point ) {
 	Light * l = Light::GetLightByHandle( node );
 
 	if( !l ) {
@@ -508,11 +508,11 @@ API bool IsLightViewPoint( NodeHandle node, Vector3 point ) {
 		bool inFrustum = l->frustum.IsPointInside( point );
 
 		if( inFrustum ) {
-			return ( Vector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
+			return ( ruVector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
 		}
 	}
 	else {
-		return (Vector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
+		return (ruVector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
 	}
 	return false;
 }

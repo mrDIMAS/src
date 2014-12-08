@@ -21,9 +21,9 @@ CubeTexture::~CubeTexture() {
     cubeTexture->Release();
 }
 
-CubeTextureHandle GetCubeTexture( const char * file )
+ruCubeTextureHandle ruGetCubeTexture( const char * file )
 {
-    CubeTextureHandle handle;
+    ruCubeTextureHandle handle;
     handle.pointer = CubeTexture::Require( file );
     return handle;
 }

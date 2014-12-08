@@ -25,16 +25,16 @@ private:
     vector<ItemPlace*> itemPlaces;
     vector<Valve*> valves;
     vector<Lift*> lifts;
-    vector<SoundHandle> sounds;
+    vector<ruSoundHandle> sounds;
     virtual void OnSerialize( TextFileStream & out ) = 0;
     virtual void OnDeserialize( TextFileStream & in ) = 0;
     AmbientSoundSet ambSoundSet;	
 protected:
     Parser localization;
-    NodeHandle scene;    	
+    ruNodeHandle scene;    	
 public:
 	int typeNum;
-	SoundHandle music;
+	ruSoundHandle music;
     map<string, bool > stages;
     void AddItem( Item * item );
     void AddItemPlace( ItemPlace * ipc );
@@ -44,9 +44,9 @@ public:
     void AddLadder( Ladder * ladder );
     void AddValve( Valve * valve );
     void AddLift( Lift * lift );
-    void AddSound( SoundHandle sound );
+    void AddSound( ruSoundHandle sound );
     void LoadLocalization( string fn );
-    void AddAmbientSound( SoundHandle sound );
+    void AddAmbientSound( ruSoundHandle sound );
     void PlayAmbientSounds();
     explicit Level();
     virtual ~Level();

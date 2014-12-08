@@ -22,9 +22,9 @@ void Tip::Serialize( TextFileStream & out )
 
 void Tip::AnimateAndDraw()
 {
-    DrawGUIText( txt.c_str(), x, y, w, h, gui->font, Vector3( 255, 0, 0 ), 1, alpha );
+    ruDrawGUIText( txt.c_str(), x, y, w, h, gui->font, ruVector3( 255, 0, 0 ), 1, alpha );
 
-    if( GetElapsedTimeInSeconds( timer ) > 1.5 ) {
+    if( ruGetElapsedTimeInSeconds( timer ) > 1.5 ) {
         alpha.SetTarget( alpha.GetMin() );
         alpha.ChaseTarget( 0.1 );
 
@@ -35,19 +35,19 @@ void Tip::AnimateAndDraw()
 
 void Tip::SetNewText( string text )
 {
-    RestartTimer( timer );
+    ruRestartTimer( timer );
     txt = text;
     alpha.Set( 255.0f );
-    y.SetMax( GetResolutionHeight() - h );
-    y.SetMin( GetResolutionHeight() / 2 + h );
+    y.SetMax( ruGetResolutionHeight() - h );
+    y.SetMin( ruGetResolutionHeight() / 2 + h );
     y.Set( y.GetMin());
 }
 
 Tip::Tip() : alpha( 255.0f, 0.0f, 255.0f )
 {
-    timer = CreateTimer();
+    timer = ruCreateTimer();
     w = 256;
     h = 32;
-    x = GetResolutionWidth() / 2 - w / 2;
+    x = ruGetResolutionWidth() / 2 - w / 2;
     SetNewText( " " );
 }

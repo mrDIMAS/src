@@ -2,32 +2,32 @@
 #include "Player.h"
 
 void Ladder::LookAtTarget() {
-    Vector3 direction = GetPosition( target ) - GetPosition( player->camera->cameraNode );
+    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->camera->cameraNode );
 
     player->pitch = atan2f( direction.y, direction.z ) * 180.0f / 3.14159f;
     player->pitch = ( player->pitch > 0 ? player->pitch : ( 360 + player->pitch ) );
 }
 
-Ladder::Ladder( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint )
+Ladder::Ladder( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
     : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
     freeLook = true;
 }
 
 void Ladder::DoPlayerCrawling() {
     if( !entering ) {
-        Vector3 direction = GetPosition( target ) - GetPosition( player->body );
+        ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
 
         float distance = direction.Length();
 
         direction.Normalize();
 
         if( !leave ) {
-            Move( player->body, direction * 0.75f );
+            ruMoveNode( player->body, direction * 0.75f );
 
             if( distance < 0.25f ) {
                 leave = true;
 
-                if( (GetPosition( player->body ) - GetPosition( end )).Length2() < (GetPosition( player->body ) - GetPosition( begin )).Length2()) {
+                if( (ruGetNodePosition( player->body ) - ruGetNodePosition( end )).Length2() < (ruGetNodePosition( player->body ) - ruGetNodePosition( begin )).Length2()) {
                     target = endLeavePoint;
                 } else {
                     target = beginLeavePoint;
@@ -40,13 +40,13 @@ void Ladder::DoPlayerCrawling() {
 }
 
 void Ladder::DoLeave() {
-    Vector3 direction = GetPosition( target ) - GetPosition( player->body );
+    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
 
     float distance = direction.Length();
 
     direction.Normalize();
 
-    Move( player->body, direction * 0.75f );
+    ruMoveNode( player->body, direction * 0.75f );
 
     if( distance < 0.25f ) {
         leave = false;
@@ -55,9 +55,9 @@ void Ladder::DoLeave() {
 
         player->SetFootsteps( footsteps );
 
-        Unfreeze( player->body );
+        ruUnfreeze( player->body );
 
-        Move( player->body, Vector3( 0, 0, 0 ));
+        ruMoveNode( player->body, ruVector3( 0, 0, 0 ));
     }
 }
 

@@ -4,12 +4,12 @@
 
 class Fan {
 public:
-    NodeHandle body;
+    ruNodeHandle body;
     float turnSpeed;
-    Vector3 tAxis;
+    ruVector3 tAxis;
     float angle;
-    SoundHandle sound;
+    ruSoundHandle sound;
 
-    Fan( NodeHandle obj, float ts, Vector3 axis, SoundHandle snd );
+    Fan( ruNodeHandle obj, float ts, ruVector3 axis, ruSoundHandle snd );
     void DoTurn();
 };

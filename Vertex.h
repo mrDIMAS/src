@@ -4,12 +4,12 @@
 
 class Vertex {
 public:
-    Vector3 coords;
-    Vector3 normals;
-    Vector2 texCoords;
-    Vector3 tangents;
+    ruVector3 coords;
+    ruVector3 normals;
+    ruVector2 texCoords;
+    ruVector3 tangents;
 
-    Vertex( Vector3 & theCoords, Vector3 & theNormals, Vector2 & theTexCoords, Vector3 & theTangents );
+    Vertex( ruVector3 & theCoords, ruVector3 & theNormals, ruVector2 & theTexCoords, ruVector3 & theTangents );
     Vertex( float x, float y, float z, float tx, float ty );
     Vertex( );
 };

@@ -42,8 +42,8 @@ public:
 
     vector< Triangle * > triangles;
 
-    Vector3 GetAABBMin( vector< Vector3 > & vertices );
-    Vector3 GetAABBMax( vector< Vector3 > & vertices );
+    ruVector3 GetAABBMin( vector< ruVector3 > & vertices );
+    ruVector3 GetAABBMax( vector< ruVector3 > & vertices );
 
     vector< Mesh::Triangle > visibleTris;
     int visibleNodes;
@@ -52,7 +52,7 @@ public:
     Octree( Mesh * m, int _nodeSplitCriteria = 64 );
     ~Octree();
     void PrepareTriangles( Node * node );
-    void Build( vector< Vector3 > & vertices, vector< Triangle* > & tris, Node * node );
+    void Build( vector< ruVector3 > & vertices, vector< Triangle* > & tris, Node * node );
     bool CubeInFrustum( const AABB & box );
     void GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & triangles );
     vector< Mesh::Triangle > & GetTrianglesToRender(  );

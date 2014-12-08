@@ -4,19 +4,19 @@
 
 class GameCamera {
 public:
-    NodeHandle cameraNode;
+    ruNodeHandle cameraNode;
 
     float quadAlpha;
     float quadAlphaTo;
 
-    Vector3 fadeColor;
+    ruVector3 fadeColor;
 
 public:
     GameCamera( float fov = 65 );
     void FadeOut();
     void FadeIn();
     void FadePercent( int percent );
-    void SetFadeColor( Vector3 newFadeColor );
+    void SetFadeColor( ruVector3 newFadeColor );
     void Update();
     void MakeCurrent();
     bool FadeComplete();

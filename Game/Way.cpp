@@ -3,7 +3,7 @@
 
 vector<Way*> Way::all;
 
-Way::Way( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint ) {
+Way::Way( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint ) {
     begin = hBegin;
     end = hEnd;
     enterZone = hEnterZone;
@@ -26,24 +26,24 @@ Way::~Way() {
 void Way::Enter() {
     inside = false;
     entering = true;
-    if( ( GetPosition( player->body ) - GetPosition( begin )).Length2() < ( GetPosition( player->body ) - GetPosition( end )).Length2() ) {
+    if( ( ruGetNodePosition( player->body ) - ruGetNodePosition( begin )).Length2() < ( ruGetNodePosition( player->body ) - ruGetNodePosition( end )).Length2() ) {
         target = begin;
     } else {
         target = end;
     }
-    Freeze( player->body );
+    ruFreeze( player->body );
     player->currentWay = this;
 }
 
 void Way::DoEntering() {
     if( entering ) {
-        Vector3 direction = GetPosition( target ) - GetPosition( player->body );
+        ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
 
         float distance = direction.Length();
 
         direction.Normalize();
 
-        Move( player->body, direction * 1.1f );
+        ruMoveNode( player->body, direction * 1.1f );
 
         if( distance < 0.25f ) {
             entering = false;
@@ -55,7 +55,7 @@ void Way::DoEntering() {
                 target = end;
             }
 
-            Move( player->body, Vector3( 0, 0, 0 ));
+            ruMoveNode( player->body, ruVector3( 0, 0, 0 ));
         }
     }
 }
@@ -64,7 +64,7 @@ bool Way::IsFreeLook() {
     return freeLook;
 }
 
-NodeHandle Way::GetTarget() {
+ruNodeHandle Way::GetTarget() {
     return target;
 }
 
@@ -80,7 +80,7 @@ bool Way::IsEntering() {
     return entering;
 }
 
-NodeHandle Way::GetEnterZone() {
+ruNodeHandle Way::GetEnterZone() {
     return enterZone;
 }
 
@@ -105,7 +105,7 @@ void Way::DeserializeWith( TextFileStream & in ) {
 }
 
 void Way::SerializeWith( TextFileStream & out ) {
-    out.Writestring( GetName( enterZone ));
+    out.Writestring( ruGetNodeName( enterZone ));
     out.WriteBoolean( inside );
     out.WriteBoolean( entering );
     out.WriteBoolean( freeLook );
@@ -126,7 +126,7 @@ void Way::SerializeWith( TextFileStream & out ) {
     out.WriteInteger( targetNum );
 }
 
-Way * Way::GetByObject( NodeHandle obj ) {
+Way * Way::GetByObject( ruNodeHandle obj ) {
     for( auto way : all )
         if( way->enterZone == obj ) {
             return way;

@@ -4,17 +4,17 @@
 
 class Lift {
 private:
-    NodeHandle body;
-    NodeHandle scr;
-    NodeHandle pos;
-    NodeHandle sourcePoint;
-    NodeHandle destPoint;
-    NodeHandle target;
+    ruNodeHandle body;
+    ruNodeHandle scr;
+    ruNodeHandle pos;
+    ruNodeHandle sourcePoint;
+    ruNodeHandle destPoint;
+    ruNodeHandle target;
 
     bool arrived;
 
-    SoundHandle motorIdleSound;
+    ruSoundHandle motorIdleSound;
 public:
-    Lift( NodeHandle object, NodeHandle screen, NodeHandle src, NodeHandle dest, SoundHandle motorIS );
+    Lift( ruNodeHandle object, ruNodeHandle screen, ruNodeHandle src, ruNodeHandle dest, ruSoundHandle motorIS );
     void Update();
 };

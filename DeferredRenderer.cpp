@@ -11,17 +11,15 @@ DeferredRenderer * g_deferredRenderer = 0;
 
 bool g_fxaaEnabled = true;
 
-bool IsTextureFormatOk( D3DFORMAT TextureFormat ) 
-{
+bool IsTextureFormatOk( D3DFORMAT TextureFormat ) {
 	return SUCCEEDED( g_d3d->CheckDeviceFormat( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_TEXTURE, TextureFormat) );
 }
 
 DeferredRenderer::DeferredRenderer() {
     effectsQuad = new EffectsQuad;
     debugQuad = new EffectsQuad( true );
-
     CreateBoundingVolumes();
-
+	SetRenderingQuality( 1 );
     fxaa = new FXAA;
     gBuffer = new GBuffer;
     pass2SpotLight = new Pass2SpotLight;
@@ -89,136 +87,39 @@ void DeferredRenderer::CreateBoundingVolumes() {
     cone->UnlockVertexBuffer();
 }
 
-
-
-
-
 ////////////////////////////////////////////////////////////
 // Point Light Subclass
 ////////////////////////////////////////////////////////////
 DeferredRenderer::Pass2PointLight::Pass2PointLight() {
-    string pixelSourcePassTwo =
-        "sampler depthSampler : register(s0);\n"
-        "sampler normalSampler : register(s1);\n"
-        "sampler diffuseSampler : register(s2);\n"
-        "sampler pointSampler : register(s3);\n"
-        "sampler shadowSampler : register(s4);\n"
-#ifndef USE_R32F_DEPTH
-        // ONLY for A8R8G8B8 depth
-        "float unpackFloatFromVec4i ( const float4 value )\n"
-        "{\n"
-        "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
-
-        "  return dot ( value, bitSh );\n"
-        "}\n"
-#endif
-        // light props
-        "float3 lightPos;\n"
-        "float lightRange;\n"
-        "float3 lightColor;\n"
-        // camera props
-        "float3 cameraPosition;\n"
-        "int usePointTexture = false;\n"
-        "bool useShadows = false;\n"
-        "float4x4 invViewProj;\n"
-        "float spotAngle;\n"
-		"float brightness;\n"
-        "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
-        "{\n"
-        // get diffuse color from diffuse map
-        "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
-#ifdef USE_R32F_DEPTH
-        "   float depth = tex2D( depthSampler, texcoord ).r;\n"
-#else
-        "   float depth = unpackFloatFromVec4i( tex2D( depthSampler, texcoord ));\n"
-#endif
-        "   float3 n = tex2D( normalSampler, texcoord ).xyz;\n"
-
-        // unpack normal from [0;1] to [-1,1]
-        "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
-
-        "   float4 screenPosition;\n"
-        "   screenPosition.x = texcoord.x * 2.0f - 1.0f;\n"
-        "   screenPosition.y = -(texcoord.y * 2.0f - 1.0f);\n"
-        "   screenPosition.z = depth;\n"
-        "   screenPosition.w = 1.0f;\n"
-
-        "   float4 p = mul( screenPosition, invViewProj );\n"
-        "   p /= p.w;\n"
-
-        "   float3 lightDirection = lightPos - p;"
-        "   float3 l = normalize( lightDirection );\n"
-
-        // specular
-        "   float3 v = normalize( cameraPosition - p );\n"
-        "   float3 r = reflect( -v, n );\n"
-        "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"
-
-        // point texture( cube )
-        "   float4 pointTexel = float4( 1.0f, 1.0f, 1.0f, 1.0f );\n"
-        "   if( usePointTexture ) {"
-        "       pointTexel = texCUBE( pointSampler, l );\n"
-        "   };\n"
-
-        "   float sqrDistance = dot( lightDirection, lightDirection );\n"
-
-        // shadow
-        "   float shadowMult = 1.0f;"
-        "   if( useShadows ) {\n"
-        "       float sampDistance = texCUBE( shadowSampler, l ).r;\n"
-      //"       shadowMult = sampDistance / 100;\n"     
-      //"       shadowMult = sampDistance / sqrDistance ;\n"         
-        "       if( sqrDistance >= sampDistance * 10  ) {\n"
-        "           shadowMult = 0.25f;\n"
-        "       };\n"
-        "   };\n"
-
-        // diffuse
-        "   float diff = saturate(dot( l, n ));\n"
-
-        "   float falloff = lightRange / pow( sqrDistance, 2 );\n"
-
-        "   float o = brightness * shadowMult * clamp( falloff, 0.0, 1.2 ) * (  diff + spec  );\n"
-
-        "   return pointTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
-        "};\n";
-
-
-    pixelShader = new PixelShader( pixelSourcePassTwo );
-
-    hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
-    hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
-    hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
-    hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
-    hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
-    hUsePointTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "usePointTexture" );
-    hUseShadows = pixelShader->GetConstantTable()->GetConstantByName( 0, "useShadows" );
-	hBrightness = pixelShader->GetConstantTable()->GetConstantByName( 0, "brightness" );
+	pixelShader = new PixelShader( "data/shaders/deferredPointLightHQ.pso", true );
+	pixelShaderLQ = new PixelShader( "data/shaders/deferredPointLightLQ.pso", true );
 }
 
 void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj ) {
     BindShader();
-
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hCameraPos, g_camera->globalTransform.getOrigin().m_floats, 3 );
-    pixelShader->GetConstantTable()->SetMatrix( g_device, hInvViewProj, &invViewProj );
+	g_renderer->SetPixelShaderFloat3( 8, g_camera->globalTransform.getOrigin().m_floats );
+	g_renderer->SetPixelShaderMatrix( 0, &invViewProj );
 }
 
 void DeferredRenderer::Pass2PointLight::BindShader( ) {
-    pixelShader->Bind();
+	if( g_deferredRenderer->renderQuality > 0 ) {
+		pixelShader->Bind();
+	} else {
+		pixelShaderLQ->Bind();
+	}
 }
 
-void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, light->GetRealPosition().elements, 3 );
-    pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( light->GetRadius(), 4 ) );
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, light->GetColor().elements, 3 );
-    pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_usePointLightShadows );
-	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, g_hdrEnabled ? light->brightness : 1.0f );
+void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {	
+	g_renderer->SetPixelShaderFloat3( 5, light->GetRealPosition().elements ); // position	
+	g_renderer->SetPixelShaderFloat3( 6, light->GetColor().elements ); // color	
+	g_renderer->SetPixelShaderFloat( 7, powf( light->GetRadius(), 4 )); // range	
+	g_renderer->SetPixelShaderFloat( 9, g_hdrEnabled ? light->brightness : 1.0f ); // brightness
     if( light->pointTexture ) {
         g_device->SetTexture( 3, light->pointTexture->cubeTexture );
-        pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 1 );
+		g_renderer->SetPixelShaderBool( 0, 1 );
     } else {
         g_device->SetTexture( 3, 0 );
-        pixelShader->GetConstantTable()->SetInt( g_device, hUsePointTexture, 0 );
+		g_renderer->SetPixelShaderBool( 0, 0 );
     }
 }
 
@@ -231,31 +132,12 @@ DeferredRenderer::Pass2PointLight::~Pass2PointLight() {
 ////////////////////////////////////////////////////////////
 
 DeferredRenderer::Pass2AmbientLight::Pass2AmbientLight() {
-    string source =
-        "sampler diffuseSampler : register(s2);\n"
-
-        "float3 ambientColor;\n"
-
-        "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
-        "{\n"
-        "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
-
-        "   float albedo = diffuseTexel.a;\n"
-
-        "   float4 intensity = clamp( float4( ambientColor.x + albedo, ambientColor.y + albedo, ambientColor.z + albedo, 1.0f ), 0.0f, 1.0f );\n"
-
-        "   return intensity * diffuseTexel;\n"
-        "};\n";
-
-    pixelShader = new PixelShader( source );
-
-    hAmbientColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "ambientColor" );
+    pixelShader = new PixelShader( "data/shaders/deferredAmbientLight.pso", true );
 }
 
 void DeferredRenderer::Pass2AmbientLight::Bind( ) {
     pixelShader->Bind();
-
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hAmbientColor, g_ambientColor.elements, 3 );
+    g_renderer->SetPixelShaderFloat3( 0, g_ambientColor.elements );
 }
 
 DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight() {
@@ -267,116 +149,7 @@ DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight() {
 ////////////////////////////////////////////////////////////
 
 DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
-    string spotSource =
-        "sampler depthSampler : register(s0);\n"
-        "sampler normalSampler : register(s1);\n"
-        "sampler diffuseSampler : register(s2);\n"
-        "sampler spotSampler : register(s3);\n"
-        "sampler shadowSampler : register(s4);\n"
-#ifndef USE_R32F_DEPTH
-        "float unpackFloatFromVec4i ( const float4 value )\n"
-        "{\n"
-        "  const float4 bitSh = float4 ( 1.0 / (256.0*256.0*256.0), 1.0 / (256.0*256.0), 1.0 / 256.0, 1.0 );\n"
-
-        "  return dot ( value, bitSh );\n"
-        "}\n"
-#endif
-
-        // light props
-        "float3 lightPos;\n"
-        "float lightRange;\n"
-        "float3 lightColor;\n"
-
-        // camera props
-        "float3 cameraPosition;\n"
-
-        "float4x4 invViewProj;\n"
-        "int useSpotTexture = false;\n"
-        "bool useShadows = false;\n"
-        "float4x4 spotViewProjMatrix;\n"
-        "float innerAngle;\n"
-        "float outerAngle;\n"
-        "float3 direction;\n"
-		"float brightness;\n"
-
-        "float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0\n"
-        "{\n"
-        // get diffuse color from diffuse map
-        "   float4 diffuseTexel = tex2D( diffuseSampler, texcoord );\n"
-#ifdef USE_R32F_DEPTH
-        "   float depth = tex2D( depthSampler, texcoord ).r;\n"
-#else
-        "   float depth = unpackFloatFromVec4i( tex2D( depthSampler, texcoord ));\n"
-#endif
-        "   float3 n = tex2D( normalSampler, texcoord ).xyz;\n"
-
-        // unpack normal from [0;1] to [-1,1]
-        "   n.xyz = normalize(2 * n.xyz - 1.0f);\n"
-
-        "   float4 screenPosition;\n"
-        "   screenPosition.x =    texcoord.x * 2.0f - 1.0f;\n"
-        "   screenPosition.y = -( texcoord.y * 2.0f - 1.0f );\n"
-        "   screenPosition.z = depth;\n"
-        "   screenPosition.w = 1.0f;\n"
-
-        "   float4 p = mul( screenPosition, invViewProj );\n"
-        "   p /= p.w;\n"
-
-        "   float4 projPos = mul( float4( p.xyz, 1 ), spotViewProjMatrix );\n"
-        "   projPos.xyz /= projPos.w;\n"
-        "   float2 projTexCoords = float2( projPos.x * 0.5f + 0.5f, -projPos.y * 0.5f + 0.5f  );\n"
-
-        // light calculations
-        "   float3 lightDirection = lightPos - p;"
-        "   float3 l = normalize( lightDirection );\n"
-
-        // specular
-        "   float3 v = normalize( cameraPosition - p );\n"
-        "   float3 r = reflect( -v, n );\n"
-        "   float spec = pow( saturate( dot( l, r ) ), 40.0 );\n"        
-          
-        // shadow
-        "   float shadowMult = 1.0f;\n"
-        "   if( useShadows ) {\n"
-        "       float shadowDepth = tex2D( shadowSampler, projTexCoords ).r;\n"
-        "       if( projPos.z - 0.0005 > shadowDepth ) {\n"
-        "           shadowMult = 0.25f;\n"
-        "       };\n"
-        "   };\n"
-
-        // spot texture
-        "   float4 spotTextureTexel = float4( 1, 1, 1, 1 );\n"
-
-        "   if( useSpotTexture )\n"
-        "     spotTextureTexel = tex2D( spotSampler, projTexCoords );\n "
-
-        // diffuse
-        "   float diff = saturate(dot( l, n ));\n"
-        "   float falloff = lightRange / pow( dot( lightDirection, lightDirection ), 2.3 );\n"
-
-        // spot
-        "   float spotAngleCos = dot( direction, l ) ;\n"
-        "   float spot = smoothstep( outerAngle - 0.08, 1.0f , spotAngleCos );\n"
-        "   float o = brightness * shadowMult * clamp( falloff * spot, 0.0, 2.0 ) * (  diff + spec  );\n"
-
-        "   return spotTextureTexel * float4( lightColor.x * diffuseTexel.x * o, lightColor.y * diffuseTexel.y * o, lightColor.z * diffuseTexel.z * o, 1.0f );\n"
-        "};\n";
-
-
-    pixelShader = new PixelShader( spotSource );
-
-    hLightPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightPos" );
-    hLightRange = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightRange" );
-    hCameraPos = pixelShader->GetConstantTable()->GetConstantByName( 0, "cameraPosition" );
-    hInvViewProj = pixelShader->GetConstantTable()->GetConstantByName( 0, "invViewProj" );
-    hLightColor = pixelShader->GetConstantTable()->GetConstantByName( 0, "lightColor" );
-    hInnerAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "innerAngle" );
-    hOuterAngle = pixelShader->GetConstantTable()->GetConstantByName( 0, "outerAngle" );
-    hDirection = pixelShader->GetConstantTable()->GetConstantByName( 0, "direction" );
-    hUseSpotTexture = pixelShader->GetConstantTable()->GetConstantByName( 0, "useSpotTexture" );
-    hSpotViewProjMatrix = pixelShader->GetConstantTable()->GetConstantByName( 0, "spotViewProjMatrix" );
-    hUseShadows = pixelShader->GetConstantTable()->GetConstantByName( 0, "useShadows" );
-	hBrightness = pixelShader->GetConstantTable()->GetConstantByName( 0, "brightness" );
+    pixelShader = new PixelShader( "data/shaders/deferredSpotLight.pso", true );
 }
 
 void DeferredRenderer::Pass2SpotLight::BindShader( ) {
@@ -386,30 +159,43 @@ void DeferredRenderer::Pass2SpotLight::BindShader( ) {
 void DeferredRenderer::Pass2SpotLight::Bind( D3DXMATRIX & invViewProj ) {
     BindShader();
 
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hCameraPos, g_camera->globalTransform.getOrigin().m_floats, 3 );
-    pixelShader->GetConstantTable()->SetMatrix( g_device, hInvViewProj, &invViewProj );
+	g_renderer->SetPixelShaderFloat3( 13, g_camera->globalTransform.getOrigin().m_floats );
+	g_renderer->SetPixelShaderMatrix( 0, &invViewProj );
 }
 
 void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     btVector3 direction = ( lit->globalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightPos, lit->GetRealPosition().elements, 3 );
-    pixelShader->GetConstantTable()->SetFloat( g_device, hLightRange, powf( lit->GetRadius(), 4 ));
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hLightColor, lit->GetColor().elements, 3 );
-    pixelShader->GetConstantTable()->SetFloat( g_device, hInnerAngle, lit->GetCosHalfInnerAngle() );
-    pixelShader->GetConstantTable()->SetFloat( g_device, hOuterAngle, lit->GetCosHalfOuterAngle() );
-    pixelShader->GetConstantTable()->SetFloatArray( g_device, hDirection, direction.m_floats, 3 );
-    pixelShader->GetConstantTable()->SetBool( g_device, hUseShadows, g_useSpotLightShadows );
-	pixelShader->GetConstantTable()->SetFloat( g_device, hBrightness, g_hdrEnabled ? lit->brightness : 1.0f );
+	// position
+	g_renderer->SetPixelShaderFloat3( 10, lit->GetRealPosition().elements );
+	// range
+	g_renderer->SetPixelShaderFloat( 14, powf( lit->GetRadius(), 4 ));
+	// color
+	g_renderer->SetPixelShaderFloat3( 11, lit->GetColor().elements );
+	// inner angle
+	g_renderer->SetPixelShaderFloat( 15, lit->GetCosHalfInnerAngle() );
+	// outer angle
+	g_renderer->SetPixelShaderFloat( 16, lit->GetCosHalfOuterAngle() );
+	// direction
+	g_renderer->SetPixelShaderFloat3( 12, direction.m_floats );
+	// use shadows
+	g_renderer->SetPixelShaderBool( 1, g_useSpotLightShadows ? TRUE : FALSE );
+	// brightness
+	g_renderer->SetPixelShaderFloat( 17, (g_hdrEnabled ? lit->brightness : 1.0f) );	
     if( lit->spotTexture || g_useSpotLightShadows ) {
         lit->BuildSpotProjectionMatrixAndFrustum();
         if( lit->spotTexture ) {
             lit->spotTexture->Bind( 3 );
-            pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 1 );
+			// use spot texture
+            g_renderer->SetPixelShaderBool( 0, TRUE );
         }
-        pixelShader->GetConstantTable()->SetMatrix( g_device, hSpotViewProjMatrix, &lit->spotViewProjectionMatrix );        
+		// spot view matrix
+        g_renderer->SetPixelShaderMatrix( 5, &lit->spotViewProjectionMatrix );        
     } else {
         g_device->SetTexture( 3, nullptr );
-        pixelShader->GetConstantTable()->SetInt( g_device, hUseSpotTexture, 0 );
+		// use spot texture
+		if( !lit->spotTexture ) {
+			g_renderer->SetPixelShaderBool( 0, FALSE );
+		}
     }
 }
 
@@ -417,40 +203,19 @@ DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
     delete pixelShader;
 }
 
-
-
 //////////////////////////////////////////////////////////////////////////
 // Bounding volume rendering shader
 //
 // Bounding volume for a light can be a sphere for point light
 // a oriented cone for a spot light
 DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader() {
-    string vertexSourcePassOne =
-        "float4x4 worldViewProj;\n"
-
-        "float4 main( float4 position : POSITION ) : POSITION\n"
-        "{\n"
-        "  return mul(position, worldViewProj);\n"
-        "};\n";
-
-    vs = new VertexShader( vertexSourcePassOne );
-
-    vWVP = vs->GetConstantTable()->GetConstantByName( 0, "worldViewProj" );
-
-    string pixelSourcePassOne =
-        "float4 main( ) : COLOR0\n"
-        "{\n"
-        "   return float4( 1.0f, 1.0f, 1.0f, 1.0f );\n"
-        "};\n";
-
-    ps = new PixelShader( pixelSourcePassOne );
-
+    vs = new VertexShader( "data/shaders/boundingVolume.vso", true );
+    ps = new PixelShader( "data/shaders/boundingVolume.pso", true );
     D3DVERTEXELEMENT9 vd[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
         { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
         D3DDECL_END()
     };
-
     g_device->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
 }
 
@@ -468,7 +233,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::Bind() {
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX & wvp ) {
-    vs->GetConstantTable()->SetMatrix( g_device, vWVP, &wvp );
+    g_renderer->SetVertexShaderMatrix( 0, &wvp );
 }
 
 void DeferredRenderer::RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition ) {

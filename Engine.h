@@ -8,15 +8,15 @@ using namespace std;
 
 #ifdef _EXPORTS
 #ifndef API
-#define API _declspec( dllexport )
+#define RUAPI _declspec( dllexport )
 #endif
 #else
 #ifndef API
-#define API
+#define RUAPI
 #endif
 #endif
 
-class API Vector3 {
+class RUAPI ruVector3 {
 public:
 	union {
 		struct {
@@ -29,76 +29,76 @@ public:
 	};
 
 
-	Vector3( );
-	Vector3( float x, float y, float z );
-	Vector3( const Vector3 & v );
-	Vector3( float * v );
-	Vector3 operator + ( const Vector3 & v ) const;
-	Vector3 operator - ( const Vector3 & v ) const;
-	Vector3 operator * ( const Vector3 & v ) const;
-	Vector3 operator * ( const float & f ) const;
-	Vector3 operator / ( const Vector3 & v ) const;
-	Vector3 operator / ( const float & f ) const;
-	void operator *= ( const Vector3 & v );
-	void operator /= ( const Vector3 & v );
-	void operator += ( const Vector3 & v );
-	void operator -= ( const Vector3 & v );
-	void operator = ( const Vector3 & v );
-	bool operator == ( const Vector3 & v );
+	ruVector3( );
+	ruVector3( float x, float y, float z );
+	ruVector3( const ruVector3 & v );
+	ruVector3( float * v );
+	ruVector3 operator + ( const ruVector3 & v ) const;
+	ruVector3 operator - ( const ruVector3 & v ) const;
+	ruVector3 operator * ( const ruVector3 & v ) const;
+	ruVector3 operator * ( const float & f ) const;
+	ruVector3 operator / ( const ruVector3 & v ) const;
+	ruVector3 operator / ( const float & f ) const;
+	void operator *= ( const ruVector3 & v );
+	void operator /= ( const ruVector3 & v );
+	void operator += ( const ruVector3 & v );
+	void operator -= ( const ruVector3 & v );
+	void operator = ( const ruVector3 & v );
+	bool operator == ( const ruVector3 & v );
 	float Length( ) const;
 	float Length2( ) const;
-	Vector3 Normalize( );
-	Vector3 Normalized() const;
-	Vector3 Cross( const Vector3 & v ) const;
-	float Dot( const Vector3 & v ) const;
-	float Angle( const Vector3 & v );
-	Vector3 Rotate( const Vector3 & axis, float angle );
-	Vector3 Lerp( const Vector3 & v, float t ) const;
+	ruVector3 Normalize( );
+	ruVector3 Normalized() const;
+	ruVector3 Cross( const ruVector3 & v ) const;
+	float Dot( const ruVector3 & v ) const;
+	float Angle( const ruVector3 & v );
+	ruVector3 Rotate( const ruVector3 & axis, float angle );
+	ruVector3 Lerp( const ruVector3 & v, float t ) const;
 };
 
-static inline Vector3 operator * ( const float & f, const Vector3 & v ) {
-	return Vector3( v.x * f, v.y * f, v.z * f );
+static inline ruVector3 operator * ( const float & f, const ruVector3 & v ) {
+	return ruVector3( v.x * f, v.y * f, v.z * f );
 }
 
-static inline Vector3 operator - ( const Vector3 & v ) {
-	return Vector3( -v.x, -v.y, -v.z );
+static inline ruVector3 operator - ( const ruVector3 & v ) {
+	return ruVector3( -v.x, -v.y, -v.z );
 }
 
 static inline float Lerp( const float & value, const float & from, const float & to, const float & t ) {
 	return from + ( to - from ) * t;
 }
 
-struct Vector2 {
+struct ruVector2 {
 public:
 	float x;
 	float y;
 
-	Vector2( ) {
+	ruVector2( ) {
 		x = 0;
 		y = 0;
 	};
 
-	Vector2( float x, float y ) {
+	ruVector2( float x, float y ) {
 		this->x = x;
 		this->y = y;
 	};
 };
 
-class API Quaternion {
+class RUAPI ruQuaternion {
 public:
 	float x;
 	float y;
 	float z;
 	float w;
 
-	Quaternion( );
-	Quaternion( float x, float y, float z, float w );
-	Quaternion( float pitch, float yaw, float roll );
-	Quaternion( const Vector3 & axis, float angle );
+	ruQuaternion( );
+	ruQuaternion( float x, float y, float z, float w );
+	ruQuaternion( float pitch, float yaw, float roll );
+	ruQuaternion( const ruVector3 & axis, float angle );
 };
 
-static inline Quaternion operator *  (const Quaternion& q1, const Quaternion & q2 ) {
-	return Quaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2 ) {
+	return ruQuaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
 		q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
 		q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
 		q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
@@ -106,44 +106,44 @@ static inline Quaternion operator *  (const Quaternion& q1, const Quaternion & q
 
 #define BODY_MAX_CONTACTS ( 4 )
 
-struct Contact {
-	Vector3 normal;
-	Vector3 position;
+struct ruContact {
+	ruVector3 normal;
+	ruVector3 position;
 	float impulse;
 
-	Contact() {
+	ruContact() {
 		impulse = 0;
 	}
 };
 
-class GUIState {
+class ruGUIState {
 public:
 	bool mouseInside;
 	bool mouseLeftClicked;
 	bool mouseRightClicked;
 
-	GUIState() {
+	ruGUIState() {
 		mouseInside = false;
 		mouseLeftClicked = false;
 		mouseRightClicked = false;
 	}
 };
 
-struct LinePoint {
-	Vector3 position;
+struct ruLinePoint {
+	ruVector3 position;
 	int color;
 
-	LinePoint( ) {
-		position = Vector3( 0, 0, 0 );
+	ruLinePoint( ) {
+		position = ruVector3( 0, 0, 0 );
 		color = 0xFFFFFFFF;
 	}
 
-	LinePoint( Vector3 pos, int clr ) {
+	ruLinePoint( ruVector3 pos, int clr ) {
 		position = pos;
 		color = clr;
 	};
 
-	LinePoint( Vector3 pos, Vector3 clr ) {
+	ruLinePoint( ruVector3 pos, ruVector3 clr ) {
 		position = pos;
 
 		int r = (int)clr.x;
@@ -159,46 +159,46 @@ enum {
 	LT_SPOT,
 };
 
-class API RutheniumHandle {
+class RUAPI ruRutheniumHandle {
 public:
 	void * pointer;
 
-	explicit RutheniumHandle();
-	virtual ~RutheniumHandle();
+	explicit ruRutheniumHandle();
+	virtual ~ruRutheniumHandle();
 
 	virtual bool IsValid();
 	virtual void Invalidate();
 };
 
-class API NodeHandle : public RutheniumHandle {
+class RUAPI ruNodeHandle : public ruRutheniumHandle {
 public:
-	bool operator == ( const NodeHandle & node );
+	bool operator == ( const ruNodeHandle & node );
 };
 
-class API FontHandle : public RutheniumHandle {
+class RUAPI ruFontHandle : public ruRutheniumHandle {
 public:
-	bool operator == ( const FontHandle & node );
+	bool operator == ( const ruFontHandle & node );
 };
 
-class API TextureHandle : public RutheniumHandle {
+class RUAPI ruTextureHandle : public ruRutheniumHandle {
 public:
-	static TextureHandle Empty();
-	bool operator == ( const TextureHandle & node );
+	static ruTextureHandle Empty();
+	bool operator == ( const ruTextureHandle & node );
 };
 
-class API CubeTextureHandle : public RutheniumHandle {
+class RUAPI ruCubeTextureHandle : public ruRutheniumHandle {
 public:
-	static CubeTextureHandle Empty();
-	bool operator == ( const CubeTextureHandle & node );
+	static ruCubeTextureHandle Empty();
+	bool operator == ( const ruCubeTextureHandle & node );
 };
 
-class API SoundHandle : public RutheniumHandle {
+class RUAPI ruSoundHandle : public ruRutheniumHandle {
 public:
 	int pfHandle;
-	explicit SoundHandle();
-	virtual ~SoundHandle();
+	explicit ruSoundHandle();
+	virtual ~ruSoundHandle();
 
-	bool operator == ( const SoundHandle & node );
+	bool operator == ( const ruSoundHandle & node );
 	virtual bool IsValid();
 	virtual void Invalidate();
 };
@@ -206,176 +206,177 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////
 // Renderer functions
 ////////////////////////////////////////////////////////////////////////////////////
-API int CreateRenderer( int width, int height, int fullscreen );
-API int FreeRenderer( );
-API int RenderWorld( float dt );
-API int GetResolutionWidth( );
-API int GetResolutionHeight( );
-API void HideCursor( );
-API void ShowCursor( );
-API void SetCursorSettings( TextureHandle texture, int w, int h );
-API int DIPs( );
-API int TextureUsedPerFrame( );
-API void DebugDrawEnabled( int state );
-API void SetAmbientColor( Vector3 color );
-API int GetAvailableTextureMemory();
-API void EnableShadows( bool state );
+RUAPI int ruCreateRenderer( int width, int height, int fullscreen, char vSync );
+RUAPI int ruFreeRenderer( );
+RUAPI int ruRenderWorld( float dt );
+RUAPI int ruGetResolutionWidth( );
+RUAPI int ruGetResolutionHeight( );
+RUAPI void ruHideCursor( );
+RUAPI void ruShowCursor( );
+RUAPI void ruSetCursorSettings( ruTextureHandle texture, int w, int h );
+RUAPI int ruDIPs( );
+RUAPI int ruTextureUsedPerFrame( );
+RUAPI void ruDebugDrawEnabled( int state );
+RUAPI void ruSetAmbientColor( ruVector3 color );
+RUAPI int ruGetAvailableTextureMemory();
+RUAPI void ruEnableShadows( bool state );
+RUAPI void ruSetRenderQuality( char renderQuality );
 
 // FXAA
-API void EnableFXAA( );
-API void DisableFXAA( );
-API bool FXAAEnabled();
+RUAPI void ruEnableFXAA( );
+RUAPI void ruDisableFXAA( );
+RUAPI bool ruFXAAEnabled();
 
 // HDR
-API void SetHDREnabled( bool state );
-API bool IsHDREnabled( );
-API void SetHDRExposure( float exposure );
-API float GetHDRExposure( );
+RUAPI void ruSetHDREnabled( bool state );
+RUAPI bool ruIsHDREnabled( );
+RUAPI void ruSetHDRExposure( float exposure );
+RUAPI float ruGetHDRExposure( );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Shadow functions
 ////////////////////////////////////////////////////////////////////////////////////
-API void SetPointLightShadowMapSize( int size );
-API void SetSpotLightShadowMapSize( int size );
-API void EnablePointLightShadows( bool state );
-API void EnableSpotLightShadows( bool state );
-API bool IsPointLightShadowsEnabled();
-API bool IsSpotLightShadowsEnabled();
+RUAPI void ruSetPointLightShadowMapSize( int size );
+RUAPI void ruSetSpotLightShadowMapSize( int size );
+RUAPI void ruEnablePointLightShadows( bool state );
+RUAPI void ruEnableSpotLightShadows( bool state );
+RUAPI bool ruIsPointLightShadowsEnabled();
+RUAPI bool ruIsSpotLightShadowsEnabled();
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture functions
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture sampling
-namespace TextureFilter {
+namespace ruTextureFilter {
 	enum {
 		Nearest,
 		Linear,
 		Anisotropic
 	};
 };
-API void SetTextureFiltering( const int & filter, int anisotropicQuality );
-API int GetMaxAnisotropy();
-API TextureHandle GetTexture( const char * file );
-API CubeTextureHandle GetCubeTexture( const char * file );
+RUAPI void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality );
+RUAPI int ruGetRendererMaxAnisotropy();
+RUAPI ruTextureHandle ruGetTexture( const char * file );
+RUAPI ruCubeTextureHandle ruGetCubeTexture( const char * file );
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
 ////////////////////////////////////////////////////////////////////////////////////
-API NodeHandle CreateCamera( float fov );
-API void SetCamera( NodeHandle node );
-API int SetSkybox( NodeHandle node, const char * path );
-API void SetFOV( NodeHandle camera, float fov );
+RUAPI ruNodeHandle ruCreateCamera( float fov );
+RUAPI void ruSetActiveCamera( ruNodeHandle node );
+RUAPI int ruSetCameraSkybox( ruNodeHandle node, const char * path );
+RUAPI void ruSetCameraFOV( ruNodeHandle camera, float fov );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Sounds functions
 ////////////////////////////////////////////////////////////////////////////////////
-API SoundHandle CreateSound2D( const char * file );
-API SoundHandle CreateSound3D( const char * file );
-API SoundHandle CreateMusic( const char * file );
-API void AttachSound( SoundHandle sound, NodeHandle node );
-API void PlaySoundSource( SoundHandle sound, int oneshot = 1 );
-API void PauseSoundSource( SoundHandle sound );
-API void SetVolume( SoundHandle sound, float vol );
-API void SetSoundPosition( SoundHandle sound, Vector3 pos );
-API void SetSoundReferenceDistance( SoundHandle sound, float rd );
-API void SetRolloffFactor( SoundHandle sound, float rolloffDistance );
-API void SetMaxDistance( SoundHandle sound, float maxDistance );
-API int SoundPlaying( SoundHandle sound );
-API void FreeSoundSource( SoundHandle sound );
-API void SetReverb( int reverb );
-API void SetMasterVolume( float volume );
-API float GetMasterVolume();
-API bool IsNodeHasBody( NodeHandle node );
-API void SetPitch( SoundHandle sound, float pitch );
-API bool IsSoundPaused( SoundHandle sound );
+RUAPI ruSoundHandle ruLoadSound2D( const char * file );
+RUAPI ruSoundHandle ruLoadSound3D( const char * file );
+RUAPI ruSoundHandle ruLoadMusic( const char * file );
+RUAPI void ruAttachSound( ruSoundHandle sound, ruNodeHandle node );
+RUAPI void ruPlaySound( ruSoundHandle sound, int oneshot = 1 );
+RUAPI void ruPauseSound( ruSoundHandle sound );
+RUAPI void ruSetSoundVolume( ruSoundHandle sound, float vol );
+RUAPI void ruSetSoundPosition( ruSoundHandle sound, ruVector3 pos );
+RUAPI void ruSetSoundReferenceDistance( ruSoundHandle sound, float rd );
+RUAPI void ruSetRolloffFactor( ruSoundHandle sound, float rolloffDistance );
+RUAPI void ruSetSoundMaxDistance( ruSoundHandle sound, float maxDistance );
+RUAPI int ruIsSoundPlaying( ruSoundHandle sound );
+RUAPI void ruFreeSound( ruSoundHandle sound );
+RUAPI void ruSetAudioReverb( int reverb );
+RUAPI void ruSetMasterVolume( float volume );
+RUAPI float ruGetMasterVolume();
+RUAPI bool ruIsNodeHasBody( ruNodeHandle node );
+RUAPI void ruSetSoundsPitch( ruSoundHandle sound, float pitch );
+RUAPI bool ruIsSoundPaused( ruSoundHandle sound );
 ////////////////////////////////////////////////////////////////////////////////////
 // Light functions
 ////////////////////////////////////////////////////////////////////////////////////
-API NodeHandle CreateLight( int type = LT_POINT );
-API void SetLightRange( NodeHandle node, float rad );
-API float GetLightRange( NodeHandle node );
-API void SetLightColor( NodeHandle node, Vector3 clr );
-API void SetConeAngles( NodeHandle node, float innerAngle, float outerAngle );
-API void SetSpotTexture( NodeHandle node, TextureHandle texture );
-API int GetWorldSpotLightCount();
-API NodeHandle GetWorldSpotLight( int n );
-API int GetWorldPointLightCount();
-API NodeHandle GetWorldPointLight( int n );
-API void SetLightFlare( NodeHandle node, TextureHandle flareTexture );
-API void SetLightDefaultFlare( TextureHandle defaultFlareTexture );
-API void SetSpotDefaultTexture( TextureHandle defaultSpotTexture );
-API void SetPointTexture( NodeHandle node, CubeTextureHandle cubeTexture );
-API void SetPointDefaultTexture( CubeTextureHandle defaultPointTexture );
-API void SetLightFloatingLimits( NodeHandle node, Vector3 floatMin, Vector3 floatMax );
-API void SetLightFloatingEnabled( NodeHandle node, bool state );
-API bool IsLightFloatingEnabled( NodeHandle node );
+RUAPI ruNodeHandle ruCreateLight( int type = LT_POINT );
+RUAPI void ruSetLightRange( ruNodeHandle node, float rad );
+RUAPI float ruGetLightRange( ruNodeHandle node );
+RUAPI void ruSetLightColor( ruNodeHandle node, ruVector3 clr );
+RUAPI void ruSetConeAngles( ruNodeHandle node, float innerAngle, float outerAngle );
+RUAPI void ruSetLightSpotTexture( ruNodeHandle node, ruTextureHandle texture );
+RUAPI int ruGetWorldSpotLightCount();
+RUAPI ruNodeHandle ruGetWorldSpotLight( int n );
+RUAPI int ruGetWorldPointLightCount();
+RUAPI ruNodeHandle ruGetWorldPointLight( int n );
+RUAPI void ruSetLightFlare( ruNodeHandle node, ruTextureHandle flareTexture );
+RUAPI void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture );
+RUAPI void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture );
+RUAPI void ruSetLightPointTexture( ruNodeHandle node, ruCubeTextureHandle cubeTexture );
+RUAPI void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture );
+RUAPI void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVector3 floatMax );
+RUAPI void ruSetLightFloatingEnabled( ruNodeHandle node, bool state );
+RUAPI bool ruIsLightFloatingEnabled( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////
-API void PausePhysics();
-API void ResumePhysics();
-API int GetContactCount( NodeHandle node );
-API Contact GetContact( NodeHandle node, int num );
-API void Freeze( NodeHandle node );
-API void Unfreeze( NodeHandle node );
-API void SetConvexBody( NodeHandle node );
-API void SetCapsuleBody( NodeHandle node, float height, float radius );
-API void SetAngularFactor( NodeHandle node, Vector3 fact );
-API void SetTrimeshBody( NodeHandle node );
-API void Move( NodeHandle node, Vector3 speed );
-API void SetFriction( NodeHandle node, float friction );
-API void SetAnisotropicFriction( NodeHandle node, Vector3 aniso );
-API float GetMass( NodeHandle node );
-API int IsNodeFrozen( NodeHandle node );
-API void SetLinearFactor( NodeHandle node, Vector3 lin );
-API void SetVelocity( NodeHandle node, Vector3 velocity );
-API void SetAngularVelocity( NodeHandle node, Vector3 velocity );
-API NodeHandle RayPick( int x, int y, Vector3 * outPickPoint = 0 );
-API NodeHandle RayTest( Vector3 begin, Vector3 end, Vector3 * outPickPoint = 0 );
-API Vector3 GetEulerAngles( NodeHandle node );
-API Vector3 GetAbsoluteLookVector( NodeHandle node );
+RUAPI void ruPausePhysics();
+RUAPI void ruResumePhysics();
+RUAPI int ruGetContactCount( ruNodeHandle node );
+RUAPI ruContact ruGetContact( ruNodeHandle node, int num );
+RUAPI void ruFreeze( ruNodeHandle node );
+RUAPI void ruUnfreeze( ruNodeHandle node );
+RUAPI void ruSetConvexBody( ruNodeHandle node );
+RUAPI void ruSetCapsuleBody( ruNodeHandle node, float height, float radius );
+RUAPI void ruSetAngularFactor( ruNodeHandle node, ruVector3 fact );
+RUAPI void ruSetTrimeshBody( ruNodeHandle node );
+RUAPI void ruMoveNode( ruNodeHandle node, ruVector3 speed );
+RUAPI void ruSetNodeFriction( ruNodeHandle node, float friction );
+RUAPI void ruSetNodeAnisotropicFriction( ruNodeHandle node, ruVector3 aniso );
+RUAPI float ruGetNodeMass( ruNodeHandle node );
+RUAPI int ruIsNodeFrozen( ruNodeHandle node );
+RUAPI void ruSetNodeLinearFactor( ruNodeHandle node, ruVector3 lin );
+RUAPI void ruSetNodeVelocity( ruNodeHandle node, ruVector3 velocity );
+RUAPI void ruSetNodeAngularVelocity( ruNodeHandle node, ruVector3 velocity );
+RUAPI ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint = 0 );
+RUAPI ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
+RUAPI ruVector3 ruGetNodeEulerAngles( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions
 ////////////////////////////////////////////////////////////////////////////////////
 // Creation
-API NodeHandle CreateSceneNode( );
-API NodeHandle LoadScene( const char * file );
-API NodeHandle FindByName( const char * name );
-API NodeHandle FindInObjectByName( NodeHandle node, const char * name );
-API int GetWorldObjectsCount();
-API NodeHandle GetWorldObject( int i );
+RUAPI ruNodeHandle ruCreateSceneNode( );
+RUAPI ruNodeHandle ruLoadScene( const char * file );
+RUAPI ruNodeHandle ruFindByName( const char * name );
+RUAPI ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const char * name );
+RUAPI int ruGetWorldObjectsCount();
+RUAPI ruNodeHandle ruGetWorldObject( int i );
 // Common
-API string GetProperty( NodeHandle node, string propName );
-API void HideNode( NodeHandle node );
-API void ShowNode( NodeHandle node );
-API bool IsNodeVisible( NodeHandle node );
-API void FreeSceneNode( NodeHandle node );
-API const char * GetName( NodeHandle node );
-API void SetDepthHack( NodeHandle node, float order );
-API void Attach( NodeHandle node1, NodeHandle node2 );
-API void Detach( NodeHandle node );
-API void SetDamping( NodeHandle node, float linearDamping, float angularDamping );
-API void SetPosition( NodeHandle node, Vector3 position );
-API void SetRotation( NodeHandle node, Quaternion rotation );
-API void SetGravity( NodeHandle node, Vector3 gravity );
-API Vector3 GetLookVector( NodeHandle node );
-API Vector3 GetRightVector( NodeHandle node );
-API Vector3 GetUpVector( NodeHandle node );
-API Vector3 GetPosition( NodeHandle node );
-API void SetMass( NodeHandle node, float mass );
-API Quaternion GetLocalRotation( NodeHandle node );
-API Vector3 GetLocalPosition( NodeHandle node );
-API void SetLocalPosition( NodeHandle node, Vector3 pos );
-API void SetLocalRotation( NodeHandle node, Quaternion rot );
-API void SetName( NodeHandle node, const char * name );
-API Vector3 GetAABBMin( NodeHandle node );
-API Vector3 GetAABBMax( NodeHandle node );
-API int IsNodeInside( NodeHandle node1, NodeHandle node2 );
-API NodeHandle GetChild( NodeHandle node, int i );
-API int GetCountChildren( NodeHandle node );
-API bool IsNodeInFrustum( NodeHandle node );
-API void SetAlbedo( NodeHandle node, float albedo );
-API bool IsLightViewPoint( NodeHandle node, Vector3 point );
+RUAPI string ruGetProperty( ruNodeHandle node, string propName );
+RUAPI void ruHideNode( ruNodeHandle node );
+RUAPI void ruShowNode( ruNodeHandle node );
+RUAPI bool ruIsNodeVisible( ruNodeHandle node );
+RUAPI void ruFreeSceneNode( ruNodeHandle node );
+RUAPI const char * ruGetNodeName( ruNodeHandle node );
+RUAPI void ruSetNodeDepthHack( ruNodeHandle node, float order );
+RUAPI void ruAttachNode( ruNodeHandle node1, ruNodeHandle node2 );
+RUAPI void ruDetachNode( ruNodeHandle node );
+RUAPI void ruSetNodeDamping( ruNodeHandle node, float linearDamping, float angularDamping );
+RUAPI void ruSetNodePosition( ruNodeHandle node, ruVector3 position );
+RUAPI void ruSetNodeRotation( ruNodeHandle node, ruQuaternion rotation );
+RUAPI void ruSetNodeGravity( ruNodeHandle node, ruVector3 gravity );
+RUAPI ruVector3 ruGetNodeLookVector( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodeRightVector( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodeUpVector( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodePosition( ruNodeHandle node );
+RUAPI void ruSetNodeMass( ruNodeHandle node, float mass );
+RUAPI ruQuaternion ruGetNodeLocalRotation( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodeLocalPosition( ruNodeHandle node );
+RUAPI void ruSetNodeLocalPosition( ruNodeHandle node, ruVector3 pos );
+RUAPI void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot );
+RUAPI void ruSetNodeName( ruNodeHandle node, const char * name );
+RUAPI ruVector3 ruGetNodeAABBMin( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodeAABBMax( ruNodeHandle node );
+RUAPI int ruIsNodeInsideNode( ruNodeHandle node1, ruNodeHandle node2 );
+RUAPI ruNodeHandle ruGetNodeChild( ruNodeHandle node, int i );
+RUAPI int ruGetNodeCountChildren( ruNodeHandle node );
+RUAPI bool ruIsNodeInFrustum( ruNodeHandle node );
+RUAPI void ruSetNodeAlbedo( ruNodeHandle node, float albedo );
+RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point );
 // Octree manipulation
 // Note, that nodes with octree's optimization can't be moved or modified, so
 // it can be used for large static geometry, like game levels
@@ -385,11 +386,11 @@ API bool IsLightViewPoint( NodeHandle node, Vector3 point );
 // Octree can't be modified. So if you want set another split criteria
 // you must call CreateOctree, instead using combination of DeleteOctree and
 // CreateOctree
-API void CreateOctree( NodeHandle node, int splitCriteria = 45 );
-API void DeleteOctree( NodeHandle node );
+RUAPI void ruCreateOctree( ruNodeHandle node, int splitCriteria = 45 );
+RUAPI void ruDeleteOctree( ruNodeHandle node );
 
 // Animation
-class API Animation {
+class RUAPI ruAnimation {
 private:
 	friend class SceneNode;
 	int beginFrame;
@@ -400,8 +401,8 @@ private:
 public:	
 	float timeSeconds;
 	bool looped;
-	explicit Animation();
-	explicit Animation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
+	explicit ruAnimation();
+	explicit ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
 	void SetFrameInterval( int begin, int end );
 	void SetCurrentFrame( int frame );
 	int GetCurrentFrame() {
@@ -419,37 +420,37 @@ public:
 	void Update( );
 };
 
-API int IsAnimationEnabled( NodeHandle node );
-API void SetAnimationEnabled( NodeHandle node, bool state, bool dontAffectChilds = false );
-API void SetAnimation( NodeHandle node, Animation * newAnim, bool dontAffectChilds = false );
-API int GetTotalAnimationFrameCount( NodeHandle node );
-API Animation * GetCurrentAnimation( NodeHandle node );
+RUAPI int ruIsAnimationEnabled( ruNodeHandle node );
+RUAPI void ruSetAnimationEnabled( ruNodeHandle node, bool state, bool dontAffectChilds = false );
+RUAPI void ruSetAnimation( ruNodeHandle node, ruAnimation * newAnim, bool dontAffectChilds = false );
+RUAPI int ruGetTotalAnimationFrameCount( ruNodeHandle node );
+RUAPI ruAnimation * ruGetCurrentAnimation( ruNodeHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Font functions
 ////////////////////////////////////////////////////////////////////////////////////
-API FontHandle CreateGUIFont( int size, const char * name, int italic, int underlined );
-API int GetTextWidth( const char * text, FontHandle font );
-API int GetTextHeight( const char * text, FontHandle font, int boxWidth );
+RUAPI ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined );
+RUAPI int ruGetTextWidth( const char * text, ruFontHandle font );
+RUAPI int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth );
 ////////////////////////////////////////////////////////////////////////////////////
 // GUI functions
 ////////////////////////////////////////////////////////////////////////////////////
-API void Draw3DLine( LinePoint begin, LinePoint end );
-API void DrawWireBox( LinePoint min, LinePoint max );
-API void DrawGUIRect( float x, float y, float w, float h, TextureHandle texture, Vector3 color = Vector3( 255, 255, 255 ), int alpha = 255 );
-API void DrawGUIText( const char * text, int x, int y, int w, int h, FontHandle font, Vector3 color, int textAlign, int alpha = 255 );
-API GUIState DrawGUIButton( int x, int y, int w, int h, TextureHandle texture, const char * text, FontHandle font, Vector3 color, int textAlign, int alpha = 255 );
+RUAPI void ruDraw3DLine( ruLinePoint begin, ruLinePoint end );
+RUAPI void ruDrawWireBox( ruLinePoint min, ruLinePoint max );
+RUAPI void ruDrawGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
+RUAPI void ruDrawGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+RUAPI ruGUIState ruDrawGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Time functions
 ////////////////////////////////////////////////////////////////////////////////////
-typedef int TimerHandle;
+typedef int ruTimerHandle;
 
-API TimerHandle CreateTimer( );
-API void RestartTimer( TimerHandle timer );
-API double GetElapsedTimeInSeconds( TimerHandle timer );
-API double GetElapsedTimeInMilliSeconds( TimerHandle timer );
-API double GetElapsedTimeInMicroSeconds( TimerHandle timer );
+RUAPI ruTimerHandle ruCreateTimer( );
+RUAPI void ruRestartTimer( ruTimerHandle timer );
+RUAPI double ruGetElapsedTimeInSeconds( ruTimerHandle timer );
+RUAPI double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer );
+RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Particle system functions
@@ -457,19 +458,19 @@ API double GetElapsedTimeInMicroSeconds( TimerHandle timer );
 #define PS_BOX ( 0 )
 #define PS_STREAM ( 1 )
 
-class ParticleSystemProperties {
+class ruParticleSystemProperties {
 public:
 	int type; // PS_BOX or PS_STREAM
 
-	Vector3 colorBegin;
-	Vector3 colorEnd;
+	ruVector3 colorBegin;
+	ruVector3 colorEnd;
 
-	Vector3 speedDeviationMin;
-	Vector3 speedDeviationMax;
+	ruVector3 speedDeviationMin;
+	ruVector3 speedDeviationMax;
 
 	// set these values, if type == PS_BOX
-	Vector3 boundingBoxMin;
-	Vector3 boundingBoxMax;
+	ruVector3 boundingBoxMin;
+	ruVector3 boundingBoxMax;
 
 	float particleThickness;
 	float boundingRadius; // set this if type == PS_STREAM
@@ -481,19 +482,19 @@ public:
 
 	bool enabled;
 
-	TextureHandle texture;
+	ruTextureHandle texture;
 
-	explicit ParticleSystemProperties() {
+	explicit ruParticleSystemProperties() {
 		type = PS_BOX;
 
-		colorBegin = Vector3( 0, 0, 0 );
-		colorEnd = Vector3( 255, 255, 255 );
+		colorBegin = ruVector3( 0, 0, 0 );
+		colorEnd = ruVector3( 255, 255, 255 );
 
-		speedDeviationMin = Vector3( -1, -1, -1 );
-		speedDeviationMax = Vector3( 1, 1, 1 );
+		speedDeviationMin = ruVector3( -1, -1, -1 );
+		speedDeviationMax = ruVector3( 1, 1, 1 );
 
-		boundingBoxMin = Vector3( 100, 100, 100 );
-		boundingBoxMax = Vector3( -100, -100, -100 );
+		boundingBoxMin = ruVector3( 100, 100, 100 );
+		boundingBoxMax = ruVector3( -100, -100, -100 );
 
 		particleThickness = 1.0f;
 		boundingRadius = 1.0f;
@@ -505,14 +506,14 @@ public:
 
 		enabled = true;
 
-		texture = TextureHandle::Empty();
+		texture = ruTextureHandle::Empty();
 	}
 };
 
-API NodeHandle CreateParticleSystem( int particleNum, ParticleSystemProperties creationProps );
-API int GetParticleSystemAliveParticles( NodeHandle ps );
-API void ResurrectDeadParticles( NodeHandle ps );
-API ParticleSystemProperties * GetParticleSystemProperties( NodeHandle ps );
+RUAPI ruNodeHandle ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps );
+RUAPI int ruGetParticleSystemAliveParticles( ruNodeHandle ps );
+RUAPI void ruResurrectDeadParticles( ruNodeHandle ps );
+RUAPI ruParticleSystemProperties * ruGetParticleSystemProperties( ruNodeHandle ps );
 ////////////////////////////////////////////////////////////////////////////////////
 // Input functions
 ////////////////////////////////////////////////////////////////////////////////////
@@ -671,20 +672,20 @@ enum {
 	MB_Wheel,
 };
 
-API void InputInit( void * window );
-API void InputDestroy( );
-API int	IsMouseDown( int button );
-API int	IsMouseHit( int button );
-API int	GetMouseX( );
-API int	GetMouseY( );
-API int	GetMouseWheel( );
-API int	GetMouseXSpeed( );
-API int	GetMouseYSpeed( );
-API int	GetMouseWheelSpeed	( );
-API int	IsKeyDown( int key );
-API int	IsKeyHit( int key );
-API int	IsKeyUp( int key );
-API void InputUpdate( );
+RUAPI void ruInputInit( void * window );
+RUAPI void ruInputDestroy( );
+RUAPI int	ruIsMouseDown( int button );
+RUAPI int	ruIsMouseHit( int button );
+RUAPI int	ruGetMouseX( );
+RUAPI int	ruGetMouseY( );
+RUAPI int	ruGetMouseWheel( );
+RUAPI int	ruGetMouseXSpeed( );
+RUAPI int	ruGetMouseYSpeed( );
+RUAPI int	ruGetMouseWheelSpeed	( );
+RUAPI int	ruIsKeyDown( int key );
+RUAPI int	ruIsKeyHit( int key );
+RUAPI int	ruIsKeyUp( int key );
+RUAPI void ruInputUpdate( );
 
 
 #endif

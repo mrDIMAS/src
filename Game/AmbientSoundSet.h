@@ -5,19 +5,19 @@
 
 class AmbientSoundSet {
 private:
-    vector< SoundHandle > sounds;
+    vector< ruSoundHandle > sounds;
 
     float timeToNextSoundSec;
 
     float timeMinSec;
     float timeMaxSec;
 
-    TimerHandle timer;
+    ruTimerHandle timer;
 public:
 
     AmbientSoundSet();
 
     void SetMinMax( float tMin, float tMax );
-    void AddSound( SoundHandle sound );
+    void AddSound( ruSoundHandle sound );
     void DoRandomPlaying();
 };

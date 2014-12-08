@@ -2,21 +2,21 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift( NodeHandle object, NodeHandle screen, NodeHandle src, NodeHandle dest, SoundHandle motorIS ) {
+Lift::Lift( ruNodeHandle object, ruNodeHandle screen, ruNodeHandle src, ruNodeHandle dest, ruSoundHandle motorIS ) {
     body = object;
     scr = screen;
     sourcePoint = src;
     destPoint = dest;
     target = sourcePoint;
     motorIdleSound = motorIS;
-    AttachSound( motorIdleSound, body );
+    ruAttachSound( motorIdleSound, body );
     arrived = 0;
 }
 
 void Lift::Update() {
-    Vector3 delta = GetPosition( target ) - GetPosition( body );
+    ruVector3 delta = ruGetNodePosition( target ) - ruGetNodePosition( body );
 
-    Vector3 speed =  delta.Normalized() * 1.2 * g_dt;
+    ruVector3 speed =  delta.Normalized() * 1.2 * g_dt;
 
     float dist2 = delta.Length2();
 
@@ -28,9 +28,9 @@ void Lift::Update() {
         dist2 = 1;
     }
 
-    SetVolume( motorIdleSound, dist2 );
+    ruSetSoundVolume( motorIdleSound, dist2 );
 
-    PlaySoundSource( motorIdleSound, 1 );
+    ruPlaySound( motorIdleSound, 1 );
 
     if( !arrived ) {
         float mul = 1;
@@ -41,13 +41,13 @@ void Lift::Update() {
             mul = dist2;
         }
 
-        Move( body, speed * mul );
+        ruMoveNode( body, speed * mul );
     }
 
     if( player->nearestPicked == scr ) {
-        DrawGUIText( Format( player->localization.GetString( "liftUpDown" ), GetKeyName( player->keyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+        ruDrawGUIText( Format( player->localization.GetString( "liftUpDown" ), GetKeyName( player->keyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
 		
-        if( IsKeyHit( player->keyUse )) {
+        if( ruIsKeyHit( player->keyUse )) {
             if( arrived ) {
                 if( target == sourcePoint ) {
                     target = destPoint;

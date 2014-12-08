@@ -1,20 +1,20 @@
 #include "Common.h"
 
-Quaternion::Quaternion( ) {
+ruQuaternion::ruQuaternion( ) {
     x = 0.0f;
     y = 0.0f;
     z = 0.0f;
     w = 1.0f;
 };
 
-Quaternion::Quaternion( float x, float y, float z, float w ) {
+ruQuaternion::ruQuaternion( float x, float y, float z, float w ) {
     this->x = x;
     this->y = y;
     this->z = z;
     this->w = w;
 };
 
-Quaternion::Quaternion( float pitch, float yaw, float roll ) {
+ruQuaternion::ruQuaternion( float pitch, float yaw, float roll ) {
     pitch *= DEG2RAD;
     yaw *= DEG2RAD;
     roll *= DEG2RAD;
@@ -34,7 +34,7 @@ Quaternion::Quaternion( float pitch, float yaw, float roll ) {
     w = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
 };
 
-Quaternion::Quaternion( const Vector3 & axis, float angle ) {
+ruQuaternion::ruQuaternion( const ruVector3 & axis, float angle ) {
     angle *= DEG2RAD;
 
     float d = axis.Length();

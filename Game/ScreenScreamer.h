@@ -4,9 +4,9 @@
 
 class ScreenScreamer {
 public:
-    SoundHandle sound;
+    ruSoundHandle sound;
     int periods;
-    TextureHandle tex;
+    ruTextureHandle tex;
     int nextPeriodFrames;
     int pauseFrames;
     ScreenScreamer();

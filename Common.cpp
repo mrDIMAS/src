@@ -144,12 +144,13 @@ void ParseFile( string fn, map<string,string> & values) {
 }
 
 void CheckDXErrorFatal( HRESULT errCode ) {
+	/*
 	if( FAILED( errCode )) {
 		string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
 		LogMessage( message );
 		MessageBoxA( 0, message.c_str(), "Fatal error", MB_OK | MB_ICONERROR );
 		exit( -1 );
-	}
+	}*/
 }
 
 void CreateLogFile() {

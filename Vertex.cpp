@@ -13,7 +13,7 @@ Vertex::Vertex( float x, float y, float z, float tx, float ty ) {
     texCoords.y = ty;
 }
 
-Vertex::Vertex( Vector3 & theCoords, Vector3 & theNormals, Vector2 & theTexCoords, Vector3 & theTangents ) {
+Vertex::Vertex( ruVector3 & theCoords, ruVector3 & theNormals, ruVector2 & theTexCoords, ruVector3 & theTangents ) {
     coords = theCoords;
     normals = theNormals;
     texCoords = theTexCoords;

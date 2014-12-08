@@ -8,9 +8,11 @@ private:
     ID3DXConstantTable * constants;
 public:
     VertexShader( string source );
+	VertexShader( string fileName, bool binary );
     ~VertexShader();
     ID3DXConstantTable * GetConstantTable();
     void Bind();
+
 };
 
 class PixelShader {
@@ -19,7 +21,9 @@ private:
     ID3DXConstantTable * constants;
 public:
     PixelShader( string source );
+	PixelShader( string fileName, bool binary );
     ~PixelShader();
     ID3DXConstantTable * GetConstantTable();
     void Bind();
+
 };

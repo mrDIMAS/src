@@ -3,7 +3,7 @@
 
 
 
-bool Frustum::IsAABBInside( const AABB & aabb, const Vector3 & aabbOffset )
+bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset )
 {
 	/* fus ro dah!!! 
 	for( int i = 0; i < 8; i++ ) {
@@ -23,7 +23,7 @@ bool Frustum::IsAABBInside( const AABB & aabb, const Vector3 & aabbOffset )
 	return false;
 }
 
-bool Frustum::IsPointInside( const Vector3 & point )
+bool Frustum::IsPointInside( const ruVector3 & point )
 {
 	for( int i = 0; i < 6; i++ ) {
 		D3DXVECTOR3 dxPoint = D3DXVECTOR3( point.x, point.y, point.z );

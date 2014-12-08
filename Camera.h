@@ -28,5 +28,5 @@ public:
     void Update();
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );
-    static Camera * CastHandle( NodeHandle handle );
+    static Camera * CastHandle( ruNodeHandle handle );
 };

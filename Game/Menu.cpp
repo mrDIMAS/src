@@ -14,7 +14,7 @@ bool g_continueGame = false;
 Menu::Menu( ) {
     loc.ParseFile( localizationPath + "menu.loc" );
 
-    scene = LoadScene( "data/maps/menu/menu.scene" );
+    scene = ruLoadScene( "data/maps/menu/menu.scene" );
 
     distBetweenButtons = 72;
     startPressed = false;
@@ -27,8 +27,6 @@ Menu::Menu( ) {
     exitingGame = false;
     returnToGameByEsc = false;
     autosaveNotify = false; // FIXED: set it to true when build release version
-    textFont = CreateGUIFont( 14, "data/fonts/font1.otf", false, false );
-    textBackgroundFont = CreateGUIFont( 18, "data/fonts/font1.otf", false, false );
 	loadSaveGameName = "";
 	loadFromSave = false;
     CreateCamera();
@@ -44,22 +42,22 @@ Menu::Menu( ) {
     canContinueGameFromLast = file.good();
     file.close();
 
-    for( int i = 0; i < GetWorldPointLightCount(); i++ ) {
-        SetLightFloatingEnabled( GetWorldPointLight( i ), true );
-        SetLightFloatingLimits( GetWorldPointLight( i ), Vector3( -.25, -.25, -.25 ), Vector3( .25, .25, .25 ) );
+    for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
+        ruSetLightFloatingEnabled( ruGetWorldPointLight( i ), true );
+        ruSetLightFloatingLimits( ruGetWorldPointLight( i ), ruVector3( -.25, -.25, -.25 ), ruVector3( .25, .25, .25 ) );
     }
 }
 
 void Menu::Show() {
     camera->MakeCurrent();
     camera->FadeIn();
-    ShowNode( scene );
+    ruShowNode( scene );
     if( currentLevel ) {
         currentLevel->Hide();
     }
     visible = true;
-    ShowCursor();
-    PausePhysics();
+    ruShowCursor();
+    ruPausePhysics();
 }
 
 void Menu::Hide( ) {
@@ -67,25 +65,25 @@ void Menu::Hide( ) {
         player->camera->MakeCurrent();
     }
     SetPlayerControls();
-    HideNode( scene );
+    ruHideNode( scene );
     if( currentLevel ) {
         currentLevel->Show();
     }
     visible = false;
     page = Page::Main;
     buttonsXOffset = 0;
-    HideCursor();
-    PauseSoundSource( music );
-    ResumePhysics();
+    ruHideCursor();
+    ruPauseSound( music );
+    ruResumePhysics();
 }
 
 void Menu::Update( ) {
-	SetAmbientColor( Vector3( 0, 0, 0 ));
+	ruSetAmbientColor( ruVector3( 0, 0, 0 ));
 
     if( visible ) {
         camera->Update();
 
-        if( IsKeyHit( KEY_Esc ) ) {
+        if( ruIsKeyHit( KEY_Esc ) ) {
             returnToGameByEsc = currentLevel != nullptr;
         }
 
@@ -131,44 +129,44 @@ void Menu::Update( ) {
         cameraAnimationOffset = cameraAnimationOffset.Lerp( cameraAnimationNewOffset, 0.0085f );
 
         if( ( cameraAnimationOffset - cameraAnimationNewOffset ).Length2() < 0.025 ) {
-            cameraAnimationNewOffset = Vector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
+            cameraAnimationNewOffset = ruVector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
         }
 
-        SetPosition( camera->cameraNode, cameraInitialPosition + cameraAnimationOffset );
+        ruSetNodePosition( camera->cameraNode, cameraInitialPosition + cameraAnimationOffset );
 
         int mainButtonsX = buttonsXOffset + 20;
         int startOffsetIfInGame = currentLevel ? 0.5 * distBetweenButtons : 0;
 
-        GUIState continueGame;
-        GUIState start;
-		GUIState saveGame;
-		GUIState loadGame;
-        GUIState options;
-        GUIState authors;
-        GUIState exit;
+        ruGUIState continueGame;
+        ruGUIState start;
+		ruGUIState saveGame;
+		ruGUIState loadGame;
+        ruGUIState options;
+        ruGUIState authors;
+        ruGUIState exit;
 
         if( !autosaveNotify ) {
 			int saveGamePosX = ( page == Page::SaveGame ) ? mainButtonsX + 20 : mainButtonsX;
 			int loadGamePosX = ( page == Page::LoadGame ) ? mainButtonsX + 20 : mainButtonsX;
 			int optionsPosX = ( page == Page::Options || page == Page::OptionsGraphics || page == Page::OptionsKeys || page == Page::OptionsCommon ) ? mainButtonsX + 20 : mainButtonsX;
             if( currentLevel || canContinueGameFromLast ) {
-                continueGame = DrawGUIButton( mainButtonsX, g_resH - 4.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+                continueGame = ruDrawGUIButton( mainButtonsX, g_resH - 4.0 * distBetweenButtons + startOffsetIfInGame, 128, 32, buttonImage, loc.GetString( "continueButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
             }
             if( !currentLevel ) {
-                start = DrawGUIButton( mainButtonsX, g_resH - 3.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+                start = ruDrawGUIButton( mainButtonsX, g_resH - 3.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "startButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
             }
-			saveGame = DrawGUIButton( saveGamePosX, g_resH - 3.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "saveButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-			loadGame = DrawGUIButton( loadGamePosX, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "loadButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            options = DrawGUIButton( optionsPosX, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            authors = DrawGUIButton( mainButtonsX, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            exit = DrawGUIButton( mainButtonsX, g_resH - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+			saveGame = ruDrawGUIButton( saveGamePosX, g_resH - 3.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "saveButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
+			loadGame = ruDrawGUIButton( loadGamePosX, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "loadButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
+            options = ruDrawGUIButton( optionsPosX, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "optionsButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
+            authors = ruDrawGUIButton( mainButtonsX, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "authorsButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
+            exit = ruDrawGUIButton( mainButtonsX, g_resH - 1.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "exitButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
         } else {
             int ntfX = 400;
             int ntfY = g_resH / 2 - 64;
             int ntfW = g_resW - 800;
-            DrawGUIRect( ntfX, ntfY, ntfW, 32, TextureHandle::Empty(), Vector3( 50, 0, 0 ), 200 );
-            DrawGUIText( loc.GetString( "autosaveNotify" ), ntfX, ntfY, ntfW , 32, textFont, Vector3( 200, 0, 0 ), 1 );
-            GUIState ok = DrawGUIButton( g_resW / 2 - 64, g_resH / 2 - 16, 128, 32, buttonImage, loc.GetString( "okButton" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            ruDrawGUIRect( ntfX, ntfY, ntfW, 32, ruTextureHandle::Empty(), ruVector3( 50, 0, 0 ), 200 );
+            ruDrawGUIText( loc.GetString( "autosaveNotify" ), ntfX, ntfY, ntfW , 32, gui->font, ruVector3( 200, 0, 0 ), 1 );
+            ruGUIState ok = ruDrawGUIButton( g_resW / 2 - 64, g_resH / 2 - 16, 128, 32, buttonImage, loc.GetString( "okButton" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
             if( ok.mouseLeftClicked ) {
                 autosaveNotify = false;
             }
@@ -179,14 +177,14 @@ void Menu::Update( ) {
             int h = 400;
             int x = ( g_resW - w ) / 2;
             int y = ( g_resH - h ) / 2;
-            DrawGUIRect( x, y, w, h, TextureHandle::Empty() );
-            DrawGUIText( loc.GetString( "authorsText" ), x + 50, y + 50, w - 100, h - 100, gui->font, Vector3( 255, 127, 127 ), 0 );
+            ruDrawGUIRect( x, y, w, h, ruTextureHandle::Empty() );
+            ruDrawGUIText( loc.GetString( "authorsText" ), x + 50, y + 50, w - 100, h - 100, gui->font, ruVector3( 255, 127, 127 ), 0 );
         }
 
         if( page == Page::Options ) { // options window
-            GUIState optionsCommon = DrawGUIButton( buttonsXOffset + 200, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "commonSettings" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            GUIState optionsKeys = DrawGUIButton( buttonsXOffset + 200, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "controls" ), gui->font, Vector3( 0, 255, 0 ), 1 );
-            GUIState optionsGraphics = DrawGUIButton( buttonsXOffset + 200, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "graphics" ), gui->font, Vector3( 0, 255, 0 ), 1 );
+            ruGUIState optionsCommon = ruDrawGUIButton( buttonsXOffset + 200, g_resH - 2.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "commonSettings" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
+            ruGUIState optionsKeys = ruDrawGUIButton( buttonsXOffset + 200, g_resH - 2.0 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "controls" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
+            ruGUIState optionsGraphics = ruDrawGUIButton( buttonsXOffset + 200, g_resH - 1.5 * distBetweenButtons, 128, 32, buttonImage, loc.GetString( "graphics" ), gui->font, ruVector3( 0, 255, 0 ), 1 );
 
             if( optionsCommon.mouseLeftClicked ) {
                 SetPage( Page::OptionsCommon );
@@ -215,15 +213,15 @@ void Menu::Update( ) {
             buttonWidth = 32;
 
             masterVolume->Draw( x, y, buttonImage, loc.GetString( "masterVolume" ));
-            SetMasterVolume( masterVolume->value / 100.0f );
+            ruSetMasterVolume( masterVolume->value / 100.0f );
 
             y = y + 1.5f * buttonHeight;
 
             musicVolume->Draw( x, y, buttonImage, loc.GetString(  "musicVolume" ));
-            SetVolume( music, musicVolume->value / 100.0f );
+            ruSetSoundVolume( music, musicVolume->value / 100.0f );
 			g_musicVolume = musicVolume->value / 100.0f;
 			if( currentLevel ) {
-				SetVolume( currentLevel->music, g_musicVolume );
+				ruSetSoundVolume( currentLevel->music, g_musicVolume );
 			}
         }
 
@@ -239,7 +237,7 @@ void Menu::Update( ) {
 			GetFilesWithDefExt( "*.save", names );
 
 			for( int i = 0; i < names.size(); i++ ) {
-				GUIState save = DrawGUIButton( x, y, 128, 32, buttonImage, names[i].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+				ruGUIState save = ruDrawGUIButton( x, y, 128, 32, buttonImage, names[i].c_str(), gui->font, ruVector3( 0, 255, 0 ), 1 );
 				if( save.mouseLeftClicked ) {
 					loadSaveGameName = names[i];
 					loadFromSave = true;
@@ -268,7 +266,7 @@ void Menu::Update( ) {
 			}
 
 			for( int i = 0; i < names.size(); i++ ) {
-				GUIState save = DrawGUIButton( x, y, 128, 32, buttonImage, names[i].c_str(), gui->font, Vector3( 0, 255, 0 ), 1 );
+				ruGUIState save = ruDrawGUIButton( x, y, 128, 32, buttonImage, names[i].c_str(), gui->font, ruVector3( 0, 255, 0 ), 1 );
 				if( save.mouseLeftClicked ) {
 					if( currentLevel ) {
 						SaveWriter( names[i] ).SaveWorldState();
@@ -281,46 +279,54 @@ void Menu::Update( ) {
 		}
 
         if( page == Page::OptionsGraphics ) {
+			// first column
             float x = buttonsXOffset + 200;
             float y = g_resH - 2.5 * distBetweenButtons;
 
             // FXAA Options
-            fxaaButton->Draw( x, y, buttonImage, loc.GetString( "fxaa" ));
+            fxaaButton->Draw( x + 60, y, buttonImage, loc.GetString( "fxaa" ));
             if( fxaaButton->on ) {
-                EnableFXAA();
+                ruEnableFXAA();
             } else {
-                DisableFXAA();
+                ruDisableFXAA();
             }
 
             // show fps
             y = g_resH - 2.0 * distBetweenButtons;
-            fpsButton->Draw( x, y, buttonImage, loc.GetString( "showFPS" ));
+            fpsButton->Draw( x + 60, y, buttonImage, loc.GetString( "showFPS" ));
             g_showFPS = fpsButton->on;
 
             // texture filtering
             y = g_resH - 2.0 * distBetweenButtons;
             textureFiltering->Draw( x, y, buttonImage, loc.GetString( "filtering" ));
             if( textureFiltering->GetCurrentValue() == 0 ) {
-                SetTextureFiltering( TextureFilter::Anisotropic, GetMaxAnisotropy() );
+                ruSetRendererTextureFiltering( ruTextureFilter::Anisotropic, ruGetRendererMaxAnisotropy() );
             } else {
-                SetTextureFiltering( TextureFilter::Linear, 0 );
+                ruSetRendererTextureFiltering( ruTextureFilter::Linear, 0 );
             }
 
-            // shadows
-            x += 250;
+			y = g_resH - 1.5 * distBetweenButtons;
+			graphicsQuality->Draw( x, y, buttonImage, loc.GetString( "graphQuality"));
+			if( graphicsQuality->GetCurrentValue() == 0 ) {// low 
+				ruSetRenderQuality( 0 );
+			} else { // high
+				ruSetRenderQuality( 1 );
+			}
+			// second column
+            x += 280;
 
             y = g_resH - 2.5 * distBetweenButtons;
             pointShadowsButton->Draw( x, y, buttonImage, loc.GetString( "pointLightShadows" ));
-            EnablePointLightShadows( pointShadowsButton->on );
+            ruEnablePointLightShadows( pointShadowsButton->on );
 
             y = g_resH - 2.0 * distBetweenButtons;
             spotShadowsButton->Draw( x, y, buttonImage, loc.GetString( "spotLightShadows" ));
-            EnableSpotLightShadows( spotShadowsButton->on );
+            ruEnableSpotLightShadows( spotShadowsButton->on );
 
 			// hdr
 			y = g_resH - 1.5 * distBetweenButtons;
 			hdrButton->Draw( x, y, buttonImage, loc.GetString( "hdr" ));
-			SetHDREnabled( hdrButton->on );
+			ruSetHDREnabled( hdrButton->on );
         }
 
         if( page == Page::OptionsKeys ) {
@@ -371,7 +377,7 @@ void Menu::Update( ) {
         }
 
         if( !startPressed && !returnToGameByEsc ) {
-            PlaySoundSource( music );
+            ruPlaySound( music );
             if( start.mouseLeftClicked ) {
                 startPressed = true;
                 SetPage( Page::Main );
@@ -403,7 +409,7 @@ void Menu::Update( ) {
             }
         }
     } else {
-        if( IsKeyHit( KEY_Esc ) ) {
+        if( ruIsKeyHit( KEY_Esc ) ) {
             menu->Show();
         }
     }
@@ -418,19 +424,19 @@ void Menu::SetPage( Page page ) {
 }
 
 void Menu::LoadTextures() {
-    buttonImage = GetTexture( "data/gui/button.png" );
-    smallButtonImage = GetTexture( "data/gui/smallbutton.png" );
+    buttonImage = ruGetTexture( "data/gui/button.png" );
+    smallButtonImage = ruGetTexture( "data/gui/smallbutton.png" );
 }
 
 void Menu::CreateCamera() {
     camera = new GameCamera;
-    cameraInitialPosition = GetPosition( FindByName( "Camera") );
-    cameraAnimationNewOffset = Vector3( 0.5, 0.5, 0.5 );
+    cameraInitialPosition = ruGetNodePosition( ruFindByName( "Camera") );
+    cameraAnimationNewOffset = ruVector3( 0.5, 0.5, 0.5 );
 }
 
 void Menu::LoadSounds() {
-    pickSound = CreateSound2D( "data/sounds/menupick.ogg" );
-    music = CreateMusic( "data/music/menu.ogg" );
+    pickSound = ruLoadSound2D( "data/sounds/menupick.ogg" );
+    music = ruLoadMusic( "data/music/menu.ogg" );
 }
 
 void Menu::CreateWaitKeys() {
@@ -473,9 +479,9 @@ void Menu::LoadConfig() {
         mouseSensivity->value = config.GetNumber( "mouseSens" );
         fxaaButton->on = (int)config.GetNumber( "fxaaEnabled" );
 		if( fxaaButton->on ) {
-			EnableFXAA(); 
+			ruEnableFXAA(); 
 		} else {
-			DisableFXAA();
+			ruDisableFXAA();
 		};
         wkMoveForward->SetSelected( config.GetNumber( "keyMoveForward" ) );
         wkMoveBackward->SetSelected( config.GetNumber( "keyMoveBackward" ) );
@@ -490,12 +496,12 @@ void Menu::LoadConfig() {
         wkQuickLoad->SetSelected( g_keyQuickLoad = config.GetNumber( "keyQuickLoad" ) );
 		wkStealth->SetSelected(  config.GetNumber( "keyStealth" ) );
         spotShadowsButton->on = (int)config.GetNumber( "spotShadowsEnabled" );
-        EnableSpotLightShadows( spotShadowsButton->on );
+        ruEnableSpotLightShadows( spotShadowsButton->on );
         pointShadowsButton->on = (int)config.GetNumber( "pointShadowsEnabled" );
-        EnablePointLightShadows( pointShadowsButton->on );
-		SetMasterVolume( masterVolume->value / 100.0f );
-		SetVolume( music, musicVolume->value / 100.0f );
-		SetHDREnabled( hdrButton->on = (int)config.GetNumber( "hdrEnabled" ));
+        ruEnablePointLightShadows( pointShadowsButton->on );
+		ruSetMasterVolume( masterVolume->value / 100.0f );
+		ruSetSoundVolume( music, musicVolume->value / 100.0f );
+		ruSetHDREnabled( hdrButton->on = (int)config.GetNumber( "hdrEnabled" ));
     }
 }
 
@@ -531,9 +537,9 @@ void Menu::WriteConfig() {
     WriteInteger( config, "keyUse", wkUse->selectedKey );
     WriteInteger( config, "keyQuickSave", wkQuickSave->selectedKey );
     WriteInteger( config, "keyQuickLoad", wkQuickLoad->selectedKey );    
-    WriteInteger( config, "spotShadowsEnabled", IsSpotLightShadowsEnabled() ? 1 : 0  );
-    WriteInteger( config, "pointShadowsEnabled", IsPointLightShadowsEnabled() ? 1 : 0  );
-	WriteInteger( config, "hdrEnabled", IsHDREnabled() ? 1 : 0  );
+    WriteInteger( config, "spotShadowsEnabled", ruIsSpotLightShadowsEnabled() ? 1 : 0  );
+    WriteInteger( config, "pointShadowsEnabled", ruIsPointLightShadowsEnabled() ? 1 : 0  );
+	WriteInteger( config, "hdrEnabled", ruIsHDREnabled() ? 1 : 0  );
 	WriteInteger( config, "keyStealth", wkStealth->selectedKey );
     config.close();
 }
@@ -555,6 +561,10 @@ void Menu::CreateLists() {
 
     textureFiltering->AddValue( loc.GetString( "anisotropic" ));
     textureFiltering->AddValue( loc.GetString( "trilinear" ));
+
+	graphicsQuality = new List();
+	graphicsQuality->AddValue( loc.GetString( "gqLow" ));
+	graphicsQuality->AddValue( loc.GetString( "gqHigh" ));
 }
 
 Menu::~Menu() {
@@ -580,4 +590,5 @@ Menu::~Menu() {
     delete spotShadowsButton;
 	delete wkStealth;
 	delete fpsButton;
+	delete graphicsQuality;
 }

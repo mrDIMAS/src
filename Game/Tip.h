@@ -13,7 +13,7 @@ private:
     SmoothFloat y;
     int w;
     int h;
-    TimerHandle timer;
+    ruTimerHandle timer;
 public:
     Tip();
     void SetNewText( string text );

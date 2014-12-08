@@ -162,14 +162,14 @@ FXAA::~FXAA()
 // API
 //////////////////////////////////////////////////////////////////////////
 
-API void EnableFXAA( ) {
+RUAPI void ruEnableFXAA( ) {
     g_fxaaEnabled = true;
 }
 
-API void DisableFXAA( ) {
+RUAPI void ruDisableFXAA( ) {
     g_fxaaEnabled = false;
 }
 
-API bool FXAAEnabled() {
+RUAPI bool ruFXAAEnabled() {
     return g_fxaaEnabled;
 }

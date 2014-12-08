@@ -28,51 +28,60 @@ void main( ) {
     g_resW            = config.GetNumber( "resW" );
     g_resH            = config.GetNumber( "resH" );
     int fullscreen    = config.GetNumber( "fullscreen" );
+	char vSync		  = config.GetNumber( "vSync" );
     g_initialLevel    = config.GetNumber( "levelNum" );
     g_showFPS         = config.GetNumber( "debugInfo" );
     localizationPath  = config.GetString( "languagePath" );
 
 #ifdef _DEBUG
-    CreateRenderer( 1366, 768, 0 );
+    ruCreateRenderer( 0, 0, 0, 0 );
 #else
-    CreateRenderer( g_resW, g_resH, fullscreen );
+    ruCreateRenderer( g_resW, g_resH, fullscreen, vSync );
 #endif
 
-    SetPointDefaultTexture( GetCubeTexture( "data/textures/generic/pointCube.dds" ));
-    SetSpotDefaultTexture( GetTexture( "data/textures/generic/spotlight.jpg" ));
-    g_resW = GetResolutionWidth();
-    g_resH = GetResolutionHeight();
+    ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
+    ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
+    g_resW = ruGetResolutionWidth();
+    g_resH = ruGetResolutionHeight();
 
     gui = new GUI;
     menu = new Menu;
     int escHit = 0;
     screamer = new ScreenScreamer;
-    SetCursorSettings( GetTexture( "data/gui/cursor.png" ), 32, 32 );
+    ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     FPSCounter fpsCounter;
 
-    TimerHandle dtTimer = CreateTimer();
+    ruTimerHandle dtTimer = ruCreateTimer();
 
 
 
 	g_dt = 1.0f  / 60.0f;
-	float dtDest = g_dt;
+	float lastTime = 0.0f;
+	//float dtDest = g_dt;
+	float minDt = 100000;
     while( true ) {
-        RestartTimer( dtTimer );
+		if( ruIsKeyHit( KEY_1 )) {
+			ruSetRenderQuality( 0 );
+		}
+		if( ruIsKeyHit( KEY_2 )) {
+			ruSetRenderQuality( 1 );
+		}
+        ruRestartTimer( dtTimer );
         if( !g_running ) {
             break;
         }
-        InputUpdate();
+        ruInputUpdate();
         if( player ) {
             player->Update();
         }
         menu->Update();
         InteractiveObject::UpdateAll();
         if( !menu->visible ) {
-            if( IsKeyHit( g_keyQuickSave )) {
+            if( ruIsKeyHit( g_keyQuickSave )) {
                 SaveWriter( "quickSave.save" ).SaveWorldState();
                 player->tip.SetNewText( config.GetString( "saved" ) );
             }
-            if( IsKeyHit( g_keyQuickLoad ))
+            if( ruIsKeyHit( g_keyQuickLoad ))
                 if( FileExist( "quickSave.save" )) {                    
                     SaveLoader( "quickSave.save" ).RestoreWorldState();
                     player->tip.SetNewText( config.GetString( "loaded" ) );
@@ -82,19 +91,24 @@ void main( ) {
             }
         }
         fpsCounter.RegisterFrame();
-        if( g_showFPS ) {
-            DrawGUIText( Format( "DIPs: %d\nTCs: %d\nFPS: %d", DIPs(), TextureUsedPerFrame(), fpsCounter.fps ).c_str(), 0, 0, 200, 200, gui->font, Vector3( 255, 0, 255 ), 0, 100 );
-        }
-        screamer->Update();
-		//g_dt += ( dtDest - g_dt ) * 0.1f;
-		// lock dt, ffs it's annoying to debug this shit
-		g_dt = 1.0f / 60.0f;
-        RenderWorld( g_dt );
 
-        dtDest = GetElapsedTimeInSeconds( dtTimer );
+        screamer->Update();
+
+		if( g_showFPS ) {
+			ruDrawGUIText( Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\nmin dt: %f", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt, minDt ).c_str(), 0, 0, 200, 200, gui->font, ruVector3( 255, 0, 255 ), 0, 100 );
+		}
+		//if( g_dt < 1.0f / 60.0f )
+		ruRenderWorld( g_dt );
+		if( g_dt < minDt )
+			minDt = g_dt;
+		//else
+		//	RenderWorld( 1.0f / 60.0f );
+		float time = ruGetElapsedTimeInSeconds( dtTimer );
+		g_dt = time;
 		// lock fps drop on 20fps
-		if( dtDest > 1.0f / 20.0f )
-			dtDest = 1.0f / 20.0f;
+		if( g_dt > 1.0f / 20.0f )
+			g_dt = 1.0f / 20.0f;
+        lastTime = time;
     }
 
     if( currentLevel ) {
@@ -106,5 +120,5 @@ void main( ) {
     delete screamer;
     delete menu;
     delete gui;
-    FreeRenderer();
+    ruFreeRenderer();
 }

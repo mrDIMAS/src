@@ -5,7 +5,7 @@
 
 Camera * g_camera = 0;
 
-Camera * Camera::CastHandle( NodeHandle handle ) {
+Camera * Camera::CastHandle( ruNodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
 
     Camera * camera = dynamic_cast< Camera* >( n );
@@ -100,19 +100,19 @@ void Camera::LeaveDepthHack()
 // API
 /////////////////////////////////////////////////////////////
 
-NodeHandle CreateCamera( float fov ) {
+ruNodeHandle ruCreateCamera( float fov ) {
     return SceneNode::HandleFromPointer( new Camera( fov ) );
 }
 
-void SetFOV( NodeHandle camera, float fov ) {
+void ruSetCameraFOV( ruNodeHandle camera, float fov ) {
     Camera::CastHandle( camera )->fov = fov;
 }
 
-void SetCamera( NodeHandle node ) {
+void ruSetActiveCamera( ruNodeHandle node ) {
     g_camera = Camera::CastHandle( node );
 }
 
-int SetSkybox( NodeHandle node, const char * path ) {
+int ruSetCameraSkybox( ruNodeHandle node, const char * path ) {
     Camera::CastHandle( node )->SetSkyBox( path );
 
     return 1;

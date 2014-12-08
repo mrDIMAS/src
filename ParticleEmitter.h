@@ -11,7 +11,7 @@ public:
         float tx, ty;
         int color;
 
-        SParticleVertex( Vector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor );
+        SParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor );
         SParticleVertex( );
     };
 
@@ -28,13 +28,13 @@ public:
 
     class SParticle {
     public:
-        Vector3 position;
-        Vector3 color;
-        Vector3 speed;
+        ruVector3 position;
+        ruVector3 color;
+        ruVector3 speed;
         float translucency;
         float size;
 
-        SParticle( const Vector3 & thePosition, const Vector3 & theSpeed, const Vector3 & theColor, float theTranslucency, float theSize );
+        SParticle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize );
         SParticle( );
     };
 
@@ -63,12 +63,12 @@ public:
 
     bool firstTimeUpdate;
 
-	ParticleSystemProperties props;
+	ruParticleSystemProperties props;
 
-	int RGBAToInt( Vector3 color, int alpha );
-	Vector3 RandomVector3( Vector3 & min, Vector3 & max );
+	int RGBAToInt( ruVector3 color, int alpha );
+	ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
 public:
-    ParticleEmitter( SceneNode * theParent, int theParticleCount, ParticleSystemProperties creationProps );
+    ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps );
     ~ParticleEmitter();
     void ResurrectParticles();
     float GetThickness( );

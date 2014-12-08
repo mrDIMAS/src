@@ -17,7 +17,7 @@ public:
     } flareVertex_t;
     Frustum frustum;
     float radius;
-    Vector3 color;
+    ruVector3 color;
     float innerAngle;
     float outerAngle;
     float cosHalfInnerAngle;
@@ -25,10 +25,10 @@ public:
     bool floating;
 	float brightness;
 	int type;
-    Vector3 floatMin;
-    Vector3 floatMax;
-    Vector3 floatTo;
-    Vector3 floatOffset;
+    ruVector3 floatMin;
+    ruVector3 floatMax;
+    ruVector3 floatTo;
+    ruVector3 floatOffset;
     D3DXMATRIX spotViewProjectionMatrix;
     Texture * spotTexture;
     CubeTexture * pointTexture;
@@ -40,8 +40,8 @@ public:
 public:
     explicit Light( int type );
     virtual ~Light();
-    void SetColor( const Vector3 & theColor );
-    Vector3 GetColor() const;
+    void SetColor( const ruVector3 & theColor );
+    ruVector3 GetColor() const;
     void SetRadius( const float & theRadius );
     float GetRadius() const;
     void SetConeAngles( float theInner, float theOuter );
@@ -54,7 +54,7 @@ public:
     void SetSpotTexture( Texture * tex );
     void SetPointTexture( CubeTexture * ctex );
     void BuildSpotProjectionMatrixAndFrustum();
-    static Light * GetLightByHandle( NodeHandle handle );
-    Vector3 GetRealPosition( );
+    static Light * GetLightByHandle( ruNodeHandle handle );
+    ruVector3 GetRealPosition( );
     void DoFloating();
 };

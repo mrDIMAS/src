@@ -16,7 +16,7 @@ void Cursor::Show() {
     g_device->ShowCursor( FALSE );
 }
 
-void Cursor::Setup( TextureHandle texture, int w, int h ) {
+void Cursor::Setup( ruTextureHandle texture, int w, int h ) {
     tex = reinterpret_cast<Texture*>( texture.pointer );
     this->w = w;
     this->h = h;

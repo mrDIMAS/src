@@ -20,8 +20,8 @@ public:
     float GetFloat( );
     string GetString( );
     btVector3 GetVector( );
-    Vector3 GetBareVector( );
-    Vector2 GetBareVector2( );
+    ruVector3 GetBareVector( );
+    ruVector2 GetBareVector2( );
     btQuaternion GetQuaternion( );
     bool IsEnded( );
 };

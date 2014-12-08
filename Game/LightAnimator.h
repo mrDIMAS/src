@@ -11,7 +11,7 @@ public:
         LAT_ON,
     };
 
-    LightAnimator( NodeHandle lit, float as, float onRange, float peakRangeMult );
+    LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult );
     void Update();
     void SetAnimationType( int lat );
 
@@ -19,7 +19,7 @@ public:
     float range;
     float peakRangeMult;
     float onRange;
-    NodeHandle light;
+    ruNodeHandle light;
     int lat;
     float animSpeed;
 

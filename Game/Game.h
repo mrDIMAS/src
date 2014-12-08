@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <stdarg.h>
 #include <fstream>
-#include <vld.h>
+/*#include <vld.h>*/
 #include <windows.h>
 #include <assert.h>
 

@@ -45,12 +45,10 @@ public:
     void Update( );
     void SetPage( Page page );
 
-    FontHandle textFont;
-    FontHandle textBackgroundFont;
-    NodeHandle scene;
+    ruNodeHandle scene;
     bool visible;
-    TextureHandle buttonImage;
-    TextureHandle smallButtonImage;
+    ruTextureHandle buttonImage;
+    ruTextureHandle smallButtonImage;
     int distBetweenButtons;
 
     float fadeSpeed;
@@ -65,9 +63,9 @@ public:
 	bool loadFromSave;
     float buttonsXOffset;
     int continueLevelName;
-    SoundHandle pickSound;
+    ruSoundHandle pickSound;
     Page page;
-    SoundHandle music;
+    ruSoundHandle music;
     Parser loc;
 
     NumericSlider * masterVolume;
@@ -79,6 +77,7 @@ public:
     RadioButton * spotShadowsButton;
 	RadioButton * hdrButton;
     List * textureFiltering;
+	List * graphicsQuality;
 
     // Keys
     WaitKeyButton * wkMoveForward;
@@ -94,9 +93,9 @@ public:
     WaitKeyButton * wkQuickLoad;
 	WaitKeyButton * wkStealth;
 
-    Vector3 cameraInitialPosition;
-    Vector3 cameraAnimationOffset;
-    Vector3 cameraAnimationNewOffset;
+    ruVector3 cameraInitialPosition;
+    ruVector3 cameraAnimationOffset;
+    ruVector3 cameraAnimationNewOffset;
 
     GameCamera * camera;
 };

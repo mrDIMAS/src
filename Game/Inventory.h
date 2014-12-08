@@ -7,9 +7,9 @@
 class Inventory {
 public:
     vector<Item *> items;
-    TextureHandle backgroundTexture;
-    TextureHandle cellTexture;
-    TextureHandle buttonTexture;
+    ruTextureHandle backgroundTexture;
+    ruTextureHandle cellTexture;
+    ruTextureHandle buttonTexture;
 
     bool opened;
 
@@ -23,9 +23,9 @@ public:
     int cellWidth;
     int cellHeight;
 
-    SoundHandle pickSound;
+    ruSoundHandle pickSound;
 
-    FontHandle font;
+    ruFontHandle font;
 
     Parser localization;
 

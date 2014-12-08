@@ -8,7 +8,7 @@ private:
     void DoLeave();
 public:
 
-    explicit CrawlWay( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint );
+    explicit CrawlWay( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint );
     virtual ~CrawlWay();
     virtual void DoPlayerCrawling() final;
     virtual void LookAtTarget() final;

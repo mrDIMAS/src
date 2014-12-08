@@ -11,7 +11,7 @@ public:
         Opening,
     };
 public:
-    NodeHandle door;
+    ruNodeHandle door;
 
     float maxAngle;
     float offsetAngle;
@@ -19,13 +19,13 @@ public:
 
     State state;
 
-    SoundHandle openSound;
-    SoundHandle closeSound;
+    ruSoundHandle openSound;
+    ruSoundHandle closeSound;
 public:
 
     static vector< Door* > all;
 
-    explicit Door( NodeHandle hDoor, float fMaxAngle );
+    explicit Door( ruNodeHandle hDoor, float fMaxAngle );
     virtual ~Door();
     bool IsPickedByPlayer();
     void SwitchState();

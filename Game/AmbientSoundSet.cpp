@@ -3,20 +3,20 @@
 #include "Player.h"
 
 void AmbientSoundSet::DoRandomPlaying() {
-    if( GetElapsedTimeInSeconds( timer ) >= timeToNextSoundSec ) {
+    if( ruGetElapsedTimeInSeconds( timer ) >= timeToNextSoundSec ) {
         timeToNextSoundSec = frandom( timeMinSec, timeMaxSec );
 
         int randomSound = rand() % sounds.size();
 
-        SetSoundPosition( sounds[ randomSound ], GetPosition( player->camera->cameraNode ) + Vector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
+        ruSetSoundPosition( sounds[ randomSound ], ruGetNodePosition( player->camera->cameraNode ) + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
 
-        PlaySoundSource( sounds[ randomSound ], true );
+        ruPlaySound( sounds[ randomSound ], true );
 
-        RestartTimer( timer );
+        ruRestartTimer( timer );
     }
 }
 
-void AmbientSoundSet::AddSound( SoundHandle sound ) {
+void AmbientSoundSet::AddSound( ruSoundHandle sound ) {
     sounds.push_back( sound );
 }
 
@@ -31,5 +31,5 @@ AmbientSoundSet::AmbientSoundSet() {
 
     timeToNextSoundSec = timeMinSec;
 
-    timer = CreateTimer();
+    timer = ruCreateTimer();
 }

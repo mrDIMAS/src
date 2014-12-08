@@ -48,7 +48,7 @@ public:
         }
     };
 
-    TextureHandle img;
+    ruTextureHandle img;
     string desc;
     string name;
     int type;
@@ -72,9 +72,9 @@ public:
         Medkit,
     };
 
-    Item( NodeHandle obj, int typ );
+    Item( ruNodeHandle obj, int typ );
     void SetType( int typ );
     static vector<Item*> Available;
-    static Item * GetByObject( NodeHandle obj );
+    static Item * GetByObject( ruNodeHandle obj );
 };
 

@@ -7,7 +7,7 @@
 
 class Goal {
 private:
-    TimerHandle waitTimer;
+    ruTimerHandle waitTimer;
 
     float currentY;
     float destY;

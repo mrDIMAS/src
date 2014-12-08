@@ -2,7 +2,7 @@
 #include "Common.h"
 #include "SceneNode.h"
 
-Animation::Animation() {
+ruAnimation::ruAnimation() {
 	looped = false;
 	beginFrame = 0;
 	endFrame = 0;
@@ -12,7 +12,7 @@ Animation::Animation() {
 	nextFrame = 0;
 }
 
-Animation::Animation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped ) {
+ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped ) {
 	currentFrame = theBeginFrame;
 	nextFrame = currentFrame + 1;
 	beginFrame = theBeginFrame;
@@ -22,7 +22,7 @@ Animation::Animation( int theBeginFrame, int theEndFrame, float theTimeSeconds, 
 	interpolator = 0.0f;
 }
 
-void Animation::Update( ) {
+void ruAnimation::Update( ) {
 	if ( interpolator >= 1.0f ) {
 		currentFrame++;
 		// get next frame number
@@ -47,7 +47,7 @@ void Animation::Update( ) {
 	interpolator += g_dt / timeSeconds;
 }
 
-void Animation::SetCurrentFrame( int frame ) {
+void ruAnimation::SetCurrentFrame( int frame ) {
 	currentFrame = frame;
 	// range check
 	if( currentFrame >= ( endFrame - 1 ) ) {
@@ -58,7 +58,7 @@ void Animation::SetCurrentFrame( int frame ) {
 	}
 }
 
-void Animation::SetFrameInterval( int begin, int end ) {
+void ruAnimation::SetFrameInterval( int begin, int end ) {
 	beginFrame = begin;
 	endFrame = end;
 	// swap if needed

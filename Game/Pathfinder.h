@@ -26,9 +26,9 @@ private:
 public:
 	friend class Pathfinder;
 
-	Vector3 position;
+	ruVector3 position;
 
-	explicit GraphVertex( Vector3 pos );
+	explicit GraphVertex( ruVector3 pos );
 	void ClearState( );
 	void AddEdge( GraphVertex * vertex );
 };
@@ -43,7 +43,7 @@ public:
 	GraphVertex * GetPoint( int i );
 	int GetPointCount( );
 	void BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints );
-	GraphVertex * GetVertexNearestTo( Vector3 position, int * vertexNum = nullptr );
+	GraphVertex * GetVertexNearestTo( ruVector3 position, int * vertexNum = nullptr );
 };
 
 // helper class for Pathfinder
@@ -53,7 +53,7 @@ public:
 	void AddPointAndLinkWithPrevious( GraphVertex * vertex );
 	class NodeSorter {
 	public:
-		bool operator() ( const NodeHandle & node1, const NodeHandle & node2 );
+		bool operator() ( const ruNodeHandle & node1, const ruNodeHandle & node2 );
 	};
-	void ScanSceneForPath( NodeHandle scene, string pathBaseName );
+	void ScanSceneForPath( ruNodeHandle scene, string pathBaseName );
 };

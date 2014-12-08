@@ -47,22 +47,22 @@ Timer::Timer() {
 //////////////////////////////////////////////////////////////////////////
 
 
-API TimerHandle CreateTimer( ) {
-    return reinterpret_cast< TimerHandle >( new Timer );
+RUAPI ruTimerHandle ruCreateTimer( ) {
+    return reinterpret_cast< ruTimerHandle >( new Timer );
 }
 
-API void RestartTimer( TimerHandle timer ) {
+RUAPI void ruRestartTimer( ruTimerHandle timer ) {
     (reinterpret_cast< Timer* >( timer ))->RestartTimer();
 }
 
-API double GetElapsedTimeInSeconds( TimerHandle timer ) {
+RUAPI double ruGetElapsedTimeInSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInSeconds();
 }
 
-API double GetElapsedTimeInMilliSeconds( TimerHandle timer ) {
+RUAPI double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMilliSeconds();
 }
 
-API double GetElapsedTimeInMicroSeconds( TimerHandle timer ) {
+RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMicroSeconds();
 }

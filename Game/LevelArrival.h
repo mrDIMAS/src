@@ -8,23 +8,23 @@
 class LevelArrival : public Level {
 public:
     // Sounds
-    SoundHandle windSound;
-    SoundHandle generatorSound;
-    SoundHandle explosionSound;
-    SoundHandle strangeSound;
+    ruSoundHandle windSound;
+    ruSoundHandle generatorSound;
+    ruSoundHandle explosionSound;
+    ruSoundHandle strangeSound;
 
     // Zones
-    NodeHandle strangeSoundZone;
-    NodeHandle rocksFallZone;
-    NodeHandle nextLevelLoadZone;
+    ruNodeHandle strangeSoundZone;
+    ruNodeHandle rocksFallZone;
+    ruNodeHandle nextLevelLoadZone;
 
     // Entities
-    NodeHandle rocks;
-    NodeHandle rocksPos;
-    NodeHandle generator;
+    ruNodeHandle rocks;
+    ruNodeHandle rocksPos;
+    ruNodeHandle generator;
 
-    NodeHandle lamp1;
-    NodeHandle lamp2;
+    ruNodeHandle lamp1;
+    ruNodeHandle lamp2;
 
     LevelArrival( );
     ~LevelArrival( );

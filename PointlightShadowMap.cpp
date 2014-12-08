@@ -21,11 +21,11 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
     for( auto meshGroupIter : Mesh::meshes ) { // brute force method 
         auto & group = meshGroupIter.second;
         for( auto mesh : group ) {
-            if( mesh->ownerNode->IsVisible()) {
-                if( (( mesh->aabb.center + mesh->ownerNode->GetPosition()) - light->GetRealPosition()).Length() < light->radius ) {
+            //if( mesh->ownerNode->IsVisible()) {
+            //    if( (( mesh->aabb.center + mesh->ownerNode->GetPosition()) - light->GetRealPosition()).Length() < light->radius ) {
                     lightedMeshes.push_back( mesh );
-                }
-            }
+            //    }
+           // }
         };
     }
     // render each face of the cube map

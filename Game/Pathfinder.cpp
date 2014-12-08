@@ -75,7 +75,7 @@ Pathfinder::Pathfinder() {
 
 }
 
-GraphVertex * Pathfinder::GetVertexNearestTo( Vector3 position, int * vertexNum ) {
+GraphVertex * Pathfinder::GetVertexNearestTo( ruVector3 position, int * vertexNum ) {
 	assert( graph.size() != 0 );
 	GraphVertex * nearest = graph[0];
 	int nearestIndex = 0, index = 0;;
@@ -103,7 +103,7 @@ void GraphVertex::ClearState() {
 	distanceFromBegin = Infinite;
 }
 
-GraphVertex::GraphVertex( Vector3 pos ) {
+GraphVertex::GraphVertex( ruVector3 pos ) {
 	position = pos;
 	ClearState();
 }
@@ -122,11 +122,11 @@ Edge::Edge() {
 	distToDestVertex = Infinite;
 }
 
-void Path::ScanSceneForPath( NodeHandle scene, string pathBaseName ) {
-	vector<NodeHandle> pointNodes;
-	for( int i = 0; i < GetCountChildren( scene ); i++ ) {
-		NodeHandle child = GetChild( scene, i );
-		string cName = GetName( child );
+void Path::ScanSceneForPath( ruNodeHandle scene, string pathBaseName ) {
+	vector<ruNodeHandle> pointNodes;
+	for( int i = 0; i < ruGetNodeCountChildren( scene ); i++ ) {
+		ruNodeHandle child = ruGetNodeChild( scene, i );
+		string cName = ruGetNodeName( child );
 		if( cName.size() < pathBaseName.size() ) {
 			continue;
 		}
@@ -141,7 +141,7 @@ void Path::ScanSceneForPath( NodeHandle scene, string pathBaseName ) {
 	NodeSorter nodeSorter;
 	sort( pointNodes.begin(), pointNodes.end(), nodeSorter );
 	for( auto node : pointNodes ) {
-		AddPointAndLinkWithPrevious( new GraphVertex( GetPosition( node ) ) );
+		AddPointAndLinkWithPrevious( new GraphVertex( ruGetNodePosition( node ) ) );
 	}
 }
 
@@ -153,9 +153,9 @@ void Path::AddPointAndLinkWithPrevious( GraphVertex * vertex ) {
 	vertices.push_back( vertex );
 }
 
-bool Path::NodeSorter::operator()( const NodeHandle & node1, const NodeHandle & node2 ) {
-	string name1 = GetName( node1 );
-	string name2 = GetName( node2 );
+bool Path::NodeSorter::operator()( const ruNodeHandle & node1, const ruNodeHandle & node2 ) {
+	string name1 = ruGetNodeName( node1 );
+	string name2 = ruGetNodeName( node2 );
 	// find numerics in names
 	int numPos1 = name1.find_first_of( "0123456789" );
 	int numPos2 = name2.find_first_of( "0123456789" );

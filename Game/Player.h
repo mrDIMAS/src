@@ -13,11 +13,11 @@
 #include "Parser.h"
 #include "SmoothFloat.h"
 #include "Tip.h"
+#include "Actor.h"
 
-class Player {
+class Player : public Actor {
 public:
     void LoadSounds();
-    void CreateBody();
     void CreateCamera();
     void CreateFlashLight();
     void LoadGUIElements();
@@ -30,11 +30,18 @@ public:
     void UpdateEnvironmentDamaging();
     void DescribePickedObject();
     void DrawSheetInHands();
-    void SetRockFootsteps();
+
+	void CloseCurrentSheet()
+	{
+		ruShowNode( sheetInHands->object );
+		sheetInHands = 0;
+		ruPlaySound( Sheet::paperFlip );
+	}
+
+	void SetRockFootsteps();
     void SetDirtFootsteps();
     void SetMetalFootsteps();
     void UpdateFright();
-	void SetupBody();
     Parser localization;
 public:
     explicit Player();
@@ -57,7 +64,7 @@ public:
     void SetFootsteps( FootstepsType ft );
     void ChargeFlashLight( Item * fuel );
     bool IsUseButtonHit();
-    bool IsObjectHasNormalMass( NodeHandle node );
+    bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
 	void ComputeStealth();
     Item * flashLightItem;
@@ -66,18 +73,18 @@ public:
 
     GameCamera * camera;
 
-    NodeHandle body;
-	NodeHandle head;
-    NodeHandle pickPoint;
-    NodeHandle itemPoint;
-    NodeHandle objectInHands;
-    NodeHandle nearestPicked;
-    NodeHandle picked;
+    //NodeHandle body;
+	ruNodeHandle head;
+    ruNodeHandle pickPoint;
+    ruNodeHandle itemPoint;
+    ruNodeHandle objectInHands;
+    ruNodeHandle nearestPicked;
+    ruNodeHandle picked;
 
-    TextureHandle upCursor;
-    TextureHandle downCursor;
-    TextureHandle statusBar;
-	TextureHandle stealthSign;
+    ruTextureHandle upCursor;
+    ruTextureHandle downCursor;
+    ruTextureHandle statusBar;
+	ruTextureHandle stealthSign;
 
     SmoothFloat pitch;
     SmoothFloat yaw;
@@ -104,24 +111,24 @@ public:
     float capsuleHeight;
 	float stealthFactor;
 
-    Vector3 speed;
-    Vector3 speedTo;
-    Vector3 gravity;
-    Vector3 jumpTo;
-    Vector3 cameraOffset;
-    Vector3 cameraBob;
-    Vector3 frameColor;
+    ruVector3 speed;
+    ruVector3 speedTo;
+    ruVector3 gravity;
+    ruVector3 jumpTo;
+    ruVector3 cameraOffset;
+    ruVector3 cameraBob;
+    ruVector3 frameColor;
 	 
 
     Way * currentWay;
 
-    SoundHandle lighterCloseSound;
-    SoundHandle lighterOpenSound;
-    SoundHandle pickupSound;
-    SoundHandle heartBeatSound;
-    SoundHandle breathSound;
+    ruSoundHandle lighterCloseSound;
+    ruSoundHandle lighterOpenSound;
+    ruSoundHandle pickupSound;
+    ruSoundHandle heartBeatSound;
+    ruSoundHandle breathSound;
 
-    vector< SoundHandle > footsteps;
+    vector< ruSoundHandle > footsteps;
 
     bool objectThrown;
     bool landed;

@@ -11,7 +11,7 @@
 
 vector< SceneNode* > g_nodes;
 
-SceneNode * SceneNode::CastHandle( NodeHandle handle ) {
+SceneNode * SceneNode::CastHandle( ruNodeHandle handle ) {
     SceneNode * n = reinterpret_cast< SceneNode *>( handle.pointer );
 
     if( n->memoryTag == MEMORY_VALID_VALUE ) {
@@ -24,8 +24,8 @@ SceneNode * SceneNode::CastHandle( NodeHandle handle ) {
     return 0; //never reached
 }
 
-NodeHandle SceneNode::HandleFromPointer( SceneNode * ptr ) {
-    NodeHandle handle;
+ruNodeHandle SceneNode::HandleFromPointer( SceneNode * ptr ) {
+    ruNodeHandle handle;
     handle.pointer = ptr;
     return handle;
 }
@@ -106,7 +106,7 @@ void SceneNode::SetCapsuleBody( float height, float radius ) {
 }
 
 void SceneNode::SetBoxBody( ) {
-    Vector3 halfExtents = ( GetAABBMax() - GetAABBMin() ) / 2.0f;
+    ruVector3 halfExtents = ( GetAABBMax() - GetAABBMin() ) / 2.0f;
     btCollisionShape * shape = new btBoxShape( btVector3( halfExtents.x, halfExtents.y, halfExtents.z ));
     btVector3 inertia;
     shape->calculateLocalInertia ( 1, inertia );
@@ -114,7 +114,7 @@ void SceneNode::SetBoxBody( ) {
 }
 
 void SceneNode::SetCylinderBody( ) {
-    Vector3 halfExtents = ( GetAABBMax() - GetAABBMin() ) / 2.0f;
+    ruVector3 halfExtents = ( GetAABBMax() - GetAABBMin() ) / 2.0f;
     btCollisionShape * shape = new btCylinderShape( btVector3( halfExtents.x, halfExtents.y, halfExtents.z ) );
     btVector3 inertia;
     shape->calculateLocalInertia ( 1, inertia );
@@ -129,7 +129,7 @@ void SceneNode::SetSphereBody( ) {
     SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), shape, inertia ));
 }
 
-void SceneNode::SetAngularFactor( Vector3 fact ) {
+void SceneNode::SetAngularFactor( ruVector3 fact ) {
     if( body ) {
         body->setAngularFactor( btVector3( fact.x, fact.y, fact.z ) );
     }
@@ -145,9 +145,9 @@ void SceneNode::SetTrimeshBody() {
 
     for ( auto mesh : meshes ) {
         for( auto triangle : mesh->triangles ) {
-            Vector3 & a = mesh->vertices[ triangle.a ].coords;
-            Vector3 & b = mesh->vertices[ triangle.b ].coords;
-            Vector3 & c = mesh->vertices[ triangle.c ].coords;
+            ruVector3 & a = mesh->vertices[ triangle.a ].coords;
+            ruVector3 & b = mesh->vertices[ triangle.b ].coords;
+            ruVector3 & c = mesh->vertices[ triangle.c ].coords;
 
             trimesh->addTriangle ( btVector3( a.x, a.y, a.z ), btVector3( b.x, b.y, b.z ), btVector3( c.x, c.y, c.z ) );
         };
@@ -204,8 +204,8 @@ btTransform & SceneNode::CalculateGlobalTransform() {
     return globalTransform;
 }
 
-Vector3 SceneNode::GetAABBMin() {
-    Vector3 min = Vector3( FLT_MAX, FLT_MAX, FLT_MAX );
+ruVector3 SceneNode::GetAABBMin() {
+    ruVector3 min = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 
     for( auto mesh : meshes ) {
         AABB aabb = mesh->aabb;
@@ -222,8 +222,8 @@ Vector3 SceneNode::GetAABBMin() {
     return min;
 }
 
-Vector3 SceneNode::GetAABBMax() {
-    Vector3 max = Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+ruVector3 SceneNode::GetAABBMax() {
+    ruVector3 max = ruVector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 
     for( auto mesh : meshes ) {
         AABB aabb = mesh->aabb;
@@ -300,9 +300,9 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
             int vertexCount = reader.GetInteger();
             int indexCount = reader.GetInteger();
 
-            Vector3 aabbMin = reader.GetBareVector();
-            Vector3 aabbMax = reader.GetBareVector();
-            Vector3 aabbCenter = reader.GetBareVector(); // odd
+            ruVector3 aabbMin = reader.GetBareVector();
+            ruVector3 aabbMax = reader.GetBareVector();
+            ruVector3 aabbCenter = reader.GetBareVector(); // odd
             float aabbRadius = reader.GetFloat(); // odd
             mesh->aabb = AABB( aabbMin, aabbMax );
 
@@ -317,7 +317,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
                 v.coords = reader.GetBareVector();
                 v.normals = reader.GetBareVector();
                 v.texCoords = reader.GetBareVector2();
-                Vector2 tc2 = reader.GetBareVector2(); // just read secondary texcoords, but don't add it to the mesh. need to compatibility
+                ruVector2 tc2 = reader.GetBareVector2(); // just read secondary texcoords, but don't add it to the mesh. need to compatibility
                 v.tangents = reader.GetBareVector();
 
                 mesh->vertices.push_back( v );
@@ -444,9 +444,9 @@ void SceneNode::PerformAnimation() {
                     newTangent += transform.getBasis() * initialTangent * bone.weight;
                 }
 
-                vertex.coords = Vector3( newPosition.m_floats );
-                vertex.normals = Vector3( newNormal.m_floats );
-                vertex.tangents = Vector3( newTangent.m_floats );
+                vertex.coords = ruVector3( newPosition.m_floats );
+                vertex.normals = ruVector3( newNormal.m_floats );
+                vertex.tangents = ruVector3( newTangent.m_floats );
 
 				vertexNumber++;
             }
@@ -568,10 +568,10 @@ void SceneNode::UpdateContacts() {
 				nodeA->numContacts++;
 				nodeB->numContacts++;
 
-                nodeA->contacts[ j ].normal = Vector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
-                nodeB->contacts[ j ].normal = Vector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
-                nodeA->contacts[ j ].position = Vector3( pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
-                nodeB->contacts[ j ].position = Vector3( pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());
+                nodeA->contacts[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
+                nodeB->contacts[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
+                nodeA->contacts[ j ].position = ruVector3( pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
+                nodeB->contacts[ j ].position = ruVector3( pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());
 
                 nodeA->contacts[ j ].impulse = pt.m_appliedImpulse;
                 nodeB->contacts[ j ].impulse = pt.m_appliedImpulse;
@@ -618,22 +618,22 @@ void SceneNode::UpdateContacts() {
     }
 }
 
-void SceneNode::SetLinearFactor( Vector3 lin ) {
+void SceneNode::SetLinearFactor( ruVector3 lin ) {
     if( body ) {
         body->setLinearFactor( btVector3( lin.x, lin.y, lin.z ) );
     }
 }
 
-Vector3 SceneNode::GetPosition() {
+ruVector3 SceneNode::GetPosition() {
     btVector3 pos = globalTransform.getOrigin();
-    return Vector3( pos.x(), pos.y(), pos.z() );
+    return ruVector3( pos.x(), pos.y(), pos.z() );
 }
 
 int SceneNode::GetContactCount() {
     return numContacts;
 }
 
-Contact SceneNode::GetContact( int num ) {
+ruContact SceneNode::GetContact( int num ) {
     return contacts[ num ];
 }
 
@@ -697,19 +697,19 @@ void SceneNode::ApplyProperties() {
             }
 
         if ( pname == "hitSound" ) {
-            hitSound = CreateSound3D( value.c_str());
+            hitSound = ruLoadSound3D( value.c_str());
             AttachSound( hitSound );
         };
 
         if ( pname == "idleSound" ) {
-            idleSound = CreateSound3D( value.c_str());
+            idleSound = ruLoadSound3D( value.c_str());
             AttachSound( idleSound );
         };
     };
 }
 
 
-void SceneNode::AttachSound( SoundHandle sound ) {
+void SceneNode::AttachSound( ruSoundHandle sound ) {
     sounds.push_back( sound );
 }
 
@@ -720,7 +720,7 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
 
     btVector3 pos = globalTransform.getOrigin();
 
-    Vector3 point = Vector3( pos.x(), pos.y(), pos.z() );
+    ruVector3 point = ruVector3( pos.x(), pos.y(), pos.z() );
 
     int result = 0;
 
@@ -829,13 +829,13 @@ void SceneNode::SetDepthHack( float depthHack ) {
     }
 }
 
-void SceneNode::SetAnisotropicFriction( Vector3 aniso ) {
+void SceneNode::SetAnisotropicFriction( ruVector3 aniso ) {
     if( body ) {
         body->setAnisotropicFriction( btVector3( aniso.x, aniso.y, aniso.z ));
     }
 }
 
-void SceneNode::Move( Vector3 speed ) {
+void SceneNode::Move( ruVector3 speed ) {
     localTransform.setOrigin( localTransform.getOrigin() + btVector3( speed.x, speed.y, speed.z ) );
 
     if( body ) {
@@ -845,13 +845,13 @@ void SceneNode::Move( Vector3 speed ) {
     CalculateGlobalTransform( );
 }
 
-void SceneNode::SetVelocity( Vector3 velocity ) {
+void SceneNode::SetVelocity( ruVector3 velocity ) {
     if( body ) {
         body->setLinearVelocity( btVector3( velocity.x, velocity.y, velocity.z ) );
     }
 }
 
-void SceneNode::SetPosition( Vector3 position ) {
+void SceneNode::SetPosition( ruVector3 position ) {
     if( body ) {
         body->getWorldTransform().setOrigin( btVector3( position.x, position.y, position.z ) );
     }
@@ -873,7 +873,7 @@ bool SceneNode::IsFrozen() {
     return frozen;
 }
 
-void SceneNode::SetRotation( Quaternion rotation ) {
+void SceneNode::SetRotation( ruQuaternion rotation ) {
     if( body ) {
         body->getWorldTransform().getBasis().setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ) );
     }
@@ -883,42 +883,42 @@ void SceneNode::SetRotation( Quaternion rotation ) {
     CalculateGlobalTransform( );
 }
 
-Vector3 SceneNode::GetLookVector() {
+ruVector3 SceneNode::GetLookVector() {
     btVector3 look = localTransform.getBasis().getColumn ( 2 );
-    return Vector3( look.x(), look.y(), look.z() );
+    return ruVector3( look.x(), look.y(), look.z() );
 }
 
-Vector3 SceneNode::GetAbsoluteLookVector() {
+ruVector3 SceneNode::GetAbsoluteLookVector() {
 	btVector3 look = globalTransform.getBasis().getColumn ( 2 );
-	return Vector3( look.x(), look.y(), look.z() );
+	return ruVector3( look.x(), look.y(), look.z() );
 }
 
 const char * SceneNode::GetName() {
     return name.c_str();
 }
 
-Vector3 SceneNode::GetRightVector() {
+ruVector3 SceneNode::GetRightVector() {
     btVector3 right = localTransform.getBasis().getColumn ( 0 );
-    return Vector3( right.x(), right.y(), right.z() );
+    return ruVector3( right.x(), right.y(), right.z() );
 }
 
-Vector3 SceneNode::GetUpVector() {
+ruVector3 SceneNode::GetUpVector() {
     btVector3 up = localTransform.getBasis().getColumn ( 1 );
-    return Vector3( up.x(), up.y(), up.z() );
+    return ruVector3( up.x(), up.y(), up.z() );
 }
 
 btTransform & SceneNode::GetGlobalTransform() {
     return globalTransform;
 }
 
-Vector3 SceneNode::GetLocalPosition() {
+ruVector3 SceneNode::GetLocalPosition() {
     btTransform transform = localTransform;
 
     if( body && !frozen ) {
         transform = body->getWorldTransform();
     }
 
-    Vector3 lp;
+    ruVector3 lp;
 
     lp.x = transform.getOrigin().x();
     lp.y = transform.getOrigin().y();
@@ -946,13 +946,13 @@ SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const char * name )
     return 0;
 }
 
-void SceneNode::SetAngularVelocity( Vector3 velocity ) {
+void SceneNode::SetAngularVelocity( ruVector3 velocity ) {
     if( body ) {
         body->setAngularVelocity( btVector3( velocity.x, velocity.y, velocity.z ));
     }
 }
 
-Vector3 SceneNode::GetEulerAngles() {
+ruVector3 SceneNode::GetEulerAngles() {
     float y, p, r;
 
     globalTransform.getBasis().getEulerYPR( y, p, r );
@@ -961,15 +961,15 @@ Vector3 SceneNode::GetEulerAngles() {
     p *= 180.0 / 3.14159f;
     r *= 180.0 / 3.14159f;
 
-    return Vector3( p, y, r );
+    return ruVector3( p, y, r );
 }
 
-Quaternion SceneNode::GetLocalRotation() {
+ruQuaternion SceneNode::GetLocalRotation() {
     btTransform transform = localTransform;
     if( body ) {
         transform = body->getWorldTransform();
     }
-    return Quaternion( transform.getRotation().x(), transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w() );
+    return ruQuaternion( transform.getRotation().x(), transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w() );
 }
 
 void SceneNode::SetDamping( float linearDamping, float angularDamping ) {
@@ -978,7 +978,7 @@ void SceneNode::SetDamping( float linearDamping, float angularDamping ) {
     }
 }
 
-void SceneNode::SetGravity( const Vector3 & gravity ) {
+void SceneNode::SetGravity( const ruVector3 & gravity ) {
     btVector3 g( gravity.x, gravity.y, gravity.z );
 
     if(body) {
@@ -1004,7 +1004,7 @@ void SceneNode::SetBody( btRigidBody * theBody ) {
     g_dynamicsWorld->addRigidBody ( body );
 }
 
-void SceneNode::SetAnimation( Animation * newAnim, bool dontAffectChilds ) {
+void SceneNode::SetAnimation( ruAnimation * newAnim, bool dontAffectChilds ) {
 	currentAnimation = newAnim;
 	if( !dontAffectChilds ) {
 		for( auto child : childs ) {
@@ -1017,27 +1017,27 @@ void SceneNode::SetAnimation( Animation * newAnim, bool dontAffectChilds ) {
 // API Functions
 ////////////////////////////////////////////////////
 
-RutheniumHandle::RutheniumHandle() {
+ruRutheniumHandle::ruRutheniumHandle() {
     pointer = nullptr;
 }
 
-RutheniumHandle::~RutheniumHandle() {
+ruRutheniumHandle::~ruRutheniumHandle() {
 
 }
 
-bool RutheniumHandle::IsValid() {
+bool ruRutheniumHandle::IsValid() {
     return pointer != nullptr;
 }
 
-void RutheniumHandle::Invalidate() {
+void ruRutheniumHandle::Invalidate() {
     pointer = nullptr;
 }
 
-bool NodeHandle::operator == ( const NodeHandle & node ) {
+bool ruNodeHandle::operator == ( const ruNodeHandle & node ) {
     return pointer == node.pointer;
 }
 
-void CreateOctree( NodeHandle node, int splitCriteria ) {
+void ruCreateOctree( ruNodeHandle node, int splitCriteria ) {
     SceneNode * n = SceneNode::CastHandle( node );
 
     for( int i = 0; i < n->meshes.size(); i++ ) {
@@ -1051,19 +1051,19 @@ void CreateOctree( NodeHandle node, int splitCriteria ) {
     }
 }
 
-void SetGravity( NodeHandle node, Vector3 gravity ) {
+void ruSetNodeGravity( ruNodeHandle node, ruVector3 gravity ) {
     SceneNode::CastHandle( node )->SetGravity( gravity );
 }
 
-void SetDamping( NodeHandle node, float linearDamping, float angularDamping ) {
+void ruSetNodeDamping( ruNodeHandle node, float linearDamping, float angularDamping ) {
     SceneNode::CastHandle( node )->SetDamping( linearDamping, angularDamping );
 }
 
-void SetMass( NodeHandle node, float mass ) {
+void ruSetNodeMass( ruNodeHandle node, float mass ) {
     SceneNode::CastHandle( node )->SetMass( mass );
 }
 
-void DeleteOctree( NodeHandle node ) {
+void ruDeleteOctree( ruNodeHandle node ) {
     SceneNode * n = SceneNode::CastHandle( node );
 
     for( int i = 0; i < n->meshes.size(); i++ ) {
@@ -1075,7 +1075,7 @@ void DeleteOctree( NodeHandle node ) {
     }
 }
 
-void Detach( NodeHandle node ) {
+void ruDetachNode( ruNodeHandle node ) {
     SceneNode * n = SceneNode::CastHandle( node );
 
     if( n->parent ) {
@@ -1085,195 +1085,195 @@ void Detach( NodeHandle node ) {
     n->parent = 0;
 }
 
-bool IsNodeVisible( NodeHandle node ) {
+bool ruIsNodeVisible( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->visible;
 }
 
-bool IsNodeInFrustum( NodeHandle node ) {
+bool ruIsNodeInFrustum( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->inFrustum;
 }
 
-void AttachSound( SoundHandle sound, NodeHandle node ) {
+void ruAttachSound( ruSoundHandle sound, ruNodeHandle node ) {
     SceneNode::CastHandle( node )->AttachSound( sound );
 }
 
-NodeHandle CreateSceneNode( ) {
+ruNodeHandle ruCreateSceneNode( ) {
     return SceneNode::HandleFromPointer( new SceneNode );
 }
 
-NodeHandle FindInObjectByName( NodeHandle node, const char * name ) {
+ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const char * name ) {
     return SceneNode::HandleFromPointer( SceneNode::FindInObjectByName( SceneNode::CastHandle( node ), name ));
 }
 
-Vector3 GetEulerAngles( NodeHandle node ) {
+ruVector3 ruGetNodeEulerAngles( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetEulerAngles();
 }
 
-void SetConvexBody( NodeHandle node ) {
+void ruSetConvexBody( ruNodeHandle node ) {
     SceneNode::CastHandle( node )->SetConvexBody();
 }
 
-void SetCapsuleBody( NodeHandle node, float height, float radius ) {
+void ruSetCapsuleBody( ruNodeHandle node, float height, float radius ) {
     SceneNode::CastHandle( node )->SetCapsuleBody( height, radius );
 }
 
-void SetAngularFactor( NodeHandle node, Vector3 fact ) {
+void ruSetAngularFactor( ruNodeHandle node, ruVector3 fact ) {
     SceneNode::CastHandle( node )->SetAngularFactor( fact );
 }
 
-void SetTrimeshBody( NodeHandle node ) {
+void ruSetTrimeshBody( ruNodeHandle node ) {
     SceneNode::CastHandle( node )->SetTrimeshBody();
 }
 
-void Attach( NodeHandle node1, NodeHandle node2 ) {
+void ruAttachNode( ruNodeHandle node1, ruNodeHandle node2 ) {
     SceneNode::CastHandle( node1 )->AttachTo( SceneNode::CastHandle( node2 ) );
 }
 
-Vector3 GetAABBMin( NodeHandle node ) {
+ruVector3 ruGetNodeAABBMin( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetAABBMin();
 }
 
-Vector3 GetAABBMax( NodeHandle node ) {
+ruVector3 ruGetNodeAABBMax( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetAABBMax();
 }
 
-NodeHandle LoadScene( const char * file ) {
+ruNodeHandle ruLoadScene( const char * file ) {
     return SceneNode::HandleFromPointer( SceneNode::LoadScene( file ));
 }
 
-void Freeze( NodeHandle node ) {
+void ruFreeze( ruNodeHandle node ) {
     SceneNode::CastHandle( node )->Freeze();
 }
 
-void Unfreeze( NodeHandle node ) {
+void ruUnfreeze( ruNodeHandle node ) {
     SceneNode::CastHandle( node )->Unfreeze();
 }
 
-void HideNode( NodeHandle node ) {
+void ruHideNode( ruNodeHandle node ) {
     SceneNode::CastHandle( node )->Hide();
 }
 
-void ShowNode( NodeHandle node ) {
+void ruShowNode( ruNodeHandle node ) {
     SceneNode::CastHandle( node )->Show();
 }
 
-string GetProperty( NodeHandle node, string propName ) {
+string ruGetProperty( ruNodeHandle node, string propName ) {
     return SceneNode::CastHandle( node )->GetProperty( propName );
 }
 
-void SetLinearFactor( NodeHandle node, Vector3 lin ) {
+void ruSetNodeLinearFactor( ruNodeHandle node, ruVector3 lin ) {
     SceneNode::CastHandle( node )->SetLinearFactor( lin );
 }
 
-Vector3 GetPosition( NodeHandle node ) {
+ruVector3 ruGetNodePosition( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetPosition();
 }
 
-int GetContactCount( NodeHandle node ) {
+int ruGetContactCount( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetContactCount();
 }
 
-Contact GetContact( NodeHandle node, int num ) {
+ruContact ruGetContact( ruNodeHandle node, int num ) {
     return SceneNode::CastHandle( node )->GetContact( num );
 }
 
-int IsNodeInside( NodeHandle node1, NodeHandle node2 ) {
+int ruIsNodeInsideNode( ruNodeHandle node1, ruNodeHandle node2 ) {
     return SceneNode::CastHandle( node1 )->IsNodeInside( SceneNode::CastHandle( node2 ));
 }
 
-NodeHandle GetChild( NodeHandle node, int i ) {
+ruNodeHandle ruGetNodeChild( ruNodeHandle node, int i ) {
     return SceneNode::HandleFromPointer( SceneNode::CastHandle( node )->GetChild( i ));
 }
 
-int GetCountChildren( NodeHandle node ) {
+int ruGetNodeCountChildren( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetCountChildren();
 }
 
-NodeHandle FindByName( const char * name ) {
+ruNodeHandle ruFindByName( const char * name ) {
     return SceneNode::HandleFromPointer( SceneNode::FindByName( name ));
 }
 
-void FreeSceneNode( NodeHandle node ) {
+void ruFreeSceneNode( ruNodeHandle node ) {
     delete SceneNode::CastHandle( node );
 }
 
-void SetFriction( NodeHandle node, float friction ) {
+void ruSetNodeFriction( ruNodeHandle node, float friction ) {
     SceneNode::CastHandle( node )->SetFriction( friction );
 }
 
-void SetAlbedo( NodeHandle node, float albedo ) {
+void ruSetNodeAlbedo( ruNodeHandle node, float albedo ) {
     SceneNode::CastHandle( node )->albedo = albedo;
 }
 
-void SetDepthHack( NodeHandle node, float depthHack ) {
+void ruSetNodeDepthHack( ruNodeHandle node, float depthHack ) {
     SceneNode::CastHandle( node )->SetDepthHack( depthHack );
 }
 
-void SetAnisotropicFriction( NodeHandle node, Vector3 aniso ) {
+void ruSetNodeAnisotropicFriction( ruNodeHandle node, ruVector3 aniso ) {
     SceneNode::CastHandle( node )->SetAnisotropicFriction( aniso );
 }
 
-bool IsNodeHasBody( NodeHandle node ) {
+bool ruIsNodeHasBody( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->body != nullptr;
 }
 
-void Move( NodeHandle node, Vector3 speed ) {
+void ruMoveNode( ruNodeHandle node, ruVector3 speed ) {
     SceneNode::CastHandle( node )->Move( speed );
 }
 
-void SetVelocity( NodeHandle node, Vector3 velocity ) {
+void ruSetNodeVelocity( ruNodeHandle node, ruVector3 velocity ) {
     SceneNode::CastHandle( node )->SetVelocity( velocity );
 }
 
-void SetAngularVelocity( NodeHandle node, Vector3 velocity ) {
+void ruSetNodeAngularVelocity( ruNodeHandle node, ruVector3 velocity ) {
     SceneNode::CastHandle( node )->SetAngularVelocity( velocity );
 }
 
-void SetPosition( NodeHandle node, Vector3 position ) {
+void ruSetNodePosition( ruNodeHandle node, ruVector3 position ) {
     SceneNode::CastHandle( node )->SetPosition( position );
 }
 
-float GetMass( NodeHandle node ) {
+float ruGetNodeMass( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetMass();
 }
 
-int IsNodeFrozen( NodeHandle node ) {
+int ruIsNodeFrozen( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->IsFrozen();
 }
 
-void SetRotation( NodeHandle node, Quaternion rotation ) {
+void ruSetNodeRotation( ruNodeHandle node, ruQuaternion rotation ) {
     SceneNode::CastHandle( node )->SetRotation( rotation );
 }
 
-Vector3 GetLookVector( NodeHandle node ) {
+ruVector3 ruGetNodeLookVector( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetLookVector();
 }
 
-const char * GetName( NodeHandle node ) {
+const char * ruGetNodeName( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetName();
 }
 
-Vector3 GetRightVector( NodeHandle node ) {
+ruVector3 ruGetNodeRightVector( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetRightVector();
 }
 
-Vector3 GetUpVector( NodeHandle node ) {
+ruVector3 ruGetNodeUpVector( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetUpVector();
 }
 
-Vector3 GetLocalPosition( NodeHandle node ) {
+ruVector3 ruGetNodeLocalPosition( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetLocalPosition();
 }
 
-Quaternion GetLocalRotation( NodeHandle node ) {
+ruQuaternion ruGetNodeLocalRotation( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetLocalRotation();
 }
 
-API Vector3 GetAbsoluteLookVector( NodeHandle node ) {
+RUAPI ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->GetAbsoluteLookVector();
 }
 
-void SetLocalPosition( NodeHandle node, Vector3 pos ) {
+void ruSetNodeLocalPosition( ruNodeHandle node, ruVector3 pos ) {
     SceneNode * s = SceneNode::CastHandle( node );
     s->localTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
     if( s->body ) {
@@ -1282,7 +1282,7 @@ void SetLocalPosition( NodeHandle node, Vector3 pos ) {
     SceneNode::CastHandle( node )->CalculateGlobalTransform( );
 }
 
-void SetLocalRotation( NodeHandle node, Quaternion rot ) {
+void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot ) {
     SceneNode * s = SceneNode::CastHandle( node );
     s->localTransform.setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ));
     if( s->body ) {
@@ -1291,16 +1291,16 @@ void SetLocalRotation( NodeHandle node, Quaternion rot ) {
     SceneNode::CastHandle( node )->CalculateGlobalTransform( );
 }
 
-void SetName( NodeHandle node, const char * name ) {
+void ruSetNodeName( ruNodeHandle node, const char * name ) {
     SceneNode::CastHandle( node )->name = name;
 }
 
-int GetWorldObjectsCount() {
+int ruGetWorldObjectsCount() {
     return g_nodes.size();
 }
 
-API NodeHandle GetWorldObject( int i ) {
-    NodeHandle handle;
+RUAPI ruNodeHandle ruGetWorldObject( int i ) {
+    ruNodeHandle handle;
     handle.pointer = g_nodes[ i ];
     return handle;
 }
@@ -1308,22 +1308,22 @@ API NodeHandle GetWorldObject( int i ) {
 
 // animation
 
-API int IsAnimationEnabled( NodeHandle node ) {
+RUAPI int ruIsAnimationEnabled( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->IsAnimationEnabled();
 }
 
-API void SetAnimationEnabled( NodeHandle node, bool state, bool dontAffectChilds ) {
+RUAPI void ruSetAnimationEnabled( ruNodeHandle node, bool state, bool dontAffectChilds ) {
 	SceneNode::CastHandle( node )->SetAnimationEnabled( state, dontAffectChilds );
 }
 
-API void SetAnimation( NodeHandle node, Animation * newAnim, bool dontAffectChilds ) {
+RUAPI void ruSetAnimation( ruNodeHandle node, ruAnimation * newAnim, bool dontAffectChilds ) {
 	SceneNode::CastHandle( node )->SetAnimation( newAnim, dontAffectChilds );
 }
 
-API int GetTotalAnimationFrameCount( NodeHandle node ) {
+RUAPI int ruGetTotalAnimationFrameCount( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->totalFrames;
 }
 
-API Animation * GetCurrentAnimation( NodeHandle node ) {
+RUAPI ruAnimation * ruGetCurrentAnimation( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->currentAnimation;
 }

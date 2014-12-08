@@ -4,22 +4,17 @@
 
 class MultipleRTDeferredRenderer : public DeferredRenderer {
 public:
-    VertexShader * vertexShaderPassOne;
-    PixelShader * pixelShaderPassOne;
+    VertexShader * vsGBufferHighQuality;
+    PixelShader * psGBufferHighQuality;
+	VertexShader * vsGBufferLowQuality;
+	PixelShader * psGBufferLowQuality;
+	void CreateHighQualityShaders();
+	void CreateLowQualityShaders();
 
-    D3DXHANDLE v1World;
-    D3DXHANDLE v1WVP;
-
-    D3DXHANDLE pAlbedo;
-
-    void InitPassOneShaders();
-
-    MultipleRTDeferredRenderer();
-    ~MultipleRTDeferredRenderer();
+    explicit MultipleRTDeferredRenderer();
+    virtual ~MultipleRTDeferredRenderer();
 
     void BeginFirstPass();
-
     void RenderMesh( Mesh * mesh );
-
     void OnEnd();
 };

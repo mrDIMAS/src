@@ -15,7 +15,7 @@ public:
 
     vector<SceneNode*> childs;
 	vector<Mesh*> meshes;  
-	vector<SoundHandle> sounds;
+	vector<ruSoundHandle> sounds;
 	vector<btTransform*> keyframes;
 
 	map<string,string> properties;
@@ -28,13 +28,13 @@ public:
     
     btTriangleMesh * trimesh;   
     
-    SoundHandle hitSound;
-    SoundHandle idleSound;
+    ruSoundHandle hitSound;
+    ruSoundHandle idleSound;
 
     float albedo;
     float fDepthHack;
 	
-	Animation * currentAnimation;
+	ruAnimation * currentAnimation;
 
 	bool animationEnabled;
 	bool skinned;
@@ -42,7 +42,7 @@ public:
 	bool frozen;
 	bool visible;
 
-	Contact contacts[ BODY_MAX_CONTACTS ];
+	ruContact contacts[ BODY_MAX_CONTACTS ];
 
 	int numContacts;
 	int totalFrames;
@@ -57,8 +57,8 @@ public:
     explicit SceneNode();
     virtual ~SceneNode();
 
-	void SetAnimation( Animation * newAnim, bool dontAffectChilds = false );
-	Animation * GetCurrentAnimation( ) {
+	void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
+	ruAnimation * GetCurrentAnimation( ) {
 		return currentAnimation;
 	}
 
@@ -68,12 +68,12 @@ public:
     void SetSphereBody( );
     void SetCylinderBody( );
     void SetCapsuleBody( float height, float radius );
-    void SetAngularFactor( Vector3 fact );
+    void SetAngularFactor( ruVector3 fact );
     void SetTrimeshBody();
     void AttachTo( SceneNode * parent );
     btTransform & CalculateGlobalTransform();
-    Vector3 GetAABBMin( );
-    Vector3 GetAABBMax( );
+    ruVector3 GetAABBMin( );
+    ruVector3 GetAABBMax( );
     static SceneNode * Find( SceneNode * parent, string childName );
     int IsAnimationEnabled( );
     void PerformAnimation( );
@@ -84,46 +84,46 @@ public:
     void Show( );
     string GetProperty( string propName );
     void UpdateSounds( );
-    void SetLinearFactor( Vector3 lin );
-    Vector3 GetPosition( );
+    void SetLinearFactor( ruVector3 lin );
+    ruVector3 GetPosition( );
     int GetContactCount( );
     void SetBody( btRigidBody * theBody );
-    Contact GetContact( int num );
+    ruContact GetContact( int num );
     void ApplyProperties( );
-    void AttachSound( SoundHandle sound );
+    void AttachSound( ruSoundHandle sound );
     bool IsNodeInside( SceneNode * node );
     SceneNode * GetChild( int i );
     int GetCountChildren();
     void SetFriction( float friction );
     void SetDepthHack( float depthHack );
-    void SetAnisotropicFriction( Vector3 aniso );
-    void Move( Vector3 speed );
-    void SetVelocity( Vector3 velocity );
-    void SetAngularVelocity( Vector3 velocity );
-    Vector3 GetEulerAngles();
-    Quaternion GetLocalRotation();
-    void SetPosition( Vector3 position );
+    void SetAnisotropicFriction( ruVector3 aniso );
+    void Move( ruVector3 speed );
+    void SetVelocity( ruVector3 velocity );
+    void SetAngularVelocity( ruVector3 velocity );
+    ruVector3 GetEulerAngles();
+    ruQuaternion GetLocalRotation();
+    void SetPosition( ruVector3 position );
     void SetDamping( float linearDamping, float angularDamping );
-    void SetGravity( const Vector3 & gravity );
+    void SetGravity( const ruVector3 & gravity );
     void SetMass( float mass );
     float GetMass();
     bool IsFrozen();
-    void SetRotation( Quaternion rotation );
-    Vector3 GetLookVector();
-	Vector3 GetAbsoluteLookVector();
+    void SetRotation( ruQuaternion rotation );
+    ruVector3 GetLookVector();
+	ruVector3 GetAbsoluteLookVector();
     const char * GetName();
-    Vector3 GetRightVector();
-    Vector3 GetUpVector();
+    ruVector3 GetRightVector();
+    ruVector3 GetUpVector();
     btTransform & GetGlobalTransform();
     bool IsRenderable();
     bool IsVisible();
-    Vector3 GetLocalPosition();
+    ruVector3 GetLocalPosition();
 
     static void UpdateContacts( );
     static SceneNode * FindByName( const char * name );
     static SceneNode * FindInObjectByName( SceneNode * node, const char * name );
     static SceneNode * LoadScene( const char * file );
-    static SceneNode * CastHandle( NodeHandle handle );
-    static NodeHandle HandleFromPointer( SceneNode * ptr );
+    static SceneNode * CastHandle( ruNodeHandle handle );
+    static ruNodeHandle HandleFromPointer( SceneNode * ptr );
     static void EraseUnusedNodes();
 };

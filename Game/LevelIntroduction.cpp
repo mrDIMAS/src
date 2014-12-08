@@ -26,20 +26,20 @@ void LevelIntroduction::DoScenario() {
 
     textAlpha += ( textAlphaTo - textAlpha ) * 0.025f;
 
-    int scx = GetResolutionWidth() / 2;
-    int scy = GetResolutionHeight() / 2;
+    int scx = ruGetResolutionWidth() / 2;
+    int scy = ruGetResolutionHeight() / 2;
 
     int w = 600;
     int h = 400;
 
-    DrawGUIText( text.c_str(), scx - w / 2, scy - h / 2, w, h, gui->font, Vector3( 255, 255, 255 ), 0, textAlpha );
+    ruDrawGUIText( text.c_str(), scx - w / 2, scy - h / 2, w, h, gui->font, ruVector3( 255, 255, 255 ), 0, textAlpha );
 
-    if( GetElapsedTimeInSeconds( textTimer ) >= 22 || IsKeyHit( KEY_Space ) ) {
+    if( ruGetElapsedTimeInSeconds( textTimer ) >= 22 || ruIsKeyHit( KEY_Space ) ) {
         intro = false;
     }
 
     if( intro ) {
-        DrawGUIText( "[Space] - пропустить", GetResolutionWidth() / 2 - 256, GetResolutionHeight() - 200, 512, 128, gui->font, Vector3( 255, 0, 0 ), 1 );
+        ruDrawGUIText( "[Space] - пропустить", ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
     }
 
     if( intro == false ) {
@@ -54,10 +54,10 @@ LevelIntroduction::~LevelIntroduction() {
 }
 
 LevelIntroduction::LevelIntroduction() {
-    scene = CreateSceneNode();
+    scene = ruCreateSceneNode();
     textAlpha = 0.0f;
     textAlphaTo = 255.0f;
-    textTimer = CreateTimer( );
+    textTimer = ruCreateTimer( );
     intro = true;
 	typeNum = 1;
     LoadLocalization( "intro.loc" );

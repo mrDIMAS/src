@@ -2,7 +2,7 @@
 #include "GUIRenderer.h"
 #include "Cursor.h"
 
-void SetCursorSettings( TextureHandle texture, int w, int h ) {
+void ruSetCursorSettings( ruTextureHandle texture, int w, int h ) {
     if( !g_cursor ) {
         g_cursor = new Cursor;
     }
@@ -10,7 +10,7 @@ void SetCursorSettings( TextureHandle texture, int w, int h ) {
     g_cursor->Setup( texture, w, h );
 }
 
-void HideCursor( ) {
+void ruHideCursor( ) {
     if( g_cursor ) {
         g_cursor->Hide();
     } else {
@@ -19,7 +19,7 @@ void HideCursor( ) {
     }
 }
 
-void ShowCursor( ) {
+void ruShowCursor( ) {
     if( g_cursor ) {
         g_cursor->Show();
     } else {
@@ -28,27 +28,27 @@ void ShowCursor( ) {
     }
 }
 
-void DrawGUIRect( float x, float y, float w, float h, TextureHandle texture, Vector3 color, int alpha ) {
-    g_guiRenderer->RenderRect( GUIRect( x, y, w, h, reinterpret_cast< Texture*>( texture.pointer ), color, alpha ));
+void ruDrawGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color, int alpha ) {
+    g_guiRenderer->QueueRect( GUIRect( x, y, w, h, reinterpret_cast< Texture*>( texture.pointer ), color, alpha ));
 }
 
-FontHandle CreateGUIFont( int size, const char * name, int italic, int underlined ) {
+ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined ) {
     return g_guiRenderer->CreateFont( size, name, italic, underlined );
 }
 
-void DrawGUIText( const char * text, int x, int y, int w, int h, FontHandle font, Vector3 color, int textAlign, int alpha /*= 255 */ ) {
+void ruDrawGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha /*= 255 */ ) {
     g_guiRenderer->RenderText( GUIText( text, x, y, w, h, color, alpha, textAlign, font ));
 }
 
-void Draw3DLine( LinePoint begin, LinePoint end ) {
+void ruDraw3DLine( ruLinePoint begin, ruLinePoint end ) {
     g_guiRenderer->Render3DLine( GUILine( begin, end ));
 }
 
-void DrawWireBox( LinePoint min, LinePoint max ) {
+void ruDrawWireBox( ruLinePoint min, ruLinePoint max ) {
     g_guiRenderer->DrawWireBox( min, max );
 }
 
-int GetTextWidth( const char * text, FontHandle font ) {
+int ruGetTextWidth( const char * text, ruFontHandle font ) {
     auto fnt = (ID3DXFont*)font.pointer;
 
     TEXTMETRICA metrics;
@@ -57,7 +57,7 @@ int GetTextWidth( const char * text, FontHandle font ) {
     return metrics.tmAveCharWidth * strlen( text );
 }
 
-int GetTextHeight( const char * text, FontHandle font, int boxWidth ) {
+int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth ) {
     auto fnt = (ID3DXFont*)font.pointer;
 
     TEXTMETRICA metrics;
@@ -67,28 +67,28 @@ int GetTextHeight( const char * text, FontHandle font, int boxWidth ) {
     return metrics.tmHeight * lines;
 }
 
-API GUIState DrawGUIButton( int x, int y, int w, int h, TextureHandle texture, const char * text, FontHandle font, Vector3 color, int textAlign, int alpha ) {
-    GUIState state;
+RUAPI ruGUIState ruDrawGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha ) {
+    ruGUIState state;
 
-    memset( &state, 0, sizeof( GUIState ));
+    memset( &state, 0, sizeof( ruGUIState ));
 
-    int mx = GetMouseX();
-    int my = GetMouseY();
+    int mx = ruGetMouseX();
+    int my = ruGetMouseY();
 
     if( mx > x && mx < ( x + w ) && my > y && my < ( y + h ) ) {
         state.mouseInside = 1;
-        if( IsMouseHit( MB_Left )) {
+        if( ruIsMouseHit( MB_Left )) {
             state.mouseLeftClicked = true;
         }
-        if( IsMouseHit( MB_Right )) {
+        if( ruIsMouseHit( MB_Right )) {
             state.mouseRightClicked = true;
         }
 
-        color = Vector3( 255, 0, 0 );
+        color = ruVector3( 255, 0, 0 );
     }
 
-    DrawGUIRect( x, y, w, h, texture, Vector3( 255, 255, 255 ), alpha );
-    DrawGUIText( text, x, y, w, h, font, color, textAlign, alpha );
+    ruDrawGUIRect( x, y, w, h, texture, ruVector3( 255, 255, 255 ), alpha );
+    ruDrawGUIText( text, x, y, w, h, font, color, textAlign, alpha );
 
     return state;
 }

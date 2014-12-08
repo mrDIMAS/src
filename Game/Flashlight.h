@@ -5,35 +5,35 @@
 
 class Flashlight {
 public:
-    NodeHandle light;
-    NodeHandle model;
+    ruNodeHandle light;
+    ruNodeHandle model;
 
     float maxCharge;
     float charge;
     float onRange;
 	
-	Vector3 offset;
+	ruVector3 offset;
 
     float realRange;
     float rangeDest;
 	float chargeWorkTimeSeconds;
 	float bobArg;
 
-    SoundHandle onSound;
-    SoundHandle offSound;
-    SoundHandle outOfChargeSound;
+    ruSoundHandle onSound;
+    ruSoundHandle offSound;
+    ruSoundHandle outOfChargeSound;
 
-    Vector3 initialPosition;
+    ruVector3 initialPosition;
 
-    Vector3 position;
-    Vector3 destPosition;
+    ruVector3 position;
+    ruVector3 destPosition;
 
     bool on;
 
     Flashlight( );
     bool GotCharge();
     void Fuel();
-    void Attach( NodeHandle node );
+    void Attach( ruNodeHandle node );
     void SwitchOff();
     void SwitchOn();
     void Switch();

@@ -10,16 +10,16 @@ void Enemy::Think() {
     }
 
 	if( moveType == MoveTypeChasePlayer ) {
-		target = GetPosition( player->body );
+		target = ruGetNodePosition( player->body );
 	} else if( moveType == MoveTypeGoToDestination ) {		
 		if( currentPath.size() ) {
 			target = currentPath[currentWaypointNum]->position;
-			if( ( target - GetPosition( body ) ).Length2() < 0.5f ) {
+			if( ( target - ruGetNodePosition( body ) ).Length2() < 0.5f ) {
 				currentWaypointNum += destWaypointNum - currentWaypointNum > 0 ? 1 : 0;
 			}
 		}
 	} 
-	
+
 	bool reachPoint = ( destWaypointNum - currentWaypointNum ) < 0 ;
 
 	if( doPatrol ) {
@@ -31,65 +31,71 @@ void Enemy::Think() {
 			}
 		}
 		destination = patrolPoints[currentPatrolPoint]->position;
+		targetIsPlayer = false;
 	} else { 
-		destination = GetPosition( player->body );
+		destination = ruGetNodePosition( player->body );
+		targetIsPlayer = true;
 	}
 
-    Vector3 direction = target - GetPosition( body );
+    ruVector3 direction = target - ruGetNodePosition( body );
 	float heightUnderTarget = direction.y;
-	//direction.y = 0; // use XZ plane instead 3D
 
-    float distanceToPlayer = direction.Length();
+	float distanceToPlayer = (ruGetNodePosition( player->body ) - ruGetNodePosition( body )).Length();
+    float distanceToTarget = direction.Length();
     direction.Normalize();    
 
     angleTo = atan2f( direction.x, direction.z ) - M_PI / 2;
     angleTo = (angleTo > 0 ? angleTo : (2*M_PI + angleTo)) * 360 / (2*M_PI);
 
-    angle = angleTo;
+    angle += ( angleTo - angle ) * 0.025f;
 
-    SetRotation( body, Quaternion( 0, angle, 0 ));
+    ruSetNodeRotation( body, ruQuaternion( 0, angle, 0 ));
 
     bool move = true;
-	bool targetTooFar = distanceToPlayer > 10.0f;
-	Vector3 toPlayer =  GetPosition( player->camera->cameraNode ) - (GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f);
-	bool playerInView = RayTest( GetPosition( head ) + GetLookVector( body ).Normalize() * 0.4f, GetPosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
+	bool playerTooFar = targetIsPlayer && distanceToTarget > 10.0f;
+	ruVector3 toPlayer =  ruGetNodePosition( player->camera->cameraNode ) - (ruGetNodePosition( head ) + ruGetNodeLookVector( body ).Normalize() * 0.4f);
+	bool playerInView = ruCastRay( ruGetNodePosition( head ) + ruGetNodeLookVector( body ).Normalize() * 0.4f, ruGetNodePosition( player->camera->cameraNode ), nullptr ).pointer == player->body.pointer;
 	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
-
-	
+		
 	bool enemyDetectPlayer = false;
-	if( player->flashlight->on ) {
-		// if we light up enemy, he detects player
-		enemyDetectPlayer = IsLightViewPoint( player->flashlight->light, GetPosition( body ) ); 
-		if( enemyDetectPlayer && playerInView ) {
+	if( playerInView ) {
+		if( player->flashlight->on ) {
+			// if we light up enemy, he detects player
+			if( ruIsLightSeePoint( player->flashlight->light, ruGetNodePosition( body ) ) ) {
+				if( !playerDetected ) {
+					ruRestartTimer( detectedTimer );
+					playerDetected = true; 
+				}
+			}
+		}
+		float detectDistance = player->stealthFactor * 10.0f;
+		// player right in front of enemy
+		if( ( distanceToPlayer < detectDistance ) && ( angleToPlayer < 45 ) ) {
 			if( !playerDetected ) {
-				RestartTimer( detectedTimer );
+				ruRestartTimer( detectedTimer );
 				playerDetected = true; 
 			}
 		}
-	}
+		// enemy doesn't see player, but can hear he, if he moved
+		if(( player->stealthFactor >= 0.3f && player->moved && ( distanceToPlayer < 5.0f ))) {
+			if( !playerDetected ) {
+				ruRestartTimer( detectedTimer );
+				playerDetected = true; 
+			}
+		}
 
-	float detectDistance = player->stealthFactor * 10.0f;
-	// player right in front of enemy
-	if( playerInView && ( distanceToPlayer < detectDistance ) && ( angleToPlayer < 45 ) ) {
+	}
+	// if player too close to the enemy, he detects player
+	if( angleToPlayer < 45 && distanceToPlayer < 2.0f ) {
 		if( !playerDetected ) {
-			RestartTimer( detectedTimer );
+			ruRestartTimer( detectedTimer );
 			playerDetected = true; 
 		}
 	}
-
-	// enemy doesn't see player, but can hear he, if he moved
-	if( playerInView && ( player->stealthFactor >= 0.3f && player->moved && ( distanceToPlayer < 5.0f ))) {
-		if( !playerDetected ) {
-			RestartTimer( detectedTimer );
-			playerDetected = true; 
-		}
-	}
-
-	DrawGUIText( Format( "PD: %d", playerDetected ? 1 : 0 ).c_str(), 200, 200, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
 
 	if( playerDetected ) {
 		enemyDetectPlayer = true;
-		if( GetElapsedTimeInSeconds( detectedTimer ) > 2.5f ) {
+		if( ruGetElapsedTimeInSeconds( detectedTimer ) > 2.5f ) {
 			playerDetected = false;
 		}
 	}
@@ -97,19 +103,19 @@ void Enemy::Think() {
 	if( enemyDetectPlayer ) {
 		moveType = MoveTypeChasePlayer;		
 		doPatrol = false;
-		PauseSoundSource( breathSound );
-		PlaySoundSource( screamSound, true );
+		ruPauseSound( breathSound );
+		ruPlaySound( screamSound, true );
 		runSpeed = 3.0f;
 	} else {
 		moveType = MoveTypeGoToDestination;
 		doPatrol = true;
 		runSpeed = 1.5f;
-		PlaySoundSource( breathSound, true );
-		PauseSoundSource( screamSound );
+		ruPlaySound( breathSound, true );
+		ruPauseSound( screamSound );
 	}
 
 	if( moveType == MoveTypeChasePlayer ){
-		if( targetTooFar || player->dead ) {
+		if( playerTooFar || player->dead ) {
 			doPatrol = true;
 			moveType = MoveTypeGoToDestination;
 			SetIdleAnimation();
@@ -119,13 +125,13 @@ void Enemy::Think() {
 					if( distanceToPlayer < 1 ) {
 						move = false;					
 						SetStayAndAttackAnimation();         
-						if( GetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetBeginFrame() ) {
+						if( ruGetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetBeginFrame() ) {
 							attackDone = false;
 						}
-						if( GetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetEndFrame() - 5 && !attackDone ) {
+						if( ruGetCurrentAnimation( attackHand )->GetCurrentFrame() == animAttack.GetEndFrame() - 5 && !attackDone ) {
 							attackDone = true;
 							player->Damage( 20 );						
-							PlaySoundSource( hitFleshWithAxeSound, true );
+							ruPlaySound( hitFleshWithAxeSound, true );
 						}
 					} else {
 						SetRunAndAttackAnimation();
@@ -137,7 +143,7 @@ void Enemy::Think() {
 		}
 	} else if( moveType == MoveTypeGoToDestination ) {
 		GraphVertex * destNearestVertex = pathfinder.GetVertexNearestTo( destination, &currentDestIndex);
-		GraphVertex * enemyNearestVertex = pathfinder.GetVertexNearestTo( GetPosition( body ) );
+		GraphVertex * enemyNearestVertex = pathfinder.GetVertexNearestTo( ruGetNodePosition( body ) );
 		if( currentDestIndex != lastDestIndex ) { // means player has moved to another waypoint
 			pathfinder.BuildPath( enemyNearestVertex, destNearestVertex, currentPath );			
 			destWaypointNum = GetVertexIndexNearestTo( currentPath[ currentPath.size() - 1 ]->position );
@@ -154,7 +160,7 @@ void Enemy::Think() {
 
 	// check doors
 	for( auto d : Door::all ) {
-		if( ( GetPosition( d->door ) - GetPosition( body )).Length2() < 2.5f ) {
+		if( ( ruGetNodePosition( d->door ) - ruGetNodePosition( body )).Length2() < 2.5f ) {
 			if( d->GetState() == Door::State::Closed ) {
 				d->Open();
 			}
@@ -165,24 +171,20 @@ void Enemy::Think() {
 		pathLen += 0.1f;
 		if( abs( pathLen - lastPathLen ) > 3 ) {
 			lastPathLen = pathLen;
-			PlaySoundSource( footstepsSounds[ rand() % 4 ]);
+			ruPlaySound( footstepsSounds[ rand() % 4 ]);
 		}
-		Vector3 speedVector = direction * runSpeed;// + Vector3( 0, -.1, 0 );
-		Move( body, speedVector );
+		ruVector3 speedVector = direction * runSpeed;// + Vector3( 0, -.1, 0 );
+		ruMoveNode( body, speedVector );
 	}
 
 #ifdef ENEMY_ANIMATION_DEBUG
 	int y = 100;
 	DrawAnimationDebugInfo( model, y );
 #endif
-
-	SetAnimationEnabled( model, true );
-
+	ruSetAnimationEnabled( model, true );
 	animAttack.Update();
 	animIdle.Update();
 	animRun.Update();
-
-	//DrawGUIText( Format( "Patrol:%d", doPatrol ? 1 : 0 ).c_str(), 100, 100, 200, 200, gui->font, Vector3( 255, 0, 0 ), 0 );
 }
 
 Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) {
@@ -194,23 +196,23 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 	lastPathLen = 0.0f;
 	bodyHeight = 1.0f;
 
-    body = CreateSceneNode();
-    SetCapsuleBody( body, bodyHeight, 0.25f );
-    SetAngularFactor( body, Vector3( 0, 0, 0 ));
-    SetPosition( body, Vector3( 5, 1, -2.5 ));
-	SetMass( body, 100 );
-	SetFriction( body, 0 );
+    body = ruCreateSceneNode();
+    ruSetCapsuleBody( body, bodyHeight, 0.25f );
+    ruSetAngularFactor( body, ruVector3( 0, 0, 0 ));
+    ruSetNodePosition( body, ruVector3( 5, 1, -2.5 ));
+	ruSetNodeMass( body, 100 );
+	ruSetNodeFriction( body, 0 );
 
-    model = LoadScene( file );
-    Attach( model, body );
-    SetPosition( model, Vector3( 0, -0.5f, 0 ));
+    model = ruLoadScene( file );
+    ruAttachNode( model, body );
+    ruSetNodePosition( model, ruVector3( 0, -0.5f, 0 ));
 
 	FindBodyparts();
 
 	angleTo = 0.0f;
     angle = 0.0f;
 
-    damageTimer = CreateTimer();
+    damageTimer = ruCreateTimer();
 
 	CreateSounds();
 
@@ -223,7 +225,7 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 	destWaypointNum = 0;
 	lastDestIndex = -1;
 	playerDetected = false;
-	detectedTimer = CreateTimer();
+	detectedTimer = ruCreateTimer();
 	int a = 0;
 }
 
@@ -250,24 +252,24 @@ void Enemy::SetIdleAnimation() {
     SetCommonAnimation( &animIdle );
 }
 
-void Enemy::SetCommonAnimation( Animation * anim ) {
-    SetAnimation( model, anim );
+void Enemy::SetCommonAnimation( ruAnimation * anim ) {
+    ruSetAnimation( model, anim );
 }
 
-void Enemy::SetTorsoAnimation( Animation * anim ) {
-    SetAnimation( torsoBone, anim );
+void Enemy::SetTorsoAnimation( ruAnimation * anim ) {
+    ruSetAnimation( torsoBone, anim );
 }
 
-void Enemy::SetLegsAnimation( Animation * anim ) {
-    SetAnimation( rightLeg, anim );
-    SetAnimation( leftLeg, anim );
-    SetAnimation( rightLegDown, anim );
-    SetAnimation( leftLegDown, anim );
+void Enemy::SetLegsAnimation( ruAnimation * anim ) {
+    ruSetAnimation( rightLeg, anim );
+    ruSetAnimation( leftLeg, anim );
+    ruSetAnimation( rightLegDown, anim );
+    ruSetAnimation( leftLegDown, anim );
 }
 
-void Enemy::DrawAnimationDebugInfo( NodeHandle node, int & y )
+void Enemy::DrawAnimationDebugInfo( ruNodeHandle node, int & y )
 {
-	Animation * ca = GetCurrentAnimation( node );
+	ruAnimation * ca = ruGetCurrentAnimation( node );
 	string animName; 
 	if( ca == &animIdle ) {
 		animName = "Idle";
@@ -277,57 +279,57 @@ void Enemy::DrawAnimationDebugInfo( NodeHandle node, int & y )
 		animName = "Attack";
 	}
 	y += 16;
-	DrawGUIText( Format( 
+	ruDrawGUIText( Format( 
 		"Name: %-20.20sType: %-20.20sFrame: %-8dBegin: %-8dEnd: %-8dNext: %-8d", 
-		GetName( node ),
+		ruGetNodeName( node ),
 		animName.c_str(),
 		ca->GetCurrentFrame(), 
 		ca->GetBeginFrame(), 
 		ca->GetEndFrame(), 
-		ca->GetNextFrame() ).c_str(), 100, y, 700, 200, gui->font, Vector3( 200, 0, 0 ), 0 );
+		ca->GetNextFrame() ).c_str(), 100, y, 700, 200, gui->font, ruVector3( 200, 0, 0 ), 0 );
 
-	for( int i = 0; i < GetCountChildren( node ); i++ ) {
-		DrawAnimationDebugInfo( GetChild( node, i ), y );
+	for( int i = 0; i < ruGetNodeCountChildren( node ); i++ ) {
+		DrawAnimationDebugInfo( ruGetNodeChild( node, i ), y );
 	}
 }
 
 void Enemy::CreateAnimations() {
 	// Animations
-	animIdle = Animation( 0, 15, 0.08, true );
-	animRun = Animation( 16, 34, 0.08, true );
-	animAttack = Animation( 35, 46, 0.035, true );
-	animWalk = Animation( 47, 58, 0.045, true );
+	animIdle = ruAnimation( 0, 15, 0.08, true );
+	animRun = ruAnimation( 16, 34, 0.08, true );
+	animAttack = ruAnimation( 35, 46, 0.035, true );
+	animWalk = ruAnimation( 47, 58, 0.045, true );
 }
 
 void Enemy::CreateSounds() {
-	hitFleshWithAxeSound = CreateSound3D( "data/sounds/armor_axe_flesh.ogg" );
-	AttachSound( hitFleshWithAxeSound, FindInObjectByName( model, "AttackHand" ));
+	hitFleshWithAxeSound = ruLoadSound3D( "data/sounds/armor_axe_flesh.ogg" );
+	ruAttachSound( hitFleshWithAxeSound, ruFindInObjectByName( model, "AttackHand" ));
 
-	breathSound = CreateSound3D( "data/sounds/breath1.ogg" );
-	AttachSound( breathSound, body );
-	SetVolume( breathSound, 0.5f );
-	SetRolloffFactor( breathSound, 20 );
-	SetSoundReferenceDistance( breathSound, 5 );
+	breathSound = ruLoadSound3D( "data/sounds/breath1.ogg" );
+	ruAttachSound( breathSound, body );
+	ruSetSoundVolume( breathSound, 0.25f );
+	ruSetRolloffFactor( breathSound, 20 );
+	ruSetSoundReferenceDistance( breathSound, 2.8 );
 
-	screamSound = CreateSound3D( "data/sounds/scream_creepy_1.ogg" );
-	SetVolume( screamSound, 1.0f );
-	AttachSound( screamSound, body );    
-	SetRolloffFactor( screamSound, 20 );
-	SetSoundReferenceDistance( screamSound, 5 );
+	screamSound = ruLoadSound3D( "data/sounds/scream_creepy_1.ogg" );
+	ruSetSoundVolume( screamSound, 1.0f );
+	ruAttachSound( screamSound, body );    
+	ruSetRolloffFactor( screamSound, 20 );
+	ruSetSoundReferenceDistance( screamSound, 4 );
 
-	footstepsSounds[ 0 ] = CreateSound3D( "data/sounds/step1.ogg" );
-	footstepsSounds[ 1 ] = CreateSound3D( "data/sounds/step2.ogg" );
-	footstepsSounds[ 2 ] = CreateSound3D( "data/sounds/step3.ogg" );
-	footstepsSounds[ 3 ] = CreateSound3D( "data/sounds/step4.ogg" );
+	footstepsSounds[ 0 ] = ruLoadSound3D( "data/sounds/step1.ogg" );
+	footstepsSounds[ 1 ] = ruLoadSound3D( "data/sounds/step2.ogg" );
+	footstepsSounds[ 2 ] = ruLoadSound3D( "data/sounds/step3.ogg" );
+	footstepsSounds[ 3 ] = ruLoadSound3D( "data/sounds/step4.ogg" );
 	for( int i = 0; i < 4; i++ ) {
-		AttachSound( footstepsSounds[i], body );   
-		SetVolume( footstepsSounds[i], 0.75f );
-		SetRolloffFactor( footstepsSounds[i], 10 );
-		SetSoundReferenceDistance( footstepsSounds[i], 5 );
+		ruAttachSound( footstepsSounds[i], body );   
+		ruSetSoundVolume( footstepsSounds[i], 0.75f );
+		ruSetRolloffFactor( footstepsSounds[i], 10 );
+		ruSetSoundReferenceDistance( footstepsSounds[i], 5 );
 	}
 }
 
-int Enemy::GetVertexIndexNearestTo( Vector3 position ) {
+int Enemy::GetVertexIndexNearestTo( ruVector3 position ) {
 	if( currentPath.size() == 0 ) {
 		return 0;
 	};
@@ -342,19 +344,19 @@ int Enemy::GetVertexIndexNearestTo( Vector3 position ) {
 }
 
 void Enemy::FindBodyparts() {
-	rightLeg = FindInObjectByName( model, "RightLeg" );
-	leftLeg = FindInObjectByName( model, "LeftLeg" );
-	rightLegDown = FindInObjectByName( model, "RightLegDown" );
-	leftLegDown = FindInObjectByName( model, "LeftLegDown" );
-	torsoBone = FindInObjectByName( model, "Torso" );
-	attackHand = FindInObjectByName( model, "AttackHand" );
-	head = FindInObjectByName( model, "HeadBone" );
+	rightLeg = ruFindInObjectByName( model, "RightLeg" );
+	leftLeg = ruFindInObjectByName( model, "LeftLeg" );
+	rightLegDown = ruFindInObjectByName( model, "RightLegDown" );
+	leftLegDown = ruFindInObjectByName( model, "LeftLegDown" );
+	torsoBone = ruFindInObjectByName( model, "Torso" );
+	attackHand = ruFindInObjectByName( model, "AttackHand" );
+	head = ruFindInObjectByName( model, "HeadBone" );
 }
 
 void Enemy::Serialize( TextFileStream & out ) {
-	out.WriteVector3( GetPosition( body ));
+	out.WriteVector3( ruGetNodePosition( body ));
 }
 
 void Enemy::Deserialize( TextFileStream & in ) {
-	SetPosition( body, in.ReadVector3( ));
+	ruSetNodePosition( body, in.ReadVector3( ));
 }

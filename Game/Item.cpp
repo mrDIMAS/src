@@ -3,7 +3,7 @@
 vector<Item*> Item::Available;
 Parser Item::loc;
 
-Item * Item::GetByObject( NodeHandle obj ) {
+Item * Item::GetByObject( ruNodeHandle obj ) {
     for( auto item : Available )
         if( item->object == obj ) {
             return item;
@@ -19,7 +19,7 @@ void Item::SetType( int typ ) {
     if( type == Detonator ) {
         desc = loc.GetString( "detonatorDesc" );
         name = loc.GetString( "detonatorName" );
-        img = GetTexture( "data/gui/inventory/items/detonator.png" );;
+        img = ruGetTexture( "data/gui/inventory/items/detonator.png" );;
         combinesWith = 0;
         onCombineBecomes = 0;
 
@@ -30,7 +30,7 @@ void Item::SetType( int typ ) {
     if( type == FuelCanister ) {
         desc = loc.GetString( "fuelDesc" );
         name = loc.GetString( "fuelName" );
-        img = GetTexture( "data/gui/inventory/items/fuel.png" );
+        img = ruGetTexture( "data/gui/inventory/items/fuel.png" );
         combinesWith = Flashlight;
         onCombineBecomes = Flashlight;
 
@@ -44,7 +44,7 @@ void Item::SetType( int typ ) {
     if( type == Wires ) {
         desc = "Моток проводов. Обычные медные провода в резиновой изоляции для горных работ. Устойчивы к перетиранию и механическим нагрузкам.";
         name = "Провода";
-        img = GetTexture( "data/gui/inventory/items/wires.png" );
+        img = ruGetTexture( "data/gui/inventory/items/wires.png" );
         combinesWith = 0;
         onCombineBecomes = 0;
 
@@ -55,7 +55,7 @@ void Item::SetType( int typ ) {
     if( type == Explosives ) {
         desc = "Шашка с аммонитом. Хорошее бризантное взрывчатое вещество. Для подрыва требуется детонатор.";
         name = "Шашка с аммонитом";
-        img = GetTexture( "data/gui/inventory/items/ammonit.png" );
+        img = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
         combinesWith = 0;
 
         mass = "0.3";
@@ -65,7 +65,7 @@ void Item::SetType( int typ ) {
     if( type == Flashlight ) {
         desc = "Мощный фонарик с топливным элементом питания. Заправляется безводным этиловым/метиловым спиртом или водкой( светит меньше на одной заливке ).";
         name = "Мощный фонарик";
-        img = GetTexture( "data/gui/inventory/items/flashlight.png" );
+        img = ruGetTexture( "data/gui/inventory/items/flashlight.png" );
         combinesWith = FuelCanister;
         onCombineBecomes = Flashlight;
 
@@ -78,7 +78,7 @@ void Item::SetType( int typ ) {
     if( type == Fuse ) {
         desc = "Предохранитель на 1000 Ампер. Мощная плавкая вставка, служит последней мерой для защиты от коротких замыканий.";
         name = "Предохранитель";
-        img = GetTexture( "data/gui/inventory/items/fuse.png" );
+        img = ruGetTexture( "data/gui/inventory/items/fuse.png" );
         combinesWith = 0;
 
         mass = "6.3";
@@ -88,7 +88,7 @@ void Item::SetType( int typ ) {
     if( type == Medkit ) {
         desc = "Аптечка первой помощи. Используется на предприятих для оказания неотложной медицинской помощи.";
         name = "Аптечка";
-        img = GetTexture( "data/gui/inventory/items/medkit.png" );
+        img = ruGetTexture( "data/gui/inventory/items/medkit.png" );
         combinesWith = 0;
 
         mass = "1.3";
@@ -96,7 +96,7 @@ void Item::SetType( int typ ) {
     }
 }
 
-Item::Item( NodeHandle obj, int typ ): InteractiveObject( obj ) {
+Item::Item( ruNodeHandle obj, int typ ): InteractiveObject( obj ) {
     if( !loc.IsParsed() ) {
         loc.ParseFile( localizationPath + "items.loc" );
     }

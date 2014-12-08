@@ -12,17 +12,17 @@ private:
     void CleanUpExplodeArea();
     void CreateItems();
 
-    NodeHandle screamerZone;
-    NodeHandle screamerZone2;
-    NodeHandle concreteWall;
-    NodeHandle deathZone;
-    NodeHandle detonator;
-    NodeHandle findItemsZone;
-    NodeHandle newLevelZone;
-    NodeHandle stoneFallZone;
-    NodeHandle wireModels[4];
-    NodeHandle detonatorModels[4];
-    NodeHandle explosivesModels[4];
+    ruNodeHandle screamerZone;
+    ruNodeHandle screamerZone2;
+    ruNodeHandle concreteWall;
+    ruNodeHandle deathZone;
+    ruNodeHandle detonator;
+    ruNodeHandle findItemsZone;
+    ruNodeHandle newLevelZone;
+    ruNodeHandle stoneFallZone;
+    ruNodeHandle wireModels[4];
+    ruNodeHandle detonatorModels[4];
+    ruNodeHandle explosivesModels[4];
 
     Item * explosives[4];
     Item * detonators[4];
@@ -31,11 +31,11 @@ private:
 
     ItemPlace * detonatorPlace[4];
 
-    SoundHandle alertSound;
-    SoundHandle explosionSound;
+    ruSoundHandle alertSound;
+    ruSoundHandle explosionSound;
 
-    TimerHandle explosionTimer;
-    TimerHandle beepSoundTimer;
+    ruTimerHandle explosionTimer;
+    ruTimerHandle beepSoundTimer;
 
     bool detonatorActivated;
 

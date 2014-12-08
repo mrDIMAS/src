@@ -13,5 +13,5 @@ public:
 
     WaitKeyButton();
     void SetSelected( int i );
-    void Draw( float x, float y, TextureHandle buttonImage, const char * text );
+    void Draw( float x, float y, ruTextureHandle buttonImage, const char * text );
 };

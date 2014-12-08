@@ -16,19 +16,19 @@ btQuaternion FastReader::GetQuaternion() {
     return btQuaternion( x, y, z, w );
 }
 
-Vector2 FastReader::GetBareVector2() {
+ruVector2 FastReader::GetBareVector2() {
     float x = GetFloat();
     float y = GetFloat();
 
-    return Vector2( x, y );
+    return ruVector2( x, y );
 }
 
-Vector3 FastReader::GetBareVector() {
+ruVector3 FastReader::GetBareVector() {
     float x = GetFloat();
     float y = GetFloat();
     float z = GetFloat();
 
-    return Vector3( x, y, z );
+    return ruVector3( x, y, z );
 }
 
 btVector3 FastReader::GetVector() {

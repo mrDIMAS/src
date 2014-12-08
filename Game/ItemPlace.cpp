@@ -19,7 +19,7 @@ bool ItemPlace::PlaceItem( Item * item ) {
     return false;
 }
 
-ItemPlace::ItemPlace( NodeHandle obj, int _itemTypeCanBePlaced ) {
+ItemPlace::ItemPlace( ruNodeHandle obj, int _itemTypeCanBePlaced ) {
     object = obj;
     itemPlaced = nullptr;
     itemTypeCanBePlaced = _itemTypeCanBePlaced;
@@ -40,7 +40,7 @@ int ItemPlace::GetPlaceType() {
 
 
 
-ItemPlace * ItemPlace::FindByObject( NodeHandle handle ) {
+ItemPlace * ItemPlace::FindByObject( ruNodeHandle handle ) {
     for( auto ip : all )
         if( ip->object == handle ) {
             return ip;

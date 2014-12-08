@@ -1,95 +1,95 @@
 #include "Common.h"
 
-SoundHandle::SoundHandle() {
+ruSoundHandle::ruSoundHandle() {
     pfHandle = -1;
 }
 
-SoundHandle::~SoundHandle() {
+ruSoundHandle::~ruSoundHandle() {
 
 }
 
-bool SoundHandle::IsValid() {
+bool ruSoundHandle::IsValid() {
     return pfHandle >= 0;
 }
 
-void SoundHandle::Invalidate() {
+void ruSoundHandle::Invalidate() {
     pfHandle = -1;
 }
 
-bool SoundHandle::operator == ( const SoundHandle & node ) {
+bool ruSoundHandle::operator == ( const ruSoundHandle & node ) {
     return pfHandle == node.pfHandle;
 }
 
-SoundHandle CreateSound2D( const char * file ) {
-    SoundHandle handle;
+ruSoundHandle ruLoadSound2D( const char * file ) {
+    ruSoundHandle handle;
     handle.pfHandle = pfCreateSound( pfDataLoad( file ), false, false );
     return handle;
 }
 
-SoundHandle CreateSound3D( const char * file ) {
-    SoundHandle handle;
+ruSoundHandle ruLoadSound3D( const char * file ) {
+    ruSoundHandle handle;
     handle.pfHandle = pfCreateSound( pfDataLoad( file ), true, false );
     return handle;
 }
 
-void FreeSoundSource( SoundHandle sound ) {
+void ruFreeSound( ruSoundHandle sound ) {
     pfFreeSound( sound.pfHandle );
 }
 
-void SetReverb( int reverb ) {
+void ruSetAudioReverb( int reverb ) {
     pfSetListenerSetEAXPreset( (Preset)reverb );
 }
 
-SoundHandle CreateMusic( const char * file ) {
-    SoundHandle handle;
+ruSoundHandle ruLoadMusic( const char * file ) {
+    ruSoundHandle handle;
     handle.pfHandle = pfCreateSound( pfDataLoad( file, true ), false, false );
     return handle;
 }
 
-void SetSoundPosition( SoundHandle sound, Vector3 pos ) {
+void ruSetSoundPosition( ruSoundHandle sound, ruVector3 pos ) {
     pfSetSoundPosition( sound.pfHandle, pos.x, pos.y, pos.z );
 }
 
-void SetSoundReferenceDistance( SoundHandle sound, float rd ) {
+void ruSetSoundReferenceDistance( ruSoundHandle sound, float rd ) {
     pfSetReferenceDistance( sound.pfHandle, rd );
 }
 
-void SetMaxDistance( SoundHandle sound, float maxDistance ) {
+void ruSetSoundMaxDistance( ruSoundHandle sound, float maxDistance ) {
     pfSetMaxDistance( sound.pfHandle, maxDistance );
 }
 
-void SetRolloffFactor( SoundHandle sound, float rolloffFactor ) {
+void ruSetRolloffFactor( ruSoundHandle sound, float rolloffFactor ) {
     pfSetRolloffFactor( sound.pfHandle, rolloffFactor );
 };
 
-void PlaySoundSource( SoundHandle sound, int oneshot ) {
+void ruPlaySound( ruSoundHandle sound, int oneshot ) {
     pfPlaySound( sound.pfHandle, oneshot );
 }
 
-void PauseSoundSource( SoundHandle sound ) {
+void ruPauseSound( ruSoundHandle sound ) {
     pfPauseSound( sound.pfHandle );
 }
 
-void SetVolume( SoundHandle sound, float vol ) {
+void ruSetSoundVolume( ruSoundHandle sound, float vol ) {
     pfSetSoundVolume( sound.pfHandle, vol );
 }
 
-int SoundPlaying( SoundHandle sound ) {
+int ruIsSoundPlaying( ruSoundHandle sound ) {
     return pfIsSoundPlaying( sound.pfHandle );
 }
 
-API void SetMasterVolume( float volume ) {
+RUAPI void ruSetMasterVolume( float volume ) {
     pfSetMasterVolume( volume );
 }
 
-API float GetMasterVolume() {
+RUAPI float ruGetMasterVolume() {
     return pfGetMasterVolume();
 }
 
-API void SetPitch( SoundHandle sound, float pitch ) {
+RUAPI void ruSetSoundsPitch( ruSoundHandle sound, float pitch ) {
     pfSetSoundPitch( sound.pfHandle, pitch );
 }
 
-API bool IsSoundPaused( SoundHandle sound ) {
+RUAPI bool ruIsSoundPaused( ruSoundHandle sound ) {
     return pfIsSoundPlayingUntilPaused( sound.pfHandle );
 }

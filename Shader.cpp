@@ -31,6 +31,28 @@ VertexShader::VertexShader( string source ) {
     CheckDXErrorFatal( g_device->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }
 
+VertexShader::VertexShader( string fileName, bool binary ) {
+	FILE * pFile = 0;
+	BYTE * shaderCode = 0;
+	UINT fSize = 0;
+	UINT numRead = 0;
+
+	pFile = fopen( fileName.c_str(), "rb" );
+
+	fseek(pFile, 0, SEEK_END);
+	fSize = ftell(pFile);
+	fseek(pFile, 0, SEEK_SET);
+
+	shaderCode = (BYTE*)malloc(fSize);
+	while (numRead != fSize) {
+		numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
+	}
+	fclose(pFile);
+	CheckDXErrorFatal( g_device->CreateVertexShader ( ( DWORD*)shaderCode, &shader ));
+	constants = 0;
+}
+
+
 void PixelShader::Bind() {
     CheckDXErrorFatal( g_device->SetPixelShader( shader ));
 }
@@ -58,6 +80,28 @@ PixelShader::PixelShader( string source ) {
 
         exit( -1 );
     }
-
+	
     CheckDXErrorFatal( g_device->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
+}
+
+
+PixelShader::PixelShader( string fileName, bool binary ) {
+	FILE * pFile = 0;
+	BYTE * shaderCode = 0;
+	UINT fSize = 0;
+	UINT numRead = 0;
+
+	pFile = fopen( fileName.c_str(), "rb" );
+
+	fseek(pFile, 0, SEEK_END);
+	fSize = ftell(pFile);
+	fseek(pFile, 0, SEEK_SET);
+
+	shaderCode = (BYTE*)malloc(fSize);
+	while (numRead != fSize) {
+		numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
+	}
+	fclose(pFile);
+	CheckDXErrorFatal( g_device->CreatePixelShader ( ( DWORD*)shaderCode, &shader ));
+	constants = 0;
 }

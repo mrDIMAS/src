@@ -6,16 +6,16 @@
 
 class ItemPlace {
 public:
-    NodeHandle object;
+    ruNodeHandle object;
     int itemTypeCanBePlaced;
     Item * itemPlaced;
 public:
     static vector<ItemPlace*> all;
-    ItemPlace( NodeHandle obj, int _itemTypeCanBePlaced );
+    ItemPlace( ruNodeHandle obj, int _itemTypeCanBePlaced );
     ~ItemPlace() {
         all.erase( find( all.begin(), all.end(), this ));
     }
-    static ItemPlace * FindByObject( NodeHandle handle );
+    static ItemPlace * FindByObject( ruNodeHandle handle );
     bool PlaceItem( Item * item );
     Item * GetPlacedItem( );
     bool IsPickedByPlayer();

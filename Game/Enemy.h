@@ -17,28 +17,28 @@ public:
 
 	Pathfinder pathfinder;
 
-    NodeHandle model;
-    NodeHandle body;
+    ruNodeHandle model;
+    ruNodeHandle body;
 
-	Vector3 target;
-	Vector3 destination;
+	ruVector3 target;
+	ruVector3 destination;
 
-    NodeHandle rightLeg;
-    NodeHandle leftLeg;
+    ruNodeHandle rightLeg;
+    ruNodeHandle leftLeg;
 
-    NodeHandle rightLegDown;
-    NodeHandle leftLegDown;
+    ruNodeHandle rightLegDown;
+    ruNodeHandle leftLegDown;
 
-    NodeHandle torsoBone;
-	NodeHandle attackHand;
-	NodeHandle head;
+    ruNodeHandle torsoBone;
+	ruNodeHandle attackHand;
+	ruNodeHandle head;
 
-    SoundHandle hitFleshWithAxeSound;
-    SoundHandle breathSound;
-    SoundHandle screamSound;
+    ruSoundHandle hitFleshWithAxeSound;
+    ruSoundHandle breathSound;
+    ruSoundHandle screamSound;
 
 	bool playerDetected;
-	TimerHandle detectedTimer;
+	ruTimerHandle detectedTimer;
 
 	float lastPathLen;
 	float pathLen;
@@ -47,11 +47,12 @@ public:
 		MoveTypeGoToDestination,		
 	};
 
-	int GetVertexIndexNearestTo( Vector3 position );
+	int GetVertexIndexNearestTo( ruVector3 position );
 	
 	int moveType;
 
 	bool attackDone;
+	bool targetIsPlayer;
 
     float angleTo;
     float angle;
@@ -59,19 +60,19 @@ public:
 
 	float runSpeed;
 
-    SoundHandle footstepsSounds[ 4 ];
+    ruSoundHandle footstepsSounds[ 4 ];
 
-    TimerHandle damageTimer;
+    ruTimerHandle damageTimer;
 
-	Animation animIdle;
-	Animation animRun;
-	Animation animAttack;
-	Animation animWalk;
+	ruAnimation animIdle;
+	ruAnimation animRun;
+	ruAnimation animAttack;
+	ruAnimation animWalk;
 
-	void DrawAnimationDebugInfo( NodeHandle node, int & y );
-    void SetLegsAnimation( Animation * anim );
-    void SetTorsoAnimation( Animation * anim );
-    void SetCommonAnimation( Animation * anim );
+	void DrawAnimationDebugInfo( ruNodeHandle node, int & y );
+    void SetLegsAnimation( ruAnimation * anim );
+    void SetTorsoAnimation( ruAnimation * anim );
+    void SetCommonAnimation( ruAnimation * anim );
     virtual void SetIdleAnimation( );
     virtual void SetRunAnimation();
 	virtual void SetWalkAnimation();

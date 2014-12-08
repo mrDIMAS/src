@@ -4,19 +4,19 @@
 
 class Sheet : public InteractiveObject {
 public:
-    Sheet( NodeHandle object, string desc, string text );
+    Sheet( ruNodeHandle object, string desc, string text );
     void Update();
     void Draw( );
-    static Sheet * GetSheetByObject( NodeHandle o );
+    static Sheet * GetSheetByObject( ruNodeHandle o );
 
     string txt;
     string desc;
-    TextureHandle noteTex;
+    ruTextureHandle noteTex;
     static vector<Sheet*> sheets;
-    static SoundHandle paperFlip;
-    static FontHandle sheetFont;
+    static ruSoundHandle paperFlip;
+    static ruFontHandle sheetFont;
 
-    static Sheet * Sheet::GetByObject( NodeHandle obj ) {
+    static Sheet * Sheet::GetByObject( ruNodeHandle obj ) {
         for( auto sheet : sheets )
             if( sheet->object == obj ) {
                 return sheet;

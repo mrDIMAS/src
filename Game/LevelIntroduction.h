@@ -9,7 +9,7 @@ private:
     float textAlpha;
     float textAlphaTo;
     bool intro;
-    TimerHandle textTimer;
+    ruTimerHandle textTimer;
 public:
     explicit LevelIntroduction();
     virtual ~LevelIntroduction();

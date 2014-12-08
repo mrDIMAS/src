@@ -38,31 +38,17 @@ public:
     class Pass2AmbientLight {
     private:
         PixelShader * pixelShader;
-
-        D3DXHANDLE hAmbientColor;
-
     public:
         Pass2AmbientLight();
         ~Pass2AmbientLight();
-
         void Bind( );
     };
 
     // Point Light
     class Pass2PointLight {
     private:
-        D3DXHANDLE hLightPos;
-        D3DXHANDLE hLightRange;
-        D3DXHANDLE hCameraPos;
-        D3DXHANDLE hInvViewProj;
-        D3DXHANDLE hLightColor;
-
-        D3DXHANDLE hUsePointTexture;
-        D3DXHANDLE hUseShadows;
-
-		D3DXHANDLE hBrightness;
-
         PixelShader * pixelShader;
+		PixelShader * pixelShaderLQ;
     public:
         Pass2PointLight();
         ~Pass2PointLight();
@@ -76,26 +62,9 @@ public:
     class Pass2SpotLight {
     private:
         PixelShader * pixelShader;
-
-        D3DXHANDLE hLightPos;
-        D3DXHANDLE hLightRange;
-        D3DXHANDLE hCameraPos;
-        D3DXHANDLE hInvViewProj;
-        D3DXHANDLE hLightColor;
-
-        D3DXHANDLE hInnerAngle;
-        D3DXHANDLE hOuterAngle;
-        D3DXHANDLE hDirection;
-
-        D3DXHANDLE hUseSpotTexture;
-        D3DXHANDLE hSpotViewProjMatrix;
-        D3DXHANDLE hUseShadows;
-
-		D3DXHANDLE hBrightness;
     public:
         Pass2SpotLight( );
         ~Pass2SpotLight();
-
         void Bind( D3DXMATRIX & invViewProj );
         void BindShader( );
         void SetLight( Light * lit );
@@ -115,6 +84,9 @@ public:
     PointlightShadowMap * pointShadowMap;
 	HDRRenderer * hdrRenderer;
 
+	// renderQuality can be 0 (lowest) or 1 (highest)
+	char renderQuality;
+
     void CreateBoundingVolumes();
 
     void RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition );
@@ -129,6 +101,15 @@ public:
 
     GBuffer * GetGBuffer();
 
+	void SetRenderingQuality( char quality ) {
+		renderQuality = quality;
+		if( renderQuality < 0 ) {
+			renderQuality = 0;
+		}
+		if( renderQuality > 1 ) {
+			renderQuality = 1;
+		}
+	}
     virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;

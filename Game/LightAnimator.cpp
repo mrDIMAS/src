@@ -1,6 +1,6 @@
 #include "LightAnimator.h"
 
-LightAnimator::LightAnimator( NodeHandle lit, float as, float onRange, float peakRangeMult ) {
+LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult ) {
     light = lit;
     animSpeed = as;
     this->onRange = onRange;
@@ -8,13 +8,13 @@ LightAnimator::LightAnimator( NodeHandle lit, float as, float onRange, float pea
     lat = LAT_ON;
     range = onRange;
     rangeTo = range;
-    SetLightRange( light, range );
+    ruSetLightRange( light, range );
 }
 
 void LightAnimator::Update() {
     range = range + ( rangeTo - range ) * animSpeed;
 
-    SetLightRange( light, range );
+    ruSetLightRange( light, range );
 
     if( lat == LAT_ON ) {
         rangeTo = onRange;

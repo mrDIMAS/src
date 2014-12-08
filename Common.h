@@ -115,7 +115,7 @@ extern Camera * g_camera;
 extern int g_debugDraw;
 extern int g_textureChanges;
 extern vector<ParticleEmitter*> g_particleEmitters;
-extern Vector3 g_ambientColor;
+extern ruVector3 g_ambientColor;
 extern DeferredRenderer * g_deferredRenderer;
 extern PostProcessing * g_postProcessing;
 extern ParticleSystemRenderer * g_particleSystemRenderer;

@@ -5,12 +5,12 @@
 
 class Way {
 protected:
-    NodeHandle begin;
-    NodeHandle end;
-    NodeHandle enterZone;
-    NodeHandle target;
-    NodeHandle beginLeavePoint;
-    NodeHandle endLeavePoint;
+    ruNodeHandle begin;
+    ruNodeHandle end;
+    ruNodeHandle enterZone;
+    ruNodeHandle target;
+    ruNodeHandle beginLeavePoint;
+    ruNodeHandle endLeavePoint;
     bool inside;
     bool entering;
     bool freeLook;
@@ -23,20 +23,20 @@ public:
         Backward = 2,
     };
 
-    Way( NodeHandle hBegin, NodeHandle hEnd, NodeHandle hEnterZone, NodeHandle hBeginLeavePoint, NodeHandle hEndLeavePoint );
+    Way( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint );
     virtual ~Way();
     bool IsEntering();
     bool IsPlayerInside();
     bool IsEnterPicked();
-    NodeHandle GetEnterZone();
-    NodeHandle GetTarget();
+    ruNodeHandle GetEnterZone();
+    ruNodeHandle GetTarget();
     bool IsFreeLook();
     void DoEntering();
     virtual void Enter();
     virtual void DoPlayerCrawling() = 0;
     virtual void LookAtTarget() = 0;
     virtual void SetDirection( Direction direction ) = 0;
-    static Way * GetByObject( NodeHandle obj );
+    static Way * GetByObject( ruNodeHandle obj );
     void SerializeWith( TextFileStream & out );
     void DeserializeWith( TextFileStream & in );
 };

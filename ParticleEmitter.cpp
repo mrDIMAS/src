@@ -42,27 +42,27 @@ void ParticleEmitter::Update() {
 
     D3DXMATRIX view = g_camera->view;
 
-    Vector3 rightVect = Vector3( view._11, view._21, view._31 ).Normalize();
-    Vector3 upVect = Vector3( view._12, view._22, view._32 ).Normalize();
+    ruVector3 rightVect = ruVector3( view._11, view._21, view._31 ).Normalize();
+    ruVector3 upVect = ruVector3( view._12, view._22, view._32 ).Normalize();
 
-    Vector3 leftTop = upVect - rightVect;
-    Vector3 rightTop = upVect + rightVect;
-    Vector3 rightBottom = rightVect - upVect;
-    Vector3 leftBottom = -( rightVect + upVect );
+    ruVector3 leftTop = upVect - rightVect;
+    ruVector3 rightTop = upVect + rightVect;
+    ruVector3 rightBottom = rightVect - upVect;
+    ruVector3 leftBottom = -( rightVect + upVect );
 
     int vertexNum = 0, faceNum = 0;
 
-    D3DXMatrixMultiply( &zSorter.worldView, &world, &view );
-    sort( particles.begin(), particles.end(), zSorter );
+    //D3DXMatrixMultiply( &zSorter.worldView, &world, &view );
+    //sort( particles.begin(), particles.end(), zSorter );
 
     for( auto & p : particles ) {
         p.position += p.speed;
 
 		float insideCoeff = 1.0f;
 		if( props.type == PS_BOX ) {
-			insideCoeff = ( p.position - Vector3( base->globalTransform.getOrigin().m_floats )).Length2() / ( props.boundingBoxMax - props.boundingBoxMin ).Length2();
+			insideCoeff = ( p.position - ruVector3( base->globalTransform.getOrigin().m_floats )).Length2() / ( props.boundingBoxMax - props.boundingBoxMin ).Length2();
 		} else {
-			insideCoeff = ( p.position - Vector3( base->globalTransform.getOrigin().m_floats )).Length2() / props.boundingRadius;
+			insideCoeff = ( p.position - ruVector3( base->globalTransform.getOrigin().m_floats )).Length2() / props.boundingRadius;
 		}
 		if( insideCoeff > 1.0f ) {
 			insideCoeff = 1.0f;
@@ -109,7 +109,7 @@ bool ParticleEmitter::IsLightAffects() {
     return props.useLighting;
 }
 
-int ParticleEmitter::RGBAToInt( Vector3 color, int alpha ) {
+int ParticleEmitter::RGBAToInt( ruVector3 color, int alpha ) {
     return D3DCOLOR_ARGB( alpha, (int)color.x, (int)color.y, (int)color.z );
 }
 
@@ -118,7 +118,7 @@ void ParticleEmitter::ResurrectParticle( SParticle & p ) {
         p.position = RandomVector3( props.boundingBoxMin, props.boundingBoxMax );
 		p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
     } else if( props.type == PS_STREAM ) {
-        p.position = Vector3( 0, 0, 0 );
+        p.position = ruVector3( 0, 0, 0 );
         p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
     }
 
@@ -126,8 +126,8 @@ void ParticleEmitter::ResurrectParticle( SParticle & p ) {
     p.translucency = 255;
 }
 
-Vector3 ParticleEmitter::RandomVector3( Vector3 & min, Vector3 & max ) {
-    return Vector3( frandom( min.x, max.x ), frandom( min.y, max.y ), frandom( min.z, max.z ) );
+ruVector3 ParticleEmitter::RandomVector3( ruVector3 & min, ruVector3 & max ) {
+    return ruVector3( frandom( min.x, max.x ), frandom( min.y, max.y ), frandom( min.z, max.z ) );
 }
 
 bool ParticleEmitter::HasAliveParticles() {
@@ -148,7 +148,7 @@ void ParticleEmitter::ResurrectParticles() {
     }
 }
 
-ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ParticleSystemProperties creationProps ) {
+ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps ) {
     base = theParent;
     aliveParticles = theParticleCount; 
     CheckDXErrorFatal( g_device->CreateVertexBuffer( theParticleCount * 4 * sizeof( SParticleVertex ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_MANAGED, &vertexBuffer, 0 ));
@@ -173,14 +173,14 @@ bool ParticleEmitter::ZSorter::operator()( SParticle & p1, SParticle & p2 ) {
 }
 
 ParticleEmitter::SParticle::SParticle() {
-    position = Vector3( 0, 0, 0 );
-    speed = Vector3( 0, 0, 0 );
-    color = Vector3( 255, 255, 255 );
+    position = ruVector3( 0, 0, 0 );
+    speed = ruVector3( 0, 0, 0 );
+    color = ruVector3( 255, 255, 255 );
     translucency = 255;
     size = 1.0f;
 }
 
-ParticleEmitter::SParticle::SParticle( const Vector3 & thePosition, const Vector3 & theSpeed, const Vector3 & theColor, float theTranslucency, float theSize ) {
+ParticleEmitter::SParticle::SParticle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) {
     position = thePosition;
     speed = theSpeed;
     color = theColor;
@@ -203,7 +203,7 @@ ParticleEmitter::SParticleVertex::SParticleVertex() {
     color = 0xFFFFFFFF;
 }
 
-ParticleEmitter::SParticleVertex::SParticleVertex( Vector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor ) {
+ParticleEmitter::SParticleVertex::SParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor ) {
     x = thePosition.x;
     y = thePosition.y;
     z = thePosition.z;
@@ -223,7 +223,7 @@ ParticleEmitter::SParticleVertex::SParticleVertex( Vector3 thePosition, float th
 CreateParticleSystem
 ===============
 */
-NodeHandle CreateParticleSystem( int particleNum, ParticleSystemProperties creationProps ) {
+ruNodeHandle ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps ) {
 	SceneNode * node = new SceneNode;
 	node->particleEmitter = new ParticleEmitter( node, particleNum, creationProps );
 	return SceneNode::HandleFromPointer( node );
@@ -234,7 +234,7 @@ NodeHandle CreateParticleSystem( int particleNum, ParticleSystemProperties creat
  GetParticleSystemAliveParticles
  ===============
 */
-int GetParticleSystemAliveParticles( NodeHandle ps ) {
+int ruGetParticleSystemAliveParticles( ruNodeHandle ps ) {
 	SceneNode * n = SceneNode::CastHandle( ps );
 
 	if( n->particleEmitter ) {
@@ -249,7 +249,7 @@ int GetParticleSystemAliveParticles( NodeHandle ps ) {
 ResurrectDeadParticles
 ===============
 */
-void ResurrectDeadParticles( NodeHandle ps ) {
+void ruResurrectDeadParticles( ruNodeHandle ps ) {
 	SceneNode * n = SceneNode::CastHandle( ps );
 
 	if( n->particleEmitter ) {
@@ -262,7 +262,7 @@ void ResurrectDeadParticles( NodeHandle ps ) {
 GetParticleSystemProperties
 ===============
 */
-ParticleSystemProperties * GetParticleSystemProperties( NodeHandle ps ) {
+ruParticleSystemProperties * ruGetParticleSystemProperties( ruNodeHandle ps ) {
 	SceneNode * n = SceneNode::CastHandle( ps );
 
 	if( n->particleEmitter ) {

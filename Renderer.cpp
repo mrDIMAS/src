@@ -36,7 +36,7 @@ bool g_useSpotLightShadows = true;
 bool g_engineRunning = true;
 bool g_hdrEnabled = false;
 
-Vector3 g_ambientColor = Vector3( 0.05, 0.05, 0.05 );
+ruVector3 g_ambientColor = ruVector3( 0.05, 0.05, 0.05 );
 
 vector< Light*> affectedLights;
 
@@ -79,7 +79,7 @@ Renderer::~Renderer() {
 	CloseLogFile();
 }
 
-Renderer::Renderer( int width, int height, int fullscreen ) {
+Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     if ( width == 0 ) {
         width = GetSystemMetrics ( SM_CXSCREEN );
     }
@@ -110,8 +110,8 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
 	unsigned char psVerLo = D3DSHADER_VERSION_MINOR( dCaps.PixelShaderVersion );
 
 	// epic fail
-	if( psVerHi < 2 ) {
-		MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
+	if( psVerHi < 3 ) {
+		MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 3.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
 		CloseLogFile();
 		g_d3d->Release();
 		exit( -1 );
@@ -127,7 +127,11 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     D3DPRESENT_PARAMETERS presentParameters = { 0 };
     presentParameters.BackBufferCount = 2;
     presentParameters.EnableAutoDepthStencil = TRUE;
-    presentParameters.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+	if( vSync ) {
+		presentParameters.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+	} else { 
+		presentParameters.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+	}
     presentParameters.AutoDepthStencilFormat = D3DFMT_D24S8;
     presentParameters.BackBufferWidth = width;
     presentParameters.BackBufferHeight = height;
@@ -148,7 +152,7 @@ Renderer::Renderer( int width, int height, int fullscreen ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    CheckDXErrorFatal( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &g_device ));
+    CheckDXErrorFatal( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE, &presentParameters, &g_device ));
 
 	// create main "pipeline" vertex declaration
 	D3DVERTEXELEMENT9 vd[ ] = {
@@ -199,7 +203,7 @@ Renderer::IsMeshVisible
 ==========
 */
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
-    mesh->ownerNode->inFrustum = g_camera->frustum.IsAABBInside( mesh->aabb, Vector3( mesh->ownerNode->globalTransform.getOrigin().m_floats ));
+    mesh->ownerNode->inFrustum = g_camera->frustum.IsAABBInside( mesh->aabb, ruVector3( mesh->ownerNode->globalTransform.getOrigin().m_floats ));
     return mesh->ownerNode->skinned || mesh->ownerNode->IsVisible() && mesh->ownerNode->inFrustum;
 }
 
@@ -245,7 +249,7 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
     SetActiveWindow ( window );
     SetForegroundWindow ( window );
     // init input
-    InputInit( &window );
+    ruInputInit( &window );
     // success
     return 1;
 }
@@ -279,9 +283,6 @@ void Renderer::RenderWorld() {
     g_textureChanges = 0;
     // build view and projection matrices, frustum, also attach sound listener to camera
     g_camera->Update();
-    // set these transforms, for render passes which uses FFP
-    CheckDXErrorFatal( g_device->SetTransform( D3DTS_VIEW, &g_camera->view ));
-    CheckDXErrorFatal( g_device->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
     // precalculations
     for( auto node : g_nodes ) {
         node->CalculateGlobalTransform();
@@ -334,11 +335,19 @@ void Renderer::RenderWorld() {
     // update sound subsystem
     pfSystemUpdate();
     // update physics subsystem
+	/*
+	int subSteps = g_dt / ( 1.0f / 60.0f );
+	if( subSteps < 1 ) 
+		subSteps = 1;
     if( g_physicsEnabled ) {
-        //const float timeStep = 1.0f / 60.0f;
-		const float fixedTimeStep = 1.0f / 60.0f;
-        const int subSteps = 2;
-        g_dynamicsWorld->stepSimulation( g_dt, subSteps, fixedTimeStep );
+		for( int i = 0; i < subSteps; i++ )
+			g_dynamicsWorld->stepSimulation( 1.0f / 60.0f, 1 );
+    }*/
+    if( g_physicsEnabled ) {
+		float dt = g_dt;
+		if( dt < (1.0f / 60.0f) )
+			dt = (1.0f / 60.0f) ;
+		g_dynamicsWorld->stepSimulation( dt, 60 );
     }
 }
 
@@ -394,7 +403,7 @@ void Renderer::UpdateMessagePump() {
         DispatchMessage ( &message );
 
         if ( message.message == WM_QUIT ) {
-            FreeRenderer();
+            ruFreeRenderer();
         }
     }
 }
@@ -412,7 +421,7 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
         return 0;
 
     case WM_DESTROY:
-        FreeRenderer();
+        ruFreeRenderer();
         PostQuitMessage ( 0 );
         break;
 
@@ -433,7 +442,7 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
 SetPointLightShadowMapSize
 ===============
 */
-API void SetPointLightShadowMapSize( int size ) {
+RUAPI void ruSetPointLightShadowMapSize( int size ) {
     g_deferredRenderer->SetPointLightShadowMapSize( size );
 }
 
@@ -442,7 +451,7 @@ API void SetPointLightShadowMapSize( int size ) {
 SetSpotLightShadowMapSize
 ===============
 */
-API void SetSpotLightShadowMapSize( int size ) {
+RUAPI void ruSetSpotLightShadowMapSize( int size ) {
     g_deferredRenderer->SetSpotLightShadowMapSize( size );
 }
 
@@ -451,7 +460,7 @@ API void SetSpotLightShadowMapSize( int size ) {
 EnablePointLightShadows
 ===============
 */
-API void EnablePointLightShadows( bool state ) {
+RUAPI void ruEnablePointLightShadows( bool state ) {
     g_usePointLightShadows = state;
 }
 
@@ -460,7 +469,7 @@ API void EnablePointLightShadows( bool state ) {
 EnableSpotLightShadows
 ===============
 */
-API void EnableSpotLightShadows( bool state ) {
+RUAPI void ruEnableSpotLightShadows( bool state ) {
     g_useSpotLightShadows = state;
 }
 
@@ -469,7 +478,7 @@ API void EnableSpotLightShadows( bool state ) {
 EnableSpotLightShadows
 ===============
 */
-API bool IsPointLightShadowsEnabled() {
+RUAPI bool ruIsPointLightShadowsEnabled() {
     return g_usePointLightShadows;
 }
 
@@ -478,7 +487,7 @@ API bool IsPointLightShadowsEnabled() {
 EnableSpotLightShadows
 ===============
 */
-API bool IsSpotLightShadowsEnabled() {
+RUAPI bool ruIsSpotLightShadowsEnabled() {
     return g_useSpotLightShadows;
 }
 
@@ -487,7 +496,7 @@ API bool IsSpotLightShadowsEnabled() {
 DebugDrawEnabled
 ===============
 */
-void DebugDrawEnabled( int state ) {
+void ruDebugDrawEnabled( int state ) {
     g_debugDraw = state;
 }
 
@@ -496,21 +505,21 @@ void DebugDrawEnabled( int state ) {
 SetTextureFiltering
 ===============
 */
-void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
+void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality ) {
     int minMagFilter = D3DTEXF_POINT;
 
-    if( filter == TextureFilter::Nearest ) {
+    if( filter == ruTextureFilter::Nearest ) {
         minMagFilter = D3DTEXF_POINT;
     }
-    if( filter == TextureFilter::Linear ) {
+    if( filter == ruTextureFilter::Linear ) {
         minMagFilter = D3DTEXF_LINEAR;
     }
-    if( filter == TextureFilter::Anisotropic ) {
+    if( filter == ruTextureFilter::Anisotropic ) {
         minMagFilter = D3DTEXF_ANISOTROPIC;
     }
     int mipFilter = D3DTEXF_LINEAR;
 
-    if( mipFilter == TextureFilter::Nearest ) {
+    if( mipFilter == ruTextureFilter::Nearest ) {
         mipFilter = D3DTEXF_POINT;
     }
     CheckDXErrorFatal( g_device->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter ));
@@ -528,7 +537,7 @@ void SetTextureFiltering( const int & filter, int anisotropicQuality ) {
 DIPs
 ===============
 */
-int DIPs( ) {
+int ruDIPs( ) {
     return g_dips;
 }
 /*
@@ -536,8 +545,8 @@ int DIPs( ) {
 CreateRenderer
 ===============
 */
-int CreateRenderer( int width, int height, int fullscreen ) {
-    Renderer * renderer = new Renderer( width, height, fullscreen ) ;
+int ruCreateRenderer( int width, int height, int fullscreen, char vSync ) {
+    Renderer * renderer = new Renderer( width, height, fullscreen, vSync ) ;
     return 1;
 }
 
@@ -546,7 +555,7 @@ int CreateRenderer( int width, int height, int fullscreen ) {
 SetAmbientColor
 ===============
 */
-void SetAmbientColor( Vector3 color ) {
+void ruSetAmbientColor( ruVector3 color ) {
     g_ambientColor = color;
 }
 
@@ -555,7 +564,7 @@ void SetAmbientColor( Vector3 color ) {
 GetAvailableTextureMemory
 ===============
 */
-int GetAvailableTextureMemory() {
+int ruGetAvailableTextureMemory() {
     return g_device->GetAvailableTextureMem();
 }
 
@@ -564,7 +573,7 @@ int GetAvailableTextureMemory() {
 RayTest
 ===============
 */
-API NodeHandle RayTest( Vector3 begin, Vector3 end, Vector3 * outPickPoint ) {
+RUAPI ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
 	btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
 	btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
 
@@ -596,7 +605,7 @@ API NodeHandle RayTest( Vector3 begin, Vector3 end, Vector3 * outPickPoint ) {
 RayPick
 ===============
 */
-NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
+ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     D3DVIEWPORT9 vp;
     g_device->GetViewport( &vp );
     // Find screen coordinates normalized to -1,1
@@ -645,7 +654,7 @@ NodeHandle RayPick( int x, int y, Vector3 * outPickPoint ) {
 GetMaxAnisotropy
 ===============
 */
-int GetMaxAnisotropy() {
+int ruGetRendererMaxAnisotropy() {
     D3DCAPS9 caps;
     CheckDXErrorFatal( g_device->GetDeviceCaps( &caps ));
 
@@ -657,7 +666,7 @@ int GetMaxAnisotropy() {
 FreeRenderer
 ===============
 */
-int FreeRenderer( ) {
+int ruFreeRenderer( ) {
     g_engineRunning = false;
     delete g_renderer;
     return 1;
@@ -668,7 +677,7 @@ int FreeRenderer( ) {
 GetResolutionWidth
 ===============
 */
-int GetResolutionWidth( ) {
+int ruGetResolutionWidth( ) {
     return g_width;
 }
 
@@ -677,7 +686,7 @@ int GetResolutionWidth( ) {
 GetResolutionHeight
 ===============
 */
-int GetResolutionHeight( ) {
+int ruGetResolutionHeight( ) {
     return g_height;
 }
 
@@ -686,8 +695,17 @@ int GetResolutionHeight( ) {
 TextureUsedPerFrame
 ===============
 */
-int TextureUsedPerFrame( ) {
+int ruTextureUsedPerFrame( ) {
     return g_textureChanges;
+}
+
+/*
+===============
+SetRenderQuality
+===============
+*/
+void ruSetRenderQuality( char renderQuality ) {
+	g_deferredRenderer->SetRenderingQuality( renderQuality );
 }
 
 /*
@@ -695,11 +713,9 @@ int TextureUsedPerFrame( ) {
 RenderWorld
 ===============
 */
-int RenderWorld( float dt ) {
+int ruRenderWorld( float dt ) {
 	g_dt = dt;
-
     g_renderer->RenderWorld();
-
     return 1;
 }
 
@@ -708,7 +724,7 @@ int RenderWorld( float dt ) {
 EnableShadows
 ===============
 */
-API void EnableShadows( bool state ) {
+RUAPI void ruEnableShadows( bool state ) {
     g_useSpotLightShadows = state;
     g_usePointLightShadows = state;
 }
@@ -718,7 +734,7 @@ API void EnableShadows( bool state ) {
 SetHDREnabled
 ===============
 */
-API void SetHDREnabled( bool state ) {
+RUAPI void ruSetHDREnabled( bool state ) {
 	g_hdrEnabled = state;
 }
 
@@ -727,7 +743,7 @@ API void SetHDREnabled( bool state ) {
 IsHDREnabled
 ===============
 */
-API bool IsHDREnabled( ) {
+RUAPI bool ruIsHDREnabled( ) {
 	return g_hdrEnabled;
 }
 
@@ -736,7 +752,7 @@ API bool IsHDREnabled( ) {
 SetHDRExposure
 ===============
 */
-API void SetHDRExposure( float exposure ) {
+RUAPI void ruSetHDRExposure( float exposure ) {
 	//g_deferredRenderer->hdrRenderer->exposure = exposure;
 }
 
@@ -745,6 +761,6 @@ API void SetHDRExposure( float exposure ) {
 GetHDRExposure
 ===============
 */
-API float GetHDRExposure( ) {
+RUAPI float ruGetHDRExposure( ) {
 	return 1.0f;//g_deferredRenderer->hdrRenderer->exposure;
 }

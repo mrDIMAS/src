@@ -4,7 +4,7 @@
 
 
 void Goal::AnimateAndRender() {
-    if( GetElapsedTimeInSeconds( waitTimer ) >= waitSec ) {
+    if( ruGetElapsedTimeInSeconds( waitTimer ) >= waitSec ) {
         currentY += ( destY - currentY ) * 0.05f;
     }
 
@@ -14,11 +14,11 @@ void Goal::AnimateAndRender() {
         alpha = 255.0f;
     }
 
-    DrawGUIText( text.c_str(), 40, currentY, g_resW - 80, 32, gui->font, Vector3( 255, 0, 0 ), 1, alpha );
+    ruDrawGUIText( text.c_str(), 40, currentY, g_resW - 80, 32, gui->font, ruVector3( 255, 0, 0 ), 1, alpha );
 }
 
 void Goal::SetText( string t ) {
-    RestartTimer( waitTimer );
+    ruRestartTimer( waitTimer );
 
     destY = initialY;
 
@@ -28,7 +28,7 @@ void Goal::SetText( string t ) {
 }
 
 Goal::Goal() {
-    waitTimer = CreateTimer();
+    waitTimer = ruCreateTimer();
 
     initialY = 20;
     currentY = initialY;

@@ -5,8 +5,8 @@
 ScreenScreamer * screamer = 0;
 
 ScreenScreamer::ScreenScreamer() {
-    tex = GetTexture( "data/textures/effects/noise.jpg" );
-    sound = CreateSound2D( "data/sounds/screamer.ogg" );
+    tex = ruGetTexture( "data/textures/effects/noise.jpg" );
+    sound = ruLoadSound2D( "data/sounds/screamer.ogg" );
 
     periods = 0;
     nextPeriodFrames = 0;
@@ -23,7 +23,7 @@ void ScreenScreamer::Update() {
     static int offset = 50;
 
     if( menu->visible ) {
-        PauseSoundSource( sound );
+        ruPauseSound( sound );
         return;
     }
 
@@ -34,9 +34,9 @@ void ScreenScreamer::Update() {
             if( nextPeriodFrames > 0 ) {
                 int xOff = rand() % offset;
                 int yOff = rand() % offset;
-                DrawGUIRect( -offset + xOff, -offset + yOff , GetResolutionWidth() + xOff, GetResolutionHeight() + yOff, tex, Vector3( 255, 0, 0 ), 120 );
+                ruDrawGUIRect( -offset + xOff, -offset + yOff , ruGetResolutionWidth() + xOff, ruGetResolutionHeight() + yOff, tex, ruVector3( 255, 0, 0 ), 120 );
 
-                PlaySoundSource( sound );
+                ruPlaySound( sound );
 
                 player->DoFright();
 
@@ -44,7 +44,7 @@ void ScreenScreamer::Update() {
             } else {
                 nextPeriodFrames = 5 + rand() % 10;
                 pauseFrames = 10 + rand() % 20;
-                PauseSoundSource( sound );
+                ruPauseSound( sound );
                 periods--;
             }
         }

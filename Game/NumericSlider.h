@@ -10,5 +10,5 @@ public:
 
     NumericSlider( float minimum, float maximum, float step );
 
-    void Draw( float x, float y, TextureHandle buttonImage, const char * text );
+    void Draw( float x, float y, ruTextureHandle buttonImage, const char * text );
 };

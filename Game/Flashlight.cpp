@@ -15,17 +15,17 @@ void Flashlight::Update() {
     }
 
     realRange += ( rangeDest - realRange ) * 0.15f;
-    SetLightRange( light, realRange * charge );
+    ruSetLightRange( light, realRange * charge );
     position = position.Lerp( destPosition, 0.15f );
-    SetPosition( model, position + offset );
+    ruSetNodePosition( model, position + offset );
 
 	if( player->moved ) {
 		if( player->running ) {
-			bobArg += 0.175f;
+			bobArg += 11.5f * g_dt;
 		} else {
-			bobArg += 0.125f;
+			bobArg += 7.5f * g_dt;
 		}
-		offset = Vector3( cosf( bobArg * 0.5f ) * 0.02f, sinf( bobArg ) * 0.02f, 0.0f );
+		offset = ruVector3( cosf( bobArg * 0.5f ) * 0.02f, sinf( bobArg ) * 0.02f, 0.0f );
 	}
 }
 
@@ -39,7 +39,7 @@ void Flashlight::Switch() {
 
 void Flashlight::SwitchOn() {
     if( !on ) {
-        PlaySoundSource( onSound );
+        ruPlaySound( onSound );
 
         on = true;
 
@@ -49,18 +49,18 @@ void Flashlight::SwitchOn() {
 
 void Flashlight::SwitchOff() {
     if( on ) {
-        PlaySoundSource( offSound );
+        ruPlaySound( offSound );
 
         on = false;
 
-        destPosition = Vector3( -1.0f, -1.0f, -1.0f );
+        destPosition = ruVector3( -1.0f, -1.0f, -1.0f );
     }
 }
 
-void Flashlight::Attach( NodeHandle node ) {
-    ::Attach( model, node );
+void Flashlight::Attach( ruNodeHandle node ) {
+    ::ruAttachNode( model, node );
 
-    initialPosition = GetPosition( model );
+    initialPosition = ruGetNodePosition( model );
     destPosition = initialPosition;
     position = initialPosition;
 }
@@ -74,17 +74,17 @@ bool Flashlight::GotCharge() {
 }
 
 Flashlight::Flashlight() {
-    model = LoadScene( "data/models/hands/arm.scene" );
-    SetDepthHack( model, 0.1f );
+    model = ruLoadScene( "data/models/hands/arm.scene" );
+    ruSetNodeDepthHack( model, 0.1f );
 
-    light = FindInObjectByName( model, "PlayerLight" );
-    SetSpotTexture( light, GetTexture( "data/textures/generic/spotlight.jpg"));
+    light = ruFindInObjectByName( model, "PlayerLight" );
+    ruSetLightSpotTexture( light, ruGetTexture( "data/textures/generic/spotlight.jpg"));
 
-    onSound = CreateSound2D( "data/sounds/flashlight/on.ogg" );
-    offSound = CreateSound2D( "data/sounds/flashlight/off.ogg" );
-    outOfChargeSound = CreateSound2D( "data/sounds/flashlight/outofcharge.ogg" );
+    onSound = ruLoadSound2D( "data/sounds/flashlight/on.ogg" );
+    offSound = ruLoadSound2D( "data/sounds/flashlight/off.ogg" );
+    outOfChargeSound = ruLoadSound2D( "data/sounds/flashlight/outofcharge.ogg" );
 
-    onRange = GetLightRange( light );
+    onRange = ruGetLightRange( light );
 
     realRange = onRange;
     rangeDest = onRange;

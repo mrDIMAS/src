@@ -4,8 +4,8 @@
 
 class Fire {
 public:
-    NodeHandle particleSystem;
-    NodeHandle light;
+    ruNodeHandle particleSystem;
+    ruNodeHandle light;
 
     Fire( float size, float height );
 

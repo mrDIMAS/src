@@ -9,6 +9,6 @@ private:
 public:
     explicit Frustum();
     void Build( D3DXMATRIX viewProjection );
-    bool IsPointInside( const Vector3 & point );
-    bool IsAABBInside( const AABB & aabb, const Vector3 & aabbOffset );
+    bool IsPointInside( const ruVector3 & point );
+    bool IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset );
 };

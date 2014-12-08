@@ -34,14 +34,14 @@ void InteractiveObject::UpdateFlashing() {
     }
 
     if( object.IsValid() ) {
-        SetAlbedo( object, flashAlbedo );
+        ruSetNodeAlbedo( object, flashAlbedo );
     }
 }
 
-InteractiveObject::InteractiveObject( NodeHandle object ) {
+InteractiveObject::InteractiveObject( ruNodeHandle object ) {
     objects.push_back( this );
     this->object = object;
-	Freeze( object );
+	ruFreeze( object );
     flashAlbedo = 0.2f;
     flashAlbedoTo = 1.0f;
     flashSpeed = 0.075f;

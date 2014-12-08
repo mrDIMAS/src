@@ -4,10 +4,10 @@
 
 class GUI {
 public:
-    FontHandle font;
-    TextureHandle staminaBarImg;
-    TextureHandle lifeBarImg;
-    TextureHandle itemImg;
+    ruFontHandle font;
+    ruTextureHandle staminaBarImg;
+    ruTextureHandle lifeBarImg;
+    ruTextureHandle itemImg;
 
     GUI();
 };
