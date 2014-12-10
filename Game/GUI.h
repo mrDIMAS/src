@@ -2,9 +2,10 @@
 
 #include "Game.h"
 
-class GUI {
+class GUI
+{
 public:
-    ruFontHandle font;
+    ruFontHandle mFont;
     ruTextureHandle staminaBarImg;
     ruTextureHandle lifeBarImg;
     ruTextureHandle itemImg;

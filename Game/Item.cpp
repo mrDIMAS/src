@@ -1,156 +1,171 @@
 #include "Item.h"
 
 vector<Item*> Item::Available;
-Parser Item::loc;
+Parser Item::msLoc;
 
-Item * Item::GetByObject( ruNodeHandle obj ) {
-    for( auto item : Available )
-        if( item->object == obj ) {
-            return item;
-        }
+Item * Item::GetByObject( ruNodeHandle obj )
+{
+    for( auto pItem : Available )
+        if( pItem->mObject == obj )
+            return pItem;
     return 0;
 }
 
-void Item::SetType( int typ ) {
-    this->type = typ;
+void Item::SetType( int typ )
+{
+    mType = typ;
 
-    throwable = true;
+    mThrowable = true;
 
-    if( type == Detonator ) {
-        desc = loc.GetString( "detonatorDesc" );
-        name = loc.GetString( "detonatorName" );
-        img = ruGetTexture( "data/gui/inventory/items/detonator.png" );;
-        combinesWith = 0;
-        onCombineBecomes = 0;
+    if( mType == Detonator )
+    {
+        mDesc = msLoc.GetString( "detonatorDesc" );
+        mName = msLoc.GetString( "detonatorName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/detonator.png" );;
+        mCombineType = 0;
+        mOnCombineBecomes = 0;
 
-        content = loc.GetString( "detonatorContent" );
-        contentType = loc.GetString( "detonatorContentType" );
+        mContent = msLoc.GetString( "detonatorContent" );
+        mContentType = msLoc.GetString( "detonatorContentType" );
     }
 
-    if( type == FuelCanister ) {
-        desc = loc.GetString( "fuelDesc" );
-        name = loc.GetString( "fuelName" );
-        img = ruGetTexture( "data/gui/inventory/items/fuel.png" );
-        combinesWith = Flashlight;
-        onCombineBecomes = Flashlight;
+    if( mType == FuelCanister )
+    {
+        mDesc = msLoc.GetString( "fuelDesc" );
+        mName = msLoc.GetString( "fuelName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/fuel.png" );
+        mCombineType = Flashlight;
+        mOnCombineBecomes = Flashlight;
 
-        content = loc.GetString( "fuelContent" );
-        volume = content;
+        mContent = msLoc.GetString( "fuelContent" );
+        mVolume = mContent;
 
-        contentType = loc.GetString( "fuelContentType" );
+        mContentType = msLoc.GetString( "fuelContentType" );
     }
 
 
-    if( type == Wires ) {
-        desc = "Моток проводов. Обычные медные провода в резиновой изоляции для горных работ. Устойчивы к перетиранию и механическим нагрузкам.";
-        name = "Провода";
-        img = ruGetTexture( "data/gui/inventory/items/wires.png" );
-        combinesWith = 0;
-        onCombineBecomes = 0;
+    if( mType == Wires )
+    {
+        mDesc = msLoc.GetString( "wiresDesc" );
+        mName = msLoc.GetString( "wiresName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/wires.png" );
+        mCombineType = 0;
+        mOnCombineBecomes = 0;
 
-        content = "Около килограмма";
-        contentType = "Медь";
+        mContent = msLoc.GetString( "wiresContent" );
+        mContentType = msLoc.GetString( "wiresContentType" );
     }
 
-    if( type == Explosives ) {
-        desc = "Шашка с аммонитом. Хорошее бризантное взрывчатое вещество. Для подрыва требуется детонатор.";
-        name = "Шашка с аммонитом";
-        img = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
-        combinesWith = 0;
+    if( mType == Explosives )
+    {
+        mDesc = msLoc.GetString( "explosivesDesc" );
+        mName = msLoc.GetString( "explosivesName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
+        mCombineType = 0;
 
-        mass = "0.3";
-        contentType = "Аммонит";
+        mMass = "0.3";
+        mContentType = msLoc.GetString( "explosivesContentType" );
     }
 
-    if( type == Flashlight ) {
-        desc = "Мощный фонарик с топливным элементом питания. Заправляется безводным этиловым/метиловым спиртом или водкой( светит меньше на одной заливке ).";
-        name = "Мощный фонарик";
-        img = ruGetTexture( "data/gui/inventory/items/flashlight.png" );
-        combinesWith = FuelCanister;
-        onCombineBecomes = Flashlight;
+    if( mType == Flashlight )
+    {
+        mDesc = msLoc.GetString( "flashlightDesc" );
+        mName = msLoc.GetString( "flashlightName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/flashlight.png" );
+        mCombineType = FuelCanister;
+        mOnCombineBecomes = Flashlight;
 
-        throwable = false;
-        mass = "1.3";
-        volume = "0.6";
-        contentType = "Электроника";
+        mThrowable = false;
+        mMass = "1.3";
+        mVolume = "0.6";
+        mContentType = msLoc.GetString( "flashlightContentType" );
     }
 
-    if( type == Fuse ) {
-        desc = "Предохранитель на 1000 Ампер. Мощная плавкая вставка, служит последней мерой для защиты от коротких замыканий.";
-        name = "Предохранитель";
-        img = ruGetTexture( "data/gui/inventory/items/fuse.png" );
-        combinesWith = 0;
+    if( mType == Fuse )
+    {
+        mDesc = msLoc.GetString( "fuseDesc" );
+        mName = msLoc.GetString( "fuseName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/fuse.png" );
+        mCombineType = 0;
 
-        mass = "6.3";
-        contentType = "Медь";
+        mMass = "6.3";
+        mContentType = msLoc.GetString( "fuseContentType" );
     }
 
-    if( type == Medkit ) {
-        desc = "Аптечка первой помощи. Используется на предприятих для оказания неотложной медицинской помощи.";
-        name = "Аптечка";
-        img = ruGetTexture( "data/gui/inventory/items/medkit.png" );
-        combinesWith = 0;
+    if( mType == Medkit )
+    {
+        mDesc = msLoc.GetString( "medkitDesc" );
+        mName = msLoc.GetString( "medkitName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/medkit.png" );
+        mCombineType = 0;
 
-        mass = "1.3";
-        contentType = "Медикаменты";
+        mMass = "1.3";
+        mContentType = msLoc.GetString( "medkitContentType" );
     }
 }
 
-Item::Item( ruNodeHandle obj, int typ ): InteractiveObject( obj ) {
-    if( !loc.IsParsed() ) {
-        loc.ParseFile( localizationPath + "items.loc" );
-    }
-    onCombineBecomes = 0;
-    combinesWith = 0;
+Item::Item( ruNodeHandle obj, int typ ): InteractiveObject( obj )
+{
+    if( !msLoc.IsParsed() )
+        msLoc.ParseFile( localizationPath + "items.loc" );
+    mOnCombineBecomes = 0;
+    mCombineType = 0;
     Available.push_back( this );
-    volume = Property( string( loc.GetString( "volume" )) + "\n", "-" );
-    mass = Property( string( loc.GetString( "mass" )) + "\n", "-" );
-    content = Property( string( loc.GetString( "content" )) + "\n", "-" );
-    contentType = Property( string( loc.GetString( "contentType" ))+ "\n", "-" );
-    inInventory = false;
+    mVolume = Property( string( msLoc.GetString( "volume" )) + "\n", "-" );
+    mMass = Property( string( msLoc.GetString( "mass" )) + "\n", "-" );
+    mContent = Property( string( msLoc.GetString( "content" )) + "\n", "-" );
+    mContentType = Property( string( msLoc.GetString( "contentType" ))+ "\n", "-" );
+    mInInventory = false;
     SetType( typ );
 }
 
 
-Item::Property::Property( string description, float theValue ) {
-    desc = description;
+Item::Property::Property( string description, float theValue )
+{
+    mDesc = description;
     SetFloatValue( theValue );
 }
 
-Item::Property::Property( const Property & p ) {
-    floatValue = p.floatValue;
-    stringValue = p.stringValue;
-    desc = p.desc;
-    formatted = p.formatted;
+Item::Property::Property( const Property & p )
+{
+    mFloatValue = p.mFloatValue;
+    mStringValue = p.mStringValue;
+    mDesc = p.mDesc;
+    mFormatted = p.mFormatted;
 }
 
-Item::Property::Property() {
-    floatValue = 0;
+Item::Property::Property()
+{
+    mFloatValue = 0;
 
     Format();
 }
 
-Item::Property::Property( string description, string theValue ) {
-    desc = description;
+Item::Property::Property( string description, string theValue )
+{
+    mDesc = description;
     SetstringValue( theValue );
 }
 
-void Item::Property::SetstringValue( string s ) {
-    stringValue = s;
-    floatValue = atof( s.c_str() );
+void Item::Property::SetstringValue( string s )
+{
+    mStringValue = s;
+    mFloatValue = atof( s.c_str() );
 
     Format();
 }
 
-void Item::Property::SetFloatValue( float f ) {
+void Item::Property::SetFloatValue( float f )
+{
     char buffer[ 64 ];
     sprintf( buffer, "%.1f", f );
-    stringValue = buffer;
-    floatValue = f;
+    mStringValue = buffer;
+    mFloatValue = f;
 
     Format();
 }
 
-void Item::Property::Format() {
-    formatted = desc + stringValue;
+void Item::Property::Format()
+{
+    mFormatted = mDesc + mStringValue;
 }

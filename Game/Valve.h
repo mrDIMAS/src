@@ -2,7 +2,8 @@
 
 #include "Game.h"
 
-class Valve {
+class Valve
+{
 public:
     ruNodeHandle object;
     ruVector3 tAxis;

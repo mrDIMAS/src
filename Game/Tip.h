@@ -5,7 +5,8 @@
 #include "SmoothFloat.h"
 #include "TextFileStream.h"
 
-class Tip {
+class Tip
+{
 private:
     string txt;
     SmoothFloat alpha;

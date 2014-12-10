@@ -3,11 +3,13 @@
 
 
 
-bool FastReader::IsEnded() {
+bool FastReader::IsEnded()
+{
     return cursor > size;
 }
 
-btQuaternion FastReader::GetQuaternion() {
+btQuaternion FastReader::GetQuaternion()
+{
     float x = GetFloat();
     float y = GetFloat();
     float z = GetFloat();
@@ -16,14 +18,16 @@ btQuaternion FastReader::GetQuaternion() {
     return btQuaternion( x, y, z, w );
 }
 
-ruVector2 FastReader::GetBareVector2() {
+ruVector2 FastReader::GetBareVector2()
+{
     float x = GetFloat();
     float y = GetFloat();
 
     return ruVector2( x, y );
 }
 
-ruVector3 FastReader::GetBareVector() {
+ruVector3 FastReader::GetBareVector()
+{
     float x = GetFloat();
     float y = GetFloat();
     float z = GetFloat();
@@ -31,7 +35,8 @@ ruVector3 FastReader::GetBareVector() {
     return ruVector3( x, y, z );
 }
 
-btVector3 FastReader::GetVector() {
+btVector3 FastReader::GetVector()
+{
     float x = GetFloat();
     float y = GetFloat();
     float z = GetFloat();
@@ -39,21 +44,21 @@ btVector3 FastReader::GetVector() {
     return btVector3( x, y, z );
 }
 
-std::string FastReader::GetString() {
+std::string FastReader::GetString()
+{
     string out;
 
-    for ( ; data[ cursor ] != '\0'; ++cursor ) {
+    for ( ; data[ cursor ] != '\0'; ++cursor )
         out += data[ cursor ];
-    }
 
-    if ( data[ cursor ] == '\0' ) {
+    if ( data[ cursor ] == '\0' )
         ++cursor;
-    }
 
     return out;
 }
 
-float FastReader::GetFloat() {
+float FastReader::GetFloat()
+{
     float value = * ( float * ) ( data + cursor );
 
     cursor += 4;
@@ -61,7 +66,8 @@ float FastReader::GetFloat() {
     return value;
 }
 
-unsigned char FastReader::GetByte() {
+unsigned char FastReader::GetByte()
+{
     unsigned char value = data[ cursor ];
 
     ++cursor;
@@ -69,7 +75,8 @@ unsigned char FastReader::GetByte() {
     return value;
 }
 
-unsigned short FastReader::GetShort() {
+unsigned short FastReader::GetShort()
+{
     unsigned short value = * ( unsigned short * ) ( data + cursor );
 
     cursor += 2;
@@ -77,7 +84,8 @@ unsigned short FastReader::GetShort() {
     return value;
 }
 
-int FastReader::GetInteger() {
+int FastReader::GetInteger()
+{
     int value = * ( int * ) ( data + cursor );
 
     cursor += 4;
@@ -85,18 +93,19 @@ int FastReader::GetInteger() {
     return value;
 }
 
-FastReader::~FastReader() {
+FastReader::~FastReader()
+{
     delete data;
     data = 0;
 }
 
-bool FastReader::ReadFile( const char * fileName ) {
+bool FastReader::ReadFile( const char * fileName )
+{
     FILE * f;
     f = fopen( fileName, "rb" );
 
-    if ( !f ) {
+    if ( !f )
         return false;
-    }
 
     fseek ( f, 0, SEEK_END );
 
@@ -113,7 +122,8 @@ bool FastReader::ReadFile( const char * fileName ) {
     return true;
 }
 
-FastReader::FastReader() {
+FastReader::FastReader()
+{
     cursor = 0;
     data = 0;
 }

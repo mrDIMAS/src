@@ -2,9 +2,11 @@
 
 #include "Game.h"
 
-class LightAnimator {
+class LightAnimator
+{
 public:
-    enum {
+    enum
+    {
         LAT_PEAK_FALLOFF = 1,
         LAT_PEAK_NORMAL,
         LAT_OFF,

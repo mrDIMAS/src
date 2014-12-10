@@ -3,104 +3,105 @@
 #include "Door.h"
 #include "Utils.h"
 
-LevelResearchFacility::LevelResearchFacility() {
-	typeNum = 4;
+LevelResearchFacility::LevelResearchFacility()
+{
+    mTypeNum = 4;
 
-    scene = ruLoadScene( "data/maps/release/researchFacility/rf.scene" );
+    LoadSceneFromFile( "data/maps/release/researchFacility/rf.scene" );
 
-    //SetLocalPosition( player->body, GetPosition( FindInObjectByName( scene, "PlayerPosition" )));
-	player->Place( ruGetNodePosition( ruFindInObjectByName( scene, "PlayerPosition" ) ));
+    pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject( "PlayerPosition" ) ));
 
     ruSetAudioReverb( 13 );
 
-    steamActivateZone = ruFindInObjectByName( scene, "SteamActivateZone" );
+    mSteamActivateZone = GetUniqueObject( "SteamActivateZone" );
 
-    steamHissSound = ruLoadSound3D( "data/sounds/steamhiss.ogg" );
+    AddSound( mSteamHissSound = ruLoadSound3D( "data/sounds/steamhiss.ogg" ));
 
-    AddLift( lift1 = new Lift( ruFindInObjectByName( scene, "Lift1" ), ruFindInObjectByName( scene, "Lift1Screen"), 
-		ruFindInObjectByName( scene, "Lift1Source" ), ruFindInObjectByName( scene, "Lift1Dest" ), ruLoadSound3D( "data/sounds/motor_idle.ogg")));
+	mLift1 = new Lift( GetUniqueObject( "Lift1" ) );
+	mLift1->SetControlPanel( GetUniqueObject( "Lift1Screen" ));
+	mLift1->SetDestinationPoint( GetUniqueObject( "Lift1Dest" ));
+	mLift1->SetSourcePoint( GetUniqueObject( "Lift1Source" ));
+	mLift1->SetMotorSound( ruLoadSound3D( "data/sounds/motor_idle.ogg"));
+	mLift1->SetBackDoors( GetUniqueObject( "Lift1BackDoorLeft"), GetUniqueObject( "Lift1BackDoorRight" ));
+	mLift1->SetFrontDoors( GetUniqueObject( "Lift1FrontDoorLeft"), GetUniqueObject( "Lift1FrontDoorRight" ));
+	AddLift( mLift1 );
 
-    fan1 = new Fan( ruFindInObjectByName( scene, "Fan" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
-    fan2 = new Fan( ruFindInObjectByName( scene, "Fan2" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
+    mpFan1 = new Fan( GetUniqueObject( "Fan" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
+    mpFan2 = new Fan( GetUniqueObject( "Fan2" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
 
 
-    scaryBarellThrowZone = ruFindInObjectByName( scene, "ScaryBarellThrowZone" );
+    mScaryBarellThrowZone = GetUniqueObject( "ScaryBarellThrowZone" );
 
-    leverSound = ruLoadSound3D( "data/sounds/lever.ogg");
+    AddSound( mLeverSound = ruLoadSound3D( "data/sounds/lever.ogg"));
 
-    AddValve( steamValve = new Valve( ruFindInObjectByName( scene, "SteamValve" ), ruVector3( 0, 1, 0 )));
-	ruSoundHandle steamHis = ruLoadSound3D( "data/sounds/steamhiss_loop.ogg" ) ;
-	AddSound( steamHis );
-    extemeSteam = new SteamStream( ruFindInObjectByName( scene, "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis );
+    AddValve( mpSteamValve = new Valve( GetUniqueObject( "SteamValve" ), ruVector3( 0, 1, 0 )));
+    ruSoundHandle steamHis = ruLoadSound3D( "data/sounds/steamhiss_loop.ogg" ) ;
+    AddSound( steamHis );
+    mpExtemeSteam = new SteamStream( GetUniqueObject( "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis );
 
     ruSetAmbientColor( ruVector3( 0, 0, 0 ));
 
-    doorOpenLever = ruFindInObjectByName( scene, "DoorOpenLever" );
-    lockedDoor = ruFindInObjectByName( scene, "LockedDoor" );
-    spawnRipperZone = ruFindInObjectByName( scene, "SpawnRipperZone" );
+    mDoorOpenLever = GetUniqueObject( "DoorOpenLever" );
+    mLockedDoor = GetUniqueObject( "LockedDoor" );
+    mSpawnRipperZone = GetUniqueObject( "SpawnRipperZone" );
 
-    ripperNewPosition = ruFindInObjectByName( scene, "RipperNewPosition");
-    repositionRipperZone = ruFindInObjectByName( scene, "RepositionRipperZone");
+    mRipperNewPosition = GetUniqueObject( "RipperNewPosition");
+    mRepositionRipperZone = GetUniqueObject( "RepositionRipperZone");
 
-    extremeSteamBlock = ruFindInObjectByName( scene, "ExtremeSteamBlock" );
-    extremeSteamHurtZone = ruFindInObjectByName( scene, "ExtremeSteamHurtZone" );
+    mExtremeSteamBlock = GetUniqueObject( "ExtremeSteamBlock" );
+    mExtremeSteamHurtZone = GetUniqueObject( "ExtremeSteamHurtZone" );
 
     CreatePowerUpSequence();
 
     AddSound( music = ruLoadMusic( "data/music/rf.ogg" ));
     ruSetSoundVolume( music, 0.75f );
 
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door1" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door2" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door3" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door4" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door5" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door6" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door7" ), 90.0f ));
-    AddDoor( new Door( ruFindInObjectByName( scene, "Door8" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door1" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door2" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door3" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door4" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door5" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door6" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door7" ), 90.0f ));
+    AddDoor( new Door( GetUniqueObject( "Door8" ), 90.0f ));
+
+	mScaryBarell = GetUniqueObject( "ScaryBarell" );
+	mScaryBarellPositionNode = GetUniqueObject( "ScaryBarellPos" );
+	mPowerLamp = GetUniqueObject( "PowerLamp");
+	mPowerLeverSnd = GetUniqueObject( "PowerLeverSnd");
+	mSmallSteamPosition = GetUniqueObject( "RFSteamPos" );
+
+	DoneInitialization();
 }
 
-LevelResearchFacility::~LevelResearchFacility() {
-    delete fan1;
-    delete fan2;
-    delete extemeSteam;
+LevelResearchFacility::~LevelResearchFacility()
+{
+    delete mpFan1;
+    delete mpFan2;
+    delete mpExtemeSteam;
 }
 
-void LevelResearchFacility::CreateSteam() {
-	ruParticleSystemProperties psProps;
-	psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
-	psProps.type = PS_STREAM;
-	psProps.speedDeviationMin = ruVector3( -0.0015, 0.08, -0.0015 );
-	psProps.speedDeviationMax = ruVector3( 0.0015, 0.2, 0.0015 );
-	psProps.boundingRadius = 0.4f;
-	psProps.colorBegin = ruVector3( 255, 255, 255 );
-	psProps.colorEnd = ruVector3( 255, 255, 255 );
-	psProps.pointSize = 0.15f;
-	psProps.particleThickness = 1.5f;
-	psProps.useLighting = false;
-    steamPS = ruCreateParticleSystem( 35, psProps );
-    ruSetNodePosition( steamPS, ruGetNodePosition( ruFindInObjectByName( scene, "RFSteamPos" )));
-    ruAttachSound( steamHissSound, steamPS );
-}
 
-void LevelResearchFacility::Show() {
+void LevelResearchFacility::Show()
+{
     Level::Show();
 
     ruPlaySound( music );
 }
 
-void LevelResearchFacility::Hide() {
+void LevelResearchFacility::Hide()
+{
     Level::Hide();
 
     ruPauseSound( music );
 }
 
-void LevelResearchFacility::DoScenario() {
-    if( Level::curLevelID != LevelName::L3ResearchFacility ) {
+void LevelResearchFacility::DoScenario()
+{
+    if( Level::curLevelID != LevelName::L3ResearchFacility )
         return;
-    }
 
-	ruSetAmbientColor( ruVector3( 5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f ));
+    ruSetAmbientColor( ruVector3( 5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f ));
 
     static int stateEnterSteamActivateZone = 0;
     static int stateEnterScaryBarellThrowZone = 0;
@@ -110,68 +111,81 @@ void LevelResearchFacility::DoScenario() {
     static bool stateDoorUnlocked = false;
     static bool stateEnterRepositionRipperZone = false;
 
-    if( powerOn ) {
-        lift1->Update();
-        fan1->DoTurn();
-        fan2->DoTurn();
+    if( mPowerOn ) {
+        mLift1->Update();
+        mpFan1->DoTurn();
+        mpFan2->DoTurn();
     }
 
     if( !stateEnterSteamActivateZone ) {
-        if( player->IsInsideZone( steamActivateZone )) {
-            CreateSteam();
+        if( pPlayer->IsInsideZone( mSteamActivateZone )) {
+			ruParticleSystemProperties psProps;
+			psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
+			psProps.type = PS_STREAM;
+			psProps.speedDeviationMin = ruVector3( -0.0015, 0.08, -0.0015 );
+			psProps.speedDeviationMax = ruVector3( 0.0015, 0.2, 0.0015 );
+			psProps.boundingRadius = 0.4f;
+			psProps.colorBegin = ruVector3( 255, 255, 255 );
+			psProps.colorEnd = ruVector3( 255, 255, 255 );
+			psProps.pointSize = 0.15f;
+			psProps.particleThickness = 1.5f;
+			psProps.useLighting = false;
+			mSteamPS = ruCreateParticleSystem( 35, psProps );
+			ruSetNodePosition( mSteamPS, ruGetNodePosition( mSmallSteamPosition ));
+			ruAttachSound( mSteamHissSound, mSteamPS );
 
-            ruPlaySound( steamHissSound, true );
+            ruPlaySound( mSteamHissSound, true );
 
             stateEnterSteamActivateZone = 1;
         }
     }
 
     if( !stateEnterScaryBarellThrowZone ) {
-        if( player->IsInsideZone( scaryBarellThrowZone )) {
-            ruSetNodePosition( ruFindInObjectByName( scene, "ScaryBarell" ), ruGetNodePosition( ruFindInObjectByName( scene, "ScaryBarellPos" )));
+        if( pPlayer->IsInsideZone( mScaryBarellThrowZone )) {
+            ruSetNodePosition( mScaryBarell, ruGetNodePosition( mScaryBarellPositionNode ));
 
             stateEnterScaryBarellThrowZone = 1;
         }
     }
 
 
-    steamValve->Update();
-    extemeSteam->Update();
-    extemeSteam->power = 1 - steamValve->value;
+    mpSteamValve->Update();
+    mpExtemeSteam->Update();
+    mpExtemeSteam->power = 1 - mpSteamValve->value;
 
     UpdatePowerupSequence();
 
-    if( powerOn && powerSparks ) {
-        powerSparks->Update();
+    if( mPowerOn && mpPowerSparks ) {
+        mpPowerSparks->Update();
 
-        if( !powerSparks->alive ) {
-            delete powerSparks;
+        if( !mpPowerSparks->alive ) {
+            delete mpPowerSparks;
 
-            powerSparks = 0;
+            mpPowerSparks = 0;
         }
     }
 
-    if( ruIsSoundPlaying( steamHissSound ) && steamPS.IsValid() ) {
+    if( ruIsSoundPlaying( mSteamHissSound ) && mSteamPS.IsValid() ) {
         static float steamParticleSize = 0.15f;
 
-        ruGetParticleSystemProperties( steamPS )->pointSize = steamParticleSize;
+        ruGetParticleSystemProperties( mSteamPS )->pointSize = steamParticleSize;
 
-        if( steamParticleSize > 0 ) {
+        if( steamParticleSize > 0 )
             steamParticleSize -= 0.0005f;
-        } else {
-            ruFreeSceneNode( steamPS );
+        else {
+            ruFreeSceneNode( mSteamPS );
 
-            steamPS.Invalidate();
+            mSteamPS.Invalidate();
         }
     }
 
     if( !stateDoorUnlocked ) {
-        if( player->nearestPicked == doorOpenLever ) {
-            ruDrawGUIText( Format( "[%s] - открыть дверь", GetKeyName( player->keyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
+        if( pPlayer->mNearestPickedNode == mDoorOpenLever ) {
+            ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "openGates" ), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 
-            if( ruIsKeyDown( player->keyUse )) {
-                ruSetNodeRotation( doorOpenLever, ruQuaternion( 0, -20, 0 ));
-                ruSetNodePosition( lockedDoor, ruVector3( 1000, 1000, 1000 )); // far far away :D
+            if( ruIsKeyDown( pPlayer->mKeyUse )) {
+                ruSetNodeRotation( mDoorOpenLever, ruQuaternion( 0, -20, 0 ));
+                ruSetNodePosition( mLockedDoor, ruVector3( 1000, 1000, 1000 )); // far far away :D
 
                 stateDoorUnlocked = true;
             }
@@ -179,7 +193,7 @@ void LevelResearchFacility::DoScenario() {
     }
 
     if( stateDoorUnlocked && !stateEnterSpawnRipperZone ) {
-        if( player->IsInsideZone( spawnRipperZone )) {
+        if( pPlayer->IsInsideZone( mSpawnRipperZone )) {
             stateEnterSpawnRipperZone = true;
 
             //ripper = new Enemy( "data/models/ripper/ripper.scene" );
@@ -187,56 +201,51 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-	if( ripper ) {
-		if( stateEnterSpawnRipperZone ) {
-			ripper->Think();
-		}
+    if( mpRipper ) {
+        if( stateEnterSpawnRipperZone )
+            mpRipper->Think();
 
-		if( !stateEnterRepositionRipperZone ) {
-			if( player->IsInsideZone( repositionRipperZone )) {
-				stateEnterRepositionRipperZone = true;
-				ruSetNodePosition( ripper->body, ruGetNodePosition( ripperNewPosition ));
-			}
-		}
-	}
-
-    if( steamValve->done ) {
-        ruSetNodePosition( extremeSteamBlock, ruVector3( 1000, 1000, 1000 ));
-    } else {
-        if( player->IsInsideZone( extremeSteamHurtZone )) {
-            player->Damage( 0.6 );
+        if( !stateEnterRepositionRipperZone ) {
+            if( pPlayer->IsInsideZone( mRepositionRipperZone )) {
+                stateEnterRepositionRipperZone = true;
+                ruSetNodePosition( mpRipper->body, ruGetNodePosition( mRipperNewPosition ));
+            }
         }
+    }
+
+    if( mpSteamValve->done )
+        ruSetNodePosition( mExtremeSteamBlock, ruVector3( 1000, 1000, 1000 ));
+    else {
+        if( pPlayer->IsInsideZone( mExtremeSteamHurtZone ))
+            pPlayer->Damage( 0.6 );
     }
 }
 
-void LevelResearchFacility::UpdatePowerupSequence() {
+void LevelResearchFacility::UpdatePowerupSequence()
+{
     if( fuseInsertedCount < 3 ) {
         fuseInsertedCount = 0;
 
-        for( int i = 0; i < 3; i++ ) {
-            ItemPlace * fuse = fusePlace[i];
-
-            if( fuse->GetPlaceType() == -1 ) {
+        for( int iFuse = 0; iFuse < 3; iFuse++ ) {
+            ItemPlace * pFuse = mFusePlaceList[iFuse];
+            if( pFuse->GetPlaceType() == -1 )
                 fuseInsertedCount++;
-            }
         }
     }
 
-    if( player->inventory.forUse ) {
-        for( int i = 0; i < 3; i++ ) {
-            ItemPlace * fuse = fusePlace[i];
-
-            if( fuse->IsPickedByPlayer() ) {
-                ruDrawGUIText( Format( "[%s] - вставить предохранитель", GetKeyName( player->keyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
-            }
+    if( pPlayer->mInventory.mpItemForUse ) {
+        for( int iFuse = 0; iFuse < 3; iFuse++ ) {
+            ItemPlace * pFuse = mFusePlaceList[iFuse];
+            if( pFuse->IsPickedByPlayer() )
+                ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "insertFuse" ), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
         }
 
-        if( ruIsKeyHit( player->keyUse )) {
+        if( ruIsKeyHit( pPlayer->mKeyUse )) {
             for( int i = 0; i < 3; i++ ) {
-                ItemPlace * fuse = fusePlace[i];
+                ItemPlace * fuse = mFusePlaceList[i];
 
                 if( fuse->IsPickedByPlayer() ) {
-                    bool placed = fuse->PlaceItem( player->inventory.forUse );
+                    bool placed = fuse->PlaceItem( pPlayer->mInventory.mpItemForUse );
 
                     if( placed ) {
                         ruShowNode( fuseModel[i] );
@@ -248,60 +257,46 @@ void LevelResearchFacility::UpdatePowerupSequence() {
     }
 
     if( fuseInsertedCount >= 3 ) {
-        if( player->nearestPicked == powerLever ) {
-            ruDrawGUIText( Format( player->localization.GetString("powerUp"), GetKeyName( player->keyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
+        if( pPlayer->mNearestPickedNode == powerLever ) {
+            ruDrawGUIText( Format( pPlayer->mLocalization.GetString("powerUp"), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 
-            if( ruIsKeyHit( player->keyUse ) && !powerOn ) {
-                ruSetLightColor( ruFindInObjectByName( scene, "PowerLamp"), ruVector3( 0, 255, 0 ) );
+            if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
+                ruSetLightColor( mPowerLamp, ruVector3( 0, 255, 0 ) );
 
-                ruPlaySound( leverSound, 1 );
+                ruPlaySound( mLeverSound, 1 );
 
-                powerSparks = new Sparks( ruFindInObjectByName( scene, "PowerLeverSnd" ), ruLoadSound3D( "data/sounds/sparks.ogg" ));
+                mpPowerSparks = new Sparks( mPowerLeverSnd, ruLoadSound3D( "data/sounds/sparks.ogg" ));
 
-                ruShowNode( powerLeverOnModel );
-                ruHideNode( powerLeverOffModel );
+                ruShowNode( mPowerLeverOnModel );
+                ruHideNode( mPowerLeverOffModel );
 
-                //for( int i = 0; i < 6; i++ )
-                //  SetLightRange( upLight[i], upLightOnRange[i] );
-
-                powerOn = true;
+                mPowerOn = true;
             }
         }
     }
 }
 
-void LevelResearchFacility::CreatePowerUpSequence() {
-    AddItem( fuse[0] = new Item( ruFindInObjectByName( scene, "Fuse1" ), Item::Fuse ));
-    AddItem( fuse[1] = new Item( ruFindInObjectByName( scene, "Fuse2" ), Item::Fuse ));
-    AddItem( fuse[2] = new Item( ruFindInObjectByName( scene, "Fuse3" ), Item::Fuse ));
+void LevelResearchFacility::CreatePowerUpSequence()
+{
+    AddItem( fuse[0] = new Item( GetUniqueObject( "Fuse1" ), Item::Fuse ));
+    AddItem( fuse[1] = new Item( GetUniqueObject( "Fuse2" ), Item::Fuse ));
+    AddItem( fuse[2] = new Item( GetUniqueObject( "Fuse3" ), Item::Fuse ));
 
-    AddItemPlace( fusePlace[0] = new ItemPlace( ruFindInObjectByName( scene, "FusePlace1" ), Item::Fuse ));
-    AddItemPlace( fusePlace[1] = new ItemPlace( ruFindInObjectByName( scene, "FusePlace2" ), Item::Fuse ));
-    AddItemPlace( fusePlace[2] = new ItemPlace( ruFindInObjectByName( scene, "FusePlace3" ), Item::Fuse ));
+    AddItemPlace( mFusePlaceList[0] = new ItemPlace( GetUniqueObject( "FusePlace1" ), Item::Fuse ));
+    AddItemPlace( mFusePlaceList[1] = new ItemPlace( GetUniqueObject( "FusePlace2" ), Item::Fuse ));
+    AddItemPlace( mFusePlaceList[2] = new ItemPlace( GetUniqueObject( "FusePlace3" ), Item::Fuse ));
 
-    fuseModel[0] = ruFindInObjectByName( scene, "FuseModel1" );
-    fuseModel[1] = ruFindInObjectByName( scene, "FuseModel2" );
-    fuseModel[2] = ruFindInObjectByName( scene, "FuseModel3" );
+    fuseModel[0] = GetUniqueObject( "FuseModel1" );
+    fuseModel[1] = GetUniqueObject( "FuseModel2" );
+    fuseModel[2] = GetUniqueObject( "FuseModel3" );
 
-    powerLeverOnModel = ruFindInObjectByName( scene, "PowerSwitchOnModel" );
-    powerLeverOffModel = ruFindInObjectByName( scene, "PowerSwitchOffModel" );
-    powerLever = ruFindInObjectByName( scene, "PowerLever" );
-
-    upLight[0] = ruFindInObjectByName( scene, "UpLight1" );
-    upLight[1] = ruFindInObjectByName( scene, "UpLight2" );
-    upLight[2] = ruFindInObjectByName( scene, "UpLight3" );
-    upLight[3] = ruFindInObjectByName( scene, "UpLight4" );
-    upLight[4] = ruFindInObjectByName( scene, "UpLight5" );
-    upLight[5] = ruFindInObjectByName( scene, "UpLight6" );
-
-    for( int i = 0; i < 6; i++ ) {
-        upLightOnRange[i] = ruGetLightRange( upLight[i] );
-        //SetLightRange( upLight[i], 0.0f );
-    }
+    mPowerLeverOnModel = GetUniqueObject( "PowerSwitchOnModel" );
+    mPowerLeverOffModel = GetUniqueObject( "PowerSwitchOffModel" );
+    powerLever = GetUniqueObject( "PowerLever" );
 
     fuseInsertedCount = 0;
 
-    powerOn = false;
+    mPowerOn = false;
 }
 
 void LevelResearchFacility::OnDeserialize( TextFileStream & in )

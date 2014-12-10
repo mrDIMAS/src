@@ -1,17 +1,21 @@
 #include "EffectsQuad.h"
 
-void EffectsQuad::Render() {
+void EffectsQuad::Render()
+{
     CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
     CheckDXErrorFatal( g_device->SetVertexDeclaration( vertexDeclaration ));
     CheckDXErrorFatal( g_device->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
-    if( debug ) {
+    if( debug )
+    {
         CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
         CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
     }
 }
 
-void EffectsQuad::Bind() {
-    if( debug ) {
+void EffectsQuad::Bind()
+{
+    if( debug )
+    {
         debugPixelShader->Bind();
         CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
         CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
@@ -20,57 +24,67 @@ void EffectsQuad::Bind() {
     CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, v2Proj, &orthoProjection ));
 }
 
-EffectsQuad::~EffectsQuad() {
-    if( vertexDeclaration ) {
+EffectsQuad::~EffectsQuad()
+{
+    if( vertexDeclaration )
         vertexDeclaration->Release();
-    }
 
-    if( vertexBuffer ) {
+    if( vertexBuffer )
         vertexBuffer->Release();
-    }
 
-    if( debugPixelShader ) {
+    if( debugPixelShader )
         delete debugPixelShader;
-    }
 
     delete vertexShader;
 }
 
-void EffectsQuad::SetSize( float width, float height ) {
-	if( !debug ) {
-		QuadVertex vertices[ ] = { 
-			{        - 0.5, -0.5, 0, 0, 0 }, { width - 0.5,         - 0.5, 0, 1, 0 }, { -0.5, height - 0.5, 0, 0, 1 },
-			{  width - 0.5, -0.5, 0, 1, 0 }, { width - 0.5,  height - 0.5, 0, 1, 1 }, { -0.5, height - 0.5, 0, 0, 1 }};
+void EffectsQuad::SetSize( float width, float height )
+{
+    if( !debug )
+    {
+        QuadVertex vertices[ ] =
+        {
+            {        - 0.5, -0.5, 0, 0, 0 }, { width - 0.5,         - 0.5, 0, 1, 0 }, { -0.5, height - 0.5, 0, 0, 1 },
+            {  width - 0.5, -0.5, 0, 1, 0 }, { width - 0.5,  height - 0.5, 0, 1, 1 }, { -0.5, height - 0.5, 0, 0, 1 }
+        };
 
-		void * data = 0;
+        void * data = 0;
 
-		CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
-		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		CheckDXErrorFatal( vertexBuffer->Unlock( ));
-	}
+        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
+        memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
+        CheckDXErrorFatal( vertexBuffer->Unlock( ));
+    }
 }
 
-EffectsQuad::EffectsQuad( bool bDebug ) {
+EffectsQuad::EffectsQuad( bool bDebug )
+{
     CheckDXErrorFatal( g_device->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
     debug = bDebug;
     debugPixelShader = nullptr;
 
-    if( !debug ) {
-        QuadVertex vertices[ ] = { 
+    if( !debug )
+    {
+        QuadVertex vertices[ ] =
+        {
             {           -0.5, -0.5, 0, 0, 0 }, { g_width - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, g_height - 0.5, 0, 0, 1 },
-            {  g_width - 0.5, -0.5, 0, 1, 0 }, { g_width - 0.5,  g_height - 0.5, 0, 1, 1 }, { -0.5, g_height - 0.5, 0, 0, 1 }};
+            {  g_width - 0.5, -0.5, 0, 1, 0 }, { g_width - 0.5,  g_height - 0.5, 0, 1, 1 }, { -0.5, g_height - 0.5, 0, 0, 1 }
+        };
 
         void * data = 0;
 
         CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
         CheckDXErrorFatal( vertexBuffer->Unlock( ));
-    } else {
-        int size = 500; 
-        QuadVertex vertices[ ] = { 
+    }
+    else
+    {
+        int size = 500;
+        QuadVertex vertices[ ] =
+        {
             {        -0.5, -0.5, 0, 0, 0 }, { size - 0.5,        -0.5, 0, 1, 0 }, { -0.5, size - 0.5, 0, 0, 1 },
-            {  size - 0.5, -0.5, 0, 1, 0 }, { size - 0.5,  size - 0.5, 0, 1, 1 }, { -0.5, size - 0.5, 0, 0, 1 }};
+            {  size - 0.5, -0.5, 0, 1, 0 }, { size - 0.5,  size - 0.5, 0, 1, 1 }, { -0.5, size - 0.5, 0, 0, 1 }
+        };
 
         void * data = 0;
 
@@ -78,16 +92,17 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
         CheckDXErrorFatal( vertexBuffer->Unlock( ));
 
-        string debugPixelShaderSource = 
+        string debugPixelShaderSource =
             "sampler diffuse : register( s4 );\n"
             "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
             "   return tex2D( diffuse, texCoord );\n"
             "};\n";
-        
+
         debugPixelShader = new PixelShader( debugPixelShaderSource );
     }
 
-    D3DVERTEXELEMENT9 quadVertexDeclation[ ] = {
+    D3DVERTEXELEMENT9 quadVertexDeclation[ ] =
+    {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
         { 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
         D3DDECL_END()

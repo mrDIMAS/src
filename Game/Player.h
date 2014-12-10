@@ -15,14 +15,15 @@
 #include "Tip.h"
 #include "Actor.h"
 
-class Player : public Actor {
+class Player : public Actor
+{
 public:
     void LoadSounds();
     void CreateCamera();
     void CreateFlashLight();
     void LoadGUIElements();
     void UpdateJumping();
-    void UpdateCameraBob();
+    void UpdateCameraShake();
     void DrawGUIElements();
     void UpdateFlashLight();
     void UpdatePicking();
@@ -30,25 +31,18 @@ public:
     void UpdateEnvironmentDamaging();
     void DescribePickedObject();
     void DrawSheetInHands();
-
-	void CloseCurrentSheet()
-	{
-		ruShowNode( sheetInHands->object );
-		sheetInHands = 0;
-		ruPlaySound( Sheet::paperFlip );
-	}
-
-	void SetRockFootsteps();
+    void CloseCurrentSheet();
+    void SetRockFootsteps();
     void SetDirtFootsteps();
     void SetMetalFootsteps();
     void UpdateFright();
-    Parser localization;
+    Parser mLocalization;
 public:
     explicit Player();
     virtual ~Player();
     void DrawTip( string text );
     void FreeHands();
-    bool CanJump( );
+    bool IsCanJump( );
     bool UseStamina( float st );
     void Damage( float dmg );
     void AddItem( Item * itm );
@@ -59,113 +53,108 @@ public:
     void DrawStatusBar();
     void SetObjective( string text );
     void CompleteObjective();
-    int GotItemAnyOfType( int type );
+    int IsGotItemAnyOfType( int type );
     void SetPlaceDescription( string desc );
     void SetFootsteps( FootstepsType ft );
     void ChargeFlashLight( Item * fuel );
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
-	void ComputeStealth();
-    Item * flashLightItem;
+    void ComputeStealth();
+    Item * mpFlashLightItem;
 
-    FootstepsType footstepsType;
+    FootstepsType mFootstepsType;
 
-    GameCamera * camera;
+    GameCamera * mpCamera;
 
     //NodeHandle body;
-	ruNodeHandle head;
-    ruNodeHandle pickPoint;
-    ruNodeHandle itemPoint;
-    ruNodeHandle objectInHands;
-    ruNodeHandle nearestPicked;
-    ruNodeHandle picked;
+    ruNodeHandle mHead;
+    ruNodeHandle mPickPoint;
+    ruNodeHandle mItemPoint;
+    ruNodeHandle mNodeInHands;
+    ruNodeHandle mNearestPickedNode;
+    ruNodeHandle mPickedNode;
 
-    ruTextureHandle upCursor;
-    ruTextureHandle downCursor;
-    ruTextureHandle statusBar;
-	ruTextureHandle stealthSign;
+    ruTextureHandle mObjectDragUpCursor;
+    ruTextureHandle mObjectDragDownCursor;
+    ruTextureHandle mStatusBar;
+    ruTextureHandle mStealthSign;
 
-    SmoothFloat pitch;
-    SmoothFloat yaw;
-    SmoothFloat damagePitchOffset;
-    SmoothFloat staminaAlpha;
-    SmoothFloat healthAlpha;
-    SmoothFloat breathVolume;
-    SmoothFloat heartBeatVolume;
-    SmoothFloat heartBeatPitch;
-    SmoothFloat breathPitch;
-    SmoothFloat fov;
-	SmoothFloat stealthOffset;
-	SmoothFloat headAngle;
+    SmoothFloat mPitch;
+    SmoothFloat mYaw;
+    SmoothFloat mStaminaAlpha;
+    SmoothFloat mHealthAlpha;
+    SmoothFloat mBreathVolume;
+    SmoothFloat mHeartBeatVolume;
+    SmoothFloat mHeartBeatPitch;
+    SmoothFloat mBreathPitch;
+    SmoothFloat mFov;
+    SmoothFloat mStealthOffset;
+    SmoothFloat mHeadAngle;
 
-    float stamina;
-    float life;
-    float maxLife;
-    float maxStamina;
-    float runSpeedMult;
-    float headHeight;
-    float cameraBobCoeff;
-    float runBobCoeff;   
-	float capsuleRadius;
-    float capsuleHeight;
-	float stealthFactor;
+    float mStamina;
+    float mLife;
+    float mMaxLife;
+    float mMaxStamina;
+    float mRunSpeedMult;
+    float mHeadHeight;
+    float mCameraBobCoeff;
+    float mRunCameraShakeCoeff;
+    float mStealthFactor;
 
-    ruVector3 speed;
-    ruVector3 speedTo;
-    ruVector3 gravity;
-    ruVector3 jumpTo;
-    ruVector3 cameraOffset;
-    ruVector3 cameraBob;
-    ruVector3 frameColor;
-	 
+    ruVector3 mSpeed;
+    ruVector3 mSpeedTo;
+    ruVector3 mGravity;
+    ruVector3 mJumpTo;
+    ruVector3 mCameraOffset;
+    ruVector3 mCameraShakeOffset;
+    ruVector3 mFrameColor;
 
-    Way * currentWay;
+    Way * mpCurrentWay;
 
-    ruSoundHandle lighterCloseSound;
-    ruSoundHandle lighterOpenSound;
-    ruSoundHandle pickupSound;
-    ruSoundHandle heartBeatSound;
-    ruSoundHandle breathSound;
+    ruSoundHandle mLighterCloseSound;
+    ruSoundHandle mLighterOpenSound;
+    ruSoundHandle mItemPickupSound;
+    ruSoundHandle mHeartBeatSound;
+    ruSoundHandle mBreathSound;
 
-    vector< ruSoundHandle > footsteps;
+    vector< ruSoundHandle > mFootstepList;
 
-    bool objectThrown;
-    bool landed;
-    bool dead;
-    bool objectiveDone;
-    bool moved;
-    bool locked;
-    bool smoothCamera;
-	bool stealthMode;
-	bool running;
+    bool mObjectThrown;
+    bool mLanded;
+    bool mDead;
+    bool mObjectiveDone;
+    bool mMoved;
+    bool mSmoothCamera;
+    bool mStealthMode;
+    bool mRunning;
 
-    Inventory inventory;
+    Inventory mInventory;
 
-    int placeDescTimer;
-    int keyMoveForward;
-    int keyMoveBackward;
-    int keyStrafeLeft;
-    int keyStrafeRight;
-    int keyJump;
-    int keyFlashLight;
-    int keyRun;
-    int keyInventory;
-    int keyUse;
-	int keyStealth;
-	int keyLookLeft;
-	int keyLookRight;
+    int mPlaceDescTimer;
+    int mKeyMoveForward;
+    int mKeyMoveBackward;
+    int mKeyStrafeLeft;
+    int mKeyStrafeRight;
+    int mKeyJump;
+    int mKeyFlashLight;
+    int mKeyRun;
+    int mKeyInventory;
+    int mKeyUse;
+    int mKeyStealth;
+    int mKeyLookLeft;
+    int mKeyLookRight;
 
-    string placeDesc;
-    string pickedObjectDesc;
+    string mPlaceDesc;
+    string mPickedObjectDesc;
 
-    Goal goal;
+    Goal mGoal;
 
-    Tip tip;
+    Tip mTip;
 
-    Sheet * sheetInHands;
+    Sheet * mpSheetInHands;
 
-    Flashlight * flashlight;
+    Flashlight * mpFlashlight;
 
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;

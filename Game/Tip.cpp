@@ -12,7 +12,7 @@ void Tip::Deserialize( TextFileStream & in )
 
 void Tip::Serialize( TextFileStream & out )
 {
-    out.Writestring( txt );
+    out.WriteString( txt );
     alpha.Serialize( out );
     out.WriteInteger( x );
     y.Serialize( out );
@@ -22,7 +22,7 @@ void Tip::Serialize( TextFileStream & out )
 
 void Tip::AnimateAndDraw()
 {
-    ruDrawGUIText( txt.c_str(), x, y, w, h, gui->font, ruVector3( 255, 0, 0 ), 1, alpha );
+    ruDrawGUIText( txt.c_str(), x, y, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, alpha );
 
     if( ruGetElapsedTimeInSeconds( timer ) > 1.5 ) {
         alpha.SetTarget( alpha.GetMin() );

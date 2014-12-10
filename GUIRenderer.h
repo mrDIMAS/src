@@ -3,57 +3,65 @@
 #include "Shader.h"
 #include "BitmapFont.h"
 
-class GUIText {
+class GUIText
+{
 public:
-	BitmapFont * font;
-	string text;
-	RECT rect;
-	int color;
-	int textAlign;
-	explicit GUIText( string theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, ruFontHandle theFont );
+    BitmapFont * font;
+    string text;
+    RECT rect;
+    int color;
+    int textAlign;
+    explicit GUIText( string theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, ruFontHandle theFont );
 };
 
-class GUIRect {
+class GUIRect
+{
 public:
-	float x;
-	float y;
-	float w;
-	float h;
-	Texture * texture;
-	int color;
-	explicit GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, ruVector3 theColor, int theAlpha );
+    float x;
+    float y;
+    float w;
+    float h;
+    Texture * texture;
+    int color;
+    explicit GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, ruVector3 theColor, int theAlpha );
 };
 
-class GUILine {
+class GUILine
+{
 public:
-	ruLinePoint begin;
-	ruLinePoint end;
-	explicit GUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd );
+    ruLinePoint begin;
+    ruLinePoint end;
+    explicit GUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd );
 };
 
-class TextVertex {
+class TextVertex
+{
 public:
-	ruVector3 p;
-	ruVector2 t;
-	DWORD color;
-	explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr ) {
-		p = cp;
-		t = tp;
-		color = clr;
-	}
+    ruVector3 p;
+    ruVector2 t;
+    DWORD color;
+    explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr )
+    {
+        p = cp;
+        t = tp;
+        color = clr;
+    }
 };
 
-class TextQuad {
+class TextQuad
+{
 public:
-	TextVertex v1, v2, v3, v4;
+    TextVertex v1, v2, v3, v4;
 };
 
-class Face {
+class Face
+{
 public:
-	unsigned short index[6];
+    unsigned short index[6];
 };
 
-class GUIRenderer {
+class GUIRenderer
+{
 private:
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DVertexBuffer9 * lineVertexBuffer;
@@ -62,21 +70,22 @@ private:
     map<BitmapFont*,vector<GUIText>> texts;
     queue<GUIRect> rects;
     queue<GUILine> lines;
-	int maxLineCount;
+    int maxLineCount;
     int sizeOfRectBytes;
     D3DXMATRIX orthoMatrix;
-	void RenderRect( GUIRect & r );
+    void RenderRect( GUIRect & r );
     void RenderLines();
     void PrepareToDraw2D();
-	VertexShader * vertexShader;
-	PixelShader * pixelShader;
-	D3DXHANDLE vProj;
+    VertexShader * vertexShader;
+    PixelShader * pixelShader;
+    D3DXHANDLE vProj;
 public:
     GUIRenderer();
     ~GUIRenderer();
-	void QueueRect( const GUIRect & rect ) {
-		rects.push( rect );
-	}
+    void QueueRect( const GUIRect & rect )
+    {
+        rects.push( rect );
+    }
     ruFontHandle CreateFont( int size, const char * name, int italic, int underlined );
     void RenderText( const GUIText & text );
     void Render3DLine( const GUILine & line );

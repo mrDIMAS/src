@@ -3,7 +3,8 @@
 #include "Way.h"
 
 
-class CrawlWay : public Way {
+class CrawlWay : public Way
+{
 private:
     void DoLeave();
 public:

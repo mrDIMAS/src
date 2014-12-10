@@ -16,191 +16,217 @@ using namespace std;
 #endif
 #endif
 
-class RUAPI ruVector3 {
+class RUAPI ruVector3
+{
 public:
-	union {
-		struct {
-			float x;
-			float y;
-			float z;
-		};
+    union
+    {
+        struct
+        {
+            float x;
+            float y;
+            float z;
+        };
 
-		float elements[ 3 ];
-	};
+        float elements[ 3 ];
+    };
 
 
-	ruVector3( );
-	ruVector3( float x, float y, float z );
-	ruVector3( const ruVector3 & v );
-	ruVector3( float * v );
-	ruVector3 operator + ( const ruVector3 & v ) const;
-	ruVector3 operator - ( const ruVector3 & v ) const;
-	ruVector3 operator * ( const ruVector3 & v ) const;
-	ruVector3 operator * ( const float & f ) const;
-	ruVector3 operator / ( const ruVector3 & v ) const;
-	ruVector3 operator / ( const float & f ) const;
-	void operator *= ( const ruVector3 & v );
-	void operator /= ( const ruVector3 & v );
-	void operator += ( const ruVector3 & v );
-	void operator -= ( const ruVector3 & v );
-	void operator = ( const ruVector3 & v );
-	bool operator == ( const ruVector3 & v );
-	float Length( ) const;
-	float Length2( ) const;
-	ruVector3 Normalize( );
-	ruVector3 Normalized() const;
-	ruVector3 Cross( const ruVector3 & v ) const;
-	float Dot( const ruVector3 & v ) const;
-	float Angle( const ruVector3 & v );
-	ruVector3 Rotate( const ruVector3 & axis, float angle );
-	ruVector3 Lerp( const ruVector3 & v, float t ) const;
+    ruVector3( );
+    ruVector3( float x, float y, float z );
+    ruVector3( const ruVector3 & v );
+    ruVector3( float * v );
+    ruVector3 operator + ( const ruVector3 & v ) const;
+    ruVector3 operator - ( const ruVector3 & v ) const;
+    ruVector3 operator * ( const ruVector3 & v ) const;
+    ruVector3 operator * ( const float & f ) const;
+    ruVector3 operator / ( const ruVector3 & v ) const;
+    ruVector3 operator / ( const float & f ) const;
+    void operator *= ( const ruVector3 & v );
+    void operator /= ( const ruVector3 & v );
+    void operator += ( const ruVector3 & v );
+    void operator -= ( const ruVector3 & v );
+    void operator = ( const ruVector3 & v );
+    bool operator == ( const ruVector3 & v );
+    float Length( ) const;
+    float Length2( ) const;
+    ruVector3 Normalize( );
+    ruVector3 Normalized() const;
+    ruVector3 Cross( const ruVector3 & v ) const;
+    float Dot( const ruVector3 & v ) const;
+    float Angle( const ruVector3 & v );
+    ruVector3 Rotate( const ruVector3 & axis, float angle );
+    ruVector3 Lerp( const ruVector3 & v, float t ) const;
 };
 
-static inline ruVector3 operator * ( const float & f, const ruVector3 & v ) {
-	return ruVector3( v.x * f, v.y * f, v.z * f );
+static inline ruVector3 operator * ( const float & f, const ruVector3 & v )
+{
+    return ruVector3( v.x * f, v.y * f, v.z * f );
 }
 
-static inline ruVector3 operator - ( const ruVector3 & v ) {
-	return ruVector3( -v.x, -v.y, -v.z );
+static inline ruVector3 operator - ( const ruVector3 & v )
+{
+    return ruVector3( -v.x, -v.y, -v.z );
 }
 
-static inline float Lerp( const float & value, const float & from, const float & to, const float & t ) {
-	return from + ( to - from ) * t;
+static inline float Lerp( const float & value, const float & from, const float & to, const float & t )
+{
+    return from + ( to - from ) * t;
 }
 
-struct ruVector2 {
+struct ruVector2
+{
 public:
-	float x;
-	float y;
+    float x;
+    float y;
 
-	ruVector2( ) {
-		x = 0;
-		y = 0;
-	};
+    ruVector2( )
+    {
+        x = 0;
+        y = 0;
+    };
 
-	ruVector2( float x, float y ) {
-		this->x = x;
-		this->y = y;
-	};
+    ruVector2( float x, float y )
+    {
+        this->x = x;
+        this->y = y;
+    };
 };
 
-class RUAPI ruQuaternion {
+class RUAPI ruQuaternion
+{
 public:
-	float x;
-	float y;
-	float z;
-	float w;
+    float x;
+    float y;
+    float z;
+    float w;
 
-	ruQuaternion( );
-	ruQuaternion( float x, float y, float z, float w );
-	ruQuaternion( float pitch, float yaw, float roll );
-	ruQuaternion( const ruVector3 & axis, float angle );
+    ruQuaternion( );
+    ruQuaternion( float x, float y, float z, float w );
+    ruQuaternion( float pitch, float yaw, float roll );
+    ruQuaternion( const ruVector3 & axis, float angle );
 };
 
-static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2 ) {
-	return ruQuaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
-		q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
-		q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
-		q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
+static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2 )
+{
+    return ruQuaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+                          q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
+                          q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
+                          q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
 }
 
 #define BODY_MAX_CONTACTS ( 4 )
 
-struct ruContact {
-	ruVector3 normal;
-	ruVector3 position;
-	float impulse;
+struct ruContact
+{
+    ruVector3 normal;
+    ruVector3 position;
+    float impulse;
 
-	ruContact() {
-		impulse = 0;
-	}
+    ruContact()
+    {
+        impulse = 0;
+    }
 };
 
-class ruGUIState {
+class ruGUIState
+{
 public:
-	bool mouseInside;
-	bool mouseLeftClicked;
-	bool mouseRightClicked;
+    bool mouseInside;
+    bool mouseLeftClicked;
+    bool mouseRightClicked;
 
-	ruGUIState() {
-		mouseInside = false;
-		mouseLeftClicked = false;
-		mouseRightClicked = false;
-	}
+    ruGUIState()
+    {
+        mouseInside = false;
+        mouseLeftClicked = false;
+        mouseRightClicked = false;
+    }
 };
 
-struct ruLinePoint {
-	ruVector3 position;
-	int color;
+struct ruLinePoint
+{
+    ruVector3 position;
+    int color;
 
-	ruLinePoint( ) {
-		position = ruVector3( 0, 0, 0 );
-		color = 0xFFFFFFFF;
-	}
+    ruLinePoint( )
+    {
+        position = ruVector3( 0, 0, 0 );
+        color = 0xFFFFFFFF;
+    }
 
-	ruLinePoint( ruVector3 pos, int clr ) {
-		position = pos;
-		color = clr;
-	};
+    ruLinePoint( ruVector3 pos, int clr )
+    {
+        position = pos;
+        color = clr;
+    };
 
-	ruLinePoint( ruVector3 pos, ruVector3 clr ) {
-		position = pos;
+    ruLinePoint( ruVector3 pos, ruVector3 clr )
+    {
+        position = pos;
 
-		int r = (int)clr.x;
-		int g = (int)clr.y;
-		int b = (int)clr.z;
+        int r = (int)clr.x;
+        int g = (int)clr.y;
+        int b = (int)clr.z;
 
-		color = ((((255)&0xFF)<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF));
-	};
+        color = ((((255)&0xFF)<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF));
+    };
 };
 
-enum {
-	LT_POINT,
-	LT_SPOT,
+enum
+{
+    LT_POINT,
+    LT_SPOT,
 };
 
-class RUAPI ruRutheniumHandle {
+class RUAPI ruRutheniumHandle
+{
 public:
-	void * pointer;
+    void * pointer;
 
-	explicit ruRutheniumHandle();
-	virtual ~ruRutheniumHandle();
+    explicit ruRutheniumHandle();
+    virtual ~ruRutheniumHandle();
 
-	virtual bool IsValid();
-	virtual void Invalidate();
+    virtual bool IsValid();
+    virtual void Invalidate();
 };
 
-class RUAPI ruNodeHandle : public ruRutheniumHandle {
+class RUAPI ruNodeHandle : public ruRutheniumHandle
+{
 public:
-	bool operator == ( const ruNodeHandle & node );
+    bool operator == ( const ruNodeHandle & node );
 };
 
-class RUAPI ruFontHandle : public ruRutheniumHandle {
+class RUAPI ruFontHandle : public ruRutheniumHandle
+{
 public:
-	bool operator == ( const ruFontHandle & node );
+    bool operator == ( const ruFontHandle & node );
 };
 
-class RUAPI ruTextureHandle : public ruRutheniumHandle {
+class RUAPI ruTextureHandle : public ruRutheniumHandle
+{
 public:
-	static ruTextureHandle Empty();
-	bool operator == ( const ruTextureHandle & node );
+    static ruTextureHandle Empty();
+    bool operator == ( const ruTextureHandle & node );
 };
 
-class RUAPI ruCubeTextureHandle : public ruRutheniumHandle {
+class RUAPI ruCubeTextureHandle : public ruRutheniumHandle
+{
 public:
-	static ruCubeTextureHandle Empty();
-	bool operator == ( const ruCubeTextureHandle & node );
+    static ruCubeTextureHandle Empty();
+    bool operator == ( const ruCubeTextureHandle & node );
 };
 
-class RUAPI ruSoundHandle : public ruRutheniumHandle {
+class RUAPI ruSoundHandle : public ruRutheniumHandle
+{
 public:
-	int pfHandle;
-	explicit ruSoundHandle();
-	virtual ~ruSoundHandle();
+    int pfHandle;
+    explicit ruSoundHandle();
+    virtual ~ruSoundHandle();
 
-	bool operator == ( const ruSoundHandle & node );
-	virtual bool IsValid();
-	virtual void Invalidate();
+    bool operator == ( const ruSoundHandle & node );
+    virtual bool IsValid();
+    virtual void Invalidate();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -247,12 +273,14 @@ RUAPI bool ruIsSpotLightShadowsEnabled();
 // Texture functions
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture sampling
-namespace ruTextureFilter {
-	enum {
-		Nearest,
-		Linear,
-		Anisotropic
-	};
+namespace ruTextureFilter
+{
+enum
+{
+    Nearest,
+    Linear,
+    Anisotropic
+};
 };
 RUAPI void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality );
 RUAPI int ruGetRendererMaxAnisotropy();
@@ -390,34 +418,39 @@ RUAPI void ruCreateOctree( ruNodeHandle node, int splitCriteria = 45 );
 RUAPI void ruDeleteOctree( ruNodeHandle node );
 
 // Animation
-class RUAPI ruAnimation {
+class RUAPI ruAnimation
+{
 private:
-	friend class SceneNode;
-	int beginFrame;
-	int endFrame;
-	int currentFrame;
-	int nextFrame;
-	float interpolator;
-public:	
-	float timeSeconds;
-	bool looped;
-	explicit ruAnimation();
-	explicit ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
-	void SetFrameInterval( int begin, int end );
-	void SetCurrentFrame( int frame );
-	int GetCurrentFrame() {
-		return currentFrame;
-	}
-	int GetEndFrame() {
-		return endFrame;
-	}
-	int GetBeginFrame() {
-		return beginFrame;
-	}
-	int GetNextFrame() {
-		return nextFrame;
-	}
-	void Update( );
+    friend class SceneNode;
+    int beginFrame;
+    int endFrame;
+    int currentFrame;
+    int nextFrame;
+    float interpolator;
+public:
+    float timeSeconds;
+    bool looped;
+    explicit ruAnimation();
+    explicit ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
+    void SetFrameInterval( int begin, int end );
+    void SetCurrentFrame( int frame );
+    int GetCurrentFrame()
+    {
+        return currentFrame;
+    }
+    int GetEndFrame()
+    {
+        return endFrame;
+    }
+    int GetBeginFrame()
+    {
+        return beginFrame;
+    }
+    int GetNextFrame()
+    {
+        return nextFrame;
+    }
+    void Update( );
 };
 
 RUAPI int ruIsAnimationEnabled( ruNodeHandle node );
@@ -458,56 +491,58 @@ RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer );
 #define PS_BOX ( 0 )
 #define PS_STREAM ( 1 )
 
-class ruParticleSystemProperties {
+class ruParticleSystemProperties
+{
 public:
-	int type; // PS_BOX or PS_STREAM
+    int type; // PS_BOX or PS_STREAM
 
-	ruVector3 colorBegin;
-	ruVector3 colorEnd;
+    ruVector3 colorBegin;
+    ruVector3 colorEnd;
 
-	ruVector3 speedDeviationMin;
-	ruVector3 speedDeviationMax;
+    ruVector3 speedDeviationMin;
+    ruVector3 speedDeviationMax;
 
-	// set these values, if type == PS_BOX
-	ruVector3 boundingBoxMin;
-	ruVector3 boundingBoxMax;
+    // set these values, if type == PS_BOX
+    ruVector3 boundingBoxMin;
+    ruVector3 boundingBoxMax;
 
-	float particleThickness;
-	float boundingRadius; // set this if type == PS_STREAM
-	float pointSize;
-	float scaleFactor;
+    float particleThickness;
+    float boundingRadius; // set this if type == PS_STREAM
+    float pointSize;
+    float scaleFactor;
 
-	bool autoResurrectDeadParticles;
-	bool useLighting;
+    bool autoResurrectDeadParticles;
+    bool useLighting;
 
-	bool enabled;
+    bool enabled;
 
-	ruTextureHandle texture;
+    ruTextureHandle texture;
 
-	explicit ruParticleSystemProperties() {
-		type = PS_BOX;
+    explicit ruParticleSystemProperties()
+    {
+        type = PS_BOX;
 
-		colorBegin = ruVector3( 0, 0, 0 );
-		colorEnd = ruVector3( 255, 255, 255 );
+        colorBegin = ruVector3( 0, 0, 0 );
+        colorEnd = ruVector3( 255, 255, 255 );
 
-		speedDeviationMin = ruVector3( -1, -1, -1 );
-		speedDeviationMax = ruVector3( 1, 1, 1 );
+        speedDeviationMin = ruVector3( -1, -1, -1 );
+        speedDeviationMax = ruVector3( 1, 1, 1 );
 
-		boundingBoxMin = ruVector3( 100, 100, 100 );
-		boundingBoxMax = ruVector3( -100, -100, -100 );
+        boundingBoxMin = ruVector3( 100, 100, 100 );
+        boundingBoxMax = ruVector3( -100, -100, -100 );
 
-		particleThickness = 1.0f;
-		boundingRadius = 1.0f;
-		pointSize = 1.0f;
-		scaleFactor = 0.0f;
+        particleThickness = 1.0f;
+        boundingRadius = 1.0f;
+        pointSize = 1.0f;
+        scaleFactor = 0.0f;
 
-		autoResurrectDeadParticles = true;
-		useLighting = false;
+        autoResurrectDeadParticles = true;
+        useLighting = false;
 
-		enabled = true;
+        enabled = true;
 
-		texture = ruTextureHandle::Empty();
-	}
+        texture = ruTextureHandle::Empty();
+    }
 };
 
 RUAPI ruNodeHandle ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps );
@@ -517,159 +552,161 @@ RUAPI ruParticleSystemProperties * ruGetParticleSystemProperties( ruNodeHandle p
 ////////////////////////////////////////////////////////////////////////////////////
 // Input functions
 ////////////////////////////////////////////////////////////////////////////////////
-enum {
-	KEY_Esc = 1,
-	KEY_1,
-	KEY_2,
-	KEY_3,
-	KEY_4,
-	KEY_5,
-	KEY_6,
-	KEY_7,
-	KEY_8,
-	KEY_9,
-	KEY_0,
-	KEY_Minus,
-	KEY_Equals,
-	KEY_Backspace,
-	KEY_Tab,
-	KEY_Q,
-	KEY_W,
-	KEY_E,
-	KEY_R,
-	KEY_T,
-	KEY_Y,
-	KEY_U,
-	KEY_I,
-	KEY_O,
-	KEY_P,
-	KEY_LeftBracket,
-	KEY_RightBracket,
-	KEY_Enter,
-	KEY_LeftControl,
-	KEY_A,
-	KEY_S,
-	KEY_D,
-	KEY_F,
-	KEY_G,
-	KEY_H,
-	KEY_J,
-	KEY_K,
-	KEY_L,
-	KEY_Semicolon,
-	KEY_Apostrophe,
-	KEY_Grave,
-	KEY_LeftShift,
-	KEY_BackSlash,
-	KEY_Z,
-	KEY_X,
-	KEY_C,
-	KEY_V,
-	KEY_B,
-	KEY_N,
-	KEY_M,
-	KEY_Comma,
-	KEY_Period,
-	KEY_Slash,
-	KEY_RightShift,
-	KEY_Multiply,
-	KEY_LeftAlt,
-	KEY_Space,
-	KEY_Capital,
-	KEY_F1,
-	KEY_F2,
-	KEY_F3,
-	KEY_F4,
-	KEY_F5,
-	KEY_F6,
-	KEY_F7,
-	KEY_F8,
-	KEY_F9,
-	KEY_F10,
-	KEY_NumLock,
-	KEY_Scroll,
-	KEY_NumPad7,
-	KEY_NumPad8,
-	KEY_NumPad9,
-	KEY_Subtract,
-	KEY_Numpad4,
-	KEY_Numpad5,
-	KEY_Numpad6,
-	KEY_Add,
-	KEY_Numpad1,
-	KEY_Numpad2,
-	KEY_Numpad3,
-	KEY_Numpad0,
-	KEY_Decimal,
-	KEY_OEM_102,
-	KEY_F11,
-	KEY_F12,
-	KEY_F13,
-	KEY_F14,
-	KEY_F15,
-	KEY_Kana,
-	KEY_ABNT_C1,
-	KEY_Convert,
-	KEY_NoConvert,
-	KEY_Yen,
-	KEY_ABNT_C2,
-	KEY_NumpadEquals,
-	KEY_PrevTrack,
-	KEY_AT,
-	KEY_Colon,
-	KEY_Underline,
-	KEY_Kanji,
-	KEY_Stop,
-	KEY_AX,
-	KEY_Ulabeled,
-	KEY_NextTrack,
-	KEY_NumpadEnter,
-	KEY_RControl,
-	KEY_Mute,
-	KEY_Calculator,
-	KEY_PlayPause,
-	KEY_MediaStop,
-	KEY_VolumeDown,
-	KEY_VolumeUp,
-	KEY_WebHome,
-	KEY_NumpadComma,
-	KEY_Divide,
-	KEY_SysRQ,
-	KEY_RMenu,
-	KEY_Pause,
-	KEY_Home,
-	KEY_Up,
-	KEY_Prior,
-	KEY_Left,
-	KEY_Right,
-	KEY_End,
-	KEY_Down,
-	KEY_Next,
-	KEY_Insert,
-	KEY_Del,
-	KEY_LWin,
-	KEY_RWin,
-	KEY_Apps,
-	KEY_Power,
-	KEY_Sleep,
-	KEY_Wake,
-	KEY_WebSearch,
-	KEY_WebFavorites,
-	KEY_WebRefresh,
-	KEY_WebStop,
-	KEY_WebForward,
-	KEY_WebBack,
-	KEY_MyComputer,
-	KEY_Mail,
-	KEY_MediaSelect,
-	KEY_Count,
+enum
+{
+    KEY_Esc = 1,
+    KEY_1,
+    KEY_2,
+    KEY_3,
+    KEY_4,
+    KEY_5,
+    KEY_6,
+    KEY_7,
+    KEY_8,
+    KEY_9,
+    KEY_0,
+    KEY_Minus,
+    KEY_Equals,
+    KEY_Backspace,
+    KEY_Tab,
+    KEY_Q,
+    KEY_W,
+    KEY_E,
+    KEY_R,
+    KEY_T,
+    KEY_Y,
+    KEY_U,
+    KEY_I,
+    KEY_O,
+    KEY_P,
+    KEY_LeftBracket,
+    KEY_RightBracket,
+    KEY_Enter,
+    KEY_LeftControl,
+    KEY_A,
+    KEY_S,
+    KEY_D,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+    KEY_J,
+    KEY_K,
+    KEY_L,
+    KEY_Semicolon,
+    KEY_Apostrophe,
+    KEY_Grave,
+    KEY_LeftShift,
+    KEY_BackSlash,
+    KEY_Z,
+    KEY_X,
+    KEY_C,
+    KEY_V,
+    KEY_B,
+    KEY_N,
+    KEY_M,
+    KEY_Comma,
+    KEY_Period,
+    KEY_Slash,
+    KEY_RightShift,
+    KEY_Multiply,
+    KEY_LeftAlt,
+    KEY_Space,
+    KEY_Capital,
+    KEY_F1,
+    KEY_F2,
+    KEY_F3,
+    KEY_F4,
+    KEY_F5,
+    KEY_F6,
+    KEY_F7,
+    KEY_F8,
+    KEY_F9,
+    KEY_F10,
+    KEY_NumLock,
+    KEY_Scroll,
+    KEY_NumPad7,
+    KEY_NumPad8,
+    KEY_NumPad9,
+    KEY_Subtract,
+    KEY_Numpad4,
+    KEY_Numpad5,
+    KEY_Numpad6,
+    KEY_Add,
+    KEY_Numpad1,
+    KEY_Numpad2,
+    KEY_Numpad3,
+    KEY_Numpad0,
+    KEY_Decimal,
+    KEY_OEM_102,
+    KEY_F11,
+    KEY_F12,
+    KEY_F13,
+    KEY_F14,
+    KEY_F15,
+    KEY_Kana,
+    KEY_ABNT_C1,
+    KEY_Convert,
+    KEY_NoConvert,
+    KEY_Yen,
+    KEY_ABNT_C2,
+    KEY_NumpadEquals,
+    KEY_PrevTrack,
+    KEY_AT,
+    KEY_Colon,
+    KEY_Underline,
+    KEY_Kanji,
+    KEY_Stop,
+    KEY_AX,
+    KEY_Ulabeled,
+    KEY_NextTrack,
+    KEY_NumpadEnter,
+    KEY_RControl,
+    KEY_Mute,
+    KEY_Calculator,
+    KEY_PlayPause,
+    KEY_MediaStop,
+    KEY_VolumeDown,
+    KEY_VolumeUp,
+    KEY_WebHome,
+    KEY_NumpadComma,
+    KEY_Divide,
+    KEY_SysRQ,
+    KEY_RMenu,
+    KEY_Pause,
+    KEY_Home,
+    KEY_Up,
+    KEY_Prior,
+    KEY_Left,
+    KEY_Right,
+    KEY_End,
+    KEY_Down,
+    KEY_Next,
+    KEY_Insert,
+    KEY_Del,
+    KEY_LWin,
+    KEY_RWin,
+    KEY_Apps,
+    KEY_Power,
+    KEY_Sleep,
+    KEY_Wake,
+    KEY_WebSearch,
+    KEY_WebFavorites,
+    KEY_WebRefresh,
+    KEY_WebStop,
+    KEY_WebForward,
+    KEY_WebBack,
+    KEY_MyComputer,
+    KEY_Mail,
+    KEY_MediaSelect,
+    KEY_Count,
 };
 
-enum {
-	MB_Left,
-	MB_Right,
-	MB_Middle,
-	MB_Wheel,
+enum
+{
+    MB_Left,
+    MB_Right,
+    MB_Middle,
+    MB_Wheel,
 };
 
 RUAPI void ruInputInit( void * window );

@@ -2,7 +2,8 @@
 
 #include "game.h"
 
-class ScreenScreamer {
+class ScreenScreamer
+{
 public:
     ruSoundHandle sound;
     int periods;

@@ -2,12 +2,13 @@
 
 #include "Game.h"
 
-class RadioButton {
+class RadioButton
+{
+private:
+	bool mOn;
 public:
-
-    bool on;
-
-    RadioButton();
-
+    explicit RadioButton();
     void Draw( float x, float y, ruTextureHandle buttonImage, const char * text );
+	bool IsEnabled( );
+	void SetEnabled( bool state );
 };

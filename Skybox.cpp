@@ -2,29 +2,34 @@
 #include "Texture.h"
 #include "Vertex.h"
 
-void Skybox::WriteToIndexBuffer( IDirect3DIndexBuffer9 * ib, vector< unsigned short > & indices ) {
+void Skybox::WriteToIndexBuffer( IDirect3DIndexBuffer9 * ib, vector< unsigned short > & indices )
+{
     void * indexData = 0;
     CheckDXErrorFatal( ib->Lock( 0, 0, &indexData, 0 ));
     memcpy( indexData, &indices[ 0 ], indices.size() * sizeof( unsigned short ) );
     CheckDXErrorFatal( ib->Unlock());
 }
 
-void Skybox::WriteToVertexBuffer( IDirect3DVertexBuffer9 * vb, vector< Vertex > & vertices ) {
+void Skybox::WriteToVertexBuffer( IDirect3DVertexBuffer9 * vb, vector< Vertex > & vertices )
+{
     void * vertexData = 0;
-	CheckDXErrorFatal( vb->Lock( 0, 0, &vertexData, 0 ));
+    CheckDXErrorFatal( vb->Lock( 0, 0, &vertexData, 0 ));
     memcpy( vertexData, &vertices[ 0 ], vertices.size() * sizeof( Vertex ) );
     CheckDXErrorFatal( vb->Unlock());
 }
 
-void Skybox::CreateVertexBuffer( size_t size, IDirect3DVertexBuffer9 ** vb ) {
+void Skybox::CreateVertexBuffer( size_t size, IDirect3DVertexBuffer9 ** vb )
+{
     CheckDXErrorFatal( g_device->CreateVertexBuffer( size,D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1, D3DPOOL_DEFAULT, vb, 0 ));
 }
 
-void Skybox::CreateIndexBuffer( size_t size, IDirect3DIndexBuffer9 ** ib ) {
+void Skybox::CreateIndexBuffer( size_t size, IDirect3DIndexBuffer9 ** ib )
+{
     CheckDXErrorFatal( g_device->CreateIndexBuffer( size,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0 ));
 }
 
-Skybox::~Skybox() {
+Skybox::~Skybox()
+{
     vbBack->Release();
     vbForw->Release();
     vbRight->Release();
@@ -34,7 +39,8 @@ Skybox::~Skybox() {
     ib->Release();
 }
 
-Skybox::Skybox( const char * path ) {
+Skybox::Skybox( const char * path )
+{
     string file = path;
 
     string leftPath = file;
@@ -117,7 +123,8 @@ Skybox::Skybox( const char * path ) {
     WriteToIndexBuffer( ib, indices );
 }
 
-void Skybox::Render( const btVector3 & pos ) {
+void Skybox::Render( const btVector3 & pos )
+{
     IDirect3DStateBlock9 * state;
     CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
@@ -157,7 +164,7 @@ void Skybox::Render( const btVector3 & pos ) {
     CheckDXErrorFatal( g_device->SetStreamSource( 0, vbUp, 0, sizeof( Vertex )));
     CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
-	g_dips +=5 ;
+    g_dips +=5 ;
     CheckDXErrorFatal( state->Apply());
     state->Release();
 }

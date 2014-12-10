@@ -2,7 +2,8 @@
 
 #include "Common.h"
 
-class Skybox {
+class Skybox
+{
 public:
     Texture * up;
     Texture * left;

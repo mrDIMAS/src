@@ -4,48 +4,49 @@
 
 class Mesh;
 
-class SceneNode {
+class SceneNode
+{
 public:
-	friend class DeferredRenderer;
+    friend class DeferredRenderer;
 
     volatile int memoryTag;
 
     SceneNode * parent;
-	SceneNode * scene; 
+    SceneNode * scene;
 
     vector<SceneNode*> childs;
-	vector<Mesh*> meshes;  
-	vector<ruSoundHandle> sounds;
-	vector<btTransform*> keyframes;
+    vector<Mesh*> meshes;
+    vector<ruSoundHandle> sounds;
+    vector<btTransform*> keyframes;
 
-	map<string,string> properties;
+    map<string,string> properties;
 
     btTransform invBoneBindTransform;
 
-    btRigidBody * body;   
-    
-    string name;     
-    
-    btTriangleMesh * trimesh;   
-    
+    btRigidBody * body;
+
+    string name;
+
+    btTriangleMesh * trimesh;
+
     ruSoundHandle hitSound;
     ruSoundHandle idleSound;
 
     float albedo;
     float fDepthHack;
-	
-	ruAnimation * currentAnimation;
 
-	bool animationEnabled;
-	bool skinned;
-	bool inFrustum;
-	bool frozen;
-	bool visible;
+    ruAnimation * currentAnimation;
 
-	ruContact contacts[ BODY_MAX_CONTACTS ];
+    bool animationEnabled;
+    bool skinned;
+    bool inFrustum;
+    bool frozen;
+    bool visible;
 
-	int numContacts;
-	int totalFrames;
+    ruContact contacts[ BODY_MAX_CONTACTS ];
+
+    int numContacts;
+    int totalFrames;
 public:
     // Components
     ParticleEmitter * particleEmitter;
@@ -57,10 +58,11 @@ public:
     explicit SceneNode();
     virtual ~SceneNode();
 
-	void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
-	ruAnimation * GetCurrentAnimation( ) {
-		return currentAnimation;
-	}
+    void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
+    ruAnimation * GetCurrentAnimation( )
+    {
+        return currentAnimation;
+    }
 
     void EraseChild( const SceneNode * child );
     void SetConvexBody( );
@@ -110,7 +112,7 @@ public:
     bool IsFrozen();
     void SetRotation( ruQuaternion rotation );
     ruVector3 GetLookVector();
-	ruVector3 GetAbsoluteLookVector();
+    ruVector3 GetAbsoluteLookVector();
     const char * GetName();
     ruVector3 GetRightVector();
     ruVector3 GetUpVector();

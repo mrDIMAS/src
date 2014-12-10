@@ -3,7 +3,8 @@
 #include "Shader.h"
 #include "EffectsQuad.h"
 
-class FXAA {
+class FXAA
+{
 public:
     PixelShader * pixelShader;
     EffectsQuad * effectsQuad;

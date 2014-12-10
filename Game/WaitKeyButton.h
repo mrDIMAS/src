@@ -4,14 +4,15 @@
 #include "GUI.h"
 #include <Windows.h>
 
-class WaitKeyButton {
+class WaitKeyButton
+{
 private:
-    bool grabKey;
-    string desc;
-public:
-    int selectedKey;
-
-    WaitKeyButton();
+    bool mGrabKey;
+	int mSelectedKey;
+    const char * mDesc;
+public:    
+	explicit WaitKeyButton();
+	int GetSelectedKey();
     void SetSelected( int i );
     void Draw( float x, float y, ruTextureHandle buttonImage, const char * text );
 };

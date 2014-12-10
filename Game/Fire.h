@@ -2,7 +2,8 @@
 
 #include "Game.h"
 
-class Fire {
+class Fire
+{
 public:
     ruNodeHandle particleSystem;
     ruNodeHandle light;

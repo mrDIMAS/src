@@ -2,7 +2,8 @@
 
 #include "Common.h"
 
-class Cursor {
+class Cursor
+{
 public:
     int w;
     int h;

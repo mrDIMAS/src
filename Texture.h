@@ -2,13 +2,14 @@
 
 #include "Common.h"
 
-class Texture {
+class Texture
+{
 private:
     explicit Texture( );
     IDirect3DTexture9 * texture;
-	int height;
-	int width;
-	int bpp;
+    int height;
+    int width;
+    int bpp;
 public:
     string name;
     static map< string, Texture* > textures;

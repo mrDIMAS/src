@@ -2,7 +2,8 @@
 
 #include "InteractiveObject.h"
 
-class Sheet : public InteractiveObject {
+class Sheet : public InteractiveObject
+{
 public:
     Sheet( ruNodeHandle object, string desc, string text );
     void Update();
@@ -16,11 +17,11 @@ public:
     static ruSoundHandle paperFlip;
     static ruFontHandle sheetFont;
 
-    static Sheet * Sheet::GetByObject( ruNodeHandle obj ) {
+    static Sheet * Sheet::GetByObject( ruNodeHandle obj )
+    {
         for( auto sheet : sheets )
-            if( sheet->object == obj ) {
+            if( sheet->mObject == obj )
                 return sheet;
-            }
         return 0;
     }
 };

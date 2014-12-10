@@ -2,12 +2,14 @@
 
 #include "Game.h"
 
-class List {
+class ScrollList
+{
 private:
-    int currentValue;
-    vector<string> values;
+    int mCurrentValue;
+    vector<string> mValues;
 public:
-    List();
+    explicit ScrollList();
+	void SetCurrentValue( int value );
     int GetCurrentValue();
     void AddValue( string val );
     void Draw( float x, float y, ruTextureHandle buttonImage, const char * text );

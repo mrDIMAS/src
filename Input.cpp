@@ -22,21 +22,22 @@ int windowOffsetX = 0;
 int windowOffsetY = 0;
 RECT windowRect;
 
-void ruInputUpdate( ) {
-    if( pKeyboard->GetDeviceState( sizeof( g_keys ),( void * )&g_keys ) == DIERR_INPUTLOST ) {
+void ruInputUpdate( )
+{
+    if( pKeyboard->GetDeviceState( sizeof( g_keys ),( void * )&g_keys ) == DIERR_INPUTLOST )
         pKeyboard->Acquire();
-    }
 
-    if( pMouse->GetDeviceState( sizeof( DIMOUSESTATE ),( void * )&mouseData ) == DIERR_INPUTLOST ) {
+    if( pMouse->GetDeviceState( sizeof( DIMOUSESTATE ),( void * )&mouseData ) == DIERR_INPUTLOST )
         pMouse->Acquire();
-    }
 
-    for( size_t i = 0; i < sizeof( g_keys ); ++i ) {
+    for( size_t i = 0; i < sizeof( g_keys ); ++i )
+    {
         g_keysHit[ i ] = g_keys[ i ] & ~g_lastKeys[ i ];
         g_keysUp[ i ]  = ~g_keys[ i ] & g_lastKeys[ i ];
     }
 
-    for( size_t i = 0; i < 4; ++i ) {
+    for( size_t i = 0; i < 4; ++i )
+    {
         g_mouseUp[ i ] =  mouseData.rgbButtons[ i ] & ~g_mousePressed[ i ];
         g_mouseHit[ i ] = ~mouseData.rgbButtons[ i ] & g_mousePressed[ i ];
     }
@@ -45,18 +46,14 @@ void ruInputUpdate( ) {
     mouseY += mouseData.lY;
     mouseWheel += mouseData.lZ;
 
-    if( mouseX < 0 ) {
+    if( mouseX < 0 )
         mouseX = 0;
-    }
-    if( mouseY < 0 ) {
+    if( mouseY < 0 )
         mouseY = 0;
-    }
-    if( mouseX > windowRect.right ) {
+    if( mouseX > windowRect.right )
         mouseX = windowRect.right;
-    }
-    if( mouseY > windowRect.bottom ) {
+    if( mouseY > windowRect.bottom )
         mouseY = windowRect.bottom;
-    }
 
     //SetCursorPos( windowOffsetX + windowRect.left + mouseX, windowOffsetY + windowRect.top + mouseY );
 
@@ -64,19 +61,20 @@ void ruInputUpdate( ) {
     memcpy( g_mousePressed, mouseData.rgbButtons, sizeof( g_mousePressed ));
 };
 
-RUAPI void ruInputInit( void * window ) {
+RUAPI void ruInputInit( void * window )
+{
     HINSTANCE hInstance = GetModuleHandle( 0 );
     hwnd = (HWND)(*(HWND*)window);
     CheckDXErrorFatal( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL));
     CheckDXErrorFatal( pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL ));
     CheckDXErrorFatal( pKeyboard->SetDataFormat( &c_dfDIKeyboard ));
     CheckDXErrorFatal( pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
-	CheckDXErrorFatal( pKeyboard->Acquire());
-	CheckDXErrorFatal( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL ));
+    CheckDXErrorFatal( pKeyboard->Acquire());
+    CheckDXErrorFatal( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL ));
     CheckDXErrorFatal( pMouse->SetDataFormat(&c_dfDIMouse));
     CheckDXErrorFatal( pMouse->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
     CheckDXErrorFatal( pMouse->Acquire());
-	RECT initialWindowRect;
+    RECT initialWindowRect;
     GetWindowRect( hwnd, &initialWindowRect );
     GetClientRect( hwnd, &windowRect );
     AdjustWindowRect( &windowRect, GetWindowLong( hwnd, GWL_STYLE ), 0 );
@@ -85,58 +83,69 @@ RUAPI void ruInputInit( void * window ) {
     GetClientRect( hwnd, &windowRect );
 };
 
-RUAPI void ruInputDestroy() {
-	CheckDXErrorFatal( pMouse->Unacquire());
-	pMouse->Release();
-	CheckDXErrorFatal( pKeyboard->Unacquire());
-	pKeyboard->Release();
-	pInput->Release();
+RUAPI void ruInputDestroy()
+{
+    CheckDXErrorFatal( pMouse->Unacquire());
+    pMouse->Release();
+    CheckDXErrorFatal( pKeyboard->Unacquire());
+    pKeyboard->Release();
+    pInput->Release();
 };
 
-int ruIsKeyDown( int key ) {
+int ruIsKeyDown( int key )
+{
     return g_keys[ key ];
 };
 
-int ruIsKeyHit( int key ) {
+int ruIsKeyHit( int key )
+{
     return g_keysHit[ key ];
 };
 
-int	ruIsKeyUp	( int key ) {
+int	ruIsKeyUp	( int key )
+{
     return g_keysUp[ key ];
 }
 
-int ruIsMouseDown( int button ) {
-    if( (int)button >= 4 ) {
+int ruIsMouseDown( int button )
+{
+    if( (int)button >= 4 )
         return 0;
-    }
 
     return mouseData.rgbButtons[ button ];
 }
 
-int ruIsMouseHit( int button ) {
+int ruIsMouseHit( int button )
+{
     return g_mouseHit[ button ];
 }
 
-int ruGetMouseX( ) {
+int ruGetMouseX( )
+{
     return mouseX;
 }
 
-int ruGetMouseY( ) {
+int ruGetMouseY( )
+{
     return mouseY;
 }
 
-int ruGetMouseWheel( ) {
+int ruGetMouseWheel( )
+{
     return mouseWheel;
 }
 
-int ruGetMouseXSpeed( ) {
+int ruGetMouseXSpeed( )
+{
     return mouseData.lX;
 }
 
-int ruGetMouseYSpeed( ) {
+int ruGetMouseYSpeed( )
+{
     return mouseData.lY;
 }
 
-int ruGetMouseWheelSpeed( ) {
+int ruGetMouseWheelSpeed( )
+{
     return mouseData.lZ;
 }

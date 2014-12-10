@@ -2,7 +2,8 @@
 
 ForwardRenderer * g_forwardRenderer = nullptr;
 
-void ForwardRenderer::RenderMeshes() {
+void ForwardRenderer::RenderMeshes()
+{
     IDirect3DStateBlock9 * state = nullptr;
     CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
 
@@ -17,13 +18,15 @@ void ForwardRenderer::RenderMeshes() {
     CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW ));
     CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
 
-    for( auto group : renderList ) {
+    for( auto group : renderList )
+    {
         IDirect3DTexture9 * diffuseTexture = group.first;
         vector< Mesh* > & meshes = group.second;
 
         g_device->SetTexture( 0, diffuseTexture );
 
-        for( auto mesh : meshes ) {
+        for( auto mesh : meshes )
+        {
             D3DXMATRIX world, wvp;
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
@@ -40,25 +43,30 @@ void ForwardRenderer::RenderMeshes() {
     state->Release();
 }
 
-void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
+void ForwardRenderer::RemoveMesh( Mesh * mesh )
+{
     auto groupIter = renderList.find( mesh->diffuseTexture->GetInterface() );
-    if( groupIter != renderList.end() ) {
+    if( groupIter != renderList.end() )
+    {
         auto & group = groupIter->second;
         group.erase( find( group.begin(), group.end(), mesh ));
     }
 }
 
-void ForwardRenderer::AddMesh( Mesh * mesh ) {
+void ForwardRenderer::AddMesh( Mesh * mesh )
+{
     renderList[ mesh->diffuseTexture->GetInterface() ].push_back( mesh );
 }
 
-ForwardRenderer::~ForwardRenderer() {
+ForwardRenderer::~ForwardRenderer()
+{
     delete pixelShader;
     delete vertexShader;
 }
 
-ForwardRenderer::ForwardRenderer() {
-    string vertexShaderSource = 
+ForwardRenderer::ForwardRenderer()
+{
+    string vertexShaderSource =
         "float4x4 worldViewProjection : register( c0 );\n"
 
         "struct VSInput {\n"
@@ -80,7 +88,7 @@ ForwardRenderer::ForwardRenderer() {
 
     vertexShader = new VertexShader( vertexShaderSource );
 
-    string pixelShaderSource = 
+    string pixelShaderSource =
         "float opacity = 1.0f;\n"
 
         "sampler diffuseSampler : register( s0 );\n"

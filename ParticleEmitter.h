@@ -3,9 +3,11 @@
 #include "Common.h"
 #include "SceneNode.h"
 
-class ParticleEmitter {
+class ParticleEmitter
+{
 public:
-    class SParticleVertex {
+    class SParticleVertex
+    {
     public:
         float x, y, z;
         float tx, ty;
@@ -15,7 +17,8 @@ public:
         SParticleVertex( );
     };
 
-    class SParticleFace {
+    class SParticleFace
+    {
     public:
         short v1;
         short v2;
@@ -26,7 +29,8 @@ public:
         SParticleFace( );
     };
 
-    class SParticle {
+    class SParticle
+    {
     public:
         ruVector3 position;
         ruVector3 color;
@@ -38,7 +42,8 @@ public:
         SParticle( );
     };
 
-    class ZSorter {
+    class ZSorter
+    {
     public:
         D3DXMATRIX worldView;
 
@@ -53,28 +58,28 @@ public:
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DIndexBuffer9 * indexBuffer;
 
-	SceneNode * base;
+    SceneNode * base;
 
     int aliveParticles;
 
     float boundaryLayerThickness;
-	D3DXMATRIX world;
+    D3DXMATRIX world;
     ZSorter zSorter;
 
     bool firstTimeUpdate;
 
-	ruParticleSystemProperties props;
+    ruParticleSystemProperties props;
 
-	int RGBAToInt( ruVector3 color, int alpha );
-	ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
+    int RGBAToInt( ruVector3 color, int alpha );
+    ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
 public:
     ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps );
     ~ParticleEmitter();
     void ResurrectParticles();
     float GetThickness( );
     bool IsEnabled();
-    bool HasAliveParticles();    
-    void ResurrectParticle( SParticle & p );    
+    bool HasAliveParticles();
+    void ResurrectParticle( SParticle & p );
     bool IsLightAffects( );
     SceneNode * GetBase();
     void Update( );

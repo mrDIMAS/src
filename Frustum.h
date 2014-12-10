@@ -3,7 +3,8 @@
 #include "Common.h"
 #include "AABB.h"
 
-class Frustum {
+class Frustum
+{
 private:
     D3DXPLANE planes[ 6 ];
 public:

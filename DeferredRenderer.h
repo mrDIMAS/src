@@ -10,9 +10,11 @@
 
 class Mesh;
 
-class DeferredRenderer {
+class DeferredRenderer
+{
 public:
-    class BoundingVolumeRenderingShader {
+    class BoundingVolumeRenderingShader
+    {
     private:
         VertexShader * vs;
         PixelShader * ps;
@@ -35,7 +37,8 @@ public:
 
 
     // Ambient Light
-    class Pass2AmbientLight {
+    class Pass2AmbientLight
+    {
     private:
         PixelShader * pixelShader;
     public:
@@ -45,10 +48,11 @@ public:
     };
 
     // Point Light
-    class Pass2PointLight {
+    class Pass2PointLight
+    {
     private:
         PixelShader * pixelShader;
-		PixelShader * pixelShaderLQ;
+        PixelShader * pixelShaderLQ;
     public:
         Pass2PointLight();
         ~Pass2PointLight();
@@ -59,7 +63,8 @@ public:
     };
 
     // Spot Light
-    class Pass2SpotLight {
+    class Pass2SpotLight
+    {
     private:
         PixelShader * pixelShader;
     public:
@@ -82,10 +87,10 @@ public:
     FXAA * fxaa;
     SpotlightShadowMap * spotShadowMap;
     PointlightShadowMap * pointShadowMap;
-	HDRRenderer * hdrRenderer;
+    HDRRenderer * hdrRenderer;
 
-	// renderQuality can be 0 (lowest) or 1 (highest)
-	char renderQuality;
+    // renderQuality can be 0 (lowest) or 1 (highest)
+    char renderQuality;
 
     void CreateBoundingVolumes();
 
@@ -101,19 +106,18 @@ public:
 
     GBuffer * GetGBuffer();
 
-	void SetRenderingQuality( char quality ) {
-		renderQuality = quality;
-		if( renderQuality < 0 ) {
-			renderQuality = 0;
-		}
-		if( renderQuality > 1 ) {
-			renderQuality = 1;
-		}
-	}
+    void SetRenderingQuality( char quality )
+    {
+        renderQuality = quality;
+        if( renderQuality < 0 )
+            renderQuality = 0;
+        if( renderQuality > 1 )
+            renderQuality = 1;
+    }
     virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;
-    
+
     void SetSpotLightShadowMapSize( int size );
 
     void SetPointLightShadowMapSize( int size );

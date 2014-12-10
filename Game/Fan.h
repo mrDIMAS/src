@@ -2,7 +2,8 @@
 
 #include "Game.h"
 
-class Fan {
+class Fan
+{
 public:
     ruNodeHandle body;
     float turnSpeed;

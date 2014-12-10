@@ -2,9 +2,11 @@
 
 #include "Game.h"
 
-class Door {
+class Door
+{
 public:
-    enum class State {
+    enum class State
+    {
         Opened,
         Closed,
         Closing,
@@ -30,7 +32,7 @@ public:
     bool IsPickedByPlayer();
     void SwitchState();
     State GetState();
-	void Open( );
-	void Close();
+    void Open( );
+    void Close();
     void DoInteraction();
 };

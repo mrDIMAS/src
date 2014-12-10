@@ -2,7 +2,8 @@
 
 #include "Game.h"
 
-class Sparks {
+class Sparks
+{
 public:
     ruNodeHandle ps;
     int alive;

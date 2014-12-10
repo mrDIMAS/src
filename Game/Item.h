@@ -4,23 +4,25 @@
 #include "Parser.h"
 #include "InteractiveObject.h"
 
-class Item : public InteractiveObject {
+class Item : public InteractiveObject
+{
 public:
-    static Parser loc;
-    class Property {
+    static Parser msLoc;
+    class Property
+    {
     private:
         void Format();
 
         void SetFloatValue( float f );
 
         void SetstringValue( string s );
-        string stringValue;
-        float floatValue;
-        string formatted;
+        string mStringValue;
+        float mFloatValue;
+        string mFormatted;
 
 
     public:
-        string desc;
+        string mDesc;
 
         Property( string description, string theValue );
 
@@ -31,38 +33,43 @@ public:
         Property( string description, float theValue );
 
 
-        operator float() const {
-            return floatValue;
+        operator float() const
+        {
+            return mFloatValue;
         }
 
-        operator const char * () const {
-            return formatted.c_str();
+        operator const char * () const
+        {
+            return mFormatted.c_str();
         }
 
-        void operator=( const string & s ) {
+        void operator=( const string & s )
+        {
             SetstringValue( s );
         }
 
-        void operator=( const float & p ) {
+        void operator=( const float & p )
+        {
             SetFloatValue( p );
         }
     };
 
-    ruTextureHandle img;
-    string desc;
-    string name;
-    int type;
-    int combinesWith;
-    int onCombineBecomes;
-    bool throwable;
-    bool inInventory;
+    ruTextureHandle mPic;
+    string mDesc;
+    string mName;
+    int mType;
+    int mCombineType;
+    int mOnCombineBecomes;
+    bool mThrowable;
+    bool mInInventory;
 
-    Property volume;
-    Property mass;
-    Property content;
-    Property contentType;
+    Property mVolume;
+    Property mMass;
+    Property mContent;
+    Property mContentType;
 
-    enum {
+    enum
+    {
         Detonator = 1,
         FuelCanister,
         Wires,

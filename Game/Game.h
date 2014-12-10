@@ -10,10 +10,10 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
-#include <map>
 #include <algorithm>
 #include <stdarg.h>
 #include <fstream>
+#include <unordered_map>
 /*#include <vld.h>*/
 #include <windows.h>
 #include <assert.h>
@@ -21,13 +21,15 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-enum class FootstepsType {
+enum class FootstepsType
+{
     Rock,
     Metal,
     Dirt
 };
 
-enum LevelName {
+enum LevelName
+{
     LUndefined = 0,
     L0Introduction = 1,
     L1Arrival,
@@ -39,7 +41,8 @@ enum LevelName {
 };
 
 
-static string Format( const char * format, ... ) {
+static string Format( const char * format, ... )
+{
     char buffer[ 1024 ];
     va_list	argumentList;
 
@@ -53,8 +56,14 @@ using namespace std;
 
 #pragma comment( lib, "Ruthenium.lib" )
 
-static float frandom( float low, float high ) {
+static float frandom( float low, float high )
+{
     return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+}
+
+static void RaiseError( const string & text ) {
+	MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
+	throw runtime_error( text.c_str() );
 }
 
 
@@ -71,10 +80,10 @@ class ScreenScreamer;
 
 int CreateFog( int obj, int density = 3000 );
 
-extern Player * player;
-extern Menu * menu;
-extern Level * currentLevel;
-extern GUI * gui;
+extern Player * pPlayer;
+extern Menu * pMainMenu;
+extern Level * pCurrentLevel;
+extern GUI * pGUI;
 extern ScreenScreamer * screamer;
 extern bool g_running;
 extern string localizationPath;

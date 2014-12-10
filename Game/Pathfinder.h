@@ -6,54 +6,59 @@ const float Infinite = FLT_MAX;
 
 class GraphVertex;
 
-struct Edge {
-	GraphVertex * destVertex;
-	float distToDestVertex;
-	Edge();
-	Edge( GraphVertex * destinationVertex, float distanceToDestinationVertex );
+struct Edge
+{
+    GraphVertex * destVertex;
+    float distToDestVertex;
+    Edge();
+    Edge( GraphVertex * destinationVertex, float distanceToDestinationVertex );
 };
 
 
 
-class GraphVertex {
+class GraphVertex
+{
 private:
-	bool used;	
-	float distanceFromBegin;
-	GraphVertex * ancestor;
-	vector< Edge > edges;	
+    bool used;
+    float distanceFromBegin;
+    GraphVertex * ancestor;
+    vector< Edge > edges;
 
-	float DistanceToVertex( GraphVertex * vertex );
+    float DistanceToVertex( GraphVertex * vertex );
 public:
-	friend class Pathfinder;
+    friend class Pathfinder;
 
-	ruVector3 position;
+    ruVector3 position;
 
-	explicit GraphVertex( ruVector3 pos );
-	void ClearState( );
-	void AddEdge( GraphVertex * vertex );
+    explicit GraphVertex( ruVector3 pos );
+    void ClearState( );
+    void AddEdge( GraphVertex * vertex );
 };
 
-class Pathfinder {
+class Pathfinder
+{
 private:
-	vector< GraphVertex* > graph;
+    vector< GraphVertex* > graph;
 public:
-	explicit Pathfinder();
-	~Pathfinder();
-	void SetVertices( vector< GraphVertex* > vertices );
-	GraphVertex * GetPoint( int i );
-	int GetPointCount( );
-	void BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints );
-	GraphVertex * GetVertexNearestTo( ruVector3 position, int * vertexNum = nullptr );
+    explicit Pathfinder();
+    ~Pathfinder();
+    void SetVertices( vector< GraphVertex* > vertices );
+    GraphVertex * GetPoint( int i );
+    int GetPointCount( );
+    void BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints );
+    GraphVertex * GetVertexNearestTo( ruVector3 position, int * vertexNum = nullptr );
 };
 
 // helper class for Pathfinder
-class Path {
+class Path
+{
 public:
-	vector< GraphVertex* > vertices;
-	void AddPointAndLinkWithPrevious( GraphVertex * vertex );
-	class NodeSorter {
-	public:
-		bool operator() ( const ruNodeHandle & node1, const ruNodeHandle & node2 );
-	};
-	void ScanSceneForPath( ruNodeHandle scene, string pathBaseName );
+    vector< GraphVertex* > vertices;
+    void AddPointAndLinkWithPrevious( GraphVertex * vertex );
+    class NodeSorter
+    {
+    public:
+        bool operator() ( const ruNodeHandle & node1, const ruNodeHandle & node2 );
+    };
+    void BuildPath( ruNodeHandle scene, string pathBaseName );
 };

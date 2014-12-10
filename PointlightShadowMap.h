@@ -6,7 +6,8 @@
 #include "Utility.h"
 #include "Shader.h"
 
-class PointlightShadowMap {
+class PointlightShadowMap
+{
 private:
     IDirect3DSurface9 * defaultDepthStencil;
     IDirect3DSurface9 * depthStencil;
@@ -17,7 +18,7 @@ private:
     VertexShader * vertexShader;
     D3DXHANDLE vWorld;
     D3DXHANDLE vWVP;
-    D3DXHANDLE pLightPosition;    
+    D3DXHANDLE pLightPosition;
 public:
     int iSize;
     explicit PointlightShadowMap( int faceSize = 256 );

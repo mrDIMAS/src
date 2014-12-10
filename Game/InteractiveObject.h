@@ -3,9 +3,10 @@
 #include "Game.h"
 
 
-class InteractiveObject {
+class InteractiveObject
+{
 public:
-    ruNodeHandle object;
+    ruNodeHandle mObject;
     float flashAlbedo;
     float flashAlbedoTo;
     float flashSpeed;

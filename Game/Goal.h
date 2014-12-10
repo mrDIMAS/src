@@ -5,7 +5,8 @@
 
 // Performs animation of goal text and it's rendering
 
-class Goal {
+class Goal
+{
 private:
     ruTimerHandle waitTimer;
 

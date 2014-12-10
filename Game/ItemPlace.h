@@ -4,16 +4,18 @@
 #include "Item.h"
 #include "Player.h"
 
-class ItemPlace {
+class ItemPlace
+{
 public:
-    ruNodeHandle object;
+    ruNodeHandle mObject;
     int itemTypeCanBePlaced;
-    Item * itemPlaced;
+    Item * pPlacedItem;
 public:
-    static vector<ItemPlace*> all;
+    static vector<ItemPlace*> sItemPlaceList;
     ItemPlace( ruNodeHandle obj, int _itemTypeCanBePlaced );
-    ~ItemPlace() {
-        all.erase( find( all.begin(), all.end(), this ));
+    ~ItemPlace()
+    {
+        sItemPlaceList.erase( find( sItemPlaceList.begin(), sItemPlaceList.end(), this ));
     }
     static ItemPlace * FindByObject( ruNodeHandle handle );
     bool PlaceItem( Item * item );

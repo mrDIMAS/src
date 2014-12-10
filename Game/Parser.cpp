@@ -1,17 +1,23 @@
 #include "Parser.h"
+#include "Game.h"
 
-Parser::Parser(  ) {
-    parsed = false;
+Parser::Parser(  )
+{
+    mParsed = false;
 }
 
-void Parser::ParseFile( string fn ) {
+void Parser::ParseFile( string fn )
+{
     FILE * file = 0;
 
     fopen_s ( &file, fn.c_str(), "r" );
 
     if ( !file ) {
+		RaiseError( Format( "Unable to parse file '%s'!", fn.c_str()));
         return;
-    }
+	}
+
+	mFileName = fn;
 
     string str;
 
@@ -24,10 +30,11 @@ void Parser::ParseFile( string fn ) {
     fclose ( file );
 
     if ( str.size() <= 1 ) {
+		RaiseError( Format( "Unable to parse file '%s'!", fn.c_str()));
         return;
-    }
+	}
 
-    values.clear();
+    mValueList.clear();
 
     bool equalFound = false;
     bool quoteLF = false, quoteRF = false;
@@ -48,65 +55,69 @@ void Parser::ParseFile( string fn ) {
         };
 
         if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' ) {
-            if ( !equalFound ) {
+            if ( !equalFound )
                 varName.push_back ( symbol );
-            }
         } else {
-            if ( symbol == '=' ) {
+            if ( symbol == '=' )
                 equalFound = true;
-            }
 
             if ( symbol == '"' ) {
-                if ( quoteLF == false ) {
+                if ( quoteLF == false )
                     quoteLF = true;
-                } else {
+                else
                     quoteRF = true;
-                }
             }
         };
 
         if ( quoteLF ) {
-            if ( quoteRF ) {
-                values[ varName ] = var;
-            } else if ( symbol != '"' ) {
+            if ( quoteRF )
+                mValueList[ varName ] = var;
+            else if ( symbol != '"' )
                 var.push_back ( symbol );
-            }
         };
 
         n++;
 
-        if ( n >= str.size() ) {
+        if ( n >= str.size() )
             break;
-        }
     };
 
-    parsed = true;
+    mParsed = true;
 }
 
-bool Parser::Empty() {
-    return values.empty();
+bool Parser::Empty()
+{
+    return mValueList.empty();
 }
 
-float Parser::GetNumber( string varName ) {
-    auto iter = values.find( varName );
+float Parser::GetNumber( string varName )
+{
+    auto iValue = mValueList.find( varName );
 
-    if( iter != values.end() ) {
-        return atof( iter->second.c_str() );
-    }
+    if( iValue != mValueList.end() ) {
+        return atof( iValue->second.c_str() );
+	} else {
+	   RaiseError( Format( "Unable to get number '%s' from '%s'!", varName.c_str(), mFileName.c_str() ).c_str() );
+	}
 
-    return 0.0f;
+	// never reached
+	return 0.0f;
 }
 
-const char * Parser::GetString( string varName ) {
-    auto iter = values.find( varName );
+const char * Parser::GetString( string varName )
+{
+    auto iValue = mValueList.find( varName );
 
-    if( iter != values.end() ) {
-        return iter->second.c_str();
-    }
-
-    return "";
+    if( iValue != mValueList.end() ) {
+        return iValue->second.c_str();
+	} else {
+		RaiseError( Format( "Unable to get string '%s' from '%s'!", varName.c_str(), mFileName.c_str() ).c_str() );
+	}
+	// never reached
+	return "";
 }
 
-bool Parser::IsParsed() {
-    return parsed;
+bool Parser::IsParsed()
+{
+    return mParsed;
 }

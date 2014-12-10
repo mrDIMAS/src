@@ -2,9 +2,10 @@
 
 #include "Game.h"
 
-class GameCamera {
+class GameCamera
+{
 public:
-    ruNodeHandle cameraNode;
+    ruNodeHandle mNode;
 
     float quadAlpha;
     float quadAlphaTo;

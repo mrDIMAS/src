@@ -8,20 +8,22 @@
 #include "WaitKeyButton.h"
 #include "Player.h"
 #include <Windows.h>
-#include "List.h"
+#include "ScrollList.h"
 #include "Parser.h"
 
-class Menu {
+class Menu
+{
 public:
-    enum class Page {
+    enum class Page
+    {
         Main,
         Options,
         Authors,
         OptionsKeys,
         OptionsCommon,
         OptionsGraphics,
-		SaveGame,
-		LoadGame,
+        SaveGame,
+        LoadGame,
     };
 
     explicit Menu( );
@@ -45,59 +47,58 @@ public:
     void Update( );
     void SetPage( Page page );
 
-    ruNodeHandle scene;
-    bool visible;
-    ruTextureHandle buttonImage;
-    ruTextureHandle smallButtonImage;
-    int distBetweenButtons;
+    ruNodeHandle mScene;
+    bool mVisible;
+    ruTextureHandle mButtonImage;
+    ruTextureHandle mSmallButtonImage;
+    int mDistBetweenButtons;
 
-    float fadeSpeed;
-    bool canContinueGameFromLast;
-    bool startPressed;
-    bool exitPressed;
-    bool continuePressed;
-    bool returnToGameByEsc;
-    bool autosaveNotify;
-    bool exitingGame;
-	string loadSaveGameName;
-	bool loadFromSave;
-    float buttonsXOffset;
-    int continueLevelName;
-    ruSoundHandle pickSound;
-    Page page;
-    ruSoundHandle music;
-    Parser loc;
+    float mFadeSpeed;
+    bool mCanContinueGameFromLast;
+    bool mStartPressed;
+    bool mExitPressed;
+    bool mContinuePressed;
+    bool mReturnToGameByEsc;
+    bool mAutosaveNotify;
+    bool mExitingGame;
+    string mLoadSaveGameName;
+    bool mLoadFromSave;
+    float mButtonsXOffset;
+    ruSoundHandle mPickSound;
+    Page mPage;
+    ruSoundHandle mMusic;
+    Parser mLocalization;
 
-    NumericSlider * masterVolume;
-    NumericSlider * musicVolume;
-    NumericSlider * mouseSensivity;
-    RadioButton * fxaaButton;
-    RadioButton * fpsButton;
-    RadioButton * pointShadowsButton;
-    RadioButton * spotShadowsButton;
-	RadioButton * hdrButton;
-    List * textureFiltering;
-	List * graphicsQuality;
+    NumericSlider * mpMasterVolume;
+    NumericSlider * mpMusicVolume;
+    NumericSlider * mpMouseSensivity;
+    RadioButton * mpFXAAButton;
+    RadioButton * mpFPSButton;
+    RadioButton * mpPointShadowsButton;
+    RadioButton * mpSpotShadowsButton;
+    RadioButton * mpHDRButton;
+    ScrollList * mpTextureFiltering;
+    ScrollList * mpGraphicsQuality;
 
     // Keys
-    WaitKeyButton * wkMoveForward;
-    WaitKeyButton * wkMoveBackward;
-    WaitKeyButton * wkStrafeLeft;
-    WaitKeyButton * wkStrafeRight;
-    WaitKeyButton * wkJump;
-    WaitKeyButton * wkFlashLight;
-    WaitKeyButton * wkRun;
-    WaitKeyButton * wkInventory;
-    WaitKeyButton * wkUse;
-    WaitKeyButton * wkQuickSave;
-    WaitKeyButton * wkQuickLoad;
-	WaitKeyButton * wkStealth;
+    WaitKeyButton * mpMoveForwardKey;
+    WaitKeyButton * mpMoveBackwardKey;
+    WaitKeyButton * mpStrafeLeftKey;
+    WaitKeyButton * mpStrafeRightKey;
+    WaitKeyButton * mpJumpKey;
+    WaitKeyButton * mpFlashLightKey;
+    WaitKeyButton * mpRunKey;
+    WaitKeyButton * mpInventoryKey;
+    WaitKeyButton * mpUseKey;
+    WaitKeyButton * mpQuickSaveKey;
+    WaitKeyButton * mpQuickLoadKey;
+    WaitKeyButton * mpStealthKey;
 
-    ruVector3 cameraInitialPosition;
-    ruVector3 cameraAnimationOffset;
-    ruVector3 cameraAnimationNewOffset;
+    ruVector3 mCameraInitialPosition;
+    ruVector3 mCameraAnimationOffset;
+    ruVector3 mCameraAnimationNewOffset;
 
-    GameCamera * camera;
+    GameCamera * mpCamera;
 };
 
 

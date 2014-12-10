@@ -3,7 +3,8 @@
 #include "Game.h"
 #include "TextFileStream.h"
 
-class Flashlight {
+class Flashlight
+{
 public:
     ruNodeHandle light;
     ruNodeHandle model;
@@ -11,13 +12,13 @@ public:
     float maxCharge;
     float charge;
     float onRange;
-	
-	ruVector3 offset;
+
+    ruVector3 offset;
 
     float realRange;
     float rangeDest;
-	float chargeWorkTimeSeconds;
-	float bobArg;
+    float chargeWorkTimeSeconds;
+    float bobArg;
 
     ruSoundHandle onSound;
     ruSoundHandle offSound;

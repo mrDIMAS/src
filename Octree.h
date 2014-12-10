@@ -6,18 +6,21 @@
 
 //#define _OCTREE_DEBUG
 
-class Octree {
+class Octree
+{
 public:
     IDirect3DIndexBuffer9 * indices;
 
-    class Triangle : public Mesh::Triangle {
+    class Triangle : public Mesh::Triangle
+    {
     public:
         bool rendered;
 
         Triangle( unsigned short _a, unsigned short _b, unsigned short _c );
     };
 
-    class Node {
+    class Node
+    {
     private:
         AABB box;
 

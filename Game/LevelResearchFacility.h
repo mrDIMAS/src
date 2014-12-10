@@ -9,41 +9,44 @@
 #include "Sparks.h"
 #include "SteamStream.h"
 
-class LevelResearchFacility : public Level {
-private:    
-    Lift * lift1;
-    Sparks * powerSparks;  
-    Valve * steamValve;
-    SteamStream * extemeSteam;
-    Enemy * ripper;
-    Fan * fan1;    
-    Fan * fan2;
-    ruSoundHandle fanSound;    
-    ruSoundHandle leverSound;
-    ruSoundHandle steamHissSound;
-    ruNodeHandle scaryBarellThrowZone;
-    ruNodeHandle steamActivateZone;
-    ruNodeHandle steamPS;
-    ruNodeHandle doorOpenLever;
-    ruNodeHandle lockedDoor;
-    ruNodeHandle spawnRipperZone;
-    ruNodeHandle repositionRipperZone;
-    ruNodeHandle ripperNewPosition;
-    ruNodeHandle extremeSteamBlock;
-    ruNodeHandle extremeSteamHurtZone;
-    ruNodeHandle upLight[6];
+class LevelResearchFacility : public Level
+{
+private:
+    Lift * mLift1;
+    Sparks * mpPowerSparks;
+    Valve * mpSteamValve;
+    SteamStream * mpExtemeSteam;
+    Enemy * mpRipper;
+    Fan * mpFan1;
+    Fan * mpFan2;
+    ruSoundHandle mFanSound;
+    ruSoundHandle mLeverSound;
+    ruSoundHandle mSteamHissSound;
+    ruNodeHandle mScaryBarellThrowZone;
+    ruNodeHandle mSteamActivateZone;
+    ruNodeHandle mSteamPS;
+    ruNodeHandle mDoorOpenLever;
+    ruNodeHandle mLockedDoor;
+    ruNodeHandle mSpawnRipperZone;
+    ruNodeHandle mRepositionRipperZone;
+    ruNodeHandle mRipperNewPosition;
+    ruNodeHandle mExtremeSteamBlock;
+    ruNodeHandle mExtremeSteamHurtZone;
     ruNodeHandle fuseModel[3];
     ruNodeHandle powerLever;
-    ruNodeHandle powerLeverOffModel;
-    ruNodeHandle powerLeverOnModel;
-    Item * fuse[3];
-    ItemPlace * fusePlace[3];
-    float upLightOnRange[6];
-    int fuseInsertedCount;    
-    bool powerOn;
+    ruNodeHandle mPowerLeverOffModel;
+    ruNodeHandle mPowerLeverOnModel;
+	ruNodeHandle mScaryBarell;
+	ruNodeHandle mScaryBarellPositionNode;
+	ruNodeHandle mPowerLamp;
+	ruNodeHandle mPowerLeverSnd;
+	ruNodeHandle mSmallSteamPosition;
 
-    void CreateSteam();
-    int CreateSparks( int at );   
+    Item * fuse[3];
+    ItemPlace * mFusePlaceList[3];
+    int fuseInsertedCount;
+    bool mPowerOn;
+
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
 public:

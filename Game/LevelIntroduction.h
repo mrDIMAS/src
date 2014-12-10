@@ -3,13 +3,14 @@
 #include "Level.h"
 #include "GUI.h"
 
-class LevelIntroduction : public Level {
+class LevelIntroduction : public Level
+{
 private:
-    string text;
-    float textAlpha;
-    float textAlphaTo;
-    bool intro;
-    ruTimerHandle textTimer;
+    string mPlainText;
+    float mTextAlpha;
+    float mTextAlphaTo;
+    bool mShowIntro;
+    ruTimerHandle mTextTimer;
 public:
     explicit LevelIntroduction();
     virtual ~LevelIntroduction();

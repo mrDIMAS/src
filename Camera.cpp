@@ -5,7 +5,8 @@
 
 Camera * g_camera = 0;
 
-Camera * Camera::CastHandle( ruNodeHandle handle ) {
+Camera * Camera::CastHandle( ruNodeHandle handle )
+{
     SceneNode * n = SceneNode::CastHandle( handle );
 
     Camera * camera = dynamic_cast< Camera* >( n );
@@ -13,7 +14,8 @@ Camera * Camera::CastHandle( ruNodeHandle handle ) {
     return camera;
 }
 
-void Camera::Update() {
+void Camera::Update()
+{
     btVector3 eye = globalTransform.getOrigin();
     btVector3 look = eye + globalTransform.getBasis().getColumn ( 2 );
     btVector3 up = globalTransform.getBasis().getColumn ( 1 );
@@ -38,36 +40,42 @@ void Camera::Update() {
     frustum.Build( viewProjection );
 }
 
-void Camera::SetSkyBox( const char * path ) {
-	if( path ) {
-		skybox = new Skybox( path );
-	} else {
-		if( skybox ) {
-			delete skybox;
+void Camera::SetSkyBox( const char * path )
+{
+    if( path )
+        skybox = new Skybox( path );
+    else
+    {
+        if( skybox )
+        {
+            delete skybox;
 
-			skybox = nullptr;
-		}
-	}
+            skybox = nullptr;
+        }
+    }
 }
 
-void Camera::CalculateInverseViewProjection() {
+void Camera::CalculateInverseViewProjection()
+{
     D3DXMatrixMultiply( &viewProjection, &view, &projection );
     D3DXMatrixInverse( &invViewProjection, 0, &viewProjection );
 }
 
-void Camera::CalculateProjectionMatrix() {
+void Camera::CalculateProjectionMatrix()
+{
     D3DVIEWPORT9 vp;
     g_device->GetViewport( &vp );
     D3DXMatrixPerspectiveFovRH( &projection, fov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, nearZ, farZ );
 }
 
-Camera::~Camera() {
-    if( skybox ) {
+Camera::~Camera()
+{
+    if( skybox )
         delete skybox;
-    }
 }
 
-Camera::Camera( float fov ) {
+Camera::Camera( float fov )
+{
     this->fov = fov;
     nearZ = 0.1f;
     farZ = 6000.0f;
@@ -80,9 +88,8 @@ Camera::Camera( float fov ) {
 
 void Camera::EnterDepthHack( float depth )
 {
-    if( !inDepthHack ) {
+    if( !inDepthHack )
         depthHackMatrix = projection;
-    }
     inDepthHack = true;
     projection._43 -= depth;
     CalculateInverseViewProjection();
@@ -100,19 +107,23 @@ void Camera::LeaveDepthHack()
 // API
 /////////////////////////////////////////////////////////////
 
-ruNodeHandle ruCreateCamera( float fov ) {
+ruNodeHandle ruCreateCamera( float fov )
+{
     return SceneNode::HandleFromPointer( new Camera( fov ) );
 }
 
-void ruSetCameraFOV( ruNodeHandle camera, float fov ) {
+void ruSetCameraFOV( ruNodeHandle camera, float fov )
+{
     Camera::CastHandle( camera )->fov = fov;
 }
 
-void ruSetActiveCamera( ruNodeHandle node ) {
+void ruSetActiveCamera( ruNodeHandle node )
+{
     g_camera = Camera::CastHandle( node );
 }
 
-int ruSetCameraSkybox( ruNodeHandle node, const char * path ) {
+int ruSetCameraSkybox( ruNodeHandle node, const char * path )
+{
     Camera::CastHandle( node )->SetSkyBox( path );
 
     return 1;

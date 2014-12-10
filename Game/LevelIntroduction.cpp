@@ -3,28 +3,29 @@
 
 
 
-void LevelIntroduction::Hide() {
+void LevelIntroduction::Hide()
+{
 
 }
 
-void LevelIntroduction::Show() {
+void LevelIntroduction::Show()
+{
 
 }
 
-void LevelIntroduction::DoScenario() {
-    if( intro ) {
-        textAlphaTo = 255.0f;
-    } else {
-        textAlphaTo = 0.0f;
-    }
+void LevelIntroduction::DoScenario()
+{
+    if( mShowIntro )
+        mTextAlphaTo = 255.0f;
+    else
+        mTextAlphaTo = 0.0f;
 
     float fadeSpeed = 0.025f;
 
-    if( !intro ) {
+    if( !mShowIntro )
         fadeSpeed = 0.05f;
-    }
 
-    textAlpha += ( textAlphaTo - textAlpha ) * 0.025f;
+    mTextAlpha += ( mTextAlphaTo - mTextAlpha ) * 0.025f;
 
     int scx = ruGetResolutionWidth() / 2;
     int scy = ruGetResolutionHeight() / 2;
@@ -32,36 +33,38 @@ void LevelIntroduction::DoScenario() {
     int w = 600;
     int h = 400;
 
-    ruDrawGUIText( text.c_str(), scx - w / 2, scy - h / 2, w, h, gui->font, ruVector3( 255, 255, 255 ), 0, textAlpha );
+    ruDrawGUIText( mPlainText.c_str(), scx - w / 2, scy - h / 2, w, h, pGUI->mFont, ruVector3( 255, 255, 255 ), 0, mTextAlpha );
 
-    if( ruGetElapsedTimeInSeconds( textTimer ) >= 22 || ruIsKeyHit( KEY_Space ) ) {
-        intro = false;
-    }
+    if( ruGetElapsedTimeInSeconds( mTextTimer ) >= 22 || ruIsKeyHit( KEY_Space ) )
+        mShowIntro = false;
 
-    if( intro ) {
-        ruDrawGUIText( "[Space] - пропустить", ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
-    }
+    if( mShowIntro )
+        ruDrawGUIText( mLocalization.GetString( "skip" ), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 
-    if( intro == false ) {
-        if( textAlpha < 5.0f ) {
+    if( mShowIntro == false )
+    {
+        if( mTextAlpha < 5.0f )
             Level::Change( LevelName::L1Arrival );
-        }
     }
+
+	DoneInitialization();
 }
 
-LevelIntroduction::~LevelIntroduction() {
+LevelIntroduction::~LevelIntroduction()
+{
 
 }
 
-LevelIntroduction::LevelIntroduction() {
-    scene = ruCreateSceneNode();
-    textAlpha = 0.0f;
-    textAlphaTo = 255.0f;
-    textTimer = ruCreateTimer( );
-    intro = true;
-	typeNum = 1;
+LevelIntroduction::LevelIntroduction()
+{
+    CreateBlankScene();
+    mTextAlpha = 0.0f;
+    mTextAlphaTo = 255.0f;
+    mTextTimer = ruCreateTimer( );
+    mShowIntro = true;
+    mTypeNum = 1;
     LoadLocalization( "intro.loc" );
-    text = localization.GetString( "intro" );
+    mPlainText = mLocalization.GetString( "intro" );
 }
 
 void LevelIntroduction::OnDeserialize( TextFileStream & in )

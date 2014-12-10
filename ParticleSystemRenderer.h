@@ -3,7 +3,8 @@
 #include "Shader.h"
 #include "ParticleEmitter.h"
 
-class ParticleSystemRenderer {
+class ParticleSystemRenderer
+{
 private:
     PixelShader * pixelShader;
     VertexShader * vertexShader;
@@ -11,7 +12,7 @@ private:
     IDirect3DVertexDeclaration9 * vd;
 
     D3DXHANDLE vWVP;
-	D3DXHANDLE vWorld;
+    D3DXHANDLE vWorld;
 
     D3DXHANDLE pLightCount;
     D3DXHANDLE pColor;
@@ -20,7 +21,7 @@ private:
     D3DXHANDLE pWithLight;
 
 
-	vector< Light*> affectedLights;
+    vector< Light*> affectedLights;
 public:
     ParticleSystemRenderer();
     ~ParticleSystemRenderer();

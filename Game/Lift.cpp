@@ -2,61 +2,107 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift( ruNodeHandle object, ruNodeHandle screen, ruNodeHandle src, ruNodeHandle dest, ruSoundHandle motorIS ) {
-    body = object;
-    scr = screen;
-    sourcePoint = src;
-    destPoint = dest;
-    target = sourcePoint;
-    motorIdleSound = motorIS;
-    ruAttachSound( motorIdleSound, body );
-    arrived = 0;
+Lift::Lift( ruNodeHandle base )
+{
+    mBaseNode = base;
+    mArrived = true;
 }
 
-void Lift::Update() {
-    ruVector3 delta = ruGetNodePosition( target ) - ruGetNodePosition( body );
+void Lift::Update()
+{
+	if( mBaseNode.IsValid() && mDoorBackLeft.IsValid() && mDoorBackRight.IsValid() && 
+		mDoorFrontLeft.IsValid() && mDoorFrontRight.IsValid() && mSourceNode.IsValid() &&
+		mDestNode.IsValid() && mControlPanel.IsValid() && mTargetNode.IsValid() ) 
+	{
+		ruVector3 directionVector = ruGetNodePosition( mTargetNode ) - ruGetNodePosition( mBaseNode );
+		ruVector3 speedVector = directionVector.Normalized() * 1.2 * g_dt;
+		float distSqr = directionVector.Length2();
 
-    ruVector3 speed =  delta.Normalized() * 1.2 * g_dt;
+		if( distSqr < 0.025f )
+			mArrived = true;
 
-    float dist2 = delta.Length2();
+		if( distSqr > 1.0f )
+			distSqr = 1.0f;
 
-    if( dist2 < .025 ) {
-        arrived = true;
-    }
+		ruSetSoundVolume( mMotorSound, distSqr );
 
-    if( dist2 > 1 ) {
-        dist2 = 1;
-    }
+		ruPlaySound( mMotorSound, 1 );
 
-    ruSetSoundVolume( motorIdleSound, dist2 );
+		// smooth arriving
+		if( !mArrived ) 
+		{
+			float speed = 1.0f;
 
-    ruPlaySound( motorIdleSound, 1 );
+			if( distSqr > 1.0f )
+				speed = 1.0f;
+			else
+				speed = distSqr;
+			ruMoveNode( mBaseNode, speedVector * speed );
+		}
 
-    if( !arrived ) {
-        float mul = 1;
+		// player interaction( TODO: must be moved to player class )
+		if( pPlayer->mNearestPickedNode == mControlPanel ) 
+		{
+			ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "liftUpDown" ), GetKeyName( pPlayer->mKeyUse ) ).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 
-        if( dist2 > 1 ) {
-            mul = 1;
-        } else {
-            mul = dist2;
-        }
+			if( ruIsKeyHit( pPlayer->mKeyUse )) 
+			{
+				if( mArrived ) 
+				{
+					if( mTargetNode == mSourceNode )
+						mTargetNode = mDestNode;
+					else
+						mTargetNode = mSourceNode;
+				}
 
-        ruMoveNode( body, speed * mul );
-    }
+				mArrived = false;
+			}
+		}
+	} else {
+		RaiseError( "Lift object are set improperly!" );
+	}
+}
 
-    if( player->nearestPicked == scr ) {
-        ruDrawGUIText( Format( player->localization.GetString( "liftUpDown" ), GetKeyName( player->keyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, gui->font, ruVector3( 255, 0, 0 ), 1 );
-		
-        if( ruIsKeyHit( player->keyUse )) {
-            if( arrived ) {
-                if( target == sourcePoint ) {
-                    target = destPoint;
-                } else {
-                    target = sourcePoint;
-                }
-            }
+void Lift::SetBackDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor )
+{
+	mDoorBackLeft = leftDoor;
+	mDoorBackRight = rightDoor;
+}
 
-            arrived = false;
-        }
-    }
+void Lift::SetFrontDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor )
+{
+	mDoorFrontLeft = leftDoor;
+	mDoorFrontRight = rightDoor;
+}
+
+void Lift::SetMotorSound( ruSoundHandle motorSound )
+{
+	mMotorSound = motorSound;
+	ruAttachSound( mMotorSound, mBaseNode );
+}
+
+void Lift::SetSourcePoint( ruNodeHandle sourceNode )
+{
+	mSourceNode = sourceNode;
+	mTargetNode = mSourceNode;
+}
+
+void Lift::SetDestinationPoint( ruNodeHandle destNode )
+{
+	mDestNode = destNode;
+}
+
+void Lift::SetControlPanel( ruNodeHandle panel )
+{
+	mControlPanel = panel;
+}
+
+Lift::~Lift()
+{
+
+}
+
+bool Lift::IsArrived()
+{
+	return mArrived;
 }

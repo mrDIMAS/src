@@ -7,33 +7,32 @@ btBroadphaseInterface * g_broadphase = 0;
 btSequentialImpulseConstraintSolver * g_solver = 0;
 bool g_physicsEnabled = true;
 
-void Physics::DestructWorld() {
-    if( g_dynamicsWorld ) {
+void Physics::DestructWorld()
+{
+    if( g_dynamicsWorld )
         delete g_dynamicsWorld;
-    }
-    if( g_solver ) {
+    if( g_solver )
         delete g_solver;
-    }
-    if( g_broadphase ) {
+    if( g_broadphase )
         delete g_broadphase;
-    }
-    if( g_collisionDispatcher ) {
+    if( g_collisionDispatcher )
         delete g_collisionDispatcher;
-    }
-    if( g_defaultCollision ) {
+    if( g_defaultCollision )
         delete g_defaultCollision;
-    }
 }
 
-void ruPausePhysics() {
+void ruPausePhysics()
+{
     g_physicsEnabled = false;
 }
 
-void ruResumePhysics() {
+void ruResumePhysics()
+{
     g_physicsEnabled = true;
 }
 
-void Physics::CreateWorld() {
+void Physics::CreateWorld()
+{
     g_defaultCollision = new btDefaultCollisionConfiguration();
     g_collisionDispatcher = new btCollisionDispatcher ( g_defaultCollision );
     g_broadphase = new btDbvtBroadphase( );

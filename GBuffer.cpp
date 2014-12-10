@@ -1,6 +1,7 @@
 #include "GBuffer.h"
 
-GBuffer::GBuffer() {
+GBuffer::GBuffer()
+{
     //int width = GetNearestPow2( g_width );
     //int height = GetNearestPow2( g_height );
     int width = g_width;
@@ -19,20 +20,22 @@ GBuffer::GBuffer() {
     CheckDXErrorFatal( g_device->GetRenderTarget( 0, &backSurface ));
 }
 
-GBuffer::~GBuffer() {
-	g_device->SetRenderTarget( 0, backSurface );
-	g_device->SetRenderTarget( 1, 0 );
-	g_device->SetRenderTarget( 2, 0 );
-	depthSurface->Release();
-	normalSurface->Release();
-	diffuseSurface->Release();
-	backSurface->Release();
-	while( depthMap->Release() );	
-	while( normalMap->Release());
-	while( diffuseMap->Release());
+GBuffer::~GBuffer()
+{
+    g_device->SetRenderTarget( 0, backSurface );
+    g_device->SetRenderTarget( 1, 0 );
+    g_device->SetRenderTarget( 2, 0 );
+    depthSurface->Release();
+    normalSurface->Release();
+    diffuseSurface->Release();
+    backSurface->Release();
+    while( depthMap->Release() );
+    while( normalMap->Release());
+    while( diffuseMap->Release());
 }
 
-void GBuffer::BindRenderTargets() {
+void GBuffer::BindRenderTargets()
+{
     UnbindTextures();
 
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, depthSurface ));
@@ -40,40 +43,48 @@ void GBuffer::BindRenderTargets() {
     CheckDXErrorFatal( g_device->SetRenderTarget( 2, diffuseSurface ));
 }
 
-void GBuffer::BindNormalMapAsRT() {
+void GBuffer::BindNormalMapAsRT()
+{
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, normalSurface ));
 };
 
-void GBuffer::BindDiffuseMapAsRT() {
+void GBuffer::BindDiffuseMapAsRT()
+{
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, diffuseSurface ));
 };
 
-void GBuffer::BindDepthMapAsRT() {
+void GBuffer::BindDepthMapAsRT()
+{
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, depthSurface ));
 };
 
-void GBuffer::UnbindTextures() {
+void GBuffer::UnbindTextures()
+{
     CheckDXErrorFatal( g_device->SetTexture( 0, 0 ));
     CheckDXErrorFatal( g_device->SetTexture( 1, 0 ));
     CheckDXErrorFatal( g_device->SetTexture( 2, 0 ));
 };
 
-void GBuffer::UnbindRenderTargets() {
+void GBuffer::UnbindRenderTargets()
+{
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, backSurface ));
     CheckDXErrorFatal( g_device->SetRenderTarget( 1, 0 ));
     CheckDXErrorFatal( g_device->SetRenderTarget( 2, 0 ));
 }
 
-void GBuffer::BindBackSurfaceAsRT() {
+void GBuffer::BindBackSurfaceAsRT()
+{
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, backSurface ));
 };
 
-void GBuffer::BindTextures() {
+void GBuffer::BindTextures()
+{
     CheckDXErrorFatal( g_device->SetTexture( 0, depthMap ));
     CheckDXErrorFatal( g_device->SetTexture( 1, normalMap ));
     CheckDXErrorFatal( g_device->SetTexture( 2, diffuseMap ));
 }
 
-void GBuffer::BindDepthMap( int layer ) {
+void GBuffer::BindDepthMap( int layer )
+{
     CheckDXErrorFatal( g_device->SetTexture( layer, depthMap ));
 }

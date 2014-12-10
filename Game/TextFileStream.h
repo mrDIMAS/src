@@ -2,7 +2,8 @@
 
 #include "Game.h"
 
-class TextFileStream {
+class TextFileStream
+{
 private:
     fstream stream;
 public:
@@ -30,5 +31,5 @@ public:
     void WriteBoolean( bool b );
     void WriteInteger( int i );
     void WriteFloat( float fl );
-    void Writestring( string str );
+    void WriteString( string str );
 };

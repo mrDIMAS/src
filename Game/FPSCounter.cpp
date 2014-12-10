@@ -3,10 +3,12 @@
 
 
 
-void FPSCounter::RegisterFrame() {
+void FPSCounter::RegisterFrame()
+{
     frameCounter++;
 
-    if( ruGetElapsedTimeInSeconds( timer ) >= 1.0f ) {
+    if( ruGetElapsedTimeInSeconds( timer ) >= 1.0f )
+    {
         fps = frameCounter;
 
         frameCounter = 0;
@@ -15,7 +17,8 @@ void FPSCounter::RegisterFrame() {
     }
 }
 
-FPSCounter::FPSCounter() {
+FPSCounter::FPSCounter()
+{
     timer = ruCreateTimer();
 
     fps = 0;

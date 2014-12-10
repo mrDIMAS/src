@@ -4,54 +4,55 @@
 #include "Way.h"
 #include "Enemy.h"
 
-void SaveWriter::SaveWorldState() {
-	WriteInteger( currentLevel->typeNum );
+void SaveWriter::SaveWorldState()
+{
+    WriteInteger( pCurrentLevel->mTypeNum );
 
-    if( currentLevel ) {
-        currentLevel->SerializeWith( *this );
-    }
+    if( pCurrentLevel )
+        pCurrentLevel->SerializeWith( *this );
 
     SavePlayerInventory();
     SaveItemPlaces();
 
-    WriteInteger( Way::all.size() );
-    for( auto way : Way::all ) {
-        way->SerializeWith( *this );
-    }
+    WriteInteger( Way::sWayList.size() );
+    for( auto pWay : Way::sWayList )
+        pWay->SerializeWith( *this );
 
     // save player state
-    player->SerializeWith( *this );
+    pPlayer->SerializeWith( *this );
 }
 
-SaveWriter::~SaveWriter() {
-
-}
-
-SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str(), true ) {
+SaveWriter::~SaveWriter()
+{
 
 }
 
-void SaveWriter::SaveItemPlaces() {
-    WriteInteger( ItemPlace::all.size() );
-    for( auto ip : ItemPlace::all ) {
-        Writestring( ruGetNodeName( ip->object ));
-        WriteBoolean( ip->itemPlaced != 0 );
-        if( ip->itemPlaced ) {
-            Writestring( ruGetNodeName( ip->itemPlaced->object ));
-        }
-        WriteInteger( ip->GetPlaceType() );
+SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str(), true )
+{
+
+}
+
+void SaveWriter::SaveItemPlaces()
+{
+    WriteInteger( ItemPlace::sItemPlaceList.size() );
+    for( auto pItemPlace : ItemPlace::sItemPlaceList ) {
+        WriteString( ruGetNodeName( pItemPlace->mObject ));
+        WriteBoolean( pItemPlace->pPlacedItem != 0 );
+        if( pItemPlace->pPlacedItem )
+            WriteString( ruGetNodeName( pItemPlace->pPlacedItem->mObject ));
+        WriteInteger( pItemPlace->GetPlaceType() );
     }
 }
 
 
-void SaveWriter::SavePlayerInventory() {
-    if( !player ) {
+void SaveWriter::SavePlayerInventory()
+{
+    if( !pPlayer )
         return;
-    }
 
-    WriteInteger( player->inventory.items.size() );
-    for( auto item : player->inventory.items ) {
+    WriteInteger( pPlayer->mInventory.mItemList.size() );
+    for( auto pItem : pPlayer->mInventory.mItemList ) {
         // write object name for further identification
-        Writestring( ruGetNodeName( item->object ) );
+        WriteString( ruGetNodeName( pItem->mObject ) );
     }
 }

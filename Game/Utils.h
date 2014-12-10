@@ -2,7 +2,8 @@
 
 #include "Game.h"
 
-static const char * keyNames [] = {
+static const char * keyNames [] =
+{
     "Esc",
     "1",
     "2",
@@ -149,17 +150,17 @@ static const char * keyNames [] = {
     "MEDIASELECT"
 };
 
-static string GetKeyName( unsigned int vk) {
-    if( vk < 0 ) {
+static const char * GetKeyName( unsigned int vk )
+{
+    if( vk < 0 )
         return " ";
-    }
-    if( vk > 127 ) {
+    if( vk > 127 )
         return " ";
-    }
     return keyNames[ vk - 1 ];
 }
 
-static bool FileExist( const char * file ) {
+static bool FileExist( const char * file )
+{
     fstream f( file );
 
     bool state = f.good();
@@ -169,15 +170,18 @@ static bool FileExist( const char * file ) {
     return state;
 }
 
-static void GetFilesWithDefExt( string folder, vector< string > & names ) {
-	WIN32_FIND_DATAA fd; 
-	HANDLE hFind = FindFirstFileA( folder.c_str(), &fd); 
-	if(hFind != INVALID_HANDLE_VALUE) { 
-		do { 
-			if( !(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-				names.push_back(fd.cFileName);
-			}
-		} while( FindNextFileA(hFind, &fd)); 
-		FindClose(hFind); 
-	} 
+static void GetFilesWithDefExt( string folder, vector< string > & names )
+{
+    WIN32_FIND_DATAA fd;
+    HANDLE hFind = FindFirstFileA( folder.c_str(), &fd);
+    if(hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            if( !(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
+                names.push_back(fd.cFileName);
+        }
+        while( FindNextFileA(hFind, &fd));
+        FindClose(hFind);
+    }
 }

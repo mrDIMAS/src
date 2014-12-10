@@ -7,12 +7,14 @@
 
 using namespace std;
 
-class Parser {
+class Parser
+{
 private:
-    map< string, string > values;
-    bool parsed;
+    map< string, string > mValueList;
+	string mFileName;
+    bool mParsed;
 public:
-    Parser( );
+    explicit Parser( );
     void ParseFile( string fn );
     bool Empty();
     bool IsParsed();

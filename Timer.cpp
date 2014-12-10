@@ -2,42 +2,50 @@
 
 vector<Timer*> Timer::timers;
 
-double Timer::GetElapsedTimeInMicroSeconds() {
+double Timer::GetElapsedTimeInMicroSeconds()
+{
     return GetTimeInMicroSeconds() - lastTime;
 }
 
-double Timer::GetElapsedTimeInMilliSeconds() {
+double Timer::GetElapsedTimeInMilliSeconds()
+{
     return GetTimeInMilliSeconds() - lastTime / 1000.0;
 }
 
-double Timer::GetElapsedTimeInSeconds() {
+double Timer::GetElapsedTimeInSeconds()
+{
     return GetTimeInSeconds() - lastTime / 1000000.0;
 }
 
-double Timer::GetTimeInMicroSeconds() {
+double Timer::GetTimeInMicroSeconds()
+{
     LARGE_INTEGER time;
     QueryPerformanceCounter ( &time );
     return ( double ) ( time.QuadPart * 1000000.0 ) / ( double ) ( freq.QuadPart );
 }
 
-double Timer::GetTimeInMilliSeconds() {
+double Timer::GetTimeInMilliSeconds()
+{
     LARGE_INTEGER time;
     QueryPerformanceCounter ( &time );
     return ( double ) ( time.QuadPart * 1000.0 ) / ( double ) ( freq.QuadPart );
 }
 
-double Timer::GetTimeInSeconds() {
+double Timer::GetTimeInSeconds()
+{
     LARGE_INTEGER time;
     QueryPerformanceCounter ( &time );
     return ( double ) ( time.QuadPart ) / ( double ) ( freq.QuadPart );
 }
 
-void Timer::RestartTimer() {
+void Timer::RestartTimer()
+{
     lastTime = GetTimeInMicroSeconds();
 }
 
-Timer::Timer() {
-	timers.push_back( this );
+Timer::Timer()
+{
+    timers.push_back( this );
     QueryPerformanceFrequency ( &freq );
     RestartTimer();
 }
@@ -47,22 +55,27 @@ Timer::Timer() {
 //////////////////////////////////////////////////////////////////////////
 
 
-RUAPI ruTimerHandle ruCreateTimer( ) {
+RUAPI ruTimerHandle ruCreateTimer( )
+{
     return reinterpret_cast< ruTimerHandle >( new Timer );
 }
 
-RUAPI void ruRestartTimer( ruTimerHandle timer ) {
+RUAPI void ruRestartTimer( ruTimerHandle timer )
+{
     (reinterpret_cast< Timer* >( timer ))->RestartTimer();
 }
 
-RUAPI double ruGetElapsedTimeInSeconds( ruTimerHandle timer ) {
+RUAPI double ruGetElapsedTimeInSeconds( ruTimerHandle timer )
+{
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInSeconds();
 }
 
-RUAPI double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer ) {
+RUAPI double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer )
+{
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMilliSeconds();
 }
 
-RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer ) {
+RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer )
+{
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMicroSeconds();
 }

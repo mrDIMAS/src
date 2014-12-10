@@ -1,15 +1,18 @@
 #include "SpotlightShadowMap.h"
 #include "Renderer.h"
 
-void SpotlightShadowMap::UnbindSpotShadowMap( int index ) {
+void SpotlightShadowMap::UnbindSpotShadowMap( int index )
+{
     g_device->SetTexture( index, nullptr );
 }
 
-void SpotlightShadowMap::BindSpotShadowMap( int index ) {
+void SpotlightShadowMap::BindSpotShadowMap( int index )
+{
     g_device->SetTexture( index, spotShadowMap );
 }
 
-void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight ) {
+void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight )
+{
     IDirect3DStateBlock9 * state;
     CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
     CheckDXErrorFatal( g_device->SetRenderTarget( 0, spotSurface ));
@@ -30,24 +33,28 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
     CheckDXErrorFatal( g_device->GetTexture( 0, &prevZeroSamplerTexture ));
 
-    for( auto meshGroupIter : Mesh::meshes ) {
+    for( auto meshGroupIter : Mesh::meshes )
+    {
         auto & group = meshGroupIter.second;
         CheckDXErrorFatal( g_device->SetTexture( 0, meshGroupIter.first ));
-        for( auto mesh : group ) {
+        for( auto mesh : group )
+        {
             // if owner of mesh is visible
-            if( mesh->ownerNode->IsVisible()) {
+            if( mesh->ownerNode->IsVisible())
+            {
                 // if light "sees" mesh, it can cast shadow
-                if( spotLight->frustum.IsAABBInside( mesh->aabb, mesh->ownerNode->GetPosition())) {
+                if( spotLight->frustum.IsAABBInside( mesh->aabb, mesh->ownerNode->GetPosition()))
+                {
                     // if mesh in light range, it can cast shadow
                     //if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
-                        D3DXMATRIX world, wvp; 
-                        GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
-                        D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
-                        CheckDXErrorFatal( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-                        mesh->BindBuffers();
-                        mesh->Render();
+                    D3DXMATRIX world, wvp;
+                    GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
+                    D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
+                    CheckDXErrorFatal( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+                    mesh->BindBuffers();
+                    mesh->Render();
                     //}
-                } 
+                }
             }
         };
     }
@@ -62,15 +69,17 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     CheckDXErrorFatal( g_device->SetDepthStencilSurface( defaultDepthStencil ));
 }
 
-SpotlightShadowMap::~SpotlightShadowMap() {
-	spotSurface->Release();
+SpotlightShadowMap::~SpotlightShadowMap()
+{
+    spotSurface->Release();
     spotShadowMap->Release();
     depthStencil->Release();
     delete pixelShader;
     delete vertexShader;
 }
 
-SpotlightShadowMap::SpotlightShadowMap( float size ) {
+SpotlightShadowMap::SpotlightShadowMap( float size )
+{
     iSize = size;
 
     // create shadow maps
@@ -80,7 +89,7 @@ SpotlightShadowMap::SpotlightShadowMap( float size ) {
     CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
 
     // create shader to render shadowmaps
-    string vertexShaderSource = 
+    string vertexShaderSource =
         "float4x4 wvp : register( c0 );\n"
 
         "struct VSOutput {\n"
@@ -98,7 +107,7 @@ SpotlightShadowMap::SpotlightShadowMap( float size ) {
         "};\n";
     vertexShader = new VertexShader( vertexShaderSource );
 
-    string pixelShaderSource = 
+    string pixelShaderSource =
         "sampler diffuseSampler : register( s0 );\n"
         "float4 main( float4 screenPosition : TEXCOORD0, float2 texCoord : TEXCOORD1 ) : COLOR0 {\n"
         "   clip( tex2D( diffuseSampler, texCoord ).a - 0.1 );\n"

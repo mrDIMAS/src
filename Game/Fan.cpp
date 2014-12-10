@@ -3,13 +3,15 @@
 
 
 
-void Fan::DoTurn() {
+void Fan::DoTurn()
+{
     angle += turnSpeed;
     ruSetNodeRotation( body, ruQuaternion( tAxis, angle ));
     ruPlaySound( sound, 1 );
 }
 
-Fan::Fan( ruNodeHandle obj, float ts, ruVector3 axis, ruSoundHandle snd ) {
+Fan::Fan( ruNodeHandle obj, float ts, ruVector3 axis, ruSoundHandle snd )
+{
     body = obj;
     turnSpeed = ts;
     tAxis = axis;

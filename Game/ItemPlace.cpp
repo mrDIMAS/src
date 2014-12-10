@@ -1,17 +1,20 @@
 #include "ItemPlace.h"
 
-vector<ItemPlace*> ItemPlace::all;
+vector<ItemPlace*> ItemPlace::sItemPlaceList;
 
-Item * ItemPlace::GetPlacedItem() {
-    return itemPlaced;
+Item * ItemPlace::GetPlacedItem()
+{
+    return pPlacedItem;
 }
 
-bool ItemPlace::PlaceItem( Item * item ) {
-    if( item->type == itemTypeCanBePlaced ) {
-        itemPlaced = item;
+bool ItemPlace::PlaceItem( Item * item )
+{
+    if( item->mType == itemTypeCanBePlaced )
+    {
+        pPlacedItem = item;
 
-        player->inventory.forUse = 0;
-        player->inventory.RemoveItem( item );
+        pPlayer->mInventory.mpItemForUse = 0;
+        pPlayer->mInventory.RemoveItem( item );
 
         return true;
     }
@@ -19,31 +22,35 @@ bool ItemPlace::PlaceItem( Item * item ) {
     return false;
 }
 
-ItemPlace::ItemPlace( ruNodeHandle obj, int _itemTypeCanBePlaced ) {
-    object = obj;
-    itemPlaced = nullptr;
+ItemPlace::ItemPlace( ruNodeHandle obj, int _itemTypeCanBePlaced )
+{
+    mObject = obj;
+    pPlacedItem = nullptr;
     itemTypeCanBePlaced = _itemTypeCanBePlaced;
-    all.push_back( this );
+    sItemPlaceList.push_back( this );
 }
 
-bool ItemPlace::IsPickedByPlayer() {
-    return player->nearestPicked == object;
+bool ItemPlace::IsPickedByPlayer()
+{
+    return pPlayer->mNearestPickedNode == mObject;
 }
 
-void ItemPlace::SetPlaceType( int _itemTypeCanBePlaced ) {
+void ItemPlace::SetPlaceType( int _itemTypeCanBePlaced )
+{
     itemTypeCanBePlaced = _itemTypeCanBePlaced;
 }
 
-int ItemPlace::GetPlaceType() {
+int ItemPlace::GetPlaceType()
+{
     return itemTypeCanBePlaced;
 }
 
 
 
-ItemPlace * ItemPlace::FindByObject( ruNodeHandle handle ) {
-    for( auto ip : all )
-        if( ip->object == handle ) {
+ItemPlace * ItemPlace::FindByObject( ruNodeHandle handle )
+{
+    for( auto ip : sItemPlaceList )
+        if( ip->mObject == handle )
             return ip;
-        }
     return 0;
 }

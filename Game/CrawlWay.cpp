@@ -2,71 +2,80 @@
 #include "Player.h"
 
 
-void CrawlWay::DoPlayerCrawling() {
-    if( !entering ) {
-        ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
+void CrawlWay::DoPlayerCrawling()
+{
+    if( !entering )
+    {
+        ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( pPlayer->mBody );
 
         float distance = direction.Length();
 
         direction.Normalize();
 
-        if( !leave ) {
-            ruMoveNode( player->body, direction * 0.75f );
+        if( !leave )
+        {
+            ruMoveNode( pPlayer->mBody, direction * 0.75f );
 
-            if( distance < 0.25f ) {
+            if( distance < 0.25f )
+            {
                 leave = true;
 
-                if( (ruGetNodePosition( player->body ) - ruGetNodePosition( end )).Length2() < (ruGetNodePosition( player->body ) - ruGetNodePosition( begin )).Length2()) {
+                if( (ruGetNodePosition( pPlayer->mBody ) - ruGetNodePosition( end )).Length2() < (ruGetNodePosition( pPlayer->mBody ) - ruGetNodePosition( begin )).Length2())
                     target = endLeavePoint;
-                } else {
+                else
                     target = beginLeavePoint;
-                }
             }
-        } else {
-            DoLeave();
         }
+        else
+            DoLeave();
     }
 }
 
-void CrawlWay::LookAtTarget() {
-    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->camera->cameraNode );
+void CrawlWay::LookAtTarget()
+{
+    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( pPlayer->mpCamera->mNode );
 
-    player->yaw = atan2f( direction.x, direction.z ) * 180.0f / 3.14159f;
-    player->yaw = ( player->yaw > 0 ? player->yaw : ( 360 + player->yaw ) );
+    pPlayer->mYaw = atan2f( direction.x, direction.z ) * 180.0f / 3.14159f;
+    pPlayer->mYaw = ( pPlayer->mYaw > 0 ? pPlayer->mYaw : ( 360 + pPlayer->mYaw ) );
 
-    player->pitch = 15.0f;
+    pPlayer->mPitch = 15.0f;
 }
 
 
-void CrawlWay::SetDirection( Direction direction ) {
+void CrawlWay::SetDirection( Direction direction )
+{
 
 }
 
 CrawlWay::CrawlWay( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
-    : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
+    : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint )
+{
 
 }
 
-CrawlWay::~CrawlWay() {
+CrawlWay::~CrawlWay()
+{
 
 }
 
-void CrawlWay::DoLeave() {
-    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( player->body );
+void CrawlWay::DoLeave()
+{
+    ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( pPlayer->mBody );
 
     float distance = direction.Length();
 
     direction.Normalize();
 
-    ruMoveNode( player->body, direction * 0.75f );
+    ruMoveNode( pPlayer->mBody, direction * 0.75f );
 
-    if( distance < 0.25f ) {
+    if( distance < 0.25f )
+    {
         leave = false;
 
         inside = false;
 
-        ruUnfreeze( player->body );
+        ruUnfreeze( pPlayer->mBody );
 
-        ruMoveNode( player->body, ruVector3( 0, 0, 0 ));
+        ruMoveNode( pPlayer->mBody, ruVector3( 0, 0, 0 ));
     }
 }

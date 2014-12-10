@@ -3,7 +3,8 @@
 #include "Game.h"
 #include "TextFileStream.h"
 
-class Way {
+class Way
+{
 protected:
     ruNodeHandle begin;
     ruNodeHandle end;
@@ -16,9 +17,10 @@ protected:
     bool freeLook;
     bool leave;
 public:
-    static vector<Way*> all;
+    static vector<Way*> sWayList;
 
-    enum class Direction {
+    enum class Direction
+    {
         Forward  = 1,
         Backward = 2,
     };

@@ -6,7 +6,8 @@
 #include "ItemPlace.h"
 #include "AmbientSoundSet.h"
 
-class LevelMine : public Level {
+class LevelMine : public Level
+{
 private:
     void UpdateExplodeSequence();
     void CleanUpExplodeArea();
@@ -45,7 +46,7 @@ private:
 
     LightAnimator * explosionFlashAnimator;
 
-	Enemy * enemy;
+    Enemy * enemy;
 public:
     explicit LevelMine( );
     virtual ~LevelMine();

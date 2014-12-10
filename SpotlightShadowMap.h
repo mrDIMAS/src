@@ -6,15 +6,16 @@
 #include "Mesh.h"
 #include "Utility.h"
 
-class SpotlightShadowMap {
+class SpotlightShadowMap
+{
 private:
     IDirect3DTexture9 * spotShadowMap;
     IDirect3DSurface9 * spotSurface;
     IDirect3DSurface9 * defaultDepthStencil;
     IDirect3DSurface9 * depthStencil;
     PixelShader * pixelShader;
-    VertexShader * vertexShader;    
-public: 
+    VertexShader * vertexShader;
+public:
     int iSize;
     explicit SpotlightShadowMap( float size = 1024 );
     virtual ~SpotlightShadowMap();

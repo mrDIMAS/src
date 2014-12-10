@@ -3,48 +3,47 @@
 #include "LevelMine.h"
 
 
-LevelArrival::LevelArrival( ) {
-	typeNum = 2;
+LevelArrival::LevelArrival( )
+{
+    mTypeNum = 2;
 
     // Load localization
     LoadLocalization( "arrival.loc" );
 
     // Load main scene
-    scene = ruLoadScene( "data/maps/release/arrival/arrival.scene" );
+    LoadSceneFromFile( "data/maps/release/arrival/arrival.scene" );
 
     //////////////////////////////////////////////////////////////////////////
     // Find and create all sheets
-    AddSheet( new Sheet( ruFindByName( "Note1" ), localization.GetString( "note1Desc" ), localization.GetString( "note1" )));
+    AddSheet( new Sheet( GetUniqueObject( "Note1" ), mLocalization.GetString( "note1Desc" ), mLocalization.GetString( "note1" )));
 
     //////////////////////////////////////////////////////////////////////////
     // Find zones
-    strangeSoundZone = ruFindByName( "StrangeSoundZone" );
-
-    nextLevelLoadZone = ruFindByName( "NextLevelLoadZone" );
-
-    rocksFallZone = ruFindByName( "RocksFallZone");
+    strangeSoundZone = GetUniqueObject( "StrangeSoundZone" );
+    nextLevelLoadZone = GetUniqueObject( "NextLevelLoadZone" );
+    rocksFallZone = GetUniqueObject( "RocksFallZone");
 
 
     //////////////////////////////////////////////////////////////////////////
     // Find entities
-    rocks = ruFindByName( "Rocks" );
-    rocksPos = ruFindByName( "RocksPos" );
-    generator = ruFindByName( "Generator" );
+    rocks = GetUniqueObject( "Rocks" );
+    rocksPos = GetUniqueObject( "RocksPos" );
+    generator = GetUniqueObject( "Generator" );
 
-    lamp1 = ruFindByName( "Projector1" );
-    lamp2 = ruFindByName( "Projector2" );
+    lamp1 = GetUniqueObject( "Projector1" );
+    lamp2 = GetUniqueObject( "Projector2" );
 
     //////////////////////////////////////////////////////////////////////////
     // Player noticements
-    player->SetObjective( localization.GetString( "objective1" ));
-    player->SetPlaceDescription( localization.GetString( "placeDesc" ));
+    pPlayer->SetObjective( mLocalization.GetString( "objective1" ));
+    pPlayer->SetPlaceDescription( mLocalization.GetString( "placeDesc" ));
 
-    ruSetNodePosition( player->body, ruGetNodePosition( ruFindByName("PlayerPosition")) + ruVector3( 0, 1, 0 ));
+    ruSetNodePosition( pPlayer->mBody, ruGetNodePosition( GetUniqueObject("PlayerPosition")) + ruVector3( 0, 1, 0 ));
 
     //////////////////////////////////////////////////////////////////////////
     // Load sounds
     AddSound( generatorSound = ruLoadSound3D( "data/sounds/generator.ogg" ));
-    ruAttachSound( generatorSound, ruFindByName( "Generator" ) );
+    ruAttachSound( generatorSound, GetUniqueObject( "Generator" ) );
     ruSetRolloffFactor( generatorSound, 5 );
     ruSetSoundReferenceDistance( generatorSound, 5 );
 
@@ -68,47 +67,56 @@ LevelArrival::LevelArrival( ) {
     AddAmbientSound( ruLoadSound3D( "data/sounds/ambient/forest/forestambient5.ogg" ));
     AddAmbientSound( ruLoadSound3D( "data/sounds/ambient/forest/forestambient6.ogg" ));
 
-    player->SetFootsteps( FootstepsType::Dirt );
+    pPlayer->SetFootsteps( FootstepsType::Dirt );
 
     stages[ "DoneStrangeSoundPlayed" ] = false;
     stages[ "DoneRocksFall" ] = false;
 
-	ruSetCameraSkybox( player->camera->cameraNode, "data/textures/skyboxes/night4/nnksky01");
+    ruSetCameraSkybox( pPlayer->mpCamera->mNode, "data/textures/skyboxes/night4/nnksky01" );
+
+	DoneInitialization();
 }
 
-LevelArrival::~LevelArrival() {
+LevelArrival::~LevelArrival()
+{
 
 }
 
-void LevelArrival::Show() {
+void LevelArrival::Show()
+{
     Level::Show();
 }
 
-void LevelArrival::Hide() {
+void LevelArrival::Hide()
+{
     Level::Hide();
 }
 
-void LevelArrival::DoScenario() {
-    if( Level::curLevelID != LevelName::L1Arrival ) {
+void LevelArrival::DoScenario()
+{
+    if( Level::curLevelID != LevelName::L1Arrival )
         return;
-    }
 
-	ruSetAmbientColor( ruVector3( 0.06, 0.06, 0.06 ));
+    ruSetAmbientColor( ruVector3( 0.06, 0.06, 0.06 ));
 
     PlayAmbientSounds();
 
     ruPlaySound( generatorSound );
 
-    if( !stages[ "DoneStrangeSoundPlayed" ] ) {
-        if( ruIsNodeInsideNode( player->body, strangeSoundZone )) {
+    if( !stages[ "DoneStrangeSoundPlayed" ] )
+    {
+        if( ruIsNodeInsideNode( pPlayer->mBody, strangeSoundZone ))
+        {
             ruPlaySound( strangeSound );
 
             stages[ "DoneStrangeSoundPlayed" ] = true;
         }
     }
 
-    if( !stages[ "DoneRocksFall" ] ) {
-        if( ruIsNodeInsideNode( player->body, rocksFallZone )) {
+    if( !stages[ "DoneRocksFall" ] )
+    {
+        if( ruIsNodeInsideNode( pPlayer->mBody, rocksFallZone ))
+        {
             ruSetNodePosition( rocks, ruGetNodePosition( rocksPos ) );
 
             ruSetLightRange( lamp1, 0 );
@@ -116,7 +124,7 @@ void LevelArrival::DoScenario() {
 
             ruPlaySound( explosionSound );
 
-            player->SetObjective( localization.GetString( "objective4" ) );
+            pPlayer->SetObjective( mLocalization.GetString( "objective4" ) );
 
             AddSound( music = ruLoadMusic( "data/sounds/fear.ogg" ));
             ruPlaySound( music );
@@ -125,7 +133,6 @@ void LevelArrival::DoScenario() {
         }
     }
 
-    if( ruIsNodeInsideNode( player->body, nextLevelLoadZone )) {
+    if( ruIsNodeInsideNode( pPlayer->mBody, nextLevelLoadZone ))
         Level::Change( LevelName::L2Mine );
-    }
 }

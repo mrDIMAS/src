@@ -4,16 +4,17 @@
 #include "Item.h"
 #include "Parser.h"
 
-class Inventory {
+class Inventory
+{
 public:
-    vector<Item *> items;
+    vector<Item *> mItemList;
     ruTextureHandle backgroundTexture;
     ruTextureHandle cellTexture;
     ruTextureHandle buttonTexture;
 
     bool opened;
 
-    Item* forUse;
+    Item* mpItemForUse;
     Item* selected;
     Item* combineItemFirst;
     Item* combineItemSecond;
