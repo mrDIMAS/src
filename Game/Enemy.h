@@ -2,77 +2,76 @@
 
 #include "Player.h"
 #include "Pathfinder.h"
+#include "Actor.h"
 
-class Enemy
+class Enemy : public Actor
 {
 public:
-    vector< GraphVertex* > currentPath;
-    vector< GraphVertex* > patrolPoints;
-    int currentWaypointNum;
-    int destWaypointNum;
-    int lastDestIndex;
-    int currentDestIndex;
+	enum class MoveType
+	{
+		ChasePlayer,
+		GoToDestination,
+	};
+private:
+	vector< GraphVertex* > mCurrentPath;
+	vector< GraphVertex* > mPatrolPointList;
+	int mCurrentWaypointNum;
+	int mDestinationWaypointNum;
+	int mLastDestinationIndex;
+	int mCurrentDestinationIndex;
 
-    bool doPatrol;
-    int currentPatrolPoint;
+	bool mDoPatrol;
+	int mCurrentPatrolPoint;
 
-    Pathfinder pathfinder;
+	Pathfinder mPathfinder;
 
-    ruNodeHandle model;
-    ruNodeHandle body;
+	ruNodeHandle mModel;
 
-    ruVector3 target;
-    ruVector3 destination;
+	ruVector3 mTarget;
+	ruVector3 mDestination;
 
-    ruNodeHandle rightLeg;
-    ruNodeHandle leftLeg;
+	ruNodeHandle mRightLeg;
+	ruNodeHandle mLeftLeg;
 
-    ruNodeHandle rightLegDown;
-    ruNodeHandle leftLegDown;
+	ruNodeHandle mRightLegDown;
+	ruNodeHandle mLeftLegDown;
 
-    ruNodeHandle torsoBone;
-    ruNodeHandle attackHand;
-    ruNodeHandle head;
+	ruNodeHandle mTorsoBone;
+	ruNodeHandle mAttackHand;
+	ruNodeHandle mHead;
 
-    ruSoundHandle hitFleshWithAxeSound;
-    ruSoundHandle breathSound;
-    ruSoundHandle screamSound;
+	ruSoundHandle mHitFleshWithAxeSound;
+	ruSoundHandle mBreathSound;
+	ruSoundHandle mScreamSound;
 
-    bool playerDetected;
-    ruTimerHandle detectedTimer;
+	bool mPlayerDetected;
+	ruTimerHandle mPlayerInSightTimer;
 
-    float lastPathLen;
-    float pathLen;
-    enum
-    {
-        MoveTypeChasePlayer,
-        MoveTypeGoToDestination,
-    };
+	float mLastStepLength;
+	float mStepLength;
 
-    int GetVertexIndexNearestTo( ruVector3 position );
+	MoveType mMoveType;
 
-    int moveType;
+	bool mAttackDone;
+	bool mTargetIsPlayer;
 
-    bool attackDone;
-    bool targetIsPlayer;
+	float mAngleTo;
+	float mAngle;
 
-    float angleTo;
-    float angle;
-    float bodyHeight;
+	float mRunSpeed;
 
-    float runSpeed;
+	ruSoundHandle mFootstepsSounds[ 4 ];
 
-    ruSoundHandle footstepsSounds[ 4 ];
+	ruTimerHandle mDamageTimer;
 
-    ruTimerHandle damageTimer;
-
-    ruAnimation animIdle;
-    ruAnimation animRun;
-    ruAnimation animAttack;
-    ruAnimation animWalk;
-
+	ruAnimation mIdleAnimation;
+	ruAnimation mRunAnimation;
+	ruAnimation mAttackAnimation;
+	ruAnimation mWalkAnimation;
+public:
+	int GetVertexIndexNearestTo( ruVector3 position );   
     void DrawAnimationDebugInfo( ruNodeHandle node, int & y );
-    void SetLegsAnimation( ruAnimation * anim );
+    void SetLegsAnimation( ruAnimation *pAnim );
     void SetTorsoAnimation( ruAnimation * anim );
     void SetCommonAnimation( ruAnimation * anim );
     virtual void SetIdleAnimation( );
@@ -80,14 +79,12 @@ public:
     virtual void SetWalkAnimation();
     virtual void SetRunAndAttackAnimation();
     virtual void SetStayAndAttackAnimation();
-    Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
-
+    explicit Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
+	virtual ~Enemy();;
     void FindBodyparts();
-
     void CreateSounds();
     void CreateAnimations();
     void Think();
-
     void Serialize( TextFileStream & out );
     void Deserialize( TextFileStream & in );
 };

@@ -7,16 +7,16 @@ void Flashlight::Update()
     {
         rangeDest = onRange;
 
-        charge -= g_dt / chargeWorkTimeSeconds;
+        mCharge -= g_dt / chargeWorkTimeSeconds;
 
-        if( charge < 0.1f )
-            charge = 0.1f;
+        if( mCharge < 0.1f )
+            mCharge = 0.1f;
     }
     else
         rangeDest = 0.0f;
 
     realRange += ( rangeDest - realRange ) * 0.15f;
-    ruSetLightRange( light, realRange * charge );
+    ruSetLightRange( light, realRange * mCharge );
     position = position.Lerp( destPosition, 0.15f );
     ruSetNodePosition( model, position + offset );
 
@@ -73,12 +73,12 @@ void Flashlight::Attach( ruNodeHandle node )
 
 void Flashlight::Fuel()
 {
-    charge = maxCharge;
+    mCharge = maxCharge;
 }
 
 bool Flashlight::GotCharge()
 {
-    return charge > 0.0f;
+    return mCharge > 0.0f;
 }
 
 Flashlight::Flashlight()
@@ -99,7 +99,7 @@ Flashlight::Flashlight()
     rangeDest = onRange;
 
     maxCharge = 1.0f;
-    charge = maxCharge;
+    mCharge = maxCharge;
 
     chargeWorkTimeSeconds = 120.0f;
     bobArg = 0.0f;
@@ -109,7 +109,7 @@ Flashlight::Flashlight()
 void Flashlight::DeserializeWith( TextFileStream & in )
 {
     in.ReadFloat( maxCharge );
-    in.ReadFloat( charge );
+    in.ReadFloat( mCharge );
     in.ReadFloat( onRange );
     in.ReadFloat( realRange );
     in.ReadFloat( rangeDest );
@@ -123,7 +123,7 @@ void Flashlight::DeserializeWith( TextFileStream & in )
 void Flashlight::SerializeWith( TextFileStream & out )
 {
     out.WriteFloat( maxCharge );
-    out.WriteFloat( charge );
+    out.WriteFloat( mCharge );
     out.WriteFloat( onRange );
     out.WriteFloat( realRange );
     out.WriteFloat( rangeDest );

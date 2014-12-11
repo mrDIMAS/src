@@ -13,15 +13,7 @@ vector< SceneNode* > g_nodes;
 
 SceneNode * SceneNode::CastHandle( ruNodeHandle handle )
 {
-    SceneNode * n = reinterpret_cast< SceneNode *>( handle.pointer );
-
-    if( n->memoryTag == MEMORY_VALID_VALUE )
-        return n;
-
-    MessageBoxA( 0, "Invalid handle!", "CRITICAL", MB_ICONERROR | MB_OK );
-    abort();
-
-    return 0; //never reached
+    return reinterpret_cast< SceneNode *>( handle.pointer );
 }
 
 ruNodeHandle SceneNode::HandleFromPointer( SceneNode * ptr )
@@ -61,8 +53,6 @@ SceneNode::SceneNode( )
     char buf[ 64 ] = { 0 };
     sprintf_s( buf, "Unnamed%i", g_nodes.size());
     name = buf;
-
-    memoryTag = MEMORY_VALID_VALUE;
     inFrustum = false;
     parent = 0;
     body = 0;
@@ -268,7 +258,7 @@ SceneNode * SceneNode::LoadScene( const char * file )
     {
         MessageBoxA( 0, Format( "Unable to load '%s' scene!", file ).c_str(), 0, MB_OK | MB_ICONERROR );
         exit( -1 );
-        return 0;
+        return nullptr;
     }
 
     int numObjects = reader.GetInteger();

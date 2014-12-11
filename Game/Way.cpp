@@ -1,137 +1,137 @@
 #include "Way.h"
 #include "Player.h"
 
-vector<Way*> Way::sWayList;
+vector<Way*> Way::msWayList;
 
 Way::Way( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
 {
-    begin = hBegin;
-    end = hEnd;
-    enterZone = hEnterZone;
-    target = hBegin;
-    beginLeavePoint = hBeginLeavePoint;
-    endLeavePoint = hEndLeavePoint;
+    mBegin = hBegin;
+    mEnd = hEnd;
+    mEnterZone = hEnterZone;
+    mTarget = hBegin;
+    mBeginLeavePoint = hBeginLeavePoint;
+    mEndLeavePoint = hEndLeavePoint;
 
-    entering = false;
-    inside = false;
-    freeLook = false;
-    leave = false;
+    mEntering = false;
+    mInside = false;
+    mFreeLook = false;
+    mLeave = false;
 
-    sWayList.push_back( this );
+    msWayList.push_back( this );
 }
 
 Way::~Way()
 {
-    sWayList.erase( find( sWayList.begin(), sWayList.end(), this ));
+    msWayList.erase( find( msWayList.begin(), msWayList.end(), this ));
 }
 
 void Way::Enter()
 {
-    inside = false;
-    entering = true;
-    if( ( ruGetNodePosition( pPlayer->mBody ) - ruGetNodePosition( begin )).Length2() < ( ruGetNodePosition( pPlayer->mBody ) - ruGetNodePosition( end )).Length2() )
-        target = begin;
+    mInside = false;
+    mEntering = true;
+    if( ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mBegin )).Length2() < ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mEnd )).Length2() )
+        mTarget = mBegin;
     else
-        target = end;
-    ruFreeze( pPlayer->mBody );
+        mTarget = mEnd;
+    pPlayer->Freeze();
     pPlayer->mpCurrentWay = this;
 }
 
 void Way::DoEntering()
 {
-    if( entering ) {
-        ruVector3 direction = ruGetNodePosition( target ) - ruGetNodePosition( pPlayer->mBody );
+    if( mEntering ) {
+        ruVector3 direction = ruGetNodePosition( mTarget ) - pPlayer->GetCurrentPosition();
 
         float distance = direction.Length();
 
         direction.Normalize();
 
-        ruMoveNode( pPlayer->mBody, direction * 1.1f );
+        pPlayer->Move( direction, 1.1f );
 
         if( distance < 0.25f ) {
-            entering = false;
-            inside = true;
+            mEntering = false;
+            mInside = true;
 
-            if( target == end )
-                target = begin;
+            if( mTarget == mEnd )
+                mTarget = mBegin;
             else
-                target = end;
+                mTarget = mEnd;
 
-            ruMoveNode( pPlayer->mBody, ruVector3( 0, 0, 0 ));
+            pPlayer->StopInstant();
         }
     }
 }
 
 bool Way::IsFreeLook()
 {
-    return freeLook;
+    return mFreeLook;
 }
 
 ruNodeHandle Way::GetTarget()
 {
-    return target;
+    return mTarget;
 }
 
 bool Way::IsEnterPicked()
 {
-    return pPlayer->mNearestPickedNode == enterZone;
+    return pPlayer->mNearestPickedNode == mEnterZone;
 }
 
 bool Way::IsPlayerInside()
 {
-    return inside;
+    return mInside;
 }
 
 bool Way::IsEntering()
 {
-    return entering;
+    return mEntering;
 }
 
 ruNodeHandle Way::GetEnterZone()
 {
-    return enterZone;
+    return mEnterZone;
 }
 
 void Way::DeserializeWith( TextFileStream & in )
 {
-    inside = in.ReadBoolean(  );
-    entering = in.ReadBoolean(  );
-    freeLook = in.ReadBoolean(  );
-    leave = in.ReadBoolean();
+    mInside = in.ReadBoolean(  );
+    mEntering = in.ReadBoolean(  );
+    mFreeLook = in.ReadBoolean(  );
+    mLeave = in.ReadBoolean();
     int targetNum = in.ReadInteger( );
     if( targetNum == 0 )
-        target = begin;
+        mTarget = mBegin;
     if( targetNum == 1 )
-        target = end;
+        mTarget = mEnd;
     if( targetNum == 2 )
-        target = beginLeavePoint;
+        mTarget = mBeginLeavePoint;
     if( targetNum == 3 )
-        target = endLeavePoint;
+        mTarget = mEndLeavePoint;
 }
 
 void Way::SerializeWith( TextFileStream & out )
 {
-    out.WriteString( ruGetNodeName( enterZone ));
-    out.WriteBoolean( inside );
-    out.WriteBoolean( entering );
-    out.WriteBoolean( freeLook );
-    out.WriteBoolean( leave );
+    out.WriteString( ruGetNodeName( mEnterZone ));
+    out.WriteBoolean( mInside );
+    out.WriteBoolean( mEntering );
+    out.WriteBoolean( mFreeLook );
+    out.WriteBoolean( mLeave );
     int targetNum = 0;
-    if( target == begin )
+    if( mTarget == mBegin )
         targetNum = 0;
-    if( target == end )
+    if( mTarget == mEnd )
         targetNum = 1;
-    if( target == beginLeavePoint )
+    if( mTarget == mBeginLeavePoint )
         targetNum = 2;
-    if( target == endLeavePoint )
+    if( mTarget == mEndLeavePoint )
         targetNum = 3;
     out.WriteInteger( targetNum );
 }
 
 Way * Way::GetByObject( ruNodeHandle obj )
 {
-    for( auto way : sWayList )
-        if( way->enterZone == obj )
+    for( auto way : msWayList )
+        if( way->mEnterZone == obj )
             return way;
     return 0;
 }

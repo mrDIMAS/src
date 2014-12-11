@@ -5,26 +5,25 @@
 class LightAnimator
 {
 public:
-    enum
-    {
-        LAT_PEAK_FALLOFF = 1,
-        LAT_PEAK_NORMAL,
-        LAT_OFF,
-        LAT_ON,
-    };
-
-    LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult );
+	enum class AnimationType
+	{
+		PeakFalloff = 1,
+		PeakNormal,
+		Off,
+		On,
+	};
+private:
+	float mRangeDest;
+	float mRange;
+	float mPeakRangeMult;
+	float mOnRange;
+	ruNodeHandle mLight;
+	AnimationType mAnimType;
+	float mAnimSpeed;
+public:
+    explicit LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult );
     void Update();
-    void SetAnimationType( int lat );
-
-    float rangeTo;
-    float range;
-    float peakRangeMult;
-    float onRange;
-    ruNodeHandle light;
-    int lat;
-    float animSpeed;
-
-
-    static void UpdateAll();
+    void SetAnimationType( AnimationType lat );
+	AnimationType GetAnimationType();
+	static void UpdateAll();
 };

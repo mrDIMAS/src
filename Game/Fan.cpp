@@ -5,17 +5,22 @@
 
 void Fan::DoTurn()
 {
-    angle += turnSpeed;
-    ruSetNodeRotation( body, ruQuaternion( tAxis, angle ));
-    ruPlaySound( sound, 1 );
+    mAngle += mTurnSpeed;
+    ruSetNodeRotation( mBody, ruQuaternion( mTurnAxis, mAngle ));
+    ruPlaySound( mEngineSound, 1 );
 }
 
 Fan::Fan( ruNodeHandle obj, float ts, ruVector3 axis, ruSoundHandle snd )
 {
-    body = obj;
-    turnSpeed = ts;
-    tAxis = axis;
-    angle = 0;
-    sound = snd;
-    ruAttachSound( sound, body );
+    mBody = obj;
+    mTurnSpeed = ts;
+    mTurnAxis = axis;
+    mAngle = 0;
+    mEngineSound = snd;
+    ruAttachSound( mEngineSound, mBody );
+}
+
+Fan::~Fan()
+{
+
 }

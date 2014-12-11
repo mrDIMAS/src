@@ -368,6 +368,16 @@ void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture )
 
 /*
 ==========
+ruIsLight
+==========
+*/
+RUAPI bool ruIsLight( ruNodeHandle node ) {
+	Light * pLight = dynamic_cast< Light* >( (SceneNode*)node.pointer );
+	return pLight != nullptr;
+}
+
+/*
+==========
 SetSpotDefaultTexture
 ==========
 */

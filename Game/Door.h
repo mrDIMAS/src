@@ -15,17 +15,16 @@ public:
 public:
     ruNodeHandle door;
 
-    float maxAngle;
-    float offsetAngle;
-    float currentAngle;
+    float mMaxAngle;
+    float mOffsetAngle;
+    float mCurrentAngle;
 
-    State state;
+    State mState;
 
-    ruSoundHandle openSound;
-    ruSoundHandle closeSound;
+    ruSoundHandle mOpenSound;
+    ruSoundHandle mCloseSound;
 public:
-
-    static vector< Door* > all;
+    static vector< Door* > msDoorList;
 
     explicit Door( ruNodeHandle hDoor, float fMaxAngle );
     virtual ~Door();

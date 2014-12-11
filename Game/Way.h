@@ -6,18 +6,18 @@
 class Way
 {
 protected:
-    ruNodeHandle begin;
-    ruNodeHandle end;
-    ruNodeHandle enterZone;
-    ruNodeHandle target;
-    ruNodeHandle beginLeavePoint;
-    ruNodeHandle endLeavePoint;
-    bool inside;
-    bool entering;
-    bool freeLook;
-    bool leave;
+    ruNodeHandle mBegin;
+    ruNodeHandle mEnd;
+    ruNodeHandle mEnterZone;
+    ruNodeHandle mTarget;
+    ruNodeHandle mBeginLeavePoint;
+    ruNodeHandle mEndLeavePoint;
+    bool mInside;
+    bool mEntering;
+    bool mFreeLook;
+    bool mLeave;
 public:
-    static vector<Way*> sWayList;
+    static vector<Way*> msWayList;
 
     enum class Direction
     {

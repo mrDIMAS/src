@@ -19,26 +19,26 @@
 class Level
 {
 private:
-    vector<Item*> items;
-    vector<Sheet*> sheets;
-    vector<Door*> doors;
-    vector<CrawlWay*> crawlWays;
-    vector<Ladder*> ladders;
-    vector<ItemPlace*> itemPlaces;
-    vector<Valve*> valves;
-    vector<Lift*> lifts;
-    vector<ruSoundHandle> sounds;
+    vector<Item*> mItemList;
+    vector<Sheet*> mSheetList;
+    vector<Door*> mDoorList;
+    vector<CrawlWay*> mCrawlWayList;
+    vector<Ladder*> mLadderList;
+    vector<ItemPlace*> mItemPlaceList;
+    vector<Valve*> mValveList;
+    vector<Lift*> mLiftList;
+    vector<ruSoundHandle> mSounds;
     virtual void OnSerialize( TextFileStream & out ) = 0;
     virtual void OnDeserialize( TextFileStream & in ) = 0;
-    AmbientSoundSet ambSoundSet;
-	ruNodeHandle scene;
+    AmbientSoundSet mAmbSoundSet;
+	ruNodeHandle mScene;
 	bool mInitializationComplete;
 protected:
     Parser mLocalization;    
 public:
     int mTypeNum;
-    ruSoundHandle music;
-    unordered_map<string, bool > stages;
+    ruSoundHandle mMusic;
+    unordered_map<string, bool > mStages;
     void AddItem( Item * item );
     void AddItemPlace( ItemPlace * ipc );
     void AddSheet( Sheet * sheet );
@@ -57,13 +57,11 @@ public:
     virtual void DoScenario() = 0;
     virtual void Hide();
     virtual void Show();
-	void DoneInitialization( ) {
-		mInitializationComplete = true;
-	}
+	void DoneInitialization( );
 	void BuildPath( Path & path, const char * nodeBaseName );
 	void CreateBlankScene();
 	ruNodeHandle GetUniqueObject( const char * name );
-    static int curLevelID;
+    static int msCurLevelID;
     static void Change( int levelId, bool continueFromSave = false );
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;

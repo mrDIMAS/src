@@ -10,11 +10,11 @@ TestingChamber::TestingChamber( )
 {
     LoadSceneFromFile( "data/maps/candidates/testingChamber/testingChamber.scene" );
 
-    ruSetNodePosition( pPlayer->mBody, ruGetNodePosition( ruFindByName("PlayerPosition") ) + ruVector3( 0, 1, 0 ) );
+    pPlayer->SetPosition( ruGetNodePosition( ruFindByName("PlayerPosition") ) + ruVector3( 0, 1, 0 ) );
 
-    Item * fuelCanister = new Item( ruFindByName( "FuelCanister" ), Item::FuelCanister );
-    Item * detonator = new Item( ruFindByName( "Detonator" ), Item::Detonator );
-    Item * wires = new Item( ruFindByName( "Wires" ), Item::Wires );
+    Item * fuelCanister = new Item( ruFindByName( "FuelCanister" ), Item::Type::FuelCanister );
+    Item * detonator = new Item( ruFindByName( "Detonator" ), Item::Type::Detonator );
+    Item * wires = new Item( ruFindByName( "Wires" ), Item::Type::Wires );
 
     Ladder * testLadder = new Ladder( GetUniqueObject( "LadderBegin"), GetUniqueObject( "LadderEnd"), GetUniqueObject( "LadderEnter"),
                                       GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint"));

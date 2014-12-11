@@ -2,30 +2,31 @@
 #include "GUI.h"
 #include "Player.h"
 
+
 Inventory::Inventory()
 {
-    localization.ParseFile( localizationPath + "inventory.loc" );
+    mLocalization.ParseFile( localizationPath + "inventory.loc" );
 
-    backgroundTexture = ruGetTexture( "data/gui/inventory/background.png");
-    cellTexture = ruGetTexture( "data/gui/inventory/cell.png" );
-    buttonTexture = ruGetTexture( "data/gui/inventory/button.png" );
+    mBackgroundTexture = ruGetTexture( "data/gui/inventory/background.png");
+    mCellTexture = ruGetTexture( "data/gui/inventory/cell.png" );
+    mButtonTexture = ruGetTexture( "data/gui/inventory/button.png" );
 
-    opened = 0;
-    selected = 0;
+    mOpened = 0;
+    mpSelected = 0;
 
-    cellWidth = 64;
-    cellHeight = 64;
-    cellCountWidth = 5;
-    cellCountHeight = 4;
+    mCellWidth = 64;
+    mCellHeight = 64;
+    mCellCountWidth = 5;
+    mCellCountHeight = 4;
 
-    font = ruCreateGUIFont( 14, "data/fonts/font1.otf", 0, 0 );
+    mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf", 0, 0 );
 
-    combineItemFirst = 0;
-    combineItemSecond = 0;
+    mpCombineItemFirst = 0;
+    mpCombineItemSecond = 0;
 
     mpItemForUse = 0;
 
-    pickSound = ruLoadSound2D( "data/sounds/menupick.ogg" );
+    mPickSound = ruLoadSound2D( "data/sounds/menupick.ogg" );
 }
 
 bool Inventory::IsMouseInside( int x, int y, int w, int h )
@@ -35,40 +36,16 @@ bool Inventory::IsMouseInside( int x, int y, int w, int h )
 
 void Inventory::DoCombine()
 {
-    int type1 = combineItemFirst->mType;
-    int type2 = combineItemSecond->mType;
-
-    if( combineItemSecond->mCombineType == combineItemFirst->mType  )
-    {
-        if( combineItemFirst->mCombineType == combineItemSecond->mType )
-        {
-            if( ( type1 == Item::FuelCanister && type2 == Item::Flashlight ) || ( type1 == Item::Flashlight && type2 == Item::FuelCanister ) )
-            {
-                Item * canister   = ( type1 == Item::FuelCanister ? combineItemFirst : combineItemSecond );
-                Item * flashlight = ( type2 == Item::Flashlight ? combineItemSecond : combineItemFirst );
-
-                if( canister->mContent > 0 )
-                {
-                    flashlight->mContent = 1.0f;
-
-                    pPlayer->ChargeFlashLight( canister );
-                }
-
-                ThrowItem( canister );
-            }
-            else
-            {
-                combineItemFirst->SetType( combineItemSecond->mOnCombineBecomes );
-
-                mItemList.erase( find( mItemList.begin(), mItemList.end(), combineItemSecond ));
-            }
-
-            combineItemFirst = 0;
-            combineItemSecond = 0;
-
-            selected = 0;
-        }
-    }
+	Item * pUsedItem = nullptr;
+    if( mpCombineItemFirst->Combine( mpCombineItemSecond, pUsedItem )) // combine successfull 
+	{
+		mpCombineItemFirst = nullptr;
+		mpCombineItemSecond = nullptr;
+		mpSelected = nullptr;
+		if( pUsedItem ) {
+			ThrowItem( pUsedItem );
+		}
+	}
 }
 
 void Inventory::Update()
@@ -80,18 +57,18 @@ void Inventory::Update()
     if( mpItemForUse )
     {
         ruHideCursor();
-        ruDrawGUIRect( screenCenterX, screenCenterY, 64, 64, mpItemForUse->mPic, whiteColor, 255 );
+        ruDrawGUIRect( screenCenterX, screenCenterY, 64, 64, mpItemForUse->GetPictogram(), whiteColor, 255 );
         if( ruIsMouseHit( MB_Left ))
         {
-            mpItemForUse = 0;
-            selected = 0;
+            mpItemForUse = nullptr;
+            mpSelected = nullptr;
         }
-        if( opened )
+        if( mOpened )
             mpItemForUse = 0;
         return;
     }
 
-    if( !opened )
+    if( !mOpened )
     {
         ruHideCursor();
         return;
@@ -100,67 +77,67 @@ void Inventory::Update()
     ruShowCursor();
 
     float distMult = 1.1f;
-    int cellSpaceX = distMult * cellWidth / (float)cellCountWidth;
-    int cellSpaceY = distMult * cellHeight / (float)cellCountHeight;
-    int coordX = screenCenterX - 0.5f * (float)cellCountWidth * (float)cellWidth - cellSpaceX;
-    int coordY = screenCenterY - 0.5f * (float)cellCountHeight * (float)cellHeight - cellSpaceY;
+    int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
+    int cellSpaceY = distMult * mCellHeight / (float)mCellCountHeight;
+    int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX;
+    int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY;
     // draw background
     int backGroundSpace = 20;
     int backgroundX = coordX - backGroundSpace;
     int backgroundY = coordY - backGroundSpace;
-    int backgroundW = cellCountWidth * cellWidth + 2.5 * backGroundSpace + cellSpaceX;
-    int backgroundH = cellCountHeight * cellHeight + 2.5 * backGroundSpace + cellSpaceY;
-    ruDrawGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, backgroundTexture );
+    int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX;
+    int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY;
+    ruDrawGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture );
     // draw item description
     int combineH = 128;
     int combineY = backgroundY + backgroundH;
     int descriptionY = combineY + 10;
-    ruDrawGUIRect( backgroundX, combineY, backgroundW, combineH, backgroundTexture );
-    ruDrawGUIText( localization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW, combineH, font, whiteColor, 0 );
+    ruDrawGUIRect( backgroundX, combineY, backgroundW, combineH, mBackgroundTexture );
+    ruDrawGUIText( mLocalization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW, combineH, mFont, whiteColor, 0 );
     // draw item actions
     int actionsW = 128;
     int actionsX = backgroundX + backgroundW;
-    ruDrawGUIRect( actionsX, backgroundY, actionsW, backgroundH + combineH, backgroundTexture );
+    ruDrawGUIRect( actionsX, backgroundY, actionsW, backgroundH + combineH, mBackgroundTexture );
     // draw actions buttons
     int buttonSpace = 10;
     int buttonsX = actionsX + buttonSpace;
     int buttonY = backgroundY + 2 * buttonSpace;
     int buttonH = 30;
     int buttonW = actionsW - 2 * buttonSpace;
-    bool canCombine = ( combineItemFirst != 0 && combineItemSecond != 0 );
-    int useAlpha = selected ? 255 : 60;
-    ruGUIState buttonUse = ruDrawGUIButton( buttonsX, buttonY, buttonW, buttonH, buttonTexture, localization.GetString( "use" ), font, whiteColor, 1, useAlpha );
-    ruGUIState buttonThrow = ruDrawGUIButton( buttonsX, buttonY + 1.2f * buttonH, buttonW, buttonH, buttonTexture, localization.GetString( "throw" ), font, whiteColor, 1, useAlpha );
+    bool canCombine = ( mpCombineItemFirst != 0 && mpCombineItemSecond != 0 );
+    int useAlpha = mpSelected ? 255 : 60;
+    ruGUIState buttonUse = ruDrawGUIButton( buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "use" ), mFont, whiteColor, 1, useAlpha );
+    ruGUIState buttonThrow = ruDrawGUIButton( buttonsX, buttonY + 1.2f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "throw" ), mFont, whiteColor, 1, useAlpha );
     int combineAlpha = canCombine ? 255 : 60;
-    ruGUIState buttonCombine = ruDrawGUIButton( buttonsX, buttonY + 2.4f * buttonH, buttonW, buttonH, buttonTexture, localization.GetString( "combine" ), font, whiteColor, 1, combineAlpha );
+    ruGUIState buttonCombine = ruDrawGUIButton( buttonsX, buttonY + 2.4f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "combine" ), mFont, whiteColor, 1, combineAlpha );
     // draw combine items
     int combineBoxY = buttonY + 3.6f * buttonH;
     ruVector3 combineColor1 = whiteColor;
     ruVector3 combineColor2 = whiteColor;
     int combineBoxSpacing = 5;
-    buttonsX += cellWidth / 2 - 2 * combineBoxSpacing;
-    if( combineItemFirst )
+    buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
+    if( mpCombineItemFirst )
     {
-        ruDrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, cellWidth - 2 * combineBoxSpacing, cellHeight - 2 * combineBoxSpacing, combineItemFirst->mPic );
-        if( IsMouseInside( buttonsX, combineBoxY, cellWidth, cellHeight ))
+        ruDrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, mpCombineItemFirst->GetPictogram() );
+        if( IsMouseInside( buttonsX, combineBoxY, mCellWidth, mCellHeight ))
         {
             combineColor1 = ruVector3( 255, 0, 0 );
             if( ruIsMouseHit( MB_Left ))
-                combineItemFirst = 0;
+                mpCombineItemFirst = 0;
         }
     }
-    if( combineItemSecond )
+    if( mpCombineItemSecond )
     {
-        ruDrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * cellHeight + combineBoxSpacing, cellWidth - 2 * combineBoxSpacing, cellHeight - 2 * combineBoxSpacing, combineItemSecond->mPic );
-        if( IsMouseInside( buttonsX, combineBoxY + 1.2f * cellHeight, cellWidth, cellHeight ))
+        ruDrawGUIRect( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * mCellHeight + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, mpCombineItemSecond->GetPictogram() );
+        if( IsMouseInside( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight ))
         {
             combineColor2 = ruVector3( 255, 0, 0 );
             if( ruIsMouseHit( MB_Left ))
-                combineItemSecond = 0;
+                mpCombineItemSecond = 0;
         }
     }
-    ruDrawGUIRect( buttonsX, combineBoxY, cellWidth, cellHeight, cellTexture, combineColor1, 255 );
-    ruDrawGUIRect( buttonsX, combineBoxY + 1.2f * cellHeight, cellWidth, cellHeight, cellTexture, combineColor2, 255 );
+    ruDrawGUIRect( buttonsX, combineBoxY, mCellWidth, mCellHeight, mCellTexture, combineColor1, 255 );
+    ruDrawGUIRect( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight, mCellTexture, combineColor2, 255 );
     // do combine
     if( buttonCombine.mouseLeftClicked )
     {
@@ -170,98 +147,102 @@ void Inventory::Update()
     // use item
     if( buttonUse.mouseLeftClicked )
     {
-        if( selected )
+        if( mpSelected )
         {
-            mpItemForUse = selected;
-            opened = false;
+            mpItemForUse = mpSelected;
+            mOpened = false;
         }
     }
     // throw item
     if( buttonThrow.mouseLeftClicked )
     {
-        if( selected )
+        if( mpSelected )
         {
-            if( selected->mThrowable )
-                ThrowItem( selected );
+            if( mpSelected->IsThrowable() )
+                ThrowItem( mpSelected );
         }
     }
     // characteristics
-    ruDrawGUIText( localization.GetString( "characteristics" ), actionsX + buttonSpace, combineBoxY + 2.2f * cellHeight, backgroundW, combineH, font, whiteColor, 0 );
+    ruDrawGUIText( mLocalization.GetString( "characteristics" ), actionsX + buttonSpace, combineBoxY + 2.2f * mCellHeight, backgroundW, combineH, mFont, whiteColor, 0 );
     // draw cells and item image
     bool combinePick = true;
-    for( int cw = 0; cw < cellCountWidth; cw++ )
+    for( int cw = 0; cw < mCellCountWidth; cw++ )
     {
-        for( int ch = 0; ch < cellCountHeight; ch++ )
+        for( int ch = 0; ch < mCellCountHeight; ch++ )
         {
-            Item * picked = 0;
+            Item * pPicked = 0;
             ruVector3 color = whiteColor;
             int alpha = 180;
             // get item for draw
-            int itemNum = cw * cellCountHeight + ch;
-            Item * item = nullptr;
+            int itemNum = cw * mCellCountHeight + ch;
+            Item * pItem = nullptr;
             if( itemNum < mItemList.size() )
-                item = mItemList[ itemNum ];
-            if( item )
-                if( selected == item )
+                pItem = mItemList[ itemNum ];
+            if( pItem )
+                if( mpSelected == pItem )
                 {
                     color = ruVector3( 0, 200, 0 );
                     alpha = 255;
                 }
             bool pressed = false;
-            int cellX = coordX + distMult * cellWidth * cw;
-            int cellY = coordY + distMult * cellHeight * ch;
-            if( IsMouseInside( cellX, cellY, cellWidth, cellHeight ) )
+            int cellX = coordX + distMult * mCellWidth * cw;
+            int cellY = coordY + distMult * mCellHeight * ch;
+            if( IsMouseInside( cellX, cellY, mCellWidth, mCellHeight ) )
             {
                 color = ruVector3( 255, 0, 0 );
                 alpha = 255;
-                if( item != combineItemFirst && item != combineItemSecond )
+                if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond )
                 {
-                    picked = item;
+                    pPicked = pItem;
                     if( ruIsMouseHit( MB_Left ))
                     {
                         pressed = true;
-                        selected = item;
+                        mpSelected = pItem;
                     }
                 }
             }
-            ruDrawGUIRect( cellX, cellY, cellWidth, cellHeight, cellTexture, color, alpha );
-            if( picked )
+            ruDrawGUIRect( cellX, cellY, mCellWidth, mCellHeight, mCellTexture, color, alpha );
+            if( pPicked )
             {
                 if( ruIsMouseHit( MB_Right ) && combinePick )
                 {
-                    if( combineItemFirst == 0 )
+                    if( mpCombineItemFirst == 0 )
                     {
-                        if( picked != combineItemFirst )
-                            combineItemFirst = picked;
+                        if( pPicked != mpCombineItemFirst )
+                            mpCombineItemFirst = pPicked;
                     }
-                    else if( combineItemSecond == 0 )
+                    else if( mpCombineItemSecond == 0 )
                     {
-                        if( picked != combineItemSecond )
-                            combineItemSecond = picked;
+                        if( pPicked != mpCombineItemSecond )
+                            mpCombineItemSecond = pPicked;
                     }
 
                     combinePick = false;
-                    selected = 0;
+                    mpSelected = 0;
                 }
             }
 
-            if( item )
+            if( pItem )
             {
-                if( item != combineItemFirst && item != combineItemSecond )
+                if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond )
                 {
                     int itemSpacing = 5;
-                    ruDrawGUIRect( cellX + itemSpacing, cellY + itemSpacing, cellWidth - 2 * itemSpacing, cellHeight - 2 * itemSpacing, item->mPic, ruVector3( 255, 255, 255 ), alpha );
+                    ruDrawGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, pItem->GetPictogram(), ruVector3( 255, 255, 255 ), alpha );
 
-                    if( item == picked )
+                    if( pItem == pPicked )
                     {
-                        int offset = combineBoxY + 2.2f * cellHeight;
-                        ruDrawGUIText( item->mDesc.c_str(), backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing , combineH - 2 * itemSpacing, pGUI->mFont, ruVector3( 200, 200, 200 ), 0, alpha );
+                        int offset = combineBoxY + 2.2f * mCellHeight;
+                        ruDrawGUIText( pItem->GetDescription(), backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing , combineH - 2 * itemSpacing, pGUI->mFont, ruVector3( 200, 200, 200 ), 0, alpha );
                         // draw characteristics of item
                         int charSpace = 28;
-                        ruDrawGUIText( item->mContentType, actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, font, whiteColor, 0 );
-                        ruDrawGUIText( item->mContent, actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, font, whiteColor, 0 );
-                        ruDrawGUIText( item->mVolume, actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, font, whiteColor, 0 );
-                        ruDrawGUIText( item->mMass, actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, font, whiteColor, 0 );
+						string contentTypeFormatted = Format( "%s : %s", mLocalization.GetString( "contentType" ), pItem->GetContentType());
+						string contentFormatted = Format( "%s: %f", mLocalization.GetString( "content" ), pItem->GetContent() );
+						string volumeFormatted = Format( "%s: %f", mLocalization.GetString( "volume" ), pItem->GetVolume() );
+						string massFormatted = Format( "%s: %f", mLocalization.GetString( "mass" ), pItem->GetMass() );
+                        ruDrawGUIText( contentTypeFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
+                        ruDrawGUIText( contentFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
+                        ruDrawGUIText( volumeFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
+                        ruDrawGUIText( massFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
                     }
                 }
             }
@@ -269,17 +250,76 @@ void Inventory::Update()
     }
 }
 
-void Inventory::RemoveItem( Item * item )
+void Inventory::RemoveItem( Item * pItem )
 {
-    mItemList.erase( find( mItemList.begin(), mItemList.end(), item ));
+    mItemList.erase( find( mItemList.begin(), mItemList.end(), pItem ));
 }
 
-void Inventory::ThrowItem( Item * item )
+void Inventory::ThrowItem( Item * pItem )
 {
-    item->mInInventory = false;
-    ruSetNodePosition( item->mObject, pPlayer->GetCurrentPosition() + 2 * ruGetNodeLookVector( pPlayer->mBody ) + ruVector3( 0, 1, 0 ));
-    ruUnfreeze( item->mObject );
-    RemoveItem( item );
-    item->mContent = 0.0f;
-    selected = 0;
+    pItem->MarkAsFree();
+    ruSetNodePosition( pItem->mObject, pPlayer->GetCurrentPosition() + 2 * pPlayer->GetLookDirection() + ruVector3( 0, 1, 0 ));
+    ruUnfreeze( pItem->mObject );
+    RemoveItem( pItem );
+    pItem->SetContent( 0.0f );
+    mpSelected = nullptr;
+}
+
+Inventory::~Inventory()
+{
+
+}
+
+void Inventory::Open( bool val )
+{
+	mOpened = val;
+}
+
+bool Inventory::IsOpened() const
+{
+	return mOpened;
+}
+
+void Inventory::Deserialize( TextFileStream & in )
+{
+
+}
+
+void Inventory::Serialize( TextFileStream & out )
+{
+	out.WriteInteger( GetItemCount() );
+	for( auto pItem : pPlayer->mInventory.mItemList ) {
+		// write object name for further identification
+		out.WriteString( ruGetNodeName( pItem->mObject ) );
+	}
+}
+
+void Inventory::AddItem( Item * pItem )
+{
+	mItemList.push_back( pItem );
+}
+
+bool Inventory::Contains( Item * pItem )
+{
+	for( auto npItem : mItemList )
+	{
+		if( npItem == pItem )
+			return true;
+	}
+	return false;
+}
+
+void Inventory::ResetSelectedForUse()
+{
+	mpItemForUse = nullptr;
+}
+
+Item * Inventory::GetItemSelectedForUse()
+{
+	return mpItemForUse;
+}
+
+int Inventory::GetItemCount()
+{
+	return mItemList.size();
 }

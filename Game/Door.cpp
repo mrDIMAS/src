@@ -2,7 +2,7 @@
 
 #include "Player.h"
 
-vector< Door* > Door::all;
+vector< Door* > Door::msDoorList;
 
 bool Door::IsPickedByPlayer()
 {
@@ -11,92 +11,92 @@ bool Door::IsPickedByPlayer()
 
 Door::~Door()
 {
-    all.erase( find( all.begin(), all.end(), this ));
+    msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
 Door::Door( ruNodeHandle hDoor, float fMaxAngle )
 {
     door = hDoor;
 
-    maxAngle = fMaxAngle;
+    mMaxAngle = fMaxAngle;
 
-    offsetAngle = ruGetNodeEulerAngles( hDoor ).y;
+    mOffsetAngle = ruGetNodeEulerAngles( hDoor ).y;
 
-    currentAngle = 0;
+    mCurrentAngle = 0;
 
-    state = State::Closed;
+    mState = State::Closed;
 
-    openSound = ruLoadSound3D( "data/sounds/door/dooropen.ogg" );
-    ruAttachSound( openSound, door );
+    mOpenSound = ruLoadSound3D( "data/sounds/door/dooropen.ogg" );
+    ruAttachSound( mOpenSound, door );
 
-    closeSound = ruLoadSound3D( "data/sounds/door/doorclose.ogg" );
-    ruAttachSound( closeSound, door );
+    mCloseSound = ruLoadSound3D( "data/sounds/door/doorclose.ogg" );
+    ruAttachSound( mCloseSound, door );
 
-    all.push_back( this );
+    msDoorList.push_back( this );
 }
 
 void Door::DoInteraction()
 {
-    if( state == State::Closing )
+    if( mState == State::Closing )
     {
-        currentAngle -= 60.0f * g_dt;
+        mCurrentAngle -= 60.0f * g_dt;
 
-        if( currentAngle < 0 )
+        if( mCurrentAngle < 0 )
         {
-            currentAngle = 0.0f;
+            mCurrentAngle = 0.0f;
 
-            state = State::Closed;
+            mState = State::Closed;
         }
     }
 
-    if( state == State::Opening )
+    if( mState == State::Opening )
     {
-        currentAngle += 60.0f * g_dt;
+        mCurrentAngle += 60.0f * g_dt;
 
-        if( currentAngle > maxAngle )
+        if( mCurrentAngle > mMaxAngle )
         {
-            state = State::Opened;
+            mState = State::Opened;
 
-            currentAngle = maxAngle;
+            mCurrentAngle = mMaxAngle;
         }
     }
 
-    ruSetNodeRotation( door, ruQuaternion( ruVector3( 0, 1, 0 ), currentAngle + offsetAngle ));
+    ruSetNodeRotation( door, ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
 }
 
 Door::State Door::GetState()
 {
-    return state;
+    return mState;
 }
 
 void Door::SwitchState()
 {
-    if( state == State::Closed )
+    if( mState == State::Closed )
     {
-        state = State::Opening;
-        ruPlaySound( openSound );
+        mState = State::Opening;
+        ruPlaySound( mOpenSound );
     }
-    if( state == State::Opened )
+    if( mState == State::Opened )
     {
-        state = State::Closing;
-        ruPlaySound( closeSound );
+        mState = State::Closing;
+        ruPlaySound( mCloseSound );
     }
 }
 
 void Door::Close()
 {
-    if( state == State::Opened )
+    if( mState == State::Opened )
     {
-        state = State::Closing;
-        ruPlaySound( closeSound );
+        mState = State::Closing;
+        ruPlaySound( mCloseSound );
     }
 }
 
 void Door::Open()
 {
-    if( state == State::Closed )
+    if( mState == State::Closed )
     {
-        state = State::Opening;
-        ruPlaySound( openSound );
+        mState = State::Opening;
+        ruPlaySound( mOpenSound );
     }
 }

@@ -7,80 +7,56 @@
 class Item : public InteractiveObject
 {
 public:
-    static Parser msLoc;
-    class Property
-    {
-    private:
-        void Format();
-
-        void SetFloatValue( float f );
-
-        void SetstringValue( string s );
-        string mStringValue;
-        float mFloatValue;
-        string mFormatted;
-
-
-    public:
-        string mDesc;
-
-        Property( string description, string theValue );
-
-        Property( );
-
-        Property( const Property & p );
-
-        Property( string description, float theValue );
-
-
-        operator float() const
-        {
-            return mFloatValue;
-        }
-
-        operator const char * () const
-        {
-            return mFormatted.c_str();
-        }
-
-        void operator=( const string & s )
-        {
-            SetstringValue( s );
-        }
-
-        void operator=( const float & p )
-        {
-            SetFloatValue( p );
-        }
-    };
-
-    ruTextureHandle mPic;
-    string mDesc;
-    string mName;
-    int mType;
-    int mCombineType;
-    int mOnCombineBecomes;
-    bool mThrowable;
-    bool mInInventory;
-
-    Property mVolume;
-    Property mMass;
-    Property mContent;
-    Property mContentType;
-
-    enum
-    {
-        Detonator = 1,
-        FuelCanister,
-        Wires,
-        Explosives,
-        Flashlight,
-        Fuse,
-        Medkit,
-    };
-
-    Item( ruNodeHandle obj, int typ );
-    void SetType( int typ );
+	enum class Type
+	{
+		Unknown,
+		Detonator,
+		FuelCanister,
+		Wires,
+		Explosives,
+		Flashlight,
+		Fuse,
+		Medkit,
+	};
+private:
+	static Parser msLoc;
+	ruTextureHandle mPic;
+	string mDesc;
+	string mName;
+	Type mType;
+	Type mCombinePair;
+	Type mMorphType;
+	bool mThrowable;
+	bool mInInventory;
+	float mVolume;
+	float mMass;
+	float mContent;
+	string mContentTypeDesc;
+public:
+	explicit Item( ruNodeHandle obj, Type type );
+	virtual ~Item();
+	bool Combine( Item * pItem, Item* & throwItem );
+	Type GetType() const;
+	Type GetCombineType() const;
+	bool IsThrowable() const;
+	ruTextureHandle GetPictogram() const;
+	float GetContent() const;
+	void SetContent( float content );
+	const char * GetContentType() const;
+	void SetContentType( const char * contentType );
+	const char * GetDescription() const;
+	const char * GetName() const;
+	void SetMass( float mass );
+	float GetMass() const;
+	float GetVolume() const;
+	void SetVolume(float val);
+    void SetType( Type type );
+	void MarkAsGrabbed();
+	void MarkAsFree();
+	bool IsFree() 
+	{
+		return mInInventory == false;
+	}
     static vector<Item*> Available;
     static Item * GetByObject( ruNodeHandle obj );
 };

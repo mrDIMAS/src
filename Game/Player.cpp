@@ -133,25 +133,11 @@ Player::CanJump
 */
 bool Player::IsCanJump( )
 {
-    ruNodeHandle legBump = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, bodyHeight, 0 ), 0 );
+    ruNodeHandle legBump = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight, 0 ), 0 );
     if( legBump.IsValid() )
         return true;
     else
         return false;
-}
-
-/*
-========
-Player::GotItemAnyOfType
-========
-*/
-int Player::IsGotItemAnyOfType( int type )
-{
-    for( auto item : mInventory.mItemList ) {
-        if( item->mType == type )
-            return true;
-    }
-    return false;
 }
 
 /*
@@ -197,22 +183,21 @@ void Player::Damage( float dmg )
 Player::AddItem
 ========
 */
-void Player::AddItem( Item * itm )
+void Player::AddItem( Item * pItem )
 {
-    if( !itm )
+    if( !pItem )
         return;
 
-    for( auto item : mInventory.mItemList )
-        if( item == itm )
-            return;
+    if( mInventory.Contains( pItem ))
+        return;
 
-    ruFreeze( itm->mObject );
-    ruDetachNode( itm->mObject );
-    itm->mInInventory = true;
+    ruFreeze( pItem->mObject );
+    ruDetachNode( pItem->mObject );
+    pItem->MarkAsGrabbed();
 
-    ruSetNodePosition( itm->mObject, ruVector3( 10000, 10000, 10000 )); // far far away
+    ruSetNodePosition( pItem->mObject, ruVector3( 10000, 10000, 10000 )); // far far away
 
-    mInventory.mItemList.push_back( itm );
+    mInventory.AddItem( pItem );
 }
 
 /*
@@ -223,7 +208,7 @@ Player::UpdateInventory
 void Player::UpdateInventory()
 {
     if( ruIsKeyHit( mKeyInventory ) )
-        mInventory.opened = !mInventory.opened;
+        mInventory.Open( !mInventory.IsOpened() );
 
     mInventory.Update();
 }
@@ -267,7 +252,7 @@ void Player::UpdateMouseLook()
     else
         mSmoothCamera = true;
 
-    if( !mInventory.opened ) {
+    if( !mInventory.IsOpened() ) {
         float mouseSpeed =  mouseSens / 2.0f;
         if( mpCurrentWay ) {
             if( !mpCurrentWay->IsFreeLook() )
@@ -291,7 +276,7 @@ void Player::UpdateMouseLook()
 
     mHeadAngle.SetTarget( 0.0f );
     if( ruIsKeyDown( mKeyLookLeft )) {
-        ruVector3 rayBegin = ruGetNodePosition( mBody ) + ruVector3( bodyWidth / 2, 0, 0 );
+        ruVector3 rayBegin = ruGetNodePosition( mBody ) + ruVector3( mBodyWidth / 2, 0, 0 );
         ruVector3 rayEnd = rayBegin + ruGetNodeRightVector( mBody ) * 10.0f;
         ruVector3 hitPoint;
         ruNodeHandle leftIntersection = ruCastRay( rayBegin, rayEnd, &hitPoint );
@@ -306,7 +291,7 @@ void Player::UpdateMouseLook()
     }
 
     if( ruIsKeyDown( mKeyLookRight )) {
-        ruVector3 rayBegin = ruGetNodePosition( mBody ) - ruVector3( bodyWidth / 2, 0, 0 );
+        ruVector3 rayBegin = ruGetNodePosition( mBody ) - ruVector3( mBodyWidth / 2, 0, 0 );
         ruVector3 rayEnd = rayBegin - ruGetNodeRightVector( mBody ) * 10.0f;
         ruVector3 hitPoint;
         ruNodeHandle rightIntersection = ruCastRay( rayBegin, rayEnd, &hitPoint );
@@ -331,7 +316,7 @@ Player::UpdateJumping
 void Player::UpdateJumping()
 {
     // do ray test, to determine collision with objects above camera
-    ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, bodyHeight * 0.98, 0 ), ruGetNodePosition( mBody ) + ruVector3( 0, 1.02 * bodyHeight, 0 ), nullptr );
+    ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, mBodyHeight * 0.98, 0 ), ruGetNodePosition( mBody ) + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
 
     if( ruIsKeyHit( mKeyJump ) ) {
         if( IsCanJump() ) {
@@ -359,7 +344,7 @@ Player::UpdateMoving
 */
 void Player::UpdateMoving()
 {
-    for( auto cw : Way::sWayList ) {
+    for( auto cw : Way::msWayList ) {
         if( cw->IsEnterPicked() ) {
             if( !cw->IsPlayerInside() )
                 DrawTip( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )));
@@ -369,7 +354,7 @@ void Player::UpdateMoving()
         }
     }
 
-    for( auto door : Door::all ) {
+    for( auto door : Door::msDoorList ) {
         door->DoInteraction();
 
         if( door->IsPickedByPlayer() ) {
@@ -759,12 +744,9 @@ void Player::DrawSheetInHands()
 {
     if( mpSheetInHands ) {
         mpSheetInHands->Draw();
-
-        mPickedObjectDesc = mpSheetInHands->desc;
-
-        mPickedObjectDesc += mLocalization.GetString( "sheetOpen" );
-
-        if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 )
+        mPickedObjectDesc = mpSheetInHands->GetDescription();
+        mPickedObjectDesc += mLocalization.GetString( "sheetOpen" );		
+		if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 )
             CloseCurrentSheet();
     }
 }
@@ -797,6 +779,7 @@ Player::UpdateEnvironmentDamaging
 */
 void Player::UpdateEnvironmentDamaging()
 {
+	// sometimes this kill player instantly, thats why it is commented
     /*
     for( int i = 0; i < GetContactCount( body ); i++ ) {
         Contact contact = GetContact( body, i );
@@ -832,7 +815,7 @@ void Player::UpdateItemsHandling()
                 if( sheet ) {
                     mpSheetInHands = sheet;
                     ruHideNode( mpSheetInHands->mObject );
-                    ruPlaySound( Sheet::paperFlip );
+                    ruPlaySound( Sheet::msPaperFlipSound );
                 }
             }
         }
@@ -884,17 +867,17 @@ void Player::UpdatePicking()
         ruVector3 ppPos = ruGetNodePosition( mPickPoint );
         ruVector3 dir = ppPos - pickPosition;
 
-        Item * itm = Item::GetByObject( mPickedNode );
-        Sheet * sheet = Sheet::GetSheetByObject( mPickedNode );
+        Item * pItem = Item::GetByObject( mPickedNode );
+        Sheet * pSheet = Sheet::GetSheetByObject( mPickedNode );
 
         if( dir.Length2() < 1.5f ) {
             mNearestPickedNode = mPickedNode;
 
-            if( itm ) {
-                mPickedObjectDesc = itm->mName;
+            if( pItem ) {
+                mPickedObjectDesc = pItem->GetName();
                 mPickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
-            } else if( sheet ) {
-                mPickedObjectDesc = sheet->desc;
+            } else if( pSheet ) {
+                mPickedObjectDesc = pSheet->GetDescription();
                 mPickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
             } else {
                 if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode ))
@@ -909,7 +892,7 @@ void Player::UpdatePicking()
             }
         }
 
-        if( !itm && !sheet )
+        if( !pItem && !pSheet )
             mPickedObjectDesc = " ";
     }
 }
@@ -925,8 +908,8 @@ void Player::CreateFlashLight()
 
     mpFlashlight->Attach( mpCamera->mNode );
 
-    mpFlashLightItem = new Item( mpFlashlight->model, Item::Flashlight );
-    mInventory.mItemList.push_back( mpFlashLightItem );
+    mpFlashLightItem = new Item( mpFlashlight->model, Item::Type::Flashlight );
+    mInventory.AddItem( mpFlashLightItem );
 }
 
 /*
@@ -938,7 +921,7 @@ void Player::UpdateFlashLight()
 {
     mpFlashlight->Update();
 
-    mpFlashLightItem->mContent = mpFlashlight->charge;
+    mpFlashLightItem->SetContent( mpFlashlight->mCharge );
 
     if( ruIsKeyHit( mKeyFlashLight ) )
         mpFlashlight->Switch();
@@ -1121,7 +1104,7 @@ void Player::DeserializeWith( TextFileStream & in )
     mHeartBeatPitch.Deserialize( in );
     mBreathPitch.Deserialize( in );
 
-    mpSheetInHands = Sheet::GetByObject( ruFindByName( in.Readstring().c_str() ));
+    mpSheetInHands = Sheet::GetSheetByObject( ruFindByName( in.Readstring().c_str() ));
 
     in.ReadInteger( mKeyMoveForward );
     in.ReadInteger( mKeyMoveBackward );
@@ -1226,5 +1209,5 @@ void Player::CloseCurrentSheet()
 {
     ruShowNode( mpSheetInHands->mObject );
     mpSheetInHands = 0;
-    ruPlaySound( Sheet::paperFlip );
+    ruPlaySound( Sheet::msPaperFlipSound );
 }

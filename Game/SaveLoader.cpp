@@ -39,17 +39,17 @@ void SaveLoader::RestoreWorldState()
             itemName = Readstring();
         int placedType = ReadInteger();
 
-        ItemPlace * ip = ItemPlace::FindByObject( ruFindByName( ipName.c_str()) );
+        ItemPlace * pItemPlace = ItemPlace::FindByObject( ruFindByName( ipName.c_str()) );
 
-        if( ip ) {
-            Item * item = 0;
+        if( pItemPlace ) {
+            Item * pItem = 0;
             if( gotPlacedItem )
-                item = Item::GetByObject( ruFindByName( itemName.c_str() ));
+                pItem = Item::GetByObject( ruFindByName( itemName.c_str() ));
 
-            if( item )
-                ip->pPlacedItem = item;
+            if( pItem )
+                pItemPlace->pPlacedItem = pItem;
 
-            ip->itemTypeCanBePlaced = placedType;
+            pItemPlace->mItemTypeCanBePlaced = (Item::Type)placedType;
         }
     }
 

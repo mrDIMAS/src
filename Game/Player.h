@@ -53,7 +53,6 @@ public:
     void DrawStatusBar();
     void SetObjective( string text );
     void CompleteObjective();
-    int IsGotItemAnyOfType( int type );
     void SetPlaceDescription( string desc );
     void SetFootsteps( FootstepsType ft );
     void ChargeFlashLight( Item * fuel );

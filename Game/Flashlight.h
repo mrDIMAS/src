@@ -10,7 +10,7 @@ public:
     ruNodeHandle model;
 
     float maxCharge;
-    float charge;
+    float mCharge;
     float onRange;
 
     ruVector3 offset;

@@ -1,21 +1,21 @@
 #include "Sheet.h"
 #include "GUI.h"
 
-vector<Sheet*> Sheet::sheets;
-ruSoundHandle Sheet::paperFlip;
-ruFontHandle Sheet::sheetFont;
+vector<Sheet*> Sheet::msSheetList;
+ruSoundHandle Sheet::msPaperFlipSound;
+ruFontHandle Sheet::msSheetFont;
 
 Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObject( object )
 {
-    txt = text;
-    this->desc = desc;
-    noteTex = ruGetTexture( "data/textures/generic/note.jpg" );
-    sheets.push_back( this );
-    if( !paperFlip.IsValid() )
-        paperFlip = ruLoadSound2D( "data/sounds/paperflip.ogg" );
+    mText = text;
+    this->mDescription = desc;
+    mBackgroundTexture = ruGetTexture( "data/textures/generic/note.jpg" );
+    msSheetList.push_back( this );
+    if( !msPaperFlipSound.IsValid() )
+        msPaperFlipSound = ruLoadSound2D( "data/sounds/paperflip.ogg" );
 
-    if( !sheetFont.IsValid() )
-        sheetFont = ruCreateGUIFont( 16, "data/fonts/font1.otf", 0, 0 );
+    if( !msSheetFont.IsValid() )
+        msSheetFont = ruCreateGUIFont( 16, "data/fonts/font1.otf", 0, 0 );
 }
 
 void Sheet::Draw( )
@@ -29,13 +29,13 @@ void Sheet::Draw( )
     int w = 400;
     int h = 600;
 
-    ruDrawGUIRect( cx - w / 2, cy - h / 2, w, h, noteTex );
-    ruDrawGUIText( txt.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, sheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
+    ruDrawGUIRect( cx - w / 2, cy - h / 2, w, h, mBackgroundTexture );
+    ruDrawGUIText( mText.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
 }
 
 Sheet * Sheet::GetSheetByObject( ruNodeHandle o )
 {
-    for( auto sh : sheets )
+    for( auto sh : msSheetList )
         if( sh->mObject == o )
             return sh;
 
@@ -45,4 +45,29 @@ Sheet * Sheet::GetSheetByObject( ruNodeHandle o )
 void Sheet::Update()
 {
 
+}
+
+const char * Sheet::GetDescription() const
+{
+	return mDescription.c_str();
+}
+
+void Sheet::SetDescription( const char * description )
+{
+	mDescription = description;
+}
+
+const char * Sheet::GetText() const
+{
+	return mText.c_str();
+}
+
+void Sheet::SetText( const char * text )
+{
+	mText = text;
+}
+
+Sheet::~Sheet()
+{
+	msSheetList.erase( find( msSheetList.begin(), msSheetList.end(), this ));
 }

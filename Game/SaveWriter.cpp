@@ -14,8 +14,8 @@ void SaveWriter::SaveWorldState()
     SavePlayerInventory();
     SaveItemPlaces();
 
-    WriteInteger( Way::sWayList.size() );
-    for( auto pWay : Way::sWayList )
+    WriteInteger( Way::msWayList.size() );
+    for( auto pWay : Way::msWayList )
         pWay->SerializeWith( *this );
 
     // save player state
@@ -40,7 +40,7 @@ void SaveWriter::SaveItemPlaces()
         WriteBoolean( pItemPlace->pPlacedItem != 0 );
         if( pItemPlace->pPlacedItem )
             WriteString( ruGetNodeName( pItemPlace->pPlacedItem->mObject ));
-        WriteInteger( pItemPlace->GetPlaceType() );
+        WriteInteger( (int)pItemPlace->GetPlaceType() );
     }
 }
 
@@ -50,9 +50,5 @@ void SaveWriter::SavePlayerInventory()
     if( !pPlayer )
         return;
 
-    WriteInteger( pPlayer->mInventory.mItemList.size() );
-    for( auto pItem : pPlayer->mInventory.mItemList ) {
-        // write object name for further identification
-        WriteString( ruGetNodeName( pItem->mObject ) );
-    }
+    pPlayer->mInventory.Serialize( *this );
 }

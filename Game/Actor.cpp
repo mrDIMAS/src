@@ -7,10 +7,10 @@ void Actor::Move( ruVector3 direction, float speed )
 
 Actor::Actor( float height, float width )
 {
-    bodyHeight = height;
-    bodyWidth = width;
+    mBodyHeight = height;
+    mBodyWidth = width;
     mBody = ruCreateSceneNode();
-    ruSetCapsuleBody( mBody, bodyHeight, bodyWidth );
+    ruSetCapsuleBody( mBody, mBodyHeight, mBodyWidth );
     ruSetAngularFactor( mBody, ruVector3( 0, 0, 0 ));
     ruSetNodeFriction( mBody, 0 );
     ruSetNodeAnisotropicFriction( mBody, ruVector3( 1, 1, 1 ));
@@ -27,4 +27,34 @@ void Actor::SetPosition( ruVector3 position )
 Actor::~Actor()
 {
 
+}
+
+char Actor::IsInsideZone( ruNodeHandle zone )
+{
+	return ruIsNodeInsideNode( mBody, zone );
+}
+
+ruVector3 Actor::GetCurrentPosition()
+{
+	return ruGetNodePosition( mBody );
+}
+
+void Actor::StopInstant()
+{
+	ruMoveNode( mBody, ruVector3( 0.0f, 0.0f, 0.0f ));
+}
+
+void Actor::Unfreeze()
+{
+	ruUnfreeze( mBody );
+}
+
+void Actor::Freeze()
+{
+	ruFreeze( mBody );
+}
+
+ruVector3 Actor::GetLookDirection()
+{
+	return ruGetNodeLookVector( mBody );
 }

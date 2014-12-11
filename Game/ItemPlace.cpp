@@ -7,14 +7,14 @@ Item * ItemPlace::GetPlacedItem()
     return pPlacedItem;
 }
 
-bool ItemPlace::PlaceItem( Item * item )
+bool ItemPlace::PlaceItem( Item * pItem )
 {
-    if( item->mType == itemTypeCanBePlaced )
+    if( pItem->GetType() == mItemTypeCanBePlaced )
     {
-        pPlacedItem = item;
+        pPlacedItem = pItem;
 
-        pPlayer->mInventory.mpItemForUse = 0;
-        pPlayer->mInventory.RemoveItem( item );
+        pPlayer->mInventory.ResetSelectedForUse();
+        pPlayer->mInventory.RemoveItem( pItem );
 
         return true;
     }
@@ -22,30 +22,28 @@ bool ItemPlace::PlaceItem( Item * item )
     return false;
 }
 
-ItemPlace::ItemPlace( ruNodeHandle obj, int _itemTypeCanBePlaced )
+ItemPlace::ItemPlace( ruNodeHandle obj, Item::Type itemTypeCanBePlaced )
 {
     mObject = obj;
     pPlacedItem = nullptr;
-    itemTypeCanBePlaced = _itemTypeCanBePlaced;
+    mItemTypeCanBePlaced = itemTypeCanBePlaced;
     sItemPlaceList.push_back( this );
 }
 
-bool ItemPlace::IsPickedByPlayer()
+bool ItemPlace::IsPickedByPlayer() const
 {
     return pPlayer->mNearestPickedNode == mObject;
 }
 
-void ItemPlace::SetPlaceType( int _itemTypeCanBePlaced )
+void ItemPlace::SetPlaceType( Item::Type itemTypeCanBePlaced )
 {
-    itemTypeCanBePlaced = _itemTypeCanBePlaced;
+    mItemTypeCanBePlaced = itemTypeCanBePlaced;
 }
 
-int ItemPlace::GetPlaceType()
+Item::Type ItemPlace::GetPlaceType() const
 {
-    return itemTypeCanBePlaced;
+    return mItemTypeCanBePlaced;
 }
-
-
 
 ItemPlace * ItemPlace::FindByObject( ruNodeHandle handle )
 {
@@ -53,4 +51,9 @@ ItemPlace * ItemPlace::FindByObject( ruNodeHandle handle )
         if( ip->mObject == handle )
             return ip;
     return 0;
+}
+
+ItemPlace::~ItemPlace()
+{
+	sItemPlaceList.erase( find( sItemPlaceList.begin(), sItemPlaceList.end(), this ));
 }

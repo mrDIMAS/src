@@ -53,8 +53,8 @@ LevelResearchFacility::LevelResearchFacility()
 
     CreatePowerUpSequence();
 
-    AddSound( music = ruLoadMusic( "data/music/rf.ogg" ));
-    ruSetSoundVolume( music, 0.75f );
+    AddSound( mMusic = ruLoadMusic( "data/music/rf.ogg" ));
+    ruSetSoundVolume( mMusic, 0.75f );
 
     AddDoor( new Door( GetUniqueObject( "Door1" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door2" ), 90.0f ));
@@ -86,19 +86,19 @@ void LevelResearchFacility::Show()
 {
     Level::Show();
 
-    ruPlaySound( music );
+    ruPlaySound( mMusic );
 }
 
 void LevelResearchFacility::Hide()
 {
     Level::Hide();
 
-    ruPauseSound( music );
+    ruPauseSound( mMusic );
 }
 
 void LevelResearchFacility::DoScenario()
 {
-    if( Level::curLevelID != LevelName::L3ResearchFacility )
+    if( Level::msCurLevelID != LevelName::L3ResearchFacility )
         return;
 
     ruSetAmbientColor( ruVector3( 5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f ));
@@ -208,7 +208,7 @@ void LevelResearchFacility::DoScenario()
         if( !stateEnterRepositionRipperZone ) {
             if( pPlayer->IsInsideZone( mRepositionRipperZone )) {
                 stateEnterRepositionRipperZone = true;
-                ruSetNodePosition( mpRipper->body, ruGetNodePosition( mRipperNewPosition ));
+                mpRipper->SetPosition( ruGetNodePosition( mRipperNewPosition ));
             }
         }
     }
@@ -228,12 +228,12 @@ void LevelResearchFacility::UpdatePowerupSequence()
 
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
             ItemPlace * pFuse = mFusePlaceList[iFuse];
-            if( pFuse->GetPlaceType() == -1 )
+            if( pFuse->GetPlaceType() == Item::Type::Unknown )
                 fuseInsertedCount++;
         }
     }
 
-    if( pPlayer->mInventory.mpItemForUse ) {
+    if( pPlayer->mInventory.GetItemSelectedForUse() ) {
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
             ItemPlace * pFuse = mFusePlaceList[iFuse];
             if( pFuse->IsPickedByPlayer() )
@@ -241,15 +241,15 @@ void LevelResearchFacility::UpdatePowerupSequence()
         }
 
         if( ruIsKeyHit( pPlayer->mKeyUse )) {
-            for( int i = 0; i < 3; i++ ) {
-                ItemPlace * fuse = mFusePlaceList[i];
+            for( int iFusePlace = 0; iFusePlace < 3; iFusePlace++ ) {
+                ItemPlace * pFuse = mFusePlaceList[iFusePlace];
 
-                if( fuse->IsPickedByPlayer() ) {
-                    bool placed = fuse->PlaceItem( pPlayer->mInventory.mpItemForUse );
+                if( pFuse->IsPickedByPlayer() ) {
+                    bool placed = pFuse->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
 
                     if( placed ) {
-                        ruShowNode( fuseModel[i] );
-                        fuse->SetPlaceType( -1 );
+                        ruShowNode( fuseModel[iFusePlace] );
+                        pFuse->SetPlaceType( Item::Type::Unknown );
                     }
                 }
             }
@@ -278,13 +278,13 @@ void LevelResearchFacility::UpdatePowerupSequence()
 
 void LevelResearchFacility::CreatePowerUpSequence()
 {
-    AddItem( fuse[0] = new Item( GetUniqueObject( "Fuse1" ), Item::Fuse ));
-    AddItem( fuse[1] = new Item( GetUniqueObject( "Fuse2" ), Item::Fuse ));
-    AddItem( fuse[2] = new Item( GetUniqueObject( "Fuse3" ), Item::Fuse ));
+    AddItem( fuse[0] = new Item( GetUniqueObject( "Fuse1" ), Item::Type::Fuse ));
+    AddItem( fuse[1] = new Item( GetUniqueObject( "Fuse2" ), Item::Type::Fuse ));
+    AddItem( fuse[2] = new Item( GetUniqueObject( "Fuse3" ), Item::Type::Fuse ));
 
-    AddItemPlace( mFusePlaceList[0] = new ItemPlace( GetUniqueObject( "FusePlace1" ), Item::Fuse ));
-    AddItemPlace( mFusePlaceList[1] = new ItemPlace( GetUniqueObject( "FusePlace2" ), Item::Fuse ));
-    AddItemPlace( mFusePlaceList[2] = new ItemPlace( GetUniqueObject( "FusePlace3" ), Item::Fuse ));
+    AddItemPlace( mFusePlaceList[0] = new ItemPlace( GetUniqueObject( "FusePlace1" ), Item::Type::Fuse ));
+    AddItemPlace( mFusePlaceList[1] = new ItemPlace( GetUniqueObject( "FusePlace2" ), Item::Type::Fuse ));
+    AddItemPlace( mFusePlaceList[2] = new ItemPlace( GetUniqueObject( "FusePlace3" ), Item::Type::Fuse ));
 
     fuseModel[0] = GetUniqueObject( "FuseModel1" );
     fuseModel[1] = GetUniqueObject( "FuseModel2" );

@@ -12,46 +12,46 @@
 
 int g_initialLevel;
 Level * pCurrentLevel = 0;
-int Level::curLevelID = 0;
+int Level::msCurLevelID = 0;
 
 Level::Level()
 {
 	mInitializationComplete = false;
     mTypeNum = 0; //undefined
-    music.Invalidate();
+    mMusic.Invalidate();
 }
 
 Level::~Level()
 {
-    ruFreeSceneNode( scene );
+    ruFreeSceneNode( mScene );
 
-    for( auto item : items )
-        if( !item->mInInventory )
-            delete item;
+    for( auto pItem : mItemList )
+        if( pItem->IsFree() )
+            delete pItem;
 
-    for( auto sheet : sheets )
-        delete sheet;
+    for( auto pSheet : mSheetList )
+        delete pSheet;
 
-    for( auto door : doors )
-        delete door;
+    for( auto pDoor : mDoorList )
+        delete pDoor;
 
-    for( auto crawlWay : crawlWays )
-        delete crawlWay;
+    for( auto pCrawlWay : mCrawlWayList )
+        delete pCrawlWay;
 
-    for( auto ladder : ladders )
-        delete ladder;
+    for( auto pLadder : mLadderList )
+        delete pLadder;
 
-    for( auto itemPlace : itemPlaces )
-        delete itemPlace;
+    for( auto pItemPlace : mItemPlaceList )
+        delete pItemPlace;
 
-    for( auto valve : valves )
-        delete valve;
+    for( auto pValve : mValveList )
+        delete pValve;
 
-    for( auto lift : lifts )
-        delete lift;
+    for( auto pLift : mLiftList )
+        delete pLift;
 
-    for( auto sound : sounds )
-        ruFreeSound( sound );
+    for( auto iSound : mSounds )
+        ruFreeSound( iSound );
 }
 
 void Level::LoadLocalization( string fn )
@@ -61,15 +61,15 @@ void Level::LoadLocalization( string fn )
 
 void Level::Hide()
 {
-    ruHideNode( scene );
-    for( auto & sound : sounds )
+    ruHideNode( mScene );
+    for( auto & sound : mSounds )
         ruPauseSound( sound );
 }
 
 void Level::Show()
 {
-    ruShowNode( scene );
-    for( auto & sound : sounds )
+    ruShowNode( mScene );
+    for( auto & sound : mSounds )
     {
         if( ruIsSoundPaused( sound ))
             ruPlaySound( sound );
@@ -78,54 +78,45 @@ void Level::Show()
 
 void Level::Change( int levelId, bool continueFromSave )
 {
-    Level::curLevelID = levelId;
+    Level::msCurLevelID = levelId;
 
     static int lastLevel = 0;
 
-    if( lastLevel != Level::curLevelID )
+    if( lastLevel != Level::msCurLevelID )
     {
         ruDrawGUIText( pMainMenu->mLocalization.GetString( "loading" ), ruGetResolutionWidth() / 2 - 64, ruGetResolutionHeight() / 2 - 64, 128, 128, pGUI->mFont, ruVector3( 255, 255, 0), 1 );
 
         // draw 'loading' string
         ruRenderWorld( 1.0f / 60.0f );
 
-        lastLevel = Level::curLevelID;
+        lastLevel = Level::msCurLevelID;
 
-        if( !pPlayer && Level::curLevelID != LevelName::L0Introduction )
+        if( !pPlayer && Level::msCurLevelID != LevelName::L0Introduction )
             pPlayer = new Player();
 
         if( pCurrentLevel )
             delete pCurrentLevel;
 
-        if( Level::curLevelID == LevelName::L0Introduction )
+        if( Level::msCurLevelID == LevelName::L0Introduction )
             pCurrentLevel = new LevelIntroduction;
         else
             pPlayer->FreeHands();
 
-        if( Level::curLevelID == LevelName::L1Arrival )
+        if( Level::msCurLevelID == LevelName::L1Arrival )
             pCurrentLevel = new LevelArrival;
 
-        if( Level::curLevelID == LevelName::L2Mine )
+        if( Level::msCurLevelID == LevelName::L2Mine )
             pCurrentLevel = new LevelMine;
 
-        if( Level::curLevelID == LevelName::L3ResearchFacility )
+        if( Level::msCurLevelID == LevelName::L3ResearchFacility )
             pCurrentLevel = new LevelResearchFacility;
 
-        if( Level::curLevelID == LevelName::LXTestingChamber )
+        if( Level::msCurLevelID == LevelName::LXTestingChamber )
             pCurrentLevel = new TestingChamber;
 
-        if( continueFromSave )
+        if( continueFromSave ) {
             SaveLoader( "lastGame.save" ).RestoreWorldState();
-        else
-        {
-            //if( player ) {
-            //    SaveWriter( "quickSave.save" ).SaveWorldState();
-            //}
-        }
-
-        // loading can take a lot of time, so g_dt becomes a really huge value which can cause annoying bugs
-        // so restart dtTimer
-
+		}
         for( int i = 0; i < ruGetWorldPointLightCount(); i++ )
         {
             ruSetLightFloatingEnabled( ruGetWorldPointLight( i ), true );
@@ -135,44 +126,44 @@ void Level::Change( int levelId, bool continueFromSave )
     }
 }
 
-void Level::AddLift( Lift * lift )
+void Level::AddLift( Lift * pLift )
 {
-    lifts.push_back( lift );
+    mLiftList.push_back( pLift );
 }
 
-void Level::AddValve( Valve * valve )
+void Level::AddValve( Valve * pValve )
 {
-    valves.push_back( valve );
+    mValveList.push_back( pValve );
 }
 
-void Level::AddLadder( Ladder * ladder )
+void Level::AddLadder( Ladder * pLadder )
 {
-    ladders.push_back( ladder );
+    mLadderList.push_back( pLadder );
 }
 
-void Level::AddCrawlWay( CrawlWay * cw )
+void Level::AddCrawlWay( CrawlWay * pCrawlWay )
 {
-    crawlWays.push_back( cw );
+    mCrawlWayList.push_back( pCrawlWay );
 }
 
-void Level::AddDoor( Door * door )
+void Level::AddDoor( Door * pDoor )
 {
-    doors.push_back( door );
+    mDoorList.push_back( pDoor );
 }
 
-void Level::AddSheet( Sheet * sheet )
+void Level::AddSheet( Sheet * pSheet )
 {
-    sheets.push_back( sheet );
+    mSheetList.push_back( pSheet );
 }
 
 void Level::AddItem( Item * item )
 {
-    items.push_back( item );
+    mItemList.push_back( item );
 }
 
-void Level::AddItemPlace( ItemPlace * ipc )
+void Level::AddItemPlace( ItemPlace * pItemPlace )
 {
-    itemPlaces.push_back( ipc );
+    mItemPlaceList.push_back( pItemPlace );
 }
 
 void Level::DeserializeWith( TextFileStream & in )
@@ -181,7 +172,7 @@ void Level::DeserializeWith( TextFileStream & in )
     for( int i = 0; i < childCount; i++ )
     {
         string name = in.Readstring();
-        ruNodeHandle node = ruFindInObjectByName( scene, name.c_str() );
+        ruNodeHandle node = ruFindInObjectByName( mScene, name.c_str() );
         if( node.IsValid() )
         {
             ruSetNodeLocalPosition( node, in.ReadVector3() );
@@ -198,25 +189,25 @@ void Level::DeserializeWith( TextFileStream & in )
     {
         string stageName = in.Readstring();
         bool stageState = in.ReadBoolean();
-        stages[ stageName ] = stageState;
+        mStages[ stageName ] = stageState;
     }
     OnDeserialize( in );
 }
 
 void Level::SerializeWith( TextFileStream & out )
 {
-    int childCount = ruGetNodeCountChildren( scene );
+    int childCount = ruGetNodeCountChildren( mScene );
     out.WriteInteger( childCount );
     for( int i = 0; i < childCount; i++ )
     {
-        ruNodeHandle node = ruGetNodeChild( scene, i );
+        ruNodeHandle node = ruGetNodeChild( mScene, i );
         out.WriteString( ruGetNodeName( node ));
         out.WriteVector3( ruGetNodeLocalPosition( node ));
         out.WriteQuaternion( ruGetNodeLocalRotation( node ));
         out.WriteBoolean( ruIsNodeVisible( node ));
     }
-    out.WriteInteger( stages.size());
-    for( auto stage : stages )
+    out.WriteInteger( mStages.size());
+    for( auto stage : mStages )
     {
         out.WriteString( stage.first );
         out.WriteBoolean( stage.second );
@@ -226,29 +217,38 @@ void Level::SerializeWith( TextFileStream & out )
 
 void Level::AddSound( ruSoundHandle sound )
 {
-    sounds.push_back( sound );
+	if( !sound.IsValid() ) {
+		RaiseError( "Unable to add ambient sound! Invalid source!" );
+	}
+    mSounds.push_back( sound );
 }
 
 void Level::PlayAmbientSounds()
 {
-    ambSoundSet.DoRandomPlaying();
+    mAmbSoundSet.DoRandomPlaying();
 }
 
 void Level::AddAmbientSound( ruSoundHandle sound )
 {
-    sounds.push_back( sound );
-    ambSoundSet.AddSound( sound );
+	if( !sound.IsValid() ) {
+		RaiseError( "Unable to add ambient sound! Invalid source!" );
+	}
+    mSounds.push_back( sound );
+    mAmbSoundSet.AddSound( sound );
 }
 
 ruNodeHandle Level::GetUniqueObject( const char * name )
 {
+	// the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
+	// game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
+	// also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
 	if( mInitializationComplete ) {
-		RaiseError( Format( "You must get object in game level intialization! Get object in game logic is strictly forbidden! Object name: '%s'", name ));
+		RaiseError( Format( "You must get object in game level intialization! Get object in game logic loop is strictly forbidden! Object name: '%s'", name ));
 	}
-	if( !scene.IsValid() ) {
+	if( !mScene.IsValid() ) {
 		RaiseError( Format( "Object '%s' can't be found in the empty scene. Load scene first!", name ));
 	}
-	ruNodeHandle object = ruFindInObjectByName( scene, name );
+	ruNodeHandle object = ruFindInObjectByName( mScene, name );
 	// each unique object must be presented in the scene, otherwise error will be generated
 	if( !object.IsValid() ) {
 		RaiseError( Format( "Object '%s' can't be found in the scene! Game will be closed.", name ));
@@ -258,18 +258,23 @@ ruNodeHandle Level::GetUniqueObject( const char * name )
 
 void Level::LoadSceneFromFile( const char * file )
 {
-	scene = ruLoadScene( file );
-	if( !scene.IsValid() ) {
+	mScene = ruLoadScene( file );
+	if( !mScene.IsValid() ) {
 		RaiseError( Format( "Unable to load scene from '%s'! Game will be closed.", file ));
 	}
 }
 
 void Level::CreateBlankScene()
 {
-	scene = ruCreateSceneNode();
+	mScene = ruCreateSceneNode();
 }
 
 void Level::BuildPath( Path & path, const char * nodeBaseName )
 {
-	path.BuildPath( scene, nodeBaseName );
+	path.BuildPath( mScene, nodeBaseName );
+}
+
+void Level::DoneInitialization()
+{
+	mInitializationComplete = true;
 }

@@ -157,6 +157,15 @@ void ParticleSystemRenderer::RenderAllParticleSystems()
                     continue;
                 affectedLights.push_back( light );
             }
+			for( size_t j = 0; j < g_spotLights.size(); j++ )
+			{
+				Light * light = g_spotLights.at( j );
+				if( !light->IsVisible() )
+					continue;
+				if( light->GetRadius() < 0.1 )
+					continue;
+				affectedLights.push_back( light );
+			}
             // set pixel shader constants
             CheckDXErrorFatal( vertexShader->GetConstantTable()->SetInt( g_device, pLightCount, affectedLights.size() ));
             int constantNum = 0;

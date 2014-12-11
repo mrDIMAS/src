@@ -27,7 +27,6 @@ Menu::Menu( )
     mContinuePressed = false;
     mExitingGame = false;
     mReturnToGameByEsc = false;
-    mAutosaveNotify = false; // FIXED: set it to true when build release version
     mLoadSaveGameName = "";
     mLoadFromSave = false;
     CreateCamera();
@@ -141,29 +140,18 @@ void Menu::Update( )
         ruGUIState authors;
         ruGUIState exit;
 
-        if( !mAutosaveNotify ) {
-            int saveGamePosX = ( mPage == Page::SaveGame ) ? mainButtonsX + 20 : mainButtonsX;
-            int loadGamePosX = ( mPage == Page::LoadGame ) ? mainButtonsX + 20 : mainButtonsX;
-            int optionsPosX = ( mPage == Page::Options || mPage == Page::OptionsGraphics || mPage == Page::OptionsKeys || mPage == Page::OptionsCommon ) ? mainButtonsX + 20 : mainButtonsX;
-            if( pCurrentLevel || mCanContinueGameFromLast )
-                continueGame = ruDrawGUIButton( mainButtonsX, g_resH - 4.0 * mDistBetweenButtons + startOffsetIfInGame, 128, 32, mButtonImage, mLocalization.GetString( "continueButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            if( !pCurrentLevel )
-                start = ruDrawGUIButton( mainButtonsX, g_resH - 3.5 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "startButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            saveGame = ruDrawGUIButton( saveGamePosX, g_resH - 3.0 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "saveButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            loadGame = ruDrawGUIButton( loadGamePosX, g_resH - 2.5 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "loadButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            options = ruDrawGUIButton( optionsPosX, g_resH - 2.0 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            authors = ruDrawGUIButton( mainButtonsX, g_resH - 1.5 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            exit = ruDrawGUIButton( mainButtonsX, g_resH - 1.0 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "exitButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-        } else {
-            int ntfX = 400;
-            int ntfY = g_resH / 2 - 64;
-            int ntfW = g_resW - 800;
-            ruDrawGUIRect( ntfX, ntfY, ntfW, 32, ruTextureHandle::Empty(), ruVector3( 50, 0, 0 ), 200 );
-            ruDrawGUIText( mLocalization.GetString( "autosaveNotify" ), ntfX, ntfY, ntfW , 32, pGUI->mFont, ruVector3( 200, 0, 0 ), 1 );
-            ruGUIState ok = ruDrawGUIButton( g_resW / 2 - 64, g_resH / 2 - 16, 128, 32, mButtonImage, mLocalization.GetString( "okButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-            if( ok.mouseLeftClicked )
-                mAutosaveNotify = false;
-        }
+		int saveGamePosX = ( mPage == Page::SaveGame ) ? mainButtonsX + 20 : mainButtonsX;
+		int loadGamePosX = ( mPage == Page::LoadGame ) ? mainButtonsX + 20 : mainButtonsX;
+		int optionsPosX = ( mPage == Page::Options || mPage == Page::OptionsGraphics || mPage == Page::OptionsKeys || mPage == Page::OptionsCommon ) ? mainButtonsX + 20 : mainButtonsX;
+		if( pCurrentLevel || mCanContinueGameFromLast )
+			continueGame = ruDrawGUIButton( mainButtonsX, g_resH - 4.0 * mDistBetweenButtons + startOffsetIfInGame, 128, 32, mButtonImage, mLocalization.GetString( "continueButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
+		if( !pCurrentLevel )
+			start = ruDrawGUIButton( mainButtonsX, g_resH - 3.5 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "startButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
+		saveGame = ruDrawGUIButton( saveGamePosX, g_resH - 3.0 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "saveButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
+		loadGame = ruDrawGUIButton( loadGamePosX, g_resH - 2.5 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "loadButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
+		options = ruDrawGUIButton( optionsPosX, g_resH - 2.0 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
+		authors = ruDrawGUIButton( mainButtonsX, g_resH - 1.5 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
+		exit = ruDrawGUIButton( mainButtonsX, g_resH - 1.0 * mDistBetweenButtons, 128, 32, mButtonImage, mLocalization.GetString( "exitButton" ), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
 
         if( mPage == Page::Authors ) {
             int w = 500;
@@ -211,7 +199,7 @@ void Menu::Update( )
             ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
             g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
             if( pCurrentLevel )
-                ruSetSoundVolume( pCurrentLevel->music, g_musicVolume );
+                ruSetSoundVolume( pCurrentLevel->mMusic, g_musicVolume );
         }
 
         if( mPage == Page::LoadGame ) {
@@ -504,6 +492,9 @@ void Menu::LoadConfig()
 
 		mpGraphicsQuality->SetCurrentValue( config.GetNumber( "graphicsQuality" ));
 		ruSetRenderQuality( mpGraphicsQuality->GetCurrentValue() );
+
+		mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
+		ruSetRendererTextureFiltering( mpTextureFiltering->GetCurrentValue(), ruGetRendererMaxAnisotropy() );
     }
 }
 
@@ -546,6 +537,7 @@ void Menu::WriteConfig()
     WriteInteger( config, "hdrEnabled", ruIsHDREnabled() ? 1 : 0  );
     WriteInteger( config, "keyStealth", mpStealthKey->GetSelectedKey() );
 	WriteInteger( config, "graphicsQuality", mpGraphicsQuality->GetCurrentValue() );
+	WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
     config.close();
 }
 

@@ -4,13 +4,14 @@
 
 class Fan
 {
+private:
+	ruNodeHandle mBody;
+	float mTurnSpeed;
+	ruVector3 mTurnAxis;
+	float mAngle;
+	ruSoundHandle mEngineSound;
 public:
-    ruNodeHandle body;
-    float turnSpeed;
-    ruVector3 tAxis;
-    float angle;
-    ruSoundHandle sound;
-
-    Fan( ruNodeHandle obj, float ts, ruVector3 axis, ruSoundHandle snd );
+    explicit Fan( ruNodeHandle object, float turnSpeed, ruVector3 turnAxis, ruSoundHandle engineSound );
+	virtual ~Fan();
     void DoTurn();
 };

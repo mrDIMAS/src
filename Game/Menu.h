@@ -59,7 +59,6 @@ public:
     bool mExitPressed;
     bool mContinuePressed;
     bool mReturnToGameByEsc;
-    bool mAutosaveNotify;
     bool mExitingGame;
     string mLoadSaveGameName;
     bool mLoadFromSave;

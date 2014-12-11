@@ -2,30 +2,38 @@
 
 LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult )
 {
-    light = lit;
-    animSpeed = as;
-    this->onRange = onRange;
-    this->peakRangeMult = peakRangeMult;
-    lat = LAT_ON;
-    range = onRange;
-    rangeTo = range;
-    ruSetLightRange( light, range );
+	if( !ruIsLight( lit )) {
+		RaiseError( "Node is not a light!" );
+	}
+    mLight = lit;
+    mAnimSpeed = as;
+    mOnRange = onRange;
+    mPeakRangeMult = peakRangeMult;
+    mAnimType = AnimationType::On;
+    mRange = onRange;
+    mRangeDest = mRange;
+    ruSetLightRange( mLight, mRange );
 }
 
 void LightAnimator::Update()
 {
-    range = range + ( rangeTo - range ) * animSpeed;
+    mRange = mRange + ( mRangeDest - mRange ) * mAnimSpeed;
 
-    ruSetLightRange( light, range );
+    ruSetLightRange( mLight, mRange );
 
-    if( lat == LAT_ON )
-        rangeTo = onRange;
+    if( mAnimType == AnimationType::On )
+        mRangeDest = mOnRange;
 
-    if( lat == LAT_OFF )
-        rangeTo = 0;
+    if( mAnimType == AnimationType::Off )
+        mRangeDest = 0;
 }
 
-void LightAnimator::SetAnimationType( int lat )
+void LightAnimator::SetAnimationType( AnimationType lat )
 {
-    this->lat = lat;
+    mAnimType = lat;
+}
+
+LightAnimator::AnimationType LightAnimator::GetAnimationType()
+{
+	return mAnimType;
 }

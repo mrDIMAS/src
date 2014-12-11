@@ -65,9 +65,9 @@ void ParticleEmitter::Update()
 
         float insideCoeff = 1.0f;
         if( props.type == PS_BOX )
-            insideCoeff = ( p.position - ruVector3( base->globalTransform.getOrigin().m_floats )).Length2() / ( props.boundingBoxMax - props.boundingBoxMin ).Length2();
+            insideCoeff = ( p.position ).Length2() / ( props.boundingBoxMax - props.boundingBoxMin ).Length2();
         else
-            insideCoeff = ( p.position - ruVector3( base->globalTransform.getOrigin().m_floats )).Length2() / props.boundingRadius;
+            insideCoeff = ( p.position ).Length2() / props.boundingRadius;
         if( insideCoeff > 1.0f )
             insideCoeff = 1.0f;
         p.color = props.colorBegin.Lerp( props.colorEnd, insideCoeff );

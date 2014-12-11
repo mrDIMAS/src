@@ -9,8 +9,6 @@ class SceneNode
 public:
     friend class DeferredRenderer;
 
-    volatile int memoryTag;
-
     SceneNode * parent;
     SceneNode * scene;
 

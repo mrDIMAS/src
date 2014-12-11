@@ -337,6 +337,7 @@ RUAPI void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTextur
 RUAPI void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVector3 floatMax );
 RUAPI void ruSetLightFloatingEnabled( ruNodeHandle node, bool state );
 RUAPI bool ruIsLightFloatingEnabled( ruNodeHandle node );
+RUAPI bool ruIsLight( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////

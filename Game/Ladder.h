@@ -6,7 +6,7 @@ class Ladder : public Way
 {
 private:
     void DoLeave();
-    FootstepsType footsteps;
+    FootstepsType mFootsteps;
 public:
     Ladder( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint );
 

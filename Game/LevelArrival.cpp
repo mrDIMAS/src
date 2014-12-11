@@ -38,7 +38,7 @@ LevelArrival::LevelArrival( )
     pPlayer->SetObjective( mLocalization.GetString( "objective1" ));
     pPlayer->SetPlaceDescription( mLocalization.GetString( "placeDesc" ));
 
-    ruSetNodePosition( pPlayer->mBody, ruGetNodePosition( GetUniqueObject("PlayerPosition")) + ruVector3( 0, 1, 0 ));
+    pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject("PlayerPosition")) + ruVector3( 0, 1, 0 ));
 
     //////////////////////////////////////////////////////////////////////////
     // Load sounds
@@ -69,8 +69,8 @@ LevelArrival::LevelArrival( )
 
     pPlayer->SetFootsteps( FootstepsType::Dirt );
 
-    stages[ "DoneStrangeSoundPlayed" ] = false;
-    stages[ "DoneRocksFall" ] = false;
+    mStages[ "DoneStrangeSoundPlayed" ] = false;
+    mStages[ "DoneRocksFall" ] = false;
 
     ruSetCameraSkybox( pPlayer->mpCamera->mNode, "data/textures/skyboxes/night4/nnksky01" );
 
@@ -94,7 +94,7 @@ void LevelArrival::Hide()
 
 void LevelArrival::DoScenario()
 {
-    if( Level::curLevelID != LevelName::L1Arrival )
+    if( Level::msCurLevelID != LevelName::L1Arrival )
         return;
 
     ruSetAmbientColor( ruVector3( 0.06, 0.06, 0.06 ));
@@ -103,19 +103,19 @@ void LevelArrival::DoScenario()
 
     ruPlaySound( generatorSound );
 
-    if( !stages[ "DoneStrangeSoundPlayed" ] )
+    if( !mStages[ "DoneStrangeSoundPlayed" ] )
     {
-        if( ruIsNodeInsideNode( pPlayer->mBody, strangeSoundZone ))
+        if( pPlayer->IsInsideZone( strangeSoundZone ))
         {
             ruPlaySound( strangeSound );
 
-            stages[ "DoneStrangeSoundPlayed" ] = true;
+            mStages[ "DoneStrangeSoundPlayed" ] = true;
         }
     }
 
-    if( !stages[ "DoneRocksFall" ] )
+    if( !mStages[ "DoneRocksFall" ] )
     {
-        if( ruIsNodeInsideNode( pPlayer->mBody, rocksFallZone ))
+        if( pPlayer->IsInsideZone( rocksFallZone ))
         {
             ruSetNodePosition( rocks, ruGetNodePosition( rocksPos ) );
 
@@ -126,13 +126,13 @@ void LevelArrival::DoScenario()
 
             pPlayer->SetObjective( mLocalization.GetString( "objective4" ) );
 
-            AddSound( music = ruLoadMusic( "data/sounds/fear.ogg" ));
-            ruPlaySound( music );
+            AddSound( mMusic = ruLoadMusic( "data/sounds/fear.ogg" ));
+            ruPlaySound( mMusic );
 
-            stages[ "DoneRocksFall" ] = true;
+            mStages[ "DoneRocksFall" ] = true;
         }
     }
 
-    if( ruIsNodeInsideNode( pPlayer->mBody, nextLevelLoadZone ))
+    if( pPlayer->IsInsideZone( nextLevelLoadZone ))
         Level::Change( LevelName::L2Mine );
 }
