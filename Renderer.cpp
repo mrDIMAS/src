@@ -364,16 +364,11 @@ void Renderer::RenderWorld()
     SceneNode::UpdateContacts( );
     // update sound subsystem
     pfSystemUpdate();
-    // update physics subsystem
-    if( g_physicsEnabled )
-    {
-        float dt = g_dt;
-        if( dt < (1.0f / 60.0f) )
-            dt = (1.0f / 60.0f) ;
-        g_dynamicsWorld->stepSimulation( dt, 60 );
-    }
 }
 
+RUAPI void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep ) {
+	g_dynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
+}
 /*
 ===============
 Renderer::RenderMeshesIntoGBuffer

@@ -79,3 +79,18 @@ RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer )
 {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMicroSeconds();
 }
+
+RUAPI double ruGetTimeInSeconds( ruTimerHandle timer )
+{
+	return (reinterpret_cast< Timer* >( timer ))->GetTimeInSeconds();
+}
+
+RUAPI double ruGetTimeInMilliSeconds( ruTimerHandle timer )
+{
+	return (reinterpret_cast< Timer* >( timer ))->GetTimeInMilliSeconds();
+}
+
+RUAPI double ruGetTimeInMicroSeconds( ruTimerHandle timer ) 
+{
+	return (reinterpret_cast< Timer* >( timer ))->GetTimeInMicroSeconds();
+}

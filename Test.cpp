@@ -55,23 +55,7 @@ void main( )
     int counter = 0;
     int fps = 0;
 
-    ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
-    /*
-    // Particle system test
-    ParticleSystemProperties boxParticleEmitterProps;
-    boxParticleEmitterProps.texture = GetTexture( "data/textures/particles/p1.png" );
-    boxParticleEmitterProps.type = PS_BOX;
-    boxParticleEmitterProps.useLighting = true;
-    boxParticleEmitterProps.autoResurrectDeadParticles = true;
-    boxParticleEmitterProps.speedDeviationMin = Vector3( -0.05, 0.0, -0.05 );
-    boxParticleEmitterProps.speedDeviationMax = Vector3(  0.05, 0.05,  0.05 );
-    boxParticleEmitterProps.boundingBoxMin = Vector3( -5, 0, -5 );
-    boxParticleEmitterProps.boundingBoxMax = Vector3( 5, 5, 5 );
-    boxParticleEmitterProps.colorBegin = Vector3( 255, 0, 0 );
-    boxParticleEmitterProps.colorEnd = Vector3( 0, 255, 0 );
-
-    NodeHandle boxParticleEmitter = CreateParticleSystem( 1024, boxParticleEmitterProps );
-    */
+    
 
     ruParticleSystemProperties streamParticleEmitterProps;
     streamParticleEmitterProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
@@ -82,11 +66,6 @@ void main( )
 
     ruNodeHandle streamParticleEmitter = ruCreateParticleSystem( 256, streamParticleEmitterProps );
 
-    // Animation test
-    //NodeHandle dummy = LoadScene( "data/models/ripper/ripper.scene" );
-    //Animation idleAnim = Animation( 0, GetTotalAnimationFrameCount( dummy ), 3.0f, false );
-    //SetAnimation( dummy, &idleAnim );
-
     ruTimerHandle timer = ruCreateTimer();
 
     ruTimerHandle perfTimer = ruCreateTimer();
@@ -95,9 +74,13 @@ void main( )
     ruEnablePointLightShadows( false );
     ruEnableSpotLightShadows( true );
 	ruDisableFXAA();
+
+	ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
+	ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
+	ruButtonHandle testButton = ruCreateGUIButton( 200, 200, 128, 32, ruGetTexture( "data/gui/button.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
+
     while( !ruIsKeyDown( KEY_Esc ))
     {
-
         //idleAnim.Update();
         ruInputUpdate();
 
@@ -121,6 +104,8 @@ void main( )
 		//ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
         //DrawGUIRect( 0, 0, 200, 200, 0 );
         //    DrawGUIText( "TEST", 200, 200, 100, 100, font, Vector3( 255, 0, 0 ) );
+
+		ruUpdatePhysics( 1.0f / 60.0f, 10, 1.0f / 60.0f );
 
         if( ruIsKeyHit( KEY_1 ))
             ruSetRenderQuality( 0 );
@@ -162,12 +147,13 @@ void main( )
             counter = 0;
         }
         char buf[ 128 ];
-        ruDrawGUIRect( 400, 400, 34, 34, ruTextureHandle::Empty() );
+        //ruDrawGUIRect( 400, 400, 34, 34, ruTextureHandle::Empty() );
         sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruDIPs(), ruTextureUsedPerFrame(), fps, ruGetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruIsHDREnabled()  );
-        ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
+		ruSetGUINodeText( fpsText, buf );
+       // ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
         //DrawGUIText( "Это текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
-        ruDrawGUIText( "Простой текст", 200, 0, 100, 100, font2, ruVector3( 255, 0, 255 ), 0, 100 );
-        ruDrawGUIText( "Простой текст", 400, 0, 100, 100, font3, ruVector3( 255, 0, 255 ), 0, 100 );
+        //ruDrawGUIText( "Простой текст", 200, 0, 100, 100, font2, ruVector3( 255, 0, 255 ), 0, 100 );
+        //ruDrawGUIText( "Простой текст", 400, 0, 100, 100, font3, ruVector3( 255, 0, 255 ), 0, 100 );
 
         ruRestartTimer( perfTimer );
         ruRenderWorld( 1.0f / 60.0f ); // fixed FPS

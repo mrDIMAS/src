@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <string>
+#include <windows.h>
 
 using namespace std;
 
@@ -173,6 +174,10 @@ struct ruLinePoint
     };
 };
 
+
+
+
+
 enum
 {
     LT_POINT,
@@ -228,6 +233,37 @@ public:
     virtual bool IsValid();
     virtual void Invalidate();
 };
+
+class RUAPI ruGUINodeHandle : public ruRutheniumHandle
+{
+public:
+	bool operator == ( const ruGUINodeHandle & node );
+};
+
+class RUAPI ruButtonHandle : public ruRutheniumHandle
+{
+public:
+	bool operator == ( const ruButtonHandle & node );
+};
+
+class RUAPI ruRectHandle : public ruGUINodeHandle
+{
+public:
+	bool operator == ( const ruRectHandle & node );
+};
+
+class RUAPI ruTextHandle : public ruGUINodeHandle
+{
+public:
+	bool operator == ( const ruTextHandle & node );
+};
+
+class RUAPI ruLineHandle : public ruGUINodeHandle
+{
+public:
+	bool operator == ( const ruLineHandle & node );
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Renderer functions
@@ -341,8 +377,7 @@ RUAPI bool ruIsLight( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////
-RUAPI void ruPausePhysics();
-RUAPI void ruResumePhysics();
+RUAPI void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep );
 RUAPI int ruGetContactCount( ruNodeHandle node );
 RUAPI ruContact ruGetContact( ruNodeHandle node, int num );
 RUAPI void ruFreeze( ruNodeHandle node );
@@ -469,11 +504,30 @@ RUAPI int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth );
 ////////////////////////////////////////////////////////////////////////////////////
 // GUI functions
 ////////////////////////////////////////////////////////////////////////////////////
+/*
 RUAPI void ruDraw3DLine( ruLinePoint begin, ruLinePoint end );
 RUAPI void ruDrawWireBox( ruLinePoint min, ruLinePoint max );
 RUAPI void ruDrawGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
 RUAPI void ruDrawGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
 RUAPI ruGUIState ruDrawGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+*/
+RUAPI ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
+RUAPI ruTextHandle ruCreateGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+RUAPI ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+RUAPI ruLineHandle ruCreateGUILine( ruLinePoint begin, ruLinePoint end );
+RUAPI void ruSetGUINodeText( ruTextHandle node, const char * text );
+RUAPI void ruSetGUINodePosition( ruGUINodeHandle node, float x, float y );
+RUAPI void ruSetGUINodeSize( ruGUINodeHandle node, float w, float h );
+RUAPI void ruSetGUINodeColor( ruGUINodeHandle node, ruVector3 color );
+RUAPI void ruSetGUINodeAlpha( ruGUINodeHandle node, int alpha );
+RUAPI void ruSetGUINodeVisible( ruGUINodeHandle node, bool visible );
+RUAPI bool ruIsGUINodeVisible( ruGUINodeHandle node );
+RUAPI ruVector2 ruGetGUINodePosition( ruGUINodeHandle node );
+RUAPI ruVector2 ruGetGUINodeSize( ruGUINodeHandle node );
+RUAPI ruVector3 ruGetGUINodeColor( ruGUINodeHandle node );
+RUAPI int ruGetGUINodeAlpha( ruGUINodeHandle node );
+RUAPI bool ruIsButtonPressed( ruButtonHandle node );
+RUAPI bool ruIsButtonPicked( ruButtonHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Time functions
@@ -485,7 +539,9 @@ RUAPI void ruRestartTimer( ruTimerHandle timer );
 RUAPI double ruGetElapsedTimeInSeconds( ruTimerHandle timer );
 RUAPI double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer );
 RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer );
-
+RUAPI double ruGetTimeInSeconds( ruTimerHandle timer );
+RUAPI double ruGetTimeInMilliSeconds( ruTimerHandle timer );
+RUAPI double ruGetTimeInMicroSeconds( ruTimerHandle timer );
 ////////////////////////////////////////////////////////////////////////////////////
 // Particle system functions
 ////////////////////////////////////////////////////////////////////////////////////

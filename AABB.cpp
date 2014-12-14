@@ -2,19 +2,7 @@
 
 void AABB::Visualize( ruVector3 offset )
 {
-    ruVector3 color = ruVector3( 0, 255, 0 );
-    ruDraw3DLine( ruLinePoint( ruVector3( min.x,min.y,min.z ) + offset, color ), ruLinePoint( ruVector3( min.x,min.y,max.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( min.x,min.y,max.z ) + offset, color ), ruLinePoint( ruVector3( max.x,min.y,max.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( max.x,min.y,max.z ) + offset, color ), ruLinePoint( ruVector3( max.x,min.y,min.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( max.x,min.y,min.z ) + offset, color ), ruLinePoint( ruVector3( min.x,min.y,min.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( min.x,max.y,min.z ) + offset, color ), ruLinePoint( ruVector3( min.x,max.y,max.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( min.x,max.y,max.z ) + offset, color ), ruLinePoint( ruVector3( max.x,max.y,max.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( max.x,max.y,max.z ) + offset, color ), ruLinePoint( ruVector3( max.x,max.y,min.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( max.x,max.y,min.z ) + offset, color ), ruLinePoint( ruVector3( min.x,max.y,min.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( min.x,min.y,min.z ) + offset, color ), ruLinePoint( ruVector3( min.x,max.y,min.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( min.x,min.y,max.z ) + offset, color ), ruLinePoint( ruVector3( min.x,max.y,max.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( max.x,min.y,max.z ) + offset, color ), ruLinePoint( ruVector3( max.x,max.y,max.z ) + offset, color ));
-    ruDraw3DLine( ruLinePoint( ruVector3( max.x,min.y,min.z ) + offset, color ), ruLinePoint( ruVector3( max.x,max.y,min.z ) + offset, color ));
+
 }
 
 bool AABB::IsTriangleInside( const ruVector3 & v1, const ruVector3 & v2, const ruVector3 & v3 )

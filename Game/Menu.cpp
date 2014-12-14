@@ -57,7 +57,7 @@ void Menu::Show()
         pCurrentLevel->Hide();
     mVisible = true;
     ruShowCursor();
-    ruPausePhysics();
+//    ruPausePhysics();
 }
 
 void Menu::Hide( )
@@ -73,7 +73,7 @@ void Menu::Hide( )
     mButtonsXOffset = 0;
     ruHideCursor();
     ruPauseSound( mMusic );
-    ruResumePhysics();
+//    ruResumePhysics();
 }
 
 void Menu::Update( )

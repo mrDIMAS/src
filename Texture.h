@@ -12,7 +12,7 @@ private:
     int bpp;
 public:
     string name;
-    static map< string, Texture* > textures;
+    static unordered_map< string, Texture* > msTextureList;
     virtual ~Texture( );
     void Bind( int level );
     IDirect3DTexture9 * GetInterface();

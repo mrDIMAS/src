@@ -1,17 +1,15 @@
 #pragma once
 
 #include "Common.h"
+#include "GUIRenderer.h"
 
-class Cursor
+class Cursor : public GUIRect
 {
 public:
-    int w;
-    int h;
-    bool visible;
-    Texture * tex;
+	explicit Cursor( int w, int h, Texture * texture ) : GUIRect( 0, 0, w, h, texture, ruVector3( 255, 255, 255 ), 255, false )
+	{
 
-    Cursor();
-    void Setup( ruTextureHandle texture, int w, int h );
+	}
     void Show();
     void Hide();
 };

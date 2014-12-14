@@ -5,9 +5,9 @@
 void ruSetCursorSettings( ruTextureHandle texture, int w, int h )
 {
     if( !g_cursor )
-        g_cursor = new Cursor;
-
-    g_cursor->Setup( texture, w, h );
+	{
+        g_cursor = new Cursor( w, h, (Texture*)texture.pointer );
+	}
 }
 
 void ruHideCursor( )
@@ -32,74 +32,128 @@ void ruShowCursor( )
     }
 }
 
-void ruDrawGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color, int alpha )
+bool ruGUINodeHandle::operator == ( const ruGUINodeHandle & node )
 {
-    g_guiRenderer->QueueRect( GUIRect( x, y, w, h, reinterpret_cast< Texture*>( texture.pointer ), color, alpha ));
+	return pointer == node.pointer;
 }
 
-ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined )
+bool ruButtonHandle::operator == ( const ruButtonHandle & node )
 {
-    return g_guiRenderer->CreateFont( size, name, italic, underlined );
+	return pointer == node.pointer;
 }
 
-void ruDrawGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha /*= 255 */ )
+bool ruRectHandle::operator == ( const ruRectHandle & node )
 {
-    g_guiRenderer->RenderText( GUIText( text, x, y, w, h, color, alpha, textAlign, font ));
+	return pointer == node.pointer;
 }
 
-void ruDraw3DLine( ruLinePoint begin, ruLinePoint end )
+bool ruTextHandle::operator == ( const ruTextHandle & node )
 {
-    g_guiRenderer->Render3DLine( GUILine( begin, end ));
+	return pointer == node.pointer;
 }
 
-void ruDrawWireBox( ruLinePoint min, ruLinePoint max )
+bool ruLineHandle::operator == ( const ruLineHandle & node )
 {
-    g_guiRenderer->DrawWireBox( min, max );
+	return pointer == node.pointer;
 }
 
-int ruGetTextWidth( const char * text, ruFontHandle font )
+
+ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined )	 
 {
-    auto fnt = (ID3DXFont*)font.pointer;
-
-    TEXTMETRICA metrics;
-    fnt->GetTextMetricsA( &metrics );
-
-    return metrics.tmAveCharWidth * strlen( text );
+	ruFontHandle font;
+	font.pointer = new BitmapFont( name, size );
+	return font;
 }
 
-int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth )
+ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color, int alpha )
 {
-    auto fnt = (ID3DXFont*)font.pointer;
-
-    TEXTMETRICA metrics;
-    fnt->GetTextMetricsA( &metrics );
-
-    int lines = metrics.tmAveCharWidth * strlen( text ) / boxWidth;
-    return metrics.tmHeight * lines;
+	ruRectHandle rect;
+	rect.pointer = new GUIRect( x, y, w, h, (Texture*)texture.pointer, color, alpha, true );
+	return rect;
 }
 
-RUAPI ruGUIState ruDrawGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha )
+ruTextHandle ruCreateGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha )
 {
-    ruGUIState state;
+	ruTextHandle t;
+	t.pointer = new GUIText( text, x, y, w, h, color, alpha, textAlign, (BitmapFont*)font.pointer );	
+	return t;
+}
 
-    memset( &state, 0, sizeof( ruGUIState ));
+ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha )
+{
+	ruButtonHandle button;
+	button.pointer = new GUIButton( x, y, w, h, (Texture*)texture.pointer, text, (BitmapFont*)font.pointer, color, textAlign, alpha );
+	return button;
+}
 
-    int mx = ruGetMouseX();
-    int my = ruGetMouseY();
+ruLineHandle ruCreateGUILine( ruLinePoint begin, ruLinePoint end )
+{
+	ruLineHandle line;
+	line.pointer = new ruGUILine( begin, end );
+	return line;
+}
 
-    if( mx > x && mx < ( x + w ) && my > y && my < ( y + h ) )
-    {
-        state.mouseInside = 1;
-        if( ruIsMouseHit( MB_Left ))
-            state.mouseLeftClicked = true;
-        if( ruIsMouseHit( MB_Right ))
-            state.mouseRightClicked = true;
+void ruSetGUINodePosition( ruGUINodeHandle node, float x, float y )
+{
+	((GUINode*)node.pointer)->SetPosition( x, y );
+}
 
-        color = ruVector3( 255, 0, 0 );
-    }
+void ruSetGUINodeSize( ruGUINodeHandle node, float w, float h )
+{
+	((GUINode*)node.pointer)->SetSize( w, h );
+}
 
-    ruDrawGUIRect( x, y, w, h, texture, ruVector3( 255, 255, 255 ), alpha );
-    ruDrawGUIText( text, x, y, w, h, font, color, textAlign, alpha );
+void ruSetGUINodeColor( ruGUINodeHandle node, ruVector3 color )
+{
+	((GUINode*)node.pointer)->SetColor( color );
+}
 
-    return state;
+void ruSetGUINodeAlpha( ruGUINodeHandle node, int alpha )
+{
+	((GUINode*)node.pointer)->SetAlpha( alpha );
+}
+
+void ruSetGUINodeVisible( ruGUINodeHandle node, bool visible )
+{
+	((GUINode*)node.pointer)->SetVisible( visible );
+}
+
+void ruSetGUINodeText( ruTextHandle node, const char * text )
+{
+	((GUIText*)node.pointer)->SetText( text );
+}
+
+bool ruIsGUINodeVisible( ruGUINodeHandle node )
+{
+	return ((GUINode*)node.pointer)->IsVisible();
+}
+
+ruVector2 ruGetGUINodePosition( ruGUINodeHandle node )
+{
+	return ((GUINode*)node.pointer)->GetPosition();
+}
+
+ruVector2 ruGetGUINodeSize( ruGUINodeHandle node )
+{
+	return ((GUINode*)node.pointer)->GetSize();
+}
+
+ruVector3 ruGetGUINodeColor( ruGUINodeHandle node )
+{
+	return ((GUINode*)node.pointer)->GetColor();
+}
+
+int ruGetGUINodeAlpha( ruGUINodeHandle node )
+{
+	return ((GUINode*)node.pointer)->GetAlpha();
+}
+
+RUAPI bool ruIsButtonPressed( ruButtonHandle node )
+{
+	return ((GUIButton*)node.pointer)->IsPicked();
+}
+
+RUAPI bool ruIsButtonPicked( ruButtonHandle node )
+{
+	return ((GUIButton*)node.pointer)->IsLMBPressed();
 }

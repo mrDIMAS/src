@@ -14,6 +14,6 @@ public:
     IDirect3DIndexBuffer9 * indexBuffer;
     explicit TextRenderer( );
     virtual ~TextRenderer( );
-    void ComputeTextMetrics( GUIText & guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );
-    void RenderTextGroup( vector<GUIText> & textGroup, BitmapFont * font );
+    void ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );
+    void RenderText( GUIText* guiText );
 };

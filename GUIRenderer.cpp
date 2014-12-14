@@ -87,37 +87,6 @@ ruFontHandle GUIRenderer::CreateFont( int size, const char * name, int italic, i
     return handle;
 }
 
-void GUIRenderer::RenderText( const GUIText & text )
-{
-    auto iter = texts.find( text.font );
-    if( iter == texts.end() )
-        texts[ text.font ] = vector<GUIText>();
-    texts[ text.font ].push_back( text );
-}
-
-void GUIRenderer::Render3DLine( const GUILine & line )
-{
-    lines.push( line );
-}
-
-void GUIRenderer::DrawWireBox( ruLinePoint min, ruLinePoint max )
-{
-    ruVector3 lmin = min.position;
-    ruVector3 lmax = max.position;
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmin.x, lmin.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmax.x, lmin.y, lmin.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmax.x, lmin.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmax.x, lmax.y, lmin.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmax.x, lmax.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmin.x, lmax.y, lmin.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmin.x, lmax.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmin.x, lmin.y, lmin.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmin.x, lmin.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmin.x, lmin.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmax.x, lmin.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmax.x, lmin.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmax.x, lmax.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmax.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmin.x, lmax.y, lmin.z), min.color ), ruLinePoint( ruVector3(lmin.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmin.x, lmin.y, lmax.z), min.color ), ruLinePoint( ruVector3(lmax.x, lmin.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmax.x, lmin.y, lmax.z), min.color ), ruLinePoint( ruVector3(lmax.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmax.x, lmax.y, lmax.z), min.color ), ruLinePoint( ruVector3(lmin.x, lmax.y, lmax.z), max.color )));
-    Render3DLine( GUILine( ruLinePoint( ruVector3(lmin.x, lmax.y, lmax.z), min.color ), ruLinePoint( ruVector3(lmin.x, lmin.y, lmax.z), max.color )));
-}
-
 void GUIRenderer::RenderAllGUIElements()
 {
     pixelShader->Bind();
@@ -129,103 +98,95 @@ void GUIRenderer::RenderAllGUIElements()
     g_pDevice->SetVertexDeclaration( vertDecl );
     g_pDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D ));
 
-    while( !rects.empty() )
+	for( auto pButton : GUIButton::msButtonList )
+	{
+		if( pButton->IsVisible() )
+		{
+			pButton->Update();
+		}		
+	}
+
+	for( auto pRect : GUIRect::msRectList )
     {
-        RenderRect( rects.front() );
-        rects.pop();
+		if( pRect->IsVisible() )
+        {
+			RenderRect( pRect );
+		}
     }
-    for( auto & kv : texts )
+
+    for( auto pText : GUIText::msTextList )
     {
-        g_textRenderer->RenderTextGroup( kv.second, kv.first );
-        kv.second.clear();
+        g_textRenderer->RenderText( pText );
     }
+
     if( g_cursor )
     {
         CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
-        if( g_cursor->visible )
-            RenderRect( GUIRect( ruGetMouseX(), ruGetMouseY(), g_cursor->w, g_cursor->h, g_cursor->tex, ruVector3( 255, 255, 255 ), 255 ) );
+        if( g_cursor->IsVisible() )
+		{
+			g_cursor->SetPosition( ruGetMouseX(), ruGetMouseY());
+            RenderRect( g_cursor );
+		}
     }
 }
 
 void GUIRenderer::RenderLines()
 {
-    void * data = nullptr;
-    CheckDXErrorFatal( lineVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD ));
+	/*
+	if( lines.size() )
+	{
+		void * data = nullptr;
+		CheckDXErrorFatal( lineVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD ));
 
-    int linesToRender = 0;
-    while( !lines.empty() )
-    {
-        GUILine line = lines.front();
+		int iLine = 0;
+		for( auto line : lines )
+		{
+			const int pointCount = 2;
 
-        const int pointCount = 2;
+			ruLinePoint points[ pointCount ];
+			points[ 0 ] = line->begin;
+			points[ 1 ] = line->end;
 
-        ruLinePoint points[ pointCount ];
-        points[ 0 ] = line.begin;
-        points[ 1 ] = line.end;
+			int lineBytesCount = sizeof( ruLinePoint ) * pointCount;
 
-        int lineBytesCount = sizeof( ruLinePoint ) * pointCount;
+			memcpy( (char*)data + iLine * lineBytesCount, points, lineBytesCount );
+			iLine++;
+		}
 
-        memcpy( (char*)data + linesToRender * lineBytesCount, points, lineBytesCount );
-
-        linesToRender++;
-
-        lines.pop();
-    }
-
-    CheckDXErrorFatal( lineVertexBuffer->Unlock( ));
-    CheckDXErrorFatal( g_pDevice->SetVertexDeclaration( lineDecl ));
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, lineVertexBuffer, 0, sizeof( ruLinePoint )));
-
-    if( linesToRender )
-        CheckDXErrorFatal( g_pDevice->DrawPrimitive( D3DPT_LINELIST, 0, linesToRender ));
+		CheckDXErrorFatal( lineVertexBuffer->Unlock( ));
+		CheckDXErrorFatal( g_pDevice->SetVertexDeclaration( lineDecl ));
+		CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, lineVertexBuffer, 0, sizeof( ruLinePoint )));	
+		CheckDXErrorFatal( g_pDevice->DrawPrimitive( D3DPT_LINELIST, 0, lines.size() ));
+	}*/
 }
 
 
-void GUIRenderer::RenderRect( GUIRect & rect )
+void GUIRenderer::RenderRect( GUIRect * rect )
 {
     void * data = nullptr;
     Vertex2D vertices[6];
-    vertices[ 0 ] = Vertex2D( rect.x, rect.y, 0, 0, 0, rect.color );
-    vertices[ 1 ] = Vertex2D( rect.x + rect.w, rect.y, 0, 1, 0, rect.color );
-    vertices[ 2 ] = Vertex2D( rect.x, rect.y + rect.h, 0, 0, 1, rect.color );
-    vertices[ 3 ] = Vertex2D( rect.x + rect.w, rect.y, 0, 1, 0, rect.color );
-    vertices[ 4 ] = Vertex2D( rect.x + rect.w, rect.y + rect.h, 0, 1, 1, rect.color );
-    vertices[ 5 ] = Vertex2D( rect.x, rect.y + rect.h, 0, 0, 1, rect.color );
+    rect->GetSixVertices( vertices );
     CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
     memcpy( data, vertices, sizeOfRectBytes );
     CheckDXErrorFatal( vertexBuffer->Unlock( ));
-    if( rect.texture )
-        rect.texture->Bind( 0 );
+    if( rect->GetTexture() )
+        rect->GetTexture()->Bind( 0 );
     else
         g_pDevice->SetTexture( 0, nullptr );
     g_dips++;
     CheckDXErrorFatal( g_pDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
 }
 
-GUILine::GUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd )
+ruGUILine::ruGUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd )
 {
     end = theEnd;
+	mVisible = true;
     begin = theBegin;
 }
 
-GUIText::GUIText( string theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, ruFontHandle theFont )
+ruGUILine::ruGUILine( )
 {
-    rect.left = theX;
-    rect.top = theY;
-    rect.right = theX + theWidth;
-    rect.bottom = theY + theHeight;
-    text = theText;
-    font = (BitmapFont *)theFont.pointer;
-    textAlign = theTextAlign;
-    color = D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
+	mVisible = true;
 }
 
-GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, ruVector3 theColor, int theAlpha )
-{
-    x = theX;
-    y = theY;
-    w = theWidth;
-    h = theHeight;
-    texture = theTexture;
-    color = D3DCOLOR_ARGB( theAlpha, (int)theColor.x, (int)theColor.y, (int)theColor.z );
-}
+

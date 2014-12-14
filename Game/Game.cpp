@@ -36,7 +36,7 @@ void main( )
     localizationPath  = config.GetString( "languagePath" );
 
 #ifdef _DEBUG
-    ruCreateRenderer( 0, 0, 0, 0 );
+    ruCreateRenderer( 0, 0, 0, vSync );
 #else
     ruCreateRenderer( g_resW, g_resH, fullscreen, vSync );
 #endif
@@ -56,15 +56,179 @@ void main( )
     ruTimerHandle dtTimer = ruCreateTimer();
 
 
-
+	/*
     g_dt = 1.0f  / 60.0f;
     float lastTime = 0.0f;
     //float dtDest = g_dt;
     float minDt = 100000;
 	float accumDeltaTime = 0.0f;
-	float fixedTimeStep = 1.0f / 60.0f;
+	float fixedTimeStep = 1.0f / 60.0f;*//*
+	float physicsStep = 1.0f / 120.0f;
+	float maxPhysicsTimePerFrame = 0.15f;
+	float lastTime = ruGetTimeInSeconds( dtTimer );
+	float physicsTimer = 0;*/
+
+	double fixedTick = 1.0 / 60.0;
+	double prevPhysTime = ruGetTimeInSeconds( dtTimer );
+	double currPhysTime = prevPhysTime;
+	double gameClock = prevPhysTime;
+
     while( true )
     {
+		try {			
+			if( !g_running )
+				break;
+
+			// ===========================
+			// frame rendering update
+			ruRenderWorld( 1.0f / 60.0f );
+			
+			// ===========================
+			// physics update
+			if( !pMainMenu->mVisible )
+			{
+				currPhysTime = ruGetTimeInSeconds( dtTimer );
+				ruUpdatePhysics( currPhysTime - prevPhysTime, 10, 1.0f / 60.0f );
+				prevPhysTime = currPhysTime;
+			}
+
+			// ===========================
+			// game logics update
+			double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
+			if( dt > 1.0f / 10.0f )
+				dt = 1.0f / 10.0f;
+			while( dt > fixedTick ) 
+			{
+				dt -= fixedTick;
+				gameClock += fixedTick;
+
+				g_dt = fixedTick;
+
+				ruInputUpdate();
+				if( pPlayer ) 
+				{
+					pPlayer->Update();
+				}
+
+				pMainMenu->Update();			
+
+				if( !pMainMenu->mVisible )
+				{
+					if( ruIsKeyHit( g_keyQuickSave ))
+					{
+						SaveWriter( "quickSave.save" ).SaveWorldState();
+						pPlayer->SetTip( config.GetString( "saved" ) );
+					}
+					if( ruIsKeyHit( g_keyQuickLoad ))
+					{
+						if( FileExist( "quickSave.save" ))
+						{
+							SaveLoader( "quickSave.save" ).RestoreWorldState();
+							pPlayer->SetTip( config.GetString( "loaded" ) );
+						}
+						if( pCurrentLevel )
+						{
+							pCurrentLevel->DoScenario();
+						}
+					}
+					InteractiveObject::UpdateAll();
+					screamer->Update();
+				}			
+				if( g_showFPS )
+				{
+					ruDrawGUIText( Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\n", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt ).c_str(), 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
+				}
+			}		
+			fpsCounter.RegisterFrame();
+		} catch( runtime_error & rError ) {
+			// just exit main loop to be sure, that all resources will be freed
+			break;
+		}
+
+		/*try {			
+			if( !g_running )
+				break;
+
+			float currentTime = ruGetTimeInSeconds( dtTimer );
+			float deltaTime = currentTime - lastTime;
+			lastTime = currentTime;
+
+			g_dt = deltaTime;
+			if( g_dt > 1.0f / 15.0f )
+				g_dt = 1.0f / 15.0f;
+			// ===========================
+			// game logics update
+			ruInputUpdate();
+			if( pPlayer ) 
+			{
+				pPlayer->Update();
+			}
+
+			pMainMenu->Update();			
+
+			if( !pMainMenu->mVisible )
+			{
+				if( ruIsKeyHit( g_keyQuickSave ))
+				{
+					SaveWriter( "quickSave.save" ).SaveWorldState();
+					pPlayer->SetTip( config.GetString( "saved" ) );
+				}
+				if( ruIsKeyHit( g_keyQuickLoad ))
+				{
+					if( FileExist( "quickSave.save" ))
+					{
+						SaveLoader( "quickSave.save" ).RestoreWorldState();
+						pPlayer->SetTip( config.GetString( "loaded" ) );
+					}
+					if( pCurrentLevel )
+					{
+						pCurrentLevel->DoScenario();
+					}
+				}
+				InteractiveObject::UpdateAll();
+				screamer->Update();
+			}			
+			if( g_showFPS )
+			{
+				ruDrawGUIText( Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\n", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt ).c_str(), 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
+			}
+			
+			// ===========================
+			// physics update
+
+			if( !pMainMenu->mVisible )
+			{
+				physicsTimer += deltaTime;
+
+				int physicsSteps = (int)( physicsTimer / physicsStep );
+				physicsTimer -= physicsStep * physicsSteps;
+
+				float physicsWorkTime = 0;
+				float physicsStartTime = ruGetTimeInSeconds( dtTimer );
+
+				ruUpdatePhysics( g_dt, 60, physicsStep );
+				/*
+				for( int i = 0; i < physicsSteps; i++ )
+				{
+					ruUpdatePhysics( physicsStep );
+					float physicsEndTime = ruGetTimeInSeconds( dtTimer );
+					physicsWorkTime += physicsEndTime - physicsStartTime;
+					physicsStartTime = physicsEndTime;
+					/*if( physicsWorkTime >= maxPhysicsTimePerFrame )
+					{
+						break;
+					}
+				}
+			}
+			
+			ruRenderWorld( g_dt );
+			fpsCounter.RegisterFrame();
+		} catch( runtime_error & rError ) {
+			// just exit main loop to be sure, that all resources will be freed
+			break;
+		}*/
+		
+		/*
 		try {			
 			ruRestartTimer( dtTimer );
 			if( !g_running )
@@ -111,7 +275,7 @@ void main( )
 		} catch( runtime_error & rError ) {
 			// just exit main loop to be sure, that all resources will be freed
 			break;
-		}
+		}*/
     }
 
     if( pCurrentLevel )

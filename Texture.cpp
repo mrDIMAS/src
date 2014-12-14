@@ -1,22 +1,22 @@
 #include "Texture.h"
 #include "Utility.h"
 
-map< string, Texture* > Texture::textures;
+unordered_map< string, Texture* > Texture::msTextureList;
 
 string g_texturePath = "data/textures/generic/";
 Texture * Texture::Require( string file )
 {
-    Texture * texture = 0;
+    Texture * pTexture = 0;
 
-    auto existing = textures.find( file );
+    auto existing = msTextureList.find( file );
 
-    if( existing == textures.end() )
+    if( existing == msTextureList.end() )
     {
         // texture not found in the storage, so create new one
-        texture = new Texture;
+        pTexture = new Texture;
 
-        texture->texture = 0;
-        texture->name = file;
+        pTexture->texture = 0;
+        pTexture->name = file;
 
         D3DXIMAGE_INFO imgInfo;
 
@@ -31,23 +31,23 @@ Texture * Texture::Require( string file )
         if( pFile )   // got cached DXT5 texture
         {
             fclose( pFile );
-            if( FAILED( D3DXCreateTextureFromFileExA( g_pDevice, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &texture->texture )))
+            if( FAILED( D3DXCreateTextureFromFileExA( g_pDevice, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture )))
                 LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
         }
         else
         {
-            if( FAILED( D3DXCreateTextureFromFileExA( g_pDevice, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &texture->texture )))
+            if( FAILED( D3DXCreateTextureFromFileExA( g_pDevice, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->texture )))
                 LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
         }
-        texture->width = imgInfo.Width;
-        texture->height = imgInfo.Height;
-        texture->bpp = 32;
-        textures[ file ] = texture;
+        pTexture->width = imgInfo.Width;
+        pTexture->height = imgInfo.Height;
+        pTexture->bpp = 32;
+        msTextureList[ file ] = pTexture;
     }
     else
-        texture = existing->second;
+        pTexture = existing->second;
 
-    return texture;
+    return pTexture;
 }
 
 Texture::Texture()
@@ -74,7 +74,7 @@ IDirect3DTexture9 * Texture::GetInterface()
 
 void Texture::DeleteAll()
 {
-    for( auto tex : textures )
+    for( auto tex : msTextureList )
     {
         if( tex.second->texture )
             tex.second->texture->Release();

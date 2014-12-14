@@ -126,7 +126,6 @@ extern Cursor * g_cursor;
 extern Renderer * g_renderer;
 extern int g_fps;
 extern FPSCounter g_fpsCounter;
-extern bool g_physicsEnabled;
 extern bool g_engineRunning;
 extern bool g_hdrEnabled;
 extern string g_texturePath;
