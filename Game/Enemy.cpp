@@ -64,10 +64,10 @@ void Enemy::Think()
     bool enemyDetectPlayer = false;
     if( playerInView )
     {
-        if( pPlayer->mpFlashlight->on )
+        if( pPlayer->mpFlashlight->IsOn() )
         {
             // if we light up enemy, he detects player
-            if( ruIsLightSeePoint( pPlayer->mpFlashlight->light, ruGetNodePosition( mBody ) ) )
+            if( pPlayer->mpFlashlight->IsBeamContainsPoint( ruGetNodePosition( mBody )))
             {
                 if( !mPlayerDetected )
                 {

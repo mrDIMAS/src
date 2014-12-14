@@ -4,26 +4,15 @@ ForwardRenderer * g_forwardRenderer = nullptr;
 
 void ForwardRenderer::RenderMeshes()
 {
-    IDirect3DStateBlock9 * state = nullptr;
-    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
-
     pixelShader->Bind();
     vertexShader->Bind();
-
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
 
     for( auto group : renderList )
     {
         IDirect3DTexture9 * diffuseTexture = group.first;
         vector< Mesh* > & meshes = group.second;
 
-        g_device->SetTexture( 0, diffuseTexture );
+        g_pDevice->SetTexture( 0, diffuseTexture );
 
         for( auto mesh : meshes )
         {
@@ -31,16 +20,13 @@ void ForwardRenderer::RenderMeshes()
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
 
-            CheckDXErrorFatal( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-            CheckDXErrorFatal( g_device->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
+            CheckDXErrorFatal( g_pDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+            CheckDXErrorFatal( g_pDevice->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
 
             mesh->BindBuffers();
             mesh->Render();
         }
     }
-
-    CheckDXErrorFatal( state->Apply());
-    state->Release();
 }
 
 void ForwardRenderer::RemoveMesh( Mesh * mesh )

@@ -3,40 +3,31 @@
 
 void SpotlightShadowMap::UnbindSpotShadowMap( int index )
 {
-    g_device->SetTexture( index, nullptr );
+    g_pDevice->SetTexture( index, nullptr );
 }
 
 void SpotlightShadowMap::BindSpotShadowMap( int index )
 {
-    g_device->SetTexture( index, spotShadowMap );
+    g_pDevice->SetTexture( index, spotShadowMap );
 }
 
 void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight )
 {
-    IDirect3DStateBlock9 * state;
-    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
-    CheckDXErrorFatal( g_device->SetRenderTarget( 0, spotSurface ));
-    CheckDXErrorFatal( g_device->SetDepthStencilSurface( depthStencil ));
-    CheckDXErrorFatal( g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZENABLE, TRUE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, TRUE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderTarget( 0, spotSurface ));
+    CheckDXErrorFatal( g_pDevice->SetDepthStencilSurface( depthStencil ));
+    CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
 
     pixelShader->Bind();
     vertexShader->Bind();
 
     spotLight->BuildSpotProjectionMatrixAndFrustum();
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
-    CheckDXErrorFatal( g_device->GetTexture( 0, &prevZeroSamplerTexture ));
+    CheckDXErrorFatal( g_pDevice->GetTexture( 0, &prevZeroSamplerTexture ));
 
     for( auto meshGroupIter : Mesh::meshes )
     {
         auto & group = meshGroupIter.second;
-        CheckDXErrorFatal( g_device->SetTexture( 0, meshGroupIter.first ));
+        CheckDXErrorFatal( g_pDevice->SetTexture( 0, meshGroupIter.first ));
         for( auto mesh : group )
         {
             // if owner of mesh is visible
@@ -50,7 +41,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
                     D3DXMATRIX world, wvp;
                     GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
                     D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
-                    CheckDXErrorFatal( g_device->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+                    CheckDXErrorFatal( g_pDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
                     mesh->BindBuffers();
                     mesh->Render();
                     //}
@@ -59,14 +50,11 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
         };
     }
 
-    CheckDXErrorFatal( g_device->SetTexture( 0, prevZeroSamplerTexture ));
-
-    CheckDXErrorFatal( state->Apply());
-    state->Release();
+    CheckDXErrorFatal( g_pDevice->SetTexture( 0, prevZeroSamplerTexture ));
 
     // revert to the last used render target
-    CheckDXErrorFatal( g_device->SetRenderTarget( rtIndex, lastUsedRT ));
-    CheckDXErrorFatal( g_device->SetDepthStencilSurface( defaultDepthStencil ));
+    CheckDXErrorFatal( g_pDevice->SetRenderTarget( rtIndex, lastUsedRT ));
+    CheckDXErrorFatal( g_pDevice->SetDepthStencilSurface( defaultDepthStencil ));
 }
 
 SpotlightShadowMap::~SpotlightShadowMap()
@@ -83,7 +71,7 @@ SpotlightShadowMap::SpotlightShadowMap( float size )
     iSize = size;
 
     // create shadow maps
-    CheckDXErrorFatal( D3DXCreateTexture( g_device, size, size, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap ));
+    CheckDXErrorFatal( D3DXCreateTexture( g_pDevice, size, size, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap ));
 
     // get surfaces
     CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
@@ -116,6 +104,6 @@ SpotlightShadowMap::SpotlightShadowMap( float size )
 
     pixelShader = new PixelShader( pixelShaderSource );
 
-    CheckDXErrorFatal( g_device->GetDepthStencilSurface( &defaultDepthStencil ));
-    CheckDXErrorFatal( g_device->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));
+    CheckDXErrorFatal( g_pDevice->GetDepthStencilSurface( &defaultDepthStencil ));
+    CheckDXErrorFatal( g_pDevice->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));
 }

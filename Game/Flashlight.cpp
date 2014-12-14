@@ -3,36 +3,36 @@
 
 void Flashlight::Update()
 {
-    if( on )
+    if( mOn )
     {
-        rangeDest = onRange;
+        mRangeDest = mOnRange;
 
-        mCharge -= g_dt / chargeWorkTimeSeconds;
+        mCharge -= g_dt / mChargeWorkTimeSeconds;
 
         if( mCharge < 0.1f )
             mCharge = 0.1f;
     }
     else
-        rangeDest = 0.0f;
+        mRangeDest = 0.0f;
 
-    realRange += ( rangeDest - realRange ) * 0.15f;
-    ruSetLightRange( light, realRange * mCharge );
-    position = position.Lerp( destPosition, 0.15f );
-    ruSetNodePosition( model, position + offset );
+    mRealRange += ( mRangeDest - mRealRange ) * 0.15f;
+    ruSetLightRange( mLight, mRealRange * mCharge );
+    mPosition = mPosition.Lerp( mDestPosition, 0.15f );
+    ruSetNodePosition( mModel, mPosition + mOffset );
 
     if( pPlayer->mMoved )
     {
         if( pPlayer->mRunning )
-            bobArg += 11.5f * g_dt;
+            mShakeCoeff += 11.5f * g_dt;
         else
-            bobArg += 7.5f * g_dt;
-        offset = ruVector3( cosf( bobArg * 0.5f ) * 0.02f, sinf( bobArg ) * 0.02f, 0.0f );
+            mShakeCoeff += 7.5f * g_dt;
+        mOffset = ruVector3( cosf( mShakeCoeff * 0.5f ) * 0.02f, sinf( mShakeCoeff ) * 0.02f, 0.0f );
     }
 }
 
 void Flashlight::Switch()
 {
-    if( on )
+    if( mOn )
         SwitchOff();
     else
         SwitchOn();
@@ -40,40 +40,40 @@ void Flashlight::Switch()
 
 void Flashlight::SwitchOn()
 {
-    if( !on )
+    if( !mOn )
     {
-        ruPlaySound( onSound );
+        ruPlaySound( mOnSound );
 
-        on = true;
+        mOn = true;
 
-        destPosition = initialPosition;
+        mDestPosition = mInitialPosition;
     }
 }
 
 void Flashlight::SwitchOff()
 {
-    if( on )
+    if( mOn )
     {
-        ruPlaySound( offSound );
+        ruPlaySound( mOffSound );
 
-        on = false;
+        mOn = false;
 
-        destPosition = ruVector3( -1.0f, -1.0f, -1.0f );
+        mDestPosition = ruVector3( -1.0f, -1.0f, -1.0f );
     }
 }
 
 void Flashlight::Attach( ruNodeHandle node )
 {
-    ::ruAttachNode( model, node );
+    ::ruAttachNode( mModel, node );
 
-    initialPosition = ruGetNodePosition( model );
-    destPosition = initialPosition;
-    position = initialPosition;
+    mInitialPosition = ruGetNodePosition( mModel );
+    mDestPosition = mInitialPosition;
+    mPosition = mInitialPosition;
 }
 
 void Flashlight::Fuel()
 {
-    mCharge = maxCharge;
+    mCharge = mMaxCharge;
 }
 
 bool Flashlight::GotCharge()
@@ -83,38 +83,38 @@ bool Flashlight::GotCharge()
 
 Flashlight::Flashlight()
 {
-    model = ruLoadScene( "data/models/hands/arm.scene" );
-    ruSetNodeDepthHack( model, 0.1f );
+    mModel = ruLoadScene( "data/models/hands/arm.scene" );
+    ruSetNodeDepthHack( mModel, 0.1f );
 
-    light = ruFindInObjectByName( model, "PlayerLight" );
-    ruSetLightSpotTexture( light, ruGetTexture( "data/textures/generic/spotlight.jpg"));
+    mLight = ruFindInObjectByName( mModel, "PlayerLight" );
+    ruSetLightSpotTexture( mLight, ruGetTexture( "data/textures/generic/spotlight.jpg"));
 
-    onSound = ruLoadSound2D( "data/sounds/flashlight/on.ogg" );
-    offSound = ruLoadSound2D( "data/sounds/flashlight/off.ogg" );
-    outOfChargeSound = ruLoadSound2D( "data/sounds/flashlight/outofcharge.ogg" );
+    mOnSound = ruLoadSound2D( "data/sounds/flashlight/on.ogg" );
+    mOffSound = ruLoadSound2D( "data/sounds/flashlight/off.ogg" );
+    mOutOfChargeSound = ruLoadSound2D( "data/sounds/flashlight/outofcharge.ogg" );
 
-    onRange = ruGetLightRange( light );
+    mOnRange = ruGetLightRange( mLight );
 
-    realRange = onRange;
-    rangeDest = onRange;
+    mRealRange = mOnRange;
+    mRangeDest = mOnRange;
 
-    maxCharge = 1.0f;
-    mCharge = maxCharge;
+    mMaxCharge = 1.0f;
+    mCharge = mMaxCharge;
 
-    chargeWorkTimeSeconds = 120.0f;
-    bobArg = 0.0f;
-    on = true;
+    mChargeWorkTimeSeconds = 240.0f;
+    mShakeCoeff = 0.0f;
+    mOn = true;
 }
 
 void Flashlight::DeserializeWith( TextFileStream & in )
 {
-    in.ReadFloat( maxCharge );
+    in.ReadFloat( mMaxCharge );
     in.ReadFloat( mCharge );
-    in.ReadFloat( onRange );
-    in.ReadFloat( realRange );
-    in.ReadFloat( rangeDest );
-    in.ReadBoolean( on );
-    if( on )
+    in.ReadFloat( mOnRange );
+    in.ReadFloat( mRealRange );
+    in.ReadFloat( mRangeDest );
+    in.ReadBoolean( mOn );
+    if( mOn )
         SwitchOn();
     else
         SwitchOff();
@@ -122,10 +122,35 @@ void Flashlight::DeserializeWith( TextFileStream & in )
 
 void Flashlight::SerializeWith( TextFileStream & out )
 {
-    out.WriteFloat( maxCharge );
+    out.WriteFloat( mMaxCharge );
     out.WriteFloat( mCharge );
-    out.WriteFloat( onRange );
-    out.WriteFloat( realRange );
-    out.WriteFloat( rangeDest );
-    out.WriteBoolean( on );
+    out.WriteFloat( mOnRange );
+    out.WriteFloat( mRealRange );
+    out.WriteFloat( mRangeDest );
+    out.WriteBoolean( mOn );
+}
+
+Flashlight::~Flashlight()
+{
+
+}
+
+Item * Flashlight::CreateAppropriateItem()
+{
+	return new Item( mModel, Item::Type::Flashlight );
+}
+
+bool Flashlight::IsBeamContainsPoint( ruVector3 point ) const
+{
+	return ruIsLightSeePoint( mLight, point );
+}
+
+float Flashlight::GetCharge()
+{
+	return mCharge;
+}
+
+bool Flashlight::IsOn() const
+{
+	return mOn;
 }

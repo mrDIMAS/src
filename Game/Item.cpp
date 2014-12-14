@@ -214,3 +214,8 @@ void Item::MarkAsGrabbed()
 {
 	mInInventory = true;
 }
+
+bool Item::IsFree()
+{
+	return mInInventory == false;
+}

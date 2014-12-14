@@ -2,7 +2,7 @@
 
 void VertexShader::Bind()
 {
-    CheckDXErrorFatal( g_device->SetVertexShader( shader ));
+    CheckDXErrorFatal( g_pDevice->SetVertexShader( shader ));
 }
 
 ID3DXConstantTable * VertexShader::GetConstantTable()
@@ -31,7 +31,7 @@ VertexShader::VertexShader( string source )
         exit( -1 );
     }
 
-    CheckDXErrorFatal( g_device->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
+    CheckDXErrorFatal( g_pDevice->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }
 
 VertexShader::VertexShader( string fileName, bool binary )
@@ -51,14 +51,14 @@ VertexShader::VertexShader( string fileName, bool binary )
     while (numRead != fSize)
         numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
     fclose(pFile);
-    CheckDXErrorFatal( g_device->CreateVertexShader ( ( DWORD*)shaderCode, &shader ));
+    CheckDXErrorFatal( g_pDevice->CreateVertexShader ( ( DWORD*)shaderCode, &shader ));
     constants = 0;
 }
 
 
 void PixelShader::Bind()
 {
-    CheckDXErrorFatal( g_device->SetPixelShader( shader ));
+    CheckDXErrorFatal( g_pDevice->SetPixelShader( shader ));
 }
 
 ID3DXConstantTable * PixelShader::GetConstantTable()
@@ -87,7 +87,7 @@ PixelShader::PixelShader( string source )
         exit( -1 );
     }
 
-    CheckDXErrorFatal( g_device->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
+    CheckDXErrorFatal( g_pDevice->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }
 
 
@@ -108,6 +108,6 @@ PixelShader::PixelShader( string fileName, bool binary )
     while (numRead != fSize)
         numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
     fclose(pFile);
-    CheckDXErrorFatal( g_device->CreatePixelShader ( ( DWORD*)shaderCode, &shader ));
+    CheckDXErrorFatal( g_pDevice->CreatePixelShader ( ( DWORD*)shaderCode, &shader ));
     constants = 0;
 }

@@ -21,9 +21,9 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh )
     mesh->BindBuffers();
     D3DXMatrixMultiply( &vwp, &world, &g_camera->viewProjection );
     constantRegister[0] = mesh->GetParentNode()->albedo;
-    g_device->SetPixelShaderConstantF( 0, constantRegister, 1 );
-    g_device->SetVertexShaderConstantF( 0, &world.m[0][0], 4 );
-    g_device->SetVertexShaderConstantF( 5, &vwp.m[0][0], 4 );
+    g_pDevice->SetPixelShaderConstantF( 0, constantRegister, 1 );
+    g_pDevice->SetVertexShaderConstantF( 0, &world.m[0][0], 4 );
+    g_pDevice->SetVertexShaderConstantF( 5, &vwp.m[0][0], 4 );
     mesh->Render();
     if( mesh->ownerNode->fDepthHack )
         g_camera->LeaveDepthHack();
@@ -32,7 +32,7 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh )
 void MultipleRTDeferredRenderer::BeginFirstPass()
 {
     gBuffer->BindRenderTargets();
-    CheckDXErrorFatal( g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
     if( renderQuality > 0 )
     {
         vsGBufferHighQuality->Bind();
@@ -43,8 +43,6 @@ void MultipleRTDeferredRenderer::BeginFirstPass()
         vsGBufferLowQuality->Bind();
         psGBufferLowQuality->Bind();
     }
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
 }
 
 MultipleRTDeferredRenderer::MultipleRTDeferredRenderer()

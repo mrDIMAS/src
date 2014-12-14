@@ -323,3 +323,12 @@ int Inventory::GetItemCount()
 {
 	return mItemList.size();
 }
+
+int Inventory::GetItemCount( Item::Type type )
+{
+	int count = 0;
+	for( auto pItem : mItemList )
+		if( pItem->GetType() == type )
+			count++;
+	return count;
+}

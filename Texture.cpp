@@ -31,12 +31,12 @@ Texture * Texture::Require( string file )
         if( pFile )   // got cached DXT5 texture
         {
             fclose( pFile );
-            if( FAILED( D3DXCreateTextureFromFileExA( g_device, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_MANAGED, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &texture->texture )))
+            if( FAILED( D3DXCreateTextureFromFileExA( g_pDevice, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &texture->texture )))
                 LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
         }
         else
         {
-            if( FAILED( D3DXCreateTextureFromFileExA( g_device, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &texture->texture )))
+            if( FAILED( D3DXCreateTextureFromFileExA( g_pDevice, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &texture->texture )))
                 LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
         }
         texture->width = imgInfo.Width;
@@ -64,7 +64,7 @@ Texture::~Texture( )
 
 void Texture::Bind( int level )
 {
-    CheckDXErrorFatal( g_device->SetTexture( level, texture ));
+    CheckDXErrorFatal( g_pDevice->SetTexture( level, texture ));
 }
 
 IDirect3DTexture9 * Texture::GetInterface()

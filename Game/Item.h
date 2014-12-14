@@ -53,10 +53,7 @@ public:
     void SetType( Type type );
 	void MarkAsGrabbed();
 	void MarkAsFree();
-	bool IsFree() 
-	{
-		return mInInventory == false;
-	}
+	bool IsFree();
     static vector<Item*> Available;
     static Item * GetByObject( ruNodeHandle obj );
 };

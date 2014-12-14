@@ -94,26 +94,16 @@ public:
 
     void CreateBoundingVolumes();
 
-    void RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition );
+    void RenderIcosphereIntoStencilBuffer( Light * pLight );
     void RenderConeIntoStencilBuffer( Light * lit );
-
-    void RenderScreenQuad();
     void RenderMeshShadow( Mesh * mesh );
-    void ConfigureStencilBuffer();
 public:
     explicit DeferredRenderer();
     virtual ~DeferredRenderer();
 
     GBuffer * GetGBuffer();
 
-    void SetRenderingQuality( char quality )
-    {
-        renderQuality = quality;
-        if( renderQuality < 0 )
-            renderQuality = 0;
-        if( renderQuality > 1 )
-            renderQuality = 1;
-    }
+    void SetRenderingQuality( char quality );
     virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;

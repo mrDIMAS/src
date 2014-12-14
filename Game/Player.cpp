@@ -68,6 +68,7 @@ Player::Player() : Actor( 1.0f, 0.2f )
     mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
     mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
 
+	mpFollowPath = nullptr;
     mpCurrentWay = nullptr;
 
     mStealthSign = ruGetTexture( "data/textures/effects/eye.png" );
@@ -343,25 +344,24 @@ Player::UpdateMoving
 ========
 */
 void Player::UpdateMoving()
-{
-    for( auto cw : Way::msWayList ) {
-        if( cw->IsEnterPicked() ) {
-            if( !cw->IsPlayerInside() )
-                DrawTip( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )));
-
-            if( IsUseButtonHit() )
-                cw->Enter();
-        }
+{	
+    for( auto pWay : Way::msWayList ) {
+		if( !pWay->IsPlayerInside() )  {
+			if( pWay->IsEnterPicked() ) {
+				DrawTip( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )));
+				if( IsUseButtonHit() ) {
+					pWay->Enter();
+				}
+			}
+		}
     }
 
-    for( auto door : Door::msDoorList ) {
-        door->DoInteraction();
-
-        if( door->IsPickedByPlayer() ) {
+    for( auto pDoor : Door::msDoorList ) {
+        pDoor->DoInteraction();
+        if( pDoor->IsPickedByPlayer() ) {
             DrawTip( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )));
-
             if( IsUseButtonHit() )
-                door->SwitchState();
+                pDoor->SwitchState();
         }
     }
 
@@ -370,15 +370,11 @@ void Player::UpdateMoving()
 
     if( mpCurrentWay ) {
         mStealthMode = false;
-
         mpCurrentWay->DoEntering();
-
         if( !mpCurrentWay->IsFreeLook() )
             mpCurrentWay->LookAtTarget();
-
         if( mpCurrentWay->IsPlayerInside() ) {
             bool move = false;
-
             if( ruIsKeyDown( mKeyMoveForward )) {
                 mpCurrentWay->SetDirection( Way::Direction::Forward );
                 move = true;
@@ -387,20 +383,16 @@ void Player::UpdateMoving()
                 mpCurrentWay->SetDirection( Way::Direction::Backward );
                 move = true;
             }
-
             if( move ) {
                 mpCurrentWay->DoPlayerCrawling();
-
                 mMoved = true;
-
                 if( !mpCurrentWay->IsPlayerInside() )
                     mpCurrentWay = nullptr;
             } else {
-                ruMoveNode( pPlayer->mBody, ruVector3( 0, 0, 0 ));
-
+                StopInstant();
                 mMoved = false;
-            }
-        }
+            }        
+		}
     } else {
         ruVector3 look = ruGetNodeLookVector( mBody );
         ruVector3 right = ruGetNodeRightVector( mBody );
@@ -479,7 +471,7 @@ void Player::ComputeStealth()
         }
     }
 
-    if( mpFlashlight->on )
+    if( mpFlashlight->IsOn() )
         inLight = true;
 
     mStealthFactor = 0.0f;
@@ -905,10 +897,8 @@ Player::CreateFlashLight
 void Player::CreateFlashLight()
 {
     mpFlashlight = new Flashlight();
-
     mpFlashlight->Attach( mpCamera->mNode );
-
-    mpFlashLightItem = new Item( mpFlashlight->model, Item::Type::Flashlight );
+    mpFlashLightItem = mpFlashlight->CreateAppropriateItem();
     mInventory.AddItem( mpFlashLightItem );
 }
 
@@ -921,7 +911,7 @@ void Player::UpdateFlashLight()
 {
     mpFlashlight->Update();
 
-    mpFlashLightItem->SetContent( mpFlashlight->mCharge );
+    mpFlashLightItem->SetContent( mpFlashlight->GetCharge() );
 
     if( ruIsKeyHit( mKeyFlashLight ) )
         mpFlashlight->Switch();
@@ -1210,4 +1200,24 @@ void Player::CloseCurrentSheet()
     ruShowNode( mpSheetInHands->mObject );
     mpSheetInHands = 0;
     ruPlaySound( Sheet::msPaperFlipSound );
+}
+
+void Player::SetTip( const char * text )
+{
+	mTip.SetNewText( text );
+}
+
+Parser * Player::GetLocalization()
+{
+	return &mLocalization;
+}
+
+Flashlight * Player::GetFlashLight()
+{
+	return mpFlashlight;
+}
+
+Inventory * Player::GetInventory()
+{
+	return &mInventory;
 }

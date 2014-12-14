@@ -14,6 +14,7 @@
 #include "SmoothFloat.h"
 #include "Tip.h"
 #include "Actor.h"
+#include "FollowPath.h"
 
 class Player : public Actor
 {
@@ -37,6 +38,100 @@ public:
     void SetMetalFootsteps();
     void UpdateFright();
     Parser mLocalization;
+	Item * mpFlashLightItem;
+
+	FootstepsType mFootstepsType;
+
+	GameCamera * mpCamera;
+
+	ruNodeHandle mHead;
+	ruNodeHandle mPickPoint;
+	ruNodeHandle mItemPoint;
+	ruNodeHandle mNodeInHands;
+	ruNodeHandle mNearestPickedNode;
+	ruNodeHandle mPickedNode;
+
+	ruTextureHandle mObjectDragUpCursor;
+	ruTextureHandle mObjectDragDownCursor;
+	ruTextureHandle mStatusBar;
+	ruTextureHandle mStealthSign;
+
+	SmoothFloat mPitch;
+	SmoothFloat mYaw;
+	SmoothFloat mStaminaAlpha;
+	SmoothFloat mHealthAlpha;
+	SmoothFloat mBreathVolume;
+	SmoothFloat mHeartBeatVolume;
+	SmoothFloat mHeartBeatPitch;
+	SmoothFloat mBreathPitch;
+	SmoothFloat mFov;
+	SmoothFloat mStealthOffset;
+	SmoothFloat mHeadAngle;
+
+	float mStamina;
+	float mLife;
+	float mMaxLife;
+	float mMaxStamina;
+	float mRunSpeedMult;
+	float mHeadHeight;
+	float mCameraBobCoeff;
+	float mRunCameraShakeCoeff;
+	float mStealthFactor;
+
+	ruVector3 mSpeed;
+	ruVector3 mSpeedTo;
+	ruVector3 mGravity;
+	ruVector3 mJumpTo;
+	ruVector3 mCameraOffset;
+	ruVector3 mCameraShakeOffset;
+	ruVector3 mFrameColor;
+
+	Way * mpCurrentWay;
+
+	ruSoundHandle mLighterCloseSound;
+	ruSoundHandle mLighterOpenSound;
+	ruSoundHandle mItemPickupSound;
+	ruSoundHandle mHeartBeatSound;
+	ruSoundHandle mBreathSound;
+
+	vector< ruSoundHandle > mFootstepList;
+
+	bool mObjectThrown;
+	bool mLanded;
+	bool mDead;
+	bool mObjectiveDone;
+	bool mMoved;
+	bool mSmoothCamera;
+	bool mStealthMode;
+	bool mRunning;
+
+	Inventory mInventory;
+
+	int mPlaceDescTimer;
+	int mKeyMoveForward;
+	int mKeyMoveBackward;
+	int mKeyStrafeLeft;
+	int mKeyStrafeRight;
+	int mKeyJump;
+	int mKeyFlashLight;
+	int mKeyRun;
+	int mKeyInventory;
+	int mKeyUse;
+	int mKeyStealth;
+	int mKeyLookLeft;
+	int mKeyLookRight;
+
+	string mPlaceDesc;
+	string mPickedObjectDesc;
+
+	Goal mGoal;
+
+	Tip mTip;
+
+	Sheet * mpSheetInHands;
+
+	Flashlight * mpFlashlight;
+	FollowPath * mpFollowPath;
 public:
     explicit Player();
     virtual ~Player();
@@ -60,101 +155,10 @@ public:
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
     void ComputeStealth();
-    Item * mpFlashLightItem;
-
-    FootstepsType mFootstepsType;
-
-    GameCamera * mpCamera;
-
-    //NodeHandle body;
-    ruNodeHandle mHead;
-    ruNodeHandle mPickPoint;
-    ruNodeHandle mItemPoint;
-    ruNodeHandle mNodeInHands;
-    ruNodeHandle mNearestPickedNode;
-    ruNodeHandle mPickedNode;
-
-    ruTextureHandle mObjectDragUpCursor;
-    ruTextureHandle mObjectDragDownCursor;
-    ruTextureHandle mStatusBar;
-    ruTextureHandle mStealthSign;
-
-    SmoothFloat mPitch;
-    SmoothFloat mYaw;
-    SmoothFloat mStaminaAlpha;
-    SmoothFloat mHealthAlpha;
-    SmoothFloat mBreathVolume;
-    SmoothFloat mHeartBeatVolume;
-    SmoothFloat mHeartBeatPitch;
-    SmoothFloat mBreathPitch;
-    SmoothFloat mFov;
-    SmoothFloat mStealthOffset;
-    SmoothFloat mHeadAngle;
-
-    float mStamina;
-    float mLife;
-    float mMaxLife;
-    float mMaxStamina;
-    float mRunSpeedMult;
-    float mHeadHeight;
-    float mCameraBobCoeff;
-    float mRunCameraShakeCoeff;
-    float mStealthFactor;
-
-    ruVector3 mSpeed;
-    ruVector3 mSpeedTo;
-    ruVector3 mGravity;
-    ruVector3 mJumpTo;
-    ruVector3 mCameraOffset;
-    ruVector3 mCameraShakeOffset;
-    ruVector3 mFrameColor;
-
-    Way * mpCurrentWay;
-
-    ruSoundHandle mLighterCloseSound;
-    ruSoundHandle mLighterOpenSound;
-    ruSoundHandle mItemPickupSound;
-    ruSoundHandle mHeartBeatSound;
-    ruSoundHandle mBreathSound;
-
-    vector< ruSoundHandle > mFootstepList;
-
-    bool mObjectThrown;
-    bool mLanded;
-    bool mDead;
-    bool mObjectiveDone;
-    bool mMoved;
-    bool mSmoothCamera;
-    bool mStealthMode;
-    bool mRunning;
-
-    Inventory mInventory;
-
-    int mPlaceDescTimer;
-    int mKeyMoveForward;
-    int mKeyMoveBackward;
-    int mKeyStrafeLeft;
-    int mKeyStrafeRight;
-    int mKeyJump;
-    int mKeyFlashLight;
-    int mKeyRun;
-    int mKeyInventory;
-    int mKeyUse;
-    int mKeyStealth;
-    int mKeyLookLeft;
-    int mKeyLookRight;
-
-    string mPlaceDesc;
-    string mPickedObjectDesc;
-
-    Goal mGoal;
-
-    Tip mTip;
-
-    Sheet * mpSheetInHands;
-
-    Flashlight * mpFlashlight;
-
+	Inventory * GetInventory();
+	Flashlight * GetFlashLight();
+	Parser * GetLocalization();
+	void SetTip( const char * text );
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
 };

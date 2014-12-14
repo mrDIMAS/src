@@ -17,7 +17,7 @@ void ruHideCursor( )
     else
     {
         ShowCursor( FALSE );
-        g_device->ShowCursor( FALSE );
+        g_pDevice->ShowCursor( FALSE );
     }
 }
 
@@ -28,7 +28,7 @@ void ruShowCursor( )
     else
     {
         ShowCursor( TRUE );
-        g_device->ShowCursor( TRUE );
+        g_pDevice->ShowCursor( TRUE );
     }
 }
 

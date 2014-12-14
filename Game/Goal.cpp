@@ -5,36 +5,41 @@
 
 void Goal::AnimateAndRender()
 {
-    if( ruGetElapsedTimeInSeconds( waitTimer ) >= waitSec )
-        currentY += ( destY - currentY ) * 0.05f;
+    if( ruGetElapsedTimeInSeconds( mWaitTimer ) >= mWaitSec )
+        mCurrentY += ( mDestY - mCurrentY ) * 0.05f;
 
-    alpha = alpha + ( 100 - alpha ) * 0.05f;
+    mAlpha = mAlpha + ( 100 - mAlpha ) * 0.05f;
 
-    if( alpha <= 101 )
-        alpha = 255.0f;
+    if( mAlpha <= 101 )
+        mAlpha = 255.0f;
 
-    ruDrawGUIText( text.c_str(), 40, currentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, alpha );
+    ruDrawGUIText( mText.c_str(), 40, mCurrentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, mAlpha );
 }
 
 void Goal::SetText( string t )
 {
-    ruRestartTimer( waitTimer );
+    ruRestartTimer( mWaitTimer );
 
-    destY = initialY;
+    mDestY = mInitialY;
 
-    text = t;
+    mText = t;
 
-    currentY = g_resH * 0.45f;
+    mCurrentY = g_resH * 0.45f;
 }
 
 Goal::Goal()
 {
-    waitTimer = ruCreateTimer();
+    mWaitTimer = ruCreateTimer();
 
-    initialY = 20;
-    currentY = initialY;
-    destY = 20;
-    waitSec = 2.0f;
+    mInitialY = 20;
+    mCurrentY = mInitialY;
+    mDestY = 20;
+    mWaitSec = 2.0f;
 
-    alpha = 255.0f;
+    mAlpha = 255.0f;
+}
+
+Goal::~Goal()
+{
+
 }

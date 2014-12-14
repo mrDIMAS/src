@@ -8,18 +8,16 @@
 class Goal
 {
 private:
-    ruTimerHandle waitTimer;
-
-    float currentY;
-    float destY;
-    float initialY;
-    float waitSec;
-
-    float alpha;
-
-    string text;
+    ruTimerHandle mWaitTimer;
+    float mCurrentY;
+    float mDestY;
+    float mInitialY;
+    float mWaitSec;
+    float mAlpha;
+    string mText;
 public:
-    Goal();
+    explicit Goal();
+	virtual ~Goal();
     void SetText( string t );
     void AnimateAndRender();
 };

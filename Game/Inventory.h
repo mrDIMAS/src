@@ -39,14 +39,7 @@ public:
 	void ResetSelectedForUse();
 	bool Contains( Item * pItem );
 	void AddItem( Item * pItem );
-	int GetItemCount( Item::Type type )
-	{
-		int count = 0;
-		for( auto pItem : mItemList )
-			if( pItem->GetType() == type )
-				count++;
-		return count;
-	}
+	int GetItemCount( Item::Type type );
 	void Serialize( TextFileStream & out );
 	void Deserialize( TextFileStream & in );
 };

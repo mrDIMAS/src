@@ -61,13 +61,11 @@ void main( )
     float lastTime = 0.0f;
     //float dtDest = g_dt;
     float minDt = 100000;
+	float accumDeltaTime = 0.0f;
+	float fixedTimeStep = 1.0f / 60.0f;
     while( true )
     {
-		try {
-			if( ruIsKeyHit( KEY_1 ))
-				ruSetRenderQuality( 0 );
-			if( ruIsKeyHit( KEY_2 ))
-				ruSetRenderQuality( 1 );
+		try {			
 			ruRestartTimer( dtTimer );
 			if( !g_running )
 				break;
@@ -81,13 +79,13 @@ void main( )
 				if( ruIsKeyHit( g_keyQuickSave ))
 				{
 					SaveWriter( "quickSave.save" ).SaveWorldState();
-					pPlayer->mTip.SetNewText( config.GetString( "saved" ) );
+					pPlayer->SetTip( config.GetString( "saved" ) );
 				}
 				if( ruIsKeyHit( g_keyQuickLoad ))
 					if( FileExist( "quickSave.save" ))
 					{
 						SaveLoader( "quickSave.save" ).RestoreWorldState();
-						pPlayer->mTip.SetNewText( config.GetString( "loaded" ) );
+						pPlayer->SetTip( config.GetString( "loaded" ) );
 					}
 				if( pCurrentLevel )
 					pCurrentLevel->DoScenario();

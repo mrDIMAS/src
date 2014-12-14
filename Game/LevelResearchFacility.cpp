@@ -233,11 +233,11 @@ void LevelResearchFacility::UpdatePowerupSequence()
         }
     }
 
-    if( pPlayer->mInventory.GetItemSelectedForUse() ) {
+    if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
             ItemPlace * pFuse = mFusePlaceList[iFuse];
             if( pFuse->IsPickedByPlayer() )
-                ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "insertFuse" ), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+                ruDrawGUIText( Format( pPlayer->GetLocalization()->GetString( "insertFuse" ), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
         }
 
         if( ruIsKeyHit( pPlayer->mKeyUse )) {

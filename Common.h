@@ -97,7 +97,7 @@ extern float g_dt;
 extern FT_Library g_ftLibrary;
 // direct3d
 extern IDirect3D9 * g_d3d;
-extern IDirect3DDevice9 * g_device;
+extern IDirect3DDevice9 * g_pDevice;
 extern IDirect3DVertexDeclaration9 * g_meshVertexDeclaration;
 
 // bullet

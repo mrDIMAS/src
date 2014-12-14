@@ -7,7 +7,7 @@ void Cursor::Hide()
     g_cursor->visible = 0;
 
     ShowCursor( FALSE );
-    g_device->ShowCursor( FALSE );
+    g_pDevice->ShowCursor( FALSE );
 }
 
 void Cursor::Show()
@@ -15,7 +15,7 @@ void Cursor::Show()
     g_cursor->visible = 1;
 
     ShowCursor( FALSE );
-    g_device->ShowCursor( FALSE );
+    g_pDevice->ShowCursor( FALSE );
 }
 
 void Cursor::Setup( ruTextureHandle texture, int w, int h )

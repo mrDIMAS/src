@@ -69,9 +69,9 @@ void DeferredRenderer::CreateBoundingVolumes()
 {
     int quality = 6;
 
-    D3DXCreateSphere( g_device, 1.0, quality, quality, &icosphere, 0 );
+    D3DXCreateSphere( g_pDevice, 1.0, quality, quality, &icosphere, 0 );
 
-    D3DXCreateCylinder( g_device, 0.0f, 1.0f, 1.0f, quality, quality, &cone, 0 );
+    D3DXCreateCylinder( g_pDevice, 0.0f, 1.0f, 1.0f, quality, quality, &cone, 0 );
 
     // rotate cylinder on 90 degrees
     XYZNormalVertex * data;
@@ -125,12 +125,12 @@ void DeferredRenderer::Pass2PointLight::SetLight( Light * light )
     g_renderer->SetPixelShaderFloat( 9, g_hdrEnabled ? light->brightness : 1.0f ); // brightness
     if( light->pointTexture )
     {
-        g_device->SetTexture( 3, light->pointTexture->cubeTexture );
+        g_pDevice->SetTexture( 3, light->pointTexture->cubeTexture );
         g_renderer->SetPixelShaderBool( 0, 1 );
     }
     else
     {
-        g_device->SetTexture( 3, 0 );
+        g_pDevice->SetTexture( 3, 0 );
         g_renderer->SetPixelShaderBool( 0, 0 );
     }
 }
@@ -215,7 +215,7 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit )
     }
     else
     {
-        g_device->SetTexture( 3, nullptr );
+        g_pDevice->SetTexture( 3, nullptr );
         // use spot texture
         if( !lit->spotTexture )
             g_renderer->SetPixelShaderBool( 0, FALSE );
@@ -242,7 +242,7 @@ DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader()
         { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
         D3DDECL_END()
     };
-    g_device->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
+    g_pDevice->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
 }
 
 DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader()
@@ -257,7 +257,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::Bind()
     ps->Bind();
     vs->Bind();
 
-    g_device->SetVertexDeclaration( vertexDeclaration );
+    g_pDevice->SetVertexDeclaration( vertexDeclaration );
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX & wvp )
@@ -265,12 +265,11 @@ void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX &
     g_renderer->SetVertexShaderMatrix( 0, &wvp );
 }
 
-void DeferredRenderer::RenderIcosphereIntoStencilBuffer( float lightRadius, const btVector3 & lightPosition )
+void DeferredRenderer::RenderIcosphereIntoStencilBuffer( Light * pLight )
 {
-    float scl = 2.5f * lightRadius;
-
+	ruVector3 realPosition = pLight->GetRealPosition();
+    float scl = 2.5f * pLight->radius;
     D3DXMATRIX world;
-
     world._11 = scl;
     world._12 = 0.0f;
     world._13 = 0.0f;
@@ -283,28 +282,14 @@ void DeferredRenderer::RenderIcosphereIntoStencilBuffer( float lightRadius, cons
     world._32 = 0.0f;
     world._33 = scl;
     world._34 = 0.0f;
-    world._41 = lightPosition.x();
-    world._42 = lightPosition.y();
-    world._43 = lightPosition.z();
+    world._41 = realPosition.x;
+    world._42 = realPosition.y;
+    world._43 = realPosition.z;
     world._44 = 1.0f;
-
     bvRenderer->Bind();
-
     D3DXMATRIX wvp;
     D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
-
     bvRenderer->SetTransform( wvp );
-
-    // disable draw into color buffer
-    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-
-    g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-    g_device->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
-
-    g_device->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_ALWAYS );
-    g_device->SetRenderState( D3DRS_CCW_STENCILPASS, D3DSTENCILOP_KEEP );
-
-    // draw a sphere bounds light into stencil buffer
     icosphere->DrawSubset( 0 );
 }
 
@@ -317,54 +302,11 @@ void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit )
     D3DXMATRIX world;
     GetD3DMatrixFromBulletTransform( lit->globalTransform, world );
     D3DXMatrixMultiply( &world, &scale, &world );
-
     bvRenderer->Bind();
-
     D3DXMATRIX wvp;
     D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
-
     bvRenderer->SetTransform( wvp );
-
-    // disable draw into color buffer
-    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-
-    g_device->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
-
-    g_device->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-    g_device->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-
-    g_device->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_ALWAYS );
-    g_device->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
-
-
-    // draw a sphere bounds light into stencil buffer
     cone->DrawSubset( 0 );
-}
-
-void DeferredRenderer::RenderScreenQuad()
-{
-    // enable draw into color buffer
-    g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-    // draw a screen quad
-    g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-    g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-    // quad render
-    effectsQuad->Render();
-}
-
-void DeferredRenderer::ConfigureStencilBuffer()
-{
-    g_device->SetRenderState( D3DRS_STENCILREF, 0x0 );
-    g_device->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-    g_device->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-
-    // setup stencil buffer
-    g_device->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-    g_device->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-
-    g_device->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-    g_device->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 }
 
 void DeferredRenderer::EndFirstPassAndDoSecondPass()
@@ -381,47 +323,22 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass()
             gBuffer->BindBackSurfaceAsRT();
     }
 
-    g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
-
-    IDirect3DStateBlock9 * state;
-    g_device->CreateStateBlock( D3DSBT_ALL, &state );
+    g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
     gBuffer->BindTextures();
-
-    if( g_hdrEnabled )
-    {
-        g_device->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
-        g_device->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
-    }
-    else
-    {
-        g_device->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-        g_device->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
-    }
-
-    g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-    g_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-    g_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
-    g_device->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-    g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-
-    // first of all render the skybox
+	/*
     if( g_camera->skybox )
         g_camera->skybox->Render( g_camera->globalTransform.getOrigin() );
+	*/
+	
 
-    //do ambient lighting
     pass2AmbientLight->Bind();
     effectsQuad->Bind();
     effectsQuad->Render();
 
-    ConfigureStencilBuffer();
-
     // Render point lights
-    for( unsigned int i = 0; i < g_pointLights.size(); i++ )
+    for( auto pLight : g_pointLights )
     {
-        Light * light = g_pointLights.at( i );
-
         if( g_usePointLightShadows )
         {
             IDirect3DSurface9 * prevSurface = nullptr;
@@ -432,29 +349,31 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass()
             else
                 prevSurface = gBuffer->backSurface;
             pointShadowMap->UnbindShadowCubemap( 4 );
-            pointShadowMap->RenderPointShadowMap( prevSurface, 0, light );
+            pointShadowMap->RenderPointShadowMap( prevSurface, 0, pLight );
             pointShadowMap->BindShadowCubemap( 4 );
         }
+		
 
-        btVector3 lightPos( light->GetRealPosition().x, light->GetRealPosition().y, light->GetRealPosition().z );
-        RenderIcosphereIntoStencilBuffer( light->GetRadius(), lightPos );
+		g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+		g_pDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+		g_pDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+        RenderIcosphereIntoStencilBuffer( pLight );
 
         pass2PointLight->Bind( g_camera->invViewProjection );
-        pass2PointLight->SetLight( light );
+        pass2PointLight->SetLight( pLight );
 
         effectsQuad->Bind();
 
-        RenderScreenQuad();
+		g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+		g_pDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
+		g_pDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+		// quad render
+		effectsQuad->Render();
     }
-
-    CheckDXErrorFatal( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER ));
-    CheckDXErrorFatal( g_device->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER ));
-
+	
     // Render spot lights
-    for( unsigned int i = 0; i < g_spotLights.size(); i++ )
+    for( auto pLight : g_spotLights )
     {
-        Light * light = g_spotLights.at( i );
-
         if( g_useSpotLightShadows )
         {
             IDirect3DSurface9 * prevSurface = nullptr;
@@ -465,20 +384,36 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass()
             else
                 prevSurface = gBuffer->backSurface;
             spotShadowMap->UnbindSpotShadowMap( 4 );
-            spotShadowMap->RenderSpotShadowMap( prevSurface, 0, light );
+
+			g_pDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+			g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+			g_pDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+
+            spotShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
+
+			g_pDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+			g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+			g_pDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+
             spotShadowMap->BindSpotShadowMap( 4 );
         }
 
-        RenderConeIntoStencilBuffer( light );
+		g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+		g_pDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+		g_pDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+
+        RenderConeIntoStencilBuffer( pLight );
 
         pass2SpotLight->Bind( g_camera->invViewProjection );
-        pass2SpotLight->SetLight( light );
-
-        effectsQuad->Bind();
-
-        RenderScreenQuad();
+        pass2SpotLight->SetLight( pLight );
+		
+		g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+		g_pDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+		g_pDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+		effectsQuad->Bind();
+		effectsQuad->Render();
     }
-
+	
     if( hdrRenderer && g_hdrEnabled )
     {
         hdrRenderer->CalculateFrameLuminance( );
@@ -492,14 +427,12 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass()
     }
     else
     {
-        if( g_fxaaEnabled )
+        if( g_fxaaEnabled ) {
+			CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+			CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ZENABLE, FALSE ));
             fxaa->DoAntialiasing( fxaa->texture );
+		}
     }
-
-    //g_renderer->testFont->RenderAtlas( debugQuad );
-
-    CheckDXErrorFatal( state->Apply());
-    state->Release();
 }
 
 void DeferredRenderer::SetPointLightShadowMapSize( int size )
@@ -520,4 +453,13 @@ void DeferredRenderer::SetSpotLightShadowMapSize( int size )
             delete spotShadowMap;
         spotShadowMap = new SpotlightShadowMap( size );
     }
+}
+
+void DeferredRenderer::SetRenderingQuality( char quality )
+{
+	renderQuality = quality;
+	if( renderQuality < 0 )
+		renderQuality = 0;
+	if( renderQuality > 1 )
+		renderQuality = 1;
 }

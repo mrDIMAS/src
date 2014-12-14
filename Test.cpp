@@ -93,7 +93,8 @@ void main( )
     int perfTime=0;
 
     ruEnablePointLightShadows( false );
-    ruEnableSpotLightShadows( false );
+    ruEnableSpotLightShadows( true );
+	ruDisableFXAA();
     while( !ruIsKeyDown( KEY_Esc ))
     {
 
@@ -117,7 +118,7 @@ void main( )
         ruVector3 right = ruGetNodeRightVector( cameraPivot );
 
         //SetPosition( Omni09, GetPosition( camera ));
-		ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
+		//ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
         //DrawGUIRect( 0, 0, 200, 200, 0 );
         //    DrawGUIText( "TEST", 200, 200, 100, 100, font, Vector3( 255, 0, 0 ) );
 

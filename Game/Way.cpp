@@ -41,22 +41,16 @@ void Way::DoEntering()
 {
     if( mEntering ) {
         ruVector3 direction = ruGetNodePosition( mTarget ) - pPlayer->GetCurrentPosition();
-
         float distance = direction.Length();
-
         direction.Normalize();
-
         pPlayer->Move( direction, 1.1f );
-
         if( distance < 0.25f ) {
             mEntering = false;
             mInside = true;
-
             if( mTarget == mEnd )
                 mTarget = mBegin;
             else
                 mTarget = mEnd;
-
             pPlayer->StopInstant();
         }
     }

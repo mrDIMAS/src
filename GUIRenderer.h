@@ -75,7 +75,6 @@ private:
     D3DXMATRIX orthoMatrix;
     void RenderRect( GUIRect & r );
     void RenderLines();
-    void PrepareToDraw2D();
     VertexShader * vertexShader;
     PixelShader * pixelShader;
     D3DXHANDLE vProj;

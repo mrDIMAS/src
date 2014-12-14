@@ -3,17 +3,17 @@
 void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int prevRTNum, Light * light )
 {
     IDirect3DStateBlock9 * state;
-    CheckDXErrorFatal( g_device->CreateStateBlock( D3DSBT_ALL, &state ));
+    CheckDXErrorFatal( g_pDevice->CreateStateBlock( D3DSBT_ALL, &state ));
     // set new suitable depth stencil surface
-    CheckDXErrorFatal( g_device->SetDepthStencilSurface( depthStencil ));
+    CheckDXErrorFatal( g_pDevice->SetDepthStencilSurface( depthStencil ));
     // set render states
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZENABLE, TRUE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZWRITEENABLE, TRUE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ZENABLE, TRUE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
+    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
 
     // bind depth shaders
     pixelShader->Bind();
@@ -73,9 +73,9 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
         D3DXMatrixLookAtRH( &view, &D3DXVECTOR3( light->GetRealPosition().elements ), &lookAt, &up );
         D3DXMatrixMultiply( &viewProj, &view, &proj );
         // bind i-face of cube map
-        CheckDXErrorFatal( g_device->SetRenderTarget( 0, cubeFaces[i] ));
+        CheckDXErrorFatal( g_pDevice->SetRenderTarget( 0, cubeFaces[i] ));
         // clear it
-        CheckDXErrorFatal( g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+        CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
         // render all lighted meshes
         for( auto mesh : lightedMeshes )
         {
@@ -83,9 +83,9 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
             D3DXMATRIX world, wvp;
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiply( &wvp, &world, &viewProj );
-            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, vWVP, &wvp ));
-            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_device, vWorld, &world ));
-            CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_device, pLightPosition, light->GetRealPosition().elements, 3 ));
+            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_pDevice, vWVP, &wvp ));
+            CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_pDevice, vWorld, &world ));
+            CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloatArray( g_pDevice, pLightPosition, light->GetRealPosition().elements, 3 ));
             mesh->BindBuffers();
             mesh->Render();
         };
@@ -95,20 +95,20 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
     state->Release();
 
     // revert to the last used render target
-    CheckDXErrorFatal( g_device->SetRenderTarget( prevRTNum, prevRT ));
-    CheckDXErrorFatal( g_device->SetDepthStencilSurface( defaultDepthStencil ));
+    CheckDXErrorFatal( g_pDevice->SetRenderTarget( prevRTNum, prevRT ));
+    CheckDXErrorFatal( g_pDevice->SetDepthStencilSurface( defaultDepthStencil ));
 
     lightedMeshes.clear();
 }
 
 void PointlightShadowMap::UnbindShadowCubemap( int level )
 {
-    CheckDXErrorFatal( g_device->SetTexture( level, nullptr ));
+    CheckDXErrorFatal( g_pDevice->SetTexture( level, nullptr ));
 }
 
 void PointlightShadowMap::BindShadowCubemap( int level )
 {
-    CheckDXErrorFatal( g_device->SetTexture( level, shadowCube ));
+    CheckDXErrorFatal( g_pDevice->SetTexture( level, shadowCube ));
 }
 
 PointlightShadowMap::~PointlightShadowMap()
@@ -125,15 +125,15 @@ PointlightShadowMap::PointlightShadowMap( int faceSize )
 {
     iSize = faceSize;
 
-    CheckDXErrorFatal( D3DXCreateCubeTexture( g_device, faceSize, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &shadowCube ));
+    CheckDXErrorFatal( D3DXCreateCubeTexture( g_pDevice, faceSize, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &shadowCube ));
     CheckDXErrorFatal( shadowCube->GetCubeMapSurface( D3DCUBEMAP_FACE_NEGATIVE_X, 0, &cubeFaces[ D3DCUBEMAP_FACE_NEGATIVE_X ] ));
     CheckDXErrorFatal( shadowCube->GetCubeMapSurface( D3DCUBEMAP_FACE_POSITIVE_X, 0, &cubeFaces[ D3DCUBEMAP_FACE_POSITIVE_X ] ));
     CheckDXErrorFatal( shadowCube->GetCubeMapSurface( D3DCUBEMAP_FACE_NEGATIVE_Y, 0, &cubeFaces[ D3DCUBEMAP_FACE_NEGATIVE_Y ] ));
     CheckDXErrorFatal( shadowCube->GetCubeMapSurface( D3DCUBEMAP_FACE_POSITIVE_Y, 0, &cubeFaces[ D3DCUBEMAP_FACE_POSITIVE_Y ] ));
     CheckDXErrorFatal( shadowCube->GetCubeMapSurface( D3DCUBEMAP_FACE_NEGATIVE_Z, 0, &cubeFaces[ D3DCUBEMAP_FACE_NEGATIVE_Z ] ));
     CheckDXErrorFatal( shadowCube->GetCubeMapSurface( D3DCUBEMAP_FACE_POSITIVE_Z, 0, &cubeFaces[ D3DCUBEMAP_FACE_POSITIVE_Z ] ));
-    CheckDXErrorFatal( g_device->GetDepthStencilSurface( &defaultDepthStencil ));
-    CheckDXErrorFatal( g_device->CreateDepthStencilSurface( faceSize, faceSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, nullptr ));
+    CheckDXErrorFatal( g_pDevice->GetDepthStencilSurface( &defaultDepthStencil ));
+    CheckDXErrorFatal( g_pDevice->CreateDepthStencilSurface( faceSize, faceSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, nullptr ));
 
     // create shader to render shadowmaps
     string vertexShaderSource =

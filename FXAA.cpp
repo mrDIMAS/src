@@ -2,32 +2,22 @@
 
 void FXAA::DoAntialiasing( IDirect3DTexture9 * outTexture )
 {
-    CheckDXErrorFatal( g_device->SetRenderTarget( 0, backBufferRT ));
-    CheckDXErrorFatal( g_device->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    CheckDXErrorFatal( g_pDevice->SetRenderTarget( 0, backBufferRT ));
+    CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
 
-    CheckDXErrorFatal( g_device->SetTexture( 0, outTexture ));
+    CheckDXErrorFatal( g_pDevice->SetTexture( 0, outTexture ));
 
     effectsQuad->Bind();
     pixelShader->Bind();
 
-    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_device, screenWidth, g_width ));
-    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_device, screenHeight, g_height ));
-
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
-    CheckDXErrorFatal( g_device->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL));
-    CheckDXErrorFatal( g_device->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL));
-    CheckDXErrorFatal( g_device->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXErrorFatal( g_device->SetRenderState( D3DRS_ZENABLE, FALSE ));
-
+    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_pDevice, screenWidth, g_width ));
+    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_pDevice, screenHeight, g_height ));
     effectsQuad->Render();
 }
 
 void FXAA::BeginDrawIntoTexture()
 {
-    g_device->SetRenderTarget( 0, renderTarget );
+    g_pDevice->SetRenderTarget( 0, renderTarget );
 }
 
 FXAA::FXAA()
@@ -143,11 +133,11 @@ FXAA::FXAA()
     pixelShader = new PixelShader( source );
     screenWidth = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_WIDTH" );
     screenHeight = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_HEIGHT" );
-    if( FAILED( D3DXCreateTexture( g_device, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture )))
+    if( FAILED( D3DXCreateTexture( g_pDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture )))
         MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
 
     CheckDXErrorFatal( texture->GetSurfaceLevel( 0, &renderTarget ));
-    CheckDXErrorFatal( g_device->GetRenderTarget( 0, &backBufferRT ));
+    CheckDXErrorFatal( g_pDevice->GetRenderTarget( 0, &backBufferRT ));
 
     effectsQuad = new EffectsQuad;
 }

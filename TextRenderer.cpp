@@ -87,11 +87,11 @@ void TextRenderer::RenderTextGroup( vector<GUIText> & textGroup, BitmapFont * fo
     CheckDXErrorFatal( vertexBuffer->Unlock());
     CheckDXErrorFatal( indexBuffer->Unlock());
 
-    CheckDXErrorFatal( g_device->SetTexture( 0, font->atlas ) );
+    CheckDXErrorFatal( g_pDevice->SetTexture( 0, font->atlas ) );
 
-    CheckDXErrorFatal( g_device->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
-    CheckDXErrorFatal( g_device->SetIndices( indexBuffer ));
-    CheckDXErrorFatal( g_device->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
+    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
+    CheckDXErrorFatal( g_pDevice->SetIndices( indexBuffer ));
+    CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
     g_dips++;
 }
 
@@ -131,9 +131,9 @@ TextRenderer::TextRenderer()
 {
     maxChars = 8192;
     int vBufLen = maxChars * sizeof( TextQuad );
-    CheckDXErrorFatal( g_device->CreateVertexBuffer( vBufLen, D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
+    CheckDXErrorFatal( g_pDevice->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC, D3DFVF_TEX1 | D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
     int iBufLen = maxChars * sizeof( Face );
-    CheckDXErrorFatal( g_device->CreateIndexBuffer( iBufLen, D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
+    CheckDXErrorFatal( g_pDevice->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
 }
 
 TextRenderer::~TextRenderer()
