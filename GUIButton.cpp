@@ -48,9 +48,11 @@ GUIButton::GUIButton( int x, int y, int w, int h, Texture* texture, const char *
 {
 	mpText = new GUIText( text, x, y, w, h, color, alpha, textAlign, font );
 	msButtonList.push_back( this );
+	mPicked = false;
 	mLeftPressed = false;
 	mRightPressed = false;
-	mPicked = false;
+	mLeftHit = false;
+	mRightHit = false;
 	pickedColor = ruVector3( 255, 255, 255 );
 }
 

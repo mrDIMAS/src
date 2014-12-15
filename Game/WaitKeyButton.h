@@ -13,13 +13,9 @@ private:
 	ruTextHandle mGUIText;
 	ruButtonHandle mGUIButton;
 public:    
-	explicit WaitKeyButton( ruTextureHandle buttonImage, const char * text );
+	explicit WaitKeyButton( float x, float y, ruTextureHandle buttonImage, const char * text );
 	int GetSelectedKey();
     void SetSelected( int i );
-    void Draw( float x, float y );
-	void SetVisible( bool state )
-	{
-		ruSetGUINodeVisible( mGUIText, state );
-		ruSetGUINodeVisible( mGUIButton, state );
-	}
+    void Update( );
+	void SetVisible( bool state );
 };

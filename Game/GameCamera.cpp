@@ -4,12 +4,16 @@ GameCamera * GameCamera::currentCamera = 0;
 
 void GameCamera::Update()
 {
-	ruSetGUINodeAlpha( mFullscreenQuad, 0 );
     if( currentCamera == this )
     {
-        //ruSetGUINodeAlpha( mFullscreenQuad, quadAlpha );
+		ruSetGUINodeVisible( mFullscreenQuad, true );
+        ruSetGUINodeAlpha( mFullscreenQuad, quadAlpha );
         quadAlpha += ( quadAlphaTo - quadAlpha ) * 0.15f;
     }
+	else
+	{
+		ruSetGUINodeVisible( mFullscreenQuad, false );
+	}
 }
 
 void GameCamera::FadeIn()

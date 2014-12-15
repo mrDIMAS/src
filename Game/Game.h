@@ -21,6 +21,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#pragma comment( lib, "Ruthenium.lib" )
+
 enum class FootstepsType
 {
     Rock,
@@ -40,32 +42,10 @@ enum LevelName
     LXTestingChamber,
 };
 
-
-static string Format( const char * format, ... )
-{
-    char buffer[ 1024 ];
-    va_list	argumentList;
-
-    va_start( argumentList, format );
-    vsprintf_s( buffer, format , argumentList);
-    va_end(argumentList);
-
-    return string( buffer );
-}
 using namespace std;
-
-#pragma comment( lib, "Ruthenium.lib" )
-
-static float frandom( float low, float high )
-{
-    return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
-}
-
-static void RaiseError( const string & text ) {
-	MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
-	throw runtime_error( text.c_str() );
-}
-
+string Format( const char * format, ... );
+float frandom( float low, float high );
+void RaiseError( const string & text );
 
 extern float mouseSens;
 

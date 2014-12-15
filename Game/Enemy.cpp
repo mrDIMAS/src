@@ -2,8 +2,6 @@
 #include "Menu.h"
 #include "Door.h"
 
-//#define ENEMY_ANIMATION_DEBUG 1
-
 void Enemy::Think()
 {
     if( pMainMenu->IsVisible() )
@@ -42,7 +40,6 @@ void Enemy::Think()
     }
 
     ruVector3 direction = mTarget - ruGetNodePosition( mBody );
-    float heightUnderTarget = direction.y;
 
     float distanceToPlayer = ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mBody )).Length();
     float distanceToTarget = direction.Length();
@@ -250,7 +247,6 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
     mLastDestinationIndex = -1;
     mPlayerDetected = false;
     mPlayerInSightTimer = ruCreateTimer();
-    int a = 0;
 }
 
 void Enemy::SetWalkAnimation()
@@ -297,31 +293,6 @@ void Enemy::SetLegsAnimation( ruAnimation *pAnim )
     ruSetAnimation( mLeftLeg, pAnim );
     ruSetAnimation( mRightLegDown, pAnim );
     ruSetAnimation( mLeftLegDown, pAnim );
-}
-
-void Enemy::DrawAnimationDebugInfo( ruNodeHandle node, int & y )
-{/*
-    ruAnimation * ca = ruGetCurrentAnimation( node );
-    string animName;
-    if( ca == &mIdleAnimation )
-        animName = "Idle";
-    else if ( ca == &mRunAnimation )
-        animName = "Run";
-    else if( ca == &mAttackAnimation )
-        animName = "Attack";
-    y += 16;
-	
-    ruDrawGUIText( Format(
-                       "Name: %-20.20sType: %-20.20sFrame: %-8dBegin: %-8dEnd: %-8dNext: %-8d",
-                       ruGetNodeName( node ),
-                       animName.c_str(),
-                       ca->GetCurrentFrame(),
-                       ca->GetBeginFrame(),
-                       ca->GetEndFrame(),
-                       ca->GetNextFrame() ).c_str(), 100, y, 700, 200, pGUI->mFont, ruVector3( 200, 0, 0 ), 0 );
-
-    for( int i = 0; i < ruGetNodeCountChildren( node ); i++ )
-        DrawAnimationDebugInfo( ruGetNodeChild( node, i ), y );*/
 }
 
 void Enemy::CreateAnimations()

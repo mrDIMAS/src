@@ -98,13 +98,7 @@ void GUIRenderer::RenderAllGUIElements()
     g_pDevice->SetVertexDeclaration( vertDecl );
     g_pDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D ));
 
-	for( auto pButton : GUIButton::msButtonList )
-	{
-		if( pButton->IsVisible() )
-		{
-			pButton->Update();
-		}		
-	}
+
 
 	for( auto pRect : GUIRect::msRectList )
     {

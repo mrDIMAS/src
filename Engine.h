@@ -70,7 +70,7 @@ static inline ruVector3 operator - ( const ruVector3 & v )
     return ruVector3( -v.x, -v.y, -v.z );
 }
 
-static inline float Lerp( const float & value, const float & from, const float & to, const float & t )
+static inline float Lerp( const float & from, const float & to, const float & t )
 {
     return from + ( to - from ) * t;
 }

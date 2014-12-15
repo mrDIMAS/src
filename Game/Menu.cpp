@@ -21,7 +21,6 @@ Menu::Menu( )
     mStartPressed = false;
     mFadeSpeed = 0.1f;
     mExitPressed = false;
-    mButtonsXOffset = 0;
     mVisible = true;
     mPage = Page::Main;
     mContinuePressed = false;
@@ -33,11 +32,9 @@ Menu::Menu( )
     LoadSounds();
     LoadTextures();
     CreateSliders();
-    CreateRadioButtons();
     CreateWaitKeys();
     CreateLists();
-    LoadConfig();
-
+    
     ifstream file( "lastGame.save" );
     mCanContinueGameFromLast = file.good();
     file.close();
@@ -46,29 +43,60 @@ Menu::Menu( )
         ruSetLightFloatingEnabled( ruGetWorldPointLight( i ), true );
         ruSetLightFloatingLimits( ruGetWorldPointLight( i ), ruVector3( -.25, -.25, -.25 ), ruVector3( .25, .25, .25 ) );
     }
+	const float buttonHeight = 32;
+	const float buttonWidth = 128;
 	ruVector3 buttonColor = ruVector3( 255, 255, 255 );
-	mGUIContinueGameButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "continueButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUIStartButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "startButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUISaveGameButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "saveButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUILoadGameButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "loadButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUIOptionsButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUIAuthorsButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUIExitButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "exitButton" ), pGUI->mFont, buttonColor, 1 );
-	mGUIOptionsCommonButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "commonSettings" ), pGUI->mFont, buttonColor, 1 );
-	mGUIOptionsKeysButton = ruCreateGUIButton( 0, 0, 128, 32, mButtonImage, mLocalization.GetString( "controls" ), pGUI->mFont, buttonColor, 1 );
-	mGUIOptionsGraphicsButton = ruCreateGUIButton(0, 0, 128, 32, mButtonImage, mLocalization.GetString( "graphics" ), pGUI->mFont, buttonColor, 1 );
+	mGUIContinueGameButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "continueButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUIStartButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "startButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUISaveGameButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "saveButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUILoadGameButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "loadButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUIOptionsButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUIAuthorsButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUIExitButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "exitButton" ), pGUI->mFont, buttonColor, 1 );
+	mGUIOptionsCommonButton = ruCreateGUIButton( 200, g_resH - 2.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "commonSettings" ), pGUI->mFont, buttonColor, 1 );
+	mGUIOptionsKeysButton = ruCreateGUIButton( 200, g_resH - 2.0 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "controls" ), pGUI->mFont, buttonColor, 1 );
+	mGUIOptionsGraphicsButton = ruCreateGUIButton( 200, g_resH - 1.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "graphics" ), pGUI->mFont, buttonColor, 1 );
 	int w = 500;
 	int h = 400;
 	int x = ( g_resW - w ) / 2;
 	int y = ( g_resH - h ) / 2;
 	mGUIAuthorsText = ruCreateGUIText( mLocalization.GetString( "authorsText" ), x + 50, y + 50, w - 100, h - 100, pGUI->mFont, ruVector3( 255, 127, 127 ), 0 );
 	mGUIAuthorsBackground = ruCreateGUIRect( x, y, w, h, ruTextureHandle::Empty() );
+	y = g_resH - 4.0 * mDistBetweenButtons;
+	for( int i = 0; i < mSaveLoadSlotCount; i++ )
+	{		
+		mGUISaveGameSlot[i] = ruCreateGUIButton( 200, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUI->mFont, buttonColor, 1 );
+		mGUILoadGameSlot[i] = ruCreateGUIButton( 200, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUI->mFont, buttonColor, 1 );
+		y += 1.1f * buttonHeight;
+	}
+
+	x = 200;
+	y = g_resH - 2.5 * mDistBetweenButtons;
+	mpFXAAButton = new RadioButton( x + 60, y, mButtonImage, mLocalization.GetString( "fxaa" ) );
+	// show fps
+	y = g_resH - 2.0 * mDistBetweenButtons;
+	mpFPSButton = new RadioButton( x + 60, y, mButtonImage, mLocalization.GetString( "showFPS" ));
+	y = g_resH - 1.5 * mDistBetweenButtons;
+	//mpGraphicsQuality->Draw( x, y );
+	// second column
+	x += 280;
+	y = g_resH - 2.5 * mDistBetweenButtons;
+	mpPointShadowsButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "pointLightShadows" ));
+	y = g_resH - 2.0 * mDistBetweenButtons;
+	mpSpotShadowsButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "spotLightShadows" ));
+	// hdr
+	y = g_resH - 1.5 * mDistBetweenButtons;
+	mpHDRButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "hdr" ));	
+
+	ruSetHDREnabled( mpHDRButton->IsEnabled() );
 	SetOptionsPageVisible( false );
 	SetOptionsKeysPageVisible( false );
 	SetOptionsGraphicsPageVisible( false );
 	SetOptionsCommonPageVisible( false );
-	SetAuthorsPageVisible( false );
+	SetAuthorsPageVisible( false );	
 	SetPage( Page::Main );
+
+	LoadConfig();
 }
 
 void Menu::Show()
@@ -97,7 +125,6 @@ void Menu::Hide( )
         pCurrentLevel->Show();
     mVisible = false;
     mPage = Page::Main;
-    mButtonsXOffset = 0;
     ruHideCursor();
     ruPauseSound( mMusic );
 	SetAllVisible( false );
@@ -107,16 +134,15 @@ void Menu::Update( )
 {
     ruSetAmbientColor( ruVector3( 0, 0, 0 ));
 
-    if( mVisible ) {
-        mpCamera->Update();
+	mpCamera->Update();
 
-        if( ruIsKeyHit( KEY_Esc ) )
+    if( mVisible ) {
+       
+		if( ruIsKeyHit( KEY_Esc ) )
             mReturnToGameByEsc = pCurrentLevel != nullptr;
 
         if( mStartPressed || mContinuePressed || mReturnToGameByEsc || mLoadFromSave ) {
-            mpCamera->FadeOut();
-
-            mButtonsXOffset -= 6;
+			mpCamera->FadeOut();
 
             if( mpCamera->FadeComplete() ) {
                 if( !pCurrentLevel && mContinuePressed )
@@ -140,8 +166,6 @@ void Menu::Update( )
         }
 
         if( mExitingGame ) {
-            mButtonsXOffset -= 12;
-
             if( mpCamera->FadeComplete() ) {
                 g_running = false;
 
@@ -149,14 +173,9 @@ void Menu::Update( )
             }
         }
 
-        mCameraAnimationOffset = mCameraAnimationOffset.Lerp( mCameraAnimationNewOffset, 0.0085f );
+		CameraFloating();
 
-        if( ( mCameraAnimationOffset - mCameraAnimationNewOffset ).Length2() < 0.025 )
-            mCameraAnimationNewOffset = ruVector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
-
-        ruSetNodePosition( mpCamera->mNode, mCameraInitialPosition + mCameraAnimationOffset );
-
-        int mainButtonsX = mButtonsXOffset + 20;
+        int mainButtonsX = 20;
         int startOffsetIfInGame = pCurrentLevel ? 0.5 * mDistBetweenButtons : 0;
 
 		int saveGamePosX = ( mPage == Page::SaveGame ) ? mainButtonsX + 20 : mainButtonsX;
@@ -175,54 +194,32 @@ void Menu::Update( )
 
         if( mPage == Page::Authors ) {
 			SetAuthorsPageVisible( true );
-        }
-		else
-		{
+        } else {
 			SetAuthorsPageVisible( false );
 		}
 		
-        if( mPage == Page::Options ) { // options window
+        if( mPage == Page::Options ) {
 			SetOptionsPageVisible( true );	
-
-            ruSetGUINodePosition( mGUIOptionsCommonButton, mButtonsXOffset + 200, g_resH - 2.5 * mDistBetweenButtons );
-            ruSetGUINodePosition( mGUIOptionsKeysButton, mButtonsXOffset + 200, g_resH - 2.0 * mDistBetweenButtons );
-            ruSetGUINodePosition( mGUIOptionsGraphicsButton, mButtonsXOffset + 200, g_resH - 1.5 * mDistBetweenButtons );
-
             if( ruIsButtonHit( mGUIOptionsCommonButton ))
                 SetPage( Page::OptionsCommon );
-
             if( ruIsButtonHit( mGUIOptionsKeysButton ))
                 SetPage( Page::OptionsKeys );
-
             if( ruIsButtonHit( mGUIOptionsGraphicsButton ))
                 SetPage( Page::OptionsGraphics );
-        }
-		else
-		{
+        } else {
 			SetOptionsPageVisible( false );			
 		}
-
-		
+				
         if( mPage == Page::OptionsCommon ) {
 			SetOptionsCommonPageVisible( true );
 
-            float x = mButtonsXOffset + 200;
-            float y = g_resH - 2.5 * mDistBetweenButtons;
-
-			float buttonWidth = 80;
-			float buttonHeight = 32;
-
-            mpMouseSensivity->Draw( x, y - 3.0f * buttonHeight );
+            mpMouseSensivity->Update();
             mouseSens = mpMouseSensivity->GetValue() / 100.0f;
 
-            buttonWidth = 32;
-
-            mpMasterVolume->Draw( x, y );
+            mpMasterVolume->Update();
             ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
 
-            y = y + 1.5f * buttonHeight;
-
-            mpMusicVolume->Draw( x, y );
+            mpMusicVolume->Update();
             ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
             g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
             if( pCurrentLevel )
@@ -233,161 +230,113 @@ void Menu::Update( )
 			SetOptionsCommonPageVisible( false );
 		}
 
-        if( mPage == Page::LoadGame ) {
-            float x = mButtonsXOffset + 200;
-            float y = g_resH - 4.0 * mDistBetweenButtons;
-
-            float buttonWidth = 80;
-            float buttonHeight = 32;
-            float textX = x + buttonWidth * 1.5f;
-
+        if( mPage == Page::LoadGame ) 
+		{
+			SetLoadSlotsVisible( true );
             vector< string > nameList;
             GetFilesWithDefExt( "*.save", nameList );
-			/*
-            for( int i = 0; i < nameList.size(); i++ ) {
-                ruGUIState save = ruDrawGUIButton( x, y, 128, 32, mButtonImage, nameList[i].c_str(), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-                if( save.mouseLeftClicked ) {
+			int count = nameList.size();
+			if( count >= mSaveLoadSlotCount )
+				count = mSaveLoadSlotCount;
+			for( int i = 0; i < count; i++ ) {
+				ruSetGUINodeText( ruGetButtonText( mGUILoadGameSlot[i] ), nameList[i].c_str() );
+                if( ruIsButtonHit( mGUILoadGameSlot[i] ) ) {
                     mLoadSaveGameName = nameList[i];
                     mLoadFromSave = true;
                     SetPage( Page::Main );
                 }
-                y += 1.1f * buttonHeight;
-            }*/
+            }
         }
+		else
+		{
+			SetLoadSlotsVisible( false );
+		}
 
-        if( mPage == Page::SaveGame ) {
-            float x = mButtonsXOffset + 200;
-            float y = g_resH - 4.0 * mDistBetweenButtons;
-
-            float buttonWidth = 80;
-            float buttonHeight = 32;
-            float textX = x + buttonWidth * 1.5f;
-
+        if( mPage == Page::SaveGame ) 
+		{
+			SetSaveSlotsVisible( true );
             vector< string > nameList;
             GetFilesWithDefExt( "*.save", nameList );
-
             for( int iName = nameList.size() - 1; iName < 6; iName++ ) {
                 string saveName = "Slot";
                 saveName += ( (char)iName + (char)'0' );
                 saveName += ".save";
                 nameList.push_back( saveName );
-            }
-			/*
-            for( int iName = 0; iName < nameList.size(); iName++ ) {
-                ruGUIState save = ruDrawGUIButton( x, y, 128, 32, mButtonImage, nameList[iName].c_str(), pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-                if( save.mouseLeftClicked ) {
+            }			
+			int count = nameList.size();
+			if( count >= mSaveLoadSlotCount )
+				count = mSaveLoadSlotCount;
+            for( int iName = 0; iName < count; iName++ ) {
+                ruSetGUINodeText( ruGetButtonText( mGUISaveGameSlot[iName] ), nameList[iName].c_str() );
+                if( ruIsButtonHit( mGUISaveGameSlot[iName] ) ) {
                     if( pCurrentLevel ) {
                         SaveWriter( nameList[iName] ).SaveWorldState();
                         SetPage( Page::Main );
                         break;
                     }
                 }
-                y += 1.1f * buttonHeight;
-            }*/
+            }
         }
+		else
+		{
+			SetSaveSlotsVisible( false );
+		}
 
         if( mPage == Page::OptionsGraphics ) {
 			SetOptionsGraphicsPageVisible( true );
-            // first column
-            float x = mButtonsXOffset + 200;
-            float y = g_resH - 2.5 * mDistBetweenButtons;
 
             // FXAA Options
-            mpFXAAButton->Draw( x + 60, y );
+            mpFXAAButton->Update();
             if( mpFXAAButton->IsEnabled() )
                 ruEnableFXAA();
             else
                 ruDisableFXAA();
 
             // show fps
-            y = g_resH - 2.0 * mDistBetweenButtons;
-            mpFPSButton->Draw( x + 60, y );
+            mpFPSButton->Update();
             g_showFPS = mpFPSButton->IsEnabled();
 
             // texture filtering
-            y = g_resH - 2.0 * mDistBetweenButtons;
-            mpTextureFiltering->Draw( x, y );
+            mpTextureFiltering->Update( );
             if( mpTextureFiltering->GetCurrentValue() == 0 )
                 ruSetRendererTextureFiltering( ruTextureFilter::Anisotropic, ruGetRendererMaxAnisotropy() );
             else
                 ruSetRendererTextureFiltering( ruTextureFilter::Linear, 0 );
 
-            y = g_resH - 1.5 * mDistBetweenButtons;
-            mpGraphicsQuality->Draw( x, y );
-            if( mpGraphicsQuality->GetCurrentValue() == 0 )  // low
+            mpGraphicsQuality->Update(  );
+            if( mpGraphicsQuality->GetCurrentValue() == 0 )
                 ruSetRenderQuality( 0 );
-            else   // high
+            else 
                 ruSetRenderQuality( 1 );
-            // second column
-            x += 280;
 
-            y = g_resH - 2.5 * mDistBetweenButtons;
-            mpPointShadowsButton->Draw( x, y );
+			mpPointShadowsButton->Update();
             ruEnablePointLightShadows( mpPointShadowsButton->IsEnabled() );
 
-            y = g_resH - 2.0 * mDistBetweenButtons;
-            mpSpotShadowsButton->Draw( x, y );
+            mpSpotShadowsButton->Update();
             ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
-            // hdr
-            y = g_resH - 1.5 * mDistBetweenButtons;
-            mpHDRButton->Draw( x, y );
+            mpHDRButton->Update();
             ruSetHDREnabled( mpHDRButton->IsEnabled() );
-        }
-		else
-		{
+        } else {
 			SetOptionsGraphicsPageVisible( false );
 		}
 
         if( mPage == Page::OptionsKeys ) {
 			SetOptionsKeysPageVisible( true );
-            float x = mButtonsXOffset + 200;
-            float y = g_resH - 2.5 * mDistBetweenButtons;
-
             // First column
-            mpMoveForwardKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpMoveBackwardKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpStrafeLeftKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpStrafeRightKey->Draw( x, y );
-
-            // Second column
-            x += 150;
-            y = g_resH - 2.5 * mDistBetweenButtons;
-
-            mpJumpKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpFlashLightKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpRunKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpInventoryKey->Draw( x, y );
-
-            // Third column
-            x += 150;
-            y = g_resH - 2.5 * mDistBetweenButtons;
-
-            mpUseKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpQuickSaveKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpQuickLoadKey->Draw( x, y );
-
-            y += 32 * 1.1f;
-            mpStealthKey->Draw( x, y );			
-        } 
-		else
-		{	
+            mpMoveForwardKey->Update();
+            mpMoveBackwardKey->Update();
+            mpStrafeLeftKey->Update();
+            mpStrafeRightKey->Update();
+            mpJumpKey->Update();
+            mpFlashLightKey->Update();
+            mpRunKey->Update();
+            mpInventoryKey->Update();
+            mpUseKey->Update();
+            mpQuickSaveKey->Update();
+            mpQuickLoadKey->Update();
+            mpStealthKey->Update();			
+        } else {	
 			SetOptionsKeysPageVisible( false );
 		}
 
@@ -430,8 +379,6 @@ void Menu::SetPage( Page page )
         mPage = Page::Main;
     else
         mPage = page;
-
-
 }
 
 void Menu::LoadTextures()
@@ -455,34 +402,44 @@ void Menu::LoadSounds()
 
 void Menu::CreateWaitKeys()
 {
-    mpMoveForwardKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "forward" ));
-    mpMoveBackwardKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "backward" ) );
-    mpStrafeLeftKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "strafeLeft" ));
-    mpStrafeRightKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "strafeRight" ));
-    mpJumpKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "jump" ));
-    mpFlashLightKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "flashLight" ));
-    mpRunKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "run" ));
-    mpInventoryKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "inventory" ));
-    mpUseKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "use" ));
-    mpQuickLoadKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "quickLoad" ));
-    mpQuickSaveKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "quickSave" ));
-    mpStealthKey = new WaitKeyButton( mSmallButtonImage, mLocalization.GetString( "stealth" ));
+	float x = 200;
+	float y = g_resH - 2.5 * mDistBetweenButtons;
+    mpMoveForwardKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "forward" ));
+	y += 32 * 1.1f;
+    mpMoveBackwardKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "backward" ) );
+	y += 32 * 1.1f;
+    mpStrafeLeftKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "strafeLeft" ));
+	y += 32 * 1.1f;
+    mpStrafeRightKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "strafeRight" ));
+	x += 150;
+	y = g_resH - 2.5 * mDistBetweenButtons;
+    mpJumpKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "jump" ));
+	y += 32 * 1.1f;
+    mpFlashLightKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "flashLight" ));
+	y += 32 * 1.1f;
+    mpRunKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "run" ));
+	y += 32 * 1.1f;
+    mpInventoryKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "inventory" ));
+	// Third column
+	x += 150;
+	y = g_resH - 2.5 * mDistBetweenButtons;
+    mpUseKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "use" ));
+	y += 32 * 1.1f;
+    mpQuickLoadKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickLoad" ));
+	y += 32 * 1.1f;
+    mpQuickSaveKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickSave" ));
+	y += 32 * 1.1f;
+    mpStealthKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "stealth" ));
 }
 
-void Menu::CreateRadioButtons()
-{
-    mpFXAAButton = new RadioButton( mButtonImage, mLocalization.GetString( "fxaa" ) );
-    mpFPSButton = new RadioButton( mButtonImage, mLocalization.GetString( "showFPS" ));
-	mpHDRButton = new RadioButton( mButtonImage, mLocalization.GetString( "hdr" ));
-    mpPointShadowsButton = new RadioButton( mButtonImage, mLocalization.GetString( "pointLightShadows" ));
-    mpSpotShadowsButton = new RadioButton( mButtonImage, mLocalization.GetString( "spotLightShadows" ));
-}
 
 void Menu::CreateSliders()
 {
-    mpMasterVolume = new NumericSlider( 0, 100, 2.5f, mButtonImage, mLocalization.GetString( "masterVolume" ) );
-    mpMusicVolume = new NumericSlider( 0, 100, 2.5f, mButtonImage, mLocalization.GetString(  "musicVolume" ) );
-    mpMouseSensivity = new NumericSlider( 0, 100, 2.5f, mButtonImage, mLocalization.GetString( "mouseSens" ) );
+	float x = 200;
+	float y = g_resH - 2.5 * mDistBetweenButtons;
+    mpMasterVolume = new NumericSlider( x, y, 0, 100, 2.5f, mButtonImage, mLocalization.GetString( "masterVolume" ) );
+    mpMusicVolume = new NumericSlider( x, y + mDistBetweenButtons, 0, 100, 2.5f, mButtonImage, mLocalization.GetString(  "musicVolume" ) );
+    mpMouseSensivity = new NumericSlider( x, y + 1.5f * mDistBetweenButtons, 0, 100, 2.5f, mButtonImage, mLocalization.GetString( "mouseSens" ) );
 }
 
 void Menu::LoadConfig()
@@ -601,12 +558,12 @@ void Menu::WriteFloat( ofstream & stream, string name, float value )
 
 void Menu::CreateLists()
 {
-    mpTextureFiltering = new ScrollList( mButtonImage, mLocalization.GetString( "filtering" ) );
+    mpTextureFiltering = new ScrollList( 200, g_resH - 1.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "filtering" ) );
 
     mpTextureFiltering->AddValue( mLocalization.GetString( "anisotropic" ));
     mpTextureFiltering->AddValue( mLocalization.GetString( "trilinear" ));
 
-    mpGraphicsQuality = new ScrollList( mButtonImage, mLocalization.GetString( "graphQuality") );
+    mpGraphicsQuality = new ScrollList( 200, g_resH - 1.0 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "graphQuality") );
     mpGraphicsQuality->AddValue( mLocalization.GetString( "gqLow" ));
     mpGraphicsQuality->AddValue( mLocalization.GetString( "gqHigh" ));
 }
@@ -646,6 +603,7 @@ void Menu::SetAllVisible( bool state )
 	SetOptionsGraphicsPageVisible( state );
 	SetOptionsCommonPageVisible( state );
 	SetAuthorsPageVisible( state );
+	SetLoadSlotsVisible( state );
 }
 
 void Menu::SetOptionsCommonPageVisible( bool state )
@@ -714,4 +672,30 @@ Parser * Menu::GetLocalization()
 bool Menu::IsVisible()
 {
 	return mVisible;
+}
+
+void Menu::SetLoadSlotsVisible( bool state )
+{
+	for( int i = 0; i < mSaveLoadSlotCount; i++ )
+	{
+		ruSetGUINodeVisible( mGUILoadGameSlot[i], state );
+	}
+}
+
+void Menu::SetSaveSlotsVisible( bool state )
+{
+	for( int i = 0; i < mSaveLoadSlotCount; i++ )
+	{
+		ruSetGUINodeVisible( mGUISaveGameSlot[i], state );
+	}
+}
+
+void Menu::CameraFloating()
+{
+	mCameraAnimationOffset = mCameraAnimationOffset.Lerp( mCameraAnimationNewOffset, 0.0085f );
+
+	if( ( mCameraAnimationOffset - mCameraAnimationNewOffset ).Length2() < 0.025 )
+		mCameraAnimationNewOffset = ruVector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
+
+	ruSetNodePosition( mpCamera->mNode, mCameraInitialPosition + mCameraAnimationOffset );
 }

@@ -73,13 +73,11 @@ Inventory::Inventory()
 
 	int itemSpacing = 5;
 	// cells and item image
-	bool combinePick = true;
 	for( int cw = 0; cw < mCellCountWidth; cw++ )
 	{
 		for( int ch = 0; ch < mCellCountHeight; ch++ )
 		{
 			// get item for draw
-			int itemNum = cw * mCellCountHeight + ch;
 			int cellX = coordX + distMult * mCellWidth * cw;
 			int cellY = coordY + distMult * mCellHeight * ch;
 			mGUIItem[cw][ch] = ruCreateGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, ruTextureHandle::Empty(), ruVector3( 255, 255, 255 ), 255 );
@@ -200,19 +198,14 @@ void Inventory::Update()
     int backgroundY = coordY - backGroundSpace;
     int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX;
     int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY;
-    // draw item description
-    int combineH = 128;
-    int combineY = backgroundY + backgroundH;
-    int descriptionY = combineY + 10;
     // draw item actions
-    int actionsW = 128;
     int actionsX = backgroundX + backgroundW;
     // draw actions buttons
     int buttonSpace = 10;
     int buttonsX = actionsX + buttonSpace;
     int buttonY = backgroundY + 2 * buttonSpace;
     int buttonH = 30;
-    int buttonW = actionsW - 2 * buttonSpace;
+
 
     bool canCombine = ( mpCombineItemFirst != 0 && mpCombineItemSecond != 0 );
     int useAlpha = mpSelected ? 255 : 60;
@@ -355,7 +348,6 @@ void Inventory::Update()
             {
                 if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond )
                 {
-                    int itemSpacing = 5;
                     //ruDrawGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, pItem->GetPictogram(), ruVector3( 255, 255, 255 ), alpha );
 					ruSetGUINodeTexture( mGUIItemCell[cw][ch], pItem->GetPictogram());
 

@@ -19,7 +19,7 @@ public:
 		Medkit,
 	};
 private:
-	static Parser msLoc;
+	static Parser msLocalization;
 	ruTextureHandle mPic;
 	string mDesc;
 	string mName;
@@ -54,7 +54,7 @@ public:
 	void MarkAsGrabbed();
 	void MarkAsFree();
 	bool IsFree();
-    static vector<Item*> Available;
+    static vector<Item*> msItemList;
     static Item * GetByObject( ruNodeHandle obj );
 };
 

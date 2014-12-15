@@ -1,22 +1,10 @@
 #include "ScrollList.h"
 #include "GUI.h"
 
-void ScrollList::Draw( float x, float y )
+void ScrollList::Update(  )
 {
-    float buttonWidth = 32;
-    float buttonHeight = 32;
-
-    int textHeight = 16;
-    int captionWidth = 100;
-
-    y = y + 1.5f * buttonHeight;
-	ruSetGUINodePosition( mGUIIncreaseButton, x + captionWidth + 4.5f * buttonWidth, y );
-	ruSetGUINodePosition( mGUIDecreaseButton, x + captionWidth * buttonWidth, y );
-	ruSetGUINodePosition( mGUIText, x, y + textHeight / 2 );
-
     if( mValues.size() ) {
 		ruSetGUINodeText( mGUIValueText, mValues[ mCurrentValue ].c_str() );
-		ruSetGUINodePosition( mGUIValueText, x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2 );
 
         if( ruIsButtonHit( mGUIIncreaseButton ) )
             if( mCurrentValue < mValues.size() - 1 )
@@ -38,7 +26,7 @@ int ScrollList::GetCurrentValue()
     return mCurrentValue;
 }
 
-ScrollList::ScrollList( ruTextureHandle buttonImage, const char * text )
+ScrollList::ScrollList( float x, float y, ruTextureHandle buttonImage, const char * text )
 {
     mCurrentValue = 0;
 
@@ -48,10 +36,10 @@ ScrollList::ScrollList( ruTextureHandle buttonImage, const char * text )
 	int textHeight = 16;
 	int captionWidth = 100;
 
-	mGUIText = ruCreateGUIText( text, 0, 0, captionWidth, textHeight, pGUI->mFont, ruVector3( 255, 255, 255 ), 0 );
-	mGUIValueText = ruCreateGUIText( "Value", 0, 0, 3.15f * buttonWidth, 16, pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
-	mGUIIncreaseButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, buttonImage, ">", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
-	mGUIDecreaseButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, buttonImage, ">", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+	mGUIText = ruCreateGUIText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUI->mFont, ruVector3( 255, 255, 255 ), 0 );
+	mGUIValueText = ruCreateGUIText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+	mGUIIncreaseButton = ruCreateGUIButton( x + captionWidth + 4.5f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+	mGUIDecreaseButton = ruCreateGUIButton( x + captionWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
 }
 
 void ScrollList::SetCurrentValue( int value )
@@ -67,4 +55,12 @@ ScrollList::~ScrollList()
 	ruFreeGUINode( mGUIText );
 	ruFreeGUINode( mGUIIncreaseButton );
 	ruFreeGUINode( mGUIDecreaseButton );
+}
+
+void ScrollList::SetVisible( bool state )
+{
+	ruSetGUINodeVisible( mGUIText, state );
+	ruSetGUINodeVisible( mGUIValueText, state );
+	ruSetGUINodeVisible( mGUIIncreaseButton, state );
+	ruSetGUINodeVisible( mGUIDecreaseButton, state );
 }

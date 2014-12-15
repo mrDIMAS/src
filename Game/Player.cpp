@@ -981,7 +981,7 @@ void Player::FreeHands()
 Player::ChargeFlashLight
 ========
 */
-void Player::ChargeFlashLight( Item * fuel )
+void Player::ChargeFlashLight()
 {
     mpFlashlight->Fuel();
 }
@@ -1255,4 +1255,16 @@ void Player::SetActionText( const char * text )
 {
 	ruSetGUINodeText( mGUIActionText, text );
 	ruSetGUINodeVisible( mGUIActionText, true );
+}
+
+void Player::SetHUDVisible( bool state )
+{
+	for( int i = 0; i < mGUISegmentCount; i++ )
+	{
+		ruSetGUINodeVisible( mGUIHealthBarSegment[i], state );
+		ruSetGUINodeVisible( mGUIStaminaBarSegment[i], state );
+	}	
+	ruSetGUINodeVisible( mGUIBackground, state );
+	ruSetGUINodeVisible( mGUIActionText, state );
+	mGoal.SetVisible( state );
 }

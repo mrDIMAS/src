@@ -47,3 +47,8 @@ Goal::~Goal()
 {
 
 }
+
+void Goal::SetVisible( bool state )
+{
+	ruSetGUINodeVisible( mGoalText, state );
+}

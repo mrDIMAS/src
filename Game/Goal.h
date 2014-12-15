@@ -21,8 +21,5 @@ public:
 	virtual ~Goal();
     void SetText( string t );
     void AnimateAndRender();
-	void SetVisible( bool state )
-	{
-		ruSetGUINodeVisible( mGoalText, state );
-	}
+	void SetVisible( bool state );
 };

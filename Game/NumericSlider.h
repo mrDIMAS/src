@@ -13,22 +13,10 @@ private:
 	ruTextHandle mGUIText;
 	ruTextHandle mGUIValueText;
 public:
-	explicit NumericSlider( float minimum, float maximum, float step,  ruTextureHandle buttonImage, const char * text );
-	void Draw( float x, float y );
+	explicit NumericSlider( float x, float y, float minimum, float maximum, float step,  ruTextureHandle buttonImage, const char * text );
+	void Update(  );
 	float GetValue();
 	void SetValue( float value );
-	~NumericSlider()
-	{	
-		ruFreeGUINode( mGUIValueText );
-		ruFreeGUINode( mGUIText );
-		ruFreeGUINode( mGUIIncreaseButton );
-		ruFreeGUINode( mGUIDecreaseButton );
-	}
-	void SetVisible( bool state )
-	{
-		ruSetGUINodeVisible( mGUIText, state );
-		ruSetGUINodeVisible( mGUIValueText, state );
-		ruSetGUINodeVisible( mGUIIncreaseButton, state );
-		ruSetGUINodeVisible( mGUIDecreaseButton, state );
-	}
+	~NumericSlider();
+	void SetVisible( bool state );
 };

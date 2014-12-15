@@ -48,25 +48,11 @@ void main( )
 
     pGUI = new GUI;
     pMainMenu = new Menu;
-    int escHit = 0;
     screamer = new ScreenScreamer;
     ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     FPSCounter fpsCounter;
 
     ruTimerHandle dtTimer = ruCreateTimer();
-
-
-	/*
-    g_dt = 1.0f  / 60.0f;
-    float lastTime = 0.0f;
-    //float dtDest = g_dt;
-    float minDt = 100000;
-	float accumDeltaTime = 0.0f;
-	float fixedTimeStep = 1.0f / 60.0f;*//*
-	float physicsStep = 1.0f / 120.0f;
-	float maxPhysicsTimePerFrame = 0.15f;
-	float lastTime = ruGetTimeInSeconds( dtTimer );
-	float physicsTimer = 0;*/
 
 	double fixedTick = 1.0 / 60.0;
 	double prevPhysTime = ruGetTimeInSeconds( dtTimer );
@@ -74,12 +60,10 @@ void main( )
 	double gameClock = prevPhysTime;
 
 	ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
-    while( true )
+	ruShowCursor();
+    while( g_running )
     {
 		try {			
-			if( !g_running )
-				break;
-
 			// ===========================
 			// frame rendering update
 			ruRenderWorld( 1.0f / 60.0f );
@@ -98,6 +82,7 @@ void main( )
 			double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
 			if( dt > 1.0f / 10.0f )
 				dt = 1.0f / 10.0f;
+			
 			while( dt >= fixedTick ) 
 			{
 				dt -= fixedTick;
@@ -106,6 +91,7 @@ void main( )
 				g_dt = fixedTick;
 
 				ruInputUpdate();
+				
 				if( pPlayer ) 
 				{
 					pPlayer->Update();
@@ -139,8 +125,7 @@ void main( )
 				ruSetGUINodeVisible( fpsText, g_showFPS );
 			}		
 			fpsCounter.RegisterFrame();
-		} catch( runtime_error & rError ) {
-			// just exit main loop to be sure, that all resources will be freed
+		} catch( runtime_error ) {
 			break;
 		}
     }
@@ -153,4 +138,27 @@ void main( )
     delete pMainMenu;
     delete pGUI;
     ruFreeRenderer();
+}
+
+std::string Format( const char * format, ... )
+{
+	char buffer[ 1024 ];
+	va_list	argumentList;
+
+	va_start( argumentList, format );
+	vsprintf_s( buffer, format , argumentList);
+	va_end(argumentList);
+
+	return string( buffer );
+}
+
+float frandom( float low, float high )
+{
+	return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+}
+
+void RaiseError( const string & text )
+{
+	MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
+	throw runtime_error( text.c_str() );
 }

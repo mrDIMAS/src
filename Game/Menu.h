@@ -41,7 +41,6 @@ private:
 	bool mExitingGame;
 	string mLoadSaveGameName;
 	bool mLoadFromSave;
-	float mButtonsXOffset;
 	ruSoundHandle mPickSound;
 	Page mPage;
 	ruSoundHandle mMusic;
@@ -93,6 +92,10 @@ private:
 	ruTextHandle mGUIAuthorsText;
 	ruRectHandle mGUIAuthorsBackground;
 
+	static const int mSaveLoadSlotCount = 7;
+	ruButtonHandle mGUISaveGameSlot[mSaveLoadSlotCount];
+	ruButtonHandle mGUILoadGameSlot[mSaveLoadSlotCount];
+
 	void SetPage( Page page );
 	void SetOptionsPageVisible( bool state );
 	void SetAuthorsPageVisible( bool state );
@@ -100,6 +103,8 @@ private:
 	void SetMainPageVisible( bool state );
 	void SetOptionsKeysPageVisible( bool state );
 	void SetOptionsCommonPageVisible( bool state );
+	void SetSaveSlotsVisible( bool state );
+	void SetLoadSlotsVisible( bool state );
 	void SetAllVisible( bool state );
 	void WriteFloat( ofstream & stream, string name, float value );
 	void WriteInteger( ofstream & stream, string name, int value );
@@ -108,7 +113,6 @@ private:
 	void SetPlayerControls();
 	void LoadConfig();
 	void CreateSliders();
-	void CreateRadioButtons();
 	void CreateWaitKeys();
 	void CreateLists();
 	void LoadSounds();
@@ -120,6 +124,9 @@ public:
     void Show();
     void Hide( );
     void Update( );   
+
+	void CameraFloating();
+
 	bool IsVisible();
 	Parser * GetLocalization();
 

@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "GUIButton.h"
 
 LPDIRECTINPUT8			pInput;
 LPDIRECTINPUTDEVICE8	pKeyboard;
@@ -24,6 +25,8 @@ RECT windowRect;
 
 void ruInputUpdate( )
 {
+
+
     if( pKeyboard->GetDeviceState( sizeof( g_keys ),( void * )&g_keys ) == DIERR_INPUTLOST )
         pKeyboard->Acquire();
 
@@ -59,6 +62,14 @@ void ruInputUpdate( )
 
     memcpy( g_lastKeys, g_keys, sizeof( g_lastKeys ));
     memcpy( g_mousePressed, mouseData.rgbButtons, sizeof( g_mousePressed ));
+
+	for( auto pButton : GUIButton::msButtonList )
+	{
+		if( pButton->IsVisible() )
+		{
+			pButton->Update();
+		}		
+	}
 };
 
 RUAPI void ruInputInit( void * window )

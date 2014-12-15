@@ -70,7 +70,7 @@ private:
 	ruAnimation mWalkAnimation;
 public:
 	int GetVertexIndexNearestTo( ruVector3 position );   
-    void DrawAnimationDebugInfo( ruNodeHandle node, int & y );
+
     void SetLegsAnimation( ruAnimation *pAnim );
     void SetTorsoAnimation( ruAnimation * anim );
     void SetCommonAnimation( ruAnimation * anim );

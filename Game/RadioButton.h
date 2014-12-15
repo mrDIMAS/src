@@ -9,13 +9,9 @@ private:
 	ruTextHandle mGUIText;
 	ruButtonHandle mGUIButton;
 public:
-    explicit RadioButton( ruTextureHandle buttonImage, const char * text );
-    void Draw( float x, float y );
+    explicit RadioButton( float x, float y, ruTextureHandle buttonImage, const char * text );
+    void Update(  );
 	bool IsEnabled( );
 	void SetEnabled( bool state );
-	void SetVisible( bool state )
-	{
-		ruSetGUINodeVisible( mGUIText, state );
-		ruSetGUINodeVisible( mGUIButton, state );
-	}
+	void SetVisible( bool state );
 };

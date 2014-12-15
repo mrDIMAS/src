@@ -1,15 +1,15 @@
 #include "Item.h"
 #include "Player.h"
 
-vector<Item*> Item::Available;
-Parser Item::msLoc;
+vector<Item*> Item::msItemList;
+Parser Item::msLocalization;
 
 Item * Item::GetByObject( ruNodeHandle obj )
 {
-    for( auto pItem : Available )
+    for( auto pItem : msItemList )
         if( pItem->mObject == obj )
             return pItem;
-    return 0;
+    return nullptr;
 }
 
 void Item::SetType( Type type )
@@ -21,81 +21,81 @@ void Item::SetType( Type type )
 	mVolume = 1.0f;
     if( mType == Type::Detonator )
     {
-        mDesc = msLoc.GetString( "detonatorDesc" );
-        mName = msLoc.GetString( "detonatorName" );
+        mDesc = msLocalization.GetString( "detonatorDesc" );
+        mName = msLocalization.GetString( "detonatorName" );
         mPic = ruGetTexture( "data/gui/inventory/items/detonator.png" );;
         mCombinePair = Type::Unknown;
         mMorphType = Type::Unknown;
-        mContentTypeDesc = msLoc.GetString( "detonatorContentType" );
+        mContentTypeDesc = msLocalization.GetString( "detonatorContentType" );
     }
     if( mType == Type::FuelCanister )
     {
-        mDesc = msLoc.GetString( "fuelDesc" );
-        mName = msLoc.GetString( "fuelName" );
+        mDesc = msLocalization.GetString( "fuelDesc" );
+        mName = msLocalization.GetString( "fuelName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuel.png" );
         mCombinePair = Type::Flashlight;
         mMorphType = Type::Flashlight;
         mVolume = mContent;
-        mContentTypeDesc = msLoc.GetString( "fuelContentType" );
+        mContentTypeDesc = msLocalization.GetString( "fuelContentType" );
     }
     if( mType == Type::Wires )
     {
-        mDesc = msLoc.GetString( "wiresDesc" );
-        mName = msLoc.GetString( "wiresName" );
+        mDesc = msLocalization.GetString( "wiresDesc" );
+        mName = msLocalization.GetString( "wiresName" );
         mPic = ruGetTexture( "data/gui/inventory/items/wires.png" );
         mCombinePair = Type::Unknown;
         mMorphType = Type::Unknown;
-        mContentTypeDesc = msLoc.GetString( "wiresContentType" );
+        mContentTypeDesc = msLocalization.GetString( "wiresContentType" );
     }
 
     if( mType == Type::Explosives )
     {
-        mDesc = msLoc.GetString( "explosivesDesc" );
-        mName = msLoc.GetString( "explosivesName" );
+        mDesc = msLocalization.GetString( "explosivesDesc" );
+        mName = msLocalization.GetString( "explosivesName" );
         mPic = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
         mCombinePair = Type::Unknown;
         mMass = 0.3f;
-        mContentTypeDesc = msLoc.GetString( "explosivesContentType" );
+        mContentTypeDesc = msLocalization.GetString( "explosivesContentType" );
     }
     if( mType == Type::Flashlight )
     {
-        mDesc = msLoc.GetString( "flashlightDesc" );
-        mName = msLoc.GetString( "flashlightName" );
+        mDesc = msLocalization.GetString( "flashlightDesc" );
+        mName = msLocalization.GetString( "flashlightName" );
         mPic = ruGetTexture( "data/gui/inventory/items/flashlight.png" );
         mCombinePair = Type::FuelCanister;
         mMorphType = Type::Flashlight;
         mThrowable = false;
         mMass = 1.3f;
         mVolume = 0.6;
-        mContentTypeDesc = msLoc.GetString( "flashlightContentType" );
+        mContentTypeDesc = msLocalization.GetString( "flashlightContentType" );
     }
     if( mType == Type::Fuse )
     {
-        mDesc = msLoc.GetString( "fuseDesc" );
-        mName = msLoc.GetString( "fuseName" );
+        mDesc = msLocalization.GetString( "fuseDesc" );
+        mName = msLocalization.GetString( "fuseName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuse.png" );
         mCombinePair = Type::Unknown;
         mMass = 5.0f;
-        mContentTypeDesc = msLoc.GetString( "fuseContentType" );
+        mContentTypeDesc = msLocalization.GetString( "fuseContentType" );
     }
     if( mType == Type::Medkit )
     {
-        mDesc = msLoc.GetString( "medkitDesc" );
-        mName = msLoc.GetString( "medkitName" );
+        mDesc = msLocalization.GetString( "medkitDesc" );
+        mName = msLocalization.GetString( "medkitName" );
         mPic = ruGetTexture( "data/gui/inventory/items/medkit.png" );
         mCombinePair = Type::Unknown;
         mMass = 1.5f;
-        mContentTypeDesc = msLoc.GetString( "medkitContentType" );
+        mContentTypeDesc = msLocalization.GetString( "medkitContentType" );
     }
 }
 
 Item::Item( ruNodeHandle obj, Type type ): InteractiveObject( obj )
 {
-    if( !msLoc.IsParsed() )
-        msLoc.ParseFile( localizationPath + "items.loc" );
+    if( !msLocalization.IsParsed() )
+        msLocalization.ParseFile( localizationPath + "items.loc" );
     mMorphType = Type::Unknown;
     mCombinePair = Type::Unknown;
-    Available.push_back( this );
+    msItemList.push_back( this );
     mInInventory = false;
     SetType( type );
 }
@@ -165,7 +165,7 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem )
 				if( pCanister->GetContent() > 0.0f )
 				{
 					pFlashlight->SetContent( pCanister->GetContent() );
-					pPlayer->ChargeFlashLight( pCanister );
+					pPlayer->ChargeFlashLight();
 				}
 				pUsedItem = pCanister;
 				return true;

@@ -156,7 +156,7 @@ public:
     void CompleteObjective();
     void SetPlaceDescription( string desc );
     void SetFootsteps( FootstepsType ft );
-    void ChargeFlashLight( Item * fuel );
+    void ChargeFlashLight( );
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
@@ -169,15 +169,5 @@ public:
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
 	void SetActionText( const char * text );
-	void SetHUDVisible( bool state )
-	{
-		for( int i = 0; i < mGUISegmentCount; i++ )
-		{
-			ruSetGUINodeVisible( mGUIHealthBarSegment[i], state );
-			ruSetGUINodeVisible( mGUIStaminaBarSegment[i], state );
-		}	
-		ruSetGUINodeVisible( mGUIBackground, state );
-		ruSetGUINodeVisible( mGUIActionText, state );
-		mGoal.SetVisible( state );
-	}
+	void SetHUDVisible( bool state );
 };

@@ -2,7 +2,6 @@
 
 #include "Level.h"
 #include "LightAnimator.h"
-#include "Fire.h"
 #include "AmbientSoundSet.h"
 
 class LevelArrival : public Level
