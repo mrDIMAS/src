@@ -240,7 +240,7 @@ public:
 	bool operator == ( const ruGUINodeHandle & node );
 };
 
-class RUAPI ruButtonHandle : public ruRutheniumHandle
+class RUAPI ruButtonHandle : public ruGUINodeHandle
 {
 public:
 	bool operator == ( const ruButtonHandle & node );
@@ -525,10 +525,13 @@ RUAPI bool ruIsGUINodeVisible( ruGUINodeHandle node );
 RUAPI ruVector2 ruGetGUINodePosition( ruGUINodeHandle node );
 RUAPI ruVector2 ruGetGUINodeSize( ruGUINodeHandle node );
 RUAPI ruVector3 ruGetGUINodeColor( ruGUINodeHandle node );
+RUAPI void ruSetGUINodeTexture( ruGUINodeHandle node, ruTextureHandle texture );
 RUAPI int ruGetGUINodeAlpha( ruGUINodeHandle node );
 RUAPI bool ruIsButtonPressed( ruButtonHandle node );
+RUAPI bool ruIsButtonHit( ruButtonHandle node );
 RUAPI bool ruIsButtonPicked( ruButtonHandle node );
-
+RUAPI ruTextHandle ruGetButtonText( ruButtonHandle node );
+RUAPI void ruFreeGUINode( ruGUINodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Time functions
 ////////////////////////////////////////////////////////////////////////////////////

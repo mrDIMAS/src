@@ -11,6 +11,8 @@ private:
     float mTextAlphaTo;
     bool mShowIntro;
     ruTimerHandle mTextTimer;
+	ruTextHandle mGUIText;
+	ruTextHandle mGUISkipText;
 public:
     explicit LevelIntroduction();
     virtual ~LevelIntroduction();

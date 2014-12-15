@@ -81,6 +81,18 @@ Player::Player() : Actor( 1.0f, 0.2f )
     SetDirtFootsteps();
 
     ruSetNodeName( mBody, "Player" );
+
+	mGUIActionText = ruCreateGUIText( "Action text", ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+
+	float scale = 2;
+	int w = 512.0f / scale;
+	int h = 256.0f / scale;
+	mGUIBackground = ruCreateGUIRect( 0, ruGetResolutionHeight() - h, w, h, mStatusBar, ruVector3( 255, 255, 255 ), mStaminaAlpha );
+	for( int i = 0; i < mGUISegmentCount; i++ )
+	{
+		mGUIStaminaBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 3 * 15, 8, 16, pGUI->staminaBarImg, ruVector3( 255, 255, 255 ), mStaminaAlpha );
+		mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
+	}
 }
 
 /*
@@ -112,19 +124,33 @@ void Player::DrawStatusBar()
     mStaminaAlpha.ChaseTarget( 8.0f * g_dt );
     mHealthAlpha.ChaseTarget( 8.0f * g_dt );
 
-    float scale = 2;
-    int w = 512.0f / scale;
-    int h = 256.0f / scale;
-
-    ruDrawGUIRect( 0, ruGetResolutionHeight() - h, w, h, mStatusBar, ruVector3( 255, 255, 255 ), mStaminaAlpha );
-
+	ruSetGUINodeAlpha( mGUIBackground, mStaminaAlpha );
     int segCount = mStamina / 5;
-    for( int i = 0; i < segCount; i++ )
-        ruDrawGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 3 * 15, 8, 16, pGUI->staminaBarImg, ruVector3( 255, 255, 255 ), mStaminaAlpha );
-
+	for( int i = 0; i < mGUISegmentCount; i++ )
+	{
+		if( i < segCount )
+		{
+			ruSetGUINodeVisible( mGUIStaminaBarSegment[i], true );
+			ruSetGUINodeAlpha( mGUIStaminaBarSegment[i], mStaminaAlpha );
+		}
+		else
+		{
+			ruSetGUINodeVisible( mGUIStaminaBarSegment[i], false );
+		}
+	}
     segCount = mLife / 5;
-    for( int i = 0; i < segCount; i++ )
-        ruDrawGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
+	for( int i = 0; i < mGUISegmentCount; i++ )
+	{
+		if( i < segCount )
+		{
+			ruSetGUINodeVisible( mGUIHealthBarSegment[i], true );
+			ruSetGUINodeAlpha( mGUIHealthBarSegment[i], mHealthAlpha );
+		}
+		else
+		{
+			ruSetGUINodeVisible( mGUIHealthBarSegment[i], false );
+		}
+	}
 }
 
 /*
@@ -348,7 +374,7 @@ void Player::UpdateMoving()
     for( auto pWay : Way::msWayList ) {
 		if( !pWay->IsPlayerInside() )  {
 			if( pWay->IsEnterPicked() ) {
-				DrawTip( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )));
+				SetActionText( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )).c_str());
 				if( IsUseButtonHit() ) {
 					pWay->Enter();
 				}
@@ -359,7 +385,7 @@ void Player::UpdateMoving()
     for( auto pDoor : Door::msDoorList ) {
         pDoor->DoInteraction();
         if( pDoor->IsPickedByPlayer() ) {
-            DrawTip( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )));
+            SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )).c_str());
             if( IsUseButtonHit() )
                 pDoor->SwitchState();
         }
@@ -498,7 +524,7 @@ void Player::ComputeStealth()
     if (alpha > 255 )
         alpha = 255;
     ruVector3 color = ( mStealthFactor < 1.05f ) ? ruVector3( 255, 255, 255 ) : ruVector3( 255, 0, 0 );
-    ruDrawGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, mStealthSign, color, alpha );
+//    ruDrawGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, mStealthSign, color, alpha );
 }
 /*
 ========
@@ -507,10 +533,11 @@ Player::Update
 */
 void Player::Update( )
 {
+	ruSetGUINodeVisible( mGUIActionText, false );
     UpdateFright();
     mpCamera->Update();
 
-    if( pMainMenu->mVisible )
+    if( pMainMenu->IsVisible() )
         return;
 
     DrawGUIElements();
@@ -529,6 +556,7 @@ void Player::Update( )
     UpdateInventory();
     DrawSheetInHands();
     DescribePickedObject();
+
 }
 
 /*
@@ -735,6 +763,7 @@ Player::DrawSheetInHands
 void Player::DrawSheetInHands()
 {
     if( mpSheetInHands ) {
+		mpSheetInHands->SetVisible( true );
         mpSheetInHands->Draw();
         mPickedObjectDesc = mpSheetInHands->GetDescription();
         mPickedObjectDesc += mLocalization.GetString( "sheetOpen" );		
@@ -750,18 +779,20 @@ Player::DescribePickedObject
 */
 void Player::DescribePickedObject()
 {
+	/*
     // Change cursor first
     if( mNearestPickedNode.IsValid() ) {
         if( IsObjectHasNormalMass( mNearestPickedNode ))
-            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragUpCursor, ruVector3( 255, 255, 255 ), 180 );
+//            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragUpCursor, ruVector3( 255, 255, 255 ), 180 );
     } else {
-        if( mNodeInHands.IsValid() )
-            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragDownCursor, ruVector3( 255, 255, 255 ), 180 );
-        else
-            ruDrawGUIText( "+", ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, 180 );
-    }
+ //       if( mNodeInHands.IsValid() )
+ //           ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragDownCursor, ruVector3( 255, 255, 255 ), 180 );
+ //       else
+ //           ruDrawGUIText( "+", ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, 180 );
+ //   }
     // Then describe object
-    ruDrawGUIText( mPickedObjectDesc.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+//    ruDrawGUIText( mPickedObjectDesc.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+*/
 }
 
 /*
@@ -868,12 +899,14 @@ void Player::UpdatePicking()
             if( pItem ) {
                 mPickedObjectDesc = pItem->GetName();
                 mPickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
+				SetActionText( mPickedObjectDesc.c_str() );
             } else if( pSheet ) {
                 mPickedObjectDesc = pSheet->GetDescription();
                 mPickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
+				SetActionText( mPickedObjectDesc.c_str() );
             } else {
                 if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode ))
-                    DrawTip( mLocalization.GetString( "objectPick" ) );
+                    SetActionText( mLocalization.GetString( "objectPick" ) );
             }
 
             if( ruIsMouseDown( MB_Left ) ) {
@@ -925,7 +958,7 @@ Player::DrawGUIElements
 void Player::DrawGUIElements()
 {
     int alpha = mPlaceDescTimer < 50 ? 255.0f * (float)mPlaceDescTimer / 50.0f : 255;
-    ruDrawGUIText( mPlaceDesc.c_str(), ruGetResolutionWidth() - 300, ruGetResolutionHeight() - 200, 200, 200, pGUI->mFont, ruVector3( 255, 255, 255 ), 1, alpha );
+//    ruDrawGUIText( mPlaceDesc.c_str(), ruGetResolutionWidth() - 300, ruGetResolutionHeight() - 200, 200, 200, pGUI->mFont, ruVector3( 255, 255, 255 ), 1, alpha );
 
     if( mPlaceDescTimer )
         mPlaceDescTimer--;
@@ -1003,16 +1036,6 @@ void Player::SetFootsteps( FootstepsType ft )
         SetRockFootsteps();
     if( ft == FootstepsType::Metal )
         SetMetalFootsteps();
-}
-
-/*
-========
-Player::DrawTip
-========
-*/
-void Player::DrawTip( string text )
-{
-    ruDrawGUIText( text.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 }
 
 /*
@@ -1197,6 +1220,7 @@ void Player::SerializeWith( TextFileStream & out )
 
 void Player::CloseCurrentSheet()
 {
+	mpSheetInHands->SetVisible( false );
     ruShowNode( mpSheetInHands->mObject );
     mpSheetInHands = 0;
     ruPlaySound( Sheet::msPaperFlipSound );
@@ -1220,4 +1244,15 @@ Flashlight * Player::GetFlashLight()
 Inventory * Player::GetInventory()
 {
 	return &mInventory;
+}
+
+void Player::DrawHUD()
+{
+	DrawGUIElements();
+}
+
+void Player::SetActionText( const char * text )
+{
+	ruSetGUINodeText( mGUIActionText, text );
+	ruSetGUINodeVisible( mGUIActionText, true );
 }

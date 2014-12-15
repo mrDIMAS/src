@@ -1,5 +1,7 @@
 #include "GUINode.h"
 
+vector<GUINode*> GUINode::msNodeList;
+
 void GUINode::SetAlpha( int alpha )
 {
 	mAlpha = alpha;
@@ -26,11 +28,12 @@ GUINode::GUINode()
 	mVisible = true;
 	SetColor( ruVector3( 255, 255, 255 ));
 	SetAlpha( 255 );
+	msNodeList.push_back( this );
 }
 
 GUINode::~GUINode()
 {
-
+	msNodeList.erase( find( msNodeList.begin(), msNodeList.end(), this ));
 }
 
 void GUINode::SetTexture( Texture * pTexture )
@@ -77,4 +80,35 @@ float GUINode::GetY()
 float GUINode::GetX()
 {
 	return mX;
+}
+
+int GUINode::GetAlpha()
+{
+	return mAlpha;
+}
+
+ruVector3 GUINode::GetColor()
+{
+	return mColor;
+}
+
+ruVector2 GUINode::GetSize()
+{
+	return ruVector2( mWidth, mHeight );
+}
+
+ruVector2 GUINode::GetPosition()
+{
+	return ruVector2( mX, mY );
+}
+
+void GUINode::SetPosition( float x, float y )
+{
+	mX = x;
+	mY = y;
+}
+
+int GUINode::GetPackedColor()
+{
+	return mColorPacked;
 }

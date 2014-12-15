@@ -18,7 +18,7 @@ void Valve::Update()
         return;
 
     if( pPlayer->mNearestPickedNode == object ) {
-        ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "turnObject" ), GetKeyName( pPlayer->mKeyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+//        ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "turnObject" ), GetKeyName( pPlayer->mKeyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 
         if( ruIsKeyDown( pPlayer->mKeyUse )) {
             angle += 5;

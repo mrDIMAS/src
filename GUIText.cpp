@@ -20,7 +20,7 @@ GUIText::GUIText( const char * theText, float theX, float theY, float theWidth,
 
 GUIText::~GUIText()
 {
-
+	msTextList.erase( find( msTextList.begin(), msTextList.end(), this ));
 }
 
 RECT GUIText::GetBoundingRect()

@@ -16,6 +16,7 @@ protected:
 	Texture * mpTexture;
 	int mColorPacked;
 public:
+	static vector<GUINode*> msNodeList;
 	explicit GUINode();
 	virtual ~GUINode();
 	void PackColor();
@@ -26,33 +27,14 @@ public:
 	float GetWidth();
 	float GetHeight();
 	void SetSize( float w, float h );
-	void SetVisible( bool visible );
+	virtual void SetVisible( bool visible );
 	bool IsVisible();
 	Texture * GetTexture();
 	void SetTexture( Texture * pTexture );
-	int GetPackedColor()
-	{
-		return mColorPacked;
-	}
-	void SetPosition( float x, float y )
-	{
-		mX = x;
-		mY = y;
-	}
-	ruVector2 GetPosition( )
-	{
-		return ruVector2( mX, mY );
-	}
-	ruVector2 GetSize( )
-	{
-		return ruVector2( mWidth, mHeight );
-	}
-	ruVector3 GetColor()
-	{
-		return mColor;
-	}
-	int GetAlpha()
-	{
-		return mAlpha;
-	}
+	int GetPackedColor();
+	virtual void SetPosition( float x, float y );
+	ruVector2 GetPosition( );
+	ruVector2 GetSize( );
+	ruVector3 GetColor();
+	int GetAlpha();
 };

@@ -72,7 +72,7 @@ void main( )
     int perfTime=0;
 
     ruEnablePointLightShadows( false );
-    ruEnableSpotLightShadows( true );
+    ruEnableSpotLightShadows( false );
 	ruDisableFXAA();
 
 	ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
@@ -150,6 +150,15 @@ void main( )
         //ruDrawGUIRect( 400, 400, 34, 34, ruTextureHandle::Empty() );
         sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruDIPs(), ruTextureUsedPerFrame(), fps, ruGetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruIsHDREnabled()  );
 		ruSetGUINodeText( fpsText, buf );
+
+		if( ruIsButtonPressed( testButton ))
+		{
+			ruSetGUINodeVisible( fpsText, true );
+		}
+		else
+		{
+			ruSetGUINodeVisible( fpsText, false );
+		}
        // ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
         //DrawGUIText( "Это текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
         //ruDrawGUIText( "Простой текст", 200, 0, 100, 100, font2, ruVector3( 255, 0, 255 ), 0, 100 );

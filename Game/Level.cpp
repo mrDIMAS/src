@@ -84,7 +84,7 @@ void Level::Change( int levelId, bool continueFromSave )
 
     if( lastLevel != Level::msCurLevelID )
     {
-        ruDrawGUIText( pMainMenu->mLocalization.GetString( "loading" ), ruGetResolutionWidth() / 2 - 64, ruGetResolutionHeight() / 2 - 64, 128, 128, pGUI->mFont, ruVector3( 255, 255, 0), 1 );
+       // ruDrawGUIText( pMainMenu->mLocalization.GetString( "loading" ), ruGetResolutionWidth() / 2 - 64, ruGetResolutionHeight() / 2 - 64, 128, 128, pGUI->mFont, ruVector3( 255, 255, 0), 1 );
 
         // draw 'loading' string
         ruRenderWorld( 1.0f / 60.0f );

@@ -15,6 +15,7 @@ private:
     int w;
     int h;
     ruTimerHandle timer;
+	ruTextHandle mGUIText;
 public:
     Tip();
     void SetNewText( string text );

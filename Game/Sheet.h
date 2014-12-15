@@ -8,6 +8,8 @@ private:
 	string mText;
 	string mDescription;
 	ruTextureHandle mBackgroundTexture;
+	ruRectHandle mGUIBackground;
+	ruTextHandle mGUIText;
 public:
     explicit Sheet( ruNodeHandle object, string desc, string text );
 	virtual ~Sheet();
@@ -17,6 +19,11 @@ public:
 	const char * GetText( ) const;
 	void SetDescription( const char * description );
 	const char * GetDescription( ) const;
+	void SetVisible( bool state )
+	{
+		ruSetGUINodeVisible( mGUIBackground, state );
+		ruSetGUINodeVisible( mGUIText, state );
+	}
     static Sheet * GetSheetByObject( ruNodeHandle o );
     static vector<Sheet*> msSheetList;
     static ruSoundHandle msPaperFlipSound;

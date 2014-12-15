@@ -25,7 +25,7 @@ void ScreenScreamer::Update()
 {
     static int offset = 50;
 
-    if( pMainMenu->mVisible ) {
+    if( pMainMenu->IsVisible() ) {
         ruPauseSound( sound );
         return;
     }
@@ -37,7 +37,7 @@ void ScreenScreamer::Update()
             if( nextPeriodFrames > 0 ) {
                 int xOff = rand() % offset;
                 int yOff = rand() % offset;
-                ruDrawGUIRect( -offset + xOff, -offset + yOff , ruGetResolutionWidth() + xOff, ruGetResolutionHeight() + yOff, tex, ruVector3( 255, 0, 0 ), 120 );
+                //ruDrawGUIRect( -offset + xOff, -offset + yOff , ruGetResolutionWidth() + xOff, ruGetResolutionHeight() + yOff, tex, ruVector3( 255, 0, 0 ), 120 );
 
                 ruPlaySound( sound );
 

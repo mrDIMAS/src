@@ -132,10 +132,16 @@ public:
 
 	Flashlight * mpFlashlight;
 	FollowPath * mpFollowPath;
+
+	ruTextHandle mGUIActionText;
+
+	static const int mGUISegmentCount = 20;
+	ruRectHandle mGUIHealthBarSegment[mGUISegmentCount];
+	ruRectHandle mGUIStaminaBarSegment[mGUISegmentCount];
+	ruRectHandle mGUIBackground;
 public:
     explicit Player();
     virtual ~Player();
-    void DrawTip( string text );
     void FreeHands();
     bool IsCanJump( );
     bool UseStamina( float st );
@@ -155,10 +161,23 @@ public:
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
     void ComputeStealth();
+	void DrawHUD();
 	Inventory * GetInventory();
 	Flashlight * GetFlashLight();
 	Parser * GetLocalization();
 	void SetTip( const char * text );
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
+	void SetActionText( const char * text );
+	void SetHUDVisible( bool state )
+	{
+		for( int i = 0; i < mGUISegmentCount; i++ )
+		{
+			ruSetGUINodeVisible( mGUIHealthBarSegment[i], state );
+			ruSetGUINodeVisible( mGUIStaminaBarSegment[i], state );
+		}	
+		ruSetGUINodeVisible( mGUIBackground, state );
+		ruSetGUINodeVisible( mGUIActionText, state );
+		mGoal.SetVisible( state );
+	}
 };

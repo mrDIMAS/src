@@ -13,7 +13,7 @@ void Goal::AnimateAndRender()
     if( mAlpha <= 101 )
         mAlpha = 255.0f;
 
-    ruDrawGUIText( mText.c_str(), 40, mCurrentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, mAlpha );
+	ruSetGUINodePosition( mGoalText, 40, mCurrentY );
 }
 
 void Goal::SetText( string t )
@@ -23,6 +23,8 @@ void Goal::SetText( string t )
     mDestY = mInitialY;
 
     mText = t;
+
+	ruSetGUINodeText( mGoalText, t.c_str() );
 
     mCurrentY = g_resH * 0.45f;
 }
@@ -37,6 +39,8 @@ Goal::Goal()
     mWaitSec = 2.0f;
 
     mAlpha = 255.0f;
+
+	mGoalText = ruCreateGUIText( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, mAlpha );
 }
 
 Goal::~Goal()

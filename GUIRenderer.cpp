@@ -116,7 +116,10 @@ void GUIRenderer::RenderAllGUIElements()
 
     for( auto pText : GUIText::msTextList )
     {
-        g_textRenderer->RenderText( pText );
+		if( pText->IsVisible() )
+		{
+			g_textRenderer->RenderText( pText );
+		}
     }
 
     if( g_cursor )

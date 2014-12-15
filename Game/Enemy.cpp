@@ -6,7 +6,7 @@
 
 void Enemy::Think()
 {
-    if( pMainMenu->mVisible )
+    if( pMainMenu->IsVisible() )
         return;
 
     if( mMoveType == MoveType::ChasePlayer )
@@ -300,7 +300,7 @@ void Enemy::SetLegsAnimation( ruAnimation *pAnim )
 }
 
 void Enemy::DrawAnimationDebugInfo( ruNodeHandle node, int & y )
-{
+{/*
     ruAnimation * ca = ruGetCurrentAnimation( node );
     string animName;
     if( ca == &mIdleAnimation )
@@ -310,6 +310,7 @@ void Enemy::DrawAnimationDebugInfo( ruNodeHandle node, int & y )
     else if( ca == &mAttackAnimation )
         animName = "Attack";
     y += 16;
+	
     ruDrawGUIText( Format(
                        "Name: %-20.20sType: %-20.20sFrame: %-8dBegin: %-8dEnd: %-8dNext: %-8d",
                        ruGetNodeName( node ),
@@ -320,7 +321,7 @@ void Enemy::DrawAnimationDebugInfo( ruNodeHandle node, int & y )
                        ca->GetNextFrame() ).c_str(), 100, y, 700, 200, pGUI->mFont, ruVector3( 200, 0, 0 ), 0 );
 
     for( int i = 0; i < ruGetNodeCountChildren( node ); i++ )
-        DrawAnimationDebugInfo( ruGetNodeChild( node, i ), y );
+        DrawAnimationDebugInfo( ruGetNodeChild( node, i ), y );*/
 }
 
 void Enemy::CreateAnimations()
@@ -365,7 +366,7 @@ void Enemy::CreateSounds()
 int Enemy::GetVertexIndexNearestTo( ruVector3 position )
 {
     if( mCurrentPath.size() == 0 )
-        return 0;;
+        return 0;
     int nearestIndex = 0;
     for( int i = 0; i < mCurrentPath.size(); i++ )
     {

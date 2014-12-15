@@ -12,6 +12,7 @@ public:
 
     ruVector3 fadeColor;
 
+	ruRectHandle mFullscreenQuad;
 public:
     GameCamera( float fov = 65 );
     void FadeOut();

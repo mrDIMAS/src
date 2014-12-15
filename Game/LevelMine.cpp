@@ -264,7 +264,7 @@ void LevelMine::DoScenario()
 
     if( !mStages[ "ConcreteWallExp" ] ) {
         if( pPlayer->mNearestPickedNode == mDetonator ) {
-            ruDrawGUIText( mLocalization.GetString( "detonator" ), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+            pPlayer->SetActionText( mLocalization.GetString( "detonator" ));
 
             if( ruIsKeyHit( pPlayer->mKeyUse ) && mReadyExplosivesCount >= 4 && !mDetonatorActivated ) {
                 mDetonatorActivated = 1;
@@ -374,7 +374,7 @@ void LevelMine::UpdateExplodeSequence()
             ItemPlace * dp = mDetonatorPlace[i];
 
             if( dp->IsPickedByPlayer() )
-                ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "putItem"), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+                pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "putItem"), GetKeyName( pPlayer->mKeyUse )).c_str());
         }
 
         if( ruIsKeyHit( pPlayer->mKeyUse )) {

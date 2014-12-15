@@ -26,20 +26,11 @@ void LevelIntroduction::DoScenario()
         fadeSpeed = 0.05f;
 
     mTextAlpha += ( mTextAlphaTo - mTextAlpha ) * 0.025f;
-
-    int scx = ruGetResolutionWidth() / 2;
-    int scy = ruGetResolutionHeight() / 2;
-
-    int w = 600;
-    int h = 400;
-
-    ruDrawGUIText( mPlainText.c_str(), scx - w / 2, scy - h / 2, w, h, pGUI->mFont, ruVector3( 255, 255, 255 ), 0, mTextAlpha );
-
+	
     if( ruGetElapsedTimeInSeconds( mTextTimer ) >= 22 || ruIsKeyHit( KEY_Space ) )
         mShowIntro = false;
 
-    if( mShowIntro )
-        ruDrawGUIText( mLocalization.GetString( "skip" ), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+    ruSetGUINodeVisible( mGUISkipText, mShowIntro );
 
     if( mShowIntro == false )
     {
@@ -52,7 +43,8 @@ void LevelIntroduction::DoScenario()
 
 LevelIntroduction::~LevelIntroduction()
 {
-
+	ruFreeGUINode( mGUIText );
+	ruFreeGUINode( mGUISkipText );
 }
 
 LevelIntroduction::LevelIntroduction()
@@ -65,6 +57,12 @@ LevelIntroduction::LevelIntroduction()
     mTypeNum = 1;
     LoadLocalization( "intro.loc" );
     mPlainText = mLocalization.GetString( "intro" );
+	int scx = ruGetResolutionWidth() / 2;
+	int scy = ruGetResolutionHeight() / 2;
+	int w = 600;
+	int h = 400;
+	mGUIText = ruCreateGUIText( mPlainText.c_str(), scx - w / 2, scy - h / 2, w, h, pGUI->mFont, ruVector3( 255, 255, 255 ), 0, mTextAlpha );
+	mGUISkipText = ruCreateGUIText( mLocalization.GetString( "skip" ), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 }
 
 void LevelIntroduction::OnDeserialize( TextFileStream & in )

@@ -143,17 +143,39 @@ ruVector3 ruGetGUINodeColor( ruGUINodeHandle node )
 	return ((GUINode*)node.pointer)->GetColor();
 }
 
+void ruSetGUINodeTexture( ruGUINodeHandle node, ruTextureHandle texture )
+{
+	((GUINode*)node.pointer)->SetTexture( (Texture*)texture.pointer );
+}
+
 int ruGetGUINodeAlpha( ruGUINodeHandle node )
 {
 	return ((GUINode*)node.pointer)->GetAlpha();
 }
 
-RUAPI bool ruIsButtonPressed( ruButtonHandle node )
+bool ruIsButtonPressed( ruButtonHandle node )
+{
+	return ((GUIButton*)node.pointer)->IsLeftPressed();
+}
+
+bool ruIsButtonPicked( ruButtonHandle node )
 {
 	return ((GUIButton*)node.pointer)->IsPicked();
 }
 
-RUAPI bool ruIsButtonPicked( ruButtonHandle node )
+bool ruIsButtonHit( ruButtonHandle node )
 {
-	return ((GUIButton*)node.pointer)->IsLMBPressed();
+	return ((GUIButton*)node.pointer)->IsLeftHit(); 
+}
+
+ruTextHandle ruGetButtonText( ruButtonHandle node )
+{
+	ruTextHandle text;
+	text.pointer = ((GUIButton*)node.pointer)->GetText();
+	return text;
+}
+
+void ruFreeGUINode( ruGUINodeHandle node )
+{
+	delete ((GUIButton*)node.pointer);
 }

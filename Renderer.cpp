@@ -53,6 +53,8 @@ Renderer::~Renderer()
     delete g_particleSystemRenderer;
     delete g_deferredRenderer;
     delete g_guiRenderer;
+	while( GUINode::msNodeList.size() )
+		delete GUINode::msNodeList.front();		
     while( g_nodes.size() )
         delete g_nodes.front();
     if( g_forwardRenderer )

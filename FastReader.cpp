@@ -95,7 +95,7 @@ int FastReader::GetInteger()
 
 FastReader::~FastReader()
 {
-    delete data;
+    delete [] data;
     data = 0;
 }
 
@@ -111,8 +111,7 @@ bool FastReader::ReadFile( const char * fileName )
 
     size = ftell ( f );
 
-    data = new Byte[ size ];
-
+    data = new Byte[size];
     fseek ( f, 0, SEEK_SET );
 
     fread ( data, 1, size, f );

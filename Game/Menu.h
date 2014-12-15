@@ -13,91 +13,116 @@
 
 class Menu
 {
-public:
-    enum class Page
-    {
-        Main,
-        Options,
-        Authors,
-        OptionsKeys,
-        OptionsCommon,
-        OptionsGraphics,
-        SaveGame,
-        LoadGame,
-    };
+private:
+	enum class Page
+	{
+		Main,
+		Options,
+		Authors,
+		OptionsKeys,
+		OptionsCommon,
+		OptionsGraphics,
+		SaveGame,
+		LoadGame,
+	};
 
+	ruNodeHandle mScene;
+	bool mVisible;
+	ruTextureHandle mButtonImage;
+	ruTextureHandle mSmallButtonImage;
+	int mDistBetweenButtons;
+
+	float mFadeSpeed;
+	bool mCanContinueGameFromLast;
+	bool mStartPressed;
+	bool mExitPressed;
+	bool mContinuePressed;
+	bool mReturnToGameByEsc;
+	bool mExitingGame;
+	string mLoadSaveGameName;
+	bool mLoadFromSave;
+	float mButtonsXOffset;
+	ruSoundHandle mPickSound;
+	Page mPage;
+	ruSoundHandle mMusic;
+	Parser mLocalization;
+
+	NumericSlider * mpMasterVolume;
+	NumericSlider * mpMusicVolume;
+	NumericSlider * mpMouseSensivity;
+	RadioButton * mpFXAAButton;
+	RadioButton * mpFPSButton;
+	RadioButton * mpPointShadowsButton;
+	RadioButton * mpSpotShadowsButton;
+	RadioButton * mpHDRButton;
+	ScrollList * mpTextureFiltering;
+	ScrollList * mpGraphicsQuality;
+
+	// Keys
+	WaitKeyButton * mpMoveForwardKey;
+	WaitKeyButton * mpMoveBackwardKey;
+	WaitKeyButton * mpStrafeLeftKey;
+	WaitKeyButton * mpStrafeRightKey;
+	WaitKeyButton * mpJumpKey;
+	WaitKeyButton * mpFlashLightKey;
+	WaitKeyButton * mpRunKey;
+	WaitKeyButton * mpInventoryKey;
+	WaitKeyButton * mpUseKey;
+	WaitKeyButton * mpQuickSaveKey;
+	WaitKeyButton * mpQuickLoadKey;
+	WaitKeyButton * mpStealthKey;
+
+	ruVector3 mCameraInitialPosition;
+	ruVector3 mCameraAnimationOffset;
+	ruVector3 mCameraAnimationNewOffset;
+
+	GameCamera * mpCamera;
+
+	ruButtonHandle mGUIContinueGameButton;
+	ruButtonHandle mGUIStartButton;
+	ruButtonHandle mGUISaveGameButton;
+	ruButtonHandle mGUILoadGameButton;
+	ruButtonHandle mGUIOptionsButton;
+	ruButtonHandle mGUIAuthorsButton;
+	ruButtonHandle mGUIExitButton;
+
+	ruButtonHandle mGUIOptionsCommonButton;
+	ruButtonHandle mGUIOptionsKeysButton;
+	ruButtonHandle mGUIOptionsGraphicsButton;
+
+	ruTextHandle mGUIAuthorsText;
+	ruRectHandle mGUIAuthorsBackground;
+
+	void SetPage( Page page );
+	void SetOptionsPageVisible( bool state );
+	void SetAuthorsPageVisible( bool state );
+	void SetOptionsGraphicsPageVisible( bool state );
+	void SetMainPageVisible( bool state );
+	void SetOptionsKeysPageVisible( bool state );
+	void SetOptionsCommonPageVisible( bool state );
+	void SetAllVisible( bool state );
+	void WriteFloat( ofstream & stream, string name, float value );
+	void WriteInteger( ofstream & stream, string name, int value );
+	void WriteString( ofstream & stream, string name, string value );
+	void WriteConfig();
+	void SetPlayerControls();
+	void LoadConfig();
+	void CreateSliders();
+	void CreateRadioButtons();
+	void CreateWaitKeys();
+	void CreateLists();
+	void LoadSounds();
+	void CreateCamera();
+	void LoadTextures();
+public:
     explicit Menu( );
     virtual ~Menu();
-
-    void WriteFloat( ofstream & stream, string name, float value );
-    void WriteInteger( ofstream & stream, string name, int value );
-    void Writestring( ofstream & stream, string name, string value );
-    void WriteConfig();
-    void SetPlayerControls();
-    void LoadConfig();
-    void CreateSliders();
-    void CreateRadioButtons();
-    void CreateWaitKeys();
-    void CreateLists();
-    void LoadSounds();
-    void CreateCamera();
-    void LoadTextures();
     void Show();
     void Hide( );
-    void Update( );
-    void SetPage( Page page );
+    void Update( );   
+	bool IsVisible();
+	Parser * GetLocalization();
 
-    ruNodeHandle mScene;
-    bool mVisible;
-    ruTextureHandle mButtonImage;
-    ruTextureHandle mSmallButtonImage;
-    int mDistBetweenButtons;
-
-    float mFadeSpeed;
-    bool mCanContinueGameFromLast;
-    bool mStartPressed;
-    bool mExitPressed;
-    bool mContinuePressed;
-    bool mReturnToGameByEsc;
-    bool mExitingGame;
-    string mLoadSaveGameName;
-    bool mLoadFromSave;
-    float mButtonsXOffset;
-    ruSoundHandle mPickSound;
-    Page mPage;
-    ruSoundHandle mMusic;
-    Parser mLocalization;
-
-    NumericSlider * mpMasterVolume;
-    NumericSlider * mpMusicVolume;
-    NumericSlider * mpMouseSensivity;
-    RadioButton * mpFXAAButton;
-    RadioButton * mpFPSButton;
-    RadioButton * mpPointShadowsButton;
-    RadioButton * mpSpotShadowsButton;
-    RadioButton * mpHDRButton;
-    ScrollList * mpTextureFiltering;
-    ScrollList * mpGraphicsQuality;
-
-    // Keys
-    WaitKeyButton * mpMoveForwardKey;
-    WaitKeyButton * mpMoveBackwardKey;
-    WaitKeyButton * mpStrafeLeftKey;
-    WaitKeyButton * mpStrafeRightKey;
-    WaitKeyButton * mpJumpKey;
-    WaitKeyButton * mpFlashLightKey;
-    WaitKeyButton * mpRunKey;
-    WaitKeyButton * mpInventoryKey;
-    WaitKeyButton * mpUseKey;
-    WaitKeyButton * mpQuickSaveKey;
-    WaitKeyButton * mpQuickLoadKey;
-    WaitKeyButton * mpStealthKey;
-
-    ruVector3 mCameraInitialPosition;
-    ruVector3 mCameraAnimationOffset;
-    ruVector3 mCameraAnimationNewOffset;
-
-    GameCamera * mpCamera;
 };
 
 

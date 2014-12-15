@@ -16,21 +16,24 @@ Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObjec
 
     if( !msSheetFont.IsValid() )
         msSheetFont = ruCreateGUIFont( 16, "data/fonts/font1.otf", 0, 0 );
+	
+	int sw = ruGetResolutionWidth();
+	int sh = ruGetResolutionHeight();
+
+	int cx = sw / 2;
+	int cy = sh / 2;
+
+	int w = 400;
+	int h = 600;
+
+	mGUIBackground = ruCreateGUIRect( cx - w / 2, cy - h / 2, w, h, mBackgroundTexture );
+	mGUIText = ruCreateGUIText( mText.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
+	SetVisible( false );
 }
 
 void Sheet::Draw( )
 {
-    int sw = ruGetResolutionWidth();
-    int sh = ruGetResolutionHeight();
 
-    int cx = sw / 2;
-    int cy = sh / 2;
-
-    int w = 400;
-    int h = 600;
-
-    ruDrawGUIRect( cx - w / 2, cy - h / 2, w, h, mBackgroundTexture );
-    ruDrawGUIText( mText.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
 }
 
 Sheet * Sheet::GetSheetByObject( ruNodeHandle o )
@@ -65,9 +68,12 @@ const char * Sheet::GetText() const
 void Sheet::SetText( const char * text )
 {
 	mText = text;
+	ruSetGUINodeText( mGUIText, text );
 }
 
 Sheet::~Sheet()
 {
+	ruFreeGUINode(mGUIBackground);
+	ruFreeGUINode(mGUIText);
 	msSheetList.erase( find( msSheetList.begin(), msSheetList.end(), this ));
 }

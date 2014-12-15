@@ -10,7 +10,7 @@ GUIRect::~GUIRect()
 
 GUIRect::GUIRect()
 {
-
+	msRectList.erase( find( msRectList.begin(), msRectList.end(), this ));
 }
 
 GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, ruVector3 theColor, int theAlpha, bool selfRegister )

@@ -4,10 +4,10 @@ GameCamera * GameCamera::currentCamera = 0;
 
 void GameCamera::Update()
 {
+	ruSetGUINodeAlpha( mFullscreenQuad, 0 );
     if( currentCamera == this )
     {
-        ruDrawGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruTextureHandle::Empty(), fadeColor, quadAlpha );
-
+        //ruSetGUINodeAlpha( mFullscreenQuad, quadAlpha );
         quadAlpha += ( quadAlphaTo - quadAlpha ) * 0.15f;
     }
 }
@@ -32,6 +32,9 @@ GameCamera::GameCamera( float fov )
     SetFadeColor( ruVector3( 0, 0, 0 ));
 
     MakeCurrent();
+
+	mFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruTextureHandle::Empty(), fadeColor, quadAlpha );
+	ruSetGUINodeAlpha( mFullscreenQuad, 0 );
 }
 
 void GameCamera::MakeCurrent()

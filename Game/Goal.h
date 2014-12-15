@@ -15,9 +15,14 @@ private:
     float mWaitSec;
     float mAlpha;
     string mText;
+	ruTextHandle mGoalText;
 public:
     explicit Goal();
 	virtual ~Goal();
     void SetText( string t );
     void AnimateAndRender();
+	void SetVisible( bool state )
+	{
+		ruSetGUINodeVisible( mGoalText, state );
+	}
 };

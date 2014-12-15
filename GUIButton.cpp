@@ -12,6 +12,8 @@ void GUIButton::Update()
 	mPicked = false;
 	mLeftPressed = false;
 	mRightPressed = false;
+	mLeftHit = false;
+	mRightHit = false;
 
 	if( mouseX > mX && mouseX < ( mX + mWidth ) && mouseY > mY && mouseY < ( mY + mHeight ) )
 	{
@@ -19,10 +21,20 @@ void GUIButton::Update()
 
 		if( ruIsMouseHit( MB_Left ))
 		{
-			mLeftPressed = true;
+			mLeftHit = true;
 		}
 
 		if( ruIsMouseHit( MB_Right ))
+		{
+			mRightHit = true;
+		}
+
+		if( ruIsMouseDown( MB_Left ))
+		{
+			mLeftPressed = true;
+		}
+
+		if( ruIsMouseDown( MB_Right ))
 		{
 			mRightPressed = true;
 		}
@@ -52,7 +64,7 @@ ruVector3 GUIButton::GetPickedColor() const
 	return pickedColor;
 }
 
-bool GUIButton::IsLMBPressed()
+bool GUIButton::IsLeftPressed()
 {
 	return mLeftPressed;
 }
@@ -60,4 +72,30 @@ bool GUIButton::IsLMBPressed()
 bool GUIButton::IsPicked()
 {
 	return mPicked;
+}
+
+
+bool GUIButton::IsLeftHit() const
+{
+	return mLeftHit;
+}
+
+bool GUIButton::IsRightHit() const
+{
+	return mRightHit;
+}
+
+bool GUIButton::IsRightPressed()
+{
+	return mRightPressed;
+}
+
+GUIText * GUIButton::GetText()
+{
+	return mpText;
+}
+
+GUIButton::~GUIButton()
+{
+	msButtonList.erase( find( msButtonList.begin(), msButtonList.end(), this ));
 }

@@ -3,16 +3,17 @@
 
 
 
-void WaitKeyButton::Draw( float x, float y, ruTextureHandle buttonImage, const char * text )
+void WaitKeyButton::Draw( float x, float y )
 {
     int textHeight = 16;
     float buttonWidth = 60;
     float buttonHeight = 32;
 
-    ruGUIState controlButton = ruDrawGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, mGrabKey ? "[ Key ]" : mDesc, pGUI->mFont, ruVector3( 0, 255, 0 ), 1 );
-    ruDrawGUIText( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUI->mFont, ruVector3( 0, 255, 0 ), 0 );
+	ruSetGUINodePosition( mGUIButton, x, y );
+	ruSetGUINodeText( ruGetButtonText( mGUIButton ), mGrabKey ? "[ Key ]" : mDesc );
+	ruSetGUINodePosition( mGUIText, x + buttonWidth * 1.1f, y + textHeight / 2 );
 
-    if( controlButton.mouseLeftClicked )
+    if( ruIsButtonHit( mGUIButton ) )
         mGrabKey = true;
 
     if( mGrabKey ) {
@@ -31,10 +32,16 @@ void WaitKeyButton::SetSelected( int i )
     mSelectedKey = i;
 }
 
-WaitKeyButton::WaitKeyButton()
+WaitKeyButton::WaitKeyButton( ruTextureHandle buttonImage, const char * text )
 {
+	int textHeight = 16;
+	float buttonWidth = 60;
+	float buttonHeight = 32;
+
     mDesc = " ";
     mGrabKey= false;
+	mGUIButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, buttonImage, mGrabKey ? "[ Key ]" : mDesc, pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+	mGUIText = ruCreateGUIText( text, 0, 0, 100, textHeight, pGUI->mFont, ruVector3( 0, 255, 0 ), 0 );
 }
 
 int WaitKeyButton::GetSelectedKey()

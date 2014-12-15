@@ -22,8 +22,8 @@ void Tip::Serialize( TextFileStream & out )
 
 void Tip::AnimateAndDraw()
 {
-    ruDrawGUIText( txt.c_str(), x, y, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, alpha );
-
+    //ruDrawGUIText( txt.c_str(), x, y, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, alpha );
+	ruSetGUINodePosition( mGUIText, x, y );
     if( ruGetElapsedTimeInSeconds( timer ) > 1.5 ) {
         alpha.SetTarget( alpha.GetMin() );
         alpha.ChaseTarget( 0.1 );
@@ -50,4 +50,5 @@ Tip::Tip() : alpha( 255.0f, 0.0f, 255.0f )
     h = 32;
     x = ruGetResolutionWidth() / 2 - w / 2;
     SetNewText( " " );
+	mGUIText = ruCreateGUIText( " ", 0, 0, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , alpha );
 }

@@ -43,7 +43,7 @@ void Lift::Update()
 		// player interaction( TODO: must be moved to player class )
 		if( pPlayer->mNearestPickedNode == mControlPanel ) 
 		{
-			ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "liftUpDown" ), GetKeyName( pPlayer->mKeyUse ) ).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+			pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "liftUpDown" ), GetKeyName( pPlayer->mKeyUse ) ).c_str());
 
 			if( ruIsKeyHit( pPlayer->mKeyUse )) 
 			{

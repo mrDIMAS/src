@@ -181,7 +181,7 @@ void LevelResearchFacility::DoScenario()
 
     if( !stateDoorUnlocked ) {
         if( pPlayer->mNearestPickedNode == mDoorOpenLever ) {
-            ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "openGates" ), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+            pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "openGates" ), GetKeyName( pPlayer->mKeyUse )).c_str());
 
             if( ruIsKeyDown( pPlayer->mKeyUse )) {
                 ruSetNodeRotation( mDoorOpenLever, ruQuaternion( 0, -20, 0 ));
@@ -237,7 +237,7 @@ void LevelResearchFacility::UpdatePowerupSequence()
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
             ItemPlace * pFuse = mFusePlaceList[iFuse];
             if( pFuse->IsPickedByPlayer() )
-                ruDrawGUIText( Format( pPlayer->GetLocalization()->GetString( "insertFuse" ), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+                pPlayer->SetActionText( Format( pPlayer->GetLocalization()->GetString( "insertFuse" ), GetKeyName( pPlayer->mKeyUse )).c_str());
         }
 
         if( ruIsKeyHit( pPlayer->mKeyUse )) {
@@ -258,7 +258,7 @@ void LevelResearchFacility::UpdatePowerupSequence()
 
     if( fuseInsertedCount >= 3 ) {
         if( pPlayer->mNearestPickedNode == powerLever ) {
-            ruDrawGUIText( Format( pPlayer->mLocalization.GetString("powerUp"), GetKeyName( pPlayer->mKeyUse )).c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+            pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString("powerUp"), GetKeyName( pPlayer->mKeyUse )).c_str());
 
             if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
                 ruSetLightColor( mPowerLamp, ruVector3( 0, 255, 0 ) );
