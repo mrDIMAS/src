@@ -2,20 +2,17 @@
 
 ForwardRenderer * g_forwardRenderer = nullptr;
 
-void ForwardRenderer::RenderMeshes()
-{
+void ForwardRenderer::RenderMeshes() {
     pixelShader->Bind();
     vertexShader->Bind();
 
-    for( auto group : renderList )
-    {
+    for( auto group : renderList ) {
         IDirect3DTexture9 * diffuseTexture = group.first;
         vector< Mesh* > & meshes = group.second;
 
         g_pDevice->SetTexture( 0, diffuseTexture );
 
-        for( auto mesh : meshes )
-        {
+        for( auto mesh : meshes ) {
             D3DXMATRIX world, wvp;
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
@@ -29,29 +26,24 @@ void ForwardRenderer::RenderMeshes()
     }
 }
 
-void ForwardRenderer::RemoveMesh( Mesh * mesh )
-{
+void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
     auto groupIter = renderList.find( mesh->diffuseTexture->GetInterface() );
-    if( groupIter != renderList.end() )
-    {
+    if( groupIter != renderList.end() ) {
         auto & group = groupIter->second;
         group.erase( find( group.begin(), group.end(), mesh ));
     }
 }
 
-void ForwardRenderer::AddMesh( Mesh * mesh )
-{
+void ForwardRenderer::AddMesh( Mesh * mesh ) {
     renderList[ mesh->diffuseTexture->GetInterface() ].push_back( mesh );
 }
 
-ForwardRenderer::~ForwardRenderer()
-{
+ForwardRenderer::~ForwardRenderer() {
     delete pixelShader;
     delete vertexShader;
 }
 
-ForwardRenderer::ForwardRenderer()
-{
+ForwardRenderer::ForwardRenderer() {
     string vertexShaderSource =
         "float4x4 worldViewProjection : register( c0 );\n"
 

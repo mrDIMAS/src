@@ -2,8 +2,7 @@
 
 #include "DeferredRenderer.h"
 
-class MultipleRTDeferredRenderer : public DeferredRenderer
-{
+class MultipleRTDeferredRenderer : public DeferredRenderer {
 public:
     VertexShader * vsGBufferHighQuality;
     PixelShader * psGBufferHighQuality;

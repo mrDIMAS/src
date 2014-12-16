@@ -2,8 +2,7 @@
 
 #include "Game.h"
 
-class FPSCounter
-{
+class FPSCounter {
 public:
     ruTimerHandle timer;
     int frameCounter;

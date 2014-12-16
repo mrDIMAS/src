@@ -4,18 +4,15 @@
 
 vector< Door* > Door::msDoorList;
 
-bool Door::IsPickedByPlayer()
-{
+bool Door::IsPickedByPlayer() {
     return door == pPlayer->mNearestPickedNode;
 }
 
-Door::~Door()
-{
+Door::~Door() {
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
-Door::Door( ruNodeHandle hDoor, float fMaxAngle )
-{
+Door::Door( ruNodeHandle hDoor, float fMaxAngle ) {
     door = hDoor;
 
     mMaxAngle = fMaxAngle;
@@ -35,26 +32,21 @@ Door::Door( ruNodeHandle hDoor, float fMaxAngle )
     msDoorList.push_back( this );
 }
 
-void Door::DoInteraction()
-{
-    if( mState == State::Closing )
-    {
+void Door::DoInteraction() {
+    if( mState == State::Closing ) {
         mCurrentAngle -= 60.0f * g_dt;
 
-        if( mCurrentAngle < 0 )
-        {
+        if( mCurrentAngle < 0 ) {
             mCurrentAngle = 0.0f;
 
             mState = State::Closed;
         }
     }
 
-    if( mState == State::Opening )
-    {
+    if( mState == State::Opening ) {
         mCurrentAngle += 60.0f * g_dt;
 
-        if( mCurrentAngle > mMaxAngle )
-        {
+        if( mCurrentAngle > mMaxAngle ) {
             mState = State::Opened;
 
             mCurrentAngle = mMaxAngle;
@@ -64,38 +56,30 @@ void Door::DoInteraction()
     ruSetNodeRotation( door, ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
 }
 
-Door::State Door::GetState()
-{
+Door::State Door::GetState() {
     return mState;
 }
 
-void Door::SwitchState()
-{
-    if( mState == State::Closed )
-    {
+void Door::SwitchState() {
+    if( mState == State::Closed ) {
         mState = State::Opening;
         ruPlaySound( mOpenSound );
     }
-    if( mState == State::Opened )
-    {
+    if( mState == State::Opened ) {
         mState = State::Closing;
         ruPlaySound( mCloseSound );
     }
 }
 
-void Door::Close()
-{
-    if( mState == State::Opened )
-    {
+void Door::Close() {
+    if( mState == State::Opened ) {
         mState = State::Closing;
         ruPlaySound( mCloseSound );
     }
 }
 
-void Door::Open()
-{
-    if( mState == State::Closed )
-    {
+void Door::Open() {
+    if( mState == State::Closed ) {
         mState = State::Opening;
         ruPlaySound( mOpenSound );
     }

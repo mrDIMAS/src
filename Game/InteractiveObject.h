@@ -3,8 +3,7 @@
 #include "Game.h"
 
 
-class InteractiveObject
-{
+class InteractiveObject {
 public:
     ruNodeHandle mObject;
     float flashAlbedo;
@@ -17,8 +16,7 @@ public:
     ~InteractiveObject();
     void UpdateFlashing();
 
-    virtual void Update()
-    {
+    virtual void Update() {
     }
 
     static void UpdateAll();

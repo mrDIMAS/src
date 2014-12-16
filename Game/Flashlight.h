@@ -4,36 +4,35 @@
 #include "TextFileStream.h"
 #include "Item.h"
 
-class Flashlight
-{
+class Flashlight {
 private:
-	ruNodeHandle mLight;
-	ruNodeHandle mModel;
+    ruNodeHandle mLight;
+    ruNodeHandle mModel;
 
-	float mMaxCharge;
-	float mCharge;
-	float mOnRange;
+    float mMaxCharge;
+    float mCharge;
+    float mOnRange;
 
-	ruVector3 mOffset;
+    ruVector3 mOffset;
 
-	float mRealRange;
-	float mRangeDest;
-	float mChargeWorkTimeSeconds;
-	float mShakeCoeff;
+    float mRealRange;
+    float mRangeDest;
+    float mChargeWorkTimeSeconds;
+    float mShakeCoeff;
 
-	ruSoundHandle mOnSound;
-	ruSoundHandle mOffSound;
-	ruSoundHandle mOutOfChargeSound;
+    ruSoundHandle mOnSound;
+    ruSoundHandle mOffSound;
+    ruSoundHandle mOutOfChargeSound;
 
-	ruVector3 mInitialPosition;
+    ruVector3 mInitialPosition;
 
-	ruVector3 mPosition;
-	ruVector3 mDestPosition;
+    ruVector3 mPosition;
+    ruVector3 mDestPosition;
 
-	bool mOn;
+    bool mOn;
 public:
     explicit Flashlight( );
-	virtual ~Flashlight();;
+    virtual ~Flashlight();;
     bool GotCharge();
     void Fuel();
     void Attach( ruNodeHandle node );
@@ -41,10 +40,10 @@ public:
     void SwitchOn();
     void Switch();
     void Update();
-	bool IsOn() const;
-	float GetCharge();
-	bool IsBeamContainsPoint( ruVector3 point ) const;
-	Item * CreateAppropriateItem();
+    bool IsOn() const;
+    float GetCharge();
+    bool IsBeamContainsPoint( ruVector3 point ) const;
+    Item * CreateAppropriateItem();
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
 };

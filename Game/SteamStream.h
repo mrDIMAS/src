@@ -2,8 +2,7 @@
 
 #include "Game.h"
 
-class SteamStream
-{
+class SteamStream {
 public:
     ruNodeHandle ps;
     ruSoundHandle snd;

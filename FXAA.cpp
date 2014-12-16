@@ -1,7 +1,6 @@
 #include "FXAA.h"
 
-void FXAA::DoAntialiasing( IDirect3DTexture9 * outTexture )
-{
+void FXAA::DoAntialiasing( IDirect3DTexture9 * outTexture ) {
     CheckDXErrorFatal( g_pDevice->SetRenderTarget( 0, backBufferRT ));
     CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
 
@@ -15,13 +14,11 @@ void FXAA::DoAntialiasing( IDirect3DTexture9 * outTexture )
     effectsQuad->Render();
 }
 
-void FXAA::BeginDrawIntoTexture()
-{
+void FXAA::BeginDrawIntoTexture() {
     g_pDevice->SetRenderTarget( 0, renderTarget );
 }
 
-FXAA::FXAA()
-{
+FXAA::FXAA() {
     string source =
         "#define FxaaBool bool\n"
         "#define FxaaDiscard clip(-1)\n"
@@ -133,8 +130,9 @@ FXAA::FXAA()
     pixelShader = new PixelShader( source );
     screenWidth = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_WIDTH" );
     screenHeight = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_HEIGHT" );
-    if( FAILED( D3DXCreateTexture( g_pDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture )))
+    if( FAILED( D3DXCreateTexture( g_pDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture ))) {
         MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
+    }
 
     CheckDXErrorFatal( texture->GetSurfaceLevel( 0, &renderTarget ));
     CheckDXErrorFatal( g_pDevice->GetRenderTarget( 0, &backBufferRT ));
@@ -142,8 +140,7 @@ FXAA::FXAA()
     effectsQuad = new EffectsQuad;
 }
 
-FXAA::~FXAA()
-{
+FXAA::~FXAA() {
     delete pixelShader;
     delete effectsQuad;
     renderTarget->Release();
@@ -154,17 +151,14 @@ FXAA::~FXAA()
 // API
 //////////////////////////////////////////////////////////////////////////
 
-RUAPI void ruEnableFXAA( )
-{
+RUAPI void ruEnableFXAA( ) {
     g_fxaaEnabled = true;
 }
 
-RUAPI void ruDisableFXAA( )
-{
+RUAPI void ruDisableFXAA( ) {
     g_fxaaEnabled = false;
 }
 
-RUAPI bool ruFXAAEnabled()
-{
+RUAPI bool ruFXAAEnabled() {
     return g_fxaaEnabled;
 }

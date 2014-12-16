@@ -1,12 +1,10 @@
 #include "Actor.h"
 
-void Actor::Move( ruVector3 direction, float speed )
-{
+void Actor::Move( ruVector3 direction, float speed ) {
     ruMoveNode( mBody, direction * speed );
 }
 
-Actor::Actor( float height, float width )
-{
+Actor::Actor( float height, float width ) {
     mBodyHeight = height;
     mBodyWidth = width;
     mBody = ruCreateSceneNode();
@@ -19,42 +17,34 @@ Actor::Actor( float height, float width )
     ruSetNodeGravity( mBody, ruVector3( 0, 0, 0 ));
 }
 
-void Actor::SetPosition( ruVector3 position )
-{
+void Actor::SetPosition( ruVector3 position ) {
     ruSetNodePosition( mBody, position );
 }
 
-Actor::~Actor()
-{
+Actor::~Actor() {
 
 }
 
-char Actor::IsInsideZone( ruNodeHandle zone )
-{
-	return ruIsNodeInsideNode( mBody, zone );
+char Actor::IsInsideZone( ruNodeHandle zone ) {
+    return ruIsNodeInsideNode( mBody, zone );
 }
 
-ruVector3 Actor::GetCurrentPosition()
-{
-	return ruGetNodePosition( mBody );
+ruVector3 Actor::GetCurrentPosition() {
+    return ruGetNodePosition( mBody );
 }
 
-void Actor::StopInstant()
-{
-	ruMoveNode( mBody, ruVector3( 0.0f, 0.0f, 0.0f ));
+void Actor::StopInstant() {
+    ruMoveNode( mBody, ruVector3( 0.0f, 0.0f, 0.0f ));
 }
 
-void Actor::Unfreeze()
-{
-	ruUnfreeze( mBody );
+void Actor::Unfreeze() {
+    ruUnfreeze( mBody );
 }
 
-void Actor::Freeze()
-{
-	ruFreeze( mBody );
+void Actor::Freeze() {
+    ruFreeze( mBody );
 }
 
-ruVector3 Actor::GetLookDirection()
-{
-	return ruGetNodeLookVector( mBody );
+ruVector3 Actor::GetLookDirection() {
+    return ruGetNodeLookVector( mBody );
 }

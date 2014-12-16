@@ -5,8 +5,7 @@
 #include "SmoothFloat.h"
 #include "TextFileStream.h"
 
-class Tip
-{
+class Tip {
 private:
     string txt;
     SmoothFloat alpha;
@@ -15,7 +14,7 @@ private:
     int w;
     int h;
     ruTimerHandle timer;
-	ruTextHandle mGUIText;
+    ruTextHandle mGUIText;
 public:
     Tip();
     void SetNewText( string text );

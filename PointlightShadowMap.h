@@ -6,8 +6,7 @@
 #include "Utility.h"
 #include "Shader.h"
 
-class PointlightShadowMap
-{
+class PointlightShadowMap {
 private:
     IDirect3DSurface9 * defaultDepthStencil;
     IDirect3DSurface9 * depthStencil;

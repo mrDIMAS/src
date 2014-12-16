@@ -17,13 +17,10 @@ using namespace std;
 #endif
 #endif
 
-class RUAPI ruVector3
-{
+class RUAPI ruVector3 {
 public:
-    union
-    {
-        struct
-        {
+    union {
+        struct {
             float x;
             float y;
             float z;
@@ -60,42 +57,35 @@ public:
     ruVector3 Lerp( const ruVector3 & v, float t ) const;
 };
 
-static inline ruVector3 operator * ( const float & f, const ruVector3 & v )
-{
+static inline ruVector3 operator * ( const float & f, const ruVector3 & v ) {
     return ruVector3( v.x * f, v.y * f, v.z * f );
 }
 
-static inline ruVector3 operator - ( const ruVector3 & v )
-{
+static inline ruVector3 operator - ( const ruVector3 & v ) {
     return ruVector3( -v.x, -v.y, -v.z );
 }
 
-static inline float Lerp( const float & from, const float & to, const float & t )
-{
+static inline float Lerp( const float & from, const float & to, const float & t ) {
     return from + ( to - from ) * t;
 }
 
-struct ruVector2
-{
+struct ruVector2 {
 public:
     float x;
     float y;
 
-    ruVector2( )
-    {
+    ruVector2( ) {
         x = 0;
         y = 0;
     };
 
-    ruVector2( float x, float y )
-    {
+    ruVector2( float x, float y ) {
         this->x = x;
         this->y = y;
     };
 };
 
-class RUAPI ruQuaternion
-{
+class RUAPI ruQuaternion {
 public:
     float x;
     float y;
@@ -108,8 +98,7 @@ public:
     ruQuaternion( const ruVector3 & axis, float angle );
 };
 
-static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2 )
-{
+static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2 ) {
     return ruQuaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
                           q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
                           q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
@@ -118,52 +107,44 @@ static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaterni
 
 #define BODY_MAX_CONTACTS ( 4 )
 
-struct ruContact
-{
+struct ruContact {
     ruVector3 normal;
     ruVector3 position;
     float impulse;
 
-    ruContact()
-    {
+    ruContact() {
         impulse = 0;
     }
 };
 
-class ruGUIState
-{
+class ruGUIState {
 public:
     bool mouseInside;
     bool mouseLeftClicked;
     bool mouseRightClicked;
 
-    ruGUIState()
-    {
+    ruGUIState() {
         mouseInside = false;
         mouseLeftClicked = false;
         mouseRightClicked = false;
     }
 };
 
-struct ruLinePoint
-{
+struct ruLinePoint {
     ruVector3 position;
     int color;
 
-    ruLinePoint( )
-    {
+    ruLinePoint( ) {
         position = ruVector3( 0, 0, 0 );
         color = 0xFFFFFFFF;
     }
 
-    ruLinePoint( ruVector3 pos, int clr )
-    {
+    ruLinePoint( ruVector3 pos, int clr ) {
         position = pos;
         color = clr;
     };
 
-    ruLinePoint( ruVector3 pos, ruVector3 clr )
-    {
+    ruLinePoint( ruVector3 pos, ruVector3 clr ) {
         position = pos;
 
         int r = (int)clr.x;
@@ -178,14 +159,12 @@ struct ruLinePoint
 
 
 
-enum
-{
+enum {
     LT_POINT,
     LT_SPOT,
 };
 
-class RUAPI ruRutheniumHandle
-{
+class RUAPI ruRutheniumHandle {
 public:
     void * pointer;
 
@@ -196,34 +175,29 @@ public:
     virtual void Invalidate();
 };
 
-class RUAPI ruNodeHandle : public ruRutheniumHandle
-{
+class RUAPI ruNodeHandle : public ruRutheniumHandle {
 public:
     bool operator == ( const ruNodeHandle & node );
 };
 
-class RUAPI ruFontHandle : public ruRutheniumHandle
-{
+class RUAPI ruFontHandle : public ruRutheniumHandle {
 public:
     bool operator == ( const ruFontHandle & node );
 };
 
-class RUAPI ruTextureHandle : public ruRutheniumHandle
-{
+class RUAPI ruTextureHandle : public ruRutheniumHandle {
 public:
     static ruTextureHandle Empty();
     bool operator == ( const ruTextureHandle & node );
 };
 
-class RUAPI ruCubeTextureHandle : public ruRutheniumHandle
-{
+class RUAPI ruCubeTextureHandle : public ruRutheniumHandle {
 public:
     static ruCubeTextureHandle Empty();
     bool operator == ( const ruCubeTextureHandle & node );
 };
 
-class RUAPI ruSoundHandle : public ruRutheniumHandle
-{
+class RUAPI ruSoundHandle : public ruRutheniumHandle {
 public:
     int pfHandle;
     explicit ruSoundHandle();
@@ -234,34 +208,29 @@ public:
     virtual void Invalidate();
 };
 
-class RUAPI ruGUINodeHandle : public ruRutheniumHandle
-{
+class RUAPI ruGUINodeHandle : public ruRutheniumHandle {
 public:
-	bool operator == ( const ruGUINodeHandle & node );
+    bool operator == ( const ruGUINodeHandle & node );
 };
 
-class RUAPI ruButtonHandle : public ruGUINodeHandle
-{
+class RUAPI ruButtonHandle : public ruGUINodeHandle {
 public:
-	bool operator == ( const ruButtonHandle & node );
+    bool operator == ( const ruButtonHandle & node );
 };
 
-class RUAPI ruRectHandle : public ruGUINodeHandle
-{
+class RUAPI ruRectHandle : public ruGUINodeHandle {
 public:
-	bool operator == ( const ruRectHandle & node );
+    bool operator == ( const ruRectHandle & node );
 };
 
-class RUAPI ruTextHandle : public ruGUINodeHandle
-{
+class RUAPI ruTextHandle : public ruGUINodeHandle {
 public:
-	bool operator == ( const ruTextHandle & node );
+    bool operator == ( const ruTextHandle & node );
 };
 
-class RUAPI ruLineHandle : public ruGUINodeHandle
-{
+class RUAPI ruLineHandle : public ruGUINodeHandle {
 public:
-	bool operator == ( const ruLineHandle & node );
+    bool operator == ( const ruLineHandle & node );
 };
 
 
@@ -309,10 +278,8 @@ RUAPI bool ruIsSpotLightShadowsEnabled();
 // Texture functions
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture sampling
-namespace ruTextureFilter
-{
-enum
-{
+namespace ruTextureFilter {
+enum {
     Nearest,
     Linear,
     Anisotropic
@@ -454,8 +421,7 @@ RUAPI void ruCreateOctree( ruNodeHandle node, int splitCriteria = 45 );
 RUAPI void ruDeleteOctree( ruNodeHandle node );
 
 // Animation
-class RUAPI ruAnimation
-{
+class RUAPI ruAnimation {
 private:
     friend class SceneNode;
     int beginFrame;
@@ -470,20 +436,16 @@ public:
     explicit ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
     void SetFrameInterval( int begin, int end );
     void SetCurrentFrame( int frame );
-    int GetCurrentFrame()
-    {
+    int GetCurrentFrame() {
         return currentFrame;
     }
-    int GetEndFrame()
-    {
+    int GetEndFrame() {
         return endFrame;
     }
-    int GetBeginFrame()
-    {
+    int GetBeginFrame() {
         return beginFrame;
     }
-    int GetNextFrame()
-    {
+    int GetNextFrame() {
         return nextFrame;
     }
     void Update( );
@@ -551,8 +513,7 @@ RUAPI double ruGetTimeInMicroSeconds( ruTimerHandle timer );
 #define PS_BOX ( 0 )
 #define PS_STREAM ( 1 )
 
-class ruParticleSystemProperties
-{
+class ruParticleSystemProperties {
 public:
     int type; // PS_BOX or PS_STREAM
 
@@ -578,8 +539,7 @@ public:
 
     ruTextureHandle texture;
 
-    explicit ruParticleSystemProperties()
-    {
+    explicit ruParticleSystemProperties() {
         type = PS_BOX;
 
         colorBegin = ruVector3( 0, 0, 0 );
@@ -612,8 +572,7 @@ RUAPI ruParticleSystemProperties * ruGetParticleSystemProperties( ruNodeHandle p
 ////////////////////////////////////////////////////////////////////////////////////
 // Input functions
 ////////////////////////////////////////////////////////////////////////////////////
-enum
-{
+enum {
     KEY_Esc = 1,
     KEY_1,
     KEY_2,
@@ -761,8 +720,7 @@ enum
     KEY_Count,
 };
 
-enum
-{
+enum {
     MB_Left,
     MB_Right,
     MB_Middle,

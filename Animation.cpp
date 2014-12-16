@@ -2,8 +2,7 @@
 #include "Common.h"
 #include "SceneNode.h"
 
-ruAnimation::ruAnimation()
-{
+ruAnimation::ruAnimation() {
     looped = false;
     beginFrame = 0;
     endFrame = 0;
@@ -13,8 +12,7 @@ ruAnimation::ruAnimation()
     nextFrame = 0;
 }
 
-ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped )
-{
+ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped ) {
     currentFrame = theBeginFrame;
     nextFrame = currentFrame + 1;
     beginFrame = theBeginFrame;
@@ -24,61 +22,56 @@ ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSecon
     interpolator = 0.0f;
 }
 
-void ruAnimation::Update( )
-{
-    if ( interpolator >= 1.0f )
-    {
+void ruAnimation::Update( ) {
+    if ( interpolator >= 1.0f ) {
         currentFrame++;
         // get next frame number
-        if( currentFrame > endFrame )
-        {
+        if( currentFrame > endFrame ) {
             currentFrame = beginFrame;
             nextFrame = currentFrame + 1;
-        }
-        else if( currentFrame == endFrame )     //
-        {
-            if ( !looped )
-            {
+        } else if( currentFrame == endFrame ) { //
+            if ( !looped ) {
                 // find all nodes, which use this animation and disable it's animationEnabled flag
-                for( auto node : g_nodes )
-                {
-                    if( node->currentAnimation == this )
+                for( auto node : g_nodes ) {
+                    if( node->currentAnimation == this ) {
                         node->animationEnabled = false;
+                    }
                 }
             }
             nextFrame = beginFrame;
-        }
-        else
+        } else {
             nextFrame = currentFrame + 1;
+        }
         interpolator = 0.0f;
     }
     interpolator += g_dt / timeSeconds;
 }
 
-void ruAnimation::SetCurrentFrame( int frame )
-{
+void ruAnimation::SetCurrentFrame( int frame ) {
     currentFrame = frame;
     // range check
-    if( currentFrame >= ( endFrame - 1 ) )
+    if( currentFrame >= ( endFrame - 1 ) ) {
         currentFrame  = ( endFrame - 1 );
-    if( currentFrame < beginFrame )
+    }
+    if( currentFrame < beginFrame ) {
         currentFrame = beginFrame;
+    }
 }
 
-void ruAnimation::SetFrameInterval( int begin, int end )
-{
+void ruAnimation::SetFrameInterval( int begin, int end ) {
     beginFrame = begin;
     endFrame = end;
     // swap if needed
-    if( beginFrame > endFrame )
-    {
+    if( beginFrame > endFrame ) {
         int temp = beginFrame;
         beginFrame = endFrame;
         endFrame = temp;
     }
     // range check
-    if( beginFrame < 0 )
+    if( beginFrame < 0 ) {
         beginFrame = 0;
-    if( endFrame < 0 )
+    }
+    if( endFrame < 0 ) {
         endFrame = 0;
+    }
 }

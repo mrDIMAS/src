@@ -7,8 +7,7 @@
 #include <iostream>
 using namespace std;
 
-void main( )
-{
+void main( ) {
     ruVector3 v1( 10, 20, 30 );
     ruVector3 v2( 30, 20, 10 );
 
@@ -55,7 +54,7 @@ void main( )
     int counter = 0;
     int fps = 0;
 
-    
+
 
     ruParticleSystemProperties streamParticleEmitterProps;
     streamParticleEmitterProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
@@ -73,19 +72,19 @@ void main( )
 
     ruEnablePointLightShadows( false );
     ruEnableSpotLightShadows( false );
-	ruDisableFXAA();
+    ruDisableFXAA();
 
-	ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
-	ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
-	ruButtonHandle testButton = ruCreateGUIButton( 200, 200, 128, 32, ruGetTexture( "data/gui/button.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
+    ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
+    ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
+    ruButtonHandle testButton = ruCreateGUIButton( 200, 200, 128, 32, ruGetTexture( "data/gui/button.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
 
-    while( !ruIsKeyDown( KEY_Esc ))
-    {
+    while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();
 
-        if( ruIsMouseHit( MB_Right ))
+        if( ruIsMouseHit( MB_Right )) {
             ruSetHDREnabled( !ruIsHDREnabled() );
+        }
         ruVector3 speed;
 
         pitchTo += ruGetMouseYSpeed() / 2.0;
@@ -101,33 +100,39 @@ void main( )
         ruVector3 right = ruGetNodeRightVector( cameraPivot );
 
         //SetPosition( Omni09, GetPosition( camera ));
-		//ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
+        //ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
         //DrawGUIRect( 0, 0, 200, 200, 0 );
         //    DrawGUIText( "TEST", 200, 200, 100, 100, font, Vector3( 255, 0, 0 ) );
 
-		ruUpdatePhysics( 1.0f / 60.0f, 10, 1.0f / 60.0f );
+        ruUpdatePhysics( 1.0f / 60.0f, 10, 1.0f / 60.0f );
 
-        if( ruIsKeyHit( KEY_1 ))
+        if( ruIsKeyHit( KEY_1 )) {
             ruSetRenderQuality( 0 );
-        if( ruIsKeyHit( KEY_2 ))
+        }
+        if( ruIsKeyHit( KEY_2 )) {
             ruSetRenderQuality( 1 );
-        if( ruIsKeyDown( KEY_W ))
+        }
+        if( ruIsKeyDown( KEY_W )) {
             speed = speed + look;
-        if( ruIsKeyDown( KEY_S ))
+        }
+        if( ruIsKeyDown( KEY_S )) {
             speed = speed - look;
-        if( ruIsKeyDown( KEY_A ))
+        }
+        if( ruIsKeyDown( KEY_A )) {
             speed = speed + right;
-        if( ruIsKeyDown( KEY_D ))
+        }
+        if( ruIsKeyDown( KEY_D )) {
             speed = speed - right;
+        }
 
-        if( ruIsKeyHit( KEY_Q ))
-        {
+        if( ruIsKeyHit( KEY_Q )) {
             cameraNum = 1 - cameraNum;
 
-            if( cameraNum )
+            if( cameraNum ) {
                 ruSetActiveCamera( testCamera );
-            else
+            } else {
                 ruSetActiveCamera( camera );
+            }
         }
 
         //if( !IsAnimationEnabled( dummy )) {
@@ -140,8 +145,7 @@ void main( )
 
         counter++;
 
-        if( ruGetElapsedTimeInSeconds( timer ) >= 1 )
-        {
+        if( ruGetElapsedTimeInSeconds( timer ) >= 1 ) {
             ruRestartTimer( timer );
             fps = counter;
             counter = 0;
@@ -149,17 +153,17 @@ void main( )
         char buf[ 128 ];
         //ruDrawGUIRect( 400, 400, 34, 34, ruTextureHandle::Empty() );
         sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruDIPs(), ruTextureUsedPerFrame(), fps, ruGetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruIsHDREnabled()  );
-		ruSetGUINodeText( fpsText, buf );
-
-		if( ruIsButtonPressed( testButton ))
-		{
-			ruSetGUINodeVisible( fpsText, true );
-		}
-		else
-		{
-			ruSetGUINodeVisible( fpsText, false );
-		}
-       // ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
+        ruSetGUINodeText( fpsText, buf );
+        /*
+        if( ruIsButtonPressed( testButton ))
+        {
+        	ruSetGUINodeVisible( fpsText, true );
+        }
+        else
+        {
+        	ruSetGUINodeVisible( fpsText, false );
+        }*/
+        // ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
         //DrawGUIText( "Это текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
         //ruDrawGUIText( "Простой текст", 200, 0, 100, 100, font2, ruVector3( 255, 0, 255 ), 0, 100 );
         //ruDrawGUIText( "Простой текст", 400, 0, 100, 100, font3, ruVector3( 255, 0, 255 ), 0, 100 );

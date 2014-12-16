@@ -4,8 +4,7 @@
 #include "ItemPlace.h"
 #include "TextFileStream.h"
 
-class SaveWriter : public TextFileStream
-{
+class SaveWriter : public TextFileStream {
 private:
     void SavePlayerInventory();
     void SaveItemPlaces();

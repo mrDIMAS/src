@@ -6,8 +6,7 @@ const float Infinite = FLT_MAX;
 
 class GraphVertex;
 
-struct Edge
-{
+struct Edge {
     GraphVertex * destVertex;
     float distToDestVertex;
     Edge();
@@ -16,8 +15,7 @@ struct Edge
 
 
 
-class GraphVertex
-{
+class GraphVertex {
 private:
     bool used;
     float distanceFromBegin;
@@ -35,8 +33,7 @@ public:
     void AddEdge( GraphVertex * vertex );
 };
 
-class Pathfinder
-{
+class Pathfinder {
 private:
     vector< GraphVertex* > graph;
 public:
@@ -50,13 +47,11 @@ public:
 };
 
 // helper class for Pathfinder
-class Path
-{
+class Path {
 public:
     vector< GraphVertex* > vertices;
     void AddPointAndLinkWithPrevious( GraphVertex * vertex );
-    class NodeSorter
-    {
+    class NodeSorter {
     public:
         bool operator() ( const ruNodeHandle & node1, const ruNodeHandle & node2 );
     };

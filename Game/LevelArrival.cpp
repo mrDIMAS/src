@@ -3,8 +3,7 @@
 #include "LevelMine.h"
 
 
-LevelArrival::LevelArrival( )
-{
+LevelArrival::LevelArrival( ) {
     mTypeNum = 2;
 
     // Load localization
@@ -74,28 +73,25 @@ LevelArrival::LevelArrival( )
 
     ruSetCameraSkybox( pPlayer->mpCamera->mNode, "data/textures/skyboxes/night4/nnksky01" );
 
-	DoneInitialization();
+    DoneInitialization();
 }
 
-LevelArrival::~LevelArrival()
-{
+LevelArrival::~LevelArrival() {
 
 }
 
-void LevelArrival::Show()
-{
+void LevelArrival::Show() {
     Level::Show();
 }
 
-void LevelArrival::Hide()
-{
+void LevelArrival::Hide() {
     Level::Hide();
 }
 
-void LevelArrival::DoScenario()
-{
-    if( Level::msCurLevelID != LevelName::L1Arrival )
+void LevelArrival::DoScenario() {
+    if( Level::msCurLevelID != LevelName::L1Arrival ) {
         return;
+    }
 
     ruSetAmbientColor( ruVector3( 0.06, 0.06, 0.06 ));
 
@@ -103,20 +99,16 @@ void LevelArrival::DoScenario()
 
     ruPlaySound( generatorSound );
 
-    if( !mStages[ "DoneStrangeSoundPlayed" ] )
-    {
-        if( pPlayer->IsInsideZone( strangeSoundZone ))
-        {
+    if( !mStages[ "DoneStrangeSoundPlayed" ] ) {
+        if( pPlayer->IsInsideZone( strangeSoundZone )) {
             ruPlaySound( strangeSound );
 
             mStages[ "DoneStrangeSoundPlayed" ] = true;
         }
     }
 
-    if( !mStages[ "DoneRocksFall" ] )
-    {
-        if( pPlayer->IsInsideZone( rocksFallZone ))
-        {
+    if( !mStages[ "DoneRocksFall" ] ) {
+        if( pPlayer->IsInsideZone( rocksFallZone )) {
             ruSetNodePosition( rocks, ruGetNodePosition( rocksPos ) );
 
             ruSetLightRange( lamp1, 0 );
@@ -133,6 +125,7 @@ void LevelArrival::DoScenario()
         }
     }
 
-    if( pPlayer->IsInsideZone( nextLevelLoadZone ))
+    if( pPlayer->IsInsideZone( nextLevelLoadZone )) {
         Level::Change( LevelName::L2Mine );
+    }
 }

@@ -6,8 +6,7 @@
 #include "Door.h"
 #include "FollowPath.h"
 
-TestingChamber::TestingChamber( )
-{
+TestingChamber::TestingChamber( ) {
     LoadSceneFromFile( "data/maps/candidates/testingChamber/testingChamber.scene" );
 
     pPlayer->SetPosition( ruGetNodePosition( ruFindByName("PlayerPosition") ) + ruVector3( 0, 1, 0 ) );
@@ -19,12 +18,12 @@ TestingChamber::TestingChamber( )
     Ladder * testLadder = new Ladder( GetUniqueObject( "LadderBegin"), GetUniqueObject( "LadderEnd"), GetUniqueObject( "LadderEnter"),
                                       GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint"));
 
-	FollowPath * pFollowPath = new FollowPath;
-	pFollowPath->SetEntryNode(GetUniqueObject( "LadderEnter"));
-	pFollowPath->AddPoint(GetUniqueObject( "LadderBeginLeavePoint"));
-	pFollowPath->AddPoint(GetUniqueObject( "LadderBegin"));
-	pFollowPath->AddPoint(GetUniqueObject( "LadderEnd"));
-	pFollowPath->AddPoint(GetUniqueObject( "LadderEndLeavePoint"));
+    FollowPath * pFollowPath = new FollowPath;
+    pFollowPath->SetEntryNode(GetUniqueObject( "LadderEnter"));
+    pFollowPath->AddPoint(GetUniqueObject( "LadderBeginLeavePoint"));
+    pFollowPath->AddPoint(GetUniqueObject( "LadderBegin"));
+    pFollowPath->AddPoint(GetUniqueObject( "LadderEnd"));
+    pFollowPath->AddPoint(GetUniqueObject( "LadderEndLeavePoint"));
 
     Door * door = new Door( GetUniqueObject( "Door" ), 90 );
 
@@ -76,23 +75,19 @@ TestingChamber::TestingChamber( )
     enemy = new Enemy( "data/models/ripper/ripper.scene", path, patrolPoints );
 }
 
-TestingChamber::~TestingChamber()
-{
+TestingChamber::~TestingChamber() {
 
 }
 
-void TestingChamber::Show()
-{
+void TestingChamber::Show() {
     Level::Show();
 }
 
-void TestingChamber::Hide()
-{
+void TestingChamber::Hide() {
     Level::Hide();
 }
 
-void TestingChamber::DoScenario()
-{
+void TestingChamber::DoScenario() {
     ruSetAmbientColor( ruVector3( 200, 200, 200 ));
     enemy->Think();
 }

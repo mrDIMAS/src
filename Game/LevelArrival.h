@@ -4,8 +4,7 @@
 #include "LightAnimator.h"
 #include "AmbientSoundSet.h"
 
-class LevelArrival : public Level
-{
+class LevelArrival : public Level {
 public:
     // Sounds
     ruSoundHandle windSound;
@@ -33,13 +32,11 @@ public:
     virtual void Show();
     virtual void Hide();
 
-    virtual void OnSerialize( TextFileStream & out ) final
-    {
+    virtual void OnSerialize( TextFileStream & out ) final {
 
     }
 
-    virtual void OnDeserialize( TextFileStream & in ) final
-    {
+    virtual void OnDeserialize( TextFileStream & in ) final {
 
     }
 };

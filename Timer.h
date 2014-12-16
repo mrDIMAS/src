@@ -2,8 +2,7 @@
 
 #include "Common.h"
 
-class Timer
-{
+class Timer {
 public:
     LARGE_INTEGER freq;
     double lastTime;

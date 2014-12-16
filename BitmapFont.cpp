@@ -4,8 +4,7 @@
 FT_Library g_ftLibrary;
 vector< BitmapFont* > BitmapFont::fonts;
 
-void BitmapFont::RenderAtlas( EffectsQuad * quad )
-{
+void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
     CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
     CheckDXErrorFatal( g_pDevice->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL));
     CheckDXErrorFatal( g_pDevice->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL));
@@ -22,16 +21,18 @@ void BitmapFont::RenderAtlas( EffectsQuad * quad )
     quad->Render();
 }
 
-BitmapFont::BitmapFont( const char * file, int size )
-{
+BitmapFont::BitmapFont( const char * file, int size ) {
     glyphSize = size;
     // load new font face
-    if( FT_New_Face( g_ftLibrary, file, 0, &face ) )
+    if( FT_New_Face( g_ftLibrary, file, 0, &face ) ) {
         LogError( Format( "Failed to load '%s' font!", file ));
-    if( FT_Set_Pixel_Sizes( face, 0, size ))
+    }
+    if( FT_Set_Pixel_Sizes( face, 0, size )) {
         LogError( Format( "Failed to FT_Set_Pixel_Sizes!", file ));
-    if( FT_Select_Charmap( face, FT_ENCODING_UNICODE ))
+    }
+    if( FT_Select_Charmap( face, FT_ENCODING_UNICODE )) {
         LogError( Format( "Failed to FT_Select_Charmap!", file ));
+    }
     // create atlas texture
     atlasWidth = atlasHeight = size * 16;
     CheckDXErrorFatal( D3DXCreateTexture( g_pDevice, atlasWidth, atlasHeight, 0, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &atlas ));
@@ -48,18 +49,18 @@ BitmapFont::BitmapFont( const char * file, int size )
     float tcY = 0.0f;
     int charIndexOffset = 0;
     unsigned char ggg = 'à';
-    for( int i = 0; i < 256; i++ )
-    {
+    for( int i = 0; i < 256; i++ ) {
         int charIndex = i;
-        if( i >= 177 )
-        {
+        if( i >= 177 ) {
             charIndex = 1024;
             charIndexOffset++;
         }
-        if( FT_Load_Glyph( face, FT_Get_Char_Index( face, charIndex + charIndexOffset ), FT_LOAD_DEFAULT ))
+        if( FT_Load_Glyph( face, FT_Get_Char_Index( face, charIndex + charIndexOffset ), FT_LOAD_DEFAULT )) {
             LogError( Format( "Failed to FT_Load_Glyph!", file ));
-        if( FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL ))
+        }
+        if( FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL )) {
             LogError( Format( "Failed to FT_Load_Glyph!", file ));
+        }
         int memOffsetBytes = subRectRow * lockedRect.Pitch * size + subRectCol * size * sizeof( ARGB8Pixel );
         ARGB8Pixel * subRectPixel = (ARGB8Pixel *)( (char*)lockedRect.pBits + memOffsetBytes );
         FT_Bitmap * bitmap = &( face->glyph->bitmap );
@@ -79,10 +80,8 @@ BitmapFont::BitmapFont( const char * file, int size )
         cm.bitmapHeight = bitmap->rows;
         charsMetrics.push_back( cm );
         // read glyph bitmap into the atlas
-        for( int row = 0; row < bitmap->rows; row++ )
-        {
-            for( int col = 0; col < bitmap->width; col++ )
-            {
+        for( int row = 0; row < bitmap->rows; row++ ) {
+            for( int col = 0; col < bitmap->width; col++ ) {
                 ARGB8Pixel * pixel = subRectPixel + row * atlasWidth + col ;
                 char bitmapPixel = bitmap->buffer[ row * bitmap->width + col ];
                 pixel->a = bitmapPixel;
@@ -94,8 +93,7 @@ BitmapFont::BitmapFont( const char * file, int size )
 
         tcX += tcStep;
         subRectCol++;
-        if( subRectCol >= 16 )
-        {
+        if( subRectCol >= 16 ) {
             tcX = 0.0f;
             tcY += tcStep;
             subRectCol = 0;

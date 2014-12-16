@@ -7,44 +7,38 @@
 #include "GUIButton.h"
 
 
-class ruGUILine : public GUINode
-{
+class ruGUILine : public GUINode {
 public:
-	ruLinePoint begin;
-	ruLinePoint end;
-	explicit ruGUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd );
-	explicit ruGUILine( );
+    ruLinePoint begin;
+    ruLinePoint end;
+    explicit ruGUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd );
+    explicit ruGUILine( );
 };
 
 
-class TextVertex
-{
+class TextVertex {
 public:
-	ruVector3 p;
-	ruVector2 t;
-	DWORD color;
-	explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr )
-	{
-		p = cp;
-		t = tp;
-		color = clr;
-	}
+    ruVector3 p;
+    ruVector2 t;
+    DWORD color;
+    explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr ) {
+        p = cp;
+        t = tp;
+        color = clr;
+    }
 };
 
-class TextQuad
-{
+class TextQuad {
 public:
     TextVertex v1, v2, v3, v4;
 };
 
-class Face
-{
+class Face {
 public:
     unsigned short index[6];
 };
 
-class GUIRenderer
-{
+class GUIRenderer {
 private:
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DVertexBuffer9 * lineVertexBuffer;

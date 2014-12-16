@@ -4,8 +4,7 @@
 #include "Enemy.h"
 #include "Pathfinder.h"
 
-class TestingChamber : public Level
-{
+class TestingChamber : public Level {
 public:
     vector< GraphVertex* > path;
 
@@ -17,13 +16,11 @@ public:
     virtual void Show();
     virtual void Hide();
 
-    virtual void OnSerialize( TextFileStream & out ) final
-    {
+    virtual void OnSerialize( TextFileStream & out ) final {
 
     }
 
-    virtual void OnDeserialize( TextFileStream & in ) final
-    {
+    virtual void OnDeserialize( TextFileStream & in ) final {
 
     }
 };

@@ -3,34 +3,33 @@
 
 
 
-void Goal::AnimateAndRender()
-{
-    if( ruGetElapsedTimeInSeconds( mWaitTimer ) >= mWaitSec )
+void Goal::AnimateAndRender() {
+    if( ruGetElapsedTimeInSeconds( mWaitTimer ) >= mWaitSec ) {
         mCurrentY += ( mDestY - mCurrentY ) * 0.05f;
+    }
 
     mAlpha = mAlpha + ( 100 - mAlpha ) * 0.05f;
 
-    if( mAlpha <= 101 )
+    if( mAlpha <= 101 ) {
         mAlpha = 255.0f;
+    }
 
-	ruSetGUINodePosition( mGoalText, 40, mCurrentY );
+    ruSetGUINodePosition( mGoalText, 40, mCurrentY );
 }
 
-void Goal::SetText( string t )
-{
+void Goal::SetText( string t ) {
     ruRestartTimer( mWaitTimer );
 
     mDestY = mInitialY;
 
     mText = t;
 
-	ruSetGUINodeText( mGoalText, t.c_str() );
+    ruSetGUINodeText( mGoalText, t.c_str() );
 
     mCurrentY = g_resH * 0.45f;
 }
 
-Goal::Goal()
-{
+Goal::Goal() {
     mWaitTimer = ruCreateTimer();
 
     mInitialY = 20;
@@ -40,15 +39,13 @@ Goal::Goal()
 
     mAlpha = 255.0f;
 
-	mGoalText = ruCreateGUIText( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, mAlpha );
+    mGoalText = ruCreateGUIText( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, mAlpha );
 }
 
-Goal::~Goal()
-{
+Goal::~Goal() {
 
 }
 
-void Goal::SetVisible( bool state )
-{
-	ruSetGUINodeVisible( mGoalText, state );
+void Goal::SetVisible( bool state ) {
+    ruSetGUINodeVisible( mGoalText, state );
 }

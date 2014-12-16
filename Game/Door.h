@@ -2,11 +2,9 @@
 
 #include "Game.h"
 
-class Door
-{
+class Door {
 public:
-    enum class State
-    {
+    enum class State {
         Opened,
         Closed,
         Closing,

@@ -1,8 +1,7 @@
 #include "HDR.h"
 #include "Utility.h"
 
-void HDRRenderer::DoToneMapping( IDirect3DSurface9 * targetSurface )
-{
+void HDRRenderer::DoToneMapping( IDirect3DSurface9 * targetSurface ) {
     g_pDevice->SetRenderTarget( 0, targetSurface );
     g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
     g_pDevice->SetTexture( 0, hdrTexture );
@@ -21,13 +20,11 @@ void HDRRenderer::DoToneMapping( IDirect3DSurface9 * targetSurface )
     screenQuad->Render();
 }
 
-void HDRRenderer::SetAsRenderTarget()
-{
+void HDRRenderer::SetAsRenderTarget() {
     g_pDevice->SetRenderTarget( 0, hdrSurface );
 }
 
-HDRRenderer::~HDRRenderer()
-{
+HDRRenderer::~HDRRenderer() {
     scaledSceneSurf->Release();
     scaledScene->Release();
     hdrSurface->Release();
@@ -37,16 +34,17 @@ HDRRenderer::~HDRRenderer()
     delete scaleScenePixelShader;
     delete adaptationPixelShader;
     delete downScalePixelShader;
-    for( int i = 0; i < DOWNSAMPLE_COUNT; i++ )
+    for( int i = 0; i < DOWNSAMPLE_COUNT; i++ ) {
         downSampSurf[ i ]->Release();
-    for( int i = 0; i < DOWNSAMPLE_COUNT; i++ )
+    }
+    for( int i = 0; i < DOWNSAMPLE_COUNT; i++ ) {
         downSampTex[ i ]->Release();
+    }
     adaptedLuminanceLast->Release();
     adaptedLuminanceCurrent->Release();
 }
 
-HDRRenderer::HDRRenderer( D3DFORMAT rtFormat )
-{
+HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
     D3DXCreateTexture( g_pDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET  , rtFormat, D3DPOOL_DEFAULT, &hdrTexture );
     hdrTexture->GetSurfaceLevel( 0, &hdrSurface );
 
@@ -107,8 +105,9 @@ HDRRenderer::HDRRenderer( D3DFORMAT rtFormat )
     adaptationPixelShader = new PixelShader( adaptationPixelShaderSource );
     hAdaptation = adaptationPixelShader->GetConstantTable()->GetConstantByName( 0, "adaptation" );
 
-    for( int i = 0; i < DOWNSAMPLE_COUNT; i++ )
+    for( int i = 0; i < DOWNSAMPLE_COUNT; i++ ) {
         downSampTex[i]->GetSurfaceLevel( 0, &downSampSurf[i] );
+    }
 
     string downScale2x2 =
         "sampler s0 : register( s7 );\n"
@@ -126,8 +125,7 @@ HDRRenderer::HDRRenderer( D3DFORMAT rtFormat )
     hPixelSize = downScalePixelShader->GetConstantTable()->GetConstantByName( 0, "pixelSize" );
 }
 
-void HDRRenderer::CalculateFrameLuminance( )
-{
+void HDRRenderer::CalculateFrameLuminance( ) {
     g_pDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
     g_pDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
     g_pDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
@@ -202,8 +200,9 @@ void HDRRenderer::CalculateFrameLuminance( )
     screenQuad->Render();
     // now we get average frame luminance presented as 1x1 pixel RGBA8 texture
     // render it into R32F luminance texture
-    for( int i = 0; i < 8; i++ )
+    for( int i = 0; i < 8; i++ ) {
         g_pDevice->SetTexture( i, 0 );
+    }
 
     PDIRECT3DTEXTURE9 pTexSwap = adaptedLuminanceLast;
     adaptedLuminanceLast = adaptedLuminanceCurrent;

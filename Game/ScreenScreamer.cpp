@@ -4,8 +4,7 @@
 
 ScreenScreamer * screamer = 0;
 
-ScreenScreamer::ScreenScreamer()
-{
+ScreenScreamer::ScreenScreamer() {
     tex = ruGetTexture( "data/textures/effects/noise.jpg" );
     sound = ruLoadSound2D( "data/sounds/screamer.ogg" );
 
@@ -14,15 +13,13 @@ ScreenScreamer::ScreenScreamer()
     pauseFrames = 0;
 }
 
-void ScreenScreamer::DoPeriods( int p )
-{
+void ScreenScreamer::DoPeriods( int p ) {
     periods = p;
     nextPeriodFrames = 5 + rand() % 10;
     pauseFrames = 0;
 }
 
-void ScreenScreamer::Update()
-{
+void ScreenScreamer::Update() {
     static int offset = 50;
 
     if( pMainMenu->IsVisible() ) {
@@ -31,9 +28,9 @@ void ScreenScreamer::Update()
     }
 
     if( periods > 0 ) {
-        if( pauseFrames > 0 )
+        if( pauseFrames > 0 ) {
             pauseFrames--;
-        else {
+        } else {
             if( nextPeriodFrames > 0 ) {
                 int xOff = rand() % offset;
                 int yOff = rand() % offset;

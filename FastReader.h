@@ -3,8 +3,7 @@
 
 #include "common.h"
 
-class FastReader
-{
+class FastReader {
 private:
     long size;
     long cursor;

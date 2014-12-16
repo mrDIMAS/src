@@ -4,16 +4,14 @@
 #include "fterrors.h"
 #include "EffectsQuad.h"
 
-class BitmapFont
-{
+class BitmapFont {
 public:
     FT_Face face;
     IDirect3DTexture9 * atlas;
     int atlasWidth, atlasHeight;
     int glyphSize;
 
-    typedef struct CharMetrics_s
-    {
+    typedef struct CharMetrics_s {
         int advanceX;
         int advanceY;
         int offsetX;
@@ -26,8 +24,7 @@ public:
         ruVector2 texCoords[4]; // texture coords in atlas
     } CharMetrics;
 
-    typedef struct ARGB8Pixel_s
-    {
+    typedef struct ARGB8Pixel_s {
         unsigned char b;
         unsigned char g;
         unsigned char r;
@@ -37,10 +34,10 @@ public:
     static vector< BitmapFont* > fonts;
     vector< CharMetrics > charsMetrics;
     explicit BitmapFont( const char * file, int size );
-    virtual ~BitmapFont( )
-    {
-        if( atlas )
+    virtual ~BitmapFont( ) {
+        if( atlas ) {
             atlas->Release();
+        }
     }
     void RenderAtlas( EffectsQuad * quad );
     void RenderText( string text, int x, int y );

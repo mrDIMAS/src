@@ -9,8 +9,7 @@
 #include "Sparks.h"
 #include "SteamStream.h"
 
-class LevelResearchFacility : public Level
-{
+class LevelResearchFacility : public Level {
 private:
     Lift * mLift1;
     Sparks * mpPowerSparks;
@@ -36,11 +35,11 @@ private:
     ruNodeHandle powerLever;
     ruNodeHandle mPowerLeverOffModel;
     ruNodeHandle mPowerLeverOnModel;
-	ruNodeHandle mScaryBarell;
-	ruNodeHandle mScaryBarellPositionNode;
-	ruNodeHandle mPowerLamp;
-	ruNodeHandle mPowerLeverSnd;
-	ruNodeHandle mSmallSteamPosition;
+    ruNodeHandle mScaryBarell;
+    ruNodeHandle mScaryBarellPositionNode;
+    ruNodeHandle mPowerLamp;
+    ruNodeHandle mPowerLeverSnd;
+    ruNodeHandle mSmallSteamPosition;
 
     Item * fuse[3];
     ItemPlace * mFusePlaceList[3];

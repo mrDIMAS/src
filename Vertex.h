@@ -2,8 +2,7 @@
 
 #include "Common.h"
 
-class Vertex
-{
+class Vertex {
 public:
     ruVector3 coords;
     ruVector3 normals;
@@ -15,15 +14,13 @@ public:
     Vertex( );
 };
 
-class Vertex2D
-{
+class Vertex2D {
 public:
     float x, y, z;
     float tx, ty;
     int color;
     Vertex2D( float x, float y, float z, float tx, float ty, int color = 0 );
-    Vertex2D( )
-    {
+    Vertex2D( ) {
         x = y = z = tx = ty = 0;
         color = 0xFFFFFFFF;
     }

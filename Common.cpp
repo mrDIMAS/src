@@ -3,10 +3,10 @@
 
 ofstream g_log;
 
-void ParseString ( string str, map<string,string> & values )
-{
-    if ( str.size() <= 1 )
+void ParseString ( string str, map<string,string> & values ) {
+    if ( str.size() <= 1 ) {
         return;
+    }
 
     values.clear();
 
@@ -16,12 +16,10 @@ void ParseString ( string str, map<string,string> & values )
 
     string varName, var;
 
-    while ( true )
-    {
+    while ( true ) {
         char symbol = str.at ( n );
 
-        if ( symbol == ';' )
-        {
+        if ( symbol == ';' ) {
             quoteLF    = false;
             quoteRF    = false;
             equalFound  = false;
@@ -30,56 +28,54 @@ void ParseString ( string str, map<string,string> & values )
             var.clear();
         };
 
-        if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' )
-        {
-            if ( !equalFound )
+        if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' ) {
+            if ( !equalFound ) {
                 varName.push_back ( symbol );
-        }
-        else
-        {
-            if ( symbol == '=' )
+            }
+        } else {
+            if ( symbol == '=' ) {
                 equalFound = true;
+            }
 
-            if ( symbol == '"' )
-            {
-                if ( quoteLF == false )
+            if ( symbol == '"' ) {
+                if ( quoteLF == false ) {
                     quoteLF = true;
-                else
+                } else {
                     quoteRF = true;
+                }
             }
         };
 
-        if ( quoteLF )
-        {
-            if ( quoteRF )
+        if ( quoteLF ) {
+            if ( quoteRF ) {
                 values[ varName ] = var;
-            else
-            {
-                if ( symbol != '"' )
+            } else {
+                if ( symbol != '"' ) {
                     var.push_back ( symbol );
+                }
             };
         };
 
         n++;
 
-        if ( n >= str.size() )
+        if ( n >= str.size() ) {
             break;
+        }
     };
 }
 
-void ParseFile( string fn, map<string,string> & values)
-{
+void ParseFile( string fn, map<string,string> & values) {
     FILE * file = 0;
 
     fopen_s ( &file, fn.c_str(), "r" );
 
-    if ( !file )
+    if ( !file ) {
         return;
+    }
 
     string str;
 
-    while ( !feof ( file ) )
-    {
+    while ( !feof ( file ) ) {
         char symbol = '\0';
         fread ( &symbol, sizeof ( char ), 1, file );
         str.push_back ( symbol );
@@ -87,8 +83,9 @@ void ParseFile( string fn, map<string,string> & values)
 
     fclose ( file );
 
-    if ( str.size() <= 1 )
+    if ( str.size() <= 1 ) {
         return;
+    }
 
     values.clear();
 
@@ -98,12 +95,10 @@ void ParseFile( string fn, map<string,string> & values)
 
     string varName, var;
 
-    while ( true )
-    {
+    while ( true ) {
         char symbol = str.at ( n );
 
-        if ( symbol == ';' )
-        {
+        if ( symbol == ';' ) {
             quoteLF    = false;
             quoteRF    = false;
             equalFound  = false;
@@ -112,45 +107,43 @@ void ParseFile( string fn, map<string,string> & values)
             var.clear();
         };
 
-        if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' )
-        {
-            if ( !equalFound )
+        if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' ) {
+            if ( !equalFound ) {
                 varName.push_back ( symbol );
-        }
-        else
-        {
-            if ( symbol == '=' )
+            }
+        } else {
+            if ( symbol == '=' ) {
                 equalFound = true;
+            }
 
-            if ( symbol == '"' )
-            {
-                if ( quoteLF == false )
+            if ( symbol == '"' ) {
+                if ( quoteLF == false ) {
                     quoteLF = true;
-                else
+                } else {
                     quoteRF = true;
+                }
             }
         };
 
-        if ( quoteLF )
-        {
-            if ( quoteRF )
+        if ( quoteLF ) {
+            if ( quoteRF ) {
                 values[ varName ] = var;
-            else
-            {
-                if ( symbol != '"' )
+            } else {
+                if ( symbol != '"' ) {
                     var.push_back ( symbol );
+                }
             };
         };
 
         n++;
 
-        if ( n >= str.size() )
+        if ( n >= str.size() ) {
             break;
+        }
     };
 }
 
-void CheckDXErrorFatal( HRESULT errCode )
-{
+void CheckDXErrorFatal( HRESULT errCode ) {
     /*
     if( FAILED( errCode )) {
     	string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
@@ -160,25 +153,21 @@ void CheckDXErrorFatal( HRESULT errCode )
     }*/
 }
 
-void CreateLogFile()
-{
+void CreateLogFile() {
     g_log.open( "ruthenium.log" );
 }
 
-void LogMessage( string message )
-{
+void LogMessage( string message ) {
     g_log << message << endl;
 }
 
-void LogError( string message )
-{
+void LogError( string message ) {
     g_log << message << endl;
     g_log.close();
     MessageBoxA( 0, message.c_str(), "Fatal error", MB_OK | MB_ICONERROR );
     exit( -1 );
 }
 
-void CloseLogFile()
-{
+void CloseLogFile() {
     g_log.close();
 }

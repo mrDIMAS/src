@@ -16,8 +16,7 @@
 #include "Actor.h"
 #include "FollowPath.h"
 
-class Player : public Actor
-{
+class Player : public Actor {
 public:
     void LoadSounds();
     void CreateCamera();
@@ -38,107 +37,107 @@ public:
     void SetMetalFootsteps();
     void UpdateFright();
     Parser mLocalization;
-	Item * mpFlashLightItem;
+    Item * mpFlashLightItem;
 
-	FootstepsType mFootstepsType;
+    FootstepsType mFootstepsType;
 
-	GameCamera * mpCamera;
+    GameCamera * mpCamera;
 
-	ruNodeHandle mHead;
-	ruNodeHandle mPickPoint;
-	ruNodeHandle mItemPoint;
-	ruNodeHandle mNodeInHands;
-	ruNodeHandle mNearestPickedNode;
-	ruNodeHandle mPickedNode;
+    ruNodeHandle mHead;
+    ruNodeHandle mPickPoint;
+    ruNodeHandle mItemPoint;
+    ruNodeHandle mNodeInHands;
+    ruNodeHandle mNearestPickedNode;
+    ruNodeHandle mPickedNode;
 
-	ruTextureHandle mObjectDragUpCursor;
-	ruTextureHandle mObjectDragDownCursor;
-	ruTextureHandle mStatusBar;
-	ruTextureHandle mStealthSign;
+    ruTextureHandle mObjectDragUpCursor;
+    ruTextureHandle mObjectDragDownCursor;
+    ruTextureHandle mStatusBar;
+    ruTextureHandle mStealthSign;
 
-	SmoothFloat mPitch;
-	SmoothFloat mYaw;
-	SmoothFloat mStaminaAlpha;
-	SmoothFloat mHealthAlpha;
-	SmoothFloat mBreathVolume;
-	SmoothFloat mHeartBeatVolume;
-	SmoothFloat mHeartBeatPitch;
-	SmoothFloat mBreathPitch;
-	SmoothFloat mFov;
-	SmoothFloat mStealthOffset;
-	SmoothFloat mHeadAngle;
+    SmoothFloat mPitch;
+    SmoothFloat mYaw;
+    SmoothFloat mStaminaAlpha;
+    SmoothFloat mHealthAlpha;
+    SmoothFloat mBreathVolume;
+    SmoothFloat mHeartBeatVolume;
+    SmoothFloat mHeartBeatPitch;
+    SmoothFloat mBreathPitch;
+    SmoothFloat mFov;
+    SmoothFloat mStealthOffset;
+    SmoothFloat mHeadAngle;
 
-	float mStamina;
-	float mLife;
-	float mMaxLife;
-	float mMaxStamina;
-	float mRunSpeedMult;
-	float mHeadHeight;
-	float mCameraBobCoeff;
-	float mRunCameraShakeCoeff;
-	float mStealthFactor;
+    float mStamina;
+    float mLife;
+    float mMaxLife;
+    float mMaxStamina;
+    float mRunSpeedMult;
+    float mHeadHeight;
+    float mCameraBobCoeff;
+    float mRunCameraShakeCoeff;
+    float mStealthFactor;
 
-	ruVector3 mSpeed;
-	ruVector3 mSpeedTo;
-	ruVector3 mGravity;
-	ruVector3 mJumpTo;
-	ruVector3 mCameraOffset;
-	ruVector3 mCameraShakeOffset;
-	ruVector3 mFrameColor;
+    ruVector3 mSpeed;
+    ruVector3 mSpeedTo;
+    ruVector3 mGravity;
+    ruVector3 mJumpTo;
+    ruVector3 mCameraOffset;
+    ruVector3 mCameraShakeOffset;
+    ruVector3 mFrameColor;
 
-	Way * mpCurrentWay;
+    Way * mpCurrentWay;
 
-	ruSoundHandle mLighterCloseSound;
-	ruSoundHandle mLighterOpenSound;
-	ruSoundHandle mItemPickupSound;
-	ruSoundHandle mHeartBeatSound;
-	ruSoundHandle mBreathSound;
+    ruSoundHandle mLighterCloseSound;
+    ruSoundHandle mLighterOpenSound;
+    ruSoundHandle mItemPickupSound;
+    ruSoundHandle mHeartBeatSound;
+    ruSoundHandle mBreathSound;
 
-	vector< ruSoundHandle > mFootstepList;
+    vector< ruSoundHandle > mFootstepList;
 
-	bool mObjectThrown;
-	bool mLanded;
-	bool mDead;
-	bool mObjectiveDone;
-	bool mMoved;
-	bool mSmoothCamera;
-	bool mStealthMode;
-	bool mRunning;
+    bool mObjectThrown;
+    bool mLanded;
+    bool mDead;
+    bool mObjectiveDone;
+    bool mMoved;
+    bool mSmoothCamera;
+    bool mStealthMode;
+    bool mRunning;
 
-	Inventory mInventory;
+    Inventory mInventory;
 
-	int mPlaceDescTimer;
-	int mKeyMoveForward;
-	int mKeyMoveBackward;
-	int mKeyStrafeLeft;
-	int mKeyStrafeRight;
-	int mKeyJump;
-	int mKeyFlashLight;
-	int mKeyRun;
-	int mKeyInventory;
-	int mKeyUse;
-	int mKeyStealth;
-	int mKeyLookLeft;
-	int mKeyLookRight;
+    int mPlaceDescTimer;
+    int mKeyMoveForward;
+    int mKeyMoveBackward;
+    int mKeyStrafeLeft;
+    int mKeyStrafeRight;
+    int mKeyJump;
+    int mKeyFlashLight;
+    int mKeyRun;
+    int mKeyInventory;
+    int mKeyUse;
+    int mKeyStealth;
+    int mKeyLookLeft;
+    int mKeyLookRight;
 
-	string mPlaceDesc;
-	string mPickedObjectDesc;
+    string mPlaceDesc;
+    string mPickedObjectDesc;
 
-	Goal mGoal;
+    Goal mGoal;
 
-	Tip mTip;
+    Tip mTip;
 
-	Sheet * mpSheetInHands;
+    Sheet * mpSheetInHands;
 
-	Flashlight * mpFlashlight;
-	FollowPath * mpFollowPath;
+    Flashlight * mpFlashlight;
+    FollowPath * mpFollowPath;
 
-	ruTextHandle mGUIActionText;
+    ruTextHandle mGUIActionText;
 
-	static const int mGUISegmentCount = 20;
-	ruRectHandle mGUIHealthBarSegment[mGUISegmentCount];
-	ruRectHandle mGUIStaminaBarSegment[mGUISegmentCount];
-	ruRectHandle mGUIBackground;
+    static const int mGUISegmentCount = 20;
+    ruRectHandle mGUIHealthBarSegment[mGUISegmentCount];
+    ruRectHandle mGUIStaminaBarSegment[mGUISegmentCount];
+    ruRectHandle mGUIBackground;
 public:
     explicit Player();
     virtual ~Player();
@@ -161,13 +160,13 @@ public:
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
     void ComputeStealth();
-	void DrawHUD();
-	Inventory * GetInventory();
-	Flashlight * GetFlashLight();
-	Parser * GetLocalization();
-	void SetTip( const char * text );
+    void DrawHUD();
+    Inventory * GetInventory();
+    Flashlight * GetFlashLight();
+    Parser * GetLocalization();
+    void SetTip( const char * text );
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
-	void SetActionText( const char * text );
-	void SetHUDVisible( bool state );
+    void SetActionText( const char * text );
+    void SetHUDVisible( bool state );
 };

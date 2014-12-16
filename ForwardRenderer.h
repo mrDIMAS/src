@@ -9,8 +9,7 @@
 
 // must be used to render transparent faces only
 // in other cases prefer DeferredRenderer
-class ForwardRenderer
-{
+class ForwardRenderer {
 private:
     map< IDirect3DTexture9*, vector< Mesh* > > renderList;
     PixelShader * pixelShader;

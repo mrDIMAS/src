@@ -7,8 +7,7 @@
 #undef min
 #undef max
 
-class SmoothFloat
-{
+class SmoothFloat {
 protected:
     float value;
     float min;
@@ -29,8 +28,7 @@ public:
     float GetTarget( );
     float ChaseTarget( float chaseSpeed = 0.01f );
     operator const float();
-    void operator = ( float f )
-    {
+    void operator = ( float f ) {
         value = f;
     }
     void Serialize( TextFileStream & out );

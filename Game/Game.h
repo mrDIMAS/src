@@ -23,15 +23,13 @@
 
 #pragma comment( lib, "Ruthenium.lib" )
 
-enum class FootstepsType
-{
+enum class FootstepsType {
     Rock,
     Metal,
     Dirt
 };
 
-enum LevelName
-{
+enum LevelName {
     LUndefined = 0,
     L0Introduction = 1,
     L1Arrival,

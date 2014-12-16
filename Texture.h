@@ -2,8 +2,7 @@
 
 #include "Common.h"
 
-class Texture
-{
+class Texture {
 private:
     explicit Texture( );
     IDirect3DTexture9 * texture;

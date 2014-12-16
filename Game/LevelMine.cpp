@@ -5,8 +5,7 @@
 #include "Pathfinder.h"
 #include "Utils.h"
 
-LevelMine::LevelMine()
-{
+LevelMine::LevelMine() {
     mTypeNum = 3;
 
     LoadLocalization( "mine.loc" );
@@ -175,48 +174,45 @@ LevelMine::LevelMine()
 
     ruSetCameraSkybox( pPlayer->mpCamera->mNode, 0 );
 
-	mRock[0] = GetUniqueObject( "Rock1" );
-	mRock[1] = GetUniqueObject( "Rock2" );
-	mRock[2] = GetUniqueObject( "Rock3" );
+    mRock[0] = GetUniqueObject( "Rock1" );
+    mRock[1] = GetUniqueObject( "Rock2" );
+    mRock[2] = GetUniqueObject( "Rock3" );
 
-	mExplosivesDummy[0] = GetUniqueObject( "ExplosivesModel5" );
-	mExplosivesDummy[1] = GetUniqueObject( "ExplosivesModel6" );
-	mExplosivesDummy[2] = GetUniqueObject( "ExplosivesModel7" );
-	mExplosivesDummy[3] = GetUniqueObject( "ExplosivesModel8" );
+    mExplosivesDummy[0] = GetUniqueObject( "ExplosivesModel5" );
+    mExplosivesDummy[1] = GetUniqueObject( "ExplosivesModel6" );
+    mExplosivesDummy[2] = GetUniqueObject( "ExplosivesModel7" );
+    mExplosivesDummy[3] = GetUniqueObject( "ExplosivesModel8" );
 
-	mRockPosition[0] = ruGetNodePosition( GetUniqueObject( "Rock1Pos" ));
-	mRockPosition[1] = ruGetNodePosition( GetUniqueObject( "Rock2Pos" ));
-	mRockPosition[2] = ruGetNodePosition( GetUniqueObject( "Rock3Pos" ));
+    mRockPosition[0] = ruGetNodePosition( GetUniqueObject( "Rock1Pos" ));
+    mRockPosition[1] = ruGetNodePosition( GetUniqueObject( "Rock2Pos" ));
+    mRockPosition[2] = ruGetNodePosition( GetUniqueObject( "Rock3Pos" ));
 
-	mExplosionFlashPosition = GetUniqueObject( "ExplosionFlash" );
+    mExplosionFlashPosition = GetUniqueObject( "ExplosionFlash" );
 
-	DoneInitialization();
+    DoneInitialization();
 }
 
-LevelMine::~LevelMine()
-{
+LevelMine::~LevelMine() {
     delete mEnemy;
 // FreeSoundSource( music );
 }
 
-void LevelMine::Show()
-{
+void LevelMine::Show() {
     Level::Show();
 
     ruPlaySound( mMusic );
 }
 
-void LevelMine::Hide()
-{
+void LevelMine::Hide() {
     Level::Hide();
 
     ruPauseSound( mMusic );
 }
 
-void LevelMine::DoScenario()
-{
-    if( Level::msCurLevelID != LevelName::L2Mine )
+void LevelMine::DoScenario() {
+    if( Level::msCurLevelID != LevelName::L2Mine ) {
         return;
+    }
 
     mEnemy->Think();
 
@@ -255,12 +251,14 @@ void LevelMine::DoScenario()
 
                 mStages[ "FindObjectObjectiveSet" ] = true;
             }
-        } else
+        } else {
             mStages[ "FindObjectObjectiveSet" ] = true;
+        }
     }
 
-    if( mExplosionFlashAnimator )
+    if( mExplosionFlashAnimator ) {
         mExplosionFlashAnimator->Update();
+    }
 
     if( !mStages[ "ConcreteWallExp" ] ) {
         if( pPlayer->mNearestPickedNode == mDetonator ) {
@@ -289,9 +287,9 @@ void LevelMine::DoScenario()
 
                 ruVector3 vec = ( ruGetNodePosition( mConcreteWall ) - pPlayer->GetCurrentPosition() ).Normalize() * 20;
 
-				for( int iRock = 0; iRock < 3; iRock++ ) {
-					ruSetNodePosition( mRock[iRock], mRockPosition[iRock] );
-				}
+                for( int iRock = 0; iRock < 3; iRock++ ) {
+                    ruSetNodePosition( mRock[iRock], mRockPosition[iRock] );
+                }
 
                 mExplosionFlashLight = ruCreateLight();
                 ruAttachNode( mExplosionFlashLight, mExplosionFlashPosition );
@@ -299,22 +297,22 @@ void LevelMine::DoScenario()
                 mExplosionFlashAnimator = new LightAnimator( mExplosionFlashLight, 0.25, 30, 1.1 );
                 mExplosionFlashAnimator->SetAnimationType( LightAnimator::AnimationType::Off );
 
-				// dust
-				ruParticleSystemProperties dustProps;
-				dustProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
-				dustProps.type = PS_BOX;
-				dustProps.useLighting = false;
-				dustProps.autoResurrectDeadParticles = false;
-				dustProps.pointSize = 0.1f;
-				dustProps.speedDeviationMin = ruVector3( -0.0005, 0.0, -0.0005 );
-				dustProps.speedDeviationMax = ruVector3(  0.0005, 0.005,  0.0005 );
-				dustProps.boundingBoxMin = ruVector3( -2, 0, -4 );
-				dustProps.boundingBoxMax = ruVector3( 2, 4, 4 );
-				dustProps.colorBegin = ruVector3( 20, 20, 20 );
-				dustProps.colorEnd = ruVector3( 40, 40, 40 );
+                // dust
+                ruParticleSystemProperties dustProps;
+                dustProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
+                dustProps.type = PS_BOX;
+                dustProps.useLighting = false;
+                dustProps.autoResurrectDeadParticles = false;
+                dustProps.pointSize = 0.1f;
+                dustProps.speedDeviationMin = ruVector3( -0.0005, 0.0, -0.0005 );
+                dustProps.speedDeviationMax = ruVector3(  0.0005, 0.005,  0.0005 );
+                dustProps.boundingBoxMin = ruVector3( -2, 0, -4 );
+                dustProps.boundingBoxMax = ruVector3( 2, 4, 4 );
+                dustProps.colorBegin = ruVector3( 20, 20, 20 );
+                dustProps.colorEnd = ruVector3( 40, 40, 40 );
 
-				mExplosionDustParticleSystem = ruCreateParticleSystem( 400, dustProps );
-				ruSetNodePosition( mExplosionDustParticleSystem, ruGetNodePosition( mExplosivesDummy[0] ) - ruVector3( 0, 2.5, 0 ));
+                mExplosionDustParticleSystem = ruCreateParticleSystem( 400, dustProps );
+                ruSetNodePosition( mExplosionDustParticleSystem, ruGetNodePosition( mExplosivesDummy[0] ) - ruVector3( 0, 2.5, 0 ));
 
                 if( pPlayer->IsInsideZone( mDeathZone )) {
                     pPlayer->Damage( 1000 );
@@ -341,40 +339,42 @@ void LevelMine::DoScenario()
     UpdateExplodeSequence();
 }
 
-void LevelMine::UpdateExplodeSequence()
-{
+void LevelMine::UpdateExplodeSequence() {
     if( mReadyExplosivesCount < 4 ) {
         mReadyExplosivesCount = 0;
 
         for( int i = 0; i < 4; i++ ) {
             ItemPlace * dp = mDetonatorPlace[i];
 
-            if( dp->GetPlaceType() == Item::Type::Unknown )
+            if( dp->GetPlaceType() == Item::Type::Unknown ) {
                 mReadyExplosivesCount++;
+            }
 
-            if( mReadyExplosivesCount >= 4 )
+            if( mReadyExplosivesCount >= 4 ) {
                 pPlayer->SetObjective( mLocalization.GetString( "objective4" ) );
+            }
         }
     }
 
     static int totalNeededObjects = 0;
     if( totalNeededObjects < 12 ) {
         totalNeededObjects = 0;
-		totalNeededObjects += pPlayer->mInventory.GetItemCount( Item::Type::Wires );
-		totalNeededObjects += pPlayer->mInventory.GetItemCount( Item::Type::Explosives );
-		totalNeededObjects += pPlayer->mInventory.GetItemCount( Item::Type::Detonator );
-		if( totalNeededObjects >= 12 ) {
-			mStages[ "FindObjectObjectiveSet" ] = true;
-			pPlayer->SetObjective( mLocalization.GetString( "objective3" ) );
-		}
+        totalNeededObjects += pPlayer->mInventory.GetItemCount( Item::Type::Wires );
+        totalNeededObjects += pPlayer->mInventory.GetItemCount( Item::Type::Explosives );
+        totalNeededObjects += pPlayer->mInventory.GetItemCount( Item::Type::Detonator );
+        if( totalNeededObjects >= 12 ) {
+            mStages[ "FindObjectObjectiveSet" ] = true;
+            pPlayer->SetObjective( mLocalization.GetString( "objective3" ) );
+        }
     }
 
     if( pPlayer->mInventory.GetItemSelectedForUse() ) {
         for( int i = 0; i < 4; i++ ) {
             ItemPlace * dp = mDetonatorPlace[i];
 
-            if( dp->IsPickedByPlayer() )
+            if( dp->IsPickedByPlayer() ) {
                 pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "putItem"), GetKeyName( pPlayer->mKeyUse )).c_str());
+            }
         }
 
         if( ruIsKeyHit( pPlayer->mKeyUse )) {
@@ -406,32 +406,28 @@ void LevelMine::UpdateExplodeSequence()
     }
 }
 
-void LevelMine::CleanUpExplodeArea()
-{
+void LevelMine::CleanUpExplodeArea() {
     for( int i = 0; i < 4; i++ ) {
         ruSetNodePosition( mDetonatorPlace[i]->mObject, ruVector3( 1000, 1000, 1000 ));
         ruHideNode( mWireModels[i] );
         ruHideNode( mExplosivesModels[i] );
         ruHideNode( mDetonatorModels[i] );
-		ruHideNode( mExplosivesDummy[i] );
+        ruHideNode( mExplosivesDummy[i] );
     }
 }
 
-void LevelMine::CreateItems()
-{
+void LevelMine::CreateItems() {
     AddItem( mFuel[0] = new Item( GetUniqueObject( "Fuel1" ), Item::Type::FuelCanister ));
     AddItem( mFuel[1] = new Item( GetUniqueObject( "Fuel2" ), Item::Type::FuelCanister ));
 }
 
-void LevelMine::OnDeserialize( TextFileStream & in )
-{
+void LevelMine::OnDeserialize( TextFileStream & in ) {
     in.ReadBoolean( mDetonatorActivated );
     in.ReadFloat( mBeepSoundTiming );
     mEnemy->Deserialize( in );
 }
 
-void LevelMine::OnSerialize( TextFileStream & out )
-{
+void LevelMine::OnSerialize( TextFileStream & out ) {
     out.WriteBoolean( mDetonatorActivated );
     out.WriteFloat( mBeepSoundTiming );
     mEnemy->Serialize( out );

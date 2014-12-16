@@ -2,28 +2,26 @@
 
 #include "InteractiveObject.h"
 
-class Sheet : public InteractiveObject
-{
+class Sheet : public InteractiveObject {
 private:
-	string mText;
-	string mDescription;
-	ruTextureHandle mBackgroundTexture;
-	ruRectHandle mGUIBackground;
-	ruTextHandle mGUIText;
+    string mText;
+    string mDescription;
+    ruTextureHandle mBackgroundTexture;
+    ruRectHandle mGUIBackground;
+    ruTextHandle mGUIText;
 public:
     explicit Sheet( ruNodeHandle object, string desc, string text );
-	virtual ~Sheet();
+    virtual ~Sheet();
     void Update();
     void Draw( );
-	void SetText( const char * text );
-	const char * GetText( ) const;
-	void SetDescription( const char * description );
-	const char * GetDescription( ) const;
-	void SetVisible( bool state )
-	{
-		ruSetGUINodeVisible( mGUIBackground, state );
-		ruSetGUINodeVisible( mGUIText, state );
-	}
+    void SetText( const char * text );
+    const char * GetText( ) const;
+    void SetDescription( const char * description );
+    const char * GetDescription( ) const;
+    void SetVisible( bool state ) {
+        ruSetGUINodeVisible( mGUIBackground, state );
+        ruSetGUINodeVisible( mGUIText, state );
+    }
     static Sheet * GetSheetByObject( ruNodeHandle o );
     static vector<Sheet*> msSheetList;
     static ruSoundHandle msPaperFlipSound;

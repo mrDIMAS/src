@@ -2,8 +2,7 @@
 
 #include "Game.h"
 
-class TextFileStream
-{
+class TextFileStream {
 private:
     fstream stream;
 public:

@@ -2,10 +2,8 @@
 
 #include "Player.h"
 
-void AmbientSoundSet::DoRandomPlaying()
-{
-    if( ruGetElapsedTimeInSeconds( timer ) >= timeToNextSoundSec )
-    {
+void AmbientSoundSet::DoRandomPlaying() {
+    if( ruGetElapsedTimeInSeconds( timer ) >= timeToNextSoundSec ) {
         timeToNextSoundSec = frandom( timeMinSec, timeMaxSec );
 
         int randomSound = rand() % sounds.size();
@@ -18,19 +16,16 @@ void AmbientSoundSet::DoRandomPlaying()
     }
 }
 
-void AmbientSoundSet::AddSound( ruSoundHandle sound )
-{
+void AmbientSoundSet::AddSound( ruSoundHandle sound ) {
     sounds.push_back( sound );
 }
 
-void AmbientSoundSet::SetMinMax( float tMin, float tMax )
-{
+void AmbientSoundSet::SetMinMax( float tMin, float tMax ) {
     timeMinSec = tMin;
     timeMaxSec = tMax;
 }
 
-AmbientSoundSet::AmbientSoundSet()
-{
+AmbientSoundSet::AmbientSoundSet() {
     timeMinSec = 5.0f;
     timeMaxSec = 15.0f;
 

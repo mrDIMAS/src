@@ -4,8 +4,7 @@
 
 class Mesh;
 
-class SceneNode
-{
+class SceneNode {
 public:
     friend class DeferredRenderer;
 
@@ -57,8 +56,7 @@ public:
     virtual ~SceneNode();
 
     void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
-    ruAnimation * GetCurrentAnimation( )
-    {
+    ruAnimation * GetCurrentAnimation( ) {
         return currentAnimation;
     }
 

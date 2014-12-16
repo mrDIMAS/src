@@ -1,18 +1,15 @@
 #include "SpotlightShadowMap.h"
 #include "Renderer.h"
 
-void SpotlightShadowMap::UnbindSpotShadowMap( int index )
-{
+void SpotlightShadowMap::UnbindSpotShadowMap( int index ) {
     g_pDevice->SetTexture( index, nullptr );
 }
 
-void SpotlightShadowMap::BindSpotShadowMap( int index )
-{
+void SpotlightShadowMap::BindSpotShadowMap( int index ) {
     g_pDevice->SetTexture( index, spotShadowMap );
 }
 
-void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight )
-{
+void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight ) {
     CheckDXErrorFatal( g_pDevice->SetRenderTarget( 0, spotSurface ));
     CheckDXErrorFatal( g_pDevice->SetDepthStencilSurface( depthStencil ));
     CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
@@ -24,18 +21,14 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
     CheckDXErrorFatal( g_pDevice->GetTexture( 0, &prevZeroSamplerTexture ));
 
-    for( auto meshGroupIter : Mesh::meshes )
-    {
+    for( auto meshGroupIter : Mesh::meshes ) {
         auto & group = meshGroupIter.second;
         CheckDXErrorFatal( g_pDevice->SetTexture( 0, meshGroupIter.first ));
-        for( auto mesh : group )
-        {
+        for( auto mesh : group ) {
             // if owner of mesh is visible
-            if( mesh->ownerNode->IsVisible())
-            {
+            if( mesh->ownerNode->IsVisible()) {
                 // if light "sees" mesh, it can cast shadow
-                if( spotLight->frustum.IsAABBInside( mesh->aabb, mesh->ownerNode->GetPosition()))
-                {
+                if( spotLight->frustum.IsAABBInside( mesh->aabb, mesh->ownerNode->GetPosition())) {
                     // if mesh in light range, it can cast shadow
                     //if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
                     D3DXMATRIX world, wvp;
@@ -57,8 +50,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     CheckDXErrorFatal( g_pDevice->SetDepthStencilSurface( defaultDepthStencil ));
 }
 
-SpotlightShadowMap::~SpotlightShadowMap()
-{
+SpotlightShadowMap::~SpotlightShadowMap() {
     spotSurface->Release();
     spotShadowMap->Release();
     depthStencil->Release();
@@ -66,8 +58,7 @@ SpotlightShadowMap::~SpotlightShadowMap()
     delete vertexShader;
 }
 
-SpotlightShadowMap::SpotlightShadowMap( float size )
-{
+SpotlightShadowMap::SpotlightShadowMap( float size ) {
     iSize = size;
 
     // create shadow maps

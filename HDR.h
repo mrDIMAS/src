@@ -3,8 +3,7 @@
 #include "Common.h"
 #include "EffectsQuad.h"
 
-class HDRRenderer
-{
+class HDRRenderer {
 public:
     IDirect3DTexture9 * hdrTexture;
     IDirect3DSurface9 * hdrSurface;
@@ -12,8 +11,7 @@ public:
     EffectsQuad * screenQuad;
     PixelShader * toneMapShader;
 
-    enum
-    {
+    enum {
         DOWNSAMPLE_256X256,
         DOWNSAMPLE_128X128,
         DOWNSAMPLE_64X64,

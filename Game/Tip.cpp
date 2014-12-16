@@ -1,7 +1,6 @@
 #include "Tip.h"
 
-void Tip::Deserialize( TextFileStream & in )
-{
+void Tip::Deserialize( TextFileStream & in ) {
     in.Readstring( txt );
     alpha.Deserialize( in );
     in.ReadInteger( x );
@@ -10,8 +9,7 @@ void Tip::Deserialize( TextFileStream & in )
     in.ReadInteger( h );
 }
 
-void Tip::Serialize( TextFileStream & out )
-{
+void Tip::Serialize( TextFileStream & out ) {
     out.WriteString( txt );
     alpha.Serialize( out );
     out.WriteInteger( x );
@@ -20,10 +18,9 @@ void Tip::Serialize( TextFileStream & out )
     out.WriteInteger( h );
 }
 
-void Tip::AnimateAndDraw()
-{
+void Tip::AnimateAndDraw() {
     //ruDrawGUIText( txt.c_str(), x, y, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, alpha );
-	ruSetGUINodePosition( mGUIText, x, y );
+    ruSetGUINodePosition( mGUIText, x, y );
     if( ruGetElapsedTimeInSeconds( timer ) > 1.5 ) {
         alpha.SetTarget( alpha.GetMin() );
         alpha.ChaseTarget( 0.1 );
@@ -33,8 +30,7 @@ void Tip::AnimateAndDraw()
     };
 }
 
-void Tip::SetNewText( string text )
-{
+void Tip::SetNewText( string text ) {
     ruRestartTimer( timer );
     txt = text;
     alpha.Set( 255.0f );
@@ -43,12 +39,11 @@ void Tip::SetNewText( string text )
     y.Set( y.GetMin());
 }
 
-Tip::Tip() : alpha( 255.0f, 0.0f, 255.0f )
-{
+Tip::Tip() : alpha( 255.0f, 0.0f, 255.0f ) {
     timer = ruCreateTimer();
     w = 256;
     h = 32;
     x = ruGetResolutionWidth() / 2 - w / 2;
     SetNewText( " " );
-	mGUIText = ruCreateGUIText( " ", 0, 0, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , alpha );
+    mGUIText = ruCreateGUIText( " ", 0, 0, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , alpha );
 }

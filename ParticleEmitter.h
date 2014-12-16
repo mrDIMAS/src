@@ -3,11 +3,9 @@
 #include "Common.h"
 #include "SceneNode.h"
 
-class ParticleEmitter
-{
+class ParticleEmitter {
 public:
-    class SParticleVertex
-    {
+    class SParticleVertex {
     public:
         float x, y, z;
         float tx, ty;
@@ -17,8 +15,7 @@ public:
         SParticleVertex( );
     };
 
-    class SParticleFace
-    {
+    class SParticleFace {
     public:
         short v1;
         short v2;
@@ -29,8 +26,7 @@ public:
         SParticleFace( );
     };
 
-    class SParticle
-    {
+    class SParticle {
     public:
         ruVector3 position;
         ruVector3 color;
@@ -42,8 +38,7 @@ public:
         SParticle( );
     };
 
-    class ZSorter
-    {
+    class ZSorter {
     public:
         D3DXMATRIX worldView;
 

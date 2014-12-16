@@ -2,8 +2,7 @@
 
 #include "Way.h"
 
-class Ladder : public Way
-{
+class Ladder : public Way {
 private:
     void DoLeave();
     FootstepsType mFootsteps;

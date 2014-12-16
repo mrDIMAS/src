@@ -6,8 +6,7 @@
 
 class GUIText;
 
-class TextRenderer
-{
+class TextRenderer {
 public:
     int maxChars;
     IDirect3DVertexBuffer9 * vertexBuffer;

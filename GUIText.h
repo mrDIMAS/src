@@ -2,24 +2,22 @@
 
 #include "GUINode.h"
 
-class GUIText : public GUINode
-{
+class GUIText : public GUINode {
 protected:
-	BitmapFont * mFont;
-	string mText;
-	int mTextAlign;
-	RECT mRect;
+    BitmapFont * mFont;
+    string mText;
+    int mTextAlign;
+    RECT mRect;
 public:
-	static vector<GUIText*> msTextList;
+    static vector<GUIText*> msTextList;
 
-	explicit GUIText( const char * theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, BitmapFont * theFont );
-	virtual ~GUIText( );
-	RECT GetBoundingRect();
-	int GetTextAlignment();
-	string GetText();
-	BitmapFont * GetFont();
-	void SetText( const char * text )
-	{
-		mText = text;
-	}
+    explicit GUIText( const char * theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, BitmapFont * theFont );
+    virtual ~GUIText( );
+    RECT GetBoundingRect();
+    int GetTextAlignment();
+    string GetText();
+    BitmapFont * GetFont();
+    void SetText( const char * text ) {
+        mText = text;
+    }
 };

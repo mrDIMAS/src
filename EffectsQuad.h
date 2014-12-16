@@ -2,14 +2,12 @@
 
 #include "Shader.h"
 
-class EffectsQuad
-{
+class EffectsQuad {
 public:
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DVertexDeclaration9 * vertexDeclaration;
 
-    struct QuadVertex
-    {
+    struct QuadVertex {
         float x, y, z;
         float tx, ty;
     };

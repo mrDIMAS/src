@@ -3,8 +3,7 @@
 #include "Common.h"
 #include "Vertex.h"
 
-class AABB
-{
+class AABB {
 private:
     void CalculateVerticesRadiusCenter();
 public:

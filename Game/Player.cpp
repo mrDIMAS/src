@@ -10,8 +10,7 @@ Player * pPlayer = 0;
 Player::Player
 ========
 */
-Player::Player() : Actor( 1.0f, 0.2f )
-{
+Player::Player() : Actor( 1.0f, 0.2f ) {
     mLocalization.ParseFile( localizationPath + "player.loc" );
 
     // Stamina vars
@@ -68,7 +67,7 @@ Player::Player() : Actor( 1.0f, 0.2f )
     mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
     mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
 
-	mpFollowPath = nullptr;
+    mpFollowPath = nullptr;
     mpCurrentWay = nullptr;
 
     mStealthSign = ruGetTexture( "data/textures/effects/eye.png" );
@@ -82,17 +81,16 @@ Player::Player() : Actor( 1.0f, 0.2f )
 
     ruSetNodeName( mBody, "Player" );
 
-	mGUIActionText = ruCreateGUIText( "Action text", ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+    mGUIActionText = ruCreateGUIText( "Action text", ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
 
-	float scale = 2;
-	int w = 512.0f / scale;
-	int h = 256.0f / scale;
-	mGUIBackground = ruCreateGUIRect( 0, ruGetResolutionHeight() - h, w, h, mStatusBar, ruVector3( 255, 255, 255 ), mStaminaAlpha );
-	for( int i = 0; i < mGUISegmentCount; i++ )
-	{
-		mGUIStaminaBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 3 * 15, 8, 16, pGUI->staminaBarImg, ruVector3( 255, 255, 255 ), mStaminaAlpha );
-		mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
-	}
+    float scale = 2;
+    int w = 512.0f / scale;
+    int h = 256.0f / scale;
+    mGUIBackground = ruCreateGUIRect( 0, ruGetResolutionHeight() - h, w, h, mStatusBar, ruVector3( 255, 255, 255 ), mStaminaAlpha );
+    for( int i = 0; i < mGUISegmentCount; i++ ) {
+        mGUIStaminaBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 3 * 15, 8, 16, pGUI->staminaBarImg, ruVector3( 255, 255, 255 ), mStaminaAlpha );
+        mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
+    }
 }
 
 /*
@@ -100,8 +98,7 @@ Player::Player() : Actor( 1.0f, 0.2f )
 Player::SetPlaceDescription
 ========
 */
-void Player::SetPlaceDescription( string desc )
-{
+void Player::SetPlaceDescription( string desc ) {
     mPlaceDesc = desc;
     mPlaceDescTimer = 240;
 }
@@ -111,8 +108,7 @@ void Player::SetPlaceDescription( string desc )
 Player::DrawStatusBar
 ========
 */
-void Player::DrawStatusBar()
-{
+void Player::DrawStatusBar() {
     if( mMoved ) {
         mStaminaAlpha.SetTarget( 255 );
         mHealthAlpha.SetTarget( 255 );
@@ -124,33 +120,25 @@ void Player::DrawStatusBar()
     mStaminaAlpha.ChaseTarget( 8.0f * g_dt );
     mHealthAlpha.ChaseTarget( 8.0f * g_dt );
 
-	ruSetGUINodeAlpha( mGUIBackground, mStaminaAlpha );
+    ruSetGUINodeAlpha( mGUIBackground, mStaminaAlpha );
     int segCount = mStamina / 5;
-	for( int i = 0; i < mGUISegmentCount; i++ )
-	{
-		if( i < segCount )
-		{
-			ruSetGUINodeVisible( mGUIStaminaBarSegment[i], true );
-			ruSetGUINodeAlpha( mGUIStaminaBarSegment[i], mStaminaAlpha );
-		}
-		else
-		{
-			ruSetGUINodeVisible( mGUIStaminaBarSegment[i], false );
-		}
-	}
+    for( int i = 0; i < mGUISegmentCount; i++ ) {
+        if( i < segCount ) {
+            ruSetGUINodeVisible( mGUIStaminaBarSegment[i], true );
+            ruSetGUINodeAlpha( mGUIStaminaBarSegment[i], mStaminaAlpha );
+        } else {
+            ruSetGUINodeVisible( mGUIStaminaBarSegment[i], false );
+        }
+    }
     segCount = mLife / 5;
-	for( int i = 0; i < mGUISegmentCount; i++ )
-	{
-		if( i < segCount )
-		{
-			ruSetGUINodeVisible( mGUIHealthBarSegment[i], true );
-			ruSetGUINodeAlpha( mGUIHealthBarSegment[i], mHealthAlpha );
-		}
-		else
-		{
-			ruSetGUINodeVisible( mGUIHealthBarSegment[i], false );
-		}
-	}
+    for( int i = 0; i < mGUISegmentCount; i++ ) {
+        if( i < segCount ) {
+            ruSetGUINodeVisible( mGUIHealthBarSegment[i], true );
+            ruSetGUINodeAlpha( mGUIHealthBarSegment[i], mHealthAlpha );
+        } else {
+            ruSetGUINodeVisible( mGUIHealthBarSegment[i], false );
+        }
+    }
 }
 
 /*
@@ -158,13 +146,13 @@ void Player::DrawStatusBar()
 Player::CanJump
 ========
 */
-bool Player::IsCanJump( )
-{
+bool Player::IsCanJump( ) {
     ruNodeHandle legBump = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight, 0 ), 0 );
-    if( legBump.IsValid() )
+    if( legBump.IsValid() ) {
         return true;
-    else
+    } else {
         return false;
+    }
 }
 
 /*
@@ -172,10 +160,10 @@ bool Player::IsCanJump( )
 Player::UseStamina
 ========
 */
-bool Player::UseStamina( float required )
-{
-    if( mStamina - required < 0 )
+bool Player::UseStamina( float required ) {
+    if( mStamina - required < 0 ) {
         return false;
+    }
 
     mStamina -= required;
 
@@ -187,8 +175,7 @@ bool Player::UseStamina( float required )
 Player::Damage
 ========
 */
-void Player::Damage( float dmg )
-{
+void Player::Damage( float dmg ) {
     mLife -= dmg;
     if( mLife < 0.0f ) {
         if( !mDead ) {
@@ -210,13 +197,14 @@ void Player::Damage( float dmg )
 Player::AddItem
 ========
 */
-void Player::AddItem( Item * pItem )
-{
-    if( !pItem )
+void Player::AddItem( Item * pItem ) {
+    if( !pItem ) {
         return;
+    }
 
-    if( mInventory.Contains( pItem ))
+    if( mInventory.Contains( pItem )) {
         return;
+    }
 
     ruFreeze( pItem->mObject );
     ruDetachNode( pItem->mObject );
@@ -232,10 +220,10 @@ void Player::AddItem( Item * pItem )
 Player::UpdateInventory
 ========
 */
-void Player::UpdateInventory()
-{
-    if( ruIsKeyHit( mKeyInventory ) )
+void Player::UpdateInventory() {
+    if( ruIsKeyHit( mKeyInventory ) ) {
         mInventory.Open( !mInventory.IsOpened() );
+    }
 
     mInventory.Update();
 }
@@ -245,8 +233,7 @@ void Player::UpdateInventory()
 Player::SetObjective
 ========
 */
-void Player::SetObjective( string text )
-{
+void Player::SetObjective( string text ) {
     string objectiveText = mLocalization.GetString( "currentObjective" );
     objectiveText += text;
 
@@ -260,8 +247,7 @@ void Player::SetObjective( string text )
 Player::CompleteObjective
 ========
 */
-void Player::CompleteObjective()
-{
+void Player::CompleteObjective() {
     SetObjective( mLocalization.GetString( "objectiveUnknown" ));
 
     mObjectiveDone = true;
@@ -272,18 +258,19 @@ void Player::CompleteObjective()
 Player::UpdateMouseLook
 ========
 */
-void Player::UpdateMouseLook()
-{
-    if( mpCurrentWay )
+void Player::UpdateMouseLook() {
+    if( mpCurrentWay ) {
         mSmoothCamera = false;
-    else
+    } else {
         mSmoothCamera = true;
+    }
 
     if( !mInventory.IsOpened() ) {
         float mouseSpeed =  mouseSens / 2.0f;
         if( mpCurrentWay ) {
-            if( !mpCurrentWay->IsFreeLook() )
+            if( !mpCurrentWay->IsFreeLook() ) {
                 mouseSpeed = 0.0f;
+            }
         }
         mPitch.SetTarget( mPitch.GetTarget() + ruGetMouseYSpeed() * mouseSpeed );
         mYaw.SetTarget( mYaw.GetTarget() - ruGetMouseXSpeed() * mouseSpeed );
@@ -310,11 +297,13 @@ void Player::UpdateMouseLook()
         bool canLookLeft = true;
         if( leftIntersection.IsValid() ) {
             float dist2 = ( hitPoint - ruGetNodePosition( mBody )).Length2();
-            if( dist2 < 0.4 )
+            if( dist2 < 0.4 ) {
                 canLookLeft = false;
+            }
         }
-        if( canLookLeft )
+        if( canLookLeft ) {
             mHeadAngle.SetTarget( mHeadAngle.GetMin() );
+        }
     }
 
     if( ruIsKeyDown( mKeyLookRight )) {
@@ -325,11 +314,13 @@ void Player::UpdateMouseLook()
         bool canLookRight = true;
         if( rightIntersection.IsValid() ) {
             float dist2 = ( hitPoint - ruGetNodePosition( mBody )).Length2();
-            if( dist2 < 0.4 )
+            if( dist2 < 0.4 ) {
                 canLookRight = false;
+            }
         }
-        if( canLookRight )
+        if( canLookRight ) {
             mHeadAngle.SetTarget( mHeadAngle.GetMax() );
+        }
     }
     mHeadAngle.ChaseTarget( 17.0f * g_dt );
     ruSetNodeRotation( mHead, ruQuaternion( ruVector3( 0, 0, 1 ), mHeadAngle ));
@@ -340,8 +331,7 @@ void Player::UpdateMouseLook()
 Player::UpdateJumping
 ========
 */
-void Player::UpdateJumping()
-{
+void Player::UpdateJumping() {
     // do ray test, to determine collision with objects above camera
     ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, mBodyHeight * 0.98, 0 ), ruGetNodePosition( mBody ) + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
 
@@ -354,13 +344,15 @@ void Player::UpdateJumping()
 
     mGravity = mGravity.Lerp( mJumpTo, 40.0f * g_dt );
 
-    if( mGravity.y >= mJumpTo.y )
+    if( mGravity.y >= mJumpTo.y ) {
         mLanded = true;
+    }
 
     if( mLanded || headBumpObject.IsValid() ) {
         mJumpTo = ruVector3( 0, -150, 0 );
-        if( IsCanJump() )
+        if( IsCanJump() ) {
             mJumpTo = ruVector3( 0, 0, 0 );
+        }
     };
 }
 
@@ -369,36 +361,38 @@ void Player::UpdateJumping()
 Player::UpdateMoving
 ========
 */
-void Player::UpdateMoving()
-{	
+void Player::UpdateMoving() {
     for( auto pWay : Way::msWayList ) {
-		if( !pWay->IsPlayerInside() )  {
-			if( pWay->IsEnterPicked() ) {
-				SetActionText( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )).c_str());
-				if( IsUseButtonHit() ) {
-					pWay->Enter();
-				}
-			}
-		}
+        if( !pWay->IsPlayerInside() )  {
+            if( pWay->IsEnterPicked() ) {
+                SetActionText( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )).c_str());
+                if( IsUseButtonHit() ) {
+                    pWay->Enter();
+                }
+            }
+        }
     }
 
     for( auto pDoor : Door::msDoorList ) {
         pDoor->DoInteraction();
         if( pDoor->IsPickedByPlayer() ) {
             SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )).c_str());
-            if( IsUseButtonHit() )
+            if( IsUseButtonHit() ) {
                 pDoor->SwitchState();
+            }
         }
     }
 
-    if( ruIsKeyHit( mKeyStealth ))
+    if( ruIsKeyHit( mKeyStealth )) {
         mStealthMode = !mStealthMode;
+    }
 
     if( mpCurrentWay ) {
         mStealthMode = false;
         mpCurrentWay->DoEntering();
-        if( !mpCurrentWay->IsFreeLook() )
+        if( !mpCurrentWay->IsFreeLook() ) {
             mpCurrentWay->LookAtTarget();
+        }
         if( mpCurrentWay->IsPlayerInside() ) {
             bool move = false;
             if( ruIsKeyDown( mKeyMoveForward )) {
@@ -412,32 +406,38 @@ void Player::UpdateMoving()
             if( move ) {
                 mpCurrentWay->DoPlayerCrawling();
                 mMoved = true;
-                if( !mpCurrentWay->IsPlayerInside() )
+                if( !mpCurrentWay->IsPlayerInside() ) {
                     mpCurrentWay = nullptr;
+                }
             } else {
                 StopInstant();
                 mMoved = false;
-            }        
-		}
+            }
+        }
     } else {
         ruVector3 look = ruGetNodeLookVector( mBody );
         ruVector3 right = ruGetNodeRightVector( mBody );
 
         mSpeedTo = ruVector3( 0, 0, 0 );
 
-        if( ruIsKeyDown( mKeyMoveForward ))
+        if( ruIsKeyDown( mKeyMoveForward )) {
             mSpeedTo = mSpeedTo + look;
-        if( ruIsKeyDown( mKeyMoveBackward ))
+        }
+        if( ruIsKeyDown( mKeyMoveBackward )) {
             mSpeedTo = mSpeedTo - look;
-        if( ruIsKeyDown( mKeyStrafeLeft ))
+        }
+        if( ruIsKeyDown( mKeyStrafeLeft )) {
             mSpeedTo = mSpeedTo + right;
-        if( ruIsKeyDown( mKeyStrafeRight ))
+        }
+        if( ruIsKeyDown( mKeyStrafeRight )) {
             mSpeedTo = mSpeedTo - right;
+        }
 
         mMoved = mSpeedTo.Length2() > 0;
 
-        if( mMoved )
+        if( mMoved ) {
             mSpeedTo = mSpeedTo.Normalize();
+        }
 
         UpdateJumping();
 
@@ -454,8 +454,9 @@ void Player::UpdateMoving()
                 mRunning = true;
             }
         } else {
-            if( mStamina < mMaxStamina )
+            if( mStamina < mMaxStamina ) {
                 mStamina += 16.0f * g_dt;
+            }
         }
 
         mSpeedTo = mSpeedTo * ( mStealthMode ? 0.4f : 1.0f ) ;
@@ -475,8 +476,7 @@ void Player::UpdateMoving()
 Player::ComputeStealth
 ========
 */
-void Player::ComputeStealth()
-{
+void Player::ComputeStealth() {
     bool inLight = false;
     ruVector3 pos = ruGetNodePosition( mBody );
     ruNodeHandle affectLight;
@@ -497,8 +497,9 @@ void Player::ComputeStealth()
         }
     }
 
-    if( mpFlashlight->IsOn() )
+    if( mpFlashlight->IsOn() ) {
         inLight = true;
+    }
 
     mStealthFactor = 0.0f;
 
@@ -514,15 +515,17 @@ void Player::ComputeStealth()
 
 
     for( auto snd : mFootstepList ) {
-        if( mStealthMode )
+        if( mStealthMode ) {
             ruSetSoundVolume( snd, 0.15f );
-        else
+        } else {
             ruSetSoundVolume( snd, 0.4f );
+        }
     }
 
     int alpha = ( 255 * ( ( mStealthFactor > 1.05f ) ? 1.0f : ( mStealthFactor + 0.05f ) ) );
-    if (alpha > 255 )
+    if (alpha > 255 ) {
         alpha = 255;
+    }
     ruVector3 color = ( mStealthFactor < 1.05f ) ? ruVector3( 255, 255, 255 ) : ruVector3( 255, 0, 0 );
 //    ruDrawGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, mStealthSign, color, alpha );
 }
@@ -531,21 +534,22 @@ void Player::ComputeStealth()
 Player::Update
 ========
 */
-void Player::Update( )
-{
-	ruSetGUINodeVisible( mGUIActionText, false );
+void Player::Update( ) {
+    ruSetGUINodeVisible( mGUIActionText, false );
     UpdateFright();
     mpCamera->Update();
 
-    if( pMainMenu->IsVisible() )
+    if( pMainMenu->IsVisible() ) {
         return;
+    }
 
     DrawGUIElements();
     DrawStatusBar();
     UpdateFlashLight();
 
-    if( mDead )
+    if( mDead ) {
         return;
+    }
     mTip.AnimateAndDraw();
     UpdateMouseLook();
     UpdateMoving();
@@ -564,8 +568,7 @@ void Player::Update( )
 Player::LoadGUIElements
 ========
 */
-void Player::LoadGUIElements()
-{
+void Player::LoadGUIElements() {
     mObjectDragUpCursor = ruGetTexture( "data/gui/up.png" );
     mObjectDragDownCursor = ruGetTexture( "data/gui/down.png" );
     mItemPickupSound = ruLoadSound2D( "data/sounds/menuhit.ogg" );
@@ -577,8 +580,7 @@ void Player::LoadGUIElements()
 Player::CreateCamera
 ========
 */
-void Player::CreateCamera()
-{
+void Player::CreateCamera() {
     mHeadHeight = 2.4;
 
     mHead = ruCreateSceneNode();
@@ -604,10 +606,10 @@ void Player::CreateCamera()
 Player::SetRockFootsteps
 ========
 */
-void Player::SetRockFootsteps()
-{
-    for( auto s : mFootstepList )
+void Player::SetRockFootsteps() {
+    for( auto s : mFootstepList ) {
         ruFreeSound( s );
+    }
 
     mFootstepList.clear();
 
@@ -637,10 +639,10 @@ void Player::SetRockFootsteps()
 Player::SetDirtFootsteps
 ========
 */
-void Player::SetDirtFootsteps()
-{
-    for( auto s : mFootstepList )
+void Player::SetDirtFootsteps() {
+    for( auto s : mFootstepList ) {
         ruFreeSound( s );
+    }
 
     mFootstepList.clear();
 
@@ -662,8 +664,7 @@ void Player::SetDirtFootsteps()
 Player::LoadSounds
 ========
 */
-void Player::LoadSounds()
-{
+void Player::LoadSounds() {
     mLighterCloseSound = ruLoadSound3D( "data/sounds/lighter_close.ogg" );
     mLighterOpenSound = ruLoadSound3D( "data/sounds/lighter_open.ogg" );
 
@@ -687,8 +688,7 @@ void Player::LoadSounds()
 Player::DoFright
 ========
 */
-void Player::DoFright()
-{
+void Player::DoFright() {
     mBreathVolume.SetTarget( 0.1f );
     mBreathVolume.Set( 0.25f );
     mHeartBeatVolume.SetTarget( 0.15f );
@@ -704,8 +704,7 @@ void Player::DoFright()
 Player::UpdateFright
 ========
 */
-void Player::UpdateFright()
-{
+void Player::UpdateFright() {
     mBreathVolume.ChaseTarget( 0.075f );
     mHeartBeatVolume.ChaseTarget( 0.075f );
     mHeartBeatPitch.ChaseTarget( 0.0025f );
@@ -727,8 +726,7 @@ void Player::UpdateFright()
 Player::UpdateCameraShake
 ========
 */
-void Player::UpdateCameraShake()
-{
+void Player::UpdateCameraShake() {
     static int stepPlayed = 0;
 
     if( mMoved ) {
@@ -744,12 +742,14 @@ void Player::UpdateCameraShake()
         }
 
         mCameraShakeOffset = ruVector3( xOffset, yOffset + mHeadHeight, 0 );
-    } else
+    } else {
         mCameraBobCoeff = 0;
-    if( mStealthMode )
+    }
+    if( mStealthMode ) {
         mStealthOffset.SetTarget( mStealthOffset.GetMin() );
-    else
+    } else {
         mStealthOffset.SetTarget( mStealthOffset.GetMax() );
+    }
     mStealthOffset.ChaseTarget( 0.15f );
     mCameraOffset = mCameraOffset.Lerp( mCameraShakeOffset, 0.25f );
     ruSetNodePosition( mpCamera->mNode, mCameraOffset + ruVector3( 0.0f, mStealthOffset, 0.0f ) );
@@ -760,15 +760,15 @@ void Player::UpdateCameraShake()
 Player::DrawSheetInHands
 ========
 */
-void Player::DrawSheetInHands()
-{
+void Player::DrawSheetInHands() {
     if( mpSheetInHands ) {
-		mpSheetInHands->SetVisible( true );
+        mpSheetInHands->SetVisible( true );
         mpSheetInHands->Draw();
         mPickedObjectDesc = mpSheetInHands->GetDescription();
-        mPickedObjectDesc += mLocalization.GetString( "sheetOpen" );		
-		if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 )
+        mPickedObjectDesc += mLocalization.GetString( "sheetOpen" );
+        if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 ) {
             CloseCurrentSheet();
+        }
     }
 }
 
@@ -777,22 +777,21 @@ void Player::DrawSheetInHands()
 Player::DescribePickedObject
 ========
 */
-void Player::DescribePickedObject()
-{
-	/*
+void Player::DescribePickedObject() {
+    /*
     // Change cursor first
     if( mNearestPickedNode.IsValid() ) {
         if( IsObjectHasNormalMass( mNearestPickedNode ))
-//            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragUpCursor, ruVector3( 255, 255, 255 ), 180 );
+    //            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragUpCursor, ruVector3( 255, 255, 255 ), 180 );
     } else {
- //       if( mNodeInHands.IsValid() )
- //           ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragDownCursor, ruVector3( 255, 255, 255 ), 180 );
- //       else
- //           ruDrawGUIText( "+", ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, 180 );
- //   }
+    //       if( mNodeInHands.IsValid() )
+    //           ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragDownCursor, ruVector3( 255, 255, 255 ), 180 );
+    //       else
+    //           ruDrawGUIText( "+", ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, 180 );
+    //   }
     // Then describe object
-//    ruDrawGUIText( mPickedObjectDesc.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
-*/
+    //    ruDrawGUIText( mPickedObjectDesc.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+    */
 }
 
 /*
@@ -800,9 +799,8 @@ void Player::DescribePickedObject()
 Player::UpdateEnvironmentDamaging
 ========
 */
-void Player::UpdateEnvironmentDamaging()
-{
-	// sometimes this kill player instantly, thats why it is commented
+void Player::UpdateEnvironmentDamaging() {
+    // sometimes this kill player instantly, thats why it is commented
     /*
     for( int i = 0; i < GetContactCount( body ); i++ ) {
         Contact contact = GetContact( body, i );
@@ -818,8 +816,7 @@ void Player::UpdateEnvironmentDamaging()
 Player::UpdateItemsHandling
 ========
 */
-void Player::UpdateItemsHandling()
-{
+void Player::UpdateItemsHandling() {
     if( mNearestPickedNode.IsValid() ) {
         if( IsUseButtonHit() ) {
             Item * itm = Item::GetByObject( mNearestPickedNode );
@@ -832,9 +829,9 @@ void Player::UpdateItemsHandling()
 
             Sheet * sheet = Sheet::GetSheetByObject( mNearestPickedNode );
 
-            if( mpSheetInHands )
+            if( mpSheetInHands ) {
                 CloseCurrentSheet();
-            else {
+            } else {
                 if( sheet ) {
                     mpSheetInHands = sheet;
                     ruHideNode( mpSheetInHands->mObject );
@@ -854,8 +851,9 @@ void Player::UpdateItemsHandling()
             ruSetNodeAngularVelocity( mNodeInHands, ruVector3( 0, 0, 0 ));
 
             if( ruIsMouseDown( MB_Right ) ) {
-                if( UseStamina( ruGetNodeMass( mNodeInHands )  ))
+                if( UseStamina( ruGetNodeMass( mNodeInHands )  )) {
                     ruMoveNode( mNodeInHands, ( ppPos - ruGetNodePosition( mpCamera->mNode )).Normalize() * 6 );
+                }
 
                 mObjectThrown = true;
                 mNodeInHands.Invalidate();
@@ -867,8 +865,9 @@ void Player::UpdateItemsHandling()
         }
     }
 
-    if( !ruIsMouseDown( MB_Left ))
+    if( !ruIsMouseDown( MB_Left )) {
         mObjectThrown = false;
+    }
 }
 
 /*
@@ -876,8 +875,7 @@ void Player::UpdateItemsHandling()
 Player::UpdatePicking
 ========
 */
-void Player::UpdatePicking()
-{
+void Player::UpdatePicking() {
     ruVector3 pickPosition;
 
     mPickedNode = ruRayPick( ruGetResolutionWidth() / 2, ruGetResolutionHeight() / 2, &pickPosition );
@@ -899,26 +897,29 @@ void Player::UpdatePicking()
             if( pItem ) {
                 mPickedObjectDesc = pItem->GetName();
                 mPickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
-				SetActionText( mPickedObjectDesc.c_str() );
+                SetActionText( mPickedObjectDesc.c_str() );
             } else if( pSheet ) {
                 mPickedObjectDesc = pSheet->GetDescription();
                 mPickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
-				SetActionText( mPickedObjectDesc.c_str() );
+                SetActionText( mPickedObjectDesc.c_str() );
             } else {
-                if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode ))
+                if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode )) {
                     SetActionText( mLocalization.GetString( "objectPick" ) );
+                }
             }
 
             if( ruIsMouseDown( MB_Left ) ) {
                 if( IsObjectHasNormalMass( mPickedNode )) {
-                    if( !ruIsNodeFrozen( mPickedNode ) && !mObjectThrown )
+                    if( !ruIsNodeFrozen( mPickedNode ) && !mObjectThrown ) {
                         mNodeInHands = mPickedNode;
+                    }
                 }
             }
         }
 
-        if( !pItem && !pSheet )
+        if( !pItem && !pSheet ) {
             mPickedObjectDesc = " ";
+        }
     }
 }
 
@@ -927,8 +928,7 @@ void Player::UpdatePicking()
 Player::CreateFlashLight
 ========
 */
-void Player::CreateFlashLight()
-{
+void Player::CreateFlashLight() {
     mpFlashlight = new Flashlight();
     mpFlashlight->Attach( mpCamera->mNode );
     mpFlashLightItem = mpFlashlight->CreateAppropriateItem();
@@ -940,14 +940,14 @@ void Player::CreateFlashLight()
 Player::UpdateFlashLight
 ========
 */
-void Player::UpdateFlashLight()
-{
+void Player::UpdateFlashLight() {
     mpFlashlight->Update();
 
     mpFlashLightItem->SetContent( mpFlashlight->GetCharge() );
 
-    if( ruIsKeyHit( mKeyFlashLight ) )
+    if( ruIsKeyHit( mKeyFlashLight ) ) {
         mpFlashlight->Switch();
+    }
 }
 
 /*
@@ -955,13 +955,13 @@ void Player::UpdateFlashLight()
 Player::DrawGUIElements
 ========
 */
-void Player::DrawGUIElements()
-{
+void Player::DrawGUIElements() {
     int alpha = mPlaceDescTimer < 50 ? 255.0f * (float)mPlaceDescTimer / 50.0f : 255;
 //    ruDrawGUIText( mPlaceDesc.c_str(), ruGetResolutionWidth() - 300, ruGetResolutionHeight() - 200, 200, 200, pGUI->mFont, ruVector3( 255, 255, 255 ), 1, alpha );
 
-    if( mPlaceDescTimer )
+    if( mPlaceDescTimer ) {
         mPlaceDescTimer--;
+    }
 
     mGoal.AnimateAndRender();
 }
@@ -971,8 +971,7 @@ void Player::DrawGUIElements()
 Player::FreeHands
 ========
 */
-void Player::FreeHands()
-{
+void Player::FreeHands() {
     mNodeInHands.Invalidate();
 }
 
@@ -981,8 +980,7 @@ void Player::FreeHands()
 Player::ChargeFlashLight
 ========
 */
-void Player::ChargeFlashLight()
-{
+void Player::ChargeFlashLight() {
     mpFlashlight->Fuel();
 }
 
@@ -991,8 +989,7 @@ void Player::ChargeFlashLight()
 Player::~Player
 ========
 */
-Player::~Player()
-{
+Player::~Player() {
     delete mpFlashlight;
     delete mpCamera;
     delete mpFlashLightItem;
@@ -1003,10 +1000,10 @@ Player::~Player()
 Player::SetMetalFootsteps
 ========
 */
-void Player::SetMetalFootsteps()
-{
-    for( auto s : mFootstepList )
+void Player::SetMetalFootsteps() {
+    for( auto s : mFootstepList ) {
         ruFreeSound( s );
+    }
 
     mFootstepList.clear();
 
@@ -1028,14 +1025,16 @@ void Player::SetMetalFootsteps()
 Player::SetFootsteps
 ========
 */
-void Player::SetFootsteps( FootstepsType ft )
-{
-    if( ft == FootstepsType::Dirt )
+void Player::SetFootsteps( FootstepsType ft ) {
+    if( ft == FootstepsType::Dirt ) {
         SetDirtFootsteps();
-    if( ft == FootstepsType::Rock )
+    }
+    if( ft == FootstepsType::Rock ) {
         SetRockFootsteps();
-    if( ft == FootstepsType::Metal )
+    }
+    if( ft == FootstepsType::Metal ) {
         SetMetalFootsteps();
+    }
 }
 
 /*
@@ -1043,8 +1042,7 @@ void Player::SetFootsteps( FootstepsType ft )
 Player::IsUseButtonHit
 ========
 */
-bool Player::IsUseButtonHit()
-{
+bool Player::IsUseButtonHit() {
     return ruIsKeyHit( mKeyUse );
 }
 
@@ -1053,8 +1051,7 @@ bool Player::IsUseButtonHit()
 Player::IsObjectHasNormalMass
 ========
 */
-bool Player::IsObjectHasNormalMass( ruNodeHandle node )
-{
+bool Player::IsObjectHasNormalMass( ruNodeHandle node ) {
     return ruGetNodeMass( node ) > 0 && ruGetNodeMass( node ) < 40;
 }
 
@@ -1063,8 +1060,7 @@ bool Player::IsObjectHasNormalMass( ruNodeHandle node )
 Player::DeserializeWith
 ========
 */
-void Player::DeserializeWith( TextFileStream & in )
-{
+void Player::DeserializeWith( TextFileStream & in ) {
     ruSetNodeLocalPosition( mBody, in.ReadVector3() );
 
     in.ReadBoolean( mSmoothCamera );
@@ -1080,8 +1076,9 @@ void Player::DeserializeWith( TextFileStream & in )
     in.ReadVector3( mJumpTo );
 
     mpCurrentWay = Way::GetByObject( ruFindByName( in.Readstring().c_str() ));
-    if( mpCurrentWay )
+    if( mpCurrentWay ) {
         ruFreeze( pPlayer->mBody );
+    }
 
     in.ReadBoolean( mLanded );
     in.ReadFloat( mStamina );
@@ -1146,8 +1143,7 @@ void Player::DeserializeWith( TextFileStream & in )
 Player::SerializeWith
 ========
 */
-void Player::SerializeWith( TextFileStream & out )
-{
+void Player::SerializeWith( TextFileStream & out ) {
     ruUnfreeze( mBody );
     out.WriteVector3( ruGetNodeLocalPosition( mBody ));
     ruSetAngularFactor( mBody, ruVector3( 0, 0, 0 ));
@@ -1218,53 +1214,44 @@ void Player::SerializeWith( TextFileStream & out )
     //headAngle.Serialize( out );
 }
 
-void Player::CloseCurrentSheet()
-{
-	mpSheetInHands->SetVisible( false );
+void Player::CloseCurrentSheet() {
+    mpSheetInHands->SetVisible( false );
     ruShowNode( mpSheetInHands->mObject );
     mpSheetInHands = 0;
     ruPlaySound( Sheet::msPaperFlipSound );
 }
 
-void Player::SetTip( const char * text )
-{
-	mTip.SetNewText( text );
+void Player::SetTip( const char * text ) {
+    mTip.SetNewText( text );
 }
 
-Parser * Player::GetLocalization()
-{
-	return &mLocalization;
+Parser * Player::GetLocalization() {
+    return &mLocalization;
 }
 
-Flashlight * Player::GetFlashLight()
-{
-	return mpFlashlight;
+Flashlight * Player::GetFlashLight() {
+    return mpFlashlight;
 }
 
-Inventory * Player::GetInventory()
-{
-	return &mInventory;
+Inventory * Player::GetInventory() {
+    return &mInventory;
 }
 
-void Player::DrawHUD()
-{
-	DrawGUIElements();
+void Player::DrawHUD() {
+    DrawGUIElements();
 }
 
-void Player::SetActionText( const char * text )
-{
-	ruSetGUINodeText( mGUIActionText, text );
-	ruSetGUINodeVisible( mGUIActionText, true );
+void Player::SetActionText( const char * text ) {
+    ruSetGUINodeText( mGUIActionText, text );
+    ruSetGUINodeVisible( mGUIActionText, true );
 }
 
-void Player::SetHUDVisible( bool state )
-{
-	for( int i = 0; i < mGUISegmentCount; i++ )
-	{
-		ruSetGUINodeVisible( mGUIHealthBarSegment[i], state );
-		ruSetGUINodeVisible( mGUIStaminaBarSegment[i], state );
-	}	
-	ruSetGUINodeVisible( mGUIBackground, state );
-	ruSetGUINodeVisible( mGUIActionText, state );
-	mGoal.SetVisible( state );
+void Player::SetHUDVisible( bool state ) {
+    for( int i = 0; i < mGUISegmentCount; i++ ) {
+        ruSetGUINodeVisible( mGUIHealthBarSegment[i], state );
+        ruSetGUINodeVisible( mGUIStaminaBarSegment[i], state );
+    }
+    ruSetGUINodeVisible( mGUIBackground, state );
+    ruSetGUINodeVisible( mGUIActionText, state );
+    mGoal.SetVisible( state );
 }

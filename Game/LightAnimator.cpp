@@ -1,10 +1,9 @@
 #include "LightAnimator.h"
 
-LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult )
-{
-	if( !ruIsLight( lit )) {
-		RaiseError( "Node is not a light!" );
-	}
+LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult ) {
+    if( !ruIsLight( lit )) {
+        RaiseError( "Node is not a light!" );
+    }
     mLight = lit;
     mAnimSpeed = as;
     mOnRange = onRange;
@@ -15,25 +14,24 @@ LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float p
     ruSetLightRange( mLight, mRange );
 }
 
-void LightAnimator::Update()
-{
+void LightAnimator::Update() {
     mRange = mRange + ( mRangeDest - mRange ) * mAnimSpeed;
 
     ruSetLightRange( mLight, mRange );
 
-    if( mAnimType == AnimationType::On )
+    if( mAnimType == AnimationType::On ) {
         mRangeDest = mOnRange;
+    }
 
-    if( mAnimType == AnimationType::Off )
+    if( mAnimType == AnimationType::Off ) {
         mRangeDest = 0;
+    }
 }
 
-void LightAnimator::SetAnimationType( AnimationType lat )
-{
+void LightAnimator::SetAnimationType( AnimationType lat ) {
     mAnimType = lat;
 }
 
-LightAnimator::AnimationType LightAnimator::GetAnimationType()
-{
-	return mAnimType;
+LightAnimator::AnimationType LightAnimator::GetAnimationType() {
+    return mAnimType;
 }

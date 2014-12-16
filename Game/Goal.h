@@ -5,8 +5,7 @@
 
 // Performs animation of goal text and it's rendering
 
-class Goal
-{
+class Goal {
 private:
     ruTimerHandle mWaitTimer;
     float mCurrentY;
@@ -15,11 +14,11 @@ private:
     float mWaitSec;
     float mAlpha;
     string mText;
-	ruTextHandle mGoalText;
+    ruTextHandle mGoalText;
 public:
     explicit Goal();
-	virtual ~Goal();
+    virtual ~Goal();
     void SetText( string t );
     void AnimateAndRender();
-	void SetVisible( bool state );
+    void SetVisible( bool state );
 };

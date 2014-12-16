@@ -4,8 +4,7 @@
 #include "Timer.h"
 #include "BitmapFont.h"
 
-class Renderer
-{
+class Renderer {
 public:
     static LRESULT CALLBACK WindowProcess ( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam );
     void UpdateMessagePump( );

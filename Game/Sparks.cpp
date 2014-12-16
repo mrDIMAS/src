@@ -3,8 +3,7 @@
 
 
 
-void Sparks::Update()
-{
+void Sparks::Update() {
     if( ruGetParticleSystemAliveParticles( ps ) <= 0 ) {
         alive = 0;
         ruFreeSceneNode( ps );
@@ -12,8 +11,7 @@ void Sparks::Update()
     }
 }
 
-Sparks::Sparks( ruNodeHandle at, ruSoundHandle emits )
-{
+Sparks::Sparks( ruNodeHandle at, ruSoundHandle emits ) {
     ruParticleSystemProperties psProps;
     psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
     psProps.type = PS_BOX;

@@ -2,8 +2,7 @@
 
 #include "Common.h"
 
-class VertexShader
-{
+class VertexShader {
 private:
     IDirect3DVertexShader9 * shader;
     ID3DXConstantTable * constants;
@@ -16,8 +15,7 @@ public:
 
 };
 
-class PixelShader
-{
+class PixelShader {
 private:
     IDirect3DPixelShader9 * shader;
     ID3DXConstantTable * constants;

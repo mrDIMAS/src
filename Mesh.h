@@ -5,32 +5,27 @@
 
 class Octree;
 
-class Mesh
-{
+class Mesh {
 public:
-    class Bone
-    {
+    class Bone {
     public:
         float weight;
         int id;
     };
 
-    class Weight
-    {
+    class Weight {
     public:
         Bone bones[ 4 ];
         int boneCount;
     };
 
-    class Triangle
-    {
+    class Triangle {
     public:
         unsigned short a;
         unsigned short b;
         unsigned short c;
 
-        Triangle( unsigned short vA, unsigned short vB, unsigned short vC )
-        {
+        Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
             a = vA;
             b = vB;
             c = vC;

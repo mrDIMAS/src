@@ -16,8 +16,7 @@
 #include "AmbientSoundSet.h"
 #include "PathFinder.h"
 
-class Level
-{
+class Level {
 private:
     vector<Item*> mItemList;
     vector<Sheet*> mSheetList;
@@ -31,10 +30,10 @@ private:
     virtual void OnSerialize( TextFileStream & out ) = 0;
     virtual void OnDeserialize( TextFileStream & in ) = 0;
     AmbientSoundSet mAmbSoundSet;
-	ruNodeHandle mScene;
-	bool mInitializationComplete;
+    ruNodeHandle mScene;
+    bool mInitializationComplete;
 protected:
-    Parser mLocalization;    
+    Parser mLocalization;
 public:
     int mTypeNum;
     ruSoundHandle mMusic;
@@ -51,16 +50,16 @@ public:
     void LoadLocalization( string fn );
     void AddAmbientSound( ruSoundHandle sound );
     void PlayAmbientSounds();
-	void LoadSceneFromFile( const char * file );
+    void LoadSceneFromFile( const char * file );
     explicit Level();
     virtual ~Level();
     virtual void DoScenario() = 0;
     virtual void Hide();
     virtual void Show();
-	void DoneInitialization( );
-	void BuildPath( Path & path, const char * nodeBaseName );
-	void CreateBlankScene();
-	ruNodeHandle GetUniqueObject( const char * name );
+    void DoneInitialization( );
+    void BuildPath( Path & path, const char * nodeBaseName );
+    void CreateBlankScene();
+    ruNodeHandle GetUniqueObject( const char * name );
     static int msCurLevelID;
     static void Change( int levelId, bool continueFromSave = false );
     virtual void SerializeWith( TextFileStream & out ) final;

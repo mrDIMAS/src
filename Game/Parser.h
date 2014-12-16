@@ -7,11 +7,10 @@
 
 using namespace std;
 
-class Parser
-{
+class Parser {
 private:
     map< string, string > mValueList;
-	string mFileName;
+    string mFileName;
     bool mParsed;
 public:
     explicit Parser( );

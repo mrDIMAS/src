@@ -2,32 +2,25 @@
 
 GameCamera * GameCamera::currentCamera = 0;
 
-void GameCamera::Update()
-{
-    if( currentCamera == this )
-    {
-		ruSetGUINodeVisible( mFullscreenQuad, true );
+void GameCamera::Update() {
+    if( currentCamera == this ) {
+        ruSetGUINodeVisible( mFullscreenQuad, true );
         ruSetGUINodeAlpha( mFullscreenQuad, quadAlpha );
         quadAlpha += ( quadAlphaTo - quadAlpha ) * 0.15f;
+    } else {
+        ruSetGUINodeVisible( mFullscreenQuad, false );
     }
-	else
-	{
-		ruSetGUINodeVisible( mFullscreenQuad, false );
-	}
 }
 
-void GameCamera::FadeIn()
-{
+void GameCamera::FadeIn() {
     quadAlphaTo = 0.0f;
 }
 
-void GameCamera::FadeOut()
-{
+void GameCamera::FadeOut() {
     quadAlphaTo = 255.0f;
 }
 
-GameCamera::GameCamera( float fov )
-{
+GameCamera::GameCamera( float fov ) {
     mNode = ruCreateCamera( fov );
 
     quadAlpha = 0.0f;
@@ -37,28 +30,24 @@ GameCamera::GameCamera( float fov )
 
     MakeCurrent();
 
-	mFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruTextureHandle::Empty(), fadeColor, quadAlpha );
-	ruSetGUINodeAlpha( mFullscreenQuad, 0 );
+    mFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruTextureHandle::Empty(), fadeColor, quadAlpha );
+    ruSetGUINodeAlpha( mFullscreenQuad, 0 );
 }
 
-void GameCamera::MakeCurrent()
-{
+void GameCamera::MakeCurrent() {
     ruSetActiveCamera( mNode );
 
     currentCamera = this;
 }
 
-bool GameCamera::FadeComplete()
-{
+bool GameCamera::FadeComplete() {
     return abs( quadAlpha - quadAlphaTo ) < 1.5f;
 }
 
-void GameCamera::FadePercent( int percent )
-{
+void GameCamera::FadePercent( int percent ) {
     quadAlphaTo = 255 - (float)percent / 100.0f * 255.0f;
 }
 
-void GameCamera::SetFadeColor( ruVector3 newFadeColor )
-{
+void GameCamera::SetFadeColor( ruVector3 newFadeColor ) {
     fadeColor = newFadeColor;
 }

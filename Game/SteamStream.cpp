@@ -1,7 +1,6 @@
 #include "SteamStream.h"
 
-void SteamStream::Update()
-{
+void SteamStream::Update() {
     ruParticleSystemProperties * psProps = ruGetParticleSystemProperties( ps );
     psProps->pointSize = power * 0.15;
     psProps->boundingRadius = power * 0.8;
@@ -9,8 +8,7 @@ void SteamStream::Update()
     ruSetSoundVolume( snd, power );
 }
 
-SteamStream::SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedMax, ruSoundHandle hissSound )
-{
+SteamStream::SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedMax, ruSoundHandle hissSound ) {
     snd = hissSound;
     ruParticleSystemProperties psProps;
     psProps.type = PS_STREAM;

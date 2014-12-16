@@ -4,51 +4,50 @@
 #include "Way.h"
 #include "Enemy.h"
 
-void SaveWriter::SaveWorldState()
-{
+void SaveWriter::SaveWorldState() {
     WriteInteger( pCurrentLevel->mTypeNum );
 
-    if( pCurrentLevel )
+    if( pCurrentLevel ) {
         pCurrentLevel->SerializeWith( *this );
+    }
 
     SavePlayerInventory();
     SaveItemPlaces();
 
     WriteInteger( Way::msWayList.size() );
-    for( auto pWay : Way::msWayList )
+    for( auto pWay : Way::msWayList ) {
         pWay->SerializeWith( *this );
+    }
 
     // save player state
     pPlayer->SerializeWith( *this );
 }
 
-SaveWriter::~SaveWriter()
-{
+SaveWriter::~SaveWriter() {
 
 }
 
-SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str(), true )
-{
+SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str(), true ) {
 
 }
 
-void SaveWriter::SaveItemPlaces()
-{
+void SaveWriter::SaveItemPlaces() {
     WriteInteger( ItemPlace::sItemPlaceList.size() );
     for( auto pItemPlace : ItemPlace::sItemPlaceList ) {
         WriteString( ruGetNodeName( pItemPlace->mObject ));
         WriteBoolean( pItemPlace->pPlacedItem != 0 );
-        if( pItemPlace->pPlacedItem )
+        if( pItemPlace->pPlacedItem ) {
             WriteString( ruGetNodeName( pItemPlace->pPlacedItem->mObject ));
+        }
         WriteInteger( (int)pItemPlace->GetPlaceType() );
     }
 }
 
 
-void SaveWriter::SavePlayerInventory()
-{
-    if( !pPlayer )
+void SaveWriter::SavePlayerInventory() {
+    if( !pPlayer ) {
         return;
+    }
 
     pPlayer->mInventory.Serialize( *this );
 }

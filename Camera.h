@@ -5,8 +5,7 @@
 
 class Skybox;
 
-class Camera : public SceneNode
-{
+class Camera : public SceneNode {
 public:
     float fov;
     float nearZ;

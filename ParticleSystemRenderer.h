@@ -3,8 +3,7 @@
 #include "Shader.h"
 #include "ParticleEmitter.h"
 
-class ParticleSystemRenderer
-{
+class ParticleSystemRenderer {
 private:
     PixelShader * pixelShader;
     VertexShader * vertexShader;

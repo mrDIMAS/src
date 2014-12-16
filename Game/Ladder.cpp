@@ -1,8 +1,7 @@
 #include "Ladder.h"
 #include "Player.h"
 
-void Ladder::LookAtTarget()
-{
+void Ladder::LookAtTarget() {
     ruVector3 direction = ruGetNodePosition( mTarget ) - ruGetNodePosition( pPlayer->mpCamera->mNode );
 
     pPlayer->mPitch = atan2f( direction.y, direction.z ) * 180.0f / 3.14159f;
@@ -10,42 +9,37 @@ void Ladder::LookAtTarget()
 }
 
 Ladder::Ladder( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
-    : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint )
-{
+    : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
     mFreeLook = true;
 }
 
-void Ladder::DoPlayerCrawling()
-{
-    if( !mEntering )
-    {
+void Ladder::DoPlayerCrawling() {
+    if( !mEntering ) {
         ruVector3 direction = ruGetNodePosition( mTarget ) - pPlayer->GetCurrentPosition();
 
         float distance = direction.Length();
 
         direction.Normalize();
 
-        if( !mLeave )
-        {
+        if( !mLeave ) {
             pPlayer->Move( direction, 0.75f );
 
-            if( distance < 0.25f )
-            {
+            if( distance < 0.25f ) {
                 mLeave = true;
 
-                if( ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mEnd )).Length2() < ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mBegin )).Length2())
+                if( ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mEnd )).Length2() < ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mBegin )).Length2()) {
                     mTarget = mEndLeavePoint;
-                else
+                } else {
                     mTarget = mBeginLeavePoint;
+                }
             }
-        }
-        else
+        } else {
             DoLeave();
+        }
     }
 }
 
-void Ladder::DoLeave()
-{
+void Ladder::DoLeave() {
     ruVector3 direction = ruGetNodePosition( mTarget ) - pPlayer->GetCurrentPosition();
 
     float distance = direction.Length();
@@ -54,9 +48,8 @@ void Ladder::DoLeave()
 
     pPlayer->Move( direction, 0.75f );
 
-    if( distance < 0.25f )
-    {
-		mLeave = false;
+    if( distance < 0.25f ) {
+        mLeave = false;
         mInside = false;
         pPlayer->SetFootsteps( mFootsteps );
         pPlayer->Unfreeze();
@@ -64,27 +57,25 @@ void Ladder::DoLeave()
     }
 }
 
-void Ladder::SetDirection( Direction direction )
-{
-    if( direction == Way::Direction::Forward )
-    {
-        if( mLeave )
+void Ladder::SetDirection( Direction direction ) {
+    if( direction == Way::Direction::Forward ) {
+        if( mLeave ) {
             mTarget = mEndLeavePoint;
-        else
+        } else {
             mTarget = mEnd;
+        }
     }
 
-    if( direction == Way::Direction::Backward )
-    {
-        if( mLeave )
+    if( direction == Way::Direction::Backward ) {
+        if( mLeave ) {
             mTarget = mBeginLeavePoint;
-        else
+        } else {
             mTarget = mBegin;
+        }
     }
 }
 
-void Ladder::Enter()
-{
+void Ladder::Enter() {
     Way::Enter();
     mFootsteps = pPlayer->mFootstepsType;
     pPlayer->SetFootsteps( FootstepsType::Metal );

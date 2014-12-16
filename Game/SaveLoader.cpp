@@ -2,16 +2,16 @@
 #include "Level.h"
 #include "Way.h"
 
-void SaveLoader::RestoreWorldState()
-{
+void SaveLoader::RestoreWorldState() {
     int levNum = ReadInteger();
 
     // load level
     Level::Change( levNum );
 
     // deserialize it's objects
-    if( pCurrentLevel )
+    if( pCurrentLevel ) {
         pCurrentLevel->DeserializeWith( *this );
+    }
 
     // deserialize items
     int itemCount = ReadInteger();
@@ -35,19 +35,22 @@ void SaveLoader::RestoreWorldState()
         string ipName = Readstring();
         bool gotPlacedItem = ReadBoolean();
         string itemName;
-        if( gotPlacedItem )
+        if( gotPlacedItem ) {
             itemName = Readstring();
+        }
         int placedType = ReadInteger();
 
         ItemPlace * pItemPlace = ItemPlace::FindByObject( ruFindByName( ipName.c_str()) );
 
         if( pItemPlace ) {
             Item * pItem = 0;
-            if( gotPlacedItem )
+            if( gotPlacedItem ) {
                 pItem = Item::GetByObject( ruFindByName( itemName.c_str() ));
+            }
 
-            if( pItem )
+            if( pItem ) {
                 pItemPlace->pPlacedItem = pItem;
+            }
 
             pItemPlace->mItemTypeCanBePlaced = (Item::Type)placedType;
         }
@@ -63,12 +66,10 @@ void SaveLoader::RestoreWorldState()
     pPlayer->DeserializeWith( *this );
 }
 
-SaveLoader::~SaveLoader()
-{
+SaveLoader::~SaveLoader() {
 
 }
 
-SaveLoader::SaveLoader( string fn ) : TextFileStream( fn.c_str(), false )
-{
+SaveLoader::SaveLoader( string fn ) : TextFileStream( fn.c_str(), false ) {
 
 }

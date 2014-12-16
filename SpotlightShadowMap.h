@@ -6,8 +6,7 @@
 #include "Mesh.h"
 #include "Utility.h"
 
-class SpotlightShadowMap
-{
+class SpotlightShadowMap {
 private:
     IDirect3DTexture9 * spotShadowMap;
     IDirect3DSurface9 * spotSurface;

@@ -4,23 +4,21 @@
 vector<Item*> Item::msItemList;
 Parser Item::msLocalization;
 
-Item * Item::GetByObject( ruNodeHandle obj )
-{
+Item * Item::GetByObject( ruNodeHandle obj ) {
     for( auto pItem : msItemList )
-        if( pItem->mObject == obj )
+        if( pItem->mObject == obj ) {
             return pItem;
+        }
     return nullptr;
 }
 
-void Item::SetType( Type type )
-{
+void Item::SetType( Type type ) {
     mType = type;
     mThrowable = true;
-	mContent = 1.0f;
-	mMass = 1.0f;
-	mVolume = 1.0f;
-    if( mType == Type::Detonator )
-    {
+    mContent = 1.0f;
+    mMass = 1.0f;
+    mVolume = 1.0f;
+    if( mType == Type::Detonator ) {
         mDesc = msLocalization.GetString( "detonatorDesc" );
         mName = msLocalization.GetString( "detonatorName" );
         mPic = ruGetTexture( "data/gui/inventory/items/detonator.png" );;
@@ -28,8 +26,7 @@ void Item::SetType( Type type )
         mMorphType = Type::Unknown;
         mContentTypeDesc = msLocalization.GetString( "detonatorContentType" );
     }
-    if( mType == Type::FuelCanister )
-    {
+    if( mType == Type::FuelCanister ) {
         mDesc = msLocalization.GetString( "fuelDesc" );
         mName = msLocalization.GetString( "fuelName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuel.png" );
@@ -38,8 +35,7 @@ void Item::SetType( Type type )
         mVolume = mContent;
         mContentTypeDesc = msLocalization.GetString( "fuelContentType" );
     }
-    if( mType == Type::Wires )
-    {
+    if( mType == Type::Wires ) {
         mDesc = msLocalization.GetString( "wiresDesc" );
         mName = msLocalization.GetString( "wiresName" );
         mPic = ruGetTexture( "data/gui/inventory/items/wires.png" );
@@ -48,8 +44,7 @@ void Item::SetType( Type type )
         mContentTypeDesc = msLocalization.GetString( "wiresContentType" );
     }
 
-    if( mType == Type::Explosives )
-    {
+    if( mType == Type::Explosives ) {
         mDesc = msLocalization.GetString( "explosivesDesc" );
         mName = msLocalization.GetString( "explosivesName" );
         mPic = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
@@ -57,8 +52,7 @@ void Item::SetType( Type type )
         mMass = 0.3f;
         mContentTypeDesc = msLocalization.GetString( "explosivesContentType" );
     }
-    if( mType == Type::Flashlight )
-    {
+    if( mType == Type::Flashlight ) {
         mDesc = msLocalization.GetString( "flashlightDesc" );
         mName = msLocalization.GetString( "flashlightName" );
         mPic = ruGetTexture( "data/gui/inventory/items/flashlight.png" );
@@ -69,8 +63,7 @@ void Item::SetType( Type type )
         mVolume = 0.6;
         mContentTypeDesc = msLocalization.GetString( "flashlightContentType" );
     }
-    if( mType == Type::Fuse )
-    {
+    if( mType == Type::Fuse ) {
         mDesc = msLocalization.GetString( "fuseDesc" );
         mName = msLocalization.GetString( "fuseName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuse.png" );
@@ -78,8 +71,7 @@ void Item::SetType( Type type )
         mMass = 5.0f;
         mContentTypeDesc = msLocalization.GetString( "fuseContentType" );
     }
-    if( mType == Type::Medkit )
-    {
+    if( mType == Type::Medkit ) {
         mDesc = msLocalization.GetString( "medkitDesc" );
         mName = msLocalization.GetString( "medkitName" );
         mPic = ruGetTexture( "data/gui/inventory/items/medkit.png" );
@@ -89,10 +81,10 @@ void Item::SetType( Type type )
     }
 }
 
-Item::Item( ruNodeHandle obj, Type type ): InteractiveObject( obj )
-{
-    if( !msLocalization.IsParsed() )
+Item::Item( ruNodeHandle obj, Type type ): InteractiveObject( obj ) {
+    if( !msLocalization.IsParsed() ) {
         msLocalization.ParseFile( localizationPath + "items.loc" );
+    }
     mMorphType = Type::Unknown;
     mCombinePair = Type::Unknown;
     msItemList.push_back( this );
@@ -100,122 +92,100 @@ Item::Item( ruNodeHandle obj, Type type ): InteractiveObject( obj )
     SetType( type );
 }
 
-Item::~Item()
-{
+Item::~Item() {
 
 }
 
-const char * Item::GetName() const
-{
-	return mName.c_str();
+const char * Item::GetName() const {
+    return mName.c_str();
 }
 
-const char * Item::GetDescription() const
-{
-	return mDesc.c_str();
+const char * Item::GetDescription() const {
+    return mDesc.c_str();
 }
 
-void Item::SetContent( float content )
-{
-	mContent = content;
+void Item::SetContent( float content ) {
+    mContent = content;
 }
 
-float Item::GetContent() const
-{
-	return mContent;
+float Item::GetContent() const {
+    return mContent;
 }
 
-ruTextureHandle Item::GetPictogram() const
-{
-	return mPic;
+ruTextureHandle Item::GetPictogram() const {
+    return mPic;
 }
 
-bool Item::IsThrowable() const
-{
-	return mThrowable;
+bool Item::IsThrowable() const {
+    return mThrowable;
 }
 
-Item::Type Item::GetCombineType() const
-{
-	return mCombinePair;
+Item::Type Item::GetCombineType() const {
+    return mCombinePair;
 }
 
-Item::Type Item::GetType() const
-{
-	return mType;
+Item::Type Item::GetType() const {
+    return mType;
 }
 
-bool Item::Combine( Item * pItem, Item* & pUsedItem )
-{
-	if( pItem->GetCombineType() == mType  )
-	{		
-		if( mCombinePair == pItem->GetType() )
-		{
-			// player flashlight charge
-			Item * pCanister = nullptr;
-			Item * pFlashlight = nullptr;
-			if( mType == Type::FuelCanister && pItem->GetType() == Type::Flashlight ) {
-				pCanister = this;
-				pFlashlight = pItem;
-			} else if( mType == Type::Flashlight && pItem->GetType() == Type::FuelCanister ) {
-				pCanister = pItem;
-				pFlashlight = this;
-			}
-			if( pCanister && pFlashlight ) {
-				if( pCanister->GetContent() > 0.0f )
-				{
-					pFlashlight->SetContent( pCanister->GetContent() );
-					pPlayer->ChargeFlashLight();
-				}
-				pUsedItem = pCanister;
-				return true;
-			}
-		}
-	}
-	return false;
+bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
+    if( pItem->GetCombineType() == mType  ) {
+        if( mCombinePair == pItem->GetType() ) {
+            // player flashlight charge
+            Item * pCanister = nullptr;
+            Item * pFlashlight = nullptr;
+            if( mType == Type::FuelCanister && pItem->GetType() == Type::Flashlight ) {
+                pCanister = this;
+                pFlashlight = pItem;
+            } else if( mType == Type::Flashlight && pItem->GetType() == Type::FuelCanister ) {
+                pCanister = pItem;
+                pFlashlight = this;
+            }
+            if( pCanister && pFlashlight ) {
+                if( pCanister->GetContent() > 0.0f ) {
+                    pFlashlight->SetContent( pCanister->GetContent() );
+                    pPlayer->ChargeFlashLight();
+                }
+                pUsedItem = pCanister;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
-float Item::GetMass() const
-{
-	return mMass;
+float Item::GetMass() const {
+    return mMass;
 }
 
-void Item::SetMass( float mass )
-{
-	mMass = mass;
+void Item::SetMass( float mass ) {
+    mMass = mass;
 }
 
-void Item::SetVolume( float val )
-{
-	mVolume = val;
+void Item::SetVolume( float val ) {
+    mVolume = val;
 }
 
-float Item::GetVolume() const
-{
-	return mVolume;
+float Item::GetVolume() const {
+    return mVolume;
 }
 
-void Item::SetContentType( const char * contentType )
-{
-	mContentTypeDesc = contentType;
+void Item::SetContentType( const char * contentType ) {
+    mContentTypeDesc = contentType;
 }
 
-const char * Item::GetContentType() const
-{
-	return mContentTypeDesc.c_str();
+const char * Item::GetContentType() const {
+    return mContentTypeDesc.c_str();
 }
 
-void Item::MarkAsFree()
-{
-	mInInventory = false;
+void Item::MarkAsFree() {
+    mInInventory = false;
 }
 
-void Item::MarkAsGrabbed()
-{
-	mInInventory = true;
+void Item::MarkAsGrabbed() {
+    mInInventory = true;
 }
 
-bool Item::IsFree()
-{
-	return mInInventory == false;
+bool Item::IsFree() {
+    return mInInventory == false;
 }

@@ -3,8 +3,7 @@
 #include "Game.h"
 
 
-class AmbientSoundSet
-{
+class AmbientSoundSet {
 private:
     vector< ruSoundHandle > sounds;
 

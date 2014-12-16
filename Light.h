@@ -9,11 +9,9 @@
 #include "Frustum.h"
 #include "Utility.h"
 
-class Light : public SceneNode
-{
+class Light : public SceneNode {
 public:
-    typedef struct
-    {
+    typedef struct {
         float x,y,z;
         float tx,ty;
     } flareVertex_t;

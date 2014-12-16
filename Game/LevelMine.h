@@ -6,8 +6,7 @@
 #include "ItemPlace.h"
 #include "AmbientSoundSet.h"
 
-class LevelMine : public Level
-{
+class LevelMine : public Level {
 private:
     void UpdateExplodeSequence();
     void CleanUpExplodeArea();
@@ -24,12 +23,12 @@ private:
     ruNodeHandle mWireModels[4];
     ruNodeHandle mDetonatorModels[4];
     ruNodeHandle mExplosivesModels[4];
-	ruNodeHandle mExplosivesDummy[4];
-	ruNodeHandle mRock[3];
-	ruNodeHandle mExplosionFlashPosition;
-	ruNodeHandle mExplosionFlashLight;
-	ruNodeHandle mExplosionDustParticleSystem;
-	ruVector3 mRockPosition[3];
+    ruNodeHandle mExplosivesDummy[4];
+    ruNodeHandle mRock[3];
+    ruNodeHandle mExplosionFlashPosition;
+    ruNodeHandle mExplosionFlashLight;
+    ruNodeHandle mExplosionDustParticleSystem;
+    ruVector3 mRockPosition[3];
 
     Item * mExplosives[4];
     Item * mDetonators[4];

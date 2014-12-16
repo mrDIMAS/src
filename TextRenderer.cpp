@@ -3,15 +3,14 @@
 
 TextRenderer * g_textRenderer = nullptr;
 
-void TextRenderer::RenderText( GUIText* guiText )
-{
+void TextRenderer::RenderText( GUIText* guiText ) {
     TextQuad * quad = nullptr;
     CheckDXErrorFatal( vertexBuffer->Lock( 0, maxChars * sizeof( TextQuad ), (void**)&quad, 0 ));
     Face * face = nullptr;
     CheckDXErrorFatal( indexBuffer->Lock( 0, maxChars * sizeof( Face ), (void**)&face, 0 ));
     int n = 0, totalLetters = 0;
 
-	RECT boundingRect = guiText->GetBoundingRect();
+    RECT boundingRect = guiText->GetBoundingRect();
 
     int caretX = boundingRect.left;
     int caretY = boundingRect.top;
@@ -19,8 +18,7 @@ void TextRenderer::RenderText( GUIText* guiText )
     int lines, height, avWidth, avSymbolWidth ;
     ComputeTextMetrics( guiText, lines, height, avWidth, avSymbolWidth );
 
-    if( guiText->GetTextAlignment() )
-    {
+    if( guiText->GetTextAlignment() ) {
         caretY = boundingRect.top + (( boundingRect.bottom - boundingRect.top ) - height ) / 2.0f;
         caretX = boundingRect.left + (( boundingRect.right - boundingRect.left ) - avWidth ) / 2.0f;
     }
@@ -28,22 +26,18 @@ void TextRenderer::RenderText( GUIText* guiText )
     char buf[8192];
     strcpy( buf, guiText->GetText().c_str() );
     char * ptr = strtok( buf, " " );
-    while( ptr )
-    {
+    while( ptr ) {
         // word wrap
         int wordLen = strlen( ptr );
-        if( caretX + wordLen * avSymbolWidth > boundingRect.right )
-        {
+        if( caretX + wordLen * avSymbolWidth > boundingRect.right ) {
             caretX = boundingRect.left;
             caretY += guiText->GetFont()->glyphSize;
         }
         char * strPtr = ptr;
-        while( true )
-        {
+        while( true ) {
             unsigned char symbol = *strPtr;
             char lineEnd = symbol == 0;
-            if( lineEnd )
-            {
+            if( lineEnd ) {
                 symbol = ' '; // draw space
             }
             BitmapFont::CharMetrics & charMetr = guiText->GetFont()->charsMetrics[ symbol ];
@@ -58,8 +52,7 @@ void TextRenderer::RenderText( GUIText* guiText )
 
             caretX += charMetr.advanceX;
 
-            if( caretX >= boundingRect.right || symbol == '\n' )
-            {
+            if( caretX >= boundingRect.right || symbol == '\n' ) {
                 caretX = boundingRect.left;
                 caretY += guiText->GetFont()->glyphSize;
             }
@@ -76,14 +69,15 @@ void TextRenderer::RenderText( GUIText* guiText )
             face->index[5] = n + 3;
             face++;
             n += 4;
-            if( lineEnd )
+            if( lineEnd ) {
                 break;
+            }
             strPtr++;
         }
         // get next token
         ptr = strtok( 0, " " );
     }
-  
+
     CheckDXErrorFatal( vertexBuffer->Unlock());
     CheckDXErrorFatal( indexBuffer->Unlock());
 
@@ -96,11 +90,10 @@ void TextRenderer::RenderText( GUIText* guiText )
 }
 
 
-void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth  )
-{
+void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth  ) {
     lines = 1;
 
-	RECT boundingRect = guiText->GetBoundingRect();
+    RECT boundingRect = guiText->GetBoundingRect();
 
     int caretX = boundingRect.left;
     int caretY = boundingRect.top;
@@ -108,23 +101,21 @@ void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & hei
     int totalWidth = 0;
     int totalHeight = 0;
 
-	int symbolCount = 0;
-    for( unsigned char symbol : guiText->GetText() )
-    {
+    int symbolCount = 0;
+    for( unsigned char symbol : guiText->GetText() ) {
         BitmapFont::CharMetrics & charMetr = guiText->GetFont()->charsMetrics[ symbol ];
 
         caretX += charMetr.advanceX;
         totalWidth += charMetr.advanceX;
         totalHeight += guiText->GetFont()->glyphSize * 2 - charMetr.bitmapTop ;
 
-        if( caretX >= boundingRect.right || symbol == '\n' )
-        {
+        if( caretX >= boundingRect.right || symbol == '\n' ) {
             lines++;
             caretX = boundingRect.left;
             caretY += guiText->GetFont()->glyphSize;
         }
-		symbol++;
-		symbolCount++;
+        symbol++;
+        symbolCount++;
     }
 
     avSymbolWidth = (float)totalWidth / (float)symbolCount;
@@ -132,8 +123,7 @@ void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & hei
     height = (float)totalHeight / (float)symbolCount;
 }
 
-TextRenderer::TextRenderer()
-{
+TextRenderer::TextRenderer() {
     maxChars = 8192;
     int vBufLen = maxChars * sizeof( TextQuad );
     CheckDXErrorFatal( g_pDevice->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC, D3DFVF_TEX1 | D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
@@ -141,8 +131,7 @@ TextRenderer::TextRenderer()
     CheckDXErrorFatal( g_pDevice->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
 }
 
-TextRenderer::~TextRenderer()
-{
+TextRenderer::~TextRenderer() {
     vertexBuffer->Release();
     indexBuffer->Release();
 }

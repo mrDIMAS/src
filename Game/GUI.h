@@ -2,8 +2,7 @@
 
 #include "Game.h"
 
-class GUI
-{
+class GUI {
 public:
     ruFontHandle mFont;
     ruTextureHandle staminaBarImg;

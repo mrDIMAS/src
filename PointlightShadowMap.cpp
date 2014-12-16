@@ -1,7 +1,6 @@
 #include "PointlightShadowMap.h"
 
-void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int prevRTNum, Light * light )
-{
+void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int prevRTNum, Light * light ) {
     IDirect3DStateBlock9 * state;
     CheckDXErrorFatal( g_pDevice->CreateStateBlock( D3DSBT_ALL, &state ));
     // set new suitable depth stencil surface
@@ -19,11 +18,9 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
     pixelShader->Bind();
     vertexShader->Bind();
     // collect meshes that are in point light bounding sphere
-    for( auto meshGroupIter : Mesh::meshes )   // brute force method
-    {
+    for( auto meshGroupIter : Mesh::meshes ) { // brute force method
         auto & group = meshGroupIter.second;
-        for( auto mesh : group )
-        {
+        for( auto mesh : group ) {
             //if( mesh->ownerNode->IsVisible()) {
             //    if( (( mesh->aabb.center + mesh->ownerNode->GetPosition()) - light->GetRealPosition()).Length() < light->radius ) {
             lightedMeshes.push_back( mesh );
@@ -34,38 +31,31 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
     // render each face of the cube map
     D3DXMATRIX proj;
     D3DXMatrixPerspectiveFovRH( &proj, SIMD_HALF_PI, 1.0f, 0.1f, 1024.0f );
-    for( int i = 0; i < 6; i++ )
-    {
+    for( int i = 0; i < 6; i++ ) {
         D3DXMATRIX view, viewProj;
         D3DXVECTOR3 lookAt, up;
 
-        if( i == D3DCUBEMAP_FACE_POSITIVE_X )
-        {
+        if( i == D3DCUBEMAP_FACE_POSITIVE_X ) {
             lookAt = D3DXVECTOR3( -1, 0, 0 );
             up = D3DXVECTOR3( 0, -1, 0 );
         }
-        if( i == D3DCUBEMAP_FACE_NEGATIVE_X )
-        {
+        if( i == D3DCUBEMAP_FACE_NEGATIVE_X ) {
             lookAt = D3DXVECTOR3( 1, 0, 0 );
             up = D3DXVECTOR3( 0, -1, 0 );
         }
-        if( i == D3DCUBEMAP_FACE_POSITIVE_Y )
-        {
+        if( i == D3DCUBEMAP_FACE_POSITIVE_Y ) {
             lookAt = D3DXVECTOR3( 0, -1, 0 );
             up = D3DXVECTOR3( 0, 0, -1 );
         }
-        if( i == D3DCUBEMAP_FACE_NEGATIVE_Y )
-        {
+        if( i == D3DCUBEMAP_FACE_NEGATIVE_Y ) {
             lookAt = D3DXVECTOR3( 0, 1, 0 );
             up = D3DXVECTOR3( 0, 0, 1 );
         }
-        if( i == D3DCUBEMAP_FACE_POSITIVE_Z )
-        {
+        if( i == D3DCUBEMAP_FACE_POSITIVE_Z ) {
             lookAt = D3DXVECTOR3( 0, 0, -1 );
             up = D3DXVECTOR3( 0, -1, 0 );
         }
-        if( i == D3DCUBEMAP_FACE_NEGATIVE_Z )
-        {
+        if( i == D3DCUBEMAP_FACE_NEGATIVE_Z ) {
             lookAt = D3DXVECTOR3( 0, 0, 1 );
             up = D3DXVECTOR3( 0, -1, 0 );
         }
@@ -77,8 +67,7 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
         // clear it
         CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
         // render all lighted meshes
-        for( auto mesh : lightedMeshes )
-        {
+        for( auto mesh : lightedMeshes ) {
             mesh->GetDiffuseTexture()->Bind( 0 );
             D3DXMATRIX world, wvp;
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
@@ -101,28 +90,25 @@ void PointlightShadowMap::RenderPointShadowMap( IDirect3DSurface9 * prevRT, int 
     lightedMeshes.clear();
 }
 
-void PointlightShadowMap::UnbindShadowCubemap( int level )
-{
+void PointlightShadowMap::UnbindShadowCubemap( int level ) {
     CheckDXErrorFatal( g_pDevice->SetTexture( level, nullptr ));
 }
 
-void PointlightShadowMap::BindShadowCubemap( int level )
-{
+void PointlightShadowMap::BindShadowCubemap( int level ) {
     CheckDXErrorFatal( g_pDevice->SetTexture( level, shadowCube ));
 }
 
-PointlightShadowMap::~PointlightShadowMap()
-{
-    for( int i = 0; i < 6; i++ )
+PointlightShadowMap::~PointlightShadowMap() {
+    for( int i = 0; i < 6; i++ ) {
         cubeFaces[i]->Release();
+    }
     shadowCube->Release();
     depthStencil->Release();
     delete pixelShader;
     delete vertexShader;
 }
 
-PointlightShadowMap::PointlightShadowMap( int faceSize )
-{
+PointlightShadowMap::PointlightShadowMap( int faceSize ) {
     iSize = faceSize;
 
     CheckDXErrorFatal( D3DXCreateCubeTexture( g_pDevice, faceSize, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &shadowCube ));

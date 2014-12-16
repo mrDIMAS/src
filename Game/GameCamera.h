@@ -2,8 +2,7 @@
 
 #include "Game.h"
 
-class GameCamera
-{
+class GameCamera {
 public:
     ruNodeHandle mNode;
 
@@ -12,7 +11,7 @@ public:
 
     ruVector3 fadeColor;
 
-	ruRectHandle mFullscreenQuad;
+    ruRectHandle mFullscreenQuad;
 public:
     GameCamera( float fov = 65 );
     void FadeOut();

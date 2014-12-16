@@ -4,8 +4,7 @@
 #include "Item.h"
 #include "Player.h"
 
-class ItemPlace
-{
+class ItemPlace {
 public:
     ruNodeHandle mObject;
     Item::Type mItemTypeCanBePlaced;

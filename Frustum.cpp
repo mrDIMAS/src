@@ -3,8 +3,7 @@
 
 
 
-bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset )
-{
+bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset ) {
     /* fus ro dah!!!
     for( int i = 0; i < 8; i++ ) {
     if( IsPointInside( aabb.vertices[i] + aabbOffset )) {
@@ -12,30 +11,28 @@ bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset )
     }
     }*/
 
-    for( int i = 0; i < 6; i++ )
-    {
+    for( int i = 0; i < 6; i++ ) {
         D3DXVECTOR3 dxPoint = D3DXVECTOR3( aabb.center.x + aabbOffset.x, aabb.center.y + aabbOffset.y, aabb.center.z + aabbOffset.z );
-        if( D3DXPlaneDotCoord( &planes[i], &dxPoint ) < -aabb.radius )
+        if( D3DXPlaneDotCoord( &planes[i], &dxPoint ) < -aabb.radius ) {
             return false;
+        }
     }
     return true;
 
     return false;
 }
 
-bool Frustum::IsPointInside( const ruVector3 & point )
-{
-    for( int i = 0; i < 6; i++ )
-    {
+bool Frustum::IsPointInside( const ruVector3 & point ) {
+    for( int i = 0; i < 6; i++ ) {
         D3DXVECTOR3 dxPoint = D3DXVECTOR3( point.x, point.y, point.z );
-        if( D3DXPlaneDotCoord( &planes[i], &dxPoint ) <= 0 )
+        if( D3DXPlaneDotCoord( &planes[i], &dxPoint ) <= 0 ) {
             return false;
+        }
     }
     return true;
 }
 
-void Frustum::Build( D3DXMATRIX viewProjection )
-{
+void Frustum::Build( D3DXMATRIX viewProjection ) {
     // Left plane
     planes[0].a = viewProjection._14 + viewProjection._11;
     planes[0].b = viewProjection._24 + viewProjection._21;
@@ -73,11 +70,11 @@ void Frustum::Build( D3DXMATRIX viewProjection )
     planes[5].d = viewProjection._44 - viewProjection._43;
 
     // Normalize planes
-    for ( int i = 0; i < 6; i++ )
+    for ( int i = 0; i < 6; i++ ) {
         D3DXPlaneNormalize ( &planes[i], &planes[i] );
+    }
 }
 
-Frustum::Frustum()
-{
+Frustum::Frustum() {
 
 }

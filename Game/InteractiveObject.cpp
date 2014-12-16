@@ -3,16 +3,14 @@
 
 vector< InteractiveObject* > InteractiveObject::objects;
 
-void InteractiveObject::DeleteAll()
-{
-    for( auto it = objects.begin(); it != objects.end(); it++ )
+void InteractiveObject::DeleteAll() {
+    for( auto it = objects.begin(); it != objects.end(); it++ ) {
         delete *it;
+    }
 }
 
-void InteractiveObject::UpdateAll()
-{
-    for( auto it = objects.begin(); it != objects.end(); it++ )
-    {
+void InteractiveObject::UpdateAll() {
+    for( auto it = objects.begin(); it != objects.end(); it++ ) {
         InteractiveObject * io = *it;
 
         io->UpdateFlashing();
@@ -20,29 +18,27 @@ void InteractiveObject::UpdateAll()
     }
 }
 
-void InteractiveObject::UpdateFlashing()
-{
-    if( flashDirection )
-    {
-        if( flashAlbedo < 1 )
+void InteractiveObject::UpdateFlashing() {
+    if( flashDirection ) {
+        if( flashAlbedo < 1 ) {
             flashAlbedo += 0.015f;
-        else
+        } else {
             flashDirection = false;
-    }
-    else
-    {
-        if( flashAlbedo > 0.2 )
+        }
+    } else {
+        if( flashAlbedo > 0.2 ) {
             flashAlbedo -= 0.015f;
-        else
+        } else {
             flashDirection = true;
+        }
     }
 
-    if( mObject.IsValid() )
+    if( mObject.IsValid() ) {
         ruSetNodeAlbedo( mObject, flashAlbedo );
+    }
 }
 
-InteractiveObject::InteractiveObject( ruNodeHandle object )
-{
+InteractiveObject::InteractiveObject( ruNodeHandle object ) {
     objects.push_back( this );
     this->mObject = object;
     ruFreeze( object );
@@ -52,7 +48,6 @@ InteractiveObject::InteractiveObject( ruNodeHandle object )
     flashDirection = true;
 }
 
-InteractiveObject::~InteractiveObject()
-{
+InteractiveObject::~InteractiveObject() {
     objects.erase( find( objects.begin(), objects.end(), this ));
 }

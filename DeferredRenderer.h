@@ -10,11 +10,9 @@
 
 class Mesh;
 
-class DeferredRenderer
-{
+class DeferredRenderer {
 public:
-    class BoundingVolumeRenderingShader
-    {
+    class BoundingVolumeRenderingShader {
     private:
         VertexShader * vs;
         PixelShader * ps;
@@ -37,8 +35,7 @@ public:
 
 
     // Ambient Light
-    class Pass2AmbientLight
-    {
+    class Pass2AmbientLight {
     private:
         PixelShader * pixelShader;
     public:
@@ -48,8 +45,7 @@ public:
     };
 
     // Point Light
-    class Pass2PointLight
-    {
+    class Pass2PointLight {
     private:
         PixelShader * pixelShader;
         PixelShader * pixelShaderLQ;
@@ -63,8 +59,7 @@ public:
     };
 
     // Spot Light
-    class Pass2SpotLight
-    {
+    class Pass2SpotLight {
     private:
         PixelShader * pixelShader;
     public:
