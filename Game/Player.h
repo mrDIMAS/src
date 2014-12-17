@@ -29,7 +29,7 @@ public:
     void UpdatePicking();
     void UpdateItemsHandling();
     void UpdateEnvironmentDamaging();
-    void DescribePickedObject();
+    void UpdateCursor();
     void DrawSheetInHands();
     void CloseCurrentSheet();
     void SetRockFootsteps();
@@ -50,10 +50,11 @@ public:
     ruNodeHandle mNearestPickedNode;
     ruNodeHandle mPickedNode;
 
-    ruTextureHandle mObjectDragUpCursor;
-    ruTextureHandle mObjectDragDownCursor;
     ruTextureHandle mStatusBar;
-    ruTextureHandle mStealthSign;
+
+	ruRectHandle mGUICursorPickUp;
+	ruRectHandle mGUICursorPut;
+	ruRectHandle mGUICrosshair;
 
     SmoothFloat mPitch;
     SmoothFloat mYaw;
@@ -121,7 +122,6 @@ public:
     int mKeyLookRight;
 
     string mPlaceDesc;
-    string mPickedObjectDesc;
 
     Goal mGoal;
 
@@ -138,6 +138,7 @@ public:
     ruRectHandle mGUIHealthBarSegment[mGUISegmentCount];
     ruRectHandle mGUIStaminaBarSegment[mGUISegmentCount];
     ruRectHandle mGUIBackground;
+	ruRectHandle mGUIStealthSign;
 public:
     explicit Player();
     virtual ~Player();

@@ -79,10 +79,10 @@ public:
     Pass2PointLight * pass2PointLight;
     Pass2SpotLight * pass2SpotLight;
 
-    FXAA * fxaa;
+    FXAA * pFXAA;
     SpotlightShadowMap * spotShadowMap;
     PointlightShadowMap * pointShadowMap;
-    HDRRenderer * hdrRenderer;
+    HDRRenderer * pHDRRenderer;
 
     // renderQuality can be 0 (lowest) or 1 (highest)
     char renderQuality;

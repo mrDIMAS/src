@@ -11,6 +11,7 @@ private:
     ruTimerHandle mTextTimer;
     ruTextHandle mGUIText;
     ruTextHandle mGUISkipText;
+	ruRectHandle mGUIBackground;
 public:
     explicit LevelIntroduction();
     virtual ~LevelIntroduction();

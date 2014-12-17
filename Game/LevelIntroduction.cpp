@@ -45,6 +45,7 @@ void LevelIntroduction::DoScenario() {
 LevelIntroduction::~LevelIntroduction() {
     ruFreeGUINode( mGUIText );
     ruFreeGUINode( mGUISkipText );
+	ruFreeGUINode( mGUIBackground );
 }
 
 LevelIntroduction::LevelIntroduction() {
@@ -59,8 +60,9 @@ LevelIntroduction::LevelIntroduction() {
     int scy = ruGetResolutionHeight() / 2;
     int w = 600;
     int h = 400;
-    mGUIText = ruCreateGUIText( mLocalization.GetString( "intro" ), scx - w / 2, scy - h / 2, w, h, pGUI->mFont, ruVector3( 255, 255, 255 ), 0, mTextAlpha );
+    mGUIText = ruCreateGUIText( mLocalization.GetString( "intro" ), scx - w / 2, scy - h / 2, w, h, pGUI->mFont, ruVector3( 0, 0, 0 ), 0, mTextAlpha );
     mGUISkipText = ruCreateGUIText( mLocalization.GetString( "skip" ), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+	mGUIBackground = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(),  ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
 }
 
 void LevelIntroduction::OnDeserialize( TextFileStream & in ) {

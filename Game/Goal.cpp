@@ -13,7 +13,7 @@ void Goal::AnimateAndRender() {
     if( mAlpha <= 101 ) {
         mAlpha = 255.0f;
     }
-
+	ruSetGUINodeAlpha( mGoalText, mAlpha );
     ruSetGUINodePosition( mGoalText, 40, mCurrentY );
 }
 

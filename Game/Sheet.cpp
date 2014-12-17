@@ -36,7 +36,7 @@ void Sheet::Draw( ) {
 
 }
 
-Sheet * Sheet::GetSheetByObject( ruNodeHandle o ) {
+Sheet * Sheet::GetSheetPointerByNode( ruNodeHandle o ) {
     for( auto sh : msSheetList )
         if( sh->mObject == o ) {
             return sh;

@@ -4,7 +4,7 @@
 
 class TextFileStream {
 private:
-    fstream stream;
+    fstream mStream;
 public:
     TextFileStream( const char * fileName, bool save );
     ~TextFileStream();

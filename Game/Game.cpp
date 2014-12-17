@@ -52,6 +52,7 @@ void main( ) {
     FPSCounter fpsCounter;
 
     ruTimerHandle dtTimer = ruCreateTimer();
+	Level::CreateLoadingScreen();
 
     double fixedTick = 1.0 / 60.0;
     double prevPhysTime = ruGetTimeInSeconds( dtTimer );
@@ -111,7 +112,9 @@ void main( ) {
                     }
                     InteractiveObject::UpdateAll();
                     screamer->Update();
-                }
+                } else {
+					screamer->SetVisible( false );
+				}
                 ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\n", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt ).c_str());
                 ruSetGUINodeVisible( fpsText, g_showFPS );
             }

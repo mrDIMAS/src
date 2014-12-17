@@ -3,45 +3,45 @@
 void Pathfinder::BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints ) {
     assert( begin != nullptr );
     assert( end != nullptr );
-    assert( graph.size() != 0 );
+    assert( mGraph.size() != 0 );
     outPoints.clear();
     // clear state of all vertices
-    for( auto vertex : graph ) {
+    for( auto vertex : mGraph ) {
         vertex->ClearState();
     }
     // set begin graph vertex
-    begin->distanceFromBegin = 0;
+    begin->mDistanceFromBegin = 0;
 
-    for( int i = 0; i < graph.size(); i++ ) {
+    for( int i = 0; i < mGraph.size(); i++ ) {
         // get nearest vertex
         GraphVertex * nearest = nullptr;
-        for( auto vertex : graph ) {
-            if( vertex->used ) {
+        for( auto vertex : mGraph ) {
+            if( vertex->mUsed ) {
                 continue;
             } else if( !nearest ) {
                 nearest = vertex;
-            } else if( vertex->distanceFromBegin < nearest->distanceFromBegin ) {
+            } else if( vertex->mDistanceFromBegin < nearest->mDistanceFromBegin ) {
                 nearest = vertex;
             }
         }
 
-        if( nearest->distanceFromBegin >= Infinite ) {
+        if( nearest->mDistanceFromBegin >= Infinite ) {
             break;
         }
 
-        nearest->used = true;
+        nearest->mUsed = true;
 
         // relaxation
-        for( auto & edge : nearest->edges ) {
-            if( nearest->distanceFromBegin + edge.distToDestVertex < edge.destVertex->distanceFromBegin ) {
-                edge.destVertex->distanceFromBegin = nearest->distanceFromBegin + edge.distToDestVertex;
-                edge.destVertex->ancestor = nearest;
+        for( auto & edge : nearest->mEdges ) {
+            if( nearest->mDistanceFromBegin + edge.mDistToDestVertex < edge.mpDestVertex->mDistanceFromBegin ) {
+                edge.mpDestVertex->mDistanceFromBegin = nearest->mDistanceFromBegin + edge.mDistToDestVertex;
+                edge.mpDestVertex->mAncestor = nearest;
             }
         }
     }
 
     // restore path to dest vertex
-    for( GraphVertex * v = end; v != begin; v = v->ancestor ) {
+    for( GraphVertex * v = end; v != begin; v = v->mAncestor ) {
         outPoints.push_back (v);
     }
 
@@ -51,23 +51,23 @@ void Pathfinder::BuildPath( GraphVertex * begin, GraphVertex * end, vector< Grap
 }
 
 int Pathfinder::GetPointCount() {
-    return graph.size();
+    return mGraph.size();
 }
 
 GraphVertex * Pathfinder::GetPoint( int i ) {
-    if( i < 0 || i >= graph.size() ) {
+    if( i < 0 || i >= mGraph.size() ) {
         return nullptr;
     } else {
-        return graph[i];
+        return mGraph[i];
     }
 }
 
 void Pathfinder::SetVertices( vector< GraphVertex* > vertices ) {
-    graph = vertices;
+    mGraph = vertices;
 }
 
 Pathfinder::~Pathfinder() {
-    for( auto vertex : graph ) {
+    for( auto vertex : mGraph ) {
         delete vertex;
     }
 }
@@ -77,11 +77,11 @@ Pathfinder::Pathfinder() {
 }
 
 GraphVertex * Pathfinder::GetVertexNearestTo( ruVector3 position, int * vertexNum ) {
-    assert( graph.size() != 0 );
-    GraphVertex * nearest = graph[0];
+    assert( mGraph.size() != 0 );
+    GraphVertex * nearest = mGraph[0];
     int nearestIndex = 0, index = 0;;
-    for( auto vertex : graph ) {
-        if( ( vertex->position - position ).Length2() < ( nearest->position - position ).Length2() ) {
+    for( auto vertex : mGraph ) {
+        if( ( vertex->mPosition - position ).Length2() < ( nearest->mPosition - position ).Length2() ) {
             nearest = vertex;
             nearestIndex = index;
         }
@@ -94,33 +94,33 @@ GraphVertex * Pathfinder::GetVertexNearestTo( ruVector3 position, int * vertexNu
 }
 
 void GraphVertex::AddEdge( GraphVertex * vertex ) {
-    edges.push_back( Edge( vertex, DistanceToVertex( vertex )));
-    vertex->edges.push_back( Edge( this, DistanceToVertex( vertex )));
+    mEdges.push_back( Edge( vertex, DistanceToVertex( vertex )));
+    vertex->mEdges.push_back( Edge( this, DistanceToVertex( vertex )));
 }
 
 void GraphVertex::ClearState() {
-    ancestor = nullptr;
-    used = false;
-    distanceFromBegin = Infinite;
+    mAncestor = nullptr;
+    mUsed = false;
+    mDistanceFromBegin = Infinite;
 }
 
 GraphVertex::GraphVertex( ruVector3 pos ) {
-    position = pos;
+    mPosition = pos;
     ClearState();
 }
 
 float GraphVertex::DistanceToVertex( GraphVertex * vertex ) {
-    return ( position - vertex->position ).Length();
+    return ( mPosition - vertex->mPosition ).Length();
 }
 
 Edge::Edge( GraphVertex * destinationVertex, float distanceToDestinationVertex ) {
-    destVertex = destinationVertex;
-    distToDestVertex = distanceToDestinationVertex;
+    mpDestVertex = destinationVertex;
+    mDistToDestVertex = distanceToDestinationVertex;
 }
 
 Edge::Edge() {
-    destVertex = nullptr;
-    distToDestVertex = Infinite;
+    mpDestVertex = nullptr;
+    mDistToDestVertex = Infinite;
 }
 
 void Path::BuildPath( ruNodeHandle scene, string pathBaseName ) {
@@ -148,11 +148,11 @@ void Path::BuildPath( ruNodeHandle scene, string pathBaseName ) {
 }
 
 void Path::AddPointAndLinkWithPrevious( GraphVertex * vertex ) {
-    if( vertices.size() > 0 ) {
-        GraphVertex * prev = vertices[ vertices.size() - 1 ];
+    if( mVertexList.size() > 0 ) {
+        GraphVertex * prev = mVertexList[ mVertexList.size() - 1 ];
         prev->AddEdge( vertex );
     }
-    vertices.push_back( vertex );
+    mVertexList.push_back( vertex );
 }
 
 bool Path::NodeSorter::operator()( const ruNodeHandle & node1, const ruNodeHandle & node2 ) {

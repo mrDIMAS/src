@@ -62,6 +62,10 @@ public:
     ruNodeHandle GetUniqueObject( const char * name );
     static int msCurLevelID;
     static void Change( int levelId, bool continueFromSave = false );
+	static ruTextHandle msGUILoadingText;
+	static ruRectHandle msGUILoadingBackground;
+	static ruFontHandle msGUIFont;
+	static void CreateLoadingScreen();
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
 };

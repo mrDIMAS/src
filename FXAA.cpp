@@ -1,21 +1,21 @@
 #include "FXAA.h"
 
 void FXAA::DoAntialiasing( IDirect3DTexture9 * outTexture ) {
-    CheckDXErrorFatal( g_pDevice->SetRenderTarget( 0, backBufferRT ));
-    CheckDXErrorFatal( g_pDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    CheckDXErrorFatal( gpDevice->SetRenderTarget( 0, backBufferRT ));
+    CheckDXErrorFatal( gpDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
 
-    CheckDXErrorFatal( g_pDevice->SetTexture( 0, outTexture ));
+    CheckDXErrorFatal( gpDevice->SetTexture( 0, outTexture ));
 
     effectsQuad->Bind();
     pixelShader->Bind();
 
-    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_pDevice, screenWidth, g_width ));
-    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( g_pDevice, screenHeight, g_height ));
+    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( gpDevice, screenWidth, g_width ));
+    CheckDXErrorFatal( pixelShader->GetConstantTable()->SetFloat( gpDevice, screenHeight, g_height ));
     effectsQuad->Render();
 }
 
 void FXAA::BeginDrawIntoTexture() {
-    g_pDevice->SetRenderTarget( 0, renderTarget );
+    gpDevice->SetRenderTarget( 0, renderTarget );
 }
 
 FXAA::FXAA() {
@@ -130,12 +130,12 @@ FXAA::FXAA() {
     pixelShader = new PixelShader( source );
     screenWidth = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_WIDTH" );
     screenHeight = pixelShader->GetConstantTable()->GetConstantByName( 0, "SCREEN_HEIGHT" );
-    if( FAILED( D3DXCreateTexture( g_pDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture ))) {
+    if( FAILED( D3DXCreateTexture( gpDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture ))) {
         MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
     }
 
     CheckDXErrorFatal( texture->GetSurfaceLevel( 0, &renderTarget ));
-    CheckDXErrorFatal( g_pDevice->GetRenderTarget( 0, &backBufferRT ));
+    CheckDXErrorFatal( gpDevice->GetRenderTarget( 0, &backBufferRT ));
 
     effectsQuad = new EffectsQuad;
 }

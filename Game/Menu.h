@@ -36,7 +36,8 @@ private:
     bool mExitPressed;
     bool mContinuePressed;
     bool mReturnToGameByEsc;
-    bool mExitingGame;
+	bool mExitingGame;
+	int mMainButtonsAlpha;
     string mLoadSaveGameName;
     bool mLoadFromSave;
     ruSoundHandle mPickSound;
@@ -68,7 +69,8 @@ private:
     WaitKeyButton * mpQuickSaveKey;
     WaitKeyButton * mpQuickLoadKey;
     WaitKeyButton * mpStealthKey;
-
+	WaitKeyButton * mpLookLeftKey;
+	WaitKeyButton * mpLookRightKey;
     ruVector3 mCameraInitialPosition;
     ruVector3 mCameraAnimationOffset;
     ruVector3 mCameraAnimationNewOffset;
@@ -89,6 +91,7 @@ private:
 
     ruTextHandle mGUIAuthorsText;
     ruRectHandle mGUIAuthorsBackground;
+
 
     static const int mSaveLoadSlotCount = 7;
     ruButtonHandle mGUISaveGameSlot[mSaveLoadSlotCount];

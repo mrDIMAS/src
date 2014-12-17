@@ -10,6 +10,10 @@
 #include "SaveLoader.h"
 #include "SaveWriter.h"
 
+ruTextHandle Level::msGUILoadingText;
+ruRectHandle Level::msGUILoadingBackground;
+ruFontHandle Level::msGUIFont;
+
 int g_initialLevel;
 Level * pCurrentLevel = 0;
 int Level::msCurLevelID = 0;
@@ -87,10 +91,12 @@ void Level::Change( int levelId, bool continueFromSave ) {
     static int lastLevel = 0;
 
     if( lastLevel != Level::msCurLevelID ) {
-        // ruDrawGUIText( pMainMenu->mLocalization.GetString( "loading" ), ruGetResolutionWidth() / 2 - 64, ruGetResolutionHeight() / 2 - 64, 128, 128, pGUI->mFont, ruVector3( 255, 255, 0), 1 );
-
+		ruSetGUINodeVisible( msGUILoadingText, true );
+		ruSetGUINodeVisible( msGUILoadingBackground, true );
         // draw 'loading' string
         ruRenderWorld( 1.0f / 60.0f );
+		ruSetGUINodeVisible( msGUILoadingText, false );
+		ruSetGUINodeVisible( msGUILoadingBackground, false );
 
         lastLevel = Level::msCurLevelID;
 
@@ -264,4 +270,17 @@ void Level::BuildPath( Path & path, const char * nodeBaseName ) {
 
 void Level::DoneInitialization() {
     mInitializationComplete = true;
+}
+
+void Level::CreateLoadingScreen()
+{
+	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf", 0, 0 );
+	int w = 200;
+	int h = 32;
+	int x = ( ruGetResolutionWidth() - w ) / 2;
+	int y = ( ruGetResolutionHeight() - h ) / 2;
+	msGUILoadingText = ruCreateGUIText( "Загрузка...", x, y, w, h, msGUIFont, ruVector3( 0, 0, 0 ), 1 );
+	ruSetGUINodeVisible( msGUILoadingText, false );
+	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
+	ruSetGUINodeVisible( msGUILoadingBackground, false );
 }

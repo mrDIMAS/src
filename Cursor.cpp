@@ -6,12 +6,12 @@ Cursor * g_cursor = 0;
 void Cursor::Hide() {
     g_cursor->mVisible = 0;
     ShowCursor( FALSE );
-    g_pDevice->ShowCursor( FALSE );
+    gpDevice->ShowCursor( FALSE );
 }
 
 void Cursor::Show() {
     g_cursor->mVisible = 1;
     ShowCursor( FALSE );
-    g_pDevice->ShowCursor( FALSE );
+    gpDevice->ShowCursor( FALSE );
 }
 

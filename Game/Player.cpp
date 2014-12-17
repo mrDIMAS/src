@@ -70,7 +70,7 @@ Player::Player() : Actor( 1.0f, 0.2f ) {
     mpFollowPath = nullptr;
     mpCurrentWay = nullptr;
 
-    mStealthSign = ruGetTexture( "data/textures/effects/eye.png" );
+   
 
     LoadGUIElements();
     CreateCamera();
@@ -221,11 +221,13 @@ Player::UpdateInventory
 ========
 */
 void Player::UpdateInventory() {
-    if( ruIsKeyHit( mKeyInventory ) ) {
-        mInventory.Open( !mInventory.IsOpened() );
-    }
+	if( !mpSheetInHands ) {
+		if( ruIsKeyHit( mKeyInventory ) ) {
+			mInventory.Open( !mInventory.IsOpened() );
+		}
 
-    mInventory.Update();
+		mInventory.Update();
+	}
 }
 
 /*
@@ -527,7 +529,8 @@ void Player::ComputeStealth() {
         alpha = 255;
     }
     ruVector3 color = ( mStealthFactor < 1.05f ) ? ruVector3( 255, 255, 255 ) : ruVector3( 255, 0, 0 );
-//    ruDrawGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, mStealthSign, color, alpha );
+	ruSetGUINodeAlpha( mGUIStealthSign, alpha );
+	ruSetGUINodeColor( mGUIStealthSign, color );
 }
 /*
 ========
@@ -559,7 +562,7 @@ void Player::Update( ) {
     UpdateEnvironmentDamaging();
     UpdateInventory();
     DrawSheetInHands();
-    DescribePickedObject();
+    UpdateCursor();
 
 }
 
@@ -569,10 +572,13 @@ Player::LoadGUIElements
 ========
 */
 void Player::LoadGUIElements() {
-    mObjectDragUpCursor = ruGetTexture( "data/gui/up.png" );
-    mObjectDragDownCursor = ruGetTexture( "data/gui/down.png" );
     mItemPickupSound = ruLoadSound2D( "data/sounds/menuhit.ogg" );
     mStatusBar = ruGetTexture( "data/gui/statusbar.png" );
+
+	mGUICursorPickUp = ruCreateGUIRect( (ruGetResolutionWidth() - 32) / 2, (ruGetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/up.png" ) );
+	mGUICursorPut = ruCreateGUIRect( (ruGetResolutionWidth() - 32) / 2, (ruGetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/down.png" ) );
+	mGUICrosshair = ruCreateGUIRect( (ruGetResolutionWidth() - 32) / 2, (ruGetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/crosshair.png" ) );
+	mGUIStealthSign = ruCreateGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, ruGetTexture( "data/textures/effects/eye.png" ));
 }
 
 /*
@@ -762,10 +768,9 @@ Player::DrawSheetInHands
 */
 void Player::DrawSheetInHands() {
     if( mpSheetInHands ) {
+		SetActionText( Format( "%s%s", mpSheetInHands->GetDescription(), mLocalization.GetString( "sheetOpen" )).c_str());
         mpSheetInHands->SetVisible( true );
         mpSheetInHands->Draw();
-        mPickedObjectDesc = mpSheetInHands->GetDescription();
-        mPickedObjectDesc += mLocalization.GetString( "sheetOpen" );
         if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 ) {
             CloseCurrentSheet();
         }
@@ -777,21 +782,31 @@ void Player::DrawSheetInHands() {
 Player::DescribePickedObject
 ========
 */
-void Player::DescribePickedObject() {
-    /*
-    // Change cursor first
-    if( mNearestPickedNode.IsValid() ) {
-        if( IsObjectHasNormalMass( mNearestPickedNode ))
-    //            ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragUpCursor, ruVector3( 255, 255, 255 ), 180 );
-    } else {
-    //       if( mNodeInHands.IsValid() )
-    //           ruDrawGUIRect( ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, mObjectDragDownCursor, ruVector3( 255, 255, 255 ), 180 );
-    //       else
-    //           ruDrawGUIText( "+", ruGetResolutionWidth() / 2 - 16, ruGetResolutionHeight() / 2 - 16, 32, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, 180 );
-    //   }
-    // Then describe object
-    //    ruDrawGUIText( mPickedObjectDesc.c_str(), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
-    */
+void Player::UpdateCursor() {
+	if( mInventory.IsOpened() )	{
+		ruSetGUINodeVisible( mGUICursorPut, false );
+		ruSetGUINodeVisible( mGUICrosshair, false );
+		ruSetGUINodeVisible( mGUICursorPickUp, false );	
+	} else {
+		if( mNearestPickedNode.IsValid() ) {
+			if( IsObjectHasNormalMass( mNearestPickedNode )) {
+				ruSetGUINodeVisible( mGUICursorPickUp, true );		
+				ruSetGUINodeVisible( mGUICrosshair, false );
+			} else {			
+				ruSetGUINodeVisible( mGUICursorPut, false );
+				ruSetGUINodeVisible( mGUICrosshair, true );
+			}		
+		} else {
+			ruSetGUINodeVisible( mGUICursorPickUp, false );
+			if( mNodeInHands.IsValid() ) {
+				ruSetGUINodeVisible( mGUICursorPut, true );
+				ruSetGUINodeVisible( mGUICrosshair, false );
+			} else {
+				ruSetGUINodeVisible( mGUICursorPut, false );
+				ruSetGUINodeVisible( mGUICrosshair, true );
+			}
+		}
+	}
 }
 
 /*
@@ -817,29 +832,31 @@ Player::UpdateItemsHandling
 ========
 */
 void Player::UpdateItemsHandling() {
-    if( mNearestPickedNode.IsValid() ) {
-        if( IsUseButtonHit() ) {
-            Item * itm = Item::GetByObject( mNearestPickedNode );
+	if( !mInventory.IsOpened() ) {
+		if( mNearestPickedNode.IsValid() ) {
+			if( IsUseButtonHit() ) {
+				Item * pItem = Item::GetItemPointerByNode( mNearestPickedNode );
 
-            if( itm ) {
-                AddItem( itm );
+				if( pItem ) {
+					AddItem( pItem );
 
-                ruPlaySound( mItemPickupSound );
-            }
+					ruPlaySound( mItemPickupSound );
+				}
 
-            Sheet * sheet = Sheet::GetSheetByObject( mNearestPickedNode );
+				Sheet * pSheet = Sheet::GetSheetPointerByNode( mNearestPickedNode );
 
-            if( mpSheetInHands ) {
-                CloseCurrentSheet();
-            } else {
-                if( sheet ) {
-                    mpSheetInHands = sheet;
-                    ruHideNode( mpSheetInHands->mObject );
-                    ruPlaySound( Sheet::msPaperFlipSound );
-                }
-            }
-        }
-    }
+				if( mpSheetInHands ) {
+					CloseCurrentSheet();
+				} else {
+					if( pSheet ) {
+						mpSheetInHands = pSheet;
+						ruHideNode( mpSheetInHands->mObject );
+						ruPlaySound( Sheet::msPaperFlipSound );
+					}
+				}
+			}
+		}
+	}
 
     if( mNodeInHands.IsValid() ) {
         ruVector3 ppPos = ruGetNodePosition( mItemPoint );
@@ -888,20 +905,20 @@ void Player::UpdatePicking() {
         ruVector3 ppPos = ruGetNodePosition( mPickPoint );
         ruVector3 dir = ppPos - pickPosition;
 
-        Item * pItem = Item::GetByObject( mPickedNode );
-        Sheet * pSheet = Sheet::GetSheetByObject( mPickedNode );
+        Item * pItem = Item::GetItemPointerByNode( mPickedNode );
+        Sheet * pSheet = Sheet::GetSheetPointerByNode( mPickedNode );
 
         if( dir.Length2() < 1.5f ) {
             mNearestPickedNode = mPickedNode;
-
+			string pickedObjectDesc;
             if( pItem ) {
-                mPickedObjectDesc = pItem->GetName();
-                mPickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
-                SetActionText( mPickedObjectDesc.c_str() );
+                pickedObjectDesc = pItem->GetName();
+                pickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
+                SetActionText( pickedObjectDesc.c_str() );
             } else if( pSheet ) {
-                mPickedObjectDesc = pSheet->GetDescription();
-                mPickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
-                SetActionText( mPickedObjectDesc.c_str() );
+                pickedObjectDesc = pSheet->GetDescription();
+                pickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
+                SetActionText( pickedObjectDesc.c_str() );
             } else {
                 if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode )) {
                     SetActionText( mLocalization.GetString( "objectPick" ) );
@@ -915,10 +932,6 @@ void Player::UpdatePicking() {
                     }
                 }
             }
-        }
-
-        if( !pItem && !pSheet ) {
-            mPickedObjectDesc = " ";
         }
     }
 }
@@ -1114,7 +1127,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     mHeartBeatPitch.Deserialize( in );
     mBreathPitch.Deserialize( in );
 
-    mpSheetInHands = Sheet::GetSheetByObject( ruFindByName( in.Readstring().c_str() ));
+    mpSheetInHands = Sheet::GetSheetPointerByNode( ruFindByName( in.Readstring().c_str() ));
 
     in.ReadInteger( mKeyMoveForward );
     in.ReadInteger( mKeyMoveBackward );
@@ -1217,7 +1230,7 @@ void Player::SerializeWith( TextFileStream & out ) {
 void Player::CloseCurrentSheet() {
     mpSheetInHands->SetVisible( false );
     ruShowNode( mpSheetInHands->mObject );
-    mpSheetInHands = 0;
+    mpSheetInHands = nullptr;
     ruPlaySound( Sheet::msPaperFlipSound );
 }
 
@@ -1253,5 +1266,15 @@ void Player::SetHUDVisible( bool state ) {
     }
     ruSetGUINodeVisible( mGUIBackground, state );
     ruSetGUINodeVisible( mGUIActionText, state );
+	ruSetGUINodeVisible( mGUIStealthSign, state );	
     mGoal.SetVisible( state );
+	if( !state ) {
+		if( mpSheetInHands ) {
+			CloseCurrentSheet();
+		}
+		mInventory.SetVisible( state );
+		ruSetGUINodeVisible( mGUICursorPickUp, state );		
+		ruSetGUINodeVisible( mGUICrosshair, state );		
+		ruSetGUINodeVisible( mGUICursorPut, state );
+	}
 }

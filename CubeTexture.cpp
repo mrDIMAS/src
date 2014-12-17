@@ -14,7 +14,7 @@ CubeTexture * CubeTexture::Require( string fn ) {
 }
 
 CubeTexture::CubeTexture( string fn ) {
-    CheckDXErrorFatal( D3DXCreateCubeTextureFromFileA( g_pDevice, fn.c_str(), &cubeTexture ));
+    CheckDXErrorFatal( D3DXCreateCubeTextureFromFileA( gpDevice, fn.c_str(), &cubeTexture ));
 }
 
 CubeTexture::~CubeTexture() {

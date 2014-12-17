@@ -26,5 +26,6 @@ public:
     bool IsLeftHit() const;
     virtual void SetPosition( float x, float y );
     virtual void SetVisible( bool visible );
+	virtual void SetAlpha( int alpha );
     GUIText * GetText();
 };

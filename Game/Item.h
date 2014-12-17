@@ -53,6 +53,6 @@ public:
     void MarkAsFree();
     bool IsFree();
     static vector<Item*> msItemList;
-    static Item * GetByObject( ruNodeHandle obj );
+    static Item * GetItemPointerByNode( ruNodeHandle obj );
 };
 

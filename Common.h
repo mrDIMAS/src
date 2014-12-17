@@ -97,7 +97,7 @@ extern float g_dt;
 extern FT_Library g_ftLibrary;
 // direct3d
 extern IDirect3D9 * g_d3d;
-extern IDirect3DDevice9 * g_pDevice;
+extern IDirect3DDevice9 * gpDevice;
 extern IDirect3DVertexDeclaration9 * g_meshVertexDeclaration;
 
 // bullet
@@ -109,8 +109,8 @@ extern btSequentialImpulseConstraintSolver * g_solver;
 // common
 extern bool g_fxaaEnabled;
 extern vector< SceneNode* > g_nodes;
-extern vector< Light* > g_pointLights;
-extern vector< Light* > g_spotLights;
+extern vector< Light* > g_pointLightList;
+extern vector< Light* > g_spotLightList;
 extern Camera * g_camera;
 extern int g_debugDraw;
 extern int g_textureChanges;
@@ -123,7 +123,7 @@ extern ForwardRenderer * g_forwardRenderer;
 extern GUIRenderer * g_guiRenderer;
 extern TextRenderer * g_textRenderer;
 extern Cursor * g_cursor;
-extern Renderer * g_renderer;
+extern Renderer * gpRenderer;
 extern int g_fps;
 extern FPSCounter g_fpsCounter;
 extern bool g_engineRunning;

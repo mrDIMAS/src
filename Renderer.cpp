@@ -14,13 +14,11 @@
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 
-Renderer * g_renderer = 0;
+Renderer * gpRenderer = 0;
 
 IDirect3D9 * g_d3d = 0;
-IDirect3DDevice9 * g_pDevice = 0;
+IDirect3DDevice9 * gpDevice = 0;
 IDirect3DVertexDeclaration9 * g_meshVertexDeclaration = 0;
-
-
 
 float g_width = 0;
 float g_height = 0;
@@ -67,8 +65,8 @@ Renderer::~Renderer() {
     Texture::DeleteAll();
     g_meshVertexDeclaration->Release();
     int counter = 0;
-    if( g_pDevice ) {
-        while( g_pDevice->Release() ) {
+    if( gpDevice ) {
+        while( gpDevice->Release() ) {
             counter++;
         }
     }
@@ -155,7 +153,7 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    CheckDXErrorFatal( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE, &presentParameters, &g_pDevice ));
+    CheckDXErrorFatal( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE, &presentParameters, &gpDevice ));
 
     // create main "pipeline" vertex declaration
     D3DVERTEXELEMENT9 vd[ ] = {
@@ -166,34 +164,34 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
         D3DDECL_END()
     };
 
-    CheckDXErrorFatal( g_pDevice->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ));
+    CheckDXErrorFatal( gpDevice->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ));
 
-    g_pDevice->SetRenderState ( D3DRS_LIGHTING, FALSE );
-    g_pDevice->SetRenderState ( D3DRS_ZENABLE, TRUE );
-    g_pDevice->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-    g_pDevice->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-    g_pDevice->SetRenderState ( D3DRS_ALPHAREF, 10 );
-    g_pDevice->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-    g_pDevice->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-    g_pDevice->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
+    gpDevice->SetRenderState ( D3DRS_LIGHTING, FALSE );
+    gpDevice->SetRenderState ( D3DRS_ZENABLE, TRUE );
+    gpDevice->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
+    gpDevice->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
+    gpDevice->SetRenderState ( D3DRS_ALPHAREF, 10 );
+    gpDevice->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+    gpDevice->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
+    gpDevice->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
 
-    g_pDevice->SetRenderState( D3DRS_STENCILREF, 0x0 );
-    g_pDevice->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-    g_pDevice->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-    g_pDevice->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-    g_pDevice->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-    g_pDevice->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-    g_pDevice->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+    gpDevice->SetRenderState( D3DRS_STENCILREF, 0x0 );
+    gpDevice->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
+    gpDevice->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
+    gpDevice->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
+    gpDevice->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
+    gpDevice->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+    gpDevice->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 
     // setup samplers
-    g_pDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    g_pDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-    g_pDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    g_pDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-    g_pDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    g_pDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    g_pDevice->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
-    g_pDevice->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
+    gpDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+    gpDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+    gpDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+    gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+    gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+    gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
+    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
@@ -203,7 +201,7 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     g_particleSystemRenderer = new ParticleSystemRenderer();
     g_textRenderer = new TextRenderer();
     g_guiRenderer = new GUIRenderer();
-    g_renderer = this;
+    gpRenderer = this;
     performanceTimer = new Timer;
 
     // init freetype
@@ -311,57 +309,56 @@ void Renderer::RenderWorld() {
         node->inFrustum = false;
     }
     // update lights
-    for( auto light : g_spotLights ) {
+    for( auto light : g_spotLightList ) {
         light->DoFloating();
     }
-    for( auto light : g_pointLights ) {
+    for( auto light : g_pointLightList ) {
         light->DoFloating();
     }
     // begin dx scene
-    CheckDXErrorFatal( g_pDevice->BeginScene());
+    CheckDXErrorFatal( gpDevice->BeginScene());
     // begin rendering into G-Buffer
-    g_pDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
-    g_pDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
-    g_pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-    g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-
+    gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
+    gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+    gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
     g_deferredRenderer->BeginFirstPass();
-
     // render from current camera
     RenderMeshesIntoGBuffer();
     // end render into G-Buffer and do a lighting passes
     if( g_hdrEnabled ) {
-        g_pDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
-        g_pDevice->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
+        gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+        gpDevice->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
     } else {
-        g_pDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-        g_pDevice->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
+        gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+        gpDevice->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
     }
-    g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-    g_pDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-    g_pDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
-    g_pDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-    g_pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    g_pDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+	gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
+    gpDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+    gpDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+    gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
     g_deferredRenderer->EndFirstPassAndDoSecondPass();
     // render all opacity meshes with forward renderer
-    g_pDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
-    g_pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+    gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
+    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
     g_forwardRenderer->RenderMeshes();
     // render particles after all, because deferred shading doesnt support transparency
-    g_pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    g_pDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    g_pDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-    g_pDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    gpDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+    gpDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
     g_particleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
-    g_pDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
+    gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
     g_guiRenderer->RenderAllGUIElements();
     // render light flares without writing to z-buffer
     //Light::RenderLightFlares();
     // finalize
-    CheckDXErrorFatal( g_pDevice->EndScene());
-    CheckDXErrorFatal( g_pDevice->Present( 0, 0, 0, 0 ));
+    CheckDXErrorFatal( gpDevice->EndScene());
+    CheckDXErrorFatal( gpDevice->Present( 0, 0, 0, 0 ));
     // grab info about node's physic contacts
     SceneNode::UpdateContacts( );
     // update sound subsystem
@@ -388,7 +385,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
             continue;
         }
         // bind diffuse texture
-        CheckDXErrorFatal( g_pDevice->SetTexture( 0, pDiffuseTexture ));
+        CheckDXErrorFatal( gpDevice->SetTexture( 0, pDiffuseTexture ));
         // each group has same texture
         g_textureChanges++;
         for( auto pMesh : meshes ) {
@@ -457,7 +454,7 @@ void Renderer::SetPixelShaderBool( UINT startRegister, BOOL v ) {
     buffer[1] = FALSE;
     buffer[2] = FALSE;
     buffer[3] = FALSE;
-    g_pDevice->SetPixelShaderConstantB( startRegister, buffer, 1 );
+    gpDevice->SetPixelShaderConstantB( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderInt( UINT startRegister, int v ) {
@@ -466,7 +463,7 @@ void Renderer::SetPixelShaderInt( UINT startRegister, int v ) {
     buffer[1] = 0;
     buffer[2] = 0;
     buffer[3] = 0;
-    g_pDevice->SetPixelShaderConstantI( startRegister, buffer, 1 );
+    gpDevice->SetPixelShaderConstantI( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderFloat( UINT startRegister, float v ) {
@@ -475,7 +472,7 @@ void Renderer::SetPixelShaderFloat( UINT startRegister, float v ) {
     buffer[1] = 0.0f;
     buffer[2] = 0.0f;
     buffer[3] = 0.0f;
-    g_pDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
+    gpDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderFloat3( UINT startRegister, float * v ) {
@@ -484,11 +481,11 @@ void Renderer::SetPixelShaderFloat3( UINT startRegister, float * v ) {
     buffer[1] = v[1];
     buffer[2] = v[2];
     buffer[3] = 0.0f;
-    g_pDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
+    gpDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
-    g_pDevice->SetPixelShaderConstantF( startRegister, &matrix->m[0][0], 4 );
+    gpDevice->SetPixelShaderConstantF( startRegister, &matrix->m[0][0], 4 );
 }
 
 void Renderer::SetVertexShaderBool( UINT startRegister, BOOL v ) {
@@ -497,7 +494,7 @@ void Renderer::SetVertexShaderBool( UINT startRegister, BOOL v ) {
     buffer[1] = FALSE;
     buffer[2] = FALSE;
     buffer[3] = FALSE;
-    g_pDevice->SetVertexShaderConstantB( startRegister, buffer, 1 );
+    gpDevice->SetVertexShaderConstantB( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderInt( UINT startRegister, int v ) {
@@ -506,7 +503,7 @@ void Renderer::SetVertexShaderInt( UINT startRegister, int v ) {
     buffer[1] = 0;
     buffer[2] = 0;
     buffer[3] = 0;
-    g_pDevice->SetVertexShaderConstantI( startRegister, buffer, 1 );
+    gpDevice->SetVertexShaderConstantI( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderFloat( UINT startRegister, float v ) {
@@ -515,7 +512,7 @@ void Renderer::SetVertexShaderFloat( UINT startRegister, float v ) {
     buffer[1] = 0.0f;
     buffer[2] = 0.0f;
     buffer[3] = 0.0f;
-    g_pDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
+    gpDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderFloat3( UINT startRegister, float * v ) {
@@ -524,11 +521,11 @@ void Renderer::SetVertexShaderFloat3( UINT startRegister, float * v ) {
     buffer[1] = v[1];
     buffer[2] = v[2];
     buffer[3] = 0.0f;
-    g_pDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
+    gpDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
-    g_pDevice->SetVertexShaderConstantF( startRegister, &matrix->m[0][0], 4 );
+    gpDevice->SetVertexShaderConstantF( startRegister, &matrix->m[0][0], 4 );
 }
 
 
@@ -661,7 +658,7 @@ GetAvailableTextureMemory
 ===============
 */
 int ruGetAvailableTextureMemory() {
-    return g_pDevice->GetAvailableTextureMem();
+    return gpDevice->GetAvailableTextureMem();
 }
 
 /*
@@ -703,7 +700,7 @@ RayPick
 */
 ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     D3DVIEWPORT9 vp;
-    g_pDevice->GetViewport( &vp );
+    gpDevice->GetViewport( &vp );
     // Find screen coordinates normalized to -1,1
     D3DXVECTOR3 coord;
     coord.x = ( ( ( 2.0f * x ) / (float)vp.Width ) - 1 );
@@ -752,7 +749,7 @@ GetMaxAnisotropy
 */
 int ruGetRendererMaxAnisotropy() {
     D3DCAPS9 caps;
-    CheckDXErrorFatal( g_pDevice->GetDeviceCaps( &caps ));
+    CheckDXErrorFatal( gpDevice->GetDeviceCaps( &caps ));
 
     return caps.MaxAnisotropy;
 }
@@ -764,7 +761,7 @@ FreeRenderer
 */
 int ruFreeRenderer( ) {
     g_engineRunning = false;
-    delete g_renderer;
+    delete gpRenderer;
     return 1;
 }
 
@@ -811,7 +808,7 @@ RenderWorld
 */
 int ruRenderWorld( float dt ) {
     g_dt = dt;
-    g_renderer->RenderWorld();
+    gpRenderer->RenderWorld();
     return 1;
 }
 

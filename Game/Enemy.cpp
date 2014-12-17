@@ -11,7 +11,7 @@ void Enemy::Think() {
         mTarget = pPlayer->GetCurrentPosition();
     } else if( mMoveType == MoveType::GoToDestination ) {
         if( mCurrentPath.size() ) {
-            mTarget = mCurrentPath[mCurrentWaypointNum]->position;
+            mTarget = mCurrentPath[mCurrentWaypointNum]->mPosition;
             if( ( mTarget - ruGetNodePosition( mBody ) ).Length2() < 0.5f ) {
                 mCurrentWaypointNum += mDestinationWaypointNum - mCurrentWaypointNum > 0 ? 1 : 0;
             }
@@ -28,7 +28,7 @@ void Enemy::Think() {
                 mCurrentPatrolPoint = 0;
             }
         }
-        mDestination = mPatrolPointList[mCurrentPatrolPoint]->position;
+        mDestination = mPatrolPointList[mCurrentPatrolPoint]->mPosition;
         mTargetIsPlayer = false;
     } else {
         mDestination = pPlayer->GetCurrentPosition();
@@ -143,8 +143,8 @@ void Enemy::Think() {
         GraphVertex * enemyNearestVertex = mPathfinder.GetVertexNearestTo( ruGetNodePosition( mBody ) );
         if( mCurrentDestinationIndex != mLastDestinationIndex ) { // means player has moved to another waypoint
             mPathfinder.BuildPath( enemyNearestVertex, destNearestVertex, mCurrentPath );
-            mDestinationWaypointNum = GetVertexIndexNearestTo( mCurrentPath[ mCurrentPath.size() - 1 ]->position );
-            mCurrentWaypointNum = GetVertexIndexNearestTo( mCurrentPath[0]->position );
+            mDestinationWaypointNum = GetVertexIndexNearestTo( mCurrentPath[ mCurrentPath.size() - 1 ]->mPosition );
+            mCurrentWaypointNum = GetVertexIndexNearestTo( mCurrentPath[0]->mPosition );
             if( mCurrentWaypointNum > mDestinationWaypointNum ) {
                 int temp = mCurrentWaypointNum;
                 mCurrentWaypointNum = mDestinationWaypointNum;
@@ -297,7 +297,7 @@ int Enemy::GetVertexIndexNearestTo( ruVector3 position ) {
     }
     int nearestIndex = 0;
     for( int i = 0; i < mCurrentPath.size(); i++ ) {
-        if( ( mCurrentPath[i]->position - position ).Length2() < ( mCurrentPath[nearestIndex]->position - position ).Length2() ) {
+        if( ( mCurrentPath[i]->mPosition - position ).Length2() < ( mCurrentPath[nearestIndex]->mPosition - position ).Length2() ) {
             nearestIndex = i;
         }
     }

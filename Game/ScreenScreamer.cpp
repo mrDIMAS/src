@@ -5,47 +5,50 @@
 ScreenScreamer * screamer = 0;
 
 ScreenScreamer::ScreenScreamer() {
-    tex = ruGetTexture( "data/textures/effects/noise.jpg" );
-    sound = ruLoadSound2D( "data/sounds/screamer.ogg" );
-
-    periods = 0;
-    nextPeriodFrames = 0;
-    pauseFrames = 0;
+    mScreamSound = ruLoadSound2D( "data/sounds/screamer.ogg" );
+	mGUIFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(),  ruGetTexture( "data/textures/effects/noise.jpg" ), ruVector3( 255, 0, 0 ), 150 );
+    mPeriods = 0;
+    mNextPeriodFrames = 0;
+    mPauseFrames = 0;
+	ruSetGUINodeVisible( mGUIFullscreenQuad, false );
 }
 
 void ScreenScreamer::DoPeriods( int p ) {
-    periods = p;
-    nextPeriodFrames = 5 + rand() % 10;
-    pauseFrames = 0;
+    mPeriods = p;
+    mNextPeriodFrames = 5 + rand() % 10;
+    mPauseFrames = 0;
 }
 
 void ScreenScreamer::Update() {
     static int offset = 50;
 
     if( pMainMenu->IsVisible() ) {
-        ruPauseSound( sound );
+        ruPauseSound( mScreamSound );
         return;
     }
 
-    if( periods > 0 ) {
-        if( pauseFrames > 0 ) {
-            pauseFrames--;
+    if( mPeriods > 0 ) {
+        if( mPauseFrames > 0 ) {
+			ruSetGUINodeVisible( mGUIFullscreenQuad, false );
+            mPauseFrames--;
         } else {
-            if( nextPeriodFrames > 0 ) {
+            if( mNextPeriodFrames > 0 ) {
+				ruSetGUINodeVisible( mGUIFullscreenQuad, true );
                 int xOff = rand() % offset;
                 int yOff = rand() % offset;
-                //ruDrawGUIRect( -offset + xOff, -offset + yOff , ruGetResolutionWidth() + xOff, ruGetResolutionHeight() + yOff, tex, ruVector3( 255, 0, 0 ), 120 );
-
-                ruPlaySound( sound );
-
+				ruSetGUINodePosition( mGUIFullscreenQuad, -offset + xOff, -offset + yOff );
+				ruSetGUINodeSize( mGUIFullscreenQuad, ruGetResolutionWidth() + xOff, ruGetResolutionHeight() + yOff );
+                ruPlaySound( mScreamSound );
                 pPlayer->DoFright();
-
-                nextPeriodFrames--;
+                mNextPeriodFrames--;
             } else {
-                nextPeriodFrames = 5 + rand() % 10;
-                pauseFrames = 10 + rand() % 20;
-                ruPauseSound( sound );
-                periods--;
+                mNextPeriodFrames = 5 + rand() % 10;
+                mPauseFrames = 10 + rand() % 20;
+                ruPauseSound( mScreamSound );
+                mPeriods--;
+				if( mPeriods <= 0 ){
+					ruSetGUINodeVisible( mGUIFullscreenQuad, false );
+				}
             }
         }
     }

@@ -25,6 +25,6 @@ public:
 
     void SetSize( float width, float height );
 
-    void Bind( );
+    void Bind( bool bindInternalVertexShader = true );
     void Render();
 };

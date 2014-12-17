@@ -2,8 +2,8 @@
 #include "SceneNode.h"
 #include "Utility.h"
 
-vector<Light*> g_pointLights;
-vector<Light*> g_spotLights;
+vector<Light*> g_pointLightList;
+vector<Light*> g_spotLightList;
 vector<Light*> Light::lights;
 IDirect3DVertexBuffer9 * Light::flareBuffer = nullptr;
 Texture * Light::defaultSpotTexture = nullptr;
@@ -38,13 +38,13 @@ Light::Light( int type ) {
     brightness = 1.0f;
     this->type = type;
     if( type == LT_POINT ) {
-        g_pointLights.push_back( this );
+        g_pointLightList.push_back( this );
         if( defaultPointCubeTexture ) {
             pointTexture = defaultPointCubeTexture;
         }
     }
     if( type == LT_SPOT ) {
-        g_spotLights.push_back( this );
+        g_spotLightList.push_back( this );
         if( defaultSpotTexture ) {
             spotTexture = defaultSpotTexture;
         }
@@ -144,14 +144,14 @@ Light::~Light
 ==========
 */
 Light::~Light() {
-    auto pointLight = find( g_pointLights.begin(), g_pointLights.end(), this );
-    if( pointLight != g_pointLights.end() ) {
-        g_pointLights.erase( pointLight );
+    auto pointLight = find( g_pointLightList.begin(), g_pointLightList.end(), this );
+    if( pointLight != g_pointLightList.end() ) {
+        g_pointLightList.erase( pointLight );
     }
 
-    auto spotLight = find( g_spotLights.begin(), g_spotLights.end(), this );
-    if( spotLight != g_spotLights.end() ) {
-        g_spotLights.erase( spotLight );
+    auto spotLight = find( g_spotLightList.begin(), g_spotLightList.end(), this );
+    if( spotLight != g_spotLightList.end() ) {
+        g_spotLightList.erase( spotLight );
     }
 }
 
@@ -194,11 +194,11 @@ void Light::RenderLightFlares() {
     if( !flareBuffer ) {
         return;
     }
-    CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ZWRITEENABLE, false ));
-    CheckDXErrorFatal( g_pDevice->SetTransform( D3DTS_VIEW, &g_camera->view ));
-    CheckDXErrorFatal( g_pDevice->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
-    CheckDXErrorFatal( g_pDevice->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
+    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, false ));
+    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_VIEW, &g_camera->view ));
+    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
+    CheckDXErrorFatal( gpDevice->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
     D3DXMATRIX world, scale;
     for( auto light : lights ) {
         if( !light->flareTexture ) {
@@ -213,8 +213,8 @@ void Light::RenderLightFlares() {
         D3DXMatrixScaling( &scale, flareScale, flareScale, flareScale );
         D3DXMatrixMultiply( &world, &world, &scale );
         light->flareTexture->Bind( 0 );
-        CheckDXErrorFatal( g_pDevice->SetTransform( D3DTS_WORLD, &world ));
-        CheckDXErrorFatal( g_pDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+        CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_WORLD, &world ));
+        CheckDXErrorFatal( gpDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     }
 }
 
@@ -236,7 +236,7 @@ void Light::SetFlare( Texture * texture ) {
             {  0.5f, -0.5f, 1.0f, 1.0f, 0.0f },
             { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f }
         };
-        CheckDXErrorFatal( g_pDevice->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
+        CheckDXErrorFatal( gpDevice->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
     }
     flareTexture = texture;
 }
@@ -276,7 +276,7 @@ GetWorldSpotLightCount
 ==========
 */
 int ruGetWorldSpotLightCount() {
-    return g_spotLights.size();
+    return g_spotLightList.size();
 }
 
 /*
@@ -286,10 +286,10 @@ GetWorldSpotLight
 */
 ruNodeHandle ruGetWorldSpotLight( int n ) {
     ruNodeHandle handle;
-    if( n >= g_spotLights.size() || n < 0 ) {
+    if( n >= g_spotLightList.size() || n < 0 ) {
         return handle;
     } else {
-        handle.pointer = g_spotLights[n];
+        handle.pointer = g_spotLightList[n];
         return handle;
     }
 }
@@ -300,7 +300,7 @@ GetWorldPointLightCount
 ==========
 */
 int ruGetWorldPointLightCount() {
-    return g_pointLights.size();
+    return g_pointLightList.size();
 }
 
 /*
@@ -310,10 +310,10 @@ GetWorldPointLight
 */
 ruNodeHandle ruGetWorldPointLight( int n ) {
     ruNodeHandle handle;
-    if( n >= g_pointLights.size() || n < 0 ) {
+    if( n >= g_pointLightList.size() || n < 0 ) {
         return handle;
     } else {
-        handle.pointer = g_pointLights[n];
+        handle.pointer = g_pointLightList[n];
         return handle;
     }
 }
@@ -353,7 +353,7 @@ SetSpotDefaultTexture
 */
 void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
     Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
-    for( auto spot : g_spotLights ) {
+    for( auto spot : g_spotLightList ) {
         if( !spot->spotTexture ) {
             spot->spotTexture = Light::defaultSpotTexture;
         }
@@ -367,7 +367,7 @@ SetPointDefaultTexture
 */
 void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture ) {
     Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
-    for( auto point : g_pointLights ) {
+    for( auto point : g_pointLightList ) {
         if( !point->pointTexture ) {
             point->pointTexture = Light::defaultPointCubeTexture;
         }

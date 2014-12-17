@@ -140,34 +140,34 @@ LevelMine::LevelMine() {
     BuildPath( pathUpperRightTwo, "PathUpperRightTwo" );
 
     // cross-path edges
-    path.vertices[17]->AddEdge( pathOnUpperLevel.vertices[0] );
-    pathOnUpperLevel.vertices[6]->AddEdge( pathUpperRight.vertices[0] );
-    pathOnUpperLevel.vertices[8]->AddEdge( pathUpperLeft.vertices[0] );
-    path.vertices[18]->AddEdge( pathToRoom.vertices[0] );
-    pathOnUpperLevel.vertices[12]->AddEdge( pathUpperRightTwo.vertices[0] );
+    path.mVertexList[17]->AddEdge( pathOnUpperLevel.mVertexList[0] );
+    pathOnUpperLevel.mVertexList[6]->AddEdge( pathUpperRight.mVertexList[0] );
+    pathOnUpperLevel.mVertexList[8]->AddEdge( pathUpperLeft.mVertexList[0] );
+    path.mVertexList[18]->AddEdge( pathToRoom.mVertexList[0] );
+    pathOnUpperLevel.mVertexList[12]->AddEdge( pathUpperRightTwo.mVertexList[0] );
 
     // concatenate all paths
     vector<GraphVertex*> allPaths;
-    allPaths.insert( allPaths.end(), path.vertices.begin(), path.vertices.end() );
-    allPaths.insert( allPaths.end(), pathOnUpperLevel.vertices.begin(), pathOnUpperLevel.vertices.end() );
-    allPaths.insert( allPaths.end(), pathUpperRight.vertices.begin(), pathUpperRight.vertices.end() );
-    allPaths.insert( allPaths.end(), pathUpperLeft.vertices.begin(), pathUpperLeft.vertices.end() );
-    allPaths.insert( allPaths.end(), pathToRoom.vertices.begin(), pathToRoom.vertices.end() );
-    allPaths.insert( allPaths.end(), pathUpperRightTwo.vertices.begin(), pathUpperRightTwo.vertices.end() );
+    allPaths.insert( allPaths.end(), path.mVertexList.begin(), path.mVertexList.end() );
+    allPaths.insert( allPaths.end(), pathOnUpperLevel.mVertexList.begin(), pathOnUpperLevel.mVertexList.end() );
+    allPaths.insert( allPaths.end(), pathUpperRight.mVertexList.begin(), pathUpperRight.mVertexList.end() );
+    allPaths.insert( allPaths.end(), pathUpperLeft.mVertexList.begin(), pathUpperLeft.mVertexList.end() );
+    allPaths.insert( allPaths.end(), pathToRoom.mVertexList.begin(), pathToRoom.mVertexList.end() );
+    allPaths.insert( allPaths.end(), pathUpperRightTwo.mVertexList.begin(), pathUpperRightTwo.mVertexList.end() );
 
     vector< GraphVertex* > patrolPoints;
-    patrolPoints.push_back( path.vertices[0] );
-    patrolPoints.push_back( path.vertices[ path.vertices.size() - 1 ] );
-    patrolPoints.push_back( pathOnUpperLevel.vertices[0] );
-    patrolPoints.push_back( pathOnUpperLevel.vertices[ pathOnUpperLevel.vertices.size() - 1 ] );
-    patrolPoints.push_back( pathUpperRight.vertices[0] );
-    patrolPoints.push_back( pathUpperRight.vertices[ pathUpperRight.vertices.size() - 1 ] );
-    patrolPoints.push_back( pathUpperLeft.vertices[0] );
-    patrolPoints.push_back( pathUpperLeft.vertices[ pathUpperLeft.vertices.size() - 1 ] );
-    patrolPoints.push_back( pathUpperRightTwo.vertices[0] );
-    patrolPoints.push_back( pathUpperRightTwo.vertices[ pathUpperRightTwo.vertices.size() - 1 ] );
-    patrolPoints.push_back( pathToRoom.vertices[0] );
-    patrolPoints.push_back( pathToRoom.vertices[ pathToRoom.vertices.size() - 1 ] );
+    patrolPoints.push_back( path.mVertexList[0] );
+    patrolPoints.push_back( path.mVertexList[ path.mVertexList.size() - 1 ] );
+    patrolPoints.push_back( pathOnUpperLevel.mVertexList[0] );
+    patrolPoints.push_back( pathOnUpperLevel.mVertexList[ pathOnUpperLevel.mVertexList.size() - 1 ] );
+    patrolPoints.push_back( pathUpperRight.mVertexList[0] );
+    patrolPoints.push_back( pathUpperRight.mVertexList[ pathUpperRight.mVertexList.size() - 1 ] );
+    patrolPoints.push_back( pathUpperLeft.mVertexList[0] );
+    patrolPoints.push_back( pathUpperLeft.mVertexList[ pathUpperLeft.mVertexList.size() - 1 ] );
+    patrolPoints.push_back( pathUpperRightTwo.mVertexList[0] );
+    patrolPoints.push_back( pathUpperRightTwo.mVertexList[ pathUpperRightTwo.mVertexList.size() - 1 ] );
+    patrolPoints.push_back( pathToRoom.mVertexList[0] );
+    patrolPoints.push_back( pathToRoom.mVertexList[ pathToRoom.mVertexList.size() - 1 ] );
 
     mEnemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
     mEnemy->SetPosition( ruGetNodePosition( GetUniqueObject( "EnemyPosition" )));

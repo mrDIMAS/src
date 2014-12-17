@@ -20,7 +20,7 @@ public:
     virtual ~GUINode();
     void PackColor();
     void SetColor( ruVector3 color );
-    void SetAlpha( int alpha );
+    virtual void SetAlpha( int alpha );
     float GetX();
     float GetY();
     float GetWidth();

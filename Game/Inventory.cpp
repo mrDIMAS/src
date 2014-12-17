@@ -95,6 +95,7 @@ Inventory::Inventory() {
 }
 
 void Inventory::SetVisible( bool state ) {
+	mOpened = state;
     ruSetGUINodeVisible( mGUIBackground, state );
     ruSetGUINodeVisible( mGUIRectItemForUse, state );
     ruSetGUINodeVisible( mGUIBackground, state );
@@ -208,8 +209,12 @@ void Inventory::Update() {
     int combineBoxSpacing = 5;
     buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
 
-    if( mpCombineItemFirst ) {
+	ruSetGUINodeTexture( mGUIFirstCombineItem, ruTextureHandle::Empty() );
+	ruSetGUINodeTexture( mGUISecondCombineItem, ruTextureHandle::Empty() );
+
+    if( mpCombineItemFirst ) {				
         ruSetGUINodeVisible( mGUIFirstCombineItem, true );
+		ruSetGUINodeTexture( mGUIFirstCombineItem, mpCombineItemFirst->GetPictogram() );
         if( IsMouseInside( buttonsX, combineBoxY, mCellWidth, mCellHeight )) {
             combineColor1 = ruVector3( 255, 0, 0 );
             if( ruIsMouseHit( MB_Left )) {
@@ -222,6 +227,7 @@ void Inventory::Update() {
 
     if( mpCombineItemSecond ) {
         ruSetGUINodeVisible( mGUISecondCombineItem, true );
+		ruSetGUINodeTexture( mGUISecondCombineItem, mpCombineItemSecond->GetPictogram() );
         if( IsMouseInside( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight )) {
             combineColor2 = ruVector3( 255, 0, 0 );
             if( ruIsMouseHit( MB_Left )) {
@@ -258,6 +264,12 @@ void Inventory::Update() {
             }
         }
     }
+
+	ruSetGUINodeVisible( mGUIItemDescription, false );
+	ruSetGUINodeVisible( mGUIItemContentType, false );
+	ruSetGUINodeVisible( mGUIItemContent, false );
+	ruSetGUINodeVisible( mGUIItemVolume, false );
+	ruSetGUINodeVisible( mGUIItemMass, false );
 
     // draw cells and item image
     bool combinePick = true;
@@ -308,29 +320,33 @@ void Inventory::Update() {
                     mpSelected = 0;
                 }
             }
-
-            if( pItem ) {
+			
+            if( pItem ) {				
                 if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {
-                    //ruDrawGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, pItem->GetPictogram(), ruVector3( 255, 255, 255 ), alpha );
-                    ruSetGUINodeTexture( mGUIItemCell[cw][ch], pItem->GetPictogram());
-
+					ruSetGUINodeVisible( mGUIItem[cw][ch], true );
+                    ruSetGUINodeTexture( mGUIItem[cw][ch], pItem->GetPictogram());
                     if( pItem == pPicked ) {
-                        /*
-                        int offset = combineBoxY + 2.2f * mCellHeight;
-                        ruDrawGUIText( pItem->GetDescription(), backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing , combineH - 2 * itemSpacing, pGUI->mFont, ruVector3( 200, 200, 200 ), 0, alpha );
-                        // draw characteristics of item
-                        int charSpace = 28;
+						ruSetGUINodeVisible( mGUIItemDescription, true );
+						ruSetGUINodeVisible( mGUIItemContentType, true );
+						ruSetGUINodeVisible( mGUIItemContent, true );
+						ruSetGUINodeVisible( mGUIItemVolume, true );
+						ruSetGUINodeVisible( mGUIItemMass, true );
+                        ruSetGUINodeText( mGUIItemDescription, pItem->GetDescription());
                         string contentTypeFormatted = Format( "%s : %s", mLocalization.GetString( "contentType" ), pItem->GetContentType());
                         string contentFormatted = Format( "%s: %f", mLocalization.GetString( "content" ), pItem->GetContent() );
                         string volumeFormatted = Format( "%s: %f", mLocalization.GetString( "volume" ), pItem->GetVolume() );
                         string massFormatted = Format( "%s: %f", mLocalization.GetString( "mass" ), pItem->GetMass() );
-                        ruDrawGUIText( contentTypeFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
-                        ruDrawGUIText( contentFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
-                        ruDrawGUIText( volumeFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
-                        ruDrawGUIText( massFormatted.c_str(), actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );*/
+                        ruSetGUINodeText( mGUIItemContentType, contentTypeFormatted.c_str());
+                        ruSetGUINodeText( mGUIItemContent, contentFormatted.c_str());
+                        ruSetGUINodeText( mGUIItemVolume, volumeFormatted.c_str());
+                        ruSetGUINodeText( mGUIItemMass, massFormatted.c_str());
                     }
-                }
-            }
+                } else {
+					ruSetGUINodeVisible( mGUIItem[cw][ch], false );
+				}
+			} else {
+				ruSetGUINodeVisible( mGUIItem[cw][ch], false );
+			}
         }
     }
 }

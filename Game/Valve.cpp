@@ -3,32 +3,37 @@
 #include "Utils.h"
 
 Valve::Valve( ruNodeHandle obj, ruVector3 axis, int turnCount ) {
-    object = obj;
-    tAxis = axis;
-    angle = 0;
-    done = false;
-    tc = turnCount;
-    value = 0;
+    mObject = obj;
+    mTurnAxis = axis;
+    mAngle = 0.0f;
+    mDone = false;
+    mTurnCount = turnCount;
+    mValue = 0.0f;
 }
 
 void Valve::Update() {
-    if( done ) {
+    if( mDone ) {
         return;
     }
-
-    if( pPlayer->mNearestPickedNode == object ) {
-//        ruDrawGUIText( Format( pPlayer->mLocalization.GetString( "turnObject" ), GetKeyName( pPlayer->mKeyUse )).c_str(), g_resW / 2 - 256, g_resH - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
-
+    if( pPlayer->mNearestPickedNode == mObject ) {
+		pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "turnObject" ), GetKeyName( pPlayer->mKeyUse )).c_str() );
         if( ruIsKeyDown( pPlayer->mKeyUse )) {
-            angle += 5;
-
-            if( angle >= 360 * tc ) {
-                done = true;
+            mAngle += 5;
+            if( mAngle >= 360 * mTurnCount ) {
+                mDone = true;
             }
-
-            ruSetNodeRotation( object, ruQuaternion( tAxis, angle ));
+            ruSetNodeRotation( mObject, ruQuaternion( mTurnAxis, mAngle ));
         }
     }
+    mValue = mAngle / (float)( 360 * mTurnCount );
+}
 
-    value = angle / (float)( 360 * tc );
+float Valve::GetClosedCoeffecient()
+{
+	return mValue;
+}
+
+bool Valve::IsDone()
+{
+	return mDone;
 }

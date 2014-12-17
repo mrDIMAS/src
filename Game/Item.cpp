@@ -4,7 +4,7 @@
 vector<Item*> Item::msItemList;
 Parser Item::msLocalization;
 
-Item * Item::GetByObject( ruNodeHandle obj ) {
+Item * Item::GetItemPointerByNode( ruNodeHandle obj ) {
     for( auto pItem : msItemList )
         if( pItem->mObject == obj ) {
             return pItem;

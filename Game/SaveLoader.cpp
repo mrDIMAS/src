@@ -22,7 +22,7 @@ void SaveLoader::RestoreWorldState() {
         ruNodeHandle itemObject = ruFindByName( itemName.c_str());
 
         if( itemObject.IsValid() ) {
-            Item * item = Item::GetByObject( itemObject );
+            Item * item = Item::GetItemPointerByNode( itemObject );
 
             pPlayer->AddItem( item );
         }
@@ -45,7 +45,7 @@ void SaveLoader::RestoreWorldState() {
         if( pItemPlace ) {
             Item * pItem = 0;
             if( gotPlacedItem ) {
-                pItem = Item::GetByObject( ruFindByName( itemName.c_str() ));
+                pItem = Item::GetItemPointerByNode( ruFindByName( itemName.c_str() ));
             }
 
             if( pItem ) {

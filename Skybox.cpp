@@ -17,11 +17,11 @@ void Skybox::WriteToVertexBuffer( IDirect3DVertexBuffer9 * vb, vector< Vertex > 
 }
 
 void Skybox::CreateVertexBuffer( size_t size, IDirect3DVertexBuffer9 ** vb ) {
-    CheckDXErrorFatal( g_pDevice->CreateVertexBuffer( size,D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1, D3DPOOL_DEFAULT, vb, 0 ));
+    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( size,D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1, D3DPOOL_DEFAULT, vb, 0 ));
 }
 
 void Skybox::CreateIndexBuffer( size_t size, IDirect3DIndexBuffer9 ** ib ) {
-    CheckDXErrorFatal( g_pDevice->CreateIndexBuffer( size,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0 ));
+    CheckDXErrorFatal( gpDevice->CreateIndexBuffer( size,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0 ));
 }
 
 Skybox::~Skybox() {
@@ -118,33 +118,33 @@ Skybox::Skybox( const char * path ) {
 }
 
 void Skybox::Render( const btVector3 & pos ) {
-    CheckDXErrorFatal( g_pDevice->SetVertexShader ( nullptr ));
-    CheckDXErrorFatal( g_pDevice->SetPixelShader ( nullptr ));
+    CheckDXErrorFatal( gpDevice->SetVertexShader ( nullptr ));
+    CheckDXErrorFatal( gpDevice->SetPixelShader ( nullptr ));
 
     D3DXMATRIX view;
     D3DXMatrixTranslation ( &view, pos.x(), pos.y(), pos.z() );
-    CheckDXErrorFatal( g_pDevice->SetTransform ( D3DTS_WORLD, &view ));
+    CheckDXErrorFatal( gpDevice->SetTransform ( D3DTS_WORLD, &view ));
 
-    CheckDXErrorFatal( g_pDevice->SetIndices( ib ));
+    CheckDXErrorFatal( gpDevice->SetIndices( ib ));
     forw->Bind( 0 );
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vbForw, 0, sizeof( Vertex )));
-    CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vbForw, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     back->Bind( 0 );
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vbBack, 0, sizeof( Vertex )));
-    CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vbBack, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     right->Bind( 0 );
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vbRight, 0, sizeof( Vertex )));
-    CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vbRight, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     left->Bind( 0 );
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vbLeft, 0, sizeof( Vertex )));
-    CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vbLeft, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     up->Bind( 0 );
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vbUp, 0, sizeof( Vertex )));
-    CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vbUp, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2 ));
 
     g_dips +=5 ;
 }

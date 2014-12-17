@@ -57,7 +57,7 @@ void Camera::CalculateInverseViewProjection() {
 
 void Camera::CalculateProjectionMatrix() {
     D3DVIEWPORT9 vp;
-    g_pDevice->GetViewport( &vp );
+    gpDevice->GetViewport( &vp );
     D3DXMatrixPerspectiveFovRH( &projection, fov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, nearZ, farZ );
 }
 

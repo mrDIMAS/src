@@ -7,13 +7,12 @@
 
 class Tip {
 private:
-    string txt;
-    SmoothFloat alpha;
-    int x;
-    SmoothFloat y;
-    int w;
-    int h;
-    ruTimerHandle timer;
+    SmoothFloat mAlpha;
+    int mX;
+    SmoothFloat mY;
+	int mWidth;
+	int mHeight;
+    ruTimerHandle mTimer;
     ruTextHandle mGUIText;
 public:
     Tip();

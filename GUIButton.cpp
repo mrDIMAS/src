@@ -95,3 +95,9 @@ void GUIButton::SetPosition( float x, float y ) {
     GUINode::SetPosition( x, y );
     mpText->SetPosition( x, y );
 }
+
+void GUIButton::SetAlpha( int alpha )
+{
+	GUINode::SetAlpha( alpha );
+	mpText->SetAlpha( alpha );
+}

@@ -59,8 +59,8 @@ Menu::Menu( ) {
     int h = 400;
     int x = ( g_resW - w ) / 2;
     int y = ( g_resH - h ) / 2;
-    mGUIAuthorsText = ruCreateGUIText( mLocalization.GetString( "authorsText" ), x + 50, y + 50, w - 100, h - 100, pGUI->mFont, ruVector3( 255, 127, 127 ), 0 );
-    mGUIAuthorsBackground = ruCreateGUIRect( x, y, w, h, ruTextureHandle::Empty() );
+    mGUIAuthorsText = ruCreateGUIText( mLocalization.GetString( "authorsText" ), x + 50, y + 50, w - 100, h - 100, pGUI->mFont, ruVector3( 0, 0, 0 ), 0 );
+    mGUIAuthorsBackground = ruCreateGUIRect( x, y, w, h, ruGetTexture( "data/textures/generic/loadingScreen.jpg" ) );
     y = g_resH - 4.0 * mDistBetweenButtons;
     for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
         mGUISaveGameSlot[i] = ruCreateGUIButton( 200, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUI->mFont, buttonColor, 1 );
@@ -93,7 +93,7 @@ Menu::Menu( ) {
     SetOptionsCommonPageVisible( false );
     SetAuthorsPageVisible( false );
     SetPage( Page::Main );
-
+	mMainButtonsAlpha = 255.0f;
     LoadConfig();
 }
 
@@ -110,6 +110,7 @@ void Menu::Show() {
     mVisible = true;
     ruShowCursor();
     SetAllVisible( true );
+	mMainButtonsAlpha = 255.0f;
 }
 
 void Menu::Hide( ) {
@@ -132,7 +133,7 @@ void Menu::Hide( ) {
 }
 
 void Menu::Update( ) {
-    ruSetAmbientColor( ruVector3( 0, 0, 0 ));
+    ruSetAmbientColor( ruVector3( 10 / 255.0f, 10 / 255.0f, 10  / 255.0f));
 
     mpCamera->Update();
 
@@ -144,7 +145,12 @@ void Menu::Update( ) {
 
         if( mStartPressed || mContinuePressed || mReturnToGameByEsc || mLoadFromSave ) {
             mpCamera->FadeOut();
-
+			if( mMainButtonsAlpha > 0 )	{
+				mMainButtonsAlpha -= 10;
+				if( mMainButtonsAlpha < 0 ) {
+					mMainButtonsAlpha = 0;
+				}
+			}
             if( mpCamera->FadeComplete() ) {
                 if( !pCurrentLevel && mContinuePressed ) {
                     SaveLoader( "lastGame.save" ).RestoreWorldState();
@@ -166,6 +172,10 @@ void Menu::Update( ) {
 
         if( mExitPressed ) {
             mExitingGame = true;
+			mMainButtonsAlpha -= 10;
+			if( mMainButtonsAlpha < 0 ) {
+				mMainButtonsAlpha = 0;
+			}
             mpCamera->FadeOut();
         }
 
@@ -195,6 +205,14 @@ void Menu::Update( ) {
         ruSetGUINodePosition( mGUIOptionsButton, optionsPosX, g_resH - 2.0 * mDistBetweenButtons );
         ruSetGUINodePosition( mGUIAuthorsButton, mainButtonsX, g_resH - 1.5 * mDistBetweenButtons );
         ruSetGUINodePosition( mGUIExitButton, mainButtonsX, g_resH - 1.0 * mDistBetweenButtons );
+
+		ruSetGUINodeAlpha( mGUIContinueGameButton, mMainButtonsAlpha );
+		ruSetGUINodeAlpha( mGUIStartButton, mMainButtonsAlpha );
+		ruSetGUINodeAlpha( mGUISaveGameButton, mMainButtonsAlpha );
+		ruSetGUINodeAlpha( mGUILoadGameButton, mMainButtonsAlpha );
+		ruSetGUINodeAlpha( mGUIOptionsButton, mMainButtonsAlpha );
+		ruSetGUINodeAlpha( mGUIAuthorsButton, mMainButtonsAlpha );
+		ruSetGUINodeAlpha( mGUIExitButton, mMainButtonsAlpha );
 
         if( mPage == Page::Authors ) {
             SetAuthorsPageVisible( true );
@@ -340,6 +358,8 @@ void Menu::Update( ) {
             mpQuickSaveKey->Update();
             mpQuickLoadKey->Update();
             mpStealthKey->Update();
+			mpLookLeftKey->Update();
+			mpLookRightKey->Update();
         } else {
             SetOptionsKeysPageVisible( false );
         }
@@ -436,6 +456,12 @@ void Menu::CreateWaitKeys() {
     mpQuickSaveKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickSave" ));
     y += 32 * 1.1f;
     mpStealthKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "stealth" ));
+	// Fourth column
+	x += 150;
+	y = g_resH - 2.5 * mDistBetweenButtons;
+	mpLookLeftKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "lookLeft" ));
+	y += 32 * 1.1f;
+	mpLookRightKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "lookRight" ));
 }
 
 
@@ -500,6 +526,9 @@ void Menu::LoadConfig() {
 
         mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
         ruSetRendererTextureFiltering( mpTextureFiltering->GetCurrentValue(), ruGetRendererMaxAnisotropy() );
+
+		mpLookLeftKey->SetSelected( config.GetNumber( "keyLookLeft" ) );
+		mpLookRightKey->SetSelected( config.GetNumber( "keyLookRight" ) );
     }
 }
 
@@ -515,6 +544,8 @@ void Menu::SetPlayerControls() {
         pPlayer->mKeyInventory = mpInventoryKey->GetSelectedKey();
         pPlayer->mKeyUse = mpUseKey->GetSelectedKey();
         pPlayer->mKeyStealth = mpStealthKey->GetSelectedKey();
+		pPlayer->mKeyLookLeft = mpLookLeftKey->GetSelectedKey();
+		pPlayer->mKeyLookRight = mpLookRightKey->GetSelectedKey();
     }
 }
 
@@ -541,6 +572,8 @@ void Menu::WriteConfig() {
     WriteInteger( config, "keyStealth", mpStealthKey->GetSelectedKey() );
     WriteInteger( config, "graphicsQuality", mpGraphicsQuality->GetCurrentValue() );
     WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
+	WriteInteger( config, "keyLookLeft", mpLookLeftKey->GetSelectedKey() );
+	WriteInteger( config, "keyLookRight", mpLookRightKey->GetSelectedKey() );
     config.close();
 }
 
@@ -591,16 +624,21 @@ Menu::~Menu() {
     delete mpStealthKey;
     delete mpFPSButton;
     delete mpGraphicsQuality;
+	delete mpLookLeftKey;
+	delete mpLookRightKey;
 }
 
 void Menu::SetAllVisible( bool state ) {
-    SetOptionsPageVisible( state );
-    SetOptionsKeysPageVisible( state );
-    SetMainPageVisible( state );
-    SetOptionsGraphicsPageVisible( state );
-    SetOptionsCommonPageVisible( state );
-    SetAuthorsPageVisible( state );
-    SetLoadSlotsVisible( state );
+	if( !state ) {
+		SetOptionsPageVisible( state );
+		SetOptionsKeysPageVisible( state );		
+		SetOptionsGraphicsPageVisible( state );
+		SetOptionsCommonPageVisible( state );
+		SetAuthorsPageVisible( state );
+		SetLoadSlotsVisible( state );
+	} else {
+		SetMainPageVisible( state );
+	}
 }
 
 void Menu::SetOptionsCommonPageVisible( bool state ) {
@@ -622,6 +660,8 @@ void Menu::SetOptionsKeysPageVisible( bool state ) {
     mpQuickSaveKey->SetVisible( state );
     mpQuickLoadKey->SetVisible( state );
     mpStealthKey->SetVisible( state );
+	mpLookLeftKey->SetVisible( state );
+	mpLookRightKey->SetVisible( state );
 }
 
 void Menu::SetMainPageVisible( bool state ) {

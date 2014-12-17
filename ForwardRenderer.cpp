@@ -10,15 +10,15 @@ void ForwardRenderer::RenderMeshes() {
         IDirect3DTexture9 * diffuseTexture = group.first;
         vector< Mesh* > & meshes = group.second;
 
-        g_pDevice->SetTexture( 0, diffuseTexture );
+        gpDevice->SetTexture( 0, diffuseTexture );
 
         for( auto mesh : meshes ) {
             D3DXMATRIX world, wvp;
             GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
             D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
 
-            CheckDXErrorFatal( g_pDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-            CheckDXErrorFatal( g_pDevice->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
+            CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+            CheckDXErrorFatal( gpDevice->SetPixelShaderConstantF( 0, &mesh->opacity, 1 ));
 
             mesh->BindBuffers();
             mesh->Render();

@@ -1,23 +1,25 @@
 #include "EffectsQuad.h"
 
 void EffectsQuad::Render() {
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
-    CheckDXErrorFatal( g_pDevice->SetVertexDeclaration( vertexDeclaration ));
-    CheckDXErrorFatal( g_pDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
+    CheckDXErrorFatal( gpDevice->SetVertexDeclaration( vertexDeclaration ));
+    CheckDXErrorFatal( gpDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     if( debug ) {
-        CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
-        CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
+        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
+        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
     }
 }
 
-void EffectsQuad::Bind() {
+void EffectsQuad::Bind( bool bindInternalVertexShader ) {
     if( debug ) {
         debugPixelShader->Bind();
-        CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-        CheckDXErrorFatal( g_pDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
     }
-    vertexShader->Bind();
-    CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( g_pDevice, v2Proj, &orthoProjection ));
+	if( bindInternalVertexShader ) {
+		vertexShader->Bind();
+		CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( gpDevice, v2Proj, &orthoProjection ));
+	}
 }
 
 EffectsQuad::~EffectsQuad() {
@@ -52,7 +54,7 @@ void EffectsQuad::SetSize( float width, float height ) {
 }
 
 EffectsQuad::EffectsQuad( bool bDebug ) {
-    CheckDXErrorFatal( g_pDevice->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
     debug = bDebug;
     debugPixelShader = nullptr;
@@ -96,7 +98,7 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         D3DDECL_END()
     };
 
-    CheckDXErrorFatal( g_pDevice->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration ));
+    CheckDXErrorFatal( gpDevice->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration ));
 
     string vertexSourcePassTwo =
         "float4x4 g_projection;\n"

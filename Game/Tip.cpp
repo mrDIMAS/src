@@ -1,49 +1,46 @@
 #include "Tip.h"
 
 void Tip::Deserialize( TextFileStream & in ) {
-    in.Readstring( txt );
-    alpha.Deserialize( in );
-    in.ReadInteger( x );
-    y.Deserialize( in );
-    in.ReadInteger( w );
-    in.ReadInteger( h );
+    mAlpha.Deserialize( in );
+    in.ReadInteger( mX );
+    mY.Deserialize( in );
+    in.ReadInteger( mWidth );
+    in.ReadInteger( mHeight );
 }
 
 void Tip::Serialize( TextFileStream & out ) {
-    out.WriteString( txt );
-    alpha.Serialize( out );
-    out.WriteInteger( x );
-    y.Serialize( out );
-    out.WriteInteger( w );
-    out.WriteInteger( h );
+    mAlpha.Serialize( out );
+    out.WriteInteger( mX );
+    mY.Serialize( out );
+    out.WriteInteger( mWidth );
+    out.WriteInteger( mHeight );
 }
 
 void Tip::AnimateAndDraw() {
-    //ruDrawGUIText( txt.c_str(), x, y, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, alpha );
-    ruSetGUINodePosition( mGUIText, x, y );
-    if( ruGetElapsedTimeInSeconds( timer ) > 1.5 ) {
-        alpha.SetTarget( alpha.GetMin() );
-        alpha.ChaseTarget( 0.1 );
-
-        y.SetTarget( y.GetMax() );
-        y.ChaseTarget( 0.1 );
+    ruSetGUINodePosition( mGUIText, mX, mY );
+	ruSetGUINodeAlpha( mGUIText, mAlpha );
+    if( ruGetElapsedTimeInSeconds( mTimer ) > 1.5 ) {
+        mAlpha.SetTarget( mAlpha.GetMin() );
+        mAlpha.ChaseTarget( 0.1 );
+        mY.SetTarget( mY.GetMax() );
+        mY.ChaseTarget( 0.1 );
     };
 }
 
 void Tip::SetNewText( string text ) {
-    ruRestartTimer( timer );
-    txt = text;
-    alpha.Set( 255.0f );
-    y.SetMax( ruGetResolutionHeight() - h );
-    y.SetMin( ruGetResolutionHeight() / 2 + h );
-    y.Set( y.GetMin());
+    ruRestartTimer( mTimer );
+    mAlpha.Set( 255.0f );
+	ruSetGUINodeText( mGUIText, text.c_str() );
+    mY.SetMax( ruGetResolutionHeight() - mHeight );
+    mY.SetMin( ruGetResolutionHeight() / 2 + mHeight );
+    mY.Set( mY.GetMin());
 }
 
-Tip::Tip() : alpha( 255.0f, 0.0f, 255.0f ) {
-    timer = ruCreateTimer();
-    w = 256;
-    h = 32;
-    x = ruGetResolutionWidth() / 2 - w / 2;
-    SetNewText( " " );
-    mGUIText = ruCreateGUIText( " ", 0, 0, w, h, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , alpha );
+Tip::Tip() : mAlpha( 255.0f, 0.0f, 255.0f ) {
+    mTimer = ruCreateTimer();
+    mWidth = 256;
+    mHeight = 32;
+    mX = ruGetResolutionWidth() / 2 - mWidth / 2;
+    mGUIText = ruCreateGUIText( " ", 0, 0, mWidth, mHeight, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , mAlpha );
+	SetNewText( " " );
 }

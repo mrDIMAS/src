@@ -5,9 +5,9 @@
 class GUI {
 public:
     ruFontHandle mFont;
-    ruTextureHandle staminaBarImg;
-    ruTextureHandle lifeBarImg;
-    ruTextureHandle itemImg;
+	ruTextureHandle staminaBarImg;
+	ruTextureHandle lifeBarImg;
+	ruTextureHandle itemImg;
 
     GUI();
 };

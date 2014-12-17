@@ -4,19 +4,19 @@
 
 
 void TextFileStream::WriteString( string str ) {
-    stream << str << endl;
+    mStream << str << endl;
 }
 
 void TextFileStream::WriteFloat( float fl ) {
-    stream << fl << endl;
+    mStream << fl << endl;
 }
 
 void TextFileStream::WriteInteger( int i ) {
-    stream << i << endl;
+    mStream << i << endl;
 }
 
 void TextFileStream::WriteBoolean( bool b ) {
-    stream << b << endl;
+    mStream << b << endl;
 }
 
 void TextFileStream::WriteVector3( ruVector3 v ) {
@@ -34,80 +34,80 @@ void TextFileStream::WriteQuaternion( ruQuaternion q ) {
 
 string TextFileStream::Readstring() {
     string str;
-    stream >> str;
+    mStream >> str;
     return str;
 }
 
 void TextFileStream::Readstring( string & str ) {
-    getline( stream, str );
+    getline( mStream, str );
 }
 
 float TextFileStream::ReadFloat() {
     float fl;
-    stream >> fl;
+    mStream >> fl;
     return fl;
 }
 
 void TextFileStream::ReadFloat( float & f ) {
-    stream >> f;
+    mStream >> f;
 }
 
 int TextFileStream::ReadInteger() {
     int i;
-    stream >> i;
+    mStream >> i;
     return i;
 }
 
 void TextFileStream::ReadInteger( int & i ) {
-    stream >> i;
+    mStream >> i;
 }
 
 bool TextFileStream::ReadBoolean() {
     bool b;
-    stream >> b;
+    mStream >> b;
     return b;
 }
 
 void TextFileStream::ReadBoolean( bool & b ) {
-    stream >> b;
+    mStream >> b;
 }
 
 ruVector3 TextFileStream::ReadVector3() {
     ruVector3 v;
-    stream >> v.x;
-    stream >> v.y;
-    stream >> v.z;
+    mStream >> v.x;
+    mStream >> v.y;
+    mStream >> v.z;
     return v;
 }
 
 void TextFileStream::ReadVector3( ruVector3 & v ) {
-    stream >> v.x;
-    stream >> v.y;
-    stream >> v.z;
+    mStream >> v.x;
+    mStream >> v.y;
+    mStream >> v.z;
 }
 
 ruQuaternion TextFileStream::ReadQuaternion() {
     ruQuaternion q;
-    stream >> q.x;
-    stream >> q.y;
-    stream >> q.z;
-    stream >> q.w;
+    mStream >> q.x;
+    mStream >> q.y;
+    mStream >> q.z;
+    mStream >> q.w;
     return q;
 }
 
 void TextFileStream::ReadQuaternion( ruQuaternion & q ) {
-    stream >> q.x;
-    stream >> q.y;
-    stream >> q.z;
-    stream >> q.w;
+    mStream >> q.x;
+    mStream >> q.y;
+    mStream >> q.z;
+    mStream >> q.w;
 }
 
 TextFileStream::~TextFileStream() {
-    stream.flush();
-    stream.close();
+    mStream.flush();
+    mStream.close();
 }
 
 TextFileStream::TextFileStream( const char * fileName, bool save ) {
     int flags = save ? ( fstream::out | fstream::trunc ) : ( fstream::in );
-    stream.open( fileName, flags );
+    mStream.open( fileName, flags );
 }

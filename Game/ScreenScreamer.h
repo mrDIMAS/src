@@ -1,15 +1,21 @@
 #pragma  once
 
-#include "game.h"
+#include "Game.h"
 
 class ScreenScreamer {
+private:
+	ruSoundHandle mScreamSound;
+	int mPeriods;
+	int mNextPeriodFrames;
+	int mPauseFrames;
+	ruRectHandle mGUIFullscreenQuad;
 public:
-    ruSoundHandle sound;
-    int periods;
-    ruTextureHandle tex;
-    int nextPeriodFrames;
-    int pauseFrames;
-    ScreenScreamer();
+    explicit ScreenScreamer();
     void DoPeriods( int p );
     void Update( );
+	void SetVisible( bool state ){
+		if( !state ) {
+			ruSetGUINodeVisible( mGUIFullscreenQuad, state );
+		}
+	}
 };

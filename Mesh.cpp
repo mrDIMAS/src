@@ -60,7 +60,7 @@ Mesh::~Mesh() {
 void Mesh::UpdateVertexBuffer() {
     int sizeBytes = vertices.size() * sizeof( Vertex );
     if( !vertexBuffer ) {
-        CheckDXErrorFatal( g_pDevice->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+        CheckDXErrorFatal( gpDevice->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
     }
     if( vertices.size() == 0 ) {
         return;
@@ -74,7 +74,7 @@ void Mesh::UpdateVertexBuffer() {
 void Mesh::UpdateIndexBuffer( vector< Triangle > & triangles ) {
     int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
     if( !indexBuffer ) {
-        CheckDXErrorFatal( g_pDevice->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
+        CheckDXErrorFatal( gpDevice->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
     }
     void * indexData = 0;
     CheckDXErrorFatal( indexBuffer->Lock( 0, 0, &indexData, 0 ));
@@ -100,15 +100,15 @@ Texture * Mesh::GetNormalTexture() {
 }
 
 void Mesh::BindBuffers() {
-    CheckDXErrorFatal( g_pDevice->SetVertexDeclaration( g_meshVertexDeclaration ));
-    CheckDXErrorFatal( g_pDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( gpDevice->SetVertexDeclaration( g_meshVertexDeclaration ));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex )));
     if( octree ) {
         vector< Triangle > & id = octree->GetTrianglesToRender();
         if( id.size() ) {
             UpdateIndexBuffer( id );
         }
     }
-    CheckDXErrorFatal( g_pDevice->SetIndices( indexBuffer ));
+    CheckDXErrorFatal( gpDevice->SetIndices( indexBuffer ));
 }
 
 void Mesh::Render() {
@@ -118,10 +118,10 @@ void Mesh::Render() {
         ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", octree->visibleNodes, octree->visibleTriangles ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( octree->visibleTris.size() ) {
-            CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, octree->visibleTris.size() ));
+            CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, octree->visibleTris.size() ));
         }
     } else {
-        CheckDXErrorFatal( g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, triangles.size() ));
+        CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertices.size(), 0, triangles.size() ));
     }
 
     // each mesh renders in one DIP

@@ -22,7 +22,7 @@ public:
         ruSetGUINodeVisible( mGUIBackground, state );
         ruSetGUINodeVisible( mGUIText, state );
     }
-    static Sheet * GetSheetByObject( ruNodeHandle o );
+    static Sheet * GetSheetPointerByNode( ruNodeHandle o );
     static vector<Sheet*> msSheetList;
     static ruSoundHandle msPaperFlipSound;
     static ruFontHandle msSheetFont;

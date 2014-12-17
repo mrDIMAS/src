@@ -147,7 +147,7 @@ void LevelResearchFacility::DoScenario() {
 
     mpSteamValve->Update();
     mpExtemeSteam->Update();
-    mpExtemeSteam->power = 1 - mpSteamValve->value;
+    mpExtemeSteam->power = 1.0f - mpSteamValve->GetClosedCoeffecient();;
 
     UpdatePowerupSequence();
 
@@ -210,7 +210,7 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-    if( mpSteamValve->done ) {
+    if( mpSteamValve->IsDone() ) {
         ruSetNodePosition( mExtremeSteamBlock, ruVector3( 1000, 1000, 1000 ));
     } else {
         if( pPlayer->IsInsideZone( mExtremeSteamHurtZone )) {
