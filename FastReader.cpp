@@ -56,7 +56,7 @@ std::string FastReader::GetString() {
 float FastReader::GetFloat() {
     float value = * ( float * ) ( data + cursor );
 
-    cursor += 4;
+    cursor += sizeof(float);
 
     return value;
 }
@@ -72,7 +72,7 @@ unsigned char FastReader::GetByte() {
 unsigned short FastReader::GetShort() {
     unsigned short value = * ( unsigned short * ) ( data + cursor );
 
-    cursor += 2;
+    cursor += sizeof(short);
 
     return value;
 }
@@ -80,14 +80,13 @@ unsigned short FastReader::GetShort() {
 int FastReader::GetInteger() {
     int value = * ( int * ) ( data + cursor );
 
-    cursor += 4;
+    cursor += sizeof(int);
 
     return value;
 }
 
 FastReader::~FastReader() {
     delete [] data;
-    data = 0;
 }
 
 bool FastReader::ReadFile( const char * fileName ) {

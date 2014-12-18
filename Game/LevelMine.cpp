@@ -194,7 +194,6 @@ LevelMine::LevelMine() {
 
 LevelMine::~LevelMine() {
     delete mEnemy;
-// FreeSoundSource( music );
 }
 
 void LevelMine::Show() {

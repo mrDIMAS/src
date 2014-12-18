@@ -93,11 +93,16 @@ void Level::Change( int levelId, bool continueFromSave ) {
     if( lastLevel != Level::msCurLevelID ) {
 		ruSetGUINodeVisible( msGUILoadingText, true );
 		ruSetGUINodeVisible( msGUILoadingBackground, true );
+		if( pPlayer ) {
+			pPlayer->SetHUDVisible( false );
+		}
         // draw 'loading' string
         ruRenderWorld( 1.0f / 60.0f );
 		ruSetGUINodeVisible( msGUILoadingText, false );
 		ruSetGUINodeVisible( msGUILoadingBackground, false );
-
+		if( pPlayer ) {
+			pPlayer->SetHUDVisible( true );
+		}
         lastLevel = Level::msCurLevelID;
 
         if( !pPlayer && Level::msCurLevelID != LevelName::L0Introduction ) {

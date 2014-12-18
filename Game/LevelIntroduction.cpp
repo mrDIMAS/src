@@ -44,7 +44,8 @@ void LevelIntroduction::DoScenario() {
 
 LevelIntroduction::~LevelIntroduction() {
     ruFreeGUINode( mGUIText );
-    ruFreeGUINode( mGUISkipText );
+	ruFreeGUINode( mGUISkipText );
+	ruSetGUINodeVisible( mGUIBackground, false );
 	ruFreeGUINode( mGUIBackground );
 }
 

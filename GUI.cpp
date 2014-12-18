@@ -144,5 +144,5 @@ ruTextHandle ruGetButtonText( ruButtonHandle node ) {
 }
 
 void ruFreeGUINode( ruGUINodeHandle node ) {
-    delete ((GUIButton*)node.pointer);
+	delete ((GUINode*)node.pointer);
 }

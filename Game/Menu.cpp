@@ -529,6 +529,9 @@ void Menu::LoadConfig() {
 
 		mpLookLeftKey->SetSelected( config.GetNumber( "keyLookLeft" ) );
 		mpLookRightKey->SetSelected( config.GetNumber( "keyLookRight" ) );
+
+		mpFPSButton->SetEnabled( config.GetNumber( "showFPS" ) != 0.0f );
+		g_showFPS = mpFPSButton->IsEnabled();
     }
 }
 
@@ -574,6 +577,7 @@ void Menu::WriteConfig() {
     WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
 	WriteInteger( config, "keyLookLeft", mpLookLeftKey->GetSelectedKey() );
 	WriteInteger( config, "keyLookRight", mpLookRightKey->GetSelectedKey() );
+	WriteInteger( config, "showFPS", mpFPSButton->IsEnabled() ? 1 : 0 );
     config.close();
 }
 

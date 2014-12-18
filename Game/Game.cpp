@@ -55,6 +55,7 @@ void main( ) {
 	Level::CreateLoadingScreen();
 
     double fixedTick = 1.0 / 60.0;
+	double maxDT = 1.0 / 10.0;
     double prevPhysTime = ruGetTimeInSeconds( dtTimer );
     double currPhysTime = prevPhysTime;
     double gameClock = prevPhysTime;
@@ -65,7 +66,7 @@ void main( ) {
         try {
             // ===========================
             // frame rendering update
-            ruRenderWorld( 1.0f / 60.0f );
+            ruRenderWorld( fixedTick );
 
             // ===========================
             // physics update
@@ -78,8 +79,8 @@ void main( ) {
             // ===========================
             // game logics update
             double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
-            if( dt > 1.0f / 10.0f ) {
-                dt = 1.0f / 10.0f;
+            if( dt > maxDT ) {
+                dt = maxDT;
             }
 
             while( dt >= fixedTick ) {

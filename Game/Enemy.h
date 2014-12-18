@@ -78,7 +78,7 @@ public:
     virtual void SetRunAndAttackAnimation();
     virtual void SetStayAndAttackAnimation();
     explicit Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
-    virtual ~Enemy();;
+    virtual ~Enemy();
     void FindBodyparts();
     void CreateSounds();
     void CreateAnimations();

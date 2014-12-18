@@ -22,7 +22,7 @@ void Actor::SetPosition( ruVector3 position ) {
 }
 
 Actor::~Actor() {
-
+	ruFreeSceneNode( mBody );
 }
 
 char Actor::IsInsideZone( ruNodeHandle zone ) {
