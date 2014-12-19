@@ -105,6 +105,7 @@ void Menu::Show() {
         pCurrentLevel->Hide();
     }
     if( pPlayer ) {
+		pPlayer->SetBodyVisible( false );
         pPlayer->SetHUDVisible( false );
     }
     mVisible = true;
@@ -118,6 +119,7 @@ void Menu::Hide( ) {
         pPlayer->mpCamera->MakeCurrent();
     }
     if( pPlayer ) {
+		pPlayer->SetBodyVisible( true );
         pPlayer->SetHUDVisible( true );
     }
     SetPlayerControls();

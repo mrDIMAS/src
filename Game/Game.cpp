@@ -62,6 +62,7 @@ void main( ) {
 
     ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
     ruShowCursor();
+
     while( g_running ) {
         try {
             // ===========================

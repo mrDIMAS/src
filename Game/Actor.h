@@ -21,5 +21,12 @@ public:
     bool IsVisibleFromPoint( ruVector3 begin ) {
         return ruCastRay( begin, GetCurrentPosition(), nullptr ).pointer == mBody.pointer;
     }
+	void SetBodyVisible( bool state ) {
+		if( state ) {
+			ruShowNode( mBody );
+		} else {
+			ruHideNode( mBody );
+		}
+	}
     ruVector3 GetLookDirection();
 };

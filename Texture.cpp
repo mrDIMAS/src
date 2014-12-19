@@ -24,10 +24,19 @@ Texture * Texture::Require( string file ) {
         string name = file.substr( slashPos + 1, dotPos - slashPos - 1 );
 
         // cache lookup
-        string cacheFileName = g_texturePath + "cache/" + name + ".dds";
+        string cacheFileName = g_texturePath + "cache/__cache" + name + ".dds";
         FILE * pFile = fopen( cacheFileName.c_str(), "r" );
-        if( pFile ) { // got cached DXT5 texture
-            fclose( pFile );
+		bool loadFromCache = false;
+		if( pFile ) {
+			fclose( pFile );
+			D3DXIMAGE_INFO cacheInfo, noncachedInfo;
+			D3DXGetImageInfoFromFileA( cacheFileName.c_str(), &cacheInfo );
+			D3DXGetImageInfoFromFileA( file.c_str(), &noncachedInfo );
+			if( (cacheInfo.Width == noncachedInfo.Width) && (cacheInfo.Height == noncachedInfo.Height) ) {
+				loadFromCache = true;
+			}				
+		}
+        if( loadFromCache ) { // got cached DXT5 texture            
             if( FAILED( D3DXCreateTextureFromFileExA( gpDevice, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture ))) {
                 LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
             }

@@ -392,6 +392,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     }
 
     if( pHDRRenderer && g_hdrEnabled ) {
+		gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+		gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+		gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
         pHDRRenderer->CalculateFrameLuminance( );
         if( g_fxaaEnabled ) {
             pHDRRenderer->DoToneMapping( pFXAA->renderTarget );
@@ -401,8 +404,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         }
     } else {
         if( g_fxaaEnabled ) {
-            CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
-            CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE ));
+            gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+            gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
             pFXAA->DoAntialiasing( pFXAA->texture );
         }
     }

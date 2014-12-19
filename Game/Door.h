@@ -10,14 +10,22 @@ public:
         Closing,
         Opening,
     };
+
+	enum class TurnDirection {
+		Clockwise,
+		Counterclockwise,
+	};
 public:
-    ruNodeHandle door;
+    ruNodeHandle mDoorNode;
 
     float mMaxAngle;
     float mOffsetAngle;
     float mCurrentAngle;
+	TurnDirection mTurnDirection;
 
     State mState;
+
+	bool mLocked;
 
     ruSoundHandle mOpenSound;
     ruSoundHandle mCloseSound;
@@ -29,7 +37,17 @@ public:
     bool IsPickedByPlayer();
     void SwitchState();
     State GetState();
+	void SetTurnDirection( TurnDirection direction ) {
+		mTurnDirection = direction;
+	}
+	bool IsLocked()
+	{
+		return mLocked;
+	}
+	void SetLocked( bool state ) {
+		mLocked = state;
+	}
     void Open( );
     void Close();
-    void DoInteraction();
+    virtual void DoInteraction();
 };

@@ -5,7 +5,7 @@
 vector< Door* > Door::msDoorList;
 
 bool Door::IsPickedByPlayer() {
-    return door == pPlayer->mNearestPickedNode;
+    return mDoorNode == pPlayer->mNearestPickedNode;
 }
 
 Door::~Door() {
@@ -13,47 +13,57 @@ Door::~Door() {
 }
 
 Door::Door( ruNodeHandle hDoor, float fMaxAngle ) {
-    door = hDoor;
-
+    mDoorNode = hDoor;
     mMaxAngle = fMaxAngle;
-
+	mLocked = false;
     mOffsetAngle = ruGetNodeEulerAngles( hDoor ).y;
-
     mCurrentAngle = 0;
-
     mState = State::Closed;
-
+	SetTurnDirection( TurnDirection::Clockwise );
     mOpenSound = ruLoadSound3D( "data/sounds/door/dooropen.ogg" );
-    ruAttachSound( mOpenSound, door );
-
+    ruAttachSound( mOpenSound, mDoorNode );
     mCloseSound = ruLoadSound3D( "data/sounds/door/doorclose.ogg" );
-    ruAttachSound( mCloseSound, door );
-
+    ruAttachSound( mCloseSound, mDoorNode );
     msDoorList.push_back( this );
 }
 
 void Door::DoInteraction() {
+	float turnSpeed = 60.0f * g_dt;
     if( mState == State::Closing ) {
-        mCurrentAngle -= 60.0f * g_dt;
+		if( mTurnDirection == TurnDirection::Clockwise ) {
+			mCurrentAngle -= turnSpeed;
+			if( mCurrentAngle < 0 ) {
+				mCurrentAngle = 0.0f;
+				mState = State::Closed;
+			}
+		} else if( mTurnDirection == TurnDirection::Counterclockwise ){
+			mCurrentAngle += turnSpeed;
+			if( mCurrentAngle > 0 ) {
+				mCurrentAngle = 0;
+				mState = State::Closed;
+			}
+		}
 
-        if( mCurrentAngle < 0 ) {
-            mCurrentAngle = 0.0f;
-
-            mState = State::Closed;
-        }
     }
 
     if( mState == State::Opening ) {
-        mCurrentAngle += 60.0f * g_dt;
+		if( mTurnDirection == TurnDirection::Clockwise ) { 
+			mCurrentAngle += turnSpeed;
+			if( mCurrentAngle > mMaxAngle ) {
+				mState = State::Opened;
+				mCurrentAngle = mMaxAngle;
+			}
+		} else if( mTurnDirection == TurnDirection::Counterclockwise ) {
+			mCurrentAngle -= turnSpeed;
+			if( mCurrentAngle < -mMaxAngle ) {
+				mState = State::Opened;
+				mCurrentAngle = -mMaxAngle;
+			}
+		}
 
-        if( mCurrentAngle > mMaxAngle ) {
-            mState = State::Opened;
-
-            mCurrentAngle = mMaxAngle;
-        }
     }
 
-    ruSetNodeRotation( door, ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
+    ruSetNodeRotation( mDoorNode, ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
 }
 
 Door::State Door::GetState() {

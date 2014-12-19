@@ -378,10 +378,12 @@ void Player::UpdateMoving() {
     for( auto pDoor : Door::msDoorList ) {
         pDoor->DoInteraction();
         if( pDoor->IsPickedByPlayer() ) {
-            SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )).c_str());
-            if( IsUseButtonHit() ) {
-                pDoor->SwitchState();
-            }
+			if( !pDoor->IsLocked() ) {
+				SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )).c_str());
+				if( IsUseButtonHit() ) {
+					pDoor->SwitchState();
+				}
+			}
         }
     }
 
@@ -1269,6 +1271,7 @@ void Player::SetHUDVisible( bool state ) {
 	ruSetGUINodeVisible( mGUIStealthSign, state );	
     mGoal.SetVisible( state );
 	if( !state ) {
+		mTip.SetVisible( state );
 		if( mpSheetInHands ) {
 			CloseCurrentSheet();
 		}

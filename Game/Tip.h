@@ -16,6 +16,9 @@ private:
     ruTextHandle mGUIText;
 public:
     Tip();
+	void SetVisible( bool state ) {
+		ruSetGUINodeVisible( mGUIText, state );
+	}
     void SetNewText( string text );
     void AnimateAndDraw();
     void Serialize( TextFileStream & out );

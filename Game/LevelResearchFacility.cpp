@@ -54,6 +54,9 @@ LevelResearchFacility::LevelResearchFacility() {
 
     AddSound( mMusic = ruLoadMusic( "data/music/rf.ogg" ));
     ruSetSoundVolume( mMusic, 0.75f );
+	
+	AddLadder( new Ladder( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
+		GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
 
     AddDoor( new Door( GetUniqueObject( "Door1" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door2" ), 90.0f ));
@@ -63,7 +66,7 @@ LevelResearchFacility::LevelResearchFacility() {
     AddDoor( new Door( GetUniqueObject( "Door6" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door7" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door8" ), 90.0f ));
-
+    AddDoor( new Door( GetUniqueObject( "Door009" ), 90.0f ));
     mScaryBarell = GetUniqueObject( "ScaryBarell" );
     mScaryBarellPositionNode = GetUniqueObject( "ScaryBarellPos" );
     mPowerLamp = GetUniqueObject( "PowerLamp");
@@ -97,7 +100,7 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
-    ruSetAmbientColor( ruVector3( 5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f ));
+    ruSetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
 
     static int stateEnterSteamActivateZone = 0;
     static int stateEnterScaryBarellThrowZone = 0;

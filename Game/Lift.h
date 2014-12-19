@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Game.h"
-
+#include "LiftDoor.h"
 class Lift {
 private:
     ruNodeHandle mBaseNode;
@@ -9,12 +9,16 @@ private:
     ruNodeHandle mSourceNode;
     ruNodeHandle mDestNode;
     ruNodeHandle mTargetNode;
-    ruNodeHandle mDoorFrontLeft;
-    ruNodeHandle mDoorFrontRight;
-    ruNodeHandle mDoorBackLeft;
-    ruNodeHandle mDoorBackRight;
+    ruNodeHandle mDoorFrontLeftNode;
+    ruNodeHandle mDoorFrontRightNode;
+    ruNodeHandle mDoorBackLeftNode;
+    ruNodeHandle mDoorBackRightNode;
     bool mArrived;
     ruSoundHandle mMotorSound;
+	LiftDoor * mDoorFrontLeft;
+	LiftDoor * mDoorFrontRight;
+	LiftDoor * mDoorBackLeft;
+	LiftDoor * mDoorBackRight;
 public:
     explicit Lift( ruNodeHandle base );
     virtual ~Lift( );
@@ -26,4 +30,6 @@ public:
     void SetBackDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor );
     bool IsArrived( );
     void Update();
+	void SetDoorsLocked( bool state );
+	bool IsAllDoorsClosed();
 };

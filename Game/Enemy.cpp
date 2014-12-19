@@ -156,10 +156,10 @@ void Enemy::Think() {
     }
 
     // check doors
-    for( auto d : Door::msDoorList ) {
-        if( ( ruGetNodePosition( d->door ) - ruGetNodePosition( mBody )).Length2() < 2.5f ) {
-            if( d->GetState() == Door::State::Closed ) {
-                d->Open();
+    for( auto pDoor : Door::msDoorList ) {
+        if( ( ruGetNodePosition( pDoor->mDoorNode ) - ruGetNodePosition( mBody )).Length2() < 2.5f ) {
+            if( pDoor->GetState() == Door::State::Closed ) {
+                pDoor->Open();
             }
         }
     }

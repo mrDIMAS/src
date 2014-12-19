@@ -7,14 +7,14 @@
 class Item : public InteractiveObject {
 public:
     enum class Type {
-        Unknown,
-        Detonator,
-        FuelCanister,
-        Wires,
-        Explosives,
-        Flashlight,
-        Fuse,
-        Medkit,
+        Unknown			= 0,
+        Detonator		= 1,
+        FuelCanister	= 2,
+        Wires			= 3,
+        Explosives		= 4,
+        Flashlight		= 5,
+        Fuse			= 6,
+        Medkit			= 7,
     };
 private:
     static Parser msLocalization;

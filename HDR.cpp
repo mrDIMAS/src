@@ -8,15 +8,6 @@ void HDRRenderer::DoToneMapping( IDirect3DSurface9 * targetSurface ) {
     gpDevice->SetTexture( 7, adaptedLuminanceCurrent );
     toneMapShader->Bind();
     screenQuad->Bind();
-    gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-    gpDevice->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-    gpDevice->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL);
-    gpDevice->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
     screenQuad->Render();
 }
 
@@ -126,15 +117,6 @@ HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
 }
 
 void HDRRenderer::CalculateFrameLuminance( ) {
-    gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-    gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
-    gpDevice->SetRenderState( D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL );
-    gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
     screenQuad->Bind();
 
     gpDevice->SetTexture( 7, hdrTexture );
