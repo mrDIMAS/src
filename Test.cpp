@@ -70,7 +70,6 @@ void main( ) {
     ruTimerHandle perfTimer = ruCreateTimer();
     int perfTime=0;
 
-    ruEnablePointLightShadows( false );
     ruEnableSpotLightShadows( false );
     ruDisableFXAA();
 

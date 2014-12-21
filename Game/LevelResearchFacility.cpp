@@ -24,6 +24,15 @@ LevelResearchFacility::LevelResearchFacility() {
     mLift1->SetBackDoors( GetUniqueObject( "Lift1BackDoorLeft"), GetUniqueObject( "Lift1BackDoorRight" ));
     mLift1->SetFrontDoors( GetUniqueObject( "Lift1FrontDoorLeft"), GetUniqueObject( "Lift1FrontDoorRight" ));
     AddLift( mLift1 );
+	
+	mLift2 = new Lift( GetUniqueObject( "Lift2" ) );
+	mLift2->SetControlPanel( GetUniqueObject( "Lift2Screen" ));
+	mLift2->SetDestinationPoint( GetUniqueObject( "Lift2Dest" ));
+	mLift2->SetSourcePoint( GetUniqueObject( "Lift2Source" ));
+	mLift2->SetMotorSound( ruLoadSound3D( "data/sounds/motor_idle.ogg"));
+	mLift2->SetBackDoors( GetUniqueObject( "Lift2BackDoorLeft"), GetUniqueObject( "Lift2BackDoorRight" ));
+	mLift2->SetFrontDoors( GetUniqueObject( "Lift2FrontDoorLeft"), GetUniqueObject( "Lift2FrontDoorRight" ));
+	AddLift( mLift2 );
 
     mpFan1 = new Fan( GetUniqueObject( "Fan" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
     mpFan2 = new Fan( GetUniqueObject( "Fan2" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
@@ -42,10 +51,6 @@ LevelResearchFacility::LevelResearchFacility() {
 
     mDoorOpenLever = GetUniqueObject( "DoorOpenLever" );
     mLockedDoor = GetUniqueObject( "LockedDoor" );
-    mSpawnRipperZone = GetUniqueObject( "SpawnRipperZone" );
-
-    mRipperNewPosition = GetUniqueObject( "RipperNewPosition");
-    mRepositionRipperZone = GetUniqueObject( "RepositionRipperZone");
 
     mExtremeSteamBlock = GetUniqueObject( "ExtremeSteamBlock" );
     mExtremeSteamHurtZone = GetUniqueObject( "ExtremeSteamHurtZone" );
@@ -57,7 +62,16 @@ LevelResearchFacility::LevelResearchFacility() {
 	
 	AddLadder( new Ladder( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
 		GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
-
+	AddLadder( new Ladder( GetUniqueObject( "Ladder2Begin" ), GetUniqueObject( "Ladder2End" ), GetUniqueObject( "Ladder2Enter" ),
+		GetUniqueObject( "Ladder2BeginLeavePoint"), GetUniqueObject( "Ladder2EndLeavePoint")));
+	AddLadder( new Ladder( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
+		GetUniqueObject( "Ladder3BeginLeavePoint"), GetUniqueObject( "Ladder3EndLeavePoint")));
+	AddLadder( new Ladder( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
+		GetUniqueObject( "Ladder4BeginLeavePoint"), GetUniqueObject( "Ladder4EndLeavePoint")));
+	AddLadder( new Ladder( GetUniqueObject( "Ladder5Begin" ), GetUniqueObject( "Ladder5End" ), GetUniqueObject( "Ladder5Enter" ),
+		GetUniqueObject( "Ladder5BeginLeavePoint"), GetUniqueObject( "Ladder5EndLeavePoint")));
+	AddLadder( new Ladder( GetUniqueObject( "Ladder6Begin" ), GetUniqueObject( "Ladder6End" ), GetUniqueObject( "Ladder6Enter" ),
+		GetUniqueObject( "Ladder6BeginLeavePoint"), GetUniqueObject( "Ladder6EndLeavePoint")));
     AddDoor( new Door( GetUniqueObject( "Door1" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door2" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door3" ), 90.0f ));
@@ -115,6 +129,8 @@ void LevelResearchFacility::DoScenario() {
         mpFan1->DoTurn();
         mpFan2->DoTurn();
     }
+
+			mLift2->Update();
 
     if( !stateEnterSteamActivateZone ) {
         if( pPlayer->IsInsideZone( mSteamActivateZone )) {
@@ -191,27 +207,6 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-    if( stateDoorUnlocked && !stateEnterSpawnRipperZone ) {
-        if( pPlayer->IsInsideZone( mSpawnRipperZone )) {
-            stateEnterSpawnRipperZone = true;
-
-            //ripper = new Enemy( "data/models/ripper/ripper.scene" );
-            //SetPosition( ripper->body, GetPosition( FindByName( "RipperPosition" )));
-        }
-    }
-
-    if( mpRipper ) {
-        if( stateEnterSpawnRipperZone ) {
-            mpRipper->Think();
-        }
-
-        if( !stateEnterRepositionRipperZone ) {
-            if( pPlayer->IsInsideZone( mRepositionRipperZone )) {
-                stateEnterRepositionRipperZone = true;
-                mpRipper->SetPosition( ruGetNodePosition( mRipperNewPosition ));
-            }
-        }
-    }
 
     if( mpSteamValve->IsDone() ) {
         ruSetNodePosition( mExtremeSteamBlock, ruVector3( 1000, 1000, 1000 ));

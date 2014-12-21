@@ -12,6 +12,7 @@
 class LevelResearchFacility : public Level {
 private:
     Lift * mLift1;
+	Lift * mLift2;
     Sparks * mpPowerSparks;
     Valve * mpSteamValve;
     SteamStream * mpExtemeSteam;
@@ -26,9 +27,6 @@ private:
     ruNodeHandle mSteamPS;
     ruNodeHandle mDoorOpenLever;
     ruNodeHandle mLockedDoor;
-    ruNodeHandle mSpawnRipperZone;
-    ruNodeHandle mRepositionRipperZone;
-    ruNodeHandle mRipperNewPosition;
     ruNodeHandle mExtremeSteamBlock;
     ruNodeHandle mExtremeSteamHurtZone;
     ruNodeHandle fuseModel[3];

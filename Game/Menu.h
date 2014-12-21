@@ -50,7 +50,6 @@ private:
     NumericSlider * mpMouseSensivity;
     RadioButton * mpFXAAButton;
     RadioButton * mpFPSButton;
-    RadioButton * mpPointShadowsButton;
     RadioButton * mpSpotShadowsButton;
     RadioButton * mpHDRButton;
     ScrollList * mpTextureFiltering;

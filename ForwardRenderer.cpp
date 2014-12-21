@@ -77,7 +77,7 @@ ForwardRenderer::ForwardRenderer() {
 
         "float4 main( PSInput input ) : COLOR0 {\n"
         "   float4 diffuseTexel = tex2D( diffuseSampler, input.texCoord );\n"
-        "   return float4( float3( diffuseTexel.xyz * opacity), 1.0f );\n"
+        "   return float4( diffuseTexel.rgb, diffuseTexel.a * opacity );\n"
         "};\n";
 
     pixelShader = new PixelShader( pixelShaderSource );

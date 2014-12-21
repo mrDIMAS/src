@@ -78,3 +78,18 @@ void Frustum::Build( D3DXMATRIX viewProjection ) {
 Frustum::Frustum() {
 
 }
+
+bool Frustum::IsSphereInside( const ruVector3 & center, const float & radius )
+{
+	float fDistance;
+	for(int i = 0; i < 6; ++i) {
+		fDistance = D3DXPlaneDot( &planes[i], &D3DXVECTOR4( center.x, center.y, center.z, 1.0f ));
+		if(fDistance < -radius) {
+			return false;
+		}
+		if( fabs( fDistance ) < radius ) {
+			return true;
+		}
+	}
+	return true;
+}

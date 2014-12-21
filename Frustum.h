@@ -11,4 +11,5 @@ public:
     void Build( D3DXMATRIX viewProjection );
     bool IsPointInside( const ruVector3 & point );
     bool IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset );
+	bool IsSphereInside( const ruVector3 & center, const float & radius );
 };

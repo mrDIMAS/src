@@ -343,13 +343,16 @@ void Renderer::RenderWorld() {
     g_deferredRenderer->EndFirstPassAndDoSecondPass();
     // render all opacity meshes with forward renderer
     gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
+	gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
     gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+	gpDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+	gpDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
     g_forwardRenderer->RenderMeshes();
+	gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
     // render particles after all, because deferred shading doesnt support transparency
     gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
     gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-    gpDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+
     g_particleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
     gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
@@ -535,15 +538,6 @@ void Renderer::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
 
 /*
 ===============
-SetPointLightShadowMapSize
-===============
-*/
-RUAPI void ruSetPointLightShadowMapSize( int size ) {
-    g_deferredRenderer->SetPointLightShadowMapSize( size );
-}
-
-/*
-===============
 SetSpotLightShadowMapSize
 ===============
 */
@@ -553,29 +547,11 @@ RUAPI void ruSetSpotLightShadowMapSize( int size ) {
 
 /*
 ===============
-EnablePointLightShadows
-===============
-*/
-RUAPI void ruEnablePointLightShadows( bool state ) {
-    g_usePointLightShadows = state;
-}
-
-/*
-===============
 EnableSpotLightShadows
 ===============
 */
 RUAPI void ruEnableSpotLightShadows( bool state ) {
     g_useSpotLightShadows = state;
-}
-
-/*
-===============
-EnableSpotLightShadows
-===============
-*/
-RUAPI bool ruIsPointLightShadowsEnabled() {
-    return g_usePointLightShadows;
 }
 
 /*

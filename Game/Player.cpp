@@ -717,16 +717,15 @@ void Player::UpdateFright() {
     mHeartBeatVolume.ChaseTarget( 0.075f );
     mHeartBeatPitch.ChaseTarget( 0.0025f );
     mBreathPitch.ChaseTarget( 0.0025f );
+	/*
+    ruSetSoundVolume( breathSound, breathVolume );
+    ruSetSoundVolume( heartBeatSound, heartBeatVolume );
 
-    /*
-    SetVolume( breathSound, breathVolume );
-    SetVolume( heartBeatSound, heartBeatVolume );
+    ruPlaySound( heartBeatSound, true );
+    ruPlaySound( breathSound, true );
 
-    PlaySoundSource( heartBeatSound, true );
-    PlaySoundSource( breathSound, true );
-
-    SetPitch( breathSound, breathPitch );
-    SetPitch( heartBeatSound, heartBeatPitch );*/
+	ruSetSoundsPitch( breathSound, breathPitch );
+	ruSetSoundsPitch( heartBeatSound, heartBeatPitch );*/
 }
 
 /*

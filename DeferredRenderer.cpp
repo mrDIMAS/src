@@ -27,7 +27,6 @@ DeferredRenderer::DeferredRenderer() {
     pass2PointLight = new Pass2PointLight;
     bvRenderer = new BoundingVolumeRenderingShader;
     spotShadowMap = new SpotlightShadowMap;
-    pointShadowMap = new PointlightShadowMap;
     // check support of floating-point textures first
     if( IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
         pHDRRenderer = new HDRRenderer( D3DFMT_A16B16G16R16 );
@@ -47,7 +46,6 @@ DeferredRenderer::~DeferredRenderer() {
     delete bvRenderer;
     delete spotShadowMap;
     delete pFXAA;
-    delete pointShadowMap;
     delete pHDRRenderer;
     delete debugQuad;
 }
@@ -314,21 +312,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
     // Render point lights
     for( auto pLight : g_pointLightList ) {
-        if( g_usePointLightShadows ) {
-            IDirect3DSurface9 * prevSurface = nullptr;
-            if( pHDRRenderer && g_hdrEnabled ) {
-                prevSurface = pHDRRenderer->hdrSurface;
-            } else if( g_fxaaEnabled ) {
-                prevSurface = pFXAA->renderTarget;
-            } else {
-                prevSurface = gBuffer->backSurface;
-            }
-            pointShadowMap->UnbindShadowCubemap( 4 );
-            pointShadowMap->RenderPointShadowMap( prevSurface, 0, pLight );
-            pointShadowMap->BindShadowCubemap( 4 );
-        }
-
-
+		if( !g_camera->frustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) ) {
+			continue;
+		}
         gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
         gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
         gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
@@ -350,6 +336,10 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
     // Render spot lights
     for( auto pLight : g_spotLightList ) {
+		if( !g_camera->frustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) ) {
+			continue;
+		}
+
         if( g_useSpotLightShadows ) {
             IDirect3DSurface9 * prevSurface = nullptr;
             if( pHDRRenderer && g_hdrEnabled ) {
@@ -411,14 +401,6 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     }
 }
 
-void DeferredRenderer::SetPointLightShadowMapSize( int size ) {
-    if( size != pointShadowMap->iSize ) {
-        if( pointShadowMap ) {
-            delete pointShadowMap;
-        }
-        pointShadowMap = new PointlightShadowMap( size );
-    }
-}
 
 void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
     if( size != spotShadowMap->iSize ) {

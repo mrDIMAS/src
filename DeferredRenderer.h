@@ -5,7 +5,6 @@
 #include "EffectsQuad.h"
 #include "FXAA.h"
 #include "SpotlightShadowMap.h"
-#include "PointlightShadowMap.h"
 #include "HDR.h"
 
 class Mesh;
@@ -81,7 +80,6 @@ public:
 
     FXAA * pFXAA;
     SpotlightShadowMap * spotShadowMap;
-    PointlightShadowMap * pointShadowMap;
     HDRRenderer * pHDRRenderer;
 
     // renderQuality can be 0 (lowest) or 1 (highest)
@@ -104,7 +102,5 @@ public:
     virtual void OnEnd() = 0;
 
     void SetSpotLightShadowMapSize( int size );
-
-    void SetPointLightShadowMapSize( int size );
     void EndFirstPassAndDoSecondPass();
 };

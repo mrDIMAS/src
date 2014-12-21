@@ -79,12 +79,10 @@ Menu::Menu( ) {
     // second column
     x += 280;
     y = g_resH - 2.5 * mDistBetweenButtons;
-    mpPointShadowsButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "pointLightShadows" ));
-    y = g_resH - 2.0 * mDistBetweenButtons;
     mpSpotShadowsButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "spotLightShadows" ));
-    // hdr
-    y = g_resH - 1.5 * mDistBetweenButtons;
-    mpHDRButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "hdr" ));
+    y = g_resH - 2.0 * mDistBetweenButtons;
+	mpHDRButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "hdr" ));
+
 
     ruSetHDREnabled( mpHDRButton->IsEnabled() );
     SetOptionsPageVisible( false );
@@ -334,9 +332,6 @@ void Menu::Update( ) {
                 ruSetRenderQuality( 1 );
             }
 
-            mpPointShadowsButton->Update();
-            ruEnablePointLightShadows( mpPointShadowsButton->IsEnabled() );
-
             mpSpotShadowsButton->Update();
             ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
@@ -514,9 +509,6 @@ void Menu::LoadConfig() {
         mpSpotShadowsButton->SetEnabled( config.GetNumber( "spotShadowsEnabled" ) != 0 );
         ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
-        mpPointShadowsButton->SetEnabled( config.GetNumber( "pointShadowsEnabled" ) != 0 );
-        ruEnablePointLightShadows( mpPointShadowsButton->IsEnabled() );
-
         ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
         ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
 
@@ -572,7 +564,6 @@ void Menu::WriteConfig() {
     WriteInteger( config, "keyQuickSave", mpQuickSaveKey->GetSelectedKey() );
     WriteInteger( config, "keyQuickLoad", mpQuickLoadKey->GetSelectedKey() );
     WriteInteger( config, "spotShadowsEnabled", ruIsSpotLightShadowsEnabled() ? 1 : 0 );
-    WriteInteger( config, "pointShadowsEnabled", ruIsPointLightShadowsEnabled() ? 1 : 0 );
     WriteInteger( config, "hdrEnabled", ruIsHDREnabled() ? 1 : 0  );
     WriteInteger( config, "keyStealth", mpStealthKey->GetSelectedKey() );
     WriteInteger( config, "graphicsQuality", mpGraphicsQuality->GetCurrentValue() );
@@ -624,7 +615,6 @@ Menu::~Menu() {
     delete mpUseKey;
     delete mpQuickLoadKey;
     delete mpQuickSaveKey;
-    delete mpPointShadowsButton;
     delete mpHDRButton;
     delete mpSpotShadowsButton;
     delete mpStealthKey;
@@ -685,7 +675,6 @@ void Menu::SetOptionsGraphicsPageVisible( bool state ) {
     mpFPSButton->SetVisible( state );
     mpTextureFiltering->SetVisible( state);
     mpGraphicsQuality->SetVisible( state );
-    mpPointShadowsButton->SetVisible( state );
     mpSpotShadowsButton->SetVisible( state );
     mpHDRButton->SetVisible( state );
 }

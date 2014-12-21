@@ -12,7 +12,7 @@
 
 float g_resW;
 float g_resH;
-float g_dt = 1.0f;
+double g_dt = 1.0f;
 int g_keyQuickSave = KEY_F5;
 int g_keyQuickLoad = KEY_F9;
 string localizationPath;
@@ -73,7 +73,10 @@ void main( ) {
             // physics update
             if( !pMainMenu->IsVisible() ) {
                 currPhysTime = ruGetTimeInSeconds( dtTimer );
-                ruUpdatePhysics( currPhysTime - prevPhysTime, 16, 1.0f / 60.0f );
+				double physDt = currPhysTime - prevPhysTime;
+				if( physDt < 0.0 )
+					physDt = 0.0;
+                ruUpdatePhysics( physDt, 16, fixedTick );
                 prevPhysTime = currPhysTime;
             }
 
@@ -83,7 +86,8 @@ void main( ) {
             if( dt > maxDT ) {
                 dt = maxDT;
             }
-
+			if( dt < 0.0 )
+				dt = 0.0;
             while( dt >= fixedTick ) {
                 dt -= fixedTick;
                 gameClock += fixedTick;
