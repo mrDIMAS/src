@@ -252,7 +252,7 @@ RUAPI void ruSetAmbientColor( ruVector3 color );
 RUAPI int ruGetAvailableTextureMemory();
 RUAPI void ruEnableShadows( bool state );
 RUAPI void ruSetRenderQuality( char renderQuality );
-
+RUAPI void ruUpdateWorld();
 // FXAA
 RUAPI void ruEnableFXAA( );
 RUAPI void ruDisableFXAA( );
@@ -352,6 +352,7 @@ RUAPI void ruSetAngularFactor( ruNodeHandle node, ruVector3 fact );
 RUAPI void ruSetTrimeshBody( ruNodeHandle node );
 RUAPI void ruMoveNode( ruNodeHandle node, ruVector3 speed );
 RUAPI void ruSetNodeFriction( ruNodeHandle node, float friction );
+RUAPI void ruSetNodeBodyLocalScale( ruNodeHandle node, ruVector3 scale );
 RUAPI void ruSetNodeAnisotropicFriction( ruNodeHandle node, ruVector3 aniso );
 RUAPI float ruGetNodeMass( ruNodeHandle node );
 RUAPI int ruIsNodeFrozen( ruNodeHandle node );
@@ -460,16 +461,10 @@ RUAPI ruAnimation * ruGetCurrentAnimation( ruNodeHandle node );
 RUAPI ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined );
 RUAPI int ruGetTextWidth( const char * text, ruFontHandle font );
 RUAPI int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth );
+
 ////////////////////////////////////////////////////////////////////////////////////
 // GUI functions
 ////////////////////////////////////////////////////////////////////////////////////
-/*
-RUAPI void ruDraw3DLine( ruLinePoint begin, ruLinePoint end );
-RUAPI void ruDrawWireBox( ruLinePoint min, ruLinePoint max );
-RUAPI void ruDrawGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
-RUAPI void ruDrawGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
-RUAPI ruGUIState ruDrawGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
-*/
 RUAPI ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
 RUAPI ruTextHandle ruCreateGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
 RUAPI ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );

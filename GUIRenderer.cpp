@@ -172,3 +172,20 @@ ruGUILine::ruGUILine( ) {
 }
 
 
+
+TextQuad::TextQuad()
+{
+
+}
+
+TextVertex::TextVertex()
+{
+	color = 0;
+}
+
+TextVertex::TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr )
+{
+	p = cp;
+	t = tp;
+	color = clr;
+}

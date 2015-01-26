@@ -1,25 +1,19 @@
 #include "Frustum.h"
 
-
-
-
 bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset ) {
-    /* fus ro dah!!!
-    for( int i = 0; i < 8; i++ ) {
-    if( IsPointInside( aabb.vertices[i] + aabbOffset )) {
-    return true;
-    }
-    }*/
-
-    for( int i = 0; i < 6; i++ ) {
-        D3DXVECTOR3 dxPoint = D3DXVECTOR3( aabb.center.x + aabbOffset.x, aabb.center.y + aabbOffset.y, aabb.center.z + aabbOffset.z );
-        if( D3DXPlaneDotCoord( &planes[i], &dxPoint ) < -aabb.radius ) {
-            return false;
-        }
-    }
-    return true;
-
-    return false;
+	const ruVector3 & aabbCenter = aabbOffset + (aabb.mMax + aabb.mMin) / 2;
+	const ruVector3 & aabbSize = ( aabb.mMax - aabb.mMin ) / 2;
+	for( unsigned int iPlane = 0; iPlane < 6; iPlane++ ) {
+		const D3DXPLANE & frustumPlane = planes[iPlane];
+		float d = aabbCenter.x * frustumPlane.a + aabbCenter.y * frustumPlane.b + aabbCenter.z * frustumPlane.c;
+		float r = aabbSize.x * fabsf(frustumPlane.a) + aabbSize.y * fabsf(frustumPlane.b) + aabbSize.z * fabsf(frustumPlane.c);
+		if( (d + r) < -frustumPlane.d)	{
+			return false;
+		} else if( (d - r) < -frustumPlane.d) {
+			return true;
+		}
+	}
+	return true;
 }
 
 bool Frustum::IsPointInside( const ruVector3 & point ) {
@@ -79,11 +73,11 @@ Frustum::Frustum() {
 
 }
 
-bool Frustum::IsSphereInside( const ruVector3 & center, const float & radius )
-{
+bool Frustum::IsSphereInside( const ruVector3 & center, const float & radius ) {
 	float fDistance;
 	for(int i = 0; i < 6; ++i) {
-		fDistance = D3DXPlaneDot( &planes[i], &D3DXVECTOR4( center.x, center.y, center.z, 1.0f ));
+		D3DXVECTOR4 center( center.x, center.y, center.z, 1.0f );
+		fDistance = D3DXPlaneDot( &planes[i], &center );
 		if(fDistance < -radius) {
 			return false;
 		}

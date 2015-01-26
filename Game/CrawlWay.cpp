@@ -29,12 +29,7 @@ void CrawlWay::DoPlayerCrawling() {
 }
 
 void CrawlWay::LookAtTarget() {
-    ruVector3 direction = ruGetNodePosition( mTarget ) - ruGetNodePosition( pPlayer->mpCamera->mNode );
 
-    pPlayer->mYaw = atan2f( direction.x, direction.z ) * 180.0f / 3.14159f;
-    pPlayer->mYaw = ( pPlayer->mYaw > 0 ? pPlayer->mYaw : ( 360 + pPlayer->mYaw ) );
-
-    pPlayer->mPitch = 15.0f;
 }
 
 

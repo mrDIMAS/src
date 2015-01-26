@@ -21,7 +21,6 @@ bool g_running = true;
 float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 
-
 void main( ) {
     Parser config;
     config.ParseFile( "mine.cfg" );
@@ -55,7 +54,6 @@ void main( ) {
 	Level::CreateLoadingScreen();
 
     double fixedTick = 1.0 / 60.0;
-	double maxDT = 1.0 / 10.0;
     double prevPhysTime = ruGetTimeInSeconds( dtTimer );
     double currPhysTime = prevPhysTime;
     double gameClock = prevPhysTime;
@@ -63,6 +61,8 @@ void main( ) {
     ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
     ruShowCursor();
 
+	ruTimerHandle gameTimer = ruCreateTimer();
+	int updateCounter = 0, updatesPerSecond = 0;
     while( g_running ) {
         try {
             // ===========================
@@ -74,25 +74,23 @@ void main( ) {
             if( !pMainMenu->IsVisible() ) {
                 currPhysTime = ruGetTimeInSeconds( dtTimer );
 				double physDt = currPhysTime - prevPhysTime;
-				if( physDt < 0.0 )
-					physDt = 0.0;
-                ruUpdatePhysics( physDt, 16, fixedTick );
+				if( physDt > 0.0 ) {
+					ruUpdatePhysics( physDt, 16, fixedTick );
+				}
                 prevPhysTime = currPhysTime;
+				// recalculate transforms of scene nodes
+				ruUpdateWorld();
             }
 
             // ===========================
             // game logics update
             double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
-            if( dt > maxDT ) {
-                dt = maxDT;
-            }
-			if( dt < 0.0 )
-				dt = 0.0;
             while( dt >= fixedTick ) {
-                dt -= fixedTick;
-                gameClock += fixedTick;
+				updateCounter++;
 
-                g_dt = fixedTick;
+                dt -= fixedTick;
+                gameClock += fixedTick;              
+				g_dt = fixedTick;
 
                 ruInputUpdate();
 
@@ -121,10 +119,21 @@ void main( ) {
                 } else {
 					screamer->SetVisible( false );
 				}
-                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\n", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt ).c_str());
+                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\nUPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt, updatesPerSecond ).c_str());
                 ruSetGUINodeVisible( fpsText, g_showFPS );
+
+				// recalculate transforms of scene nodes
+				ruUpdateWorld();
             }
+
+			// count frames per second
             fpsCounter.RegisterFrame();
+			if( ruGetElapsedTimeInSeconds( gameTimer) >= 1.0 ){
+				updatesPerSecond = updateCounter;
+				updateCounter = 0;
+				ruRestartTimer( gameTimer );
+			}
+
         } catch( runtime_error ) {
             break;
         }

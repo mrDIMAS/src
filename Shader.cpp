@@ -43,7 +43,7 @@ VertexShader::VertexShader( string fileName, bool binary ) {
     fSize = ftell(pFile);
     fseek(pFile, 0, SEEK_SET);
 
-    shaderCode = (BYTE*)malloc(fSize);
+    shaderCode = new BYTE[fSize];
     while (numRead != fSize) {
         numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
     }
@@ -97,7 +97,7 @@ PixelShader::PixelShader( string fileName, bool binary ) {
     fSize = ftell(pFile);
     fseek(pFile, 0, SEEK_SET);
 
-    shaderCode = (BYTE*)malloc(fSize);
+    shaderCode = new BYTE[fSize];
     while (numRead != fSize) {
         numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
     }

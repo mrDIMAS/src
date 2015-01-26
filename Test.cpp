@@ -77,6 +77,8 @@ void main( ) {
     ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
     ruButtonHandle testButton = ruCreateGUIButton( 200, 200, 128, 32, ruGetTexture( "data/gui/button.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
 	ruRectHandle testrect = ruCreateGUIRect( 0, 0, 200, 200, ruGetTexture( "data/gui/inventory/items/detonator.png" ));
+
+	ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
     while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();

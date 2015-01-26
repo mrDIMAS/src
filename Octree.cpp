@@ -176,20 +176,20 @@ ruVector3 Octree::GetAABBMin( vector< ruVector3 > & vertices ) {
 }
 
 void Octree::Node::Split() {
-    ruVector3 center = ( box.min + box.max ) * 0.5f;
+    ruVector3 center = ( box.mMin + box.mMax ) * 0.5f;
 
     for(int i = 0; i < 8; i++) {
         childs[i] = new Node();
     }
 
-    childs[0]->box = AABB( box.min, center );
-    childs[1]->box = AABB( ruVector3( center.x, box.min.y, box.min.z ), ruVector3( box.max.x, center.y, center.z ) );
-    childs[2]->box = AABB( ruVector3( center.x, box.min.y, center.z ), ruVector3( box.max.x, center.y, box.max.z ) );
-    childs[3]->box = AABB( ruVector3( box.min.x, box.min.y, center.z ), ruVector3( center.x, center.y, box.max.z ) );
-    childs[4]->box = AABB( ruVector3( box.min.x, center.y, box.min.z), ruVector3( center.x, box.max.y, center.z ) );
-    childs[5]->box = AABB( ruVector3( center.x, center.y, box.min.z), ruVector3( box.max.x, box.max.y, center.z ) );
-    childs[6]->box = AABB( center, box.max );
-    childs[7]->box = AABB( ruVector3( box.min.x, center.y, center.z ), ruVector3( center.x, box.max.y, box.max.z ) );
+    childs[0]->box = AABB( box.mMin, center );
+    childs[1]->box = AABB( ruVector3( center.x, box.mMin.y, box.mMin.z ), ruVector3( box.mMax.x, center.y, center.z ) );
+    childs[2]->box = AABB( ruVector3( center.x, box.mMin.y, center.z ), ruVector3( box.mMax.x, center.y, box.mMax.z ) );
+    childs[3]->box = AABB( ruVector3( box.mMin.x, box.mMin.y, center.z ), ruVector3( center.x, center.y, box.mMax.z ) );
+    childs[4]->box = AABB( ruVector3( box.mMin.x, center.y, box.mMin.z), ruVector3( center.x, box.mMax.y, center.z ) );
+    childs[5]->box = AABB( ruVector3( center.x, center.y, box.mMin.z), ruVector3( box.mMax.x, box.mMax.y, center.z ) );
+    childs[6]->box = AABB( center, box.mMax );
+    childs[7]->box = AABB( ruVector3( box.mMin.x, center.y, center.z ), ruVector3( center.x, box.mMax.y, box.mMax.z ) );
 
     divided = true;
 }

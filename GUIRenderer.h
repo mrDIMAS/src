@@ -21,16 +21,15 @@ public:
     ruVector3 p;
     ruVector2 t;
     DWORD color;
-    explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr ) {
-        p = cp;
-        t = tp;
-        color = clr;
-    }
+    explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr );
+	TextVertex();
 };
 
 class TextQuad {
 public:
     TextVertex v1, v2, v3, v4;
+
+	TextQuad();
 };
 
 class Face {

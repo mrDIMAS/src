@@ -87,6 +87,8 @@ void SceneNode::SetConvexBody() {
     SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), ( btCollisionShape * ) ( convex ), inertia ));
 }
 
+
+
 void SceneNode::SetCapsuleBody( float height, float radius ) {
     btCollisionShape * shape = new btCapsuleShape ( radius, height );
     btVector3 inertia;
@@ -198,14 +200,14 @@ ruVector3 SceneNode::GetAABBMin() {
 
     for( auto mesh : meshes ) {
         AABB aabb = mesh->aabb;
-        if( aabb.min.x < min.x ) {
-            min.x = aabb.min.x;
+        if( aabb.mMin.x < min.x ) {
+            min.x = aabb.mMin.x;
         }
-        if( aabb.min.y < min.y ) {
-            min.y = aabb.min.y;
+        if( aabb.mMin.y < min.y ) {
+            min.y = aabb.mMin.y;
         }
-        if( aabb.min.z < min.z ) {
-            min.z = aabb.min.z;
+        if( aabb.mMin.z < min.z ) {
+            min.z = aabb.mMin.z;
         }
     }
     return min;
@@ -217,14 +219,14 @@ ruVector3 SceneNode::GetAABBMax() {
     for( auto mesh : meshes ) {
         AABB aabb = mesh->aabb;
 
-        if( aabb.max.x > max.x ) {
-            max.x = aabb.max.x;
+        if( aabb.mMax.x > max.x ) {
+            max.x = aabb.mMax.x;
         }
-        if( aabb.max.y > max.y ) {
-            max.y = aabb.max.y;
+        if( aabb.mMax.y > max.y ) {
+            max.y = aabb.mMax.y;
         }
-        if( aabb.max.z > max.z ) {
-            max.z = aabb.max.z;
+        if( aabb.mMax.z > max.z ) {
+            max.z = aabb.mMax.z;
         }
     }
     return max;
@@ -293,7 +295,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
             ruVector3 aabbMax = reader.GetBareVector();
             ruVector3 aabbCenter = reader.GetBareVector(); // odd
             float aabbRadius = reader.GetFloat(); // odd
-            mesh->aabb = AABB( aabbMin, aabbMax );
+            //mesh->aabb = AABB( aabbMin, aabbMax );
 
             string diffuse = reader.GetString();
             string normal = reader.GetString();
@@ -312,7 +314,7 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
                 mesh->vertices.push_back( v );
             }
 
-            //mesh->aabb = AABB( mesh->vertices );
+            mesh->aabb = AABB( mesh->vertices );
 
             mesh->triangles.reserve( indexCount );
 
@@ -717,17 +719,17 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
     for( auto mesh : node->meshes ) {
         AABB aabb = mesh->aabb;
 
-        aabb.max.x += n2Pos.x();
-        aabb.max.y += n2Pos.y();
-        aabb.max.z += n2Pos.z();
+        aabb.mMax.x += n2Pos.x();
+        aabb.mMax.y += n2Pos.y();
+        aabb.mMax.z += n2Pos.z();
 
-        aabb.min.x += n2Pos.x();
-        aabb.min.y += n2Pos.y();
-        aabb.min.z += n2Pos.z();
+        aabb.mMin.x += n2Pos.x();
+        aabb.mMin.y += n2Pos.y();
+        aabb.mMin.z += n2Pos.z();
 
-        if( point.x > aabb.min.x && point.x < aabb.max.x &&
-                point.y > aabb.min.y && point.y < aabb.max.y &&
-                point.z > aabb.min.z && point.z < aabb.max.z ) {
+        if( point.x > aabb.mMin.x && point.x < aabb.mMax.x &&
+                point.y > aabb.mMin.y && point.y < aabb.mMax.y &&
+                point.z > aabb.mMin.z && point.z < aabb.mMax.z ) {
             result++;
         }
     }
@@ -831,7 +833,7 @@ void SceneNode::Move( ruVector3 speed ) {
         body->setLinearVelocity(  btVector3( speed.x, speed.y, speed.z ) );
     }
 
-    CalculateGlobalTransform( );
+    //CalculateGlobalTransform( );
 }
 
 void SceneNode::SetVelocity( ruVector3 velocity ) {
@@ -847,7 +849,7 @@ void SceneNode::SetPosition( ruVector3 position ) {
 
     localTransform.setOrigin( btVector3( position.x, position.y, position.z ) );
 
-    CalculateGlobalTransform();
+    //CalculateGlobalTransform();
 }
 
 float SceneNode::GetMass() {
@@ -869,7 +871,14 @@ void SceneNode::SetRotation( ruQuaternion rotation ) {
 
     localTransform.setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ));
 
-    CalculateGlobalTransform( );
+   // CalculateGlobalTransform( );
+}
+
+void SceneNode::SetBodyLocalScaling( ruVector3 scale ) {
+	if( body )
+	{
+		body->getCollisionShape()->setLocalScaling( btVector3( scale.x, scale.y, scale.z ));
+	}
 }
 
 ruVector3 SceneNode::GetLookVector() {
@@ -1294,25 +1303,27 @@ RUAPI ruNodeHandle ruGetWorldObject( int i ) {
     return handle;
 }
 
-
 // animation
-
-RUAPI int ruIsAnimationEnabled( ruNodeHandle node ) {
+int ruIsAnimationEnabled( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->IsAnimationEnabled();
 }
 
-RUAPI void ruSetAnimationEnabled( ruNodeHandle node, bool state, bool dontAffectChilds ) {
+void ruSetAnimationEnabled( ruNodeHandle node, bool state, bool dontAffectChilds ) {
     SceneNode::CastHandle( node )->SetAnimationEnabled( state, dontAffectChilds );
 }
 
-RUAPI void ruSetAnimation( ruNodeHandle node, ruAnimation * newAnim, bool dontAffectChilds ) {
+void ruSetAnimation( ruNodeHandle node, ruAnimation * newAnim, bool dontAffectChilds ) {
     SceneNode::CastHandle( node )->SetAnimation( newAnim, dontAffectChilds );
 }
 
-RUAPI int ruGetTotalAnimationFrameCount( ruNodeHandle node ) {
+int ruGetTotalAnimationFrameCount( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->totalFrames;
 }
 
-RUAPI ruAnimation * ruGetCurrentAnimation( ruNodeHandle node ) {
+ruAnimation * ruGetCurrentAnimation( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->currentAnimation;
+}
+
+void ruSetNodeBodyLocalScale( ruNodeHandle node, ruVector3 scale ) {
+	return SceneNode::CastHandle( node )->SetBodyLocalScaling( scale );
 }

@@ -7,6 +7,7 @@
 
 #define DIRECTINPUT_VERSION 0x0800
 
+#include "MemoryManager.hpp"
 #include "Engine.h"
 #include <iostream>
 #include <string>

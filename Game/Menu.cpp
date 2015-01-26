@@ -160,6 +160,7 @@ void Menu::Update( ) {
                 }
                 if( !pCurrentLevel && mStartPressed ) {
                     Level::Change( g_initialLevel );
+					//Level::Change( LXTestingChamber );
                 }
                 mStartPressed = false;
                 mContinuePressed = false;
@@ -465,9 +466,9 @@ void Menu::CreateWaitKeys() {
 void Menu::CreateSliders() {
     float x = 200;
     float y = g_resH - 2.5 * mDistBetweenButtons;
-    mpMasterVolume = new NumericSlider( x, y, 0, 100, 2.5f, mButtonImage, mLocalization.GetString( "masterVolume" ) );
-    mpMusicVolume = new NumericSlider( x, y + mDistBetweenButtons, 0, 100, 2.5f, mButtonImage, mLocalization.GetString(  "musicVolume" ) );
-    mpMouseSensivity = new NumericSlider( x, y + 1.5f * mDistBetweenButtons, 0, 100, 2.5f, mButtonImage, mLocalization.GetString( "mouseSens" ) );
+    mpMasterVolume = new NumericSlider( x, y, 0, 100, 2.5f, ruGetTexture( "data/gui/smallbuttonthick.png" ), mLocalization.GetString( "masterVolume" ) );
+    mpMusicVolume = new NumericSlider( x, y + mDistBetweenButtons, 0, 100, 2.5f, ruGetTexture( "data/gui/smallbuttonthick.png" ), mLocalization.GetString(  "musicVolume" ) );
+    mpMouseSensivity = new NumericSlider( x, y + 1.5f * mDistBetweenButtons, 0, 100, 2.5f, ruGetTexture( "data/gui/smallbuttonthick.png" ), mLocalization.GetString( "mouseSens" ) );
 }
 
 void Menu::LoadConfig() {

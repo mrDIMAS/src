@@ -34,9 +34,10 @@ void TextRenderer::RenderText( GUIText* guiText ) {
             caretY += guiText->GetFont()->glyphSize;
         }
         char * strPtr = ptr;
-        while( true ) {
+		bool lineEnd = false;
+        while( !lineEnd ) {
             unsigned char symbol = *strPtr;
-            char lineEnd = symbol == 0;
+            lineEnd = (symbol == 0);
             if( lineEnd ) {
                 symbol = ' '; // draw space
             }
@@ -69,9 +70,6 @@ void TextRenderer::RenderText( GUIText* guiText ) {
             face->index[5] = n + 3;
             face++;
             n += 4;
-            if( lineEnd ) {
-                break;
-            }
             strPtr++;
         }
         // get next token

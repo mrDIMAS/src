@@ -12,13 +12,13 @@ Door::~Door() {
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
-Door::Door( ruNodeHandle hDoor, float fMaxAngle ) {
-    mDoorNode = hDoor;
-    mMaxAngle = fMaxAngle;
-	mLocked = false;
+Door::Door( ruNodeHandle hDoor, float fMaxAngle ) : mDoorNode( hDoor ),
+													mMaxAngle( fMaxAngle ),
+													mLocked( false ),
+													mCurrentAngle( 0.0f ),
+													mState( State::Closed )
+{
     mOffsetAngle = ruGetNodeEulerAngles( hDoor ).y;
-    mCurrentAngle = 0;
-    mState = State::Closed;
 	SetTurnDirection( TurnDirection::Clockwise );
     mOpenSound = ruLoadSound3D( "data/sounds/door/dooropen.ogg" );
     ruAttachSound( mOpenSound, mDoorNode );

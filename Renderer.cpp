@@ -417,10 +417,8 @@ Renderer::UpdateMessagePump
 */
 void Renderer::UpdateMessagePump() {
     MSG message;
-
     while ( PeekMessage ( &message, NULL, 0, 0, PM_REMOVE ) ) {
         DispatchMessage ( &message );
-
         if ( message.message == WM_QUIT ) {
             ruFreeRenderer();
         }
@@ -452,38 +450,22 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
 }
 
 void Renderer::SetPixelShaderBool( UINT startRegister, BOOL v ) {
-    BOOL buffer[ 4 ];
-    buffer[0] = v;
-    buffer[1] = FALSE;
-    buffer[2] = FALSE;
-    buffer[3] = FALSE;
+    BOOL buffer[ 4 ] = { v, FALSE, FALSE, FALSE };
     gpDevice->SetPixelShaderConstantB( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderInt( UINT startRegister, int v ) {
-    int buffer[ 4 ];
-    buffer[0] = v;
-    buffer[1] = 0;
-    buffer[2] = 0;
-    buffer[3] = 0;
+    int buffer[ 4 ] = { v, 0, 0, 0 };
     gpDevice->SetPixelShaderConstantI( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderFloat( UINT startRegister, float v ) {
-    float buffer[ 4 ];
-    buffer[0] = v;
-    buffer[1] = 0.0f;
-    buffer[2] = 0.0f;
-    buffer[3] = 0.0f;
+    float buffer[ 4 ] = { v, 0.0f, 0.0f, 0.0f };
     gpDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Renderer::SetPixelShaderFloat3( UINT startRegister, float * v ) {
-    float buffer[ 4 ];
-    buffer[0] = v[0];
-    buffer[1] = v[1];
-    buffer[2] = v[2];
-    buffer[3] = 0.0f;
+    float buffer[ 4 ] = { v[0], v[1], v[2], 0.0f };
     gpDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
@@ -492,38 +474,22 @@ void Renderer::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
 }
 
 void Renderer::SetVertexShaderBool( UINT startRegister, BOOL v ) {
-    BOOL buffer[ 4 ];
-    buffer[0] = v;
-    buffer[1] = FALSE;
-    buffer[2] = FALSE;
-    buffer[3] = FALSE;
+    BOOL buffer[ 4 ] = { v, FALSE, FALSE, FALSE };
     gpDevice->SetVertexShaderConstantB( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderInt( UINT startRegister, int v ) {
-    int buffer[ 4 ];
-    buffer[0] = v;
-    buffer[1] = 0;
-    buffer[2] = 0;
-    buffer[3] = 0;
+    int buffer[ 4 ] = { v, 0, 0, 0 };
     gpDevice->SetVertexShaderConstantI( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderFloat( UINT startRegister, float v ) {
-    float buffer[ 4 ];
-    buffer[0] = v;
-    buffer[1] = 0.0f;
-    buffer[2] = 0.0f;
-    buffer[3] = 0.0f;
+    float buffer[ 4 ] = { v, 0.0f, 0.0f, 0.0f };
     gpDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderFloat3( UINT startRegister, float * v ) {
-    float buffer[ 4 ];
-    buffer[0] = v[0];
-    buffer[1] = v[1];
-    buffer[2] = v[2];
-    buffer[3] = 0.0f;
+    float buffer[ 4 ] = { v[0], v[1], v[2], 0.0f };
     gpDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
@@ -821,7 +787,7 @@ RUAPI bool ruIsHDREnabled( ) {
 SetHDRExposure
 ===============
 */
-RUAPI void ruSetHDRExposure( float exposure ) {
+void ruSetHDRExposure( float exposure ) {
     //g_deferredRenderer->hdrRenderer->exposure = exposure;
 }
 
@@ -830,6 +796,17 @@ RUAPI void ruSetHDRExposure( float exposure ) {
 GetHDRExposure
 ===============
 */
-RUAPI float ruGetHDRExposure( ) {
+float ruGetHDRExposure( ) {
     return 1.0f;//g_deferredRenderer->hdrRenderer->exposure;
+}
+
+/*
+===============
+GetHDRExposure
+===============
+*/
+void ruUpdateWorld() {
+	for( auto node : g_nodes ) {
+		node->CalculateGlobalTransform();
+	}
 }

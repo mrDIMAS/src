@@ -147,7 +147,7 @@ Player::CanJump
 ========
 */
 bool Player::IsCanJump( ) {
-    ruNodeHandle legBump = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight, 0 ), 0 );
+    ruNodeHandle legBump = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight * 2, 0 ), 0 );
     if( legBump.IsValid() ) {
         return true;
     } else {
@@ -339,7 +339,7 @@ void Player::UpdateJumping() {
 
     if( ruIsKeyHit( mKeyJump ) ) {
         if( IsCanJump() ) {
-            mJumpTo = ruVector3( 0, 150, 0 );
+            mJumpTo = ruVector3( 0, 350, 0 );
             mLanded = false;
         }
     }
@@ -463,13 +463,16 @@ void Player::UpdateMoving() {
             }
         }
 
+		Crouch( ruIsKeyDown( KEY_V ) );
+		UpdateCrouch();
+
         mSpeedTo = mSpeedTo * ( mStealthMode ? 0.4f : 1.0f ) ;
 
         mFov.ChaseTarget( 4.0f * g_dt );
         ruSetCameraFOV( mpCamera->mNode, mFov );
 
         mSpeed = mSpeed.Lerp( mSpeedTo + mGravity, 10.0f * g_dt );
-        Move( mSpeed * ruVector3( 100, 1, 100 ), g_dt );
+        Step( mSpeed * ruVector3( 100, 1, 100 ), g_dt );
     }
 
     UpdateCameraShake();
@@ -589,7 +592,7 @@ Player::CreateCamera
 ========
 */
 void Player::CreateCamera() {
-    mHeadHeight = 2.4;
+    mHeadHeight = 1.9;
 
     mHead = ruCreateSceneNode();
     ruAttachNode( mHead, mBody );
@@ -739,7 +742,7 @@ void Player::UpdateCameraShake() {
     if( mMoved ) {
         mCameraBobCoeff += 7.5 * mRunCameraShakeCoeff * g_dt;
 
-        float xOffset = sinf( mCameraBobCoeff ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff ) * 0.075f;
+        float xOffset = sinf( mCameraBobCoeff ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff ) * 0.045f;
         float yOffset = abs( xOffset );
 
         if( yOffset < 0.02 && !ruIsSoundPlaying( mFootstepList[ stepPlayed ] ) ) {

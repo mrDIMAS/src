@@ -116,7 +116,7 @@ public:
     bool IsRenderable();
     bool IsVisible();
     ruVector3 GetLocalPosition();
-
+	void SetBodyLocalScaling( ruVector3 scale );
     static void UpdateContacts( );
     static SceneNode * FindByName( const char * name );
     static SceneNode * FindInObjectByName( SceneNode * node, const char * name );

@@ -1,12 +1,34 @@
 #include "Actor.h"
 
 void Actor::Move( ruVector3 direction, float speed ) {
-    ruMoveNode( mBody, direction * speed );
+	ruMoveNode( mBody, direction * speed  );
 }
 
-Actor::Actor( float height, float width ) {
-    mBodyHeight = height;
-    mBodyWidth = width;
+void Actor::Step( ruVector3 direction, float speed )
+{
+	// spring based step
+	ruVector3 currentPosition = ruGetNodePosition( mBody );
+	ruVector3 rayBegin = currentPosition;
+	ruVector3 rayEnd = rayBegin - ruVector3( 0, 5, 0 );
+	ruVector3 intPoint;
+	ruNodeHandle rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
+	ruVector3 pushpullVelocity;
+	if( rayResult.IsValid() && !(rayResult == mBody) )
+	{
+		if( ruGetContactCount( rayResult ) > 0 )
+		{
+			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4;
+		}		
+	}
+	ruMoveNode( mBody, direction * speed + pushpullVelocity );
+}
+
+Actor::Actor( float height, float width ) :	mBodyHeight( height ), 
+											mBodyWidth( width ), 
+											mSpringLength( 1.2f ), 
+											mCrouch( false ),
+											mCrouchMultiplier( 1.0f )
+{
     mBody = ruCreateSceneNode();
     ruSetCapsuleBody( mBody, mBodyHeight, mBodyWidth );
     ruSetAngularFactor( mBody, ruVector3( 0, 0, 0 ));
@@ -47,4 +69,36 @@ void Actor::Freeze() {
 
 ruVector3 Actor::GetLookDirection() {
     return ruGetNodeLookVector( mBody );
+}
+
+void Actor::SetBodyVisible( bool state ) {
+	if( state ) {
+		ruShowNode( mBody );
+	} else {
+		ruHideNode( mBody );
+	}
+}
+
+bool Actor::IsVisibleFromPoint( ruVector3 begin ) {
+	return ruCastRay( begin, GetCurrentPosition(), nullptr ).pointer == mBody.pointer;
+}
+
+void Actor::Crouch( bool state ) {
+	mCrouch = state;
+}
+
+void Actor::UpdateCrouch() {
+	if( mCrouch ) {	
+		mCrouchMultiplier -= 0.025f;	
+		if( mCrouchMultiplier < 0.5f ) {
+			mCrouchMultiplier = 0.5f;
+		}
+	} else {
+		mCrouchMultiplier += 0.025f;	
+		if( mCrouchMultiplier > 1.0f ) {
+			mCrouchMultiplier = 1.0f;
+		}
+	}
+
+	ruSetNodeBodyLocalScale( mBody, ruVector3( 1.0f, mCrouchMultiplier, 1.0f ));
 }
