@@ -1,7 +1,7 @@
 #include "HDR.h"
 #include "Utility.h"
 
-void HDRRenderer::DoToneMapping( IDirect3DSurface9 * targetSurface ) {
+void HDRShader::DoToneMapping( IDirect3DSurface9 * targetSurface ) {
     gpDevice->SetRenderTarget( 0, targetSurface );
     gpDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
     gpDevice->SetTexture( 0, hdrTexture );
@@ -11,11 +11,11 @@ void HDRRenderer::DoToneMapping( IDirect3DSurface9 * targetSurface ) {
     screenQuad->Render();
 }
 
-void HDRRenderer::SetAsRenderTarget() {
+void HDRShader::SetAsRenderTarget() {
     gpDevice->SetRenderTarget( 0, hdrSurface );
 }
 
-HDRRenderer::~HDRRenderer() {
+HDRShader::~HDRShader() {
     scaledSceneSurf->Release();
     scaledScene->Release();
     hdrSurface->Release();
@@ -35,8 +35,14 @@ HDRRenderer::~HDRRenderer() {
     adaptedLuminanceCurrent->Release();
 }
 
-HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
-    D3DXCreateTexture( gpDevice, g_width, g_height, 0, D3DUSAGE_RENDERTARGET  , rtFormat, D3DPOOL_DEFAULT, &hdrTexture );
+HDRShader::HDRShader( D3DFORMAT rtFormat ) {
+	int width = g_width;
+	int height = g_height;
+	if( !IsFullNPOTTexturesSupport()) {
+		width = NearestPow2( g_width );
+		height = NearestPow2( g_height );
+	}
+    D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET  , rtFormat, D3DPOOL_DEFAULT, &hdrTexture );
     hdrTexture->GetSurfaceLevel( 0, &hdrSurface );
 
     string toneMapShaderSource =
@@ -116,7 +122,7 @@ HDRRenderer::HDRRenderer( D3DFORMAT rtFormat ) {
     hPixelSize = downScalePixelShader->GetConstantTable()->GetConstantByName( 0, "pixelSize" );
 }
 
-void HDRRenderer::CalculateFrameLuminance( ) {
+void HDRShader::CalculateFrameLuminance( ) {
     screenQuad->Bind();
 
     gpDevice->SetTexture( 7, hdrTexture );

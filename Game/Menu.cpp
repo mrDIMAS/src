@@ -133,7 +133,7 @@ void Menu::Hide( ) {
 }
 
 void Menu::Update( ) {
-    ruSetAmbientColor( ruVector3( 10 / 255.0f, 10 / 255.0f, 10  / 255.0f));
+    ruSetAmbientColor( ruVector3( 25 / 255.0f, 25 / 255.0f, 25  / 255.0f));
 
     mpCamera->Update();
 
@@ -326,13 +326,6 @@ void Menu::Update( ) {
                 ruSetRendererTextureFiltering( ruTextureFilter::Linear, 0 );
             }
 
-            mpGraphicsQuality->Update(  );
-            if( mpGraphicsQuality->GetCurrentValue() == 0 ) {
-                ruSetRenderQuality( 0 );
-            } else {
-                ruSetRenderQuality( 1 );
-            }
-
             mpSpotShadowsButton->Update();
             ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
@@ -516,9 +509,6 @@ void Menu::LoadConfig() {
         mpHDRButton->SetEnabled( config.GetNumber( "hdrEnabled" ) != 0 );
         ruSetHDREnabled( mpHDRButton->IsEnabled() );
 
-        mpGraphicsQuality->SetCurrentValue( config.GetNumber( "graphicsQuality" ));
-        ruSetRenderQuality( mpGraphicsQuality->GetCurrentValue() );
-
         mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
         ruSetRendererTextureFiltering( mpTextureFiltering->GetCurrentValue(), ruGetRendererMaxAnisotropy() );
 
@@ -567,7 +557,6 @@ void Menu::WriteConfig() {
     WriteInteger( config, "spotShadowsEnabled", ruIsSpotLightShadowsEnabled() ? 1 : 0 );
     WriteInteger( config, "hdrEnabled", ruIsHDREnabled() ? 1 : 0  );
     WriteInteger( config, "keyStealth", mpStealthKey->GetSelectedKey() );
-    WriteInteger( config, "graphicsQuality", mpGraphicsQuality->GetCurrentValue() );
     WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
 	WriteInteger( config, "keyLookLeft", mpLookLeftKey->GetSelectedKey() );
 	WriteInteger( config, "keyLookRight", mpLookRightKey->GetSelectedKey() );
@@ -592,10 +581,6 @@ void Menu::CreateLists() {
 
     mpTextureFiltering->AddValue( mLocalization.GetString( "anisotropic" ));
     mpTextureFiltering->AddValue( mLocalization.GetString( "trilinear" ));
-
-    mpGraphicsQuality = new ScrollList( 200, g_resH - 1.0 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "graphQuality") );
-    mpGraphicsQuality->AddValue( mLocalization.GetString( "gqLow" ));
-    mpGraphicsQuality->AddValue( mLocalization.GetString( "gqHigh" ));
 }
 
 Menu::~Menu() {
@@ -620,7 +605,6 @@ Menu::~Menu() {
     delete mpSpotShadowsButton;
     delete mpStealthKey;
     delete mpFPSButton;
-    delete mpGraphicsQuality;
 	delete mpLookLeftKey;
 	delete mpLookRightKey;
 }
@@ -675,7 +659,6 @@ void Menu::SetOptionsGraphicsPageVisible( bool state ) {
     mpFXAAButton->SetVisible( state );
     mpFPSButton->SetVisible( state );
     mpTextureFiltering->SetVisible( state);
-    mpGraphicsQuality->SetVisible( state );
     mpSpotShadowsButton->SetVisible( state );
     mpHDRButton->SetVisible( state );
 }

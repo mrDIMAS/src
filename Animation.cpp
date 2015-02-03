@@ -33,8 +33,8 @@ void ruAnimation::Update( ) {
             if ( !looped ) {
                 // find all nodes, which use this animation and disable it's animationEnabled flag
                 for( auto node : g_nodes ) {
-                    if( node->currentAnimation == this ) {
-                        node->animationEnabled = false;
+                    if( node->mCurrentAnimation == this ) {
+                        node->mAnimationEnabled = false;
                     }
                 }
             }

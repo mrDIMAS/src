@@ -11,9 +11,9 @@
 // in other cases prefer DeferredRenderer
 class ForwardRenderer {
 private:
-    map< IDirect3DTexture9*, vector< Mesh* > > renderList;
-    PixelShader * pixelShader;
-    VertexShader * vertexShader;
+    map< IDirect3DTexture9*, vector< Mesh* > > mRenderList;
+    PixelShader * mPixelShader;
+    VertexShader * mVertexShader;
 public:
     ForwardRenderer();
     ~ForwardRenderer();

@@ -251,7 +251,6 @@ RUAPI void ruDebugDrawEnabled( int state );
 RUAPI void ruSetAmbientColor( ruVector3 color );
 RUAPI int ruGetAvailableTextureMemory();
 RUAPI void ruEnableShadows( bool state );
-RUAPI void ruSetRenderQuality( char renderQuality );
 RUAPI void ruUpdateWorld();
 // FXAA
 RUAPI void ruEnableFXAA( );
@@ -399,6 +398,7 @@ RUAPI void ruSetNodeLocalPosition( ruNodeHandle node, ruVector3 pos );
 RUAPI void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot );
 RUAPI void ruSetNodeName( ruNodeHandle node, const char * name );
 RUAPI ruVector3 ruGetNodeAABBMin( ruNodeHandle node );
+RUAPI ruVector3 ruGetNodeBodyTotalForce( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeAABBMax( ruNodeHandle node );
 RUAPI int ruIsNodeInsideNode( ruNodeHandle node1, ruNodeHandle node2 );
 RUAPI ruNodeHandle ruGetNodeChild( ruNodeHandle node, int i );

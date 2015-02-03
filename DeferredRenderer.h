@@ -34,56 +34,50 @@ public:
 
 
     // Ambient Light
-    class Pass2AmbientLight {
+    class AmbientLightShader {
     private:
         PixelShader * pixelShader;
     public:
-        Pass2AmbientLight();
-        ~Pass2AmbientLight();
+        AmbientLightShader();
+        ~AmbientLightShader();
         void Bind( );
     };
 
     // Point Light
-    class Pass2PointLight {
+    class PointLightShader {
     private:
         PixelShader * pixelShader;
-        PixelShader * pixelShaderLQ;
+		PixelShader * pixelShaderTexProj;
     public:
-        Pass2PointLight();
-        ~Pass2PointLight();
+        PointLightShader();
+        ~PointLightShader();
 
-        void Bind( D3DXMATRIX & invViewProj );
-        void BindShader( );
-        void SetLight( Light * lit );
+        void SetLight( D3DXMATRIX & invViewProj, Light * lit );
     };
 
     // Spot Light
-    class Pass2SpotLight {
+    class SpotLightShader {
     private:
         PixelShader * pixelShader;
+		PixelShader * pixelShaderShadows;		
     public:
-        Pass2SpotLight( );
-        ~Pass2SpotLight();
-        void Bind( D3DXMATRIX & invViewProj );
-        void BindShader( );
-        void SetLight( Light * lit );
+        SpotLightShader( );
+        ~SpotLightShader();
+        void SetLight( D3DXMATRIX & invViewProj, Light * lit );
     };
 
-    EffectsQuad * effectsQuad;
-    EffectsQuad * debugQuad;
+    EffectsQuad * mFullscreenQuad;
+    EffectsQuad * mDebugQuad;
 
-    GBuffer * gBuffer;
+    GBuffer * mGBuffer;
 
-    Pass2AmbientLight * pass2AmbientLight;
-    Pass2PointLight * pass2PointLight;
-    Pass2SpotLight * pass2SpotLight;
+    AmbientLightShader * mAmbientLightShader;
+    PointLightShader * mPointLightShader;
+    SpotLightShader * mSpotLightShader;
 
-    FXAA * pFXAA;
-    SpotlightShadowMap * spotShadowMap;
-    HDRRenderer * pHDRRenderer;
-
-    // renderQuality can be 0 (lowest) or 1 (highest)
-    char renderQuality;
+    FXAA * mFXAA;
+    SpotlightShadowMap * mSpotLightShadowMap;
+    HDRShader * mHDRShader;
 
     void CreateBoundingVolumes();
 
@@ -96,7 +90,6 @@ public:
 
     GBuffer * GetGBuffer();
 
-    void SetRenderingQuality( char quality );
     virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;

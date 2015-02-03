@@ -14,11 +14,11 @@ Camera * Camera::CastHandle( ruNodeHandle handle ) {
 }
 
 void Camera::Update() {
-    btVector3 eye = globalTransform.getOrigin();
-    btVector3 look = eye + globalTransform.getBasis().getColumn ( 2 );
-    btVector3 up = globalTransform.getBasis().getColumn ( 1 );
+    btVector3 eye = mGlobalTransform.getOrigin();
+    btVector3 look = eye + mGlobalTransform.getBasis().getColumn ( 2 );
+    btVector3 up = mGlobalTransform.getBasis().getColumn ( 1 );
 
-    btVector3 normlook = globalTransform.getBasis().getColumn ( 2 ).normalized();
+    btVector3 normlook = mGlobalTransform.getBasis().getColumn ( 2 ).normalized();
 
     float f_up[ 3 ] = { 0.0f, 1.0f, 0.0f };
 

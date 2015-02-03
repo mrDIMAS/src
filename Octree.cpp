@@ -3,7 +3,7 @@
 #include "Vertex.h"
 
 void Octree::VisualizeHierarchy() {
-    NodeVisualize( root );
+    NodeVisualize( mRoot );
 }
 
 void Octree::NodeVisualize( Node * node ) {
@@ -18,32 +18,32 @@ void Octree::NodeVisualize( Node * node ) {
 }
 
 vector< Mesh::Triangle > & Octree::GetTrianglesToRender() {
-    visibleTris.clear();
-    visibleNodes = 0;
-    PrepareTriangles( root );
-    visibleTriangles = 0;
+    mVisibleTriangleList.clear();
+    mVisibleNodeCount = 0;
+    PrepareTriangles( mRoot );
+    mVisibleTriangleCount = 0;
 
-    GetVisibleTrianglesList( root, visibleTris );
+    GetVisibleTrianglesList( mRoot, mVisibleTriangleList );
 
-    return visibleTris;
+    return mVisibleTriangleList;
 }
 
 void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & triangles ) {
-    if( CubeInFrustum( node->box )) {
-        if( node->divided ) {
+    if( CubeInFrustum( node->mAABB )) {
+        if( node->mSplit ) {
             for( int i = 0; i < 8; i++ ) { // go deeper, to child nodes and grab it visible triangles
-                GetVisibleTrianglesList( node->childs[ i ], triangles );
+                GetVisibleTrianglesList( node->mChild[ i ], triangles );
             }
         } else {
-            visibleNodes++;
+            mVisibleNodeCount++;
 
-            for( auto t : node->triangles ) { // grab visible triangles
-                if( !t->rendered ) {
-                    t->rendered = true;
+            for( auto t : node->mTriangles ) { // grab visible triangles
+                if( !t->mRendered ) {
+                    t->mRendered = true;
 
-                    visibleTriangles++;
+                    mVisibleTriangleCount++;
 
-                    triangles.push_back( Mesh::Triangle( t->a, t->b, t->c ));
+                    triangles.push_back( Mesh::Triangle( t->mA, t->mB, t->mC ));
                 }
             }
         }
@@ -51,11 +51,11 @@ void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & tr
 }
 
 bool Octree::CubeInFrustum( const AABB & box ) {
-    return g_camera->frustum.IsAABBInside( box, ruVector3( mesh->GetParentNode()->globalTransform.getOrigin().m_floats ) );
+    return g_camera->frustum.IsAABBInside( box, ruVector3( mMesh->GetOwner()->mGlobalTransform.getOrigin().m_floats ) );
 }
 
 void Octree::Build( vector< ruVector3 > & vertices, vector< Triangle* > & tris, Node * node ) {
-    if( tris.size() < nodeSplitCriteria ) {
+    if( tris.size() < mSplitLimit ) {
         for( int i = 0; i < tris.size(); i++ ) {
             node->AddTriangle( tris[ i ] );
         }
@@ -69,16 +69,16 @@ void Octree::Build( vector< ruVector3 > & vertices, vector< Triangle* > & tris, 
     vector< Triangle* > leafTris[ 8 ];
 
     for( int childNum = 0; childNum < 8; childNum++ ) {
-        Node * child = node->childs[ childNum ];
+        Node * child = node->mChild[ childNum ];
 
         for( int i = 0; i < tris.size(); i++ ) {
             Triangle * tri = tris[ i ];
 
-            ruVector3 a = vertices[ tri->a ];
-            ruVector3 b = vertices[ tri->b ];
-            ruVector3 c = vertices[ tri->c ];
+            ruVector3 a = vertices[ tri->mA ];
+            ruVector3 b = vertices[ tri->mB ];
+            ruVector3 c = vertices[ tri->mC ];
 
-            if( child->box.IsTriangleInside( a, b, c ) ) {
+            if( child->mAABB.IsTriangleInside( a, b, c ) ) {
                 leafTris[ childNum ].push_back( tri );
             }
         };
@@ -86,47 +86,47 @@ void Octree::Build( vector< ruVector3 > & vertices, vector< Triangle* > & tris, 
 
     for( int childNum = 0; childNum < 8; childNum++ ) {
         if( leafTris[ childNum ].size() > 0 ) {
-            Build( vertices, leafTris[ childNum ], node->childs[ childNum ] );
+            Build( vertices, leafTris[ childNum ], node->mChild[ childNum ] );
         }
     }
 }
 
 Octree::~Octree() {
-    delete root;
+    delete mRoot;
 
-    for( int i = 0; i < triangles.size(); i++ ) {
-        delete triangles[ i ];
+    for( int i = 0; i < mTriangleList.size(); i++ ) {
+        delete mTriangleList[ i ];
     }
 }
 
 Octree::Octree( Mesh * m, int _nodeSplitCriteria ) {
-    mesh = m;
-    nodeSplitCriteria = _nodeSplitCriteria;
+    mMesh = m;
+    mSplitLimit = _nodeSplitCriteria;
 
-    root = new Node;
+    mRoot = new Node;
 
     vector< ruVector3 > vertices;
-    for( auto & vertex : mesh->vertices ) {
+    for( auto & vertex : mMesh->mVertices ) {
         vertices.push_back( vertex.coords );
     }
 
-    root->box = AABB( GetAABBMin( vertices ), GetAABBMax( vertices ) );
+    mRoot->mAABB = AABB( GetAABBMin( vertices ), GetAABBMax( vertices ) );
 
-    for( auto & triangle : mesh->triangles ) {
-        triangles.push_back( new Triangle( triangle.a, triangle.b, triangle.c ) );
+    for( auto & triangle : mMesh->mTriangles ) {
+        mTriangleList.push_back( new Triangle( triangle.mA, triangle.mB, triangle.mC ) );
     }
 
-    Build( vertices, triangles, root );
+    Build( vertices, mTriangleList, mRoot );
 }
 
 void Octree::PrepareTriangles( Node * node ) {
-    if( node->divided ) {
+    if( node->mSplit ) {
         for( int i = 0; i < 8; i++ ) {
-            PrepareTriangles( node->childs[ i ] );
+            PrepareTriangles( node->mChild[ i ] );
         }
     } else {
-        for( int i = 0; i < node->triangles.size(); i++ ) {
-            node->triangles[ i ]->rendered = false;
+        for( int i = 0; i < node->mTriangles.size(); i++ ) {
+            node->mTriangles[ i ]->mRendered = false;
         }
     }
 }
@@ -176,43 +176,43 @@ ruVector3 Octree::GetAABBMin( vector< ruVector3 > & vertices ) {
 }
 
 void Octree::Node::Split() {
-    ruVector3 center = ( box.mMin + box.mMax ) * 0.5f;
+    ruVector3 center = ( mAABB.mMin + mAABB.mMax ) * 0.5f;
 
     for(int i = 0; i < 8; i++) {
-        childs[i] = new Node();
+        mChild[i] = new Node();
     }
 
-    childs[0]->box = AABB( box.mMin, center );
-    childs[1]->box = AABB( ruVector3( center.x, box.mMin.y, box.mMin.z ), ruVector3( box.mMax.x, center.y, center.z ) );
-    childs[2]->box = AABB( ruVector3( center.x, box.mMin.y, center.z ), ruVector3( box.mMax.x, center.y, box.mMax.z ) );
-    childs[3]->box = AABB( ruVector3( box.mMin.x, box.mMin.y, center.z ), ruVector3( center.x, center.y, box.mMax.z ) );
-    childs[4]->box = AABB( ruVector3( box.mMin.x, center.y, box.mMin.z), ruVector3( center.x, box.mMax.y, center.z ) );
-    childs[5]->box = AABB( ruVector3( center.x, center.y, box.mMin.z), ruVector3( box.mMax.x, box.mMax.y, center.z ) );
-    childs[6]->box = AABB( center, box.mMax );
-    childs[7]->box = AABB( ruVector3( box.mMin.x, center.y, center.z ), ruVector3( center.x, box.mMax.y, box.mMax.z ) );
+    mChild[0]->mAABB = AABB( mAABB.mMin, center );
+    mChild[1]->mAABB = AABB( ruVector3( center.x, mAABB.mMin.y, mAABB.mMin.z ), ruVector3( mAABB.mMax.x, center.y, center.z ) );
+    mChild[2]->mAABB = AABB( ruVector3( center.x, mAABB.mMin.y, center.z ), ruVector3( mAABB.mMax.x, center.y, mAABB.mMax.z ) );
+    mChild[3]->mAABB = AABB( ruVector3( mAABB.mMin.x, mAABB.mMin.y, center.z ), ruVector3( center.x, center.y, mAABB.mMax.z ) );
+    mChild[4]->mAABB = AABB( ruVector3( mAABB.mMin.x, center.y, mAABB.mMin.z), ruVector3( center.x, mAABB.mMax.y, center.z ) );
+    mChild[5]->mAABB = AABB( ruVector3( center.x, center.y, mAABB.mMin.z), ruVector3( mAABB.mMax.x, mAABB.mMax.y, center.z ) );
+    mChild[6]->mAABB = AABB( center, mAABB.mMax );
+    mChild[7]->mAABB = AABB( ruVector3( mAABB.mMin.x, center.y, center.z ), ruVector3( center.x, mAABB.mMax.y, mAABB.mMax.z ) );
 
-    divided = true;
+    mSplit = true;
 }
 
 void Octree::Node::AddTriangle( Triangle * t ) {
-    triangles.push_back( t );
+    mTriangles.push_back( t );
 }
 
 Octree::Node::~Node() {
-    if( divided )
+    if( mSplit )
         for( int i = 0; i < 8; i++ ) {
-            delete childs[ i ];
+            delete mChild[ i ];
         }
 }
 
 Octree::Node::Node() {
-    divided = false;
+    mSplit = false;
 
     for(int i = 0; i < 8; i++) {
-        childs[i] = nullptr;
+        mChild[i] = nullptr;
     }
 }
 
 Octree::Triangle::Triangle( unsigned short _a, unsigned short _b, unsigned short _c ) : Mesh::Triangle( _a, _b, _c ) {
-    rendered = false;
+    mRendered = false;
 }

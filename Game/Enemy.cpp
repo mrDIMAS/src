@@ -174,10 +174,6 @@ void Enemy::Think() {
         ruMoveNode( mBody, speedVector );
     }
 
-#ifdef ENEMY_ANIMATION_DEBUG
-    int y = 100;
-    DrawAnimationDebugInfo( mModel, y );
-#endif
     ruSetAnimationEnabled( mModel, true );
     mAttackAnimation.Update();
     mIdleAnimation.Update();
@@ -194,7 +190,7 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 
     mModel = ruLoadScene( file );
     ruAttachNode( mModel, mBody );
-    ruSetNodePosition( mModel, ruVector3( 0, -0.5f, 0 ));
+    ruSetNodePosition( mModel, ruVector3( 0, -0.8f, 0 ));
 
     FindBodyparts();
 

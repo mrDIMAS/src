@@ -9,48 +9,48 @@ class Mesh {
 public:
     class Bone {
     public:
-        float weight;
-        int id;
+        float mWeight;
+        int mID;
     };
 
     class Weight {
     public:
-        Bone bones[ 4 ];
-        int boneCount;
+        Bone mBone[ 4 ];
+        int mBoneCount;
     };
 
     class Triangle {
     public:
-        unsigned short a;
-        unsigned short b;
-        unsigned short c;
+        unsigned short mA;
+        unsigned short mB;
+        unsigned short mC;
 
         Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
-            a = vA;
-            b = vB;
-            c = vC;
+            mA = vA;
+            mB = vB;
+            mC = vC;
         }
     };
 
 public:
-    IDirect3DVertexBuffer9 * vertexBuffer;
-    IDirect3DIndexBuffer9 * indexBuffer;
-    Texture * diffuseTexture;
-    Texture * normalMapTexture;
-    vector<Vertex> vertices;
-    vector<Triangle> triangles;
-    vector<Weight> weightTable;
-    vector<Vertex> skinningBuffer;
-    SceneNode * ownerNode;
-    AABB aabb;
-    Octree * octree;
-    float opacity;
+    IDirect3DVertexBuffer9 * mVertexBuffer;
+    IDirect3DIndexBuffer9 * mIndexBuffer;
+    Texture * mDiffuseTexture;
+    Texture * mNormalTexture;
+    vector<Vertex> mVertices;
+    vector<Triangle> mTriangles;
+    vector<Weight> mWeightTable;
+    vector<Vertex> mSkinVertices;
+    SceneNode * mOwnerNode;
+    AABB mAABB;
+    Octree * mOctree;
+    float mOpacity;
 public:
-    static unordered_map< IDirect3DTexture9*, vector< Mesh*>> meshes;
+    static unordered_map< IDirect3DTexture9*, vector< Mesh*>> msMeshList;
     static void Register( Mesh * mesh );
     explicit Mesh( SceneNode * theParent );
     virtual ~Mesh();
-    SceneNode * GetParentNode();
+    SceneNode * GetOwner();
     void UpdateVertexBuffer();
     void UpdateIndexBuffer( vector< Triangle > & idc );
     void UpdateBuffers();

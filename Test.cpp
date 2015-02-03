@@ -38,7 +38,7 @@ void main( ) {
 
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
     ruNodeHandle node = ruLoadScene( "data/newFormat.scene" );
-
+	ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
     //int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
     // int node = LoadScene( "data/maps/release/1/1.scene" );
@@ -71,14 +71,16 @@ void main( ) {
     int perfTime=0;
 
     ruEnableSpotLightShadows( false );
-    ruDisableFXAA();
+    //ruDisableFXAA();
 
     ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
     ruButtonHandle testButton = ruCreateGUIButton( 200, 200, 128, 32, ruGetTexture( "data/gui/button.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
 	ruRectHandle testrect = ruCreateGUIRect( 0, 0, 200, 200, ruGetTexture( "data/gui/inventory/items/detonator.png" ));
 
-	ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
+	//ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
+	//ruNodeHandle testScene = ruLoadScene( "data/maps/release/mine/mine.scene" );
+	ruSetAmbientColor( ruVector3( 0.4, 0.4, 0.4 ));
     while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();
@@ -100,7 +102,7 @@ void main( ) {
 
         ruVector3 look = ruGetNodeLookVector( cameraPivot );
         ruVector3 right = ruGetNodeRightVector( cameraPivot );
-
+		 
         //SetPosition( Omni09, GetPosition( camera ));
         //ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
         //DrawGUIRect( 0, 0, 200, 200, 0 );
@@ -108,12 +110,11 @@ void main( ) {
 
         ruUpdatePhysics( 1.0f / 60.0f, 10, 1.0f / 60.0f );
 
-        if( ruIsKeyHit( KEY_1 )) {
-            ruSetRenderQuality( 0 );
-        }
-        if( ruIsKeyHit( KEY_2 )) {
-            ruSetRenderQuality( 1 );
-        }
+		if( ruIsKeyHit( KEY_1 ))
+			ruEnableFXAA();
+		if( ruIsKeyHit( KEY_2 ))
+			ruDisableFXAA();
+
         if( ruIsKeyDown( KEY_W )) {
             speed = speed + look;
         }

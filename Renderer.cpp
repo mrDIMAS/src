@@ -111,8 +111,8 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     unsigned char psVerLo = D3DSHADER_VERSION_MINOR( dCaps.PixelShaderVersion );
 
     // epic fail
-    if( psVerHi < 3 ) {
-        MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 3.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
+    if( psVerHi < 2 ) {
+        MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
         CloseLogFile();
         g_d3d->Release();
         exit( -1 );
@@ -153,7 +153,13 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    CheckDXErrorFatal( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE, &presentParameters, &gpDevice ));
+    if( FAILED( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &gpDevice )))
+	{
+		MessageBoxA( 0, "Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
+		CloseLogFile();
+		g_d3d->Release();
+		exit( -1 );
+	}
 
     // create main "pipeline" vertex declaration
     D3DVERTEXELEMENT9 vd[ ] = {
@@ -210,14 +216,23 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     }
 }
 
+bool IsFullNPOTTexturesSupport()
+{
+	D3DCAPS9 caps;
+	gpDevice->GetDeviceCaps( &caps );
+	char npotcond = caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL;
+	char pot = caps.TextureCaps & D3DPTEXTURECAPS_POW2;
+	return !(npotcond || pot);
+}
+
 /*
 ==========
 Renderer::IsMeshVisible
 ==========
 */
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
-    mesh->ownerNode->inFrustum = g_camera->frustum.IsAABBInside( mesh->aabb, ruVector3( mesh->ownerNode->globalTransform.getOrigin().m_floats ));
-    return mesh->ownerNode->skinned || mesh->ownerNode->IsVisible() && mesh->ownerNode->inFrustum;
+    mesh->mOwnerNode->mInFrustum = g_camera->frustum.IsAABBInside( mesh->mAABB, ruVector3( mesh->mOwnerNode->mGlobalTransform.getOrigin().m_floats ));
+    return mesh->mOwnerNode->mSkinned || mesh->mOwnerNode->IsVisible() && mesh->mOwnerNode->mInFrustum;
 }
 
 /*
@@ -306,7 +321,7 @@ void Renderer::RenderWorld() {
         node->UpdateSounds();
         // skip frustum flag, it will be set to true, if one of node's mesh
         // are in frustum
-        node->inFrustum = false;
+        node->mInFrustum = false;
     }
     // update lights
     for( auto light : g_spotLightList ) {
@@ -360,8 +375,8 @@ void Renderer::RenderWorld() {
     // render light flares without writing to z-buffer
     //Light::RenderLightFlares();
     // finalize
-    CheckDXErrorFatal( gpDevice->EndScene());
-    CheckDXErrorFatal( gpDevice->Present( 0, 0, 0, 0 ));
+    gpDevice->EndScene();
+    gpDevice->Present( 0, 0, 0, 0 );
     // grab info about node's physic contacts
     SceneNode::UpdateContacts( );
     // update sound subsystem
@@ -379,7 +394,7 @@ all registered meshes are sorted by texture, so rendering becomes really fast - 
 ===============
 */
 void Renderer::RenderMeshesIntoGBuffer() {
-    for( auto groupIterator : Mesh::meshes ) {
+    for( auto groupIterator : Mesh::msMeshList ) {
         IDirect3DTexture9 * pDiffuseTexture = groupIterator.first;
         IDirect3DTexture9 * pNormalTexture = nullptr;
         auto & meshes = groupIterator.second;
@@ -402,7 +417,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
                         pNormalTexture = meshNormalTexture;
                     }
                 }
-                if( !pMesh->indexBuffer || !pMesh->vertexBuffer ) {
+                if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
                     continue;
                 }
                 g_deferredRenderer->RenderMesh( pMesh );
@@ -449,11 +464,6 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
     return DefWindowProc ( wnd, msg, wParam, lParam );
 }
 
-void Renderer::SetPixelShaderBool( UINT startRegister, BOOL v ) {
-    BOOL buffer[ 4 ] = { v, FALSE, FALSE, FALSE };
-    gpDevice->SetPixelShaderConstantB( startRegister, buffer, 1 );
-}
-
 void Renderer::SetPixelShaderInt( UINT startRegister, int v ) {
     int buffer[ 4 ] = { v, 0, 0, 0 };
     gpDevice->SetPixelShaderConstantI( startRegister, buffer, 1 );
@@ -471,11 +481,6 @@ void Renderer::SetPixelShaderFloat3( UINT startRegister, float * v ) {
 
 void Renderer::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
     gpDevice->SetPixelShaderConstantF( startRegister, &matrix->m[0][0], 4 );
-}
-
-void Renderer::SetVertexShaderBool( UINT startRegister, BOOL v ) {
-    BOOL buffer[ 4 ] = { v, FALSE, FALSE, FALSE };
-    gpDevice->SetVertexShaderConstantB( startRegister, buffer, 1 );
 }
 
 void Renderer::SetVertexShaderInt( UINT startRegister, int v ) {
@@ -660,7 +665,7 @@ ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     D3DXVec3TransformCoord ( &coord, &coord, &matinv );
 
     btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
-    btVector3 rayBegin = g_camera->globalTransform.getOrigin();
+    btVector3 rayBegin = g_camera->mGlobalTransform.getOrigin();
 
     btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
     g_dynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
@@ -732,15 +737,6 @@ TextureUsedPerFrame
 */
 int ruTextureUsedPerFrame( ) {
     return g_textureChanges;
-}
-
-/*
-===============
-SetRenderQuality
-===============
-*/
-void ruSetRenderQuality( char renderQuality ) {
-    g_deferredRenderer->SetRenderingQuality( renderQuality );
 }
 
 /*

@@ -25,7 +25,7 @@ void Flashlight::Update() {
         } else {
             mShakeCoeff += 7.5f * g_dt;
         }
-        mOffset = ruVector3( cosf( mShakeCoeff * 0.5f ) * 0.02f, sinf( mShakeCoeff ) * 0.02f, 0.0f );
+        mOffset = ruVector3( cosf( mShakeCoeff * 0.5f ) * 0.005f, sinf( mShakeCoeff ) * 0.01f, 0.0f );
     }
 }
 

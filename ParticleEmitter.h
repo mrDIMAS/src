@@ -5,61 +5,51 @@
 
 class ParticleEmitter {
 public:
-    class SParticleVertex {
+    class ParticleVertex {
     public:
         float x, y, z;
         float tx, ty;
         int color;
 
-        SParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor );
-        SParticleVertex( );
+        ParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor );
+        ParticleVertex( );
     };
 
-    class SParticleFace {
+    class ParticleFace {
     public:
         short v1;
         short v2;
         short v3;
 
-        SParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex );
-
-        SParticleFace( );
+        explicit ParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex );
+        ParticleFace( );
     };
 
-    class SParticle {
+    class Particle {
     public:
         ruVector3 position;
         ruVector3 color;
         ruVector3 speed;
-        float translucency;
+        float mOpacity;
         float size;
 
-        SParticle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize );
-        SParticle( );
+        explicit Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize );
+        Particle( );
     };
 
-    class ZSorter {
-    public:
-        D3DXMATRIX worldView;
+    vector< Particle > particles;
 
-        bool operator() ( SParticle & p1, SParticle & p2 );
-    };
-
-    vector< SParticle > particles;
-
-    SParticleVertex * vertices;
-    SParticleFace * faces;
+    ParticleVertex * vertices;
+    ParticleFace * faces;
 
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DIndexBuffer9 * indexBuffer;
 
-    SceneNode * base;
+    SceneNode * mOwner;
 
-    int aliveParticles;
+    int mAliveParticleCount;
 
-    float boundaryLayerThickness;
-    D3DXMATRIX world;
-    ZSorter zSorter;
+	D3DXMATRIX mWorldTransform;
 
     bool firstTimeUpdate;
 
@@ -74,9 +64,9 @@ public:
     float GetThickness( );
     bool IsEnabled();
     bool HasAliveParticles();
-    void ResurrectParticle( SParticle & p );
+    void ResurrectParticle( Particle & p );
     bool IsLightAffects( );
-    SceneNode * GetBase();
+    SceneNode * GetOwner();
     void Update( );
     void Bind();
     void Render();

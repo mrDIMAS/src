@@ -25,25 +25,26 @@ void main( ) {
     Parser config;
     config.ParseFile( "mine.cfg" );
 
-    g_resW            = config.GetNumber( "resW" );
-    g_resH            = config.GetNumber( "resH" );
-    int fullscreen    = config.GetNumber( "fullscreen" );
-    char vSync		  = config.GetNumber( "vSync" );
-    g_initialLevel    = config.GetNumber( "levelNum" );
-    g_showFPS         = config.GetNumber( "debugInfo" ) != 0.0f;
-    localizationPath  = config.GetString( "languagePath" );
+    g_resW = config.GetNumber( "resW" );
+    g_resH = config.GetNumber( "resH" );
+    int fullscreen = config.GetNumber( "fullscreen" );
+    char vSync = config.GetNumber( "vSync" );
+    g_initialLevel = config.GetNumber( "levelNum" );
+    g_showFPS = config.GetNumber( "debugInfo" ) != 0.0f;
+    localizationPath = config.GetString( "languagePath" );
 
 #ifdef _DEBUG
     ruCreateRenderer( 0, 0, 0, vSync );
 #else
     ruCreateRenderer( g_resW, g_resH, fullscreen, vSync );
 #endif
+	// get actual resolution settings
+	g_resW = ruGetResolutionWidth();
+	g_resH = ruGetResolutionHeight();
 
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
-    g_resW = ruGetResolutionWidth();
-    g_resH = ruGetResolutionHeight();
-
+	
     pGUI = new GUI;
     pMainMenu = new Menu;
     screamer = new ScreenScreamer;
@@ -54,43 +55,22 @@ void main( ) {
 	Level::CreateLoadingScreen();
 
     double fixedTick = 1.0 / 60.0;
-    double prevPhysTime = ruGetTimeInSeconds( dtTimer );
-    double currPhysTime = prevPhysTime;
-    double gameClock = prevPhysTime;
+    double gameClock = ruGetTimeInSeconds( dtTimer );
 
     ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
     ruShowCursor();
 
-	ruTimerHandle gameTimer = ruCreateTimer();
-	int updateCounter = 0, updatesPerSecond = 0;
     while( g_running ) {
         try {
-            // ===========================
-            // frame rendering update
             ruRenderWorld( fixedTick );
 
-            // ===========================
-            // physics update
-            if( !pMainMenu->IsVisible() ) {
-                currPhysTime = ruGetTimeInSeconds( dtTimer );
-				double physDt = currPhysTime - prevPhysTime;
-				if( physDt > 0.0 ) {
-					ruUpdatePhysics( physDt, 16, fixedTick );
-				}
-                prevPhysTime = currPhysTime;
-				// recalculate transforms of scene nodes
-				ruUpdateWorld();
-            }
-
-            // ===========================
-            // game logics update
             double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
             while( dt >= fixedTick ) {
-				updateCounter++;
-
                 dt -= fixedTick;
                 gameClock += fixedTick;              
 				g_dt = fixedTick;
+
+				ruUpdatePhysics( fixedTick, 1, fixedTick );
 
                 ruInputUpdate();
 
@@ -119,21 +99,12 @@ void main( ) {
                 } else {
 					screamer->SetVisible( false );
 				}
-                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d\ndt: %f\nUPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps, g_dt, updatesPerSecond ).c_str());
+                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps ).c_str());
                 ruSetGUINodeVisible( fpsText, g_showFPS );
-
 				// recalculate transforms of scene nodes
 				ruUpdateWorld();
-            }
-
-			// count frames per second
-            fpsCounter.RegisterFrame();
-			if( ruGetElapsedTimeInSeconds( gameTimer) >= 1.0 ){
-				updatesPerSecond = updateCounter;
-				updateCounter = 0;
-				ruRestartTimer( gameTimer );
-			}
-
+            }			
+			fpsCounter.RegisterFrame();
         } catch( runtime_error ) {
             break;
         }

@@ -93,7 +93,7 @@ void LevelArrival::DoScenario() {
         return;
     }
 
-    ruSetAmbientColor( ruVector3( 0.06, 0.06, 0.06 ));
+    ruSetAmbientColor( ruVector3( 0.11, 0.11, 0.11 ));
 
     PlayAmbientSounds();
 

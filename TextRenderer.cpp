@@ -83,7 +83,8 @@ void TextRenderer::RenderText( GUIText* guiText ) {
 
     CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
     CheckDXErrorFatal( gpDevice->SetIndices( indexBuffer ));
-    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
+	if( totalLetters > 0 )
+		CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
     g_dips++;
 }
 

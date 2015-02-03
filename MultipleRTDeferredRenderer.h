@@ -4,13 +4,9 @@
 
 class MultipleRTDeferredRenderer : public DeferredRenderer {
 public:
-    VertexShader * vsGBufferHighQuality;
-    PixelShader * psGBufferHighQuality;
-    VertexShader * vsGBufferLowQuality;
-    PixelShader * psGBufferLowQuality;
-    void CreateHighQualityShaders();
-    void CreateLowQualityShaders();
-
+    VertexShader * mGBufferVertexShader;
+    PixelShader * mGBufferPixelShader;
+	
     explicit MultipleRTDeferredRenderer();
     virtual ~MultipleRTDeferredRenderer();
 

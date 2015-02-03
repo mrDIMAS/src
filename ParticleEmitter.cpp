@@ -17,7 +17,7 @@ ParticleEmitter::~ParticleEmitter() {
 
 void ParticleEmitter::Render() {
     g_dips++;
-    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, aliveParticles * 4, 0, aliveParticles * 2 ));
+    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 ));
 }
 
 void ParticleEmitter::Bind() {
@@ -25,7 +25,7 @@ void ParticleEmitter::Bind() {
     if( texPtr ) {
         texPtr->Bind( 0 );
     }
-    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( SParticleVertex )));
+    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( ParticleVertex )));
     CheckDXErrorFatal( gpDevice->SetIndices( indexBuffer ));
 }
 
@@ -35,10 +35,10 @@ void ParticleEmitter::Update() {
         firstTimeUpdate = true;
     }
 
-    aliveParticles = 0;
+    mAliveParticleCount = 0;
 
-    base->globalTransform.getBasis().setEulerYPR( 0, 0, 0 );
-    GetD3DMatrixFromBulletTransform( base->globalTransform, world );
+    mOwner->mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
+    GetD3DMatrixFromBulletTransform( mOwner->mGlobalTransform, mWorldTransform );
 
     D3DXMATRIX view = g_camera->view;
 
@@ -51,9 +51,6 @@ void ParticleEmitter::Update() {
     ruVector3 leftBottom = -( rightVect + upVect );
 
     int vertexNum = 0, faceNum = 0;
-
-    //D3DXMatrixMultiply( &zSorter.worldView, &world, &view );
-    //sort( particles.begin(), particles.end(), zSorter );
 
     for( auto & p : particles ) {
         p.position += p.speed;
@@ -68,24 +65,24 @@ void ParticleEmitter::Update() {
             insideCoeff = 1.0f;
         }
         p.color = props.colorBegin.Lerp( props.colorEnd, insideCoeff );
-        p.translucency = 255.0f * ( 1.0f - insideCoeff );
+        p.mOpacity = 255.0f * ( 1.0f - insideCoeff );
         p.size += props.scaleFactor;
 
-        if( p.translucency <= 1.0f  ) {
+        if( p.mOpacity <= 1.0f  ) {
             if( props.autoResurrectDeadParticles ) {
                 ResurrectParticle( p );
             }
         } else {
-            vertices[ vertexNum ] = SParticleVertex( p.position + leftTop * p.size, 0.0, 0.0, RGBAToInt( p.color, p.translucency ));
-            vertices[ vertexNum + 1 ] = SParticleVertex( p.position + rightTop * p.size, 1.0, 0.0, RGBAToInt( p.color, p.translucency ));
-            vertices[ vertexNum + 2 ] = SParticleVertex( p.position + rightBottom * p.size, 1.0, 1.0, RGBAToInt( p.color, p.translucency ));
-            vertices[ vertexNum + 3 ] = SParticleVertex( p.position + leftBottom * p.size, 0.0, 1.0, RGBAToInt( p.color, p.translucency ));
+            vertices[ vertexNum ] = ParticleVertex( p.position + leftTop * p.size, 0.0, 0.0, RGBAToInt( p.color, p.mOpacity ));
+            vertices[ vertexNum + 1 ] = ParticleVertex( p.position + rightTop * p.size, 1.0, 0.0, RGBAToInt( p.color, p.mOpacity ));
+            vertices[ vertexNum + 2 ] = ParticleVertex( p.position + rightBottom * p.size, 1.0, 1.0, RGBAToInt( p.color, p.mOpacity ));
+            vertices[ vertexNum + 3 ] = ParticleVertex( p.position + leftBottom * p.size, 0.0, 1.0, RGBAToInt( p.color, p.mOpacity ));
 
             // indices
-            faces[ faceNum + 0 ] = SParticleFace( vertexNum + 0, vertexNum + 1, vertexNum + 3 );
-            faces[ faceNum + 1 ] = SParticleFace( vertexNum + 1, vertexNum + 2, vertexNum + 3 );
+            faces[ faceNum + 0 ] = ParticleFace( vertexNum + 0, vertexNum + 1, vertexNum + 3 );
+            faces[ faceNum + 1 ] = ParticleFace( vertexNum + 1, vertexNum + 2, vertexNum + 3 );
 
-            ++aliveParticles;
+            ++mAliveParticleCount;
             vertexNum += 4;
             faceNum += 2;
         }
@@ -93,16 +90,16 @@ void ParticleEmitter::Update() {
 
     void * data = 0;
     vertexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
-    memcpy( data, vertices, aliveParticles * 4 * sizeof( SParticleVertex ));
+    memcpy( data, vertices, mAliveParticleCount * 4 * sizeof( ParticleVertex ));
     vertexBuffer->Unlock();
 
     indexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
-    memcpy( data, faces, aliveParticles * 2 * sizeof( SParticleFace ));
+    memcpy( data, faces, mAliveParticleCount * 2 * sizeof( ParticleFace ));
     indexBuffer->Unlock();
 }
 
-SceneNode * ParticleEmitter::GetBase() {
-    return base;
+SceneNode * ParticleEmitter::GetOwner() {
+    return mOwner;
 }
 
 bool ParticleEmitter::IsLightAffects() {
@@ -113,7 +110,7 @@ int ParticleEmitter::RGBAToInt( ruVector3 color, int alpha ) {
     return D3DCOLOR_ARGB( alpha, (int)color.x, (int)color.y, (int)color.z );
 }
 
-void ParticleEmitter::ResurrectParticle( SParticle & p ) {
+void ParticleEmitter::ResurrectParticle( Particle & p ) {
     if( props.type == PS_BOX ) {
         p.position = RandomVector3( props.boundingBoxMin, props.boundingBoxMax );
         p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
@@ -123,7 +120,7 @@ void ParticleEmitter::ResurrectParticle( SParticle & p ) {
     }
 
     p.size = props.pointSize;
-    p.translucency = 255;
+    p.mOpacity = 255;
 }
 
 ruVector3 ParticleEmitter::RandomVector3( ruVector3 & min, ruVector3 & max ) {
@@ -131,7 +128,7 @@ ruVector3 ParticleEmitter::RandomVector3( ruVector3 & min, ruVector3 & max ) {
 }
 
 bool ParticleEmitter::HasAliveParticles() {
-    return aliveParticles > 0;
+    return mAliveParticleCount > 0;
 }
 
 bool ParticleEmitter::IsEnabled() {
@@ -149,14 +146,14 @@ void ParticleEmitter::ResurrectParticles() {
 }
 
 ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps ) {
-    base = theParent;
-    aliveParticles = theParticleCount;
-    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( theParticleCount * 4 * sizeof( SParticleVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
-    CheckDXErrorFatal( gpDevice->CreateIndexBuffer( theParticleCount * 2 * sizeof( SParticleFace ), D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
-    faces = new SParticleFace[ theParticleCount * 2 ];
-    vertices = new SParticleVertex[ theParticleCount * 4 ];
+    mOwner = theParent;
+    mAliveParticleCount = theParticleCount;
+    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( theParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+    CheckDXErrorFatal( gpDevice->CreateIndexBuffer( theParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
+    faces = new ParticleFace[ theParticleCount * 2 ];
+    vertices = new ParticleVertex[ theParticleCount * 4 ];
     for( int i = 0; i < theParticleCount; i++ ) {
-        particles.push_back( SParticle());
+        particles.push_back( Particle());
     }
     props = creationProps;
     firstTimeUpdate = false;
@@ -164,46 +161,38 @@ ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, r
     ResurrectParticles();
 }
 
-bool ParticleEmitter::ZSorter::operator()( SParticle & p1, SParticle & p2 ) {
-    D3DXVECTOR3 viewSpacePos1;
-    D3DXVec3TransformCoord( &viewSpacePos1, &D3DXVECTOR3( p1.position.x, p1.position.y, p1.position.z ), &worldView );
-    D3DXVECTOR3 viewSpacePos2;
-    D3DXVec3TransformCoord( &viewSpacePos2, &D3DXVECTOR3( p2.position.x, p2.position.y, p2.position.z ), &worldView );
-    return viewSpacePos1.z < viewSpacePos2.z;
-}
-
-ParticleEmitter::SParticle::SParticle() {
+ParticleEmitter::Particle::Particle() {
     position = ruVector3( 0, 0, 0 );
     speed = ruVector3( 0, 0, 0 );
     color = ruVector3( 255, 255, 255 );
-    translucency = 255;
+    mOpacity = 255;
     size = 1.0f;
 }
 
-ParticleEmitter::SParticle::SParticle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) {
+ParticleEmitter::Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) {
     position = thePosition;
     speed = theSpeed;
     color = theColor;
-    translucency = theTranslucency;
+    mOpacity = theTranslucency;
     size = theSize;
 }
 
-ParticleEmitter::SParticleFace::SParticleFace() {
+ParticleEmitter::ParticleFace::ParticleFace() {
     v1 = v2 = v3 = 0;
 }
 
-ParticleEmitter::SParticleFace::SParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex ) {
+ParticleEmitter::ParticleFace::ParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex ) {
     v1 = theFirstVertex;
     v2 = theSecondVertex;
     v3 = theThirdVertex;
 }
 
-ParticleEmitter::SParticleVertex::SParticleVertex() {
+ParticleEmitter::ParticleVertex::ParticleVertex() {
     x = y = z = tx = ty = 0.0f;
     color = 0xFFFFFFFF;
 }
 
-ParticleEmitter::SParticleVertex::SParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor ) {
+ParticleEmitter::ParticleVertex::ParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor ) {
     x = thePosition.x;
     y = thePosition.y;
     z = thePosition.z;
@@ -238,7 +227,7 @@ int ruGetParticleSystemAliveParticles( ruNodeHandle ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
     if( n->particleEmitter ) {
-        return n->particleEmitter->aliveParticles;
+        return n->particleEmitter->mAliveParticleCount;
     }
 
     return 0;

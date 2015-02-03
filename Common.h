@@ -135,8 +135,10 @@ extern ofstream g_log;
 // shadow settings
 extern bool g_usePointLightShadows;
 extern bool g_useSpotLightShadows;
-
-extern void CheckDXErrorFatal( HRESULT errCode );
+extern bool IsFullNPOTTexturesSupport();
+extern int NearestPow2( int number );
+extern void CheckDXErrorFatalFunc( HRESULT errCode, const char * file, int line );
+#define CheckDXErrorFatal( func ) CheckDXErrorFatalFunc( func, __FILE__, __LINE__ )
 extern void CreateLogFile();
 extern void LogMessage( string message );
 extern void CloseLogFile();

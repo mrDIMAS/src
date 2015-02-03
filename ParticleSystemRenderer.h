@@ -9,18 +9,6 @@ private:
     VertexShader * vertexShader;
 
     IDirect3DVertexDeclaration9 * vd;
-
-    D3DXHANDLE vWVP;
-    D3DXHANDLE vWorld;
-
-    D3DXHANDLE pLightCount;
-    D3DXHANDLE pColor;
-    D3DXHANDLE pRange;
-    D3DXHANDLE pPosition;
-    D3DXHANDLE pWithLight;
-
-
-    vector< Light*> affectedLights;
 public:
     ParticleSystemRenderer();
     ~ParticleSystemRenderer();

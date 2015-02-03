@@ -1,10 +1,12 @@
 #include "GBuffer.h"
 
 GBuffer::GBuffer() {
-    //int width = GetNearestPow2( g_width );
-    //int height = GetNearestPow2( g_height );
-    int width = g_width;
-    int height = g_height;
+	int width = g_width;
+	int height = g_height;
+	if( !IsFullNPOTTexturesSupport()) {
+		width = NearestPow2( g_width );
+		height = NearestPow2( g_height );
+	}
 
 #ifdef USE_R32F_DEPTH
     CheckDXErrorFatal( D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap ));

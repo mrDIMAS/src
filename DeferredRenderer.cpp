@@ -16,42 +16,41 @@ bool IsTextureFormatOk( D3DFORMAT TextureFormat ) {
 }
 
 DeferredRenderer::DeferredRenderer() {
-    effectsQuad = new EffectsQuad;
-    debugQuad = new EffectsQuad( true );
+    mFullscreenQuad = new EffectsQuad;
+    mDebugQuad = new EffectsQuad( true );
     CreateBoundingVolumes();
-    SetRenderingQuality( 1 );
-    pFXAA = new FXAA;
-    gBuffer = new GBuffer;
-    pass2SpotLight = new Pass2SpotLight;
-    pass2AmbientLight = new Pass2AmbientLight;
-    pass2PointLight = new Pass2PointLight;
+    mFXAA = new FXAA;
+    mGBuffer = new GBuffer;
+    mSpotLightShader = new SpotLightShader;
+    mAmbientLightShader = new AmbientLightShader;
+    mPointLightShader = new PointLightShader;
     bvRenderer = new BoundingVolumeRenderingShader;
-    spotShadowMap = new SpotlightShadowMap;
+    mSpotLightShadowMap = new SpotlightShadowMap;
     // check support of floating-point textures first
     if( IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
-        pHDRRenderer = new HDRRenderer( D3DFMT_A16B16G16R16 );
+        mHDRShader = new HDRShader( D3DFMT_A16B16G16R16 );
     } else {
-        pHDRRenderer = nullptr;
+        mHDRShader = nullptr;
     }
 }
 
 DeferredRenderer::~DeferredRenderer() {
     icosphere->Release();
     cone->Release();
-    delete gBuffer;
-    delete effectsQuad;
-    delete pass2SpotLight;
-    delete pass2AmbientLight;
-    delete pass2PointLight;
+    delete mGBuffer;
+    delete mFullscreenQuad;
+    delete mSpotLightShader;
+    delete mAmbientLightShader;
+    delete mPointLightShader;
     delete bvRenderer;
-    delete spotShadowMap;
-    delete pFXAA;
-    delete pHDRRenderer;
-    delete debugQuad;
+    delete mSpotLightShadowMap;
+    delete mFXAA;
+    delete mHDRShader;
+    delete mDebugQuad;
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {
-    return gBuffer;
+    return mGBuffer;
 }
 
 struct XYZNormalVertex {
@@ -88,26 +87,21 @@ void DeferredRenderer::CreateBoundingVolumes() {
 ////////////////////////////////////////////////////////////
 // Point Light Subclass
 ////////////////////////////////////////////////////////////
-DeferredRenderer::Pass2PointLight::Pass2PointLight() {
-    pixelShader = new PixelShader( "data/shaders/deferredPointLightHQ.pso", true );
-    pixelShaderLQ = new PixelShader( "data/shaders/deferredPointLightLQ.pso", true );
+DeferredRenderer::PointLightShader::PointLightShader() {
+    pixelShader = new PixelShader( "data/shaders/deferredPointLight.pso", true );
+    pixelShaderTexProj = new PixelShader( "data/shaders/deferredPointLightTexProj.pso", true );
 }
 
-void DeferredRenderer::Pass2PointLight::Bind( D3DXMATRIX & invViewProj ) {
-    BindShader();
-    gpRenderer->SetPixelShaderFloat3( 8, g_camera->globalTransform.getOrigin().m_floats );
-    gpRenderer->SetPixelShaderMatrix( 0, &invViewProj );
-}
-
-void DeferredRenderer::Pass2PointLight::BindShader( ) {
-    if( g_deferredRenderer->renderQuality > 0 ) {
-        pixelShader->Bind();
-    } else {
-        pixelShaderLQ->Bind();
-    }
-}
-
-void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
+void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Light * light ) {
+	if( light->pointTexture ) {
+		pixelShaderTexProj->Bind();
+		gpDevice->SetTexture( 3, light->pointTexture->cubeTexture );
+	} else {
+		pixelShader->Bind();
+	}
+	gpRenderer->SetPixelShaderFloat3( 8, g_camera->mGlobalTransform.getOrigin().m_floats );
+	gpRenderer->SetPixelShaderMatrix( 0, &invViewProj );
+	
 	// position
     gpRenderer->SetPixelShaderFloat3( 5, light->GetRealPosition().elements ); 
 	// color
@@ -116,18 +110,9 @@ void DeferredRenderer::Pass2PointLight::SetLight( Light * light ) {
     gpRenderer->SetPixelShaderFloat( 7, powf( light->GetRadius(), 4 ));
 	// brightness
     gpRenderer->SetPixelShaderFloat( 9, g_hdrEnabled ? light->brightness : 1.0f ); 
-	// bounding volume render
-	gpRenderer->SetPixelShaderBool( 1, FALSE );
-    if( light->pointTexture ) {
-        gpDevice->SetTexture( 3, light->pointTexture->cubeTexture );
-        gpRenderer->SetPixelShaderBool( 0, 1 );
-    } else {
-        gpDevice->SetTexture( 3, 0 );
-        gpRenderer->SetPixelShaderBool( 0, 0 );
-    }
 }
 
-DeferredRenderer::Pass2PointLight::~Pass2PointLight() {
+DeferredRenderer::PointLightShader::~PointLightShader() {
     delete pixelShader;
 }
 
@@ -135,16 +120,16 @@ DeferredRenderer::Pass2PointLight::~Pass2PointLight() {
 // Ambient Light Subclass
 ////////////////////////////////////////////////////////////
 
-DeferredRenderer::Pass2AmbientLight::Pass2AmbientLight() {
+DeferredRenderer::AmbientLightShader::AmbientLightShader() {
     pixelShader = new PixelShader( "data/shaders/deferredAmbientLight.pso", true );
 }
 
-void DeferredRenderer::Pass2AmbientLight::Bind( ) {
+void DeferredRenderer::AmbientLightShader::Bind( ) {
     pixelShader->Bind();
     gpRenderer->SetPixelShaderFloat3( 0, g_ambientColor.elements );
 }
 
-DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight() {
+DeferredRenderer::AmbientLightShader::~AmbientLightShader() {
     delete pixelShader;
 }
 
@@ -152,23 +137,25 @@ DeferredRenderer::Pass2AmbientLight::~Pass2AmbientLight() {
 // Spot Light Subclass
 ////////////////////////////////////////////////////////////
 
-DeferredRenderer::Pass2SpotLight::Pass2SpotLight( ) {
+DeferredRenderer::SpotLightShader::SpotLightShader( ) {
     pixelShader = new PixelShader( "data/shaders/deferredSpotLight.pso", true );
+	pixelShaderShadows = new PixelShader( "data/shaders/deferredSpotLightShadows.pso", true );
 }
 
-void DeferredRenderer::Pass2SpotLight::BindShader( ) {
-    pixelShader->Bind();
-}
+void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Light * lit ) {
+	if( g_useSpotLightShadows ) {		
+		pixelShaderShadows->Bind();		
+	} else {
+		pixelShader->Bind();
+	}
 
-void DeferredRenderer::Pass2SpotLight::Bind( D3DXMATRIX & invViewProj ) {
-    BindShader();
+	lit->spotTexture->Bind(3);
+	lit->BuildSpotProjectionMatrixAndFrustum();
+	gpRenderer->SetPixelShaderMatrix( 5, &lit->spotViewProjectionMatrix );
+	gpRenderer->SetPixelShaderFloat3( 13, g_camera->mGlobalTransform.getOrigin().m_floats );
+	gpRenderer->SetPixelShaderMatrix( 0, &invViewProj );
 
-    gpRenderer->SetPixelShaderFloat3( 13, g_camera->globalTransform.getOrigin().m_floats );
-    gpRenderer->SetPixelShaderMatrix( 0, &invViewProj );
-}
-
-void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
-    btVector3 direction = ( lit->globalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
+    btVector3 direction = ( lit->mGlobalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
     // position
     gpRenderer->SetPixelShaderFloat3( 10, lit->GetRealPosition().elements );
     // range
@@ -181,31 +168,11 @@ void DeferredRenderer::Pass2SpotLight::SetLight( Light * lit ) {
     gpRenderer->SetPixelShaderFloat( 16, lit->GetCosHalfOuterAngle() );
     // direction
     gpRenderer->SetPixelShaderFloat3( 12, direction.m_floats );
-    // use shadows
-    gpRenderer->SetPixelShaderBool( 1, g_useSpotLightShadows ? TRUE : FALSE );
     // brightness
     gpRenderer->SetPixelShaderFloat( 17, (g_hdrEnabled ? lit->brightness : 1.0f) );
-	// bounding volume render
-	gpRenderer->SetPixelShaderBool( 2, FALSE );
-    if( lit->spotTexture || g_useSpotLightShadows ) {
-        lit->BuildSpotProjectionMatrixAndFrustum();
-        if( lit->spotTexture ) {
-            lit->spotTexture->Bind( 3 );
-            // use spot texture
-            gpRenderer->SetPixelShaderBool( 0, TRUE );
-        }
-        // spot view matrix
-        gpRenderer->SetPixelShaderMatrix( 5, &lit->spotViewProjectionMatrix );
-    } else {
-        gpDevice->SetTexture( 3, nullptr );
-        // use spot texture
-        if( !lit->spotTexture ) {
-            gpRenderer->SetPixelShaderBool( 0, FALSE );
-        }
-    }
 }
 
-DeferredRenderer::Pass2SpotLight::~Pass2SpotLight() {
+DeferredRenderer::SpotLightShader::~SpotLightShader() {
     delete pixelShader;
 }
 
@@ -274,7 +241,7 @@ void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
     D3DXMATRIX scale;
     D3DXMatrixScaling( &scale, radius, height, radius );
     D3DXMATRIX world;
-    GetD3DMatrixFromBulletTransform( lit->globalTransform, world );
+    GetD3DMatrixFromBulletTransform( lit->mGlobalTransform, world );
     D3DXMatrixMultiply( &world, &scale, &world );
     bvRenderer->Bind();
     D3DXMATRIX wvp;
@@ -286,137 +253,132 @@ void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
 void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     OnEnd();
 
-    if( pHDRRenderer && g_hdrEnabled ) {
-        pHDRRenderer->SetAsRenderTarget();
+    if( mHDRShader && g_hdrEnabled ) {
+        mHDRShader->SetAsRenderTarget();
     } else {
         if( g_fxaaEnabled ) {
-            pFXAA->BeginDrawIntoTexture();
+            mFXAA->BeginDrawIntoTexture();
         } else {
-            gBuffer->BindBackSurfaceAsRT();
+            mGBuffer->BindBackSurfaceAsRT();
         }
     }
 
     gpDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 	
     if( g_camera->skybox ) {
-        g_camera->skybox->Render( g_camera->globalTransform.getOrigin() );
+        g_camera->skybox->Render( g_camera->mGlobalTransform.getOrigin() );
     }  
 
-    gBuffer->BindTextures();
+    mGBuffer->BindTextures();
 	gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
-    pass2AmbientLight->Bind();
-    effectsQuad->Bind();
-    effectsQuad->Render();
+    mAmbientLightShader->Bind();
+    mFullscreenQuad->Bind();
+    mFullscreenQuad->Render();
 	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 	gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
 
     // Render point lights
     for( auto pLight : g_pointLightList ) {
-		if( !g_camera->frustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) ) {
-			continue;
+		if( g_camera->frustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
+			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+
+			RenderIcosphereIntoStencilBuffer( pLight );
+
+			mPointLightShader->SetLight( g_camera->invViewProjection, pLight );
+
+			mFullscreenQuad->Bind();		
+
+			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
+			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+			// quad render
+			mFullscreenQuad->Render();
 		}
-        gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-        gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-        gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
-		// bounding volume rendering, lighting shader var
-		gpRenderer->SetPixelShaderBool( 1, TRUE );
-        RenderIcosphereIntoStencilBuffer( pLight );
-
-        pass2PointLight->Bind( g_camera->invViewProjection );
-        pass2PointLight->SetLight( pLight );
-
-        effectsQuad->Bind();		
-
-        gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-        gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
-        gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-        // quad render
-        effectsQuad->Render();
     }
 
     // Render spot lights
     for( auto pLight : g_spotLightList ) {
-		if( !g_camera->frustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) ) {
-			continue;
+		if( g_camera->frustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible()  ) {
+			if( g_useSpotLightShadows ) {
+				IDirect3DSurface9 * prevSurface = nullptr;
+				if( mHDRShader && g_hdrEnabled ) {
+					prevSurface = mHDRShader->hdrSurface;
+				} else if( g_fxaaEnabled ) {
+					prevSurface = mFXAA->renderTarget;
+				} else {
+					prevSurface = mGBuffer->backSurface;
+				}
+				mSpotLightShadowMap->UnbindSpotShadowMap( 4 );
+
+				gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+				gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+				gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+
+				mSpotLightShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
+
+				gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+				gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+				gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+
+				mSpotLightShadowMap->BindSpotShadowMap( 4 );
+			}
+
+			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+
+			RenderConeIntoStencilBuffer( pLight );
+
+			mSpotLightShader->SetLight( g_camera->invViewProjection, pLight );
+
+			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+
+			mFullscreenQuad->Bind();
+			mFullscreenQuad->Render();
 		}
-
-        if( g_useSpotLightShadows ) {
-            IDirect3DSurface9 * prevSurface = nullptr;
-            if( pHDRRenderer && g_hdrEnabled ) {
-                prevSurface = pHDRRenderer->hdrSurface;
-            } else if( g_fxaaEnabled ) {
-                prevSurface = pFXAA->renderTarget;
-            } else {
-                prevSurface = gBuffer->backSurface;
-            }
-            spotShadowMap->UnbindSpotShadowMap( 4 );
-
-            gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-            gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-            gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
-
-            spotShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
-
-            gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-            gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-            gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-
-            spotShadowMap->BindSpotShadowMap( 4 );
-        }
-
-        gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-        gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
-        gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-
-        RenderConeIntoStencilBuffer( pLight );
-
-        pass2SpotLight->Bind( g_camera->invViewProjection );
-        pass2SpotLight->SetLight( pLight );
-
-        gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-        gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-        gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-
-        effectsQuad->Bind();
-        effectsQuad->Render();
     }
-
-    if( pHDRRenderer && g_hdrEnabled ) {
+    if( mHDRShader && g_hdrEnabled ) {
 		gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 		gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
 		gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-        pHDRRenderer->CalculateFrameLuminance( );
+        mHDRShader->CalculateFrameLuminance( );
         if( g_fxaaEnabled ) {
-            pHDRRenderer->DoToneMapping( pFXAA->renderTarget );
-            pFXAA->DoAntialiasing( pFXAA->texture );
+            mHDRShader->DoToneMapping( mFXAA->renderTarget );
+            mFXAA->DoAntialiasing( mFXAA->texture );
         } else {
-            pHDRRenderer->DoToneMapping( gBuffer->backSurface );
+            mHDRShader->DoToneMapping( mGBuffer->backSurface );
         }
     } else {
         if( g_fxaaEnabled ) {
             gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
             gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-            pFXAA->DoAntialiasing( pFXAA->texture );
+			gpDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
+			gpDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+			gpDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
+			gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+			gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+			gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+            mFXAA->DoAntialiasing( mFXAA->texture );
+			gpDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			gpDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			gpDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+			gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
         }
     }
 }
 
 
 void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
-    if( size != spotShadowMap->iSize ) {
-        if( spotShadowMap ) {
-            delete spotShadowMap;
+    if( size != mSpotLightShadowMap->iSize ) {
+        if( mSpotLightShadowMap ) {
+            delete mSpotLightShadowMap;
         }
-        spotShadowMap = new SpotlightShadowMap( size );
-    }
-}
-
-void DeferredRenderer::SetRenderingQuality( char quality ) {
-    renderQuality = quality;
-    if( renderQuality < 0 ) {
-        renderQuality = 0;
-    }
-    if( renderQuality > 1 ) {
-        renderQuality = 1;
+        mSpotLightShadowMap = new SpotlightShadowMap( size );
     }
 }

@@ -22,7 +22,7 @@ VertexShader::VertexShader( string source ) {
     ID3DXBuffer * errMessages = 0;
     DWORD flags = D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3DXSHADER_OPTIMIZATION_LEVEL3;
 
-    if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "vs_3_0", flags, &buffer, &errMessages, &constants ))) {
+    if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "vs_2_0", flags, &buffer, &errMessages, &constants ))) {
         MessageBoxA( 0, ( const char * ) errMessages->GetBufferPointer(), "Error", MB_OK ) ;
 
         exit( -1 );
@@ -75,7 +75,7 @@ PixelShader::PixelShader( string source ) {
     ID3DXBuffer * errMessages = 0;
     DWORD flags = D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3DXSHADER_OPTIMIZATION_LEVEL3;
 
-    if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "ps_3_0", flags, &buffer, &errMessages, &constants ))) {
+    if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "ps_2_0", flags, &buffer, &errMessages, &constants ))) {
         MessageBoxA( 0, ( const char * ) errMessages->GetBufferPointer(), "Error", MB_OK ) ;
 
         exit( -1 );

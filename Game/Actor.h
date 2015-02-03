@@ -23,6 +23,7 @@ public:
     void Unfreeze();
 	void Crouch( bool state );
 	void UpdateCrouch();
+	bool IsCrouch();
     bool IsVisibleFromPoint( ruVector3 begin );
 	void SetBodyVisible( bool state );
     ruVector3 GetLookDirection();

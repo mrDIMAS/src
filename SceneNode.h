@@ -8,48 +8,48 @@ class SceneNode {
 public:
     friend class DeferredRenderer;
 
-    SceneNode * parent;
-    SceneNode * scene;
+    SceneNode * mParent;
+    SceneNode * mScene;
 
-    vector<SceneNode*> childs;
-    vector<Mesh*> meshes;
-    vector<ruSoundHandle> sounds;
-    vector<btTransform*> keyframes;
+    vector<SceneNode*> mChildList;
+    vector<Mesh*> mMeshList;
+    vector<ruSoundHandle> mSoundList;
+    vector<btTransform*> mKeyframeList;
 
-    map<string,string> properties;
+    map<string,string> mProperties;
 
-    btTransform invBoneBindTransform;
+    btTransform mInvBoneBindTransform;
 
-    btRigidBody * body;
+    btRigidBody * mBody;
 
-    string name;
+    string mName;
 
     btTriangleMesh * trimesh;
 
-    ruSoundHandle hitSound;
-    ruSoundHandle idleSound;
+    ruSoundHandle mHitSound;
+    ruSoundHandle mIdleSound;
 
-    float albedo;
-    float fDepthHack;
+    float mAlbedo;
+    float mDepthHack;
 
-    ruAnimation * currentAnimation;
+    ruAnimation * mCurrentAnimation;
 
-    bool animationEnabled;
-    bool skinned;
-    bool inFrustum;
-    bool frozen;
-    bool visible;
+    bool mAnimationEnabled;
+    bool mSkinned;
+    bool mInFrustum;
+    bool mFrozen;
+    bool mVisible;
 
-    ruContact contacts[ BODY_MAX_CONTACTS ];
+    ruContact mContactList[ BODY_MAX_CONTACTS ];
 
-    int numContacts;
-    int totalFrames;
+    int mContactCount;
+    int mTotalFrameCount;
 public:
     // Components
     ParticleEmitter * particleEmitter;
 
-    btTransform globalTransform;
-    btTransform localTransform;
+    btTransform mGlobalTransform;
+    btTransform mLocalTransform;
 
     // Methods
     explicit SceneNode();
@@ -57,7 +57,7 @@ public:
 
     void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
     ruAnimation * GetCurrentAnimation( ) {
-        return currentAnimation;
+        return mCurrentAnimation;
     }
 
     void EraseChild( const SceneNode * child );
@@ -77,6 +77,9 @@ public:
     void PerformAnimation( );
     void Freeze( );
     void Unfreeze();
+	ruVector3 GetTotalForce() {
+		return ruVector3(mBody->getTotalForce().x(), mBody->getTotalForce().y(), mBody->getTotalForce().z());
+	};
     void SetAnimationEnabled( bool state, bool dontAffectChilds = false );
     void Hide( );
     void Show( );

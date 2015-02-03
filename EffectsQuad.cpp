@@ -1,24 +1,29 @@
 #include "EffectsQuad.h"
+#include "Renderer.h"
+#include "Camera.h"
 
 void EffectsQuad::Render() {
-    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex )));
-    CheckDXErrorFatal( gpDevice->SetVertexDeclaration( vertexDeclaration ));
-    CheckDXErrorFatal( gpDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+    gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
+    gpDevice->SetVertexDeclaration( vertexDeclaration );
+    gpDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
     if( debug ) {
-        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE ));
-        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE ));
+        gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+        gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
     }
 }
 
 void EffectsQuad::Bind( bool bindInternalVertexShader ) {
     if( debug ) {
         debugPixelShader->Bind();
-        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-        CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+        gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+        gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
     }
 	if( bindInternalVertexShader ) {
 		vertexShader->Bind();
-		CheckDXErrorFatal( vertexShader->GetConstantTable()->SetMatrix( gpDevice, v2Proj, &orthoProjection ));
+		gpRenderer->SetVertexShaderMatrix( 0, &orthoProjection );
+		gpRenderer->SetVertexShaderMatrix( 5, &g_camera->invViewProjection );
+		ruVector3 camPos = ruVector3( g_camera->view._41, g_camera->view._42, g_camera->view._43 );
+		gpRenderer->SetVertexShaderFloat3( 10, camPos.elements );
 	}
 }
 
@@ -98,31 +103,8 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         D3DDECL_END()
     };
 
-    CheckDXErrorFatal( gpDevice->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration ));
+    gpDevice->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
 
-    string vertexSourcePassTwo =
-        "float4x4 g_projection;\n"
-
-        "struct VS_INPUT {\n"
-        "  float4 position : POSITION;\n"
-        "  float3 texcoord : TEXCOORD0;\n"
-        "};\n"
-
-        "struct VS_OUTPUT {\n"
-        "  float4 position : POSITION;\n"
-        "  float3 texcoord : TEXCOORD0;\n"
-        "};\n"
-
-        "VS_OUTPUT main(VS_INPUT input) {\n"
-        "  VS_OUTPUT output;\n"
-        "  output.position   = mul(input.position, g_projection);\n"
-        "  output.texcoord   = input.texcoord;\n"
-        "  return output;\n"
-        "};\n";
-
-    vertexShader = new VertexShader( vertexSourcePassTwo );
-
-    v2Proj = vertexShader->GetConstantTable()->GetConstantByName( 0, "g_projection" );
-
+    vertexShader = new VertexShader( "data/shaders/quad.vso", true );
     D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, g_width, g_height, 0, 0, 1024 );
 }

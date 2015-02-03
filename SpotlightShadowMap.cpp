@@ -21,18 +21,18 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
     CheckDXErrorFatal( gpDevice->GetTexture( 0, &prevZeroSamplerTexture ));
 
-    for( auto meshGroupIter : Mesh::meshes ) {
+    for( auto meshGroupIter : Mesh::msMeshList ) {
         auto & group = meshGroupIter.second;
         CheckDXErrorFatal( gpDevice->SetTexture( 0, meshGroupIter.first ));
         for( auto mesh : group ) {
             // if owner of mesh is visible
-            if( mesh->ownerNode->IsVisible()) {
+            if( mesh->GetOwner()->IsVisible()) {
                 // if light "sees" mesh, it can cast shadow
-                if( spotLight->frustum.IsAABBInside( mesh->aabb, mesh->ownerNode->GetPosition())) {
+                if( spotLight->frustum.IsAABBInside( mesh->mAABB, mesh->GetOwner()->GetPosition())) {
                     // if mesh in light range, it can cast shadow
                     //if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
                     D3DXMATRIX world, wvp;
-                    GetD3DMatrixFromBulletTransform( mesh->ownerNode->globalTransform, world );
+                    GetD3DMatrixFromBulletTransform( mesh->GetOwner()->mGlobalTransform, world );
                     D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
                     CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
                     mesh->BindBuffers();

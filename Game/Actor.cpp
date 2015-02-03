@@ -13,11 +13,9 @@ void Actor::Step( ruVector3 direction, float speed )
 	ruVector3 intPoint;
 	ruNodeHandle rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
 	ruVector3 pushpullVelocity;
-	if( rayResult.IsValid() && !(rayResult == mBody) )
-	{
-		if( ruGetContactCount( rayResult ) > 0 )
-		{
-			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4;
+	if( rayResult.IsValid() && !(rayResult == mBody) ) {
+		if( ruGetContactCount( rayResult ) > 0 ) {
+			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 6;
 		}		
 	}
 	ruMoveNode( mBody, direction * speed + pushpullVelocity );
@@ -25,7 +23,7 @@ void Actor::Step( ruVector3 direction, float speed )
 
 Actor::Actor( float height, float width ) :	mBodyHeight( height ), 
 											mBodyWidth( width ), 
-											mSpringLength( 1.2f ), 
+											mSpringLength( 1.0f ), 
 											mCrouch( false ),
 											mCrouchMultiplier( 1.0f )
 {
@@ -88,6 +86,17 @@ void Actor::Crouch( bool state ) {
 }
 
 void Actor::UpdateCrouch() {
+	// stand up only if we can
+	ruVector3 pickPoint;
+	ruVector3 rayBegin = ruGetNodePosition(mBody) + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
+	ruVector3 rayEnd = ruGetNodePosition(mBody) + ruVector3(0, mBodyHeight * 1.05f, 0);
+	ruNodeHandle upCast = ruCastRay( rayBegin, rayEnd, &pickPoint);
+	if( upCast.IsValid() ) {
+		if( !mCrouch ) {
+			mCrouch = true;
+		}
+	}
+
 	if( mCrouch ) {	
 		mCrouchMultiplier -= 0.025f;	
 		if( mCrouchMultiplier < 0.5f ) {
@@ -101,4 +110,8 @@ void Actor::UpdateCrouch() {
 	}
 
 	ruSetNodeBodyLocalScale( mBody, ruVector3( 1.0f, mCrouchMultiplier, 1.0f ));
+}
+
+bool Actor::IsCrouch() {
+	return mCrouch;
 }

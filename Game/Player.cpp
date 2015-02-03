@@ -10,7 +10,7 @@ Player * pPlayer = 0;
 Player::Player
 ========
 */
-Player::Player() : Actor( 1.0f, 0.2f ) {
+Player::Player() : Actor( 0.7f, 0.2f ) {
     mLocalization.ParseFile( localizationPath + "player.loc" );
 
     // Stamina vars
@@ -463,7 +463,10 @@ void Player::UpdateMoving() {
             }
         }
 
-		Crouch( ruIsKeyDown( KEY_V ) );
+		if( ruIsKeyHit( KEY_V )) {
+			Crouch( !IsCrouch() );
+		}
+
 		UpdateCrouch();
 
         mSpeedTo = mSpeedTo * ( mStealthMode ? 0.4f : 1.0f ) ;
@@ -592,7 +595,7 @@ Player::CreateCamera
 ========
 */
 void Player::CreateCamera() {
-    mHeadHeight = 1.9;
+    mHeadHeight = 2.1;
 
     mHead = ruCreateSceneNode();
     ruAttachNode( mHead, mBody );

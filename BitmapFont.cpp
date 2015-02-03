@@ -22,6 +22,9 @@ void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
 }
 
 BitmapFont::BitmapFont( const char * file, int size ) {
+	if( !IsFullNPOTTexturesSupport()) {
+		size = NearestPow2(size);
+	}
     glyphSize = size;
     // load new font face
     if( FT_New_Face( g_ftLibrary, file, 0, &face ) ) {
@@ -34,7 +37,7 @@ BitmapFont::BitmapFont( const char * file, int size ) {
         LogError( Format( "Failed to FT_Select_Charmap!", file ));
     }
     // create atlas texture
-    atlasWidth = atlasHeight = size * 16;
+	atlasWidth = atlasHeight = size * 16;
     CheckDXErrorFatal( D3DXCreateTexture( gpDevice, atlasWidth, atlasHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &atlas ));
     IDirect3DSurface9 * atlasSurface = nullptr;
     atlas->GetSurfaceLevel( 0, &atlasSurface );
@@ -69,10 +72,10 @@ BitmapFont::BitmapFont( const char * file, int size ) {
         cm.offsetY = face->glyph->metrics.height >> 6;
         cm.advanceX = face->glyph->advance.x >> 6;
         cm.advanceY = face->glyph->advance.y >> 6;
-        cm.texCoords[0] = ruVector2( tcX		   , tcY		  );
-        cm.texCoords[1] = ruVector2( tcX + tcStep, tcY	      );
+        cm.texCoords[0] = ruVector2( tcX, tcY );
+        cm.texCoords[1] = ruVector2( tcX + tcStep, tcY );
         cm.texCoords[2] = ruVector2( tcX + tcStep, tcY + tcStep );
-        cm.texCoords[3] = ruVector2( tcX		   , tcY + tcStep );
+        cm.texCoords[3] = ruVector2( tcX, tcY + tcStep );
         cm.bitmapTop = face->glyph->bitmap_top;
         cm.bitmapLeft = face->glyph->bitmap_left;
         cm.bitmapWidth = bitmap->width;
@@ -82,8 +85,7 @@ BitmapFont::BitmapFont( const char * file, int size ) {
         for( int row = 0; row < bitmap->rows; row++ ) {
             for( int col = 0; col < bitmap->width; col++ ) {
                 ARGB8Pixel * pixel = subRectPixel + row * atlasWidth + col ;
-                char bitmapPixel = bitmap->buffer[ row * bitmap->width + col ];
-                pixel->a = bitmapPixel;
+                pixel->a = bitmap->buffer[ row * bitmap->width + col ];
                 pixel->r = 255;
                 pixel->g = 255;
                 pixel->b = 255;

@@ -143,14 +143,30 @@ void ParseFile( string fn, map<string,string> & values) {
     };
 }
 
-void CheckDXErrorFatal( HRESULT errCode ) {
-    /*
+void CheckDXErrorFatalFunc( HRESULT errCode, const char * file, int line ) {
+    
     if( FAILED( errCode )) {
-    	string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s", errCode, DXGetErrorString( errCode ), DXGetErrorDescription( errCode ) );
+    	string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s\nFile: %s\nLine: %d", 
+			errCode, 
+			DXGetErrorString( errCode ), 
+			DXGetErrorDescription( errCode ),
+			file, 
+			line );
     	LogMessage( message );
     	MessageBoxA( 0, message.c_str(), "Fatal error", MB_OK | MB_ICONERROR );
     	exit( -1 );
-    }*/
+    }
+}
+
+int NearestPow2( int number )
+{
+	int power = 1;
+	while( power < number ) {
+		power *= 2;
+		if( power * 2 > number )
+			break;
+	}
+	return power;
 }
 
 void CreateLogFile() {

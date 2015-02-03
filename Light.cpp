@@ -18,7 +18,7 @@ Light * Light::GetLightByHandle( ruNodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
     Light * light = dynamic_cast< Light* >( n );
     if( !light ) {
-        MessageBoxA( 0, Format( "Node '%s' is not a light!", n->name.c_str() ).c_str(), "Error", MB_OK );
+        MessageBoxA( 0, Format( "Node '%s' is not a light!", n->mName.c_str() ).c_str(), "Error", MB_OK );
         exit( -1 );
     }
     return light;
@@ -162,8 +162,8 @@ Light::BuildSpotProjectionMatrix
 */
 void Light::BuildSpotProjectionMatrixAndFrustum() {
     btVector3 bEye = btVector3( GetRealPosition().x, GetRealPosition().y, GetRealPosition().z );
-    btVector3 bLookAt = bEye + globalTransform.getBasis() * btVector3( 0, -1, 0 );
-    btVector3 bUp = globalTransform.getBasis() * btVector3( 1, 0, 0 );
+    btVector3 bLookAt = bEye + mGlobalTransform.getBasis() * btVector3( 0, -1, 0 );
+    btVector3 bUp = mGlobalTransform.getBasis() * btVector3( 1, 0, 0 );
 
     D3DXVECTOR3 dxEye( bEye.x(), bEye.y(), bEye.z() );
     D3DXVECTOR3 dxLookAt( bLookAt.x(), bLookAt.y(), bLookAt.z() );
@@ -204,8 +204,8 @@ void Light::RenderLightFlares() {
         if( !light->flareTexture ) {
             continue;
         }
-        btVector3 btOrigin = light->globalTransform.getOrigin();
-        float flareScale = (btOrigin - g_camera->globalTransform.getOrigin()).length();
+        btVector3 btOrigin = light->mGlobalTransform.getOrigin();
+        float flareScale = (btOrigin - g_camera->mGlobalTransform.getOrigin()).length();
         if( flareScale > 1.2f ) {
             flareScale = 1.2f;
         }
@@ -268,22 +268,10 @@ ruVector3 Light::GetRealPosition() {
 }
 
 // API Functions
-
-
-/*
-==========
-GetWorldSpotLightCount
-==========
-*/
 int ruGetWorldSpotLightCount() {
     return g_spotLightList.size();
 }
 
-/*
-==========
-GetWorldSpotLight
-==========
-*/
 ruNodeHandle ruGetWorldSpotLight( int n ) {
     ruNodeHandle handle;
     if( n >= g_spotLightList.size() || n < 0 ) {
@@ -294,20 +282,10 @@ ruNodeHandle ruGetWorldSpotLight( int n ) {
     }
 }
 
-/*
-==========
-GetWorldPointLightCount
-==========
-*/
 int ruGetWorldPointLightCount() {
     return g_pointLightList.size();
 }
 
-/*
-==========
-GetWorldPointLight
-==========
-*/
 ruNodeHandle ruGetWorldPointLight( int n ) {
     ruNodeHandle handle;
     if( n >= g_pointLightList.size() || n < 0 ) {
@@ -318,39 +296,19 @@ ruNodeHandle ruGetWorldPointLight( int n ) {
     }
 }
 
-/*
-==========
-SetLightFlare
-==========
-*/
 void ruSetLightFlare( ruNodeHandle node, ruTextureHandle flareTexture ) {
     Light::GetLightByHandle( node )->flareTexture = (Texture *)flareTexture.pointer;
 }
 
-/*
-==========
-SetLightDefaultFlare
-==========
-*/
 void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture ) {
     // FIX
 }
 
-/*
-==========
-ruIsLight
-==========
-*/
-RUAPI bool ruIsLight( ruNodeHandle node ) {
+bool ruIsLight( ruNodeHandle node ) {
     Light * pLight = dynamic_cast< Light* >( (SceneNode*)node.pointer );
     return pLight != nullptr;
 }
 
-/*
-==========
-SetSpotDefaultTexture
-==========
-*/
 void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
     Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
     for( auto spot : g_spotLightList ) {
@@ -360,11 +318,6 @@ void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
     }
 }
 
-/*
-==========
-SetPointDefaultTexture
-==========
-*/
 void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture ) {
     Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
     for( auto point : g_pointLightList ) {
@@ -374,39 +327,19 @@ void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture ) {
     }
 }
 
-/*
-==========
-SetPointTexture
-==========
-*/
 void ruSetLightPointTexture( ruNodeHandle node, ruCubeTextureHandle cubeTexture ) {
     Light::GetLightByHandle( node )->SetPointTexture( (CubeTexture*)cubeTexture.pointer );
 }
 
-/*
-==========
-CreateLight
-==========
-*/
 ruNodeHandle ruCreateLight( int type  ) {
     return SceneNode::HandleFromPointer( new Light( type ) );
 }
 
-/*
-==========
-SetConeAngles
-==========
-*/
-RUAPI void ruSetConeAngles( ruNodeHandle node, float innerAngle, float outerAngle ) {
+void ruSetConeAngles( ruNodeHandle node, float innerAngle, float outerAngle ) {
     Light::GetLightByHandle( node )->SetConeAngles( innerAngle, outerAngle );
 }
 
-/*
-==========
-SetLightRange
-==========
-*/
-RUAPI void ruSetLightRange( ruNodeHandle node, float rad ) {
+void ruSetLightRange( ruNodeHandle node, float rad ) {
     Light * l = Light::GetLightByHandle( node );
     if( l ) {
         for( int i = 0; i < ruGetNodeCountChildren( node ); i++ ) {
@@ -416,12 +349,7 @@ RUAPI void ruSetLightRange( ruNodeHandle node, float rad ) {
     }
 }
 
-/*
-==========
-SetLightFloatingLimits
-==========
-*/
-RUAPI void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVector3 floatMax ) {
+void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVector3 floatMax ) {
     Light * l = Light::GetLightByHandle( node );
     if( l ) {
         l->floatMax = floatMax;
@@ -429,30 +357,15 @@ RUAPI void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVe
     }
 }
 
-/*
-==========
-SetLightFloatingEnabled
-==========
-*/
-RUAPI void ruSetLightFloatingEnabled( ruNodeHandle node, bool state ) {
+void ruSetLightFloatingEnabled( ruNodeHandle node, bool state ) {
     Light::GetLightByHandle( node )->floating = state;
 }
 
-/*
-==========
-IsLightFloatingEnabled
-==========
-*/
 bool ruIsLightFloatingEnabled( ruNodeHandle node ) {
     return Light::GetLightByHandle( node )->floating;
 }
 
-/*
-==========
-SetLightColor
-==========
-*/
-RUAPI void ruSetLightColor( ruNodeHandle node, ruVector3 clr ) {
+void ruSetLightColor( ruNodeHandle node, ruVector3 clr ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
@@ -466,12 +379,7 @@ RUAPI void ruSetLightColor( ruNodeHandle node, ruVector3 clr ) {
     l->SetColor( clr );
 }
 
-/*
-==========
-GetLightRange
-==========
-*/
-RUAPI float ruGetLightRange( ruNodeHandle node ) {
+float ruGetLightRange( ruNodeHandle node ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
@@ -481,12 +389,7 @@ RUAPI float ruGetLightRange( ruNodeHandle node ) {
     return l->radius;
 }
 
-/*
-==========
-SetSpotTexture
-==========
-*/
-RUAPI void ruSetLightSpotTexture( ruNodeHandle node, ruTextureHandle texture ) {
+void ruSetLightSpotTexture( ruNodeHandle node, ruTextureHandle texture ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
@@ -496,12 +399,7 @@ RUAPI void ruSetLightSpotTexture( ruNodeHandle node, ruTextureHandle texture ) {
     l->SetSpotTexture( (Texture*)texture.pointer );
 }
 
-/*
-==========
-IsLightViewPoint
-==========
-*/
-RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point ) {
+bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point ) {
     Light * l = Light::GetLightByHandle( node );
 
     if( !l ) {
@@ -512,10 +410,10 @@ RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point ) {
         bool inFrustum = l->frustum.IsPointInside( point );
 
         if( inFrustum ) {
-            return ( ruVector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
+            return ( ruVector3( l->mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
         }
     } else {
-        return (ruVector3( l->globalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
+        return (ruVector3( l->mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
     }
     return false;
 }

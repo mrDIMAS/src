@@ -53,7 +53,6 @@ private:
     RadioButton * mpSpotShadowsButton;
     RadioButton * mpHDRButton;
     ScrollList * mpTextureFiltering;
-    ScrollList * mpGraphicsQuality;
 
     // Keys
     WaitKeyButton * mpMoveForwardKey;
