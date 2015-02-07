@@ -83,8 +83,9 @@ void TextRenderer::RenderText( GUIText* guiText ) {
 
     CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
     CheckDXErrorFatal( gpDevice->SetIndices( indexBuffer ));
-	if( totalLetters > 0 )
+	if( totalLetters > 0 ) {
 		CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
+	}
     g_dips++;
 }
 
@@ -125,7 +126,7 @@ void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & hei
 TextRenderer::TextRenderer() {
     maxChars = 8192;
     int vBufLen = maxChars * sizeof( TextQuad );
-    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC, D3DFVF_TEX1 | D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
+	CheckDXErrorFatal( gpDevice->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
     int iBufLen = maxChars * sizeof( Face );
     CheckDXErrorFatal( gpDevice->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
 }

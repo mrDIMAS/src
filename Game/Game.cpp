@@ -68,7 +68,7 @@ void main( ) {
                 gameClock += fixedTick;              
 				g_dt = fixedTick;
 
-				if( !pMainMenu->IsVisible() ) {
+				if( !pMainMenu->IsVisible() )  {
 					ruUpdatePhysics( fixedTick, 1, fixedTick );
 				}
 

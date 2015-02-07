@@ -105,3 +105,10 @@ BitmapFont::BitmapFont( const char * file, int size ) {
     BitmapFont::fonts.push_back( this );
     CheckDXErrorFatal( atlasSurface->UnlockRect());
 }
+
+BitmapFont::~BitmapFont()
+{
+	if( atlas ) {
+		atlas->Release();
+	}
+}

@@ -324,7 +324,8 @@ SceneNode * SceneNode::LoadScene( const char * file ) {
             }
 
             mesh->mDiffuseTexture = Texture::Require( g_texturePath + diffuse );
-            mesh->mNormalTexture = Texture::Require( g_texturePath + normal );
+			if( mesh->mOpacity > 0.95f )
+				mesh->mNormalTexture = Texture::Require( g_texturePath + normal );
 
             node->mMeshList.push_back( mesh );
 

@@ -34,11 +34,7 @@ public:
     static vector< BitmapFont* > fonts;
     vector< CharMetrics > charsMetrics;
     explicit BitmapFont( const char * file, int size );
-    virtual ~BitmapFont( ) {
-        if( atlas ) {
-            atlas->Release();
-        }
-    }
+    virtual ~BitmapFont( );
     void RenderAtlas( EffectsQuad * quad );
     void RenderText( string text, int x, int y );
 };
