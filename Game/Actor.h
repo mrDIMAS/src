@@ -10,6 +10,8 @@ protected:
 	float mSpringLength;
 	bool mCrouch;
 	float mCrouchMultiplier;
+	float mHealth;
+	float mMaxHealth;
 public:
     explicit Actor( float height, float width );
     virtual ~Actor();
@@ -26,5 +28,8 @@ public:
 	bool IsCrouch();
     bool IsVisibleFromPoint( ruVector3 begin );
 	void SetBodyVisible( bool state );
+	virtual void Damage( float dmg );
+	virtual void Heal( float howMuch );
     ruVector3 GetLookDirection();
+	void ManageEnvironmentDamaging();
 };

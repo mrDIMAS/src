@@ -6,9 +6,9 @@
 Inventory::Inventory() {
     mLocalization.ParseFile( localizationPath + "inventory.loc" );
 
-    mBackgroundTexture = ruGetTexture( "data/gui/inventory/background.png");
-    mCellTexture = ruGetTexture( "data/gui/inventory/cell.png" );
-    mButtonTexture = ruGetTexture( "data/gui/inventory/button.png" );
+    mBackgroundTexture = ruGetTexture( "data/gui/inventory/inventoryBackground.png");
+    mCellTexture = ruGetTexture( "data/gui/inventory/inventoryCell.png" );
+    mButtonTexture = ruGetTexture( "data/gui/inventory/inventoryButton.png" );
 
     mOpened = 0;
     mpSelected = 0;

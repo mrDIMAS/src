@@ -26,7 +26,7 @@ void LevelIntroduction::DoScenario() {
 
     mTextAlpha += ( mTextAlphaTo - mTextAlpha ) * 0.025f;
 
-    if( ruGetElapsedTimeInSeconds( mTextTimer ) >= 22 || ruIsKeyHit( KEY_Space ) ) {
+    if( ruIsKeyHit( KEY_Space ) ) {
         mShowIntro = false;
     }
 
@@ -53,7 +53,6 @@ LevelIntroduction::LevelIntroduction() {
     CreateBlankScene();
     mTextAlpha = 0.0f;
     mTextAlphaTo = 255.0f;
-    mTextTimer = ruCreateTimer( );
     mShowIntro = true;
     mTypeNum = 1;
     LoadLocalization( "intro.loc" );

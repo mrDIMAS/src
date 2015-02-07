@@ -5,8 +5,6 @@
 #include "Sheet.h"
 #include "Door.h"
 #include "Ladder.h"
-#include "CrawlWay.h"
-#include "ScreenScreamer.h"
 #include "ItemPlace.h"
 #include "Valve.h"
 #include "Lift.h"
@@ -21,7 +19,6 @@ private:
     vector<Item*> mItemList;
     vector<Sheet*> mSheetList;
     vector<Door*> mDoorList;
-    vector<CrawlWay*> mCrawlWayList;
     vector<Ladder*> mLadderList;
     vector<ItemPlace*> mItemPlaceList;
     vector<Valve*> mValveList;
@@ -42,7 +39,6 @@ public:
     void AddItemPlace( ItemPlace * ipc );
     void AddSheet( Sheet * sheet );
     void AddDoor( Door * door );
-    void AddCrawlWay( CrawlWay * cw );
     void AddLadder( Ladder * ladder );
     void AddValve( Valve * valve );
     void AddLift( Lift * lift );

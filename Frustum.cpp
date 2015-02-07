@@ -1,8 +1,8 @@
 #include "Frustum.h"
 
 bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset ) {
-	const ruVector3 & aabbCenter = aabbOffset + (aabb.mMax + aabb.mMin) / 2;
-	const ruVector3 & aabbSize = ( aabb.mMax - aabb.mMin ) / 2;
+	const ruVector3 & aabbCenter = aabbOffset + (aabb.mFrustumMax + aabb.mFrustumMin) / 2;
+	const ruVector3 & aabbSize = ( aabb.mFrustumMax - aabb.mFrustumMin ) / 2;
 	for( unsigned int iPlane = 0; iPlane < 6; iPlane++ ) {
 		const D3DXPLANE & frustumPlane = planes[iPlane];
 		float d = aabbCenter.x * frustumPlane.a + aabbCenter.y * frustumPlane.b + aabbCenter.z * frustumPlane.c;

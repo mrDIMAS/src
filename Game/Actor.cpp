@@ -15,7 +15,7 @@ void Actor::Step( ruVector3 direction, float speed )
 	ruVector3 pushpullVelocity;
 	if( rayResult.IsValid() && !(rayResult == mBody) ) {
 		if( ruGetContactCount( rayResult ) > 0 ) {
-			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 6;
+			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4.4f;
 		}		
 	}
 	ruMoveNode( mBody, direction * speed + pushpullVelocity );
@@ -35,6 +35,9 @@ Actor::Actor( float height, float width ) :	mBodyHeight( height ),
     ruSetNodeDamping( mBody, 0, 0 );
     ruSetNodeMass( mBody, 2 );
     ruSetNodeGravity( mBody, ruVector3( 0, 0, 0 ));
+
+	mMaxHealth = 100;
+	mHealth = mMaxHealth;
 }
 
 void Actor::SetPosition( ruVector3 position ) {
@@ -83,9 +86,7 @@ bool Actor::IsVisibleFromPoint( ruVector3 begin ) {
 
 void Actor::Crouch( bool state ) {
 	mCrouch = state;
-}
 
-void Actor::UpdateCrouch() {
 	// stand up only if we can
 	ruVector3 pickPoint;
 	ruVector3 rayBegin = ruGetNodePosition(mBody) + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
@@ -96,7 +97,9 @@ void Actor::UpdateCrouch() {
 			mCrouch = true;
 		}
 	}
+}
 
+void Actor::UpdateCrouch() {
 	if( mCrouch ) {	
 		mCrouchMultiplier -= 0.025f;	
 		if( mCrouchMultiplier < 0.5f ) {
@@ -114,4 +117,27 @@ void Actor::UpdateCrouch() {
 
 bool Actor::IsCrouch() {
 	return mCrouch;
+}
+
+void Actor::Damage( float dmg ) {
+	mHealth -= fabsf( dmg );
+	if( mHealth < 0.0f ) {
+		mHealth = 0.0f;
+	}
+}
+
+void Actor::Heal( float howMuch ) {
+	mHealth += fabsf( howMuch );
+	if( mHealth > mMaxHealth ) {
+		mHealth = mMaxHealth;
+	}
+}
+
+void Actor::ManageEnvironmentDamaging() {
+	for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
+		ruContact contact = ruGetContact( mBody, i );
+		if( contact.impulse > 2.5f ) {
+			//Damage( contact.impulse / 5 );
+		}
+	}
 }

@@ -40,10 +40,6 @@ Level::~Level() {
         delete pDoor;
     }
 
-    for( auto pCrawlWay : mCrawlWayList ) {
-        delete pCrawlWay;
-    }
-
     for( auto pLadder : mLadderList ) {
         delete pLadder;
     }
@@ -156,10 +152,6 @@ void Level::AddValve( Valve * pValve ) {
 
 void Level::AddLadder( Ladder * pLadder ) {
     mLadderList.push_back( pLadder );
-}
-
-void Level::AddCrawlWay( CrawlWay * pCrawlWay ) {
-    mCrawlWayList.push_back( pCrawlWay );
 }
 
 void Level::AddDoor( Door * pDoor ) {

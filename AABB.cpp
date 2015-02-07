@@ -62,6 +62,6 @@ AABB::AABB( const vector< Vertex > & vertices ) {
 
 	// make cube from aabb
 	ruVector3 halfSize( maxSize / 2, maxSize / 2, maxSize / 2 );
-	mMin = mCenter - halfSize;
-	mMax = mCenter + halfSize;
+	mFrustumMin = mCenter - halfSize;
+	mFrustumMax = mCenter + halfSize;
 }

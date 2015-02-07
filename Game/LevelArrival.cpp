@@ -35,7 +35,6 @@ LevelArrival::LevelArrival( ) {
     //////////////////////////////////////////////////////////////////////////
     // Player noticements
     pPlayer->SetObjective( mLocalization.GetString( "objective1" ));
-    pPlayer->SetPlaceDescription( mLocalization.GetString( "placeDesc" ));
 
     pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject("PlayerPosition")) + ruVector3( 0, 1, 0 ));
 
