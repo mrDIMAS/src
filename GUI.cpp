@@ -71,12 +71,6 @@ ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle te
     return button;
 }
 
-ruLineHandle ruCreateGUILine( ruLinePoint begin, ruLinePoint end ) {
-    ruLineHandle line;
-    line.pointer = new ruGUILine( begin, end );
-    return line;
-}
-
 void ruSetGUINodePosition( ruGUINodeHandle node, float x, float y ) {
     ((GUINode*)node.pointer)->SetPosition( x, y );
 }

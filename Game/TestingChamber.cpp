@@ -1,10 +1,8 @@
 #include "TestingChamber.h"
 #include "Player.h"
 #include "Item.h"
-#include "CrawlWay.h"
 #include "Ladder.h"
 #include "Door.h"
-#include "FollowPath.h"
 
 TestingChamber::TestingChamber( ) {
     LoadSceneFromFile( "data/maps/candidates/testingChamber/testingChamber.scene" );
@@ -17,13 +15,6 @@ TestingChamber::TestingChamber( ) {
 
     Ladder * testLadder = new Ladder( GetUniqueObject( "LadderBegin"), GetUniqueObject( "LadderEnd"), GetUniqueObject( "LadderEnter"),
                                       GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint"));
-
-    FollowPath * pFollowPath = new FollowPath;
-    pFollowPath->SetEntryNode(GetUniqueObject( "LadderEnter"));
-    pFollowPath->AddPoint(GetUniqueObject( "LadderBeginLeavePoint"));
-    pFollowPath->AddPoint(GetUniqueObject( "LadderBegin"));
-    pFollowPath->AddPoint(GetUniqueObject( "LadderEnd"));
-    pFollowPath->AddPoint(GetUniqueObject( "LadderEndLeavePoint"));
 
     Door * door = new Door( GetUniqueObject( "Door" ), 90 );
 

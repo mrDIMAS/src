@@ -1,10 +1,20 @@
 #include "Texture.h"
 #include "Utility.h"
+#include <sys/stat.h>
 
 unordered_map< string, Texture* > Texture::msTextureList;
 
+bool DirExists(const std::string& dirName_in)
+{
+	return GetFileAttributesA(dirName_in.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
+}
+
 string g_texturePath = "data/textures/generic/";
 Texture * Texture::Require( string file ) {
+	if( !DirExists( "./cache/" )) {
+		LogError( "You must rebuild texture cache!" );
+	}
+
     Texture * pTexture = 0;
 
     auto existing = msTextureList.find( file );
@@ -16,7 +26,7 @@ Texture * Texture::Require( string file ) {
         pTexture->texture = 0;
         pTexture->name = file;
 
-        D3DXIMAGE_INFO imgInfo;
+		D3DXIMAGE_INFO imgInfo;
 
         int slashPos = file.find_last_of( '/' );
         int dotPos = file.find_last_of( '.' );
@@ -24,25 +34,16 @@ Texture * Texture::Require( string file ) {
         string name = file.substr( slashPos + 1, dotPos - slashPos - 1 );
 
         // cache lookup
-        string cacheFileName = g_texturePath + "cache/__cache" + name + ".dds";
+        string cacheFileName = "./cache/" + name + ".dds";
         FILE * pFile = fopen( cacheFileName.c_str(), "r" );
-		bool loadFromCache = false;
-		if( pFile ) {
-			fclose( pFile );
-			D3DXIMAGE_INFO cacheInfo, noncachedInfo;
-			D3DXGetImageInfoFromFileA( cacheFileName.c_str(), &cacheInfo );
-			D3DXGetImageInfoFromFileA( file.c_str(), &noncachedInfo );
-			if( (cacheInfo.Width == noncachedInfo.Width) && (cacheInfo.Height == noncachedInfo.Height) ) {
-				loadFromCache = true;
-			}				
-		}
-        if( loadFromCache ) { // got cached DXT5 texture            
+		if(pFile) {       
+			fclose(pFile);
             if( FAILED( D3DXCreateTextureFromFileExA( gpDevice, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture ))) {
-                LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
+                LogError( Format( "Unable to load '%s' texture!", file.c_str() ));
             }
         } else {
             if( FAILED( D3DXCreateTextureFromFileExA( gpDevice, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->texture ))) {
-                LogMessage( Format( "Unable to load '%s' texture!", file.c_str() ));
+                LogError( Format( "Unable to load '%s' texture!", file.c_str() ));
             }
         }
         pTexture->width = imgInfo.Width;

@@ -1,6 +1,7 @@
 #include "Pathfinder.h"
 
 void Pathfinder::BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints ) {
+	// this is modified Dijkstra path-finding algorithm
     assert( begin != nullptr );
     assert( end != nullptr );
     assert( mGraph.size() != 0 );

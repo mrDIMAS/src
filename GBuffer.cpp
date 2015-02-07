@@ -8,11 +8,7 @@ GBuffer::GBuffer() {
 		height = NearestPow2( g_height );
 	}
 
-#ifdef USE_R32F_DEPTH
     CheckDXErrorFatal( D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap ));
-#else
-    CheckDXErrorFatal( D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &depthMap )));
-#endif
     CheckDXErrorFatal(  D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap ));
     CheckDXErrorFatal(  D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap ));
     CheckDXErrorFatal( depthMap->GetSurfaceLevel( 0, &depthSurface ));

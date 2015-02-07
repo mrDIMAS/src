@@ -6,16 +6,6 @@
 #include "GUIText.h"
 #include "GUIButton.h"
 
-
-class ruGUILine : public GUINode {
-public:
-    ruLinePoint begin;
-    ruLinePoint end;
-    explicit ruGUILine( const ruLinePoint & theBegin, const ruLinePoint & theEnd );
-    explicit ruGUILine( );
-};
-
-
 class TextVertex {
 public:
     ruVector3 p;
@@ -40,17 +30,12 @@ public:
 class GUIRenderer {
 private:
     IDirect3DVertexBuffer9 * vertexBuffer;
-    IDirect3DVertexBuffer9 * lineVertexBuffer;
-    IDirect3DVertexDeclaration9 * lineDecl;
     IDirect3DVertexDeclaration9 * vertDecl;
-    int maxLineCount;
     int sizeOfRectBytes;
     D3DXMATRIX orthoMatrix;
     void RenderRect( GUIRect * r );
-    void RenderLines();
     VertexShader * vertexShader;
     PixelShader * pixelShader;
-    D3DXHANDLE vProj;
 public:
     GUIRenderer();
     ~GUIRenderer();

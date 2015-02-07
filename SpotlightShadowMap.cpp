@@ -67,33 +67,8 @@ SpotlightShadowMap::SpotlightShadowMap( float size ) {
     // get surfaces
     CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
 
-    // create shader to render shadowmaps
-    string vertexShaderSource =
-        "float4x4 wvp : register( c0 );\n"
-
-        "struct VSOutput {\n"
-        "   float4 position : POSITION;\n"
-        "   float4 screenPosition : TEXCOORD0;\n"
-        "   float2 texCoord : TEXCOORD1;\n"
-        "};\n"
-
-        "VSOutput main( float4 position : POSITION, float2 texCoord : TEXCOORD0 ) {\n"
-        "   VSOutput output = (VSOutput)0;\n"
-        "   output.position = mul( position, wvp );\n"
-        "   output.screenPosition = output.position;\n"
-        "   output.texCoord = texCoord;\n"
-        "   return output;\n"
-        "};\n";
-    vertexShader = new VertexShader( vertexShaderSource );
-
-    string pixelShaderSource =
-        "sampler diffuseSampler : register( s0 );\n"
-        "float4 main( float4 screenPosition : TEXCOORD0, float2 texCoord : TEXCOORD1 ) : COLOR0 {\n"
-        "   clip( tex2D( diffuseSampler, texCoord ).a - 0.1 );\n"
-        "   return float4( screenPosition.z / screenPosition.w, 0.0f, 0.0f, 1.0f );\n"
-        "};\n";
-
-    pixelShader = new PixelShader( pixelShaderSource );
+    vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso", true );
+    pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso", true );
 
     CheckDXErrorFatal( gpDevice->GetDepthStencilSurface( &defaultDepthStencil ));
     CheckDXErrorFatal( gpDevice->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));

@@ -14,7 +14,6 @@
 #include "SmoothFloat.h"
 #include "Tip.h"
 #include "Actor.h"
-#include "FollowPath.h"
 
 class Player : public Actor {
 public:
@@ -28,7 +27,6 @@ public:
     void UpdateFlashLight();
     void UpdatePicking();
     void UpdateItemsHandling();
-    void UpdateEnvironmentDamaging();
     void UpdateCursor();
     void DrawSheetInHands();
     void CloseCurrentSheet();
@@ -65,12 +63,10 @@ public:
     SmoothFloat mHeartBeatPitch;
     SmoothFloat mBreathPitch;
     SmoothFloat mFov;
-    SmoothFloat mStealthOffset;
     SmoothFloat mHeadAngle;
 
     float mStamina;
-    float mLife;
-    float mMaxLife;
+
     float mMaxStamina;
     float mRunSpeedMult;
     float mHeadHeight;
@@ -107,7 +103,6 @@ public:
 
     Inventory mInventory;
 
-    int mPlaceDescTimer;
     int mKeyMoveForward;
     int mKeyMoveBackward;
     int mKeyStrafeLeft;
@@ -121,8 +116,6 @@ public:
     int mKeyLookLeft;
     int mKeyLookRight;
 
-    string mPlaceDesc;
-
     Goal mGoal;
 
     Tip mTip;
@@ -130,7 +123,6 @@ public:
     Sheet * mpSheetInHands;
 
     Flashlight * mpFlashlight;
-    FollowPath * mpFollowPath;
 
     ruTextHandle mGUIActionText;
 
@@ -145,7 +137,7 @@ public:
     void FreeHands();
     bool IsCanJump( );
     bool UseStamina( float st );
-    void Damage( float dmg );
+    virtual void Damage( float dmg );
     void AddItem( Item * itm );
     void UpdateInventory();
     void Update( );
@@ -154,7 +146,6 @@ public:
     void DrawStatusBar();
     void SetObjective( string text );
     void CompleteObjective();
-    void SetPlaceDescription( string desc );
     void SetFootsteps( FootstepsType ft );
     void ChargeFlashLight( );
     bool IsUseButtonHit();
