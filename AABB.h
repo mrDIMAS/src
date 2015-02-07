@@ -5,8 +5,6 @@
 
 class AABB {
 public:
-	ruVector3 mFrustumMax;
-	ruVector3 mFrustumMin;
     ruVector3 mMin;
     ruVector3 mMax;
     ruVector3 mCenter;

@@ -107,7 +107,15 @@ static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaterni
 
 #define BODY_MAX_CONTACTS ( 4 )
 
+struct ruContact {
+    ruVector3 normal;
+    ruVector3 position;
+    float impulse;
 
+    ruContact() {
+        impulse = 0;
+    }
+};
 
 class ruGUIState {
 public:
@@ -170,17 +178,6 @@ public:
 class RUAPI ruNodeHandle : public ruRutheniumHandle {
 public:
     bool operator == ( const ruNodeHandle & node );
-};
-
-struct ruContact {
-	ruVector3 normal;
-	ruVector3 position;
-	float impulse;
-	ruNodeHandle body;
-
-	ruContact() {
-		impulse = 0;
-	}
 };
 
 class RUAPI ruFontHandle : public ruRutheniumHandle {
@@ -343,13 +340,6 @@ RUAPI bool ruIsLight( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////
-enum class BodyType {
-	None,
-	Sphere,
-	Box,
-	Trimesh,
-	Convex
-};
 RUAPI void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep );
 RUAPI int ruGetContactCount( ruNodeHandle node );
 RUAPI ruContact ruGetContact( ruNodeHandle node, int num );
@@ -372,7 +362,6 @@ RUAPI ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint = 0 );
 RUAPI ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
 RUAPI ruVector3 ruGetNodeEulerAngles( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node );
-RUAPI BodyType ruGetNodeBodyType( ruNodeHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions
@@ -479,6 +468,7 @@ RUAPI int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth );
 RUAPI ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
 RUAPI ruTextHandle ruCreateGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
 RUAPI ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+RUAPI ruLineHandle ruCreateGUILine( ruLinePoint begin, ruLinePoint end );
 RUAPI void ruSetGUINodeText( ruTextHandle node, const char * text );
 RUAPI void ruSetGUINodePosition( ruGUINodeHandle node, float x, float y );
 RUAPI void ruSetGUINodeSize( ruGUINodeHandle node, float w, float h );

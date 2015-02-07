@@ -4,6 +4,7 @@
 #include "GUI.h"
 #include "Level.h"
 #include "LightAnimator.h"
+#include "ScreenScreamer.h"
 #include "FPSCounter.h"
 #include "SaveWriter.h"
 #include "SaveLoader.h"
@@ -46,6 +47,7 @@ void main( ) {
 	
     pGUI = new GUI;
     pMainMenu = new Menu;
+    screamer = new ScreenScreamer;
     ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     FPSCounter fpsCounter;
 
@@ -68,9 +70,7 @@ void main( ) {
                 gameClock += fixedTick;              
 				g_dt = fixedTick;
 
-				if( !pMainMenu->IsVisible() ) {
-					ruUpdatePhysics( fixedTick, 1, fixedTick );
-				}
+				ruUpdatePhysics( fixedTick, 1, fixedTick );
 
                 ruInputUpdate();
 
@@ -95,6 +95,9 @@ void main( ) {
                         pCurrentLevel->DoScenario();
                     }
                     InteractiveObject::UpdateAll();
+                    screamer->Update();
+                } else {
+					screamer->SetVisible( false );
 				}
                 ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps ).c_str());
                 ruSetGUINodeVisible( fpsText, g_showFPS );
@@ -113,6 +116,7 @@ void main( ) {
     if( pPlayer ) {
         delete pPlayer;
     }
+    delete screamer;
     delete pMainMenu;
     delete pGUI;
     ruFreeRenderer();

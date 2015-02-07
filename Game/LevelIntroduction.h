@@ -8,6 +8,7 @@ private:
     float mTextAlpha;
     float mTextAlphaTo;
     bool mShowIntro;
+    ruTimerHandle mTextTimer;
     ruTextHandle mGUIText;
     ruTextHandle mGUISkipText;
 	ruRectHandle mGUIBackground;

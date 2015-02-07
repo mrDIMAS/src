@@ -1,5 +1,7 @@
 #include "LevelMine.h"
 #include "Player.h"
+#include "ScreenScreamer.h"
+#include "CrawlWay.h"
 #include "Pathfinder.h"
 #include "Utils.h"
 
@@ -47,6 +49,8 @@ LevelMine::LevelMine() {
     mDetonatorActivated = 0;
 
     mExplosionFlashAnimator = 0;
+
+    pPlayer->SetPlaceDescription( mLocalization.GetString( "placeDesc" ) );
 
     // Create detonator places
     AddItemPlace( mDetonatorPlace[0] = new ItemPlace( GetUniqueObject( "DetonatorPlace1" ), Item::Type::Explosives ));
@@ -106,6 +110,8 @@ LevelMine::LevelMine() {
 
     pPlayer->SetFootsteps( FootstepsType::Rock );
 
+    AddCrawlWay( new CrawlWay( GetUniqueObject( "CrawlBegin" ), GetUniqueObject( "CrawlEnd" ), GetUniqueObject( "CrawlEnter" ),
+                               GetUniqueObject( "CrawlBeginLeavePoint"), GetUniqueObject( "CrawlEndLeavePoint")));
     AddLadder( new Ladder( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
                            GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
     AddDoor( new Door( GetUniqueObject( "Door1" ), 90 ));
@@ -192,6 +198,8 @@ LevelMine::~LevelMine() {
 
 void LevelMine::Show() {
     Level::Show();
+
+    ruPlaySound( mMusic );
 }
 
 void LevelMine::Hide() {
@@ -205,8 +213,6 @@ void LevelMine::DoScenario() {
         return;
     }
 
-	ruPlaySound( mMusic );
-
     mEnemy->Think();
 
     ruSetAmbientColor( ruVector3( 0.08, 0.08, 0.08 ));
@@ -218,6 +224,22 @@ void LevelMine::DoScenario() {
             ruUnfreeze( ruFindByName( "StoneFall" ) );
 
             mStages[ "EnterRockFallZoneWallExp" ] = true;
+        }
+    }
+
+    if( !mStages[ "EnterScreamerDone" ] ) {
+        if( pPlayer->IsInsideZone( mScreamerZone )) {
+            screamer->DoPeriods( 1 );
+
+            mStages[ "EnterScreamerDone" ] = true;
+        }
+    }
+
+    if( !mStages[ "EnterScreamer2Done" ] ) {
+        if( pPlayer->IsInsideZone( mScreamerZone2 )) {
+            screamer->DoPeriods( 2 );
+
+            mStages[ "EnterScreamer2Done" ] = true;
         }
     }
 

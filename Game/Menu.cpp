@@ -130,8 +130,6 @@ void Menu::Hide( ) {
     ruHideCursor();
     ruPauseSound( mMusic );
     SetAllVisible( false );
-	SetSaveSlotsVisible( false );
-	SetLoadSlotsVisible( false );
 }
 
 void Menu::Update( ) {
@@ -162,6 +160,7 @@ void Menu::Update( ) {
                 }
                 if( !pCurrentLevel && mStartPressed ) {
                     Level::Change( g_initialLevel );
+					//Level::Change( LXTestingChamber );
                 }
                 mStartPressed = false;
                 mContinuePressed = false;
@@ -404,7 +403,7 @@ void Menu::SetPage( Page page ) {
 }
 
 void Menu::LoadTextures() {
-    mButtonImage = ruGetTexture( "data/gui/menubutton.png" );
+    mButtonImage = ruGetTexture( "data/gui/button.png" );
     mSmallButtonImage = ruGetTexture( "data/gui/smallbutton.png" );
 }
 

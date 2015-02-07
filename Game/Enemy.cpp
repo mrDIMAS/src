@@ -4,9 +4,6 @@
 
 void Enemy::Think() {
     if( pMainMenu->IsVisible() ) {
-		ruPauseSound( mScreamSound );
-		ruPauseSound( mBreathSound );
-		ruPauseSound( mHitFleshWithAxeSound );
         return;
     }
 
@@ -183,7 +180,7 @@ void Enemy::Think() {
     mRunAnimation.Update();
 }
 
-Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Actor( 0.5f, 0.25f ) {
+Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Actor( 1.0f, 0.25f ) {
     mPathfinder.SetVertices( path );
     mPatrolPointList = patrol;
     mCurrentPatrolPoint = 0;
@@ -193,7 +190,7 @@ Enemy::Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex
 
     mModel = ruLoadScene( file );
     ruAttachNode( mModel, mBody );
-    ruSetNodePosition( mModel, ruVector3( 0, -0.7f, 0 ));
+    ruSetNodePosition( mModel, ruVector3( 0, -0.8f, 0 ));
 
     FindBodyparts();
 

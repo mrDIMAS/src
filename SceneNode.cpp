@@ -565,23 +565,16 @@ void SceneNode::UpdateContacts() {
                 nodeA->mContactList[ j ].impulse = pt.m_appliedImpulse;
                 nodeB->mContactList[ j ].impulse = pt.m_appliedImpulse;
 
-				ruNodeHandle handleA; handleA.pointer = nodeA;
-				ruNodeHandle handleB; handleB.pointer = nodeB;
-
-				nodeA->mContactList[ j ].body = handleB;
-				nodeB->mContactList[ j ].body = handleA;
-
                 if( pt.m_appliedImpulse > 10.0f ) {
-                    if( !nodeA->mFrozen ) {
+                    if( !nodeA->mFrozen )
                         if( nodeA->mHitSound.pfHandle ) {
                             pfPlaySound( nodeA->mHitSound.pfHandle );
                         }
-					}
-                    if( !nodeB->mFrozen ) {
+                    if( !nodeB->mFrozen )
                         if( nodeB->mHitSound.pfHandle ) {
                             pfPlaySound( nodeB->mHitSound.pfHandle );
                         }
-					}
+
                     float vol = pt.m_appliedImpulse / 20.0f;
 
                     if( vol > 1.0f ) {
@@ -835,8 +828,11 @@ void SceneNode::Move( ruVector3 speed ) {
     if( mBody ) {
 		mBody->activate( true );
         mBody->setLinearVelocity(  btVector3( speed.x, speed.y, speed.z ) );
-    };
-	mLocalTransform.setOrigin( mLocalTransform.getOrigin() + btVector3( speed.x, speed.y, speed.z ) );
+    } else {
+		 mLocalTransform.setOrigin( mLocalTransform.getOrigin() + btVector3( speed.x, speed.y, speed.z ) );
+		 CalculateGlobalTransform();
+	}	
+	
 }
 
 void SceneNode::SetVelocity( ruVector3 velocity ) {
@@ -847,11 +843,11 @@ void SceneNode::SetVelocity( ruVector3 velocity ) {
 }
 
 void SceneNode::SetPosition( ruVector3 position ) {
-	mLocalTransform.setOrigin( btVector3( position.x, position.y, position.z ) );
     if( mBody ) {
-		mBody->activate(true);
         mBody->getWorldTransform().setOrigin( btVector3( position.x, position.y, position.z ) );
-    };
+    } else {
+		mLocalTransform.setOrigin( btVector3( position.x, position.y, position.z ) );
+	}
 	CalculateGlobalTransform();
 }
 
@@ -869,7 +865,6 @@ bool SceneNode::IsFrozen() {
 
 void SceneNode::SetRotation( ruQuaternion rotation ) {
     if( mBody ) {
-		mBody->activate( true );
         mBody->getWorldTransform().getBasis().setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ) );
     }
 	mLocalTransform.setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ));
@@ -1013,37 +1008,6 @@ void SceneNode::SetAnimation( ruAnimation * newAnim, bool dontAffectChilds ) {
             child->SetAnimation( newAnim, false );
         }
     }
-}
-
-BodyType SceneNode::GetBodyType()
-{
-	BodyType bodyType = BodyType::None;
-	if( mBody ) {
-		btCollisionShape * shape = mBody->getCollisionShape();
-		if( dynamic_cast<btSphereShape*>( shape )) {
-			bodyType = BodyType::Sphere;
-		}
-		if( dynamic_cast<btBvhTriangleMeshShape*>( shape )) {
-			bodyType = BodyType::Trimesh;
-		}
-		if( dynamic_cast<btConvexHullShape*>( shape )) {
-			bodyType = BodyType::Convex;
-		}
-		if( dynamic_cast<btBoxShape*>( shape )) {
-			bodyType = BodyType::Box;
-		}
-	}
-	return bodyType;
-}
-
-ruVector3 SceneNode::GetTotalForce()
-{
-	return ruVector3(mBody->getTotalForce().x(), mBody->getTotalForce().y(), mBody->getTotalForce().z());
-}
-
-ruAnimation * SceneNode::GetCurrentAnimation()
-{
-	return mCurrentAnimation;
 }
 
 ////////////////////////////////////////////////////
@@ -1317,10 +1281,6 @@ void ruSetNodeLocalPosition( ruNodeHandle node, ruVector3 pos ) {
         s->mBody->getWorldTransform().setOrigin( btVector3( pos.x, pos.y, pos.z ) );
     }
     SceneNode::CastHandle( node )->CalculateGlobalTransform( );
-}
-
-BodyType ruGetNodeBodyType( ruNodeHandle node ) {
-	return SceneNode::CastHandle( node )->GetBodyType();	
 }
 
 void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot ) {

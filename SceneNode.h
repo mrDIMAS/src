@@ -7,28 +7,41 @@ class Mesh;
 class SceneNode {
 public:
     friend class DeferredRenderer;
+
     SceneNode * mParent;
     SceneNode * mScene;
+
     vector<SceneNode*> mChildList;
     vector<Mesh*> mMeshList;
     vector<ruSoundHandle> mSoundList;
-	vector<btTransform*> mKeyframeList;
+    vector<btTransform*> mKeyframeList;
+
     map<string,string> mProperties;
+
     btTransform mInvBoneBindTransform;
+
     btRigidBody * mBody;
+
     string mName;
+
     btTriangleMesh * trimesh;
+
     ruSoundHandle mHitSound;
     ruSoundHandle mIdleSound;
+
     float mAlbedo;
     float mDepthHack;
+
     ruAnimation * mCurrentAnimation;
+
     bool mAnimationEnabled;
     bool mSkinned;
     bool mInFrustum;
     bool mFrozen;
     bool mVisible;
+
     ruContact mContactList[ BODY_MAX_CONTACTS ];
+
     int mContactCount;
     int mTotalFrameCount;
 public:
@@ -43,7 +56,9 @@ public:
     virtual ~SceneNode();
 
     void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
-    ruAnimation * GetCurrentAnimation( );
+    ruAnimation * GetCurrentAnimation( ) {
+        return mCurrentAnimation;
+    }
 
     void EraseChild( const SceneNode * child );
     void SetConvexBody( );
@@ -62,8 +77,9 @@ public:
     void PerformAnimation( );
     void Freeze( );
     void Unfreeze();
-	ruVector3 GetTotalForce();;
-	BodyType GetBodyType();
+	ruVector3 GetTotalForce() {
+		return ruVector3(mBody->getTotalForce().x(), mBody->getTotalForce().y(), mBody->getTotalForce().z());
+	};
     void SetAnimationEnabled( bool state, bool dontAffectChilds = false );
     void Hide( );
     void Show( );

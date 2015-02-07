@@ -25,10 +25,13 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
     mObjectThrown = false;
     mSmoothCamera = true;
 
-
+    // Life vars
+    mMaxLife = 100;
+    mLife = mMaxLife;
 
     mPitch = SmoothFloat( 0.0f, -89.9f, 89.9f );
     mYaw = SmoothFloat( 0.0f );
+    mStealthOffset = SmoothFloat( 0.0f, -0.45f, 0.0f );
     mHeadAngle = SmoothFloat( 0.0f, -12.50f, 12.50f );
     // State vars
     mDead = false;
@@ -64,8 +67,11 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
     mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
     mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
 
+    mpFollowPath = nullptr;
     mpCurrentWay = nullptr;
-	
+
+   
+
     LoadGUIElements();
     CreateCamera();
     CreateFlashLight();
@@ -87,6 +93,15 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
     }
 }
 
+/*
+========
+Player::SetPlaceDescription
+========
+*/
+void Player::SetPlaceDescription( string desc ) {
+    mPlaceDesc = desc;
+    mPlaceDescTimer = 240;
+}
 
 /*
 ========
@@ -115,7 +130,7 @@ void Player::DrawStatusBar() {
             ruSetGUINodeVisible( mGUIStaminaBarSegment[i], false );
         }
     }
-    segCount = mHealth / 5;
+    segCount = mLife / 5;
     for( int i = 0; i < mGUISegmentCount; i++ ) {
         if( i < segCount ) {
             ruSetGUINodeVisible( mGUIHealthBarSegment[i], true );
@@ -161,8 +176,8 @@ Player::Damage
 ========
 */
 void Player::Damage( float dmg ) {
-    Actor::Damage( dmg );
-    if( mHealth <= 0.0f ) {
+    mLife -= dmg;
+    if( mLife < 0.0f ) {
         if( !mDead ) {
             ruSetAngularFactor( mBody, ruVector3( 1.0f, 1.0f, 1.0f ));
             ruSetNodeFriction( mBody, 1.0f );
@@ -170,6 +185,7 @@ void Player::Damage( float dmg ) {
             ruMoveNode( mBody, ruVector3( 1.0f, 1.0f, 1.0f ));
         }
         mDead = true;
+        mLife = 0.0f;
         mpFlashlight->SwitchOff();
         mpCamera->FadePercent( 5 );
         mpCamera->SetFadeColor( ruVector3( 70.0f, 0.0f, 0.0f ) );
@@ -293,14 +309,14 @@ void Player::UpdateMouseLook() {
     }
 
     if( ruIsKeyDown( mKeyLookRight )) {
-        ruVector3 rayBegin = ruGetNodePosition( mBody ) - ruVector3( mBodyWidth / 2.0f, 0.0f, 0.0f );
+        ruVector3 rayBegin = ruGetNodePosition( mBody ) - ruVector3( mBodyWidth / 2, 0, 0 );
         ruVector3 rayEnd = rayBegin - ruGetNodeRightVector( mBody ) * 10.0f;
         ruVector3 hitPoint;
         ruNodeHandle rightIntersection = ruCastRay( rayBegin, rayEnd, &hitPoint );
         bool canLookRight = true;
         if( rightIntersection.IsValid() ) {
             float dist2 = ( hitPoint - ruGetNodePosition( mBody )).Length2();
-            if( dist2 < 0.4f ) {
+            if( dist2 < 0.4 ) {
                 canLookRight = false;
             }
         }
@@ -309,7 +325,7 @@ void Player::UpdateMouseLook() {
         }
     }
     mHeadAngle.ChaseTarget( 17.0f * g_dt );
-    ruSetNodeRotation( mHead, ruQuaternion( ruVector3( 0.0f, 0.0f, 1.0f ), mHeadAngle ));
+    ruSetNodeRotation( mHead, ruQuaternion( ruVector3( 0, 0, 1 ), mHeadAngle ));
 }
 
 /*
@@ -319,11 +335,11 @@ Player::UpdateJumping
 */
 void Player::UpdateJumping() {
     // do ray test, to determine collision with objects above camera
-    ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0.0f, mBodyHeight * 0.98f, 0.0f ), ruGetNodePosition( mBody ) + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
+    ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, mBodyHeight * 0.98, 0 ), ruGetNodePosition( mBody ) + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
 
     if( ruIsKeyHit( mKeyJump ) ) {
         if( IsCanJump() ) {
-            mJumpTo = ruVector3( 0.0f, 350.0f, 0.0f );
+            mJumpTo = ruVector3( 0, 350, 0 );
             mLanded = false;
         }
     }
@@ -335,9 +351,9 @@ void Player::UpdateJumping() {
     }
 
     if( mLanded || headBumpObject.IsValid() ) {
-        mJumpTo = ruVector3( 0, -450.0f, 0.0f );
+        mJumpTo = ruVector3( 0, -150, 0 );
         if( IsCanJump() ) {
-            mJumpTo = ruVector3( 0.0f, 0.0f, 0.0f );
+            mJumpTo = ruVector3( 0, 0, 0 );
         }
     };
 }
@@ -369,6 +385,10 @@ void Player::UpdateMoving() {
 				}
 			}
         }
+    }
+
+    if( ruIsKeyHit( mKeyStealth )) {
+        mStealthMode = !mStealthMode;
     }
 
     if( mpCurrentWay ) {
@@ -443,9 +463,8 @@ void Player::UpdateMoving() {
             }
         }
 
-		if( ruIsKeyHit( mKeyStealth )) {
+		if( ruIsKeyHit( KEY_V )) {
 			Crouch( !IsCrouch() );
-			mStealthMode = IsCrouch();
 		}
 
 		UpdateCrouch();
@@ -548,10 +567,11 @@ void Player::Update( ) {
     ComputeStealth();
     UpdatePicking();
     UpdateItemsHandling();
-    ManageEnvironmentDamaging();
+    UpdateEnvironmentDamaging();
     UpdateInventory();
     DrawSheetInHands();
     UpdateCursor();
+
 }
 
 /*
@@ -738,8 +758,14 @@ void Player::UpdateCameraShake() {
     } else {
         mCameraBobCoeff = 0;
     }
+    if( mStealthMode ) {
+        mStealthOffset.SetTarget( mStealthOffset.GetMin() );
+    } else {
+        mStealthOffset.SetTarget( mStealthOffset.GetMax() );
+    }
+    mStealthOffset.ChaseTarget( 0.15f );
     mCameraOffset = mCameraOffset.Lerp( mCameraShakeOffset, 0.25f );
-    ruSetNodePosition( mpCamera->mNode, mCameraOffset );
+    ruSetNodePosition( mpCamera->mNode, mCameraOffset + ruVector3( 0.0f, mStealthOffset, 0.0f ) );
 }
 
 /*
@@ -790,6 +816,22 @@ void Player::UpdateCursor() {
 	}
 }
 
+/*
+========
+Player::UpdateEnvironmentDamaging
+========
+*/
+void Player::UpdateEnvironmentDamaging() {
+    // sometimes this kill player instantly, thats why it is commented
+    /*
+    for( int i = 0; i < GetContactCount( body ); i++ ) {
+        Contact contact = GetContact( body, i );
+
+        if( contact.impulse > 30 ) {
+            Damage( contact.impulse / 5 );
+        }
+    }*/
+}
 
 /*
 ========
@@ -901,7 +943,11 @@ void Player::UpdatePicking() {
     }
 }
 
-
+/*
+========
+Player::CreateFlashLight
+========
+*/
 void Player::CreateFlashLight() {
     mpFlashlight = new Flashlight();
     mpFlashlight->Attach( mpCamera->mNode );
@@ -909,6 +955,11 @@ void Player::CreateFlashLight() {
     mInventory.AddItem( mpFlashLightItem );
 }
 
+/*
+========
+Player::UpdateFlashLight
+========
+*/
 void Player::UpdateFlashLight() {
     mpFlashlight->Update();
 
@@ -919,12 +970,27 @@ void Player::UpdateFlashLight() {
     }
 }
 
+/*
+========
+Player::DrawGUIElements
+========
+*/
 void Player::DrawGUIElements() {
+    int alpha = mPlaceDescTimer < 50 ? 255.0f * (float)mPlaceDescTimer / 50.0f : 255;
+//    ruDrawGUIText( mPlaceDesc.c_str(), ruGetResolutionWidth() - 300, ruGetResolutionHeight() - 200, 200, 200, pGUI->mFont, ruVector3( 255, 255, 255 ), 1, alpha );
+
+    if( mPlaceDescTimer ) {
+        mPlaceDescTimer--;
+    }
 
     mGoal.AnimateAndRender();
 }
 
-
+/*
+========
+Player::FreeHands
+========
+*/
 void Player::FreeHands() {
     mNodeInHands.Invalidate();
 }
@@ -1036,8 +1102,8 @@ void Player::DeserializeWith( TextFileStream & in ) {
 
     in.ReadBoolean( mLanded );
     in.ReadFloat( mStamina );
-    in.ReadFloat( mHealth );
-    in.ReadFloat( mMaxHealth );
+    in.ReadFloat( mLife );
+    in.ReadFloat( mMaxLife );
     in.ReadFloat( mMaxStamina );
     in.ReadFloat( mRunSpeedMult );
     mFov.Deserialize( in );
@@ -1054,6 +1120,8 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadVector3( mFrameColor );
 
     in.ReadBoolean( mMoved );
+
+    in.ReadInteger( mPlaceDescTimer );
 
     mStaminaAlpha.Deserialize( in );
     mHealthAlpha.Deserialize( in );
@@ -1114,8 +1182,8 @@ void Player::SerializeWith( TextFileStream & out ) {
 
     out.WriteBoolean( mLanded );
     out.WriteFloat( mStamina );
-    out.WriteFloat( mHealth );
-    out.WriteFloat( mMaxHealth );
+    out.WriteFloat( mLife );
+    out.WriteFloat( mMaxLife );
     out.WriteFloat( mMaxStamina );
     out.WriteFloat( mRunSpeedMult );
     mFov.Serialize( out );
@@ -1132,6 +1200,8 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteVector3( mFrameColor );
 
     out.WriteBoolean( mMoved );
+
+    out.WriteInteger( mPlaceDescTimer );
 
     mStaminaAlpha.Serialize( out );
     mHealthAlpha.Serialize( out );
