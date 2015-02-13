@@ -16,7 +16,7 @@ void Valve::Update() {
         return;
     }
     if( pPlayer->mNearestPickedNode == mObject ) {
-		pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "turnObject" ), GetKeyName( pPlayer->mKeyUse )).c_str() );
+		pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "turnObject" ), GetKeyName( pPlayer->mKeyUse )) );
         if( ruIsKeyDown( pPlayer->mKeyUse )) {
             mAngle += 5;
             if( mAngle >= 360 * mTurnCount ) {

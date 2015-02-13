@@ -40,10 +40,10 @@ public:
     ruTextureHandle GetPictogram() const;
     float GetContent() const;
     void SetContent( float content );
-    const char * GetContentType() const;
-    void SetContentType( const char * contentType );
-    const char * GetDescription() const;
-    const char * GetName() const;
+    const string & GetContentType() const;
+    void SetContentType( const string & contentType );
+    const string & GetDescription() const;
+    const string & GetName() const;
     void SetMass( float mass );
     float GetMass() const;
     float GetVolume() const;

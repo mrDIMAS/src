@@ -8,11 +8,11 @@ class WaitKeyButton {
 private:
     bool mGrabKey;
     int mSelectedKey;
-    const char * mDesc;
+    string mDesc;
     ruTextHandle mGUIText;
     ruButtonHandle mGUIButton;
 public:
-    explicit WaitKeyButton( float x, float y, ruTextureHandle buttonImage, const char * text );
+    explicit WaitKeyButton( float x, float y, ruTextureHandle buttonImage, const string & text );
     int GetSelectedKey();
     void SetSelected( int i );
     void Update( );

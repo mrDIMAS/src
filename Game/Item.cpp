@@ -96,12 +96,12 @@ Item::~Item() {
 
 }
 
-const char * Item::GetName() const {
-    return mName.c_str();
+const string & Item::GetName() const {
+    return mName;
 }
 
-const char * Item::GetDescription() const {
-    return mDesc.c_str();
+const string & Item::GetDescription() const {
+    return mDesc;
 }
 
 void Item::SetContent( float content ) {
@@ -170,12 +170,12 @@ float Item::GetVolume() const {
     return mVolume;
 }
 
-void Item::SetContentType( const char * contentType ) {
+void Item::SetContentType( const string & contentType ) {
     mContentTypeDesc = contentType;
 }
 
-const char * Item::GetContentType() const {
-    return mContentTypeDesc.c_str();
+const string & Item::GetContentType() const {
+    return mContentTypeDesc;
 }
 
 void Item::MarkAsFree() {

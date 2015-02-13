@@ -11,13 +11,13 @@ protected:
 public:
     static vector<GUIText*> msTextList;
 
-    explicit GUIText( const char * theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, BitmapFont * theFont );
+    explicit GUIText( const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, BitmapFont * theFont );
     virtual ~GUIText( );
     RECT GetBoundingRect();
     int GetTextAlignment();
     string GetText();
     BitmapFont * GetFont();
-    void SetText( const char * text ) {
+    void SetText( const string & text ) {
         mText = text;
     }
 };

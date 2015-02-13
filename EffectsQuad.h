@@ -3,6 +3,9 @@
 #include "Shader.h"
 
 class EffectsQuad {
+private:
+	void Initialize();
+	void Free();
 public:
     IDirect3DVertexBuffer9 * vertexBuffer;
     IDirect3DVertexDeclaration9 * vertexDeclaration;
@@ -27,4 +30,5 @@ public:
 
     void Bind( bool bindInternalVertexShader = true );
     void Render();
+	void OnDeviceLost();
 };

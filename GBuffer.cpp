@@ -1,33 +1,14 @@
 #include "GBuffer.h"
 
 GBuffer::GBuffer() {
-	int width = g_width;
-	int height = g_height;
-	if( !IsFullNPOTTexturesSupport()) {
-		width = NearestPow2( g_width );
-		height = NearestPow2( g_height );
-	}
-
-    CheckDXErrorFatal( D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap ));
-    CheckDXErrorFatal(  D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap ));
-    CheckDXErrorFatal(  D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap ));
-    CheckDXErrorFatal( depthMap->GetSurfaceLevel( 0, &depthSurface ));
-    CheckDXErrorFatal( normalMap->GetSurfaceLevel( 0, &normalSurface ));
-    CheckDXErrorFatal( diffuseMap->GetSurfaceLevel( 0, &diffuseSurface ));
-    CheckDXErrorFatal( gpDevice->GetRenderTarget( 0, &backSurface ));
+	CreateRenderTargets();
 }
 
 GBuffer::~GBuffer() {
     gpDevice->SetRenderTarget( 0, backSurface );
     gpDevice->SetRenderTarget( 1, 0 );
     gpDevice->SetRenderTarget( 2, 0 );
-    depthSurface->Release();
-    normalSurface->Release();
-    diffuseSurface->Release();
-    backSurface->Release();
-    while( depthMap->Release() );
-    while( normalMap->Release());
-    while( diffuseMap->Release());
+    FreeRenderTargets();
 }
 
 void GBuffer::BindRenderTargets() {
@@ -74,4 +55,36 @@ void GBuffer::BindTextures() {
 
 void GBuffer::BindDepthMap( int layer ) {
     CheckDXErrorFatal( gpDevice->SetTexture( layer, depthMap ));
+}
+
+void GBuffer::OnDeviceLost() {
+	FreeRenderTargets();
+	CreateRenderTargets();
+}
+
+void GBuffer::FreeRenderTargets() {
+	depthSurface->Release();
+	normalSurface->Release();
+	diffuseSurface->Release();
+	backSurface->Release();
+	while( depthMap->Release() );
+	while( normalMap->Release());
+	while( diffuseMap->Release());
+}
+
+void GBuffer::CreateRenderTargets() {
+	int width = g_width;
+	int height = g_height;
+	if( !IsFullNPOTTexturesSupport()) {
+		width = NearestPow2( g_width );
+		height = NearestPow2( g_height );
+	}
+
+	CheckDXErrorFatal( D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap ));
+	CheckDXErrorFatal(  D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap ));
+	CheckDXErrorFatal(  D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap ));
+	CheckDXErrorFatal( depthMap->GetSurfaceLevel( 0, &depthSurface ));
+	CheckDXErrorFatal( normalMap->GetSurfaceLevel( 0, &normalSurface ));
+	CheckDXErrorFatal( diffuseMap->GetSurfaceLevel( 0, &diffuseSurface ));
+	CheckDXErrorFatal( gpDevice->GetRenderTarget( 0, &backSurface ));
 }

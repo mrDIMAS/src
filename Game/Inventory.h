@@ -11,9 +11,9 @@ private:
     ruTextureHandle mBackgroundTexture;
     ruTextureHandle mCellTexture;
     ruTextureHandle mButtonTexture;
-    bool mOpened;
+    bool mOpen;
     Item* mpItemForUse;
-    Item* mpSelected;
+    Item* mpSelectedItem;
     Item* mpCombineItemFirst;
     Item* mpCombineItemSecond;
     static const int mCellCountWidth = 5;
@@ -23,7 +23,6 @@ private:
     ruSoundHandle mPickSound;
     ruFontHandle mFont;
     Parser mLocalization;
-
     ruRectHandle mGUIRectItemForUse;
     ruRectHandle mGUIBackground;
     ruRectHandle mGUIRightPanel;

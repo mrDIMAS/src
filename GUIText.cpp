@@ -2,7 +2,7 @@
 
 vector<GUIText*> GUIText::msTextList;
 
-GUIText::GUIText( const char * theText, float theX, float theY, float theWidth,
+GUIText::GUIText( const string & theText, float theX, float theY, float theWidth,
                   float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, BitmapFont * theFont ) {
     mX = theX;
     mY = theY;

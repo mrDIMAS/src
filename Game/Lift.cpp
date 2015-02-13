@@ -42,7 +42,7 @@ void Lift::Update() {
 
         // player interaction( TODO: must be moved to player class )
         if( pPlayer->mNearestPickedNode == mControlPanel ) {
-            pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "liftUpDown" ), GetKeyName( pPlayer->mKeyUse ) ).c_str());
+            pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "liftUpDown" ), GetKeyName( pPlayer->mKeyUse ) ));
 
             if( ruIsKeyHit( pPlayer->mKeyUse )) {
                 if( mArrived ) {

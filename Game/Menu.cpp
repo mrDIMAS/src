@@ -265,7 +265,7 @@ void Menu::Update( ) {
                 count = mSaveLoadSlotCount;
             }
             for( int i = 0; i < count; i++ ) {
-                ruSetGUINodeText( ruGetButtonText( mGUILoadGameSlot[i] ), nameList[i].c_str() );
+                ruSetGUINodeText( ruGetButtonText( mGUILoadGameSlot[i] ), nameList[i] );
                 if( ruIsButtonHit( mGUILoadGameSlot[i] ) ) {
                     mLoadSaveGameName = nameList[i];
                     mLoadFromSave = true;
@@ -291,7 +291,7 @@ void Menu::Update( ) {
                 count = mSaveLoadSlotCount;
             }
             for( int iName = 0; iName < count; iName++ ) {
-                ruSetGUINodeText( ruGetButtonText( mGUISaveGameSlot[iName] ), nameList[iName].c_str() );
+                ruSetGUINodeText( ruGetButtonText( mGUISaveGameSlot[iName] ), nameList[iName] );
                 if( ruIsButtonHit( mGUISaveGameSlot[iName] ) ) {
                     if( pCurrentLevel ) {
                         SaveWriter( nameList[iName] ).SaveWorldState();

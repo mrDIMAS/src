@@ -28,18 +28,10 @@ void EffectsQuad::Bind( bool bindInternalVertexShader ) {
 }
 
 EffectsQuad::~EffectsQuad() {
-    if( vertexDeclaration ) {
-        vertexDeclaration->Release();
-    }
-
-    if( vertexBuffer ) {
-        vertexBuffer->Release();
-    }
-
+    Free();
     if( debugPixelShader ) {
         delete debugPixelShader;
     }
-
     delete vertexShader;
 }
 
@@ -107,4 +99,21 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
     vertexShader = new VertexShader( "data/shaders/quad.vso", true );
     D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, g_width, g_height, 0, 0, 1024 );
+}
+
+void EffectsQuad::OnDeviceLost()
+{
+	Free();
+	Initialize();
+}
+
+void EffectsQuad::Free()
+{
+	vertexDeclaration->Release();
+	vertexBuffer->Release();
+}
+
+void EffectsQuad::Initialize()
+{
+
 }

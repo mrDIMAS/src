@@ -96,4 +96,9 @@ public:
 
     void SetSpotLightShadowMapSize( int size );
     void EndFirstPassAndDoSecondPass();
+
+	void OnDeviceLost() {
+
+		mGBuffer->OnDeviceLost();
+	}
 };

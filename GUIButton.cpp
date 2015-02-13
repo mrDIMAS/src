@@ -37,7 +37,7 @@ void GUIButton::Update() {
     }
 }
 
-GUIButton::GUIButton( int x, int y, int w, int h, Texture* texture, const char * text, BitmapFont * font, ruVector3 color, int textAlign, int alpha )
+GUIButton::GUIButton( int x, int y, int w, int h, Texture* texture, const string & text, BitmapFont * font, ruVector3 color, int textAlign, int alpha )
     : GUIRect( x, y, w, h, texture, color, alpha, true ) {
     mpText = new GUIText( text, x, y, w, h, color, alpha, textAlign, font );
     msButtonList.push_back( this );

@@ -237,7 +237,7 @@ SceneNode * SceneNode::Find( SceneNode * parent, string childName ) {
     return nullptr;
 }
 
-SceneNode * SceneNode::LoadScene( const char * file ) {
+SceneNode * SceneNode::LoadScene( const string & file ) {
     FastReader reader;
 
     if ( !reader.ReadFile( file ) ) {
@@ -566,11 +566,8 @@ void SceneNode::UpdateContacts() {
                 nodeA->mContactList[ j ].impulse = pt.m_appliedImpulse;
                 nodeB->mContactList[ j ].impulse = pt.m_appliedImpulse;
 
-				ruNodeHandle handleA; handleA.pointer = nodeA;
-				ruNodeHandle handleB; handleB.pointer = nodeB;
-
-				nodeA->mContactList[ j ].body = handleB;
-				nodeB->mContactList[ j ].body = handleA;
+				nodeA->mContactList[ j ].body.pointer = nodeB;
+				nodeB->mContactList[ j ].body.pointer = nodeA;
 
                 if( pt.m_appliedImpulse > 10.0f ) {
                     if( !nodeA->mFrozen ) {
@@ -755,7 +752,7 @@ int SceneNode::GetCountChildren() {
     return mChildList.size();
 }
 
-SceneNode * SceneNode::FindByName( const char * name ) {
+SceneNode * SceneNode::FindByName( const string & name ) {
     for( auto node : g_nodes )
         if( node->mName == name ) {
             return node;
@@ -892,8 +889,8 @@ ruVector3 SceneNode::GetAbsoluteLookVector() {
     return ruVector3( look.x(), look.y(), look.z() );
 }
 
-const char * SceneNode::GetName() {
-    return mName.c_str();
+const string & SceneNode::GetName() {
+    return mName;
 }
 
 ruVector3 SceneNode::GetRightVector() {
@@ -926,7 +923,7 @@ ruVector3 SceneNode::GetLocalPosition() {
     return lp;
 }
 
-SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const char * name ) {
+SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const string & name ) {
     if( node->mName == name ) {
         return node;
     }
@@ -1042,9 +1039,18 @@ ruVector3 SceneNode::GetTotalForce()
 	return ruVector3(mBody->getTotalForce().x(), mBody->getTotalForce().y(), mBody->getTotalForce().z());
 }
 
-ruAnimation * SceneNode::GetCurrentAnimation()
-{
+ruAnimation * SceneNode::GetCurrentAnimation() {
 	return mCurrentAnimation;
+}
+
+ruVector3 SceneNode::GetLinearVelocity() {
+	ruVector3 vel;
+	if( mBody ) {
+		vel.x = mBody->getLinearVelocity().x();
+		vel.y = mBody->getLinearVelocity().y();
+		vel.z = mBody->getLinearVelocity().z();
+	}
+	return vel;
 }
 
 ////////////////////////////////////////////////////
@@ -1069,6 +1075,10 @@ void ruRutheniumHandle::Invalidate() {
 
 bool ruNodeHandle::operator == ( const ruNodeHandle & node ) {
     return pointer == node.pointer;
+}
+
+ruVector3 ruGetNodeLinearVelocity( ruNodeHandle node ) {
+	return SceneNode::CastHandle( node )->GetLinearVelocity();
 }
 
 void ruCreateOctree( ruNodeHandle node, int splitCriteria ) {
@@ -1135,7 +1145,7 @@ ruNodeHandle ruCreateSceneNode( ) {
     return SceneNode::HandleFromPointer( new SceneNode );
 }
 
-ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const char * name ) {
+ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const string & name ) {
     return SceneNode::HandleFromPointer( SceneNode::FindInObjectByName( SceneNode::CastHandle( node ), name ));
 }
 
@@ -1175,7 +1185,7 @@ ruVector3 ruGetNodeAABBMax( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetAABBMax();
 }
 
-ruNodeHandle ruLoadScene( const char * file ) {
+ruNodeHandle ruLoadScene( const string & file ) {
     return SceneNode::HandleFromPointer( SceneNode::LoadScene( file ));
 }
 
@@ -1227,7 +1237,7 @@ int ruGetNodeCountChildren( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetCountChildren();
 }
 
-ruNodeHandle ruFindByName( const char * name ) {
+ruNodeHandle ruFindByName( const string & name ) {
     return SceneNode::HandleFromPointer( SceneNode::FindByName( name ));
 }
 
@@ -1287,7 +1297,7 @@ ruVector3 ruGetNodeLookVector( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetLookVector();
 }
 
-const char * ruGetNodeName( ruNodeHandle node ) {
+const string & ruGetNodeName( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetName();
 }
 
@@ -1333,7 +1343,7 @@ void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot ) {
     SceneNode::CastHandle( node )->CalculateGlobalTransform( );
 }
 
-void ruSetNodeName( ruNodeHandle node, const char * name ) {
+void ruSetNodeName( ruNodeHandle node, const string & name ) {
     SceneNode::CastHandle( node )->mName = name;
 }
 

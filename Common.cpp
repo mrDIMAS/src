@@ -143,7 +143,7 @@ void ParseFile( string fn, map<string,string> & values) {
     };
 }
 
-void CheckDXErrorFatalFunc( HRESULT errCode, const char * file, int line ) {
+void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line ) {
     
     if( FAILED( errCode )) {
     	string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s\nFile: %s\nLine: %d", 

@@ -27,7 +27,7 @@ SaveWriter::~SaveWriter() {
 
 }
 
-SaveWriter::SaveWriter( string fn ) : TextFileStream( fn.c_str(), true ) {
+SaveWriter::SaveWriter( string fn ) : TextFileStream( fn, true ) {
 
 }
 

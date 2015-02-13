@@ -156,9 +156,21 @@ public:
     Inventory * GetInventory();
     Flashlight * GetFlashLight();
     Parser * GetLocalization();
-    void SetTip( const char * text );
+    void SetTip( const string & text );
     virtual void SerializeWith( TextFileStream & out ) final;
     virtual void DeserializeWith( TextFileStream & in ) final;
-    void SetActionText( const char * text );
+    void SetActionText( const string & text );
     void SetHUDVisible( bool state );
+	virtual void ManageEnvironmentDamaging() final {
+		for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
+			ruContact contact = ruGetContact( mBody, i );
+			if( contact.body.IsValid()) {
+				if( !(contact.body == mNodeInHands)) {
+					if( ruGetNodeLinearVelocity( contact.body ).Length2() >= 2.0f ) {
+						Damage( contact.impulse / 5 );
+					}
+				}
+			}
+		}
+	}
 };

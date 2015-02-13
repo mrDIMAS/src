@@ -93,7 +93,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
 			pPlayer->SetHUDVisible( false );
 		}
         // draw 'loading' string
-        ruRenderWorld( 1.0f / 60.0f );
+        ruRenderWorld();
 		ruSetGUINodeVisible( msGUILoadingText, false );
 		ruSetGUINodeVisible( msGUILoadingBackground, false );
 		if( pPlayer ) {
@@ -174,7 +174,7 @@ void Level::DeserializeWith( TextFileStream & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.Readstring();
-        ruNodeHandle node = ruFindInObjectByName( mScene, name.c_str() );
+        ruNodeHandle node = ruFindInObjectByName( mScene, name );
         if( node.IsValid() ) {
             ruSetNodeLocalPosition( node, in.ReadVector3() );
             ruSetNodeLocalRotation( node, in.ReadQuaternion() );
@@ -232,7 +232,7 @@ void Level::AddAmbientSound( ruSoundHandle sound ) {
     mAmbSoundSet.AddSound( sound );
 }
 
-ruNodeHandle Level::GetUniqueObject( const char * name ) {
+ruNodeHandle Level::GetUniqueObject( const string & name ) {
     // the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
     // game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
     // also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
@@ -250,7 +250,7 @@ ruNodeHandle Level::GetUniqueObject( const char * name ) {
     return object;
 }
 
-void Level::LoadSceneFromFile( const char * file ) {
+void Level::LoadSceneFromFile( const string & file ) {
     mScene = ruLoadScene( file );
     if( !mScene.IsValid() ) {
         RaiseError( Format( "Unable to load scene from '%s'! Game will be closed.", file ));
@@ -261,7 +261,7 @@ void Level::CreateBlankScene() {
     mScene = ruCreateSceneNode();
 }
 
-void Level::BuildPath( Path & path, const char * nodeBaseName ) {
+void Level::BuildPath( Path & path, const string & nodeBaseName ) {
     path.BuildPath( mScene, nodeBaseName );
 }
 

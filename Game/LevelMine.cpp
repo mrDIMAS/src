@@ -166,8 +166,6 @@ LevelMine::LevelMine() {
     mEnemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
     mEnemy->SetPosition( ruGetNodePosition( GetUniqueObject( "EnemyPosition" )));
 
-    ruSetCameraSkybox( pPlayer->mpCamera->mNode, 0 );
-
     mRock[0] = GetUniqueObject( "Rock1" );
     mRock[1] = GetUniqueObject( "Rock2" );
     mRock[2] = GetUniqueObject( "Rock3" );
@@ -350,7 +348,7 @@ void LevelMine::UpdateExplodeSequence() {
             ItemPlace * dp = mDetonatorPlace[i];
 
             if( dp->IsPickedByPlayer() ) {
-                pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "putItem"), GetKeyName( pPlayer->mKeyUse )).c_str());
+                pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "putItem"), GetKeyName( pPlayer->mKeyUse )));
             }
         }
 

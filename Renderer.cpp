@@ -26,7 +26,6 @@ int g_dips = 0;
 int g_debugDraw = 0;
 int g_textureChanges = 0;
 int g_fps = 0;
-float g_dt = 1.0f / 60.0f; // 60 FPS
 
 FPSCounter g_fpsCounter;
 bool g_usePointLightShadows = true;
@@ -196,8 +195,8 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
     gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
     gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER );
-    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER );
+    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
@@ -376,7 +375,10 @@ void Renderer::RenderWorld() {
     //Light::RenderLightFlares();
     // finalize
     gpDevice->EndScene();
-    gpDevice->Present( 0, 0, 0, 0 );
+    if( gpDevice->Present( 0, 0, 0, 0 ) == D3DERR_DEVICELOST ) {
+		g_deferredRenderer->OnDeviceLost();
+		OnDeviceLost();
+	}
     // grab info about node's physic contacts
     SceneNode::UpdateContacts( );
     // update sound subsystem
@@ -744,8 +746,7 @@ int ruTextureUsedPerFrame( ) {
 RenderWorld
 ===============
 */
-int ruRenderWorld( float dt ) {
-    g_dt = dt;
+int ruRenderWorld( ) {
     gpRenderer->RenderWorld();
     return 1;
 }

@@ -18,7 +18,7 @@ public:
 
     IDirect3DIndexBuffer9 * ib;
 
-    explicit Skybox( const char * path );
+    explicit Skybox( const string & path );
     virtual ~Skybox();
     void CreateIndexBuffer( size_t size, IDirect3DIndexBuffer9 ** ib );
     void CreateVertexBuffer( size_t size, IDirect3DVertexBuffer9 ** vb );

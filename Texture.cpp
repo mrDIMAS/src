@@ -93,7 +93,7 @@ ruTextureHandle ruTextureHandle::Empty() {
     return handle;
 }
 
-ruTextureHandle ruGetTexture( const char * file ) {
+ruTextureHandle ruGetTexture( const string & file ) {
     ruTextureHandle handle;
     handle.pointer = Texture::Require( file );
     return handle;

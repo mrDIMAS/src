@@ -24,7 +24,7 @@ public:
     virtual ~Camera();
     void CalculateProjectionMatrix();
     void CalculateInverseViewProjection();
-    void SetSkyBox( const char * path );
+    void SetSkyBox( const string & path );
     void Update();
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );

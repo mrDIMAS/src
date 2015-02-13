@@ -19,22 +19,22 @@ void InteractiveObject::UpdateAll() {
 }
 
 void InteractiveObject::UpdateFlashing() {
-    if( flashDirection ) {
-        if( flashAlbedo < 1 ) {
-            flashAlbedo += 0.015f;
+    if( mFlashDirection ) {
+        if( mFlashAlbedo < 1 ) {
+            mFlashAlbedo += 0.015f;
         } else {
-            flashDirection = false;
+            mFlashDirection = false;
         }
     } else {
-        if( flashAlbedo > 0.2 ) {
-            flashAlbedo -= 0.015f;
+        if( mFlashAlbedo > 0.2 ) {
+            mFlashAlbedo -= 0.015f;
         } else {
-            flashDirection = true;
+            mFlashDirection = true;
         }
     }
 
     if( mObject.IsValid() ) {
-        ruSetNodeAlbedo( mObject, flashAlbedo );
+        ruSetNodeAlbedo( mObject, mFlashAlbedo );
     }
 }
 
@@ -42,10 +42,10 @@ InteractiveObject::InteractiveObject( ruNodeHandle object ) {
     objects.push_back( this );
     this->mObject = object;
     ruFreeze( object );
-    flashAlbedo = 0.2f;
-    flashAlbedoTo = 1.0f;
-    flashSpeed = 0.075f;
-    flashDirection = true;
+    mFlashAlbedo = 0.2f;
+    mFlashAlbedoTo = 1.0f;
+    mFlashSpeed = 0.075f;
+    mFlashDirection = true;
 }
 
 InteractiveObject::~InteractiveObject() {

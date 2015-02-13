@@ -38,8 +38,8 @@ void Camera::Update() {
     frustum.Build( viewProjection );
 }
 
-void Camera::SetSkyBox( const char * path ) {
-    if( path ) {
+void Camera::SetSkyBox( const string & path ) {
+    if( path.size() ) {
         skybox = new Skybox( path );
     } else {
         if( skybox ) {
@@ -110,7 +110,7 @@ void ruSetActiveCamera( ruNodeHandle node ) {
     g_camera = Camera::CastHandle( node );
 }
 
-int ruSetCameraSkybox( ruNodeHandle node, const char * path ) {
+int ruSetCameraSkybox( ruNodeHandle node, const string & path ) {
     Camera::CastHandle( node )->SetSkyBox( path );
 
     return 1;

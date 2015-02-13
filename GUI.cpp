@@ -47,7 +47,7 @@ bool ruLineHandle::operator == ( const ruLineHandle & node ) {
 }
 
 
-ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined ) {
+ruFontHandle ruCreateGUIFont( int size, const string & name, int italic, int underlined ) {
     ruFontHandle font;
     font.pointer = new BitmapFont( name, size );
     return font;
@@ -59,13 +59,13 @@ ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandl
     return rect;
 }
 
-ruTextHandle ruCreateGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha ) {
+ruTextHandle ruCreateGUIText( const string & text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha ) {
     ruTextHandle t;
     t.pointer = new GUIText( text, x, y, w, h, color, alpha, textAlign, (BitmapFont*)font.pointer );
     return t;
 }
 
-ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha ) {
+ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const string & text, ruFontHandle font, ruVector3 color, int textAlign, int alpha ) {
     ruButtonHandle button;
     button.pointer = new GUIButton( x, y, w, h, (Texture*)texture.pointer, text, (BitmapFont*)font.pointer, color, textAlign, alpha );
     return button;
@@ -91,7 +91,7 @@ void ruSetGUINodeVisible( ruGUINodeHandle node, bool visible ) {
     ((GUINode*)node.pointer)->SetVisible( visible );
 }
 
-void ruSetGUINodeText( ruTextHandle node, const char * text ) {
+void ruSetGUINodeText( ruTextHandle node, const string & text ) {
     ((GUIText*)node.pointer)->SetText( text );
 }
 

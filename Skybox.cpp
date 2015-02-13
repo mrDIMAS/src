@@ -34,7 +34,7 @@ Skybox::~Skybox() {
     ib->Release();
 }
 
-Skybox::Skybox( const char * path ) {
+Skybox::Skybox( const string & path ) {
     string file = path;
 
     string leftPath = file;

@@ -23,12 +23,12 @@ void GetD3DMatrixFromBulletTransform ( const btTransform & trn, D3DMATRIX & outM
     outMatrix._44 = 1.0f;
 }
 
-std::string Format( const char * format, ... ) {
+std::string Format( string format, ... ) {
     char buffer[ 1024 ];
     va_list	argumentList;
 
     va_start( argumentList, format );
-    vsprintf_s( buffer, format , argumentList);
+    vsprintf_s( buffer, format.c_str(), argumentList);
     va_end(argumentList);
 
     return string( buffer );

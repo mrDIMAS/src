@@ -17,6 +17,9 @@ using namespace std;
 #endif
 #endif
 
+RUAPI float frandom( float low, float high );
+RUAPI string Format( string format, ... );
+
 class RUAPI ruVector3 {
 public:
     union {
@@ -242,7 +245,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////
 RUAPI int ruCreateRenderer( int width, int height, int fullscreen, char vSync );
 RUAPI int ruFreeRenderer( );
-RUAPI int ruRenderWorld( float dt );
+RUAPI int ruRenderWorld( );
 RUAPI int ruGetResolutionWidth( );
 RUAPI int ruGetResolutionHeight( );
 RUAPI void ruHideCursor( );
@@ -286,22 +289,22 @@ enum {
 };
 RUAPI void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality );
 RUAPI int ruGetRendererMaxAnisotropy();
-RUAPI ruTextureHandle ruGetTexture( const char * file );
-RUAPI ruCubeTextureHandle ruGetCubeTexture( const char * file );
+RUAPI ruTextureHandle ruGetTexture( const string & file );
+RUAPI ruCubeTextureHandle ruGetCubeTexture( const string & file );
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
 ////////////////////////////////////////////////////////////////////////////////////
 RUAPI ruNodeHandle ruCreateCamera( float fov );
 RUAPI void ruSetActiveCamera( ruNodeHandle node );
-RUAPI int ruSetCameraSkybox( ruNodeHandle node, const char * path );
+RUAPI int ruSetCameraSkybox( ruNodeHandle node, const string & path );
 RUAPI void ruSetCameraFOV( ruNodeHandle camera, float fov );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Sounds functions
 ////////////////////////////////////////////////////////////////////////////////////
-RUAPI ruSoundHandle ruLoadSound2D( const char * file );
-RUAPI ruSoundHandle ruLoadSound3D( const char * file );
-RUAPI ruSoundHandle ruLoadMusic( const char * file );
+RUAPI ruSoundHandle ruLoadSound2D( const string & file );
+RUAPI ruSoundHandle ruLoadSound3D( const string & file );
+RUAPI ruSoundHandle ruLoadMusic( const string & file );
 RUAPI void ruAttachSound( ruSoundHandle sound, ruNodeHandle node );
 RUAPI void ruPlaySound( ruSoundHandle sound, int oneshot = 1 );
 RUAPI void ruPauseSound( ruSoundHandle sound );
@@ -379,9 +382,9 @@ RUAPI BodyType ruGetNodeBodyType( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Creation
 RUAPI ruNodeHandle ruCreateSceneNode( );
-RUAPI ruNodeHandle ruLoadScene( const char * file );
-RUAPI ruNodeHandle ruFindByName( const char * name );
-RUAPI ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const char * name );
+RUAPI ruNodeHandle ruLoadScene( const string & file );
+RUAPI ruNodeHandle ruFindByName( const string & name );
+RUAPI ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const string & name );
 RUAPI int ruGetWorldObjectsCount();
 RUAPI ruNodeHandle ruGetWorldObject( int i );
 // Common
@@ -390,7 +393,7 @@ RUAPI void ruHideNode( ruNodeHandle node );
 RUAPI void ruShowNode( ruNodeHandle node );
 RUAPI bool ruIsNodeVisible( ruNodeHandle node );
 RUAPI void ruFreeSceneNode( ruNodeHandle node );
-RUAPI const char * ruGetNodeName( ruNodeHandle node );
+RUAPI const string & ruGetNodeName( ruNodeHandle node );
 RUAPI void ruSetNodeDepthHack( ruNodeHandle node, float order );
 RUAPI void ruAttachNode( ruNodeHandle node1, ruNodeHandle node2 );
 RUAPI void ruDetachNode( ruNodeHandle node );
@@ -407,7 +410,7 @@ RUAPI ruQuaternion ruGetNodeLocalRotation( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeLocalPosition( ruNodeHandle node );
 RUAPI void ruSetNodeLocalPosition( ruNodeHandle node, ruVector3 pos );
 RUAPI void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot );
-RUAPI void ruSetNodeName( ruNodeHandle node, const char * name );
+RUAPI void ruSetNodeName( ruNodeHandle node, const string & name );
 RUAPI ruVector3 ruGetNodeAABBMin( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeBodyTotalForce( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeAABBMax( ruNodeHandle node );
@@ -417,6 +420,7 @@ RUAPI int ruGetNodeCountChildren( ruNodeHandle node );
 RUAPI bool ruIsNodeInFrustum( ruNodeHandle node );
 RUAPI void ruSetNodeAlbedo( ruNodeHandle node, float albedo );
 RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point );
+RUAPI ruVector3 ruGetNodeLinearVelocity( ruNodeHandle node );
 // Octree manipulation
 // Note, that nodes with octree's optimization can't be moved or modified, so
 // it can be used for large static geometry, like game levels
@@ -457,7 +461,7 @@ public:
     int GetNextFrame() {
         return nextFrame;
     }
-    void Update( );
+    void Update( float dt = 1.0f / 60.0f );
 };
 
 RUAPI int ruIsAnimationEnabled( ruNodeHandle node );
@@ -469,17 +473,15 @@ RUAPI ruAnimation * ruGetCurrentAnimation( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Font functions
 ////////////////////////////////////////////////////////////////////////////////////
-RUAPI ruFontHandle ruCreateGUIFont( int size, const char * name, int italic, int underlined );
-RUAPI int ruGetTextWidth( const char * text, ruFontHandle font );
-RUAPI int ruGetTextHeight( const char * text, ruFontHandle font, int boxWidth );
+RUAPI ruFontHandle ruCreateGUIFont( int size, const string & name, int italic, int underlined );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // GUI functions
 ////////////////////////////////////////////////////////////////////////////////////
 RUAPI ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
-RUAPI ruTextHandle ruCreateGUIText( const char * text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
-RUAPI ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const char * text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
-RUAPI void ruSetGUINodeText( ruTextHandle node, const char * text );
+RUAPI ruTextHandle ruCreateGUIText( const string & text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+RUAPI ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const string & text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+RUAPI void ruSetGUINodeText( ruTextHandle node, const string & text );
 RUAPI void ruSetGUINodePosition( ruGUINodeHandle node, float x, float y );
 RUAPI void ruSetGUINodeSize( ruGUINodeHandle node, float w, float h );
 RUAPI void ruSetGUINodeColor( ruGUINodeHandle node, ruVector3 color );

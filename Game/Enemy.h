@@ -21,6 +21,9 @@ private:
     bool mDoPatrol;
     int mCurrentPatrolPoint;
 
+	ruTimerHandle mStunTimer;
+	bool mStun;
+
     Pathfinder mPathfinder;
 
     ruNodeHandle mModel;
@@ -77,12 +80,14 @@ public:
     virtual void SetWalkAnimation();
     virtual void SetRunAndAttackAnimation();
     virtual void SetStayAndAttackAnimation();
-    explicit Enemy( const char * file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
+    explicit Enemy( const string & file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
     virtual ~Enemy();
     void FindBodyparts();
     void CreateSounds();
     void CreateAnimations();
     void Think();
+	void Stun( bool state );
     void Serialize( TextFileStream & out );
     void Deserialize( TextFileStream & in );
+	virtual void Damage( float dmg ) final;
 };

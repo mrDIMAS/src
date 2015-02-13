@@ -21,7 +21,11 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#ifdef _DEBUG
+#pragma comment( lib, "Ruthenium_d.lib" )
+#else
 #pragma comment( lib, "Ruthenium.lib" )
+#endif 
 
 enum class FootstepsType {
     Rock,
@@ -41,8 +45,6 @@ enum LevelName {
 };
 
 using namespace std;
-string Format( const char * format, ... );
-float frandom( float low, float high );
 void RaiseError( const string & text );
 
 extern float mouseSens;

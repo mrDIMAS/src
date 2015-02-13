@@ -19,7 +19,7 @@ void SaveLoader::RestoreWorldState() {
     for( int i = 0; i < itemCount; i++ ) {
         string itemName = Readstring();
 
-        ruNodeHandle itemObject = ruFindByName( itemName.c_str());
+        ruNodeHandle itemObject = ruFindByName( itemName);
 
         if( itemObject.IsValid() ) {
             Item * item = Item::GetItemPointerByNode( itemObject );
@@ -40,12 +40,12 @@ void SaveLoader::RestoreWorldState() {
         }
         int placedType = ReadInteger();
 
-        ItemPlace * pItemPlace = ItemPlace::FindByObject( ruFindByName( ipName.c_str()) );
+        ItemPlace * pItemPlace = ItemPlace::FindByObject( ruFindByName( ipName) );
 
         if( pItemPlace ) {
             Item * pItem = 0;
             if( gotPlacedItem ) {
-                pItem = Item::GetItemPointerByNode( ruFindByName( itemName.c_str() ));
+                pItem = Item::GetItemPointerByNode( ruFindByName( itemName ));
             }
 
             if( pItem ) {
@@ -59,7 +59,7 @@ void SaveLoader::RestoreWorldState() {
     // deserialize ways
     int wayCount = ReadInteger();
     for( int i = 0; i < wayCount; i++ ) {
-        Way * way = Way::GetByObject( ruFindByName( Readstring().c_str() ));
+        Way * way = Way::GetByObject( ruFindByName( Readstring() ));
         way->DeserializeWith( *this );
     }
 
@@ -70,6 +70,6 @@ SaveLoader::~SaveLoader() {
 
 }
 
-SaveLoader::SaveLoader( string fn ) : TextFileStream( fn.c_str(), false ) {
+SaveLoader::SaveLoader( string fn ) : TextFileStream( fn, false ) {
 
 }

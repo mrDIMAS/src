@@ -39,7 +39,7 @@ GUIRenderer::~GUIRenderer() {
     CheckDXErrorFatal( vertDecl->Release());
 }
 
-ruFontHandle GUIRenderer::CreateFont( int size, const char * name, int italic, int underlined ) {
+ruFontHandle GUIRenderer::CreateFont( int size, const string & name, int italic, int underlined ) {
     BitmapFont * font = new BitmapFont( name, size );
     ruFontHandle handle;
     handle.pointer = font;

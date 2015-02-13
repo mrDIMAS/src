@@ -4,7 +4,7 @@
 
 
 void NumericSlider::Update( ) {
-    ruSetGUINodeText( mGUIValueText, Format( "%.1f", mValue ).c_str() );
+    ruSetGUINodeText( mGUIValueText, Format( "%.1f", mValue ) );
 
     if( ruIsButtonHit( mGUIIncreaseButton )  ) {
         if( mValue < mfMaximum ) {
@@ -18,7 +18,7 @@ void NumericSlider::Update( ) {
     }
 }
 
-NumericSlider::NumericSlider( float x, float y, float minimum, float maximum, float step, ruTextureHandle buttonImage, const char * text ) {
+NumericSlider::NumericSlider( float x, float y, float minimum, float maximum, float step, ruTextureHandle buttonImage, const string & text ) {
     float buttonWidth = 32;
     float buttonHeight = 32;
 

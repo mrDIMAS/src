@@ -25,7 +25,7 @@ void WaitKeyButton::SetSelected( int i ) {
     mSelectedKey = i;
 }
 
-WaitKeyButton::WaitKeyButton( float x, float y, ruTextureHandle buttonImage, const char * text ) {
+WaitKeyButton::WaitKeyButton( float x, float y, ruTextureHandle buttonImage, const string & text ) {
     int textHeight = 16;
     float buttonWidth = 60;
     float buttonHeight = 32;

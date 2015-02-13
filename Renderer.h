@@ -27,4 +27,7 @@ public:
     void SetPixelShaderFloat3( UINT startRegister, float * v );
     void SetPixelShaderFloat( UINT startRegister, float v );
     void SetPixelShaderInt( UINT startRegister, int v );
+	void OnDeviceLost() {
+
+	}
 };

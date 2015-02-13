@@ -11,7 +11,7 @@ private:
     ruTextHandle mGUIText;
     ruTextHandle mGUIValueText;
 public:
-    explicit ScrollList( float x, float y, ruTextureHandle buttonImage, const char * text );
+    explicit ScrollList( float x, float y, ruTextureHandle buttonImage, const string & text );
     virtual ~ScrollList();
     void SetCurrentValue( int value );
     int GetCurrentValue();

@@ -28,7 +28,7 @@ Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObjec
     int h = 600;
 
     mGUIBackground = ruCreateGUIRect( cx - w / 2, cy - h / 2, w, h, mBackgroundTexture );
-    mGUIText = ruCreateGUIText( mText.c_str(), cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
+    mGUIText = ruCreateGUIText( mText, cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
     SetVisible( false );
 }
 
@@ -49,19 +49,19 @@ void Sheet::Update() {
 
 }
 
-const char * Sheet::GetDescription() const {
-    return mDescription.c_str();
+const string & Sheet::GetDescription() const {
+    return mDescription;
 }
 
-void Sheet::SetDescription( const char * description ) {
+void Sheet::SetDescription( const string & description ) {
     mDescription = description;
 }
 
-const char * Sheet::GetText() const {
-    return mText.c_str();
+const string & Sheet::GetText() const {
+    return mText;
 }
 
-void Sheet::SetText( const char * text ) {
+void Sheet::SetText( const string & text ) {
     mText = text;
     ruSetGUINodeText( mGUIText, text );
 }

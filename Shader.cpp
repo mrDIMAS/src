@@ -24,7 +24,6 @@ VertexShader::VertexShader( string source ) {
 
     if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "vs_2_0", flags, &buffer, &errMessages, &constants ))) {
         MessageBoxA( 0, ( const char * ) errMessages->GetBufferPointer(), "Error", MB_OK ) ;
-
         exit( -1 );
     }
 

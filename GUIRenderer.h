@@ -39,6 +39,6 @@ private:
 public:
     GUIRenderer();
     ~GUIRenderer();
-    ruFontHandle CreateFont( int size, const char * name, int italic, int underlined );
+    ruFontHandle CreateFont( int size, const string & name, int italic, int underlined );
     void RenderAllGUIElements();
 };

@@ -21,13 +21,13 @@ void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
     quad->Render();
 }
 
-BitmapFont::BitmapFont( const char * file, int size ) {
+BitmapFont::BitmapFont( const string & file, int size ) {
 	if( !IsFullNPOTTexturesSupport()) {
 		size = NearestPow2(size);
 	}
     glyphSize = size;
     // load new font face
-    if( FT_New_Face( g_ftLibrary, file, 0, &face ) ) {
+    if( FT_New_Face( g_ftLibrary, file.c_str(), 0, &face ) ) {
         LogError( Format( "Failed to load '%s' font!", file ));
     }
     if( FT_Set_Pixel_Sizes( face, 0, size )) {

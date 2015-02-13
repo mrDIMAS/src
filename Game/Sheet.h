@@ -14,10 +14,10 @@ public:
     virtual ~Sheet();
     void Update();
     void Draw( );
-    void SetText( const char * text );
-    const char * GetText( ) const;
-    void SetDescription( const char * description );
-    const char * GetDescription( ) const;
+    void SetText( const string & text );
+    const string & GetText( ) const;
+    void SetDescription( const string & description );
+    const string & GetDescription( ) const;
     void SetVisible( bool state ) {
         ruSetGUINodeVisible( mGUIBackground, state );
         ruSetGUINodeVisible( mGUIText, state );

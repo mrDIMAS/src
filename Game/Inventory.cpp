@@ -10,8 +10,8 @@ Inventory::Inventory() {
     mCellTexture = ruGetTexture( "data/gui/inventory/inventoryCell.png" );
     mButtonTexture = ruGetTexture( "data/gui/inventory/inventoryButton.png" );
 
-    mOpened = 0;
-    mpSelected = 0;
+    mOpen = 0;
+    mpSelectedItem = 0;
 
     mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf", 0, 0 );
 
@@ -95,7 +95,7 @@ Inventory::Inventory() {
 }
 
 void Inventory::SetVisible( bool state ) {
-	mOpened = state;
+	mOpen = state;
     ruSetGUINodeVisible( mGUIBackground, state );
     ruSetGUINodeVisible( mGUIRectItemForUse, state );
     ruSetGUINodeVisible( mGUIBackground, state );
@@ -134,7 +134,7 @@ void Inventory::DoCombine() {
     if( mpCombineItemFirst->Combine( mpCombineItemSecond, pUsedItem )) { // combine successfull
         mpCombineItemFirst = nullptr;
         mpCombineItemSecond = nullptr;
-        mpSelected = nullptr;
+        mpSelectedItem = nullptr;
         if( pUsedItem ) {
             ThrowItem( pUsedItem );
         }
@@ -154,10 +154,10 @@ void Inventory::Update() {
 
         if( ruIsMouseHit( MB_Left )) {
             mpItemForUse = nullptr;
-            mpSelected = nullptr;
+            mpSelectedItem = nullptr;
             SetVisible( true );
         }
-        if( mOpened ) {
+        if( mOpen ) {
             mpItemForUse = nullptr;
         }
         return;
@@ -165,7 +165,7 @@ void Inventory::Update() {
         ruSetGUINodeVisible( mGUIRectItemForUse, false );
     }
 
-    if( !mOpened ) {
+    if( !mOpen ) {
         ruHideCursor();
         return;
     }
@@ -193,7 +193,7 @@ void Inventory::Update() {
 
 
     bool canCombine = ( mpCombineItemFirst != 0 && mpCombineItemSecond != 0 );
-    int useAlpha = mpSelected ? 255 : 60;
+    int useAlpha = mpSelectedItem ? 255 : 60;
     ruSetGUINodeAlpha( mGUIButtonUse, useAlpha );
     ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonUse ), useAlpha );
     ruSetGUINodeAlpha( mGUIButtonThrow, useAlpha );
@@ -250,17 +250,17 @@ void Inventory::Update() {
 
     // use item
     if( ruIsButtonHit( mGUIButtonUse )) {
-        if( mpSelected ) {
-            mpItemForUse = mpSelected;
-            mOpened = false;
+        if( mpSelectedItem ) {
+            mpItemForUse = mpSelectedItem;
+            mOpen = false;
         }
     }
 
     // throw item
     if( ruIsButtonHit( mGUIButtonThrow )) {
-        if( mpSelected ) {
-            if( mpSelected->IsThrowable() ) {
-                ThrowItem( mpSelected );
+        if( mpSelectedItem ) {
+            if( mpSelectedItem->IsThrowable() ) {
+                ThrowItem( mpSelectedItem );
             }
         }
     }
@@ -285,7 +285,7 @@ void Inventory::Update() {
                 pItem = mItemList[ itemNum ];
             }
             if( pItem )
-                if( mpSelected == pItem ) {
+                if( mpSelectedItem == pItem ) {
                     color = ruVector3( 0, 200, 0 );
                     alpha = 255;
                 }
@@ -299,7 +299,7 @@ void Inventory::Update() {
                     pPicked = pItem;
                     if( ruIsMouseHit( MB_Left )) {
                         pressed = true;
-                        mpSelected = pItem;
+                        mpSelectedItem = pItem;
                     }
                 }
             }
@@ -317,7 +317,7 @@ void Inventory::Update() {
                     }
 
                     combinePick = false;
-                    mpSelected = 0;
+                    mpSelectedItem = 0;
                 }
             }
 			
@@ -336,10 +336,10 @@ void Inventory::Update() {
                         string contentFormatted = Format( "%s: %f", mLocalization.GetString( "content" ), pItem->GetContent() );
                         string volumeFormatted = Format( "%s: %f", mLocalization.GetString( "volume" ), pItem->GetVolume() );
                         string massFormatted = Format( "%s: %f", mLocalization.GetString( "mass" ), pItem->GetMass() );
-                        ruSetGUINodeText( mGUIItemContentType, contentTypeFormatted.c_str());
-                        ruSetGUINodeText( mGUIItemContent, contentFormatted.c_str());
-                        ruSetGUINodeText( mGUIItemVolume, volumeFormatted.c_str());
-                        ruSetGUINodeText( mGUIItemMass, massFormatted.c_str());
+                        ruSetGUINodeText( mGUIItemContentType, contentTypeFormatted );
+                        ruSetGUINodeText( mGUIItemContent, contentFormatted );
+                        ruSetGUINodeText( mGUIItemVolume, volumeFormatted );
+                        ruSetGUINodeText( mGUIItemMass, massFormatted );
                     }
                 } else {
 					ruSetGUINodeVisible( mGUIItem[cw][ch], false );
@@ -357,11 +357,16 @@ void Inventory::RemoveItem( Item * pItem ) {
 
 void Inventory::ThrowItem( Item * pItem ) {
     pItem->MarkAsFree();
-    ruSetNodePosition( pItem->mObject, pPlayer->GetCurrentPosition() + 2 * pPlayer->GetLookDirection() + ruVector3( 0, 1, 0 ));
-    ruUnfreeze( pItem->mObject );
+	ruVector3 pickPoint, playerPos = pPlayer->GetCurrentPosition();
+	ruNodeHandle handle = ruCastRay( playerPos - ruVector3( 0,0.1,0), playerPos - ruVector3(0,100,0), &pickPoint );
+	if( handle.IsValid()) {
+		ruSetNodePosition( pItem->mObject, pickPoint );
+	} else {
+		ruSetNodePosition( pItem->mObject, playerPos );
+	}
     RemoveItem( pItem );
     pItem->SetContent( 0.0f );
-    mpSelected = nullptr;
+    mpSelectedItem = nullptr;
 }
 
 Inventory::~Inventory() {
@@ -369,12 +374,12 @@ Inventory::~Inventory() {
 }
 
 void Inventory::Open( bool val ) {
-    mOpened = val;
+    mOpen = val;
     SetVisible( val );
 }
 
 bool Inventory::IsOpened() const {
-    return mOpened;
+    return mOpen;
 }
 
 void Inventory::Deserialize( TextFileStream & in ) {

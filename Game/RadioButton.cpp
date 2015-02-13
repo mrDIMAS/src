@@ -10,7 +10,7 @@ void RadioButton::Update(  ) {
     ruSetGUINodeColor( mGUIText,  mOn ? ruVector3( 0, 255, 0 ) : ruVector3( 255, 0, 0 ) );
 }
 
-RadioButton::RadioButton( float x, float y, ruTextureHandle buttonImage, const char * text  ) {
+RadioButton::RadioButton( float x, float y, ruTextureHandle buttonImage, const string & text  ) {
     mOn = false;
     int textHeight = 16;
     float buttonWidth = 110;

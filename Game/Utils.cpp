@@ -147,17 +147,17 @@ const char * keyNames [] = {
     "MEDIASELECT"
 };
 
-const char * GetKeyName( unsigned int vk ) {
+string GetKeyName( unsigned int vk ) {
     if( vk < 0 ) {
-        return " ";
+        return "BadID";
     }
     if( vk > 127 ) {
-        return " ";
+        return "BadID";
     }
     return keyNames[ vk - 1 ];
 }
 
-bool FileExist( const char * file ) {
+bool FileExist( const string & file ) {
     fstream f( file );
 
     bool state = f.good();

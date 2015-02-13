@@ -4,16 +4,18 @@
 
 
 class InteractiveObject {
+private:
+	float mFlashAlbedo;
+	float mFlashAlbedoTo;
+	float mFlashSpeed;
+	bool mFlashDirection;
 public:
     ruNodeHandle mObject;
-    float flashAlbedo;
-    float flashAlbedoTo;
-    float flashSpeed;
-    bool flashDirection;
+
     static vector< InteractiveObject* > objects;
 
-    InteractiveObject( ruNodeHandle object );
-    ~InteractiveObject();
+    explicit InteractiveObject( ruNodeHandle object );
+    virtual ~InteractiveObject();
     void UpdateFlashing();
 
     virtual void Update() {

@@ -30,7 +30,7 @@ void Tip::AnimateAndDraw() {
 void Tip::SetNewText( string text ) {
     ruRestartTimer( mTimer );
     mAlpha.Set( 255.0f );
-	ruSetGUINodeText( mGUIText, text.c_str() );
+	ruSetGUINodeText( mGUIText, text );
     mY.SetMax( ruGetResolutionHeight() - mHeight );
     mY.SetMin( ruGetResolutionHeight() / 2 + mHeight );
     mY.Set( mY.GetMin());

@@ -17,6 +17,6 @@ public:
     void ParseFile( string fn );
     bool Empty();
     bool IsParsed();
-    const char * GetString( string varName );
+    const string & GetString( string varName );
     float GetNumber( string varName );
 };

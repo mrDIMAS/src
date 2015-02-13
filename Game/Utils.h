@@ -2,6 +2,6 @@
 
 #include "Game.h"
 
-const char * GetKeyName( unsigned int vk );
-bool FileExist( const char * file );
+string GetKeyName( unsigned int vk );
+bool FileExist( const string & file );
 void GetFilesWithDefExt( string folder, vector< string > & names );

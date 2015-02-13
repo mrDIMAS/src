@@ -8,7 +8,7 @@ private:
     ruTextHandle mGUIText;
     ruButtonHandle mGUIButton;
 public:
-    explicit RadioButton( float x, float y, ruTextureHandle buttonImage, const char * text );
+    explicit RadioButton( float x, float y, ruTextureHandle buttonImage, const string & text );
     void Update(  );
     bool IsEnabled( );
     void SetEnabled( bool state );

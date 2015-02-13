@@ -22,7 +22,7 @@ ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSecon
     interpolator = 0.0f;
 }
 
-void ruAnimation::Update( ) {
+void ruAnimation::Update( float dt ) {
     if ( interpolator >= 1.0f ) {
         currentFrame++;
         // get next frame number
@@ -44,7 +44,7 @@ void ruAnimation::Update( ) {
         }
         interpolator = 0.0f;
     }
-    interpolator += g_dt / timeSeconds;
+    interpolator += dt / timeSeconds;
 }
 
 void ruAnimation::SetCurrentFrame( int frame ) {

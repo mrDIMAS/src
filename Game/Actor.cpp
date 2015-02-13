@@ -136,8 +136,10 @@ void Actor::Heal( float howMuch ) {
 void Actor::ManageEnvironmentDamaging() {
 	for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
 		ruContact contact = ruGetContact( mBody, i );
-		if( contact.impulse > 2.5f ) {
-			//Damage( contact.impulse / 5 );
+		if( contact.body.IsValid()) {
+			if( ruGetNodeLinearVelocity( contact.body ).Length2() >= 2.0f ) {
+				Damage( contact.impulse / 2.5f );
+			}
 		}
 	}
 }

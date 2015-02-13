@@ -20,15 +20,15 @@ bool ruSoundHandle::operator == ( const ruSoundHandle & node ) {
     return pfHandle == node.pfHandle;
 }
 
-ruSoundHandle ruLoadSound2D( const char * file ) {
+ruSoundHandle ruLoadSound2D( const string & file ) {
     ruSoundHandle handle;
-    handle.pfHandle = pfCreateSound( pfDataLoad( file ), false, false );
+    handle.pfHandle = pfCreateSound( pfDataLoad( file.c_str() ), false, false );
     return handle;
 }
 
-ruSoundHandle ruLoadSound3D( const char * file ) {
+ruSoundHandle ruLoadSound3D( const string & file ) {
     ruSoundHandle handle;
-    handle.pfHandle = pfCreateSound( pfDataLoad( file ), true, false );
+    handle.pfHandle = pfCreateSound( pfDataLoad( file.c_str() ), true, false );
     return handle;
 }
 
@@ -40,9 +40,9 @@ void ruSetAudioReverb( int reverb ) {
     pfSetListenerSetEAXPreset( (Preset)reverb );
 }
 
-ruSoundHandle ruLoadMusic( const char * file ) {
+ruSoundHandle ruLoadMusic( const string & file ) {
     ruSoundHandle handle;
-    handle.pfHandle = pfCreateSound( pfDataLoad( file, true ), false, false );
+    handle.pfHandle = pfCreateSound( pfDataLoad( file.c_str(), true ), false, false );
     return handle;
 }
 

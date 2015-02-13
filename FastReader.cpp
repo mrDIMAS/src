@@ -89,9 +89,9 @@ FastReader::~FastReader() {
     delete [] data;
 }
 
-bool FastReader::ReadFile( const char * fileName ) {
+bool FastReader::ReadFile( const string & fileName ) {
     FILE * f;
-    f = fopen( fileName, "rb" );
+    f = fopen( fileName.c_str(), "rb" );
 
     if ( !f ) {
         return false;

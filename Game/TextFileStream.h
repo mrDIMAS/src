@@ -6,7 +6,7 @@ class TextFileStream {
 private:
     fstream mStream;
 public:
-    TextFileStream( const char * fileName, bool save );
+    TextFileStream( const string & fileName, bool save );
     ~TextFileStream();
 
     // Read functions

@@ -351,7 +351,7 @@ void Player::UpdateMoving() {
     for( auto pWay : Way::msWayList ) {
         if( !pWay->IsPlayerInside() )  {
             if( pWay->IsEnterPicked() ) {
-                SetActionText( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )).c_str());
+                SetActionText( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )));
                 if( IsUseButtonHit() ) {
                     pWay->Enter();
                 }
@@ -363,7 +363,7 @@ void Player::UpdateMoving() {
         pDoor->DoInteraction();
         if( pDoor->IsPickedByPlayer() ) {
 			if( !pDoor->IsLocked() ) {
-				SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )).c_str());
+				SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )));
 				if( IsUseButtonHit() ) {
 					pDoor->SwitchState();
 				}
@@ -749,7 +749,7 @@ Player::DrawSheetInHands
 */
 void Player::DrawSheetInHands() {
     if( mpSheetInHands ) {
-		SetActionText( Format( "%s%s", mpSheetInHands->GetDescription(), mLocalization.GetString( "sheetOpen" )).c_str());
+		SetActionText( Format( "%s%s", mpSheetInHands->GetDescription(), mLocalization.GetString( "sheetOpen" )));
         mpSheetInHands->SetVisible( true );
         mpSheetInHands->Draw();
         if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 ) {
@@ -879,11 +879,11 @@ void Player::UpdatePicking() {
             if( pItem ) {
                 pickedObjectDesc = pItem->GetName();
                 pickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
-                SetActionText( pickedObjectDesc.c_str() );
+                SetActionText( pickedObjectDesc );
             } else if( pSheet ) {
                 pickedObjectDesc = pSheet->GetDescription();
                 pickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
-                SetActionText( pickedObjectDesc.c_str() );
+                SetActionText( pickedObjectDesc );
             } else {
                 if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode )) {
                     SetActionText( mLocalization.GetString( "objectPick" ) );
@@ -1029,7 +1029,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadVector3( mGravity );
     in.ReadVector3( mJumpTo );
 
-    mpCurrentWay = Way::GetByObject( ruFindByName( in.Readstring().c_str() ));
+    mpCurrentWay = Way::GetByObject( ruFindByName( in.Readstring() ));
     if( mpCurrentWay ) {
         ruFreeze( pPlayer->mBody );
     }
@@ -1066,7 +1066,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     mHeartBeatPitch.Deserialize( in );
     mBreathPitch.Deserialize( in );
 
-    mpSheetInHands = Sheet::GetSheetPointerByNode( ruFindByName( in.Readstring().c_str() ));
+    mpSheetInHands = Sheet::GetSheetPointerByNode( ruFindByName( in.Readstring() ));
 
     in.ReadInteger( mKeyMoveForward );
     in.ReadInteger( mKeyMoveBackward );
@@ -1171,7 +1171,7 @@ void Player::CloseCurrentSheet() {
     ruPlaySound( Sheet::msPaperFlipSound );
 }
 
-void Player::SetTip( const char * text ) {
+void Player::SetTip( const string & text ) {
     mTip.SetNewText( text );
 }
 
@@ -1191,7 +1191,7 @@ void Player::DrawHUD() {
     DrawGUIElements();
 }
 
-void Player::SetActionText( const char * text ) {
+void Player::SetActionText( const string & text ) {
     ruSetGUINodeText( mGUIActionText, text );
     ruSetGUINodeVisible( mGUIActionText, true );
 }

@@ -24,7 +24,7 @@ void Goal::SetText( string t ) {
 
     mText = t;
 
-    ruSetGUINodeText( mGoalText, t.c_str() );
+    ruSetGUINodeText( mGoalText, mText );
 
     mCurrentY = g_resH * 0.45f;
 }

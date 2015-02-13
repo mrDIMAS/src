@@ -12,7 +12,7 @@ private:
 
 public:
     FastReader( );
-    bool ReadFile ( const char * fileName );
+    bool ReadFile ( const string & fileName );
     ~FastReader();
     int GetInteger( );
     unsigned short GetShort( );

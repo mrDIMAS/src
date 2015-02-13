@@ -93,7 +93,6 @@ extern float g_width;
 extern float g_height;
 extern int g_dips;
 extern int g_rendererType;
-extern float g_dt;
 
 extern FT_Library g_ftLibrary;
 // direct3d
@@ -137,12 +136,12 @@ extern bool g_usePointLightShadows;
 extern bool g_useSpotLightShadows;
 extern bool IsFullNPOTTexturesSupport();
 extern int NearestPow2( int number );
-extern void CheckDXErrorFatalFunc( HRESULT errCode, const char * file, int line );
+extern void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line );
 #define CheckDXErrorFatal( func ) CheckDXErrorFatalFunc( func, __FILE__, __LINE__ )
 extern void CreateLogFile();
 extern void LogMessage( string message );
 extern void CloseLogFile();
 extern void LogError( string message );
-extern string Format( const char * format, ... );
+
 
 #endif

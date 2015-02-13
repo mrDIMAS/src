@@ -3,7 +3,7 @@
 
 void ScrollList::Update(  ) {
     if( mValues.size() ) {
-        ruSetGUINodeText( mGUIValueText, mValues[ mCurrentValue ].c_str() );
+        ruSetGUINodeText( mGUIValueText, mValues[ mCurrentValue ] );
 
         if( ruIsButtonHit( mGUIIncreaseButton ) )
             if( mCurrentValue < mValues.size() - 1 ) {
@@ -25,7 +25,7 @@ int ScrollList::GetCurrentValue() {
     return mCurrentValue;
 }
 
-ScrollList::ScrollList( float x, float y, ruTextureHandle buttonImage, const char * text ) {
+ScrollList::ScrollList( float x, float y, ruTextureHandle buttonImage, const string & text ) {
     mCurrentValue = 0;
 
     float buttonWidth = 32;

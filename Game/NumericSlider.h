@@ -12,7 +12,7 @@ private:
     ruTextHandle mGUIText;
     ruTextHandle mGUIValueText;
 public:
-    explicit NumericSlider( float x, float y, float minimum, float maximum, float step,  ruTextureHandle buttonImage, const char * text );
+    explicit NumericSlider( float x, float y, float minimum, float maximum, float step,  ruTextureHandle buttonImage, const string & text );
     void Update(  );
     float GetValue();
     void SetValue( float value );

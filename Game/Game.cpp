@@ -60,7 +60,7 @@ void main( ) {
 
     while( g_running ) {
         try {
-            ruRenderWorld( fixedTick );
+            ruRenderWorld( );
 
             double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
             while( dt >= fixedTick ) {
@@ -96,7 +96,7 @@ void main( ) {
                     }
                     InteractiveObject::UpdateAll();
 				}
-                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps ).c_str());
+                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps ) );
                 ruSetGUINodeVisible( fpsText, g_showFPS );
 				// recalculate transforms of scene nodes
 				ruUpdateWorld();
@@ -116,9 +116,10 @@ void main( ) {
     delete pMainMenu;
     delete pGUI;
     ruFreeRenderer();
+	std::locale::global(std::locale::classic()); 
 }
-
-std::string Format( const char * format, ... ) {
+/*
+std::string Format( const string & format, ... ) {
     char buffer[ 1024 ];
     va_list	argumentList;
 
@@ -132,8 +133,8 @@ std::string Format( const char * format, ... ) {
 float frandom( float low, float high ) {
     return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
 }
-
+*/
 void RaiseError( const string & text ) {
     MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
-    throw runtime_error( text.c_str() );
+    throw runtime_error( text );
 }

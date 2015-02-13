@@ -107,7 +107,7 @@ TextFileStream::~TextFileStream() {
     mStream.close();
 }
 
-TextFileStream::TextFileStream( const char * fileName, bool save ) {
+TextFileStream::TextFileStream( const string & fileName, bool save ) {
     int flags = save ? ( fstream::out | fstream::trunc ) : ( fstream::in );
     mStream.open( fileName, flags );
 }

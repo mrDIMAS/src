@@ -11,7 +11,7 @@ void Parser::ParseFile( string fn ) {
     fopen_s ( &file, fn.c_str(), "r" );
 
     if ( !file ) {
-        RaiseError( Format( "Unable to parse file '%s'!", fn.c_str()));
+        RaiseError( Format( "Unable to parse file '%s'!", fn));
         return;
     }
 
@@ -28,7 +28,7 @@ void Parser::ParseFile( string fn ) {
     fclose ( file );
 
     if ( str.size() <= 1 ) {
-        RaiseError( Format( "Unable to parse file '%s'!", fn.c_str()));
+        RaiseError( Format( "Unable to parse file '%s'!", fn));
         return;
     }
 
@@ -98,23 +98,20 @@ float Parser::GetNumber( string varName ) {
     if( iValue != mValueList.end() ) {
         return atof( iValue->second.c_str() );
     } else {
-        RaiseError( Format( "Unable to get number '%s' from '%s'!", varName.c_str(), mFileName.c_str() ).c_str() );
+        RaiseError( Format( "Unable to get number '%s' from '%s'!", varName, mFileName ) );
     }
 
     // never reached
     return 0.0f;
 }
 
-const char * Parser::GetString( string varName ) {
+const string & Parser::GetString( string varName ) {
     auto iValue = mValueList.find( varName );
 
     if( iValue != mValueList.end() ) {
-        return iValue->second.c_str();
-    } else {
-        RaiseError( Format( "Unable to get string '%s' from '%s'!", varName.c_str(), mFileName.c_str() ).c_str() );
+        return iValue->second;
     }
-    // never reached
-    return "";
+    RaiseError( Format( "Unable to get string '%s' from '%s'!", varName, mFileName ) );
 }
 
 bool Parser::IsParsed() {

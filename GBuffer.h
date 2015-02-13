@@ -15,6 +15,8 @@ public:
     IDirect3DSurface9 * diffuseSurface;
     IDirect3DSurface9 * backSurface;
 
+	void CreateRenderTargets();
+	void FreeRenderTargets();
 public:
     GBuffer();
     ~GBuffer();
@@ -29,4 +31,6 @@ public:
     void BindDepthMapAsRT();
     void BindBackSurfaceAsRT();
     void UnbindTextures();
+
+	void OnDeviceLost();
 };
