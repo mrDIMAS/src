@@ -28,13 +28,13 @@ BitmapFont::BitmapFont( const string & file, int size ) {
     glyphSize = size;
     // load new font face
     if( FT_New_Face( g_ftLibrary, file.c_str(), 0, &face ) ) {
-        LogError( Format( "Failed to load '%s' font!", file ));
+        LogError( StringBuilder( "Failed to load" ) << file << "font!" );
     }
     if( FT_Set_Pixel_Sizes( face, 0, size )) {
-        LogError( Format( "Failed to FT_Set_Pixel_Sizes!", file ));
+        LogError( StringBuilder( "Failed to FT_Set_Pixel_Sizes!" ));
     }
     if( FT_Select_Charmap( face, FT_ENCODING_UNICODE )) {
-        LogError( Format( "Failed to FT_Select_Charmap!", file ));
+        LogError( StringBuilder( "Failed to FT_Select_Charmap!" ));
     }
     // create atlas texture
 	atlasWidth = atlasHeight = size * 16;
@@ -58,10 +58,10 @@ BitmapFont::BitmapFont( const string & file, int size ) {
             charIndexOffset++;
         }
         if( FT_Load_Glyph( face, FT_Get_Char_Index( face, charIndex + charIndexOffset ), FT_LOAD_DEFAULT )) {
-            LogError( Format( "Failed to FT_Load_Glyph!", file ));
+            LogError( StringBuilder( "Failed to FT_Load_Glyph!" ));
         }
         if( FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL )) {
-            LogError( Format( "Failed to FT_Load_Glyph!", file ));
+            LogError( StringBuilder( "Failed to FT_Load_Glyph!" ));
         }
         int memOffsetBytes = subRectRow * lockedRect.Pitch * size + subRectCol * size * sizeof( ARGB8Pixel );
         ARGB8Pixel * subRectPixel = (ARGB8Pixel *)( (char*)lockedRect.pBits + memOffsetBytes );

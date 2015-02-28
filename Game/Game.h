@@ -17,14 +17,15 @@
 /*#include <vld.h>*/
 #include <windows.h>
 #include <assert.h>
+#include <sstream>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
 #ifdef _DEBUG
-#pragma comment( lib, "Ruthenium_d.lib" )
+#	pragma comment( lib, "Ruthenium_d.lib" )
 #else
-#pragma comment( lib, "Ruthenium.lib" )
+#	pragma comment( lib, "Ruthenium.lib" )
 #endif 
 
 enum class FootstepsType {

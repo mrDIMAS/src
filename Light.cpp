@@ -18,7 +18,7 @@ Light * Light::GetLightByHandle( ruNodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
     Light * light = dynamic_cast< Light* >( n );
     if( !light ) {
-        MessageBoxA( 0, Format( "Node '%s' is not a light!", n->mName.c_str() ).c_str(), "Error", MB_OK );
+        MessageBoxA( 0, (StringBuilder( "Node " ) << n->mName << " is not a light!").ToCStr(), "Error", MB_OK );
         exit( -1 );
     }
     return light;

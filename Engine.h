@@ -4,12 +4,15 @@
 #include <math.h>
 #include <string>
 #include <windows.h>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
 #ifdef _EXPORTS
 #ifndef API
-#define RUAPI _declspec( dllexport )
+#define RUAPI
+//#define RUAPI _declspec( dllexport )
 #endif
 #else
 #ifndef API
@@ -17,8 +20,31 @@ using namespace std;
 #endif
 #endif
 
+class RUAPI StringBuilder {
+protected:
+	std::stringstream mStream;
+public:
+	explicit StringBuilder( const char * str ) {
+		stringstream::sync_with_stdio(false);
+		mStream << str;
+	}
+	explicit StringBuilder(  ) {
+		stringstream::sync_with_stdio(false);
+	}
+	template<class T>
+	StringBuilder & operator<< (const T& arg) {
+		mStream << arg;
+		return *this;
+	}
+	operator string() const {
+		return mStream.str();
+	}
+	const char * ToCStr() {
+		return mStream.str().c_str();
+	}
+};
+
 RUAPI float frandom( float low, float high );
-RUAPI string Format( string format, ... );
 
 class RUAPI ruVector3 {
 public:
@@ -540,6 +566,7 @@ public:
     bool useLighting;
 
     bool enabled;
+	float depthHack;
 
     ruTextureHandle texture;
 
@@ -559,6 +586,8 @@ public:
         boundingRadius = 1.0f;
         pointSize = 1.0f;
         scaleFactor = 0.0f;
+
+		depthHack = 0.0f;
 
         autoResurrectDeadParticles = true;
         useLighting = false;

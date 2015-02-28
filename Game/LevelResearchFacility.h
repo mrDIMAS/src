@@ -22,13 +22,13 @@ private:
     ruSoundHandle mFanSound;
     ruSoundHandle mLeverSound;
     ruSoundHandle mSteamHissSound;
-    ruNodeHandle mScaryBarellThrowZone;
-    ruNodeHandle mSteamActivateZone;
+    ruNodeHandle mZoneScaryBarellThrow;
+    ruNodeHandle mZoneSteamActivate;
     ruNodeHandle mSteamPS;
     ruNodeHandle mDoorOpenLever;
     ruNodeHandle mLockedDoor;
     ruNodeHandle mExtremeSteamBlock;
-    ruNodeHandle mExtremeSteamHurtZone;
+    ruNodeHandle mZoneExtremeSteamHurt;
     ruNodeHandle fuseModel[3];
     ruNodeHandle powerLever;
     ruNodeHandle mPowerLeverOffModel;
@@ -38,8 +38,13 @@ private:
     ruNodeHandle mPowerLamp;
     ruNodeHandle mPowerLeverSnd;
     ruNodeHandle mSmallSteamPosition;
+	ruNodeHandle mZoneObjectiveRestorePower;
+	ruNodeHandle mZoneExaminePlace;
+	ruNodeHandle mZoneNeedCrowbar;
+	ruNodeHandle mDoorUnderFloor;
 
     Item * fuse[3];
+	Item * mCrowbarItem;
     ItemPlace * mFusePlaceList[3];
     int fuseInsertedCount;
     bool mPowerOn;

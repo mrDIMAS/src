@@ -39,10 +39,18 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
         particleEmitter->Update();
         particleEmitter->Bind();
 
+		if( fabs( particleEmitter->props.depthHack ) > 0.001 ) {
+			g_camera->EnterDepthHack( fabs( particleEmitter->props.depthHack ));
+		}
+
         D3DXMATRIX mWVP;
         D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &g_camera->viewProjection );
         gpRenderer->SetVertexShaderMatrix( 0, &mWVP );
 
         particleEmitter->Render();
+
+		if( fabs( particleEmitter->props.depthHack ) > 0.001 ) {
+			g_camera->LeaveDepthHack();
+		}
     }
 }

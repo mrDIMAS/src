@@ -4,7 +4,7 @@
 
 
 void NumericSlider::Update( ) {
-    ruSetGUINodeText( mGUIValueText, Format( "%.1f", mValue ) );
+    ruSetGUINodeText( mGUIValueText, StringBuilder() << setprecision( 1 ) << mValue );
 
     if( ruIsButtonHit( mGUIIncreaseButton )  ) {
         if( mValue < mfMaximum ) {

@@ -23,17 +23,6 @@ void GetD3DMatrixFromBulletTransform ( const btTransform & trn, D3DMATRIX & outM
     outMatrix._44 = 1.0f;
 }
 
-std::string Format( string format, ... ) {
-    char buffer[ 1024 ];
-    va_list	argumentList;
-
-    va_start( argumentList, format );
-    vsprintf_s( buffer, format.c_str(), argumentList);
-    va_end(argumentList);
-
-    return string( buffer );
-}
-
 float frandom( float low, float high ) {
     return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
 }

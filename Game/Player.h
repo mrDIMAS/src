@@ -23,7 +23,6 @@ public:
     void LoadGUIElements();
     void UpdateJumping();
     void UpdateCameraShake();
-    void DrawGUIElements();
     void UpdateFlashLight();
     void UpdatePicking();
     void UpdateItemsHandling();
@@ -152,7 +151,7 @@ public:
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
     void ComputeStealth();
-    void DrawHUD();
+
     Inventory * GetInventory();
     Flashlight * GetFlashLight();
     Parser * GetLocalization();
@@ -161,16 +160,5 @@ public:
     virtual void DeserializeWith( TextFileStream & in ) final;
     void SetActionText( const string & text );
     void SetHUDVisible( bool state );
-	virtual void ManageEnvironmentDamaging() final {
-		for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
-			ruContact contact = ruGetContact( mBody, i );
-			if( contact.body.IsValid()) {
-				if( !(contact.body == mNodeInHands)) {
-					if( ruGetNodeLinearVelocity( contact.body ).Length2() >= 2.0f ) {
-						Damage( contact.impulse / 5 );
-					}
-				}
-			}
-		}
-	}
+	virtual void ManageEnvironmentDamaging() final;
 };

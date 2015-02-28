@@ -24,6 +24,7 @@ private:
     ruSoundHandle mOffSound;
     ruSoundHandle mOutOfChargeSound;
 
+	ruNodeHandle mFire;
     ruVector3 mInitialPosition;
 
     ruVector3 mPosition;
@@ -42,6 +43,9 @@ public:
     void Update();
     bool IsOn() const;
     float GetCharge();
+	ruNodeHandle GetLight() {
+		return mLight;
+	}
     bool IsBeamContainsPoint( ruVector3 point ) const;
     Item * CreateAppropriateItem();
     virtual void SerializeWith( TextFileStream & out ) final;

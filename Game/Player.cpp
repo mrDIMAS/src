@@ -5,11 +5,6 @@
 
 Player * pPlayer = 0;
 
-/*
-========
-Player::Player
-========
-*/
 Player::Player() : Actor( 0.7f, 0.2f ) {
     mLocalization.ParseFile( localizationPath + "player.loc" );
 
@@ -24,9 +19,7 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
 
     mObjectThrown = false;
     mSmoothCamera = true;
-
-
-
+	
     mPitch = SmoothFloat( 0.0f, -89.9f, 89.9f );
     mYaw = SmoothFloat( 0.0f );
     mHeadAngle = SmoothFloat( 0.0f, -12.50f, 12.50f );
@@ -87,12 +80,6 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
     }
 }
 
-
-/*
-========
-Player::DrawStatusBar
-========
-*/
 void Player::DrawStatusBar() {
     if( mMoved ) {
         mStaminaAlpha.SetTarget( 255 );
@@ -126,25 +113,10 @@ void Player::DrawStatusBar() {
     }
 }
 
-/*
-========
-Player::CanJump
-========
-*/
-bool Player::IsCanJump( ) {
-    ruNodeHandle legBump = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight * 2, 0 ), 0 );
-    if( legBump.IsValid() ) {
-        return true;
-    } else {
-        return false;
-    }
+bool Player::IsCanJump( ) {    
+    return ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight * 2, 0 ), 0 ).IsValid();
 }
 
-/*
-========
-Player::UseStamina
-========
-*/
 bool Player::UseStamina( float required ) {
     if( mStamina - required < 0 ) {
         return false;
@@ -155,11 +127,6 @@ bool Player::UseStamina( float required ) {
     return true;
 }
 
-/*
-========
-Player::Damage
-========
-*/
 void Player::Damage( float dmg ) {
     Actor::Damage( dmg );
     if( mHealth <= 0.0f ) {
@@ -176,11 +143,6 @@ void Player::Damage( float dmg ) {
     }
 }
 
-/*
-========
-Player::AddItem
-========
-*/
 void Player::AddItem( Item * pItem ) {
     if( !pItem ) {
         return;
@@ -199,11 +161,6 @@ void Player::AddItem( Item * pItem ) {
     mInventory.AddItem( pItem );
 }
 
-/*
-========
-Player::UpdateInventory
-========
-*/
 void Player::UpdateInventory() {
 	if( !mpSheetInHands ) {
 		if( ruIsKeyHit( mKeyInventory ) ) {
@@ -214,11 +171,6 @@ void Player::UpdateInventory() {
 	}
 }
 
-/*
-========
-Player::SetObjective
-========
-*/
 void Player::SetObjective( string text ) {
     string objectiveText = mLocalization.GetString( "currentObjective" );
     objectiveText += text;
@@ -228,22 +180,12 @@ void Player::SetObjective( string text ) {
     mObjectiveDone = false;
 }
 
-/*
-========
-Player::CompleteObjective
-========
-*/
 void Player::CompleteObjective() {
     SetObjective( mLocalization.GetString( "objectiveUnknown" ));
 
     mObjectiveDone = true;
 }
 
-/*
-========
-Player::UpdateMouseLook
-========
-*/
 void Player::UpdateMouseLook() {
     if( mpCurrentWay ) {
         mSmoothCamera = false;
@@ -312,11 +254,6 @@ void Player::UpdateMouseLook() {
     ruSetNodeRotation( mHead, ruQuaternion( ruVector3( 0.0f, 0.0f, 1.0f ), mHeadAngle ));
 }
 
-/*
-========
-Player::UpdateJumping
-========
-*/
 void Player::UpdateJumping() {
     // do ray test, to determine collision with objects above camera
     ruNodeHandle headBumpObject = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0.0f, mBodyHeight * 0.98f, 0.0f ), ruGetNodePosition( mBody ) + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
@@ -342,16 +279,11 @@ void Player::UpdateJumping() {
     };
 }
 
-/*
-========
-Player::UpdateMoving
-========
-*/
 void Player::UpdateMoving() {
     for( auto pWay : Way::msWayList ) {
         if( !pWay->IsPlayerInside() )  {
             if( pWay->IsEnterPicked() ) {
-                SetActionText( Format( mLocalization.GetString( "crawlIn" ), GetKeyName( mKeyUse )));
+                SetActionText( StringBuilder() <<  GetKeyName( mKeyUse ) << mLocalization.GetString( "crawlIn" ));
                 if( IsUseButtonHit() ) {
                     pWay->Enter();
                 }
@@ -363,7 +295,7 @@ void Player::UpdateMoving() {
         pDoor->DoInteraction();
         if( pDoor->IsPickedByPlayer() ) {
 			if( !pDoor->IsLocked() ) {
-				SetActionText( Format( mLocalization.GetString( "openClose" ), GetKeyName( mKeyUse )));
+				SetActionText( StringBuilder() << GetKeyName( mKeyUse ) << mLocalization.GetString( "openClose" ));
 				if( IsUseButtonHit() ) {
 					pDoor->SwitchState();
 				}
@@ -404,11 +336,14 @@ void Player::UpdateMoving() {
 
         mSpeedTo = ruVector3( 0, 0, 0 );
 
+		bool moveBack = false;
+
         if( ruIsKeyDown( mKeyMoveForward )) {
             mSpeedTo = mSpeedTo + look;
         }
         if( ruIsKeyDown( mKeyMoveBackward )) {
             mSpeedTo = mSpeedTo - look;
+			moveBack = true;
         }
         if( ruIsKeyDown( mKeyStrafeLeft )) {
             mSpeedTo = mSpeedTo + right;
@@ -429,7 +364,7 @@ void Player::UpdateMoving() {
         mFov.SetTarget( mFov.GetMin() );
 
         mRunning = false;
-        if( ruIsKeyDown( mKeyRun ) && mMoved ) {
+        if( ruIsKeyDown( mKeyRun ) && mMoved && !mNodeInHands.IsValid()) {
             if( mStamina > 0 ) {
                 mSpeedTo = mSpeedTo * mRunSpeedMult;
                 mStamina -= 8.0f * g_dt ;
@@ -442,6 +377,10 @@ void Player::UpdateMoving() {
                 mStamina += 16.0f * g_dt;
             }
         }
+
+		if( moveBack ) {
+			mSpeedTo = mSpeedTo * 0.4f;
+		}
 
 		if( ruIsKeyHit( mKeyStealth )) {
 			Crouch( !IsCrouch() );
@@ -462,27 +401,20 @@ void Player::UpdateMoving() {
     UpdateCameraShake();
 }
 
-/*
-========
-Player::ComputeStealth
-========
-*/
 void Player::ComputeStealth() {
     bool inLight = false;
-    ruVector3 pos = ruGetNodePosition( mBody );
-    ruNodeHandle affectLight;
+ 
     for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-        if( ruIsLightSeePoint( ruGetWorldPointLight( i ), pos )) {
+        if( ruIsLightSeePoint( ruGetWorldPointLight( i ), ruGetNodePosition( mBody ) )) {
             inLight = true;
-            affectLight = ruGetWorldPointLight( i );
             break;
         }
     }
+
     if( !inLight ) {
         for( int i = 0; i < ruGetWorldSpotLightCount(); i++ ) {
-            if( ruIsLightSeePoint( ruGetWorldSpotLight( i ), pos )) {
+            if( ruIsLightSeePoint( ruGetWorldSpotLight( i ), ruGetNodePosition( mBody ) )) {
                 inLight = true;
-                affectLight = ruGetWorldSpotLight( i );
                 break;
             }
         }
@@ -503,8 +435,7 @@ void Player::ComputeStealth() {
         mStealthFactor += mMoved ? 0.1f : 0.0f;
         mStealthFactor += mRunning ? 0.25f : 0.0f;
     }
-
-
+	
     for( auto snd : mFootstepList ) {
         if( mStealthMode ) {
             ruSetSoundVolume( snd, 0.15f );
@@ -521,44 +452,32 @@ void Player::ComputeStealth() {
 	ruSetGUINodeAlpha( mGUIStealthSign, alpha );
 	ruSetGUINodeColor( mGUIStealthSign, color );
 }
-/*
-========
-Player::Update
-========
-*/
+
+
 void Player::Update( ) {
-    ruSetGUINodeVisible( mGUIActionText, false );
-    UpdateFright();
+    ruSetGUINodeVisible( mGUIActionText, false );    
     mpCamera->Update();
-
-    if( pMainMenu->IsVisible() ) {
-        return;
-    }
-
-    DrawGUIElements();
-    DrawStatusBar();
-    UpdateFlashLight();
-
-    if( mDead ) {
-        return;
-    }
-    mTip.AnimateAndDraw();
-    UpdateMouseLook();
-    UpdateMoving();
-    ComputeStealth();
-    UpdatePicking();
-    UpdateItemsHandling();
-    ManageEnvironmentDamaging();
-    UpdateInventory();
-    DrawSheetInHands();
-    UpdateCursor();
+    if( !pMainMenu->IsVisible() ) {
+		mGoal.AnimateAndRender();
+		DrawStatusBar();
+		if( !mDead ) {
+			ruSetGUINodeVisible( mGUIStealthSign, mStealthMode );
+			UpdateFright();
+			UpdateFlashLight();
+			mTip.AnimateAndDraw();
+			UpdateMouseLook();
+			UpdateMoving();
+			ComputeStealth();
+			UpdatePicking();
+			UpdateItemsHandling();
+			ManageEnvironmentDamaging();
+			UpdateInventory();
+			DrawSheetInHands();
+			UpdateCursor();
+		}
+	}
 }
 
-/*
-========
-Player::LoadGUIElements
-========
-*/
 void Player::LoadGUIElements() {
     mItemPickupSound = ruLoadSound2D( "data/sounds/menuhit.ogg" );
     mStatusBar = ruGetTexture( "data/gui/statusbar.png" );
@@ -569,11 +488,6 @@ void Player::LoadGUIElements() {
 	mGUIStealthSign = ruCreateGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, ruGetTexture( "data/textures/effects/eye.png" ));
 }
 
-/*
-========
-Player::CreateCamera
-========
-*/
 void Player::CreateCamera() {
     mHeadHeight = 2.1;
 
@@ -595,11 +509,6 @@ void Player::CreateCamera() {
     ruSetNodePosition( mItemPoint, ruVector3( 0, 0, 1.0f ));
 }
 
-/*
-========
-Player::SetRockFootsteps
-========
-*/
 void Player::SetRockFootsteps() {
     for( auto s : mFootstepList ) {
         ruFreeSound( s );
@@ -628,11 +537,6 @@ void Player::SetRockFootsteps() {
     mFootstepsType = FootstepsType::Rock;
 }
 
-/*
-========
-Player::SetDirtFootsteps
-========
-*/
 void Player::SetDirtFootsteps() {
     for( auto s : mFootstepList ) {
         ruFreeSound( s );
@@ -653,11 +557,6 @@ void Player::SetDirtFootsteps() {
     mFootstepsType = FootstepsType::Dirt;
 }
 
-/*
-========
-Player::LoadSounds
-========
-*/
 void Player::LoadSounds() {
     mLighterCloseSound = ruLoadSound3D( "data/sounds/lighter_close.ogg" );
     mLighterOpenSound = ruLoadSound3D( "data/sounds/lighter_open.ogg" );
@@ -677,11 +576,6 @@ void Player::LoadSounds() {
     mBreathPitch = SmoothFloat( 1.0f );
 }
 
-/*
-========
-Player::DoFright
-========
-*/
 void Player::DoFright() {
     mBreathVolume.SetTarget( 0.1f );
     mBreathVolume.Set( 0.25f );
@@ -693,11 +587,6 @@ void Player::DoFright() {
     mBreathPitch.SetTarget( 1.0f );
 }
 
-/*
-========
-Player::UpdateFright
-========
-*/
 void Player::UpdateFright() {
     mBreathVolume.ChaseTarget( 0.075f );
     mHeartBeatVolume.ChaseTarget( 0.075f );
@@ -714,11 +603,6 @@ void Player::UpdateFright() {
 	ruSetSoundsPitch( heartBeatSound, heartBeatPitch );*/
 }
 
-/*
-========
-Player::UpdateCameraShake
-========
-*/
 void Player::UpdateCameraShake() {
     static int stepPlayed = 0;
 
@@ -742,14 +626,9 @@ void Player::UpdateCameraShake() {
     ruSetNodePosition( mpCamera->mNode, mCameraOffset );
 }
 
-/*
-========
-Player::DrawSheetInHands
-========
-*/
 void Player::DrawSheetInHands() {
     if( mpSheetInHands ) {
-		SetActionText( Format( "%s%s", mpSheetInHands->GetDescription(), mLocalization.GetString( "sheetOpen" )));
+		SetActionText( StringBuilder() << mpSheetInHands->GetDescription() << mLocalization.GetString( "sheetOpen" ));
         mpSheetInHands->SetVisible( true );
         mpSheetInHands->Draw();
         if( ruIsMouseHit( MB_Right ) ||  ( ruGetNodePosition( mpSheetInHands->mObject) - ruGetNodePosition( mBody )).Length2() > 2 ) {
@@ -758,11 +637,6 @@ void Player::DrawSheetInHands() {
     }
 }
 
-/*
-========
-Player::DescribePickedObject
-========
-*/
 void Player::UpdateCursor() {
 	if( mInventory.IsOpened() )	{
 		ruSetGUINodeVisible( mGUICursorPut, false );
@@ -790,12 +664,6 @@ void Player::UpdateCursor() {
 	}
 }
 
-
-/*
-========
-Player::UpdateItemsHandling
-========
-*/
 void Player::UpdateItemsHandling() {
 	if( !mInventory.IsOpened() ) {
 		if( mNearestPickedNode.IsValid() ) {
@@ -852,11 +720,6 @@ void Player::UpdateItemsHandling() {
     }
 }
 
-/*
-========
-Player::UpdatePicking
-========
-*/
 void Player::UpdatePicking() {
     ruVector3 pickPosition;
 
@@ -877,12 +740,10 @@ void Player::UpdatePicking() {
             mNearestPickedNode = mPickedNode;
 			string pickedObjectDesc;
             if( pItem ) {
-                pickedObjectDesc = pItem->GetName();
-                pickedObjectDesc += Format( mLocalization.GetString( "itemPick" ), GetKeyName( mKeyUse) );
+                pickedObjectDesc = StringBuilder() << pItem->GetName() << "- [" << GetKeyName( mKeyUse).c_str() << "] " << mLocalization.GetString( "itemPick" );
                 SetActionText( pickedObjectDesc );
             } else if( pSheet ) {
-                pickedObjectDesc = pSheet->GetDescription();
-                pickedObjectDesc += Format( mLocalization.GetString( "sheetPick" ), GetKeyName( mKeyUse ));
+                pickedObjectDesc = StringBuilder() << pSheet->GetDescription() << "- [" << GetKeyName( mKeyUse ) << "] " << mLocalization.GetString( "sheetPick" );
                 SetActionText( pickedObjectDesc );
             } else {
                 if( IsObjectHasNormalMass( mPickedNode ) && !ruIsNodeFrozen( mPickedNode )) {
@@ -914,46 +775,25 @@ void Player::UpdateFlashLight() {
 
     mpFlashLightItem->SetContent( mpFlashlight->GetCharge() );
 
-    if( ruIsKeyHit( mKeyFlashLight ) ) {
+    if( ruIsKeyHit( mKeyFlashLight ) && !mNodeInHands.IsValid() ) {
         mpFlashlight->Switch();
     }
 }
-
-void Player::DrawGUIElements() {
-
-    mGoal.AnimateAndRender();
-}
-
 
 void Player::FreeHands() {
     mNodeInHands.Invalidate();
 }
 
-/*
-========
-Player::ChargeFlashLight
-========
-*/
 void Player::ChargeFlashLight() {
     mpFlashlight->Fuel();
 }
 
-/*
-========
-Player::~Player
-========
-*/
 Player::~Player() {
     delete mpFlashlight;
     delete mpCamera;
     delete mpFlashLightItem;
 }
 
-/*
-========
-Player::SetMetalFootsteps
-========
-*/
 void Player::SetMetalFootsteps() {
     for( auto s : mFootstepList ) {
         ruFreeSound( s );
@@ -974,11 +814,6 @@ void Player::SetMetalFootsteps() {
     mFootstepsType = FootstepsType::Metal;
 }
 
-/*
-========
-Player::SetFootsteps
-========
-*/
 void Player::SetFootsteps( FootstepsType ft ) {
     if( ft == FootstepsType::Dirt ) {
         SetDirtFootsteps();
@@ -991,29 +826,14 @@ void Player::SetFootsteps( FootstepsType ft ) {
     }
 }
 
-/*
-========
-Player::IsUseButtonHit
-========
-*/
 bool Player::IsUseButtonHit() {
     return ruIsKeyHit( mKeyUse );
 }
 
-/*
-========
-Player::IsObjectHasNormalMass
-========
-*/
 bool Player::IsObjectHasNormalMass( ruNodeHandle node ) {
     return ruGetNodeMass( node ) > 0 && ruGetNodeMass( node ) < 40;
 }
 
-/*
-========
-Player::DeserializeWith
-========
-*/
 void Player::DeserializeWith( TextFileStream & in ) {
     ruSetNodeLocalPosition( mBody, in.ReadVector3() );
 
@@ -1083,18 +903,12 @@ void Player::DeserializeWith( TextFileStream & in ) {
     mpFlashlight->DeserializeWith( in );
 
     mTip.Deserialize( in );
-    //headAngle.Deserialize( in );
 
     mpCamera->FadePercent( 100 );
     mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ) );
     ruSetNodeFriction( mBody, 0 );
 }
 
-/*
-========
-Player::SerializeWith
-========
-*/
 void Player::SerializeWith( TextFileStream & out ) {
     ruUnfreeze( mBody );
     out.WriteVector3( ruGetNodeLocalPosition( mBody ));
@@ -1161,7 +975,6 @@ void Player::SerializeWith( TextFileStream & out ) {
     mpFlashlight->SerializeWith( out );
 
     mTip.Serialize( out );
-    //headAngle.Serialize( out );
 }
 
 void Player::CloseCurrentSheet() {
@@ -1185,10 +998,6 @@ Flashlight * Player::GetFlashLight() {
 
 Inventory * Player::GetInventory() {
     return &mInventory;
-}
-
-void Player::DrawHUD() {
-    DrawGUIElements();
 }
 
 void Player::SetActionText( const string & text ) {
@@ -1215,4 +1024,19 @@ void Player::SetHUDVisible( bool state ) {
 		ruSetGUINodeVisible( mGUICrosshair, state );		
 		ruSetGUINodeVisible( mGUICursorPut, state );
 	}
+}
+
+void Player::ManageEnvironmentDamaging()
+{
+	/*
+	for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
+		ruContact contact = ruGetContact( mBody, i );
+		if( contact.body.IsValid()) {
+			if( !(contact.body == mNodeInHands)) {
+				if( ruGetNodeLinearVelocity( contact.body ).Length2() >= 2.0f ) {
+					Damage( contact.impulse / 5 );
+				}
+			}
+		}
+	}*/
 }

@@ -15,6 +15,7 @@ public:
         Flashlight		= 5,
         Fuse			= 6,
         Medkit			= 7,
+		Crowbar			= 8,
     };
 private:
     static Parser msLocalization;

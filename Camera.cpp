@@ -69,7 +69,7 @@ Camera::~Camera() {
 
 Camera::Camera( float fov ) {
     this->fov = fov;
-    nearZ = 0.1f;
+    nearZ = 0.025f;
     farZ = 6000.0f;
     skybox = nullptr;
     g_camera = this;

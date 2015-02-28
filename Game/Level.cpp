@@ -135,9 +135,12 @@ void Level::Change( int levelId, bool continueFromSave ) {
             SaveLoader( "lastGame.save" ).RestoreWorldState();
         }
         for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-            ruSetLightFloatingEnabled( ruGetWorldPointLight( i ), true );
-            float d = 0.1f;
-            ruSetLightFloatingLimits( ruGetWorldPointLight( i ), ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
+			ruNodeHandle light = ruGetWorldPointLight( i );
+			if( !(light == pPlayer->mpFlashlight->GetLight() )) {
+				ruSetLightFloatingEnabled( light, true );
+				float d = 0.1f;
+				ruSetLightFloatingLimits( light, ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
+			}
         }
     }
 }
@@ -237,15 +240,15 @@ ruNodeHandle Level::GetUniqueObject( const string & name ) {
     // game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
     // also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
     if( mInitializationComplete ) {
-        RaiseError( Format( "You must get object in game level intialization! Get object in game logic loop is strictly forbidden! Object name: '%s'", name ));
+        RaiseError( StringBuilder( "You must get object in game level intialization! Get object in game logic loop is strictly forbidden! Object name: " ) << name );
     }
     if( !mScene.IsValid() ) {
-        RaiseError( Format( "Object '%s' can't be found in the empty scene. Load scene first!", name ));
+        RaiseError( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
     }
     ruNodeHandle object = ruFindInObjectByName( mScene, name );
     // each unique object must be presented in the scene, otherwise error will be generated
     if( !object.IsValid() ) {
-        RaiseError( Format( "Object '%s' can't be found in the scene! Game will be closed.", name ));
+        RaiseError( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
     }
     return object;
 }
@@ -253,7 +256,7 @@ ruNodeHandle Level::GetUniqueObject( const string & name ) {
 void Level::LoadSceneFromFile( const string & file ) {
     mScene = ruLoadScene( file );
     if( !mScene.IsValid() ) {
-        RaiseError( Format( "Unable to load scene from '%s'! Game will be closed.", file ));
+        RaiseError( StringBuilder( "Unable to load scene from " ) << file << "! Game will be closed." );
     }
 }
 

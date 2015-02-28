@@ -5,7 +5,7 @@ void Flashlight::Update() {
     if( mOn ) {
         mRangeDest = mOnRange;
 
-        mCharge -= g_dt / mChargeWorkTimeSeconds;
+        //mCharge -= g_dt / mChargeWorkTimeSeconds;
 
         if( mCharge < 0.1f ) {
             mCharge = 0.1f;
@@ -58,7 +58,7 @@ void Flashlight::SwitchOff() {
 }
 
 void Flashlight::Attach( ruNodeHandle node ) {
-    ::ruAttachNode( mModel, node );
+    ruAttachNode( mModel, node );
 
     mInitialPosition = ruGetNodePosition( mModel );
     mDestPosition = mInitialPosition;
@@ -75,7 +75,7 @@ bool Flashlight::GotCharge() {
 
 Flashlight::Flashlight() {
     mModel = ruLoadScene( "data/models/hands/arm.scene" );
-    ruSetNodeDepthHack( mModel, 0.1f );
+    ruSetNodeDepthHack( mModel, 0.155f );
 
     mLight = ruFindInObjectByName( mModel, "PlayerLight" );
     ruSetLightSpotTexture( mLight, ruGetTexture( "data/textures/generic/spotlight.jpg"));
@@ -86,6 +86,9 @@ Flashlight::Flashlight() {
 
     mOnRange = ruGetLightRange( mLight );
 
+	const float lim = 0.02;
+	ruSetLightFloatingLimits( mLight, ruVector3( -lim, -lim, -lim ), ruVector3( lim, lim, lim ));
+
     mRealRange = mOnRange;
     mRangeDest = mOnRange;
 
@@ -95,6 +98,22 @@ Flashlight::Flashlight() {
     mChargeWorkTimeSeconds = 240.0f;
     mShakeCoeff = 0.0f;
     mOn = true;
+
+	ruParticleSystemProperties psProps;
+	psProps.type = PS_STREAM;
+	psProps.speedDeviationMin = ruVector3( -0.00001f, 0.001f, -0.00001f );
+	psProps.speedDeviationMax = ruVector3( 0.000012f, 0.0015f, 0.000012f );
+	psProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
+	psProps.colorBegin = ruVector3( 0, 55, 244 );
+	psProps.colorEnd = ruVector3( 255, 127, 39 );
+	psProps.pointSize = 0.0095f;
+	psProps.particleThickness = 1.5f;
+	psProps.boundingRadius = 0.004f;
+	psProps.useLighting = false;
+	psProps.depthHack = 0.1551f;
+	psProps.scaleFactor = -0.00008f;
+	mFire = ruCreateParticleSystem( 60, psProps );
+	ruAttachNode( mFire, ruFindInObjectByName( mModel, "FirePlace" ));
 }
 
 void Flashlight::DeserializeWith( TextFileStream & in ) {

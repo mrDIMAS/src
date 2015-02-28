@@ -332,14 +332,10 @@ void Inventory::Update() {
 						ruSetGUINodeVisible( mGUIItemVolume, true );
 						ruSetGUINodeVisible( mGUIItemMass, true );
                         ruSetGUINodeText( mGUIItemDescription, pItem->GetDescription());
-                        string contentTypeFormatted = Format( "%s : %s", mLocalization.GetString( "contentType" ), pItem->GetContentType());
-                        string contentFormatted = Format( "%s: %f", mLocalization.GetString( "content" ), pItem->GetContent() );
-                        string volumeFormatted = Format( "%s: %f", mLocalization.GetString( "volume" ), pItem->GetVolume() );
-                        string massFormatted = Format( "%s: %f", mLocalization.GetString( "mass" ), pItem->GetMass() );
-                        ruSetGUINodeText( mGUIItemContentType, contentTypeFormatted );
-                        ruSetGUINodeText( mGUIItemContent, contentFormatted );
-                        ruSetGUINodeText( mGUIItemVolume, volumeFormatted );
-                        ruSetGUINodeText( mGUIItemMass, massFormatted );
+                        ruSetGUINodeText( mGUIItemContentType, StringBuilder() << mLocalization.GetString( "contentType" ) << ": " << pItem->GetContentType() );
+                        ruSetGUINodeText( mGUIItemContent, StringBuilder() << mLocalization.GetString( "content" ) << ": " << pItem->GetContent() );
+                        ruSetGUINodeText( mGUIItemVolume, StringBuilder() << mLocalization.GetString( "volume" ) << ": " << pItem->GetVolume() );
+                        ruSetGUINodeText( mGUIItemMass, StringBuilder() << mLocalization.GetString( "mass" ) << ": " << pItem->GetMass() );
                     }
                 } else {
 					ruSetGUINodeVisible( mGUIItem[cw][ch], false );

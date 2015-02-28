@@ -231,7 +231,7 @@ Renderer::IsMeshVisible
 */
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
     mesh->mOwnerNode->mInFrustum = g_camera->frustum.IsAABBInside( mesh->mAABB, ruVector3( mesh->mOwnerNode->mGlobalTransform.getOrigin().m_floats ));
-    return mesh->mOwnerNode->mSkinned || mesh->mOwnerNode->IsVisible() && mesh->mOwnerNode->mInFrustum;
+    return mesh->mOwnerNode->mSkinned || mesh->mOwnerNode->IsVisible() ;///&& mesh->mOwnerNode->mInFrustum;
 }
 
 /*

@@ -348,7 +348,7 @@ void LevelMine::UpdateExplodeSequence() {
             ItemPlace * dp = mDetonatorPlace[i];
 
             if( dp->IsPickedByPlayer() ) {
-                pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "putItem"), GetKeyName( pPlayer->mKeyUse )));
+                pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "putItem") );
             }
         }
 

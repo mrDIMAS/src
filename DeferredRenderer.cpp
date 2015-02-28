@@ -232,7 +232,18 @@ void DeferredRenderer::RenderIcosphereIntoStencilBuffer( Light * pLight ) {
     D3DXMATRIX wvp;
     D3DXMatrixMultiply( &wvp, &world, &g_camera->viewProjection );
     bvRenderer->SetTransform( wvp );
-    icosphere->DrawSubset( 0 );
+	
+	
+	IDirect3DVertexBuffer9 * vb;
+	IDirect3DIndexBuffer9 * ib;
+	icosphere->GetVertexBuffer( &vb );
+	icosphere->GetIndexBuffer( &ib );
+	gpDevice->SetStreamSource( 0, vb, 0, icosphere->GetNumBytesPerVertex());
+	gpDevice->SetIndices( ib );
+	gpDevice->SetFVF( icosphere->GetFVF() );
+	CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, icosphere->GetNumVertices(), 0, icosphere->GetNumFaces()));
+
+    //icosphere->DrawSubset( 0 );
 }
 
 void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {

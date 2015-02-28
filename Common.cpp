@@ -146,12 +146,7 @@ void ParseFile( string fn, map<string,string> & values) {
 void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line ) {
     
     if( FAILED( errCode )) {
-    	string message = Format( "DirectX 9 Error. Code: %d\nError: %s\nDescription: %s\nFile: %s\nLine: %d", 
-			errCode, 
-			DXGetErrorString( errCode ), 
-			DXGetErrorDescription( errCode ),
-			file, 
-			line );
+		string message = (string)(StringBuilder( "DirectX 9 Error. Code: " ) << errCode << "\nError: " << DXGetErrorString( errCode ) << "\nDescription: " << DXGetErrorDescription( errCode ) << "\nFile: " << file << "\nLine: " << line);
     	LogMessage( message );
     	MessageBoxA( 0, message.c_str(), "Fatal error", MB_OK | MB_ICONERROR );
     	exit( -1 );

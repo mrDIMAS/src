@@ -69,7 +69,13 @@ void main( ) {
 				g_dt = fixedTick;
 
 				if( !pMainMenu->IsVisible() )  {
+					//float physBegin = ruGetTimeInSeconds( dtTimer );
 					ruUpdatePhysics( fixedTick, 1, fixedTick );
+					/*
+					float delta = ruGetTimeInSeconds( dtTimer ) - physBegin;
+					if( delta > 0.25f ) {
+						break;
+					}*/
 				}
 
                 ruInputUpdate();
@@ -96,7 +102,7 @@ void main( ) {
                     }
                     InteractiveObject::UpdateAll();
 				}
-                ruSetGUINodeText( fpsText, Format( "DIPs: %d\nTCs: %d\nFPS: %d", ruDIPs(), ruTextureUsedPerFrame(), fpsCounter.fps ) );
+                ruSetGUINodeText( fpsText, StringBuilder( "DIPs: " ) << ruDIPs() << "\nTCs: " << ruTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
                 ruSetGUINodeVisible( fpsText, g_showFPS );
 				// recalculate transforms of scene nodes
 				ruUpdateWorld();
@@ -118,22 +124,7 @@ void main( ) {
     ruFreeRenderer();
 	std::locale::global(std::locale::classic()); 
 }
-/*
-std::string Format( const string & format, ... ) {
-    char buffer[ 1024 ];
-    va_list	argumentList;
 
-    va_start( argumentList, format );
-    vsprintf_s( buffer, format , argumentList);
-    va_end(argumentList);
-
-    return string( buffer );
-}
-
-float frandom( float low, float high ) {
-    return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
-}
-*/
 void RaiseError( const string & text ) {
     MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
     throw runtime_error( text );

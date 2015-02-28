@@ -7,12 +7,11 @@ LevelResearchFacility::LevelResearchFacility() {
     mTypeNum = 4;
 
     LoadSceneFromFile( "data/maps/release/researchFacility/rf.scene" );
+	LoadLocalization( "rf.loc" );
 
     pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject( "PlayerPosition" ) ));
 
-    ruSetAudioReverb( 13 );
-
-    mSteamActivateZone = GetUniqueObject( "SteamActivateZone" );
+    ruSetAudioReverb( 13 );   
 
     AddSound( mSteamHissSound = ruLoadSound3D( "data/sounds/steamhiss.ogg" ));
 
@@ -37,8 +36,9 @@ LevelResearchFacility::LevelResearchFacility() {
     mpFan1 = new Fan( GetUniqueObject( "Fan" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
     mpFan2 = new Fan( GetUniqueObject( "Fan2" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
 
-
-    mScaryBarellThrowZone = GetUniqueObject( "ScaryBarellThrowZone" );
+	AddSheet( new Sheet( GetUniqueObject( "Note1" ), mLocalization.GetString( "note1Desc" ), mLocalization.GetString( "note1" ) ) );
+    AddSheet( new Sheet( GetUniqueObject( "Note2" ), mLocalization.GetString( "note2Desc" ), mLocalization.GetString( "note2" ) ) );
+	AddSheet( new Sheet( GetUniqueObject( "Note3" ), mLocalization.GetString( "note3Desc" ), mLocalization.GetString( "note3" ) ) );
 
     AddSound( mLeverSound = ruLoadSound3D( "data/sounds/lever.ogg"));
 
@@ -49,11 +49,17 @@ LevelResearchFacility::LevelResearchFacility() {
 
     ruSetAmbientColor( ruVector3( 0, 0, 0 ));
 
+	mDoorUnderFloor = GetUniqueObject( "DoorUnderFloor" );
     mDoorOpenLever = GetUniqueObject( "DoorOpenLever" );
     mLockedDoor = GetUniqueObject( "LockedDoor" );
 
+	mZoneScaryBarellThrow = GetUniqueObject( "ScaryBarellThrowZone" );
+	mZoneSteamActivate = GetUniqueObject( "SteamActivateZone" );
     mExtremeSteamBlock = GetUniqueObject( "ExtremeSteamBlock" );
-    mExtremeSteamHurtZone = GetUniqueObject( "ExtremeSteamHurtZone" );
+    mZoneExtremeSteamHurt = GetUniqueObject( "ExtremeSteamHurtZone" );
+	mZoneObjectiveRestorePower = GetUniqueObject( "ObjectiveRestorePower" );
+	mZoneExaminePlace = GetUniqueObject( "ObjectiveExaminePlace" );
+	mZoneNeedCrowbar = GetUniqueObject( "ObjectiveNeedCrowbar" );
 
     CreatePowerUpSequence();
 
@@ -72,13 +78,11 @@ LevelResearchFacility::LevelResearchFacility() {
 		GetUniqueObject( "Ladder5BeginLeavePoint"), GetUniqueObject( "Ladder5EndLeavePoint")));
 	AddLadder( new Ladder( GetUniqueObject( "Ladder6Begin" ), GetUniqueObject( "Ladder6End" ), GetUniqueObject( "Ladder6Enter" ),
 		GetUniqueObject( "Ladder6BeginLeavePoint"), GetUniqueObject( "Ladder6EndLeavePoint")));
-    AddDoor( new Door( GetUniqueObject( "Door1" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door2" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door3" ), 90.0f ));
+	AddLadder( new Ladder( GetUniqueObject( "Ladder7Begin" ), GetUniqueObject( "Ladder7End" ), GetUniqueObject( "Ladder7Enter" ),
+		GetUniqueObject( "Ladder7BeginLeavePoint"), GetUniqueObject( "Ladder7EndLeavePoint")));
     AddDoor( new Door( GetUniqueObject( "Door4" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door5" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door6" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door7" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door8" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door009" ), 90.0f ));
     mScaryBarell = GetUniqueObject( "ScaryBarell" );
@@ -86,6 +90,17 @@ LevelResearchFacility::LevelResearchFacility() {
     mPowerLamp = GetUniqueObject( "PowerLamp");
     mPowerLeverSnd = GetUniqueObject( "PowerLeverSnd");
     mSmallSteamPosition = GetUniqueObject( "RFSteamPos" );
+	
+
+	mStages[ "EnterSteamActivateZone" ] = false;
+	mStages[ "EnterScaryBarellThrowZone" ] = false;
+	mStages[ "EnterObjectiveRestorePowerZone" ] = false;
+	mStages[ "EnterObjectiveExaminePlace" ] = false;
+	mStages[ "EnterObjectiveNeedCrowbar" ] = false;
+	mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = false;
+	mStages[ "DoorUnderFloorOpen" ] = false;
+
+	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
 
     DoneInitialization();
 }
@@ -116,24 +131,16 @@ void LevelResearchFacility::DoScenario() {
 
     ruSetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
 
-    static int stateEnterSteamActivateZone = 0;
-    static int stateEnterScaryBarellThrowZone = 0;
-    static int stateEnterScreamerZone = 0;
-    static int stateEnterCoffinOpenZone = 0;
-    static int stateEnterSpawnRipperZone = 0;
-    static bool stateDoorUnlocked = false;
-    static bool stateEnterRepositionRipperZone = false;
-
     if( mPowerOn ) {
         mLift1->Update();
         mpFan1->DoTurn();
         mpFan2->DoTurn();
     }
 
-			mLift2->Update();
+	mLift2->Update();
 
-    if( !stateEnterSteamActivateZone ) {
-        if( pPlayer->IsInsideZone( mSteamActivateZone )) {
+    if( !mStages[ "EnterSteamActivateZone" ] ) {
+        if( pPlayer->IsInsideZone( mZoneSteamActivate )) {
             ruParticleSystemProperties psProps;
             psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
             psProps.type = PS_STREAM;
@@ -151,22 +158,66 @@ void LevelResearchFacility::DoScenario() {
 
             ruPlaySound( mSteamHissSound, true );
 
-            stateEnterSteamActivateZone = 1;
+            mStages[ "EnterSteamActivateZone" ] = true;
         }
     }
 
-    if( !stateEnterScaryBarellThrowZone ) {
-        if( pPlayer->IsInsideZone( mScaryBarellThrowZone )) {
+	if( !mStages[ "EnterObjectiveRestorePowerZone" ] ) {
+		if( pPlayer->IsInsideZone( mZoneObjectiveRestorePower )) {
+			pPlayer->SetObjective( mLocalization.GetString( "objectiveRestorePower" ) );
+			mStages[ "EnterObjectiveRestorePowerZone" ] = true;
+		}
+	}
+
+	if( !mStages[ "EnterObjectiveExaminePlace" ] ) {
+		if( pPlayer->IsInsideZone( mZoneExaminePlace )) {
+			pPlayer->SetObjective( mLocalization.GetString( "objectiveExaminePlace" ) );
+			mStages[ "EnterObjectiveExaminePlace" ] = true;
+		}
+	}
+
+	if( !mStages[ "EnterObjectiveNeedCrowbar" ] ) {
+		if( pPlayer->IsInsideZone( mZoneNeedCrowbar )) {
+			pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedCrowbar" ) );
+			mStages[ "EnterObjectiveNeedCrowbar" ] = true;
+		}
+	}
+	
+    if( !mStages[ "EnterScaryBarellThrowZone" ] ) {
+        if( pPlayer->IsInsideZone( mZoneScaryBarellThrow )) {
             ruSetNodePosition( mScaryBarell, ruGetNodePosition( mScaryBarellPositionNode ));
-
-            stateEnterScaryBarellThrowZone = 1;
+            mStages[ "EnterScaryBarellThrowZone" ] = true;
         }
     }
+
+	if( !mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] ) {
+		if( pPlayer->IsInsideZone( mZoneNeedCrowbar )) {
+			if( pPlayer->GetInventory()->GotAnyItemOfType( Item::Type::Crowbar )) {
+				pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedOpenDoorOntoFloor" ) );
+				mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = true;
+			}
+		}
+	}
+	
+	if( !mStages[ "DoorUnderFloorOpen" ] ) {
+		if( pPlayer->mNearestPickedNode.IsValid()) {
+			if( pPlayer->mNearestPickedNode == mDoorUnderFloor ) {			
+				if( pPlayer->GetInventory()->GetItemSelectedForUse() == mCrowbarItem ) {		
+					pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
+					if( ruIsKeyHit( pPlayer->mKeyUse )) {
+						pPlayer->mInventory.ResetSelectedForUse();
+						ruSetNodeRotation( mDoorUnderFloor, ruQuaternion( 0, 0, -110 ));
+						mStages[ "DoorUnderFloorOpen" ] = true;
+					}
+				}
+			}
+		}
+	}
 
 
     mpSteamValve->Update();
     mpExtemeSteam->Update();
-    mpExtemeSteam->power = 1.0f - mpSteamValve->GetClosedCoeffecient();;
+    mpExtemeSteam->power = 1.0f - mpSteamValve->GetClosedCoeffecient();
 
     UpdatePowerupSequence();
 
@@ -194,24 +245,10 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-    if( !stateDoorUnlocked ) {
-        if( pPlayer->mNearestPickedNode == mDoorOpenLever ) {
-            pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString( "openGates" ), GetKeyName( pPlayer->mKeyUse )));
-
-            if( ruIsKeyDown( pPlayer->mKeyUse )) {
-                ruSetNodeRotation( mDoorOpenLever, ruQuaternion( 0, -20, 0 ));
-                ruSetNodePosition( mLockedDoor, ruVector3( 1000, 1000, 1000 )); // far far away :D
-
-                stateDoorUnlocked = true;
-            }
-        }
-    }
-
-
     if( mpSteamValve->IsDone() ) {
         ruSetNodePosition( mExtremeSteamBlock, ruVector3( 1000, 1000, 1000 ));
     } else {
-        if( pPlayer->IsInsideZone( mExtremeSteamHurtZone )) {
+        if( pPlayer->IsInsideZone( mZoneExtremeSteamHurt )) {
             pPlayer->Damage( 0.6 );
         }
     }
@@ -233,7 +270,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
             ItemPlace * pFuse = mFusePlaceList[iFuse];
             if( pFuse->IsPickedByPlayer() ) {
-                pPlayer->SetActionText( Format( pPlayer->GetLocalization()->GetString( "insertFuse" ), GetKeyName( pPlayer->mKeyUse )));
+                pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "insertFuse" ) );
             }
         }
 
@@ -255,7 +292,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
     if( fuseInsertedCount >= 3 ) {
         if( pPlayer->mNearestPickedNode == powerLever ) {
-            pPlayer->SetActionText( Format( pPlayer->mLocalization.GetString("powerUp"), GetKeyName( pPlayer->mKeyUse )));
+            pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString("powerUp") );
 
             if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
                 ruSetLightColor( mPowerLamp, ruVector3( 0, 255, 0 ) );

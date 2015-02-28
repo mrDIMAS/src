@@ -38,7 +38,7 @@ void main( ) {
 
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
     ruNodeHandle node = ruLoadScene( "data/newFormat.scene" );
-	ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
+	//ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
     //int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
     // int node = LoadScene( "data/maps/release/1/1.scene" );
@@ -172,7 +172,7 @@ void main( ) {
         //ruDrawGUIText( "Простой текст", 400, 0, 100, 100, font3, ruVector3( 255, 0, 255 ), 0, 100 );
 
         ruRestartTimer( perfTimer );
-        ruRenderWorld( 1.0f / 60.0f ); // fixed FPS
+        ruRenderWorld( ); // fixed FPS
         perfTime=ruGetElapsedTimeInMilliSeconds( perfTimer );
     }
 

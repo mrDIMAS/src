@@ -52,10 +52,20 @@ void Item::SetType( Type type ) {
         mMass = 0.3f;
         mContentTypeDesc = msLocalization.GetString( "explosivesContentType" );
     }
+
+	if( mType == Type::Crowbar ) {
+		mDesc = msLocalization.GetString( "crowbarDesc" );
+		mName = msLocalization.GetString( "crowbarName" );
+		mPic = ruGetTexture( "data/gui/inventory/items/crowbarpic.png" );
+		mCombinePair = Type::Unknown;
+		mMass = 4.0f;
+		mContentTypeDesc = msLocalization.GetString( "crowbarContentType" );
+	}
+
     if( mType == Type::Flashlight ) {
         mDesc = msLocalization.GetString( "flashlightDesc" );
         mName = msLocalization.GetString( "flashlightName" );
-        mPic = ruGetTexture( "data/gui/inventory/items/flashlight.png" );
+        mPic = ruGetTexture( "data/gui/inventory/items/lighter.png" );
         mCombinePair = Type::FuelCanister;
         mMorphType = Type::Flashlight;
         mThrowable = false;
