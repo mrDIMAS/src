@@ -334,26 +334,23 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	int readyCount = 0;
 	do {
 		for( auto pLight : g_pointLightList ) {
-			auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );
-			// if this light is invisible from nearest point 
-			
-				DWORD pixelsVisible;
-				if( !pLight->trulyVisible ) {
-					if( pLight->inFrustum ) {
-						HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
-						if( result == S_OK ) {
-							readyCount++;
-							if( pixelsVisible > 0 ) {				
-								pLight->trulyVisible = true;
-								// add light to light list of nearest path point of camera		
-								if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
-									g_camera->mNearestPathPoint->mLightList.push_back( pLight );				
-								}
+			auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );			
+			DWORD pixelsVisible;
+			if( !pLight->trulyVisible ) {
+				if( pLight->inFrustum ) {
+					HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
+					if( result == S_OK ) {
+						readyCount++;
+						if( pixelsVisible > 0 ) {				
+							pLight->trulyVisible = true;
+							// add light to light list of nearest path point of camera		
+							if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
+								g_camera->mNearestPathPoint->mLightList.push_back( pLight );				
 							}
 						}
 					}
 				}
-
+			}
 		}
 	} while( readyCount < countInFrustum );
 
@@ -394,7 +391,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 			mFullscreenQuad->Render();			
 		}		
     }
-	/*
+	
     // Render spot lights
     for( auto pLight : g_spotLightList ) {
 		if( g_camera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible()  ) {
@@ -439,7 +436,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 			mFullscreenQuad->Render();
 		}
     }
-	*/
+	
     if( mHDRShader && g_hdrEnabled ) {
 		gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 		gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );

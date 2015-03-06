@@ -18,7 +18,7 @@ void main( ) {
 
     v3 = 10 * v1 ;
 
-    ruCreateRenderer( 1280, 720, 0, 0 );
+    ruCreateRenderer( 0, 0, 0, 0 );
 
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
