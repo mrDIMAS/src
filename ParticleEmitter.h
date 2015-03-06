@@ -5,24 +5,16 @@
 
 class ParticleEmitter {
 public:
-    class ParticleVertex {
-    public:
-        float x, y, z;
-        float tx, ty;
+    struct ParticleVertex {
+        ruVector3 pos;
+        ruVector2 tex;
         int color;
-
-        ParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor );
-        ParticleVertex( );
     };
 
-    class ParticleFace {
-    public:
+    struct ParticleFace {
         short v1;
         short v2;
         short v3;
-
-        explicit ParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex );
-        ParticleFace( );
     };
 
     class Particle {

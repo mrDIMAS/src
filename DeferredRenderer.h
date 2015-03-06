@@ -13,12 +13,12 @@ class DeferredRenderer {
 public:
     class BoundingVolumeRenderingShader {
     private:
-        VertexShader * vs;
+        //VertexShader * vs;
         PixelShader * ps;
 
         IDirect3DVertexDeclaration9 * vertexDeclaration;
 
-        D3DXHANDLE vWVP;
+        //D3DXHANDLE vWVP;
     public:
         BoundingVolumeRenderingShader();
         ~BoundingVolumeRenderingShader();
@@ -29,9 +29,8 @@ public:
 
     BoundingVolumeRenderingShader * bvRenderer;
 
-    ID3DXMesh * icosphere;
-    ID3DXMesh * cone;
-
+    ID3DXMesh * mBoundingSphere;
+    ID3DXMesh * mBoundingCone;
 
     // Ambient Light
     class AmbientLightShader {
@@ -45,7 +44,7 @@ public:
 
     // Point Light
     class PointLightShader {
-    private:
+	public:
         PixelShader * pixelShader;
 		PixelShader * pixelShaderTexProj;
     public:
@@ -81,7 +80,7 @@ public:
 
     void CreateBoundingVolumes();
 
-    void RenderIcosphereIntoStencilBuffer( Light * pLight );
+    void RenderSphere( Light * pLight, float scale = 1.0f );
     void RenderConeIntoStencilBuffer( Light * lit );
     void RenderMeshShadow( Mesh * mesh );
 public:

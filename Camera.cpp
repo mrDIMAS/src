@@ -30,67 +30,101 @@ void Camera::Update() {
     D3DXVECTOR3 ep (  eye.x(),  eye.y(),  eye.z() );
     D3DXVECTOR3 lv ( look.x(), look.y(), look.z() );
     D3DXVECTOR3 uv (   up.x(),   up.y(),   up.z() );
-    D3DXMatrixLookAtRH ( &view, &ep, &lv, &uv );
+    D3DXMatrixLookAtRH ( &mView, &ep, &lv, &uv );
 
     CalculateProjectionMatrix();
     CalculateInverseViewProjection();
 
-    frustum.Build( viewProjection );
+    mFrustum.Build( mViewProjection );
+
+	ManagePath();
 }
 
 void Camera::SetSkyBox( const string & path ) {
     if( path.size() ) {
-        skybox = new Skybox( path );
+        mSkybox = new Skybox( path );
     } else {
-        if( skybox ) {
-            delete skybox;
+        if( mSkybox ) {
+            delete mSkybox;
 
-            skybox = nullptr;
+            mSkybox = nullptr;
         }
     }
 }
 
 void Camera::CalculateInverseViewProjection() {
-    D3DXMatrixMultiply( &viewProjection, &view, &projection );
-    D3DXMatrixInverse( &invViewProjection, 0, &viewProjection );
+    D3DXMatrixMultiply( &mViewProjection, &mView, &mProjection );
+    D3DXMatrixInverse( &invViewProjection, 0, &mViewProjection );
 }
 
 void Camera::CalculateProjectionMatrix() {
     D3DVIEWPORT9 vp;
     gpDevice->GetViewport( &vp );
-    D3DXMatrixPerspectiveFovRH( &projection, fov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, nearZ, farZ );
+    D3DXMatrixPerspectiveFovRH( &mProjection, mFov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, mNearZ, mFarZ );
 }
 
 Camera::~Camera() {
-    if( skybox ) {
-        delete skybox;
+    if( mSkybox ) {
+        delete mSkybox;
     }
+	for( auto pPoint : mPath ) {
+		delete pPoint;
+	}
 }
 
 Camera::Camera( float fov ) {
-    this->fov = fov;
-    nearZ = 0.025f;
-    farZ = 6000.0f;
-    skybox = nullptr;
+    this->mFov = fov;
+    mNearZ = 0.025f;
+    mFarZ = 6000.0f;
+    mSkybox = nullptr;
     g_camera = this;
-    inDepthHack = false;
+    mInDepthHack = false;
+	mNearestPathPoint = new PathPoint;
+	mNearestPathPoint->mPoint = GetPosition();
+	mPath.push_back( mNearestPathPoint );
     CalculateProjectionMatrix();
-    D3DXMatrixLookAtRH( &view, &D3DXVECTOR3( 0, 100, 100 ), &D3DXVECTOR3( 0, 0, 0), &D3DXVECTOR3( 0, 1, 0 ));
+    D3DXMatrixLookAtRH( &mView, &D3DXVECTOR3( 0, 100, 100 ), &D3DXVECTOR3( 0, 0, 0), &D3DXVECTOR3( 0, 1, 0 ));
 }
 
 void Camera::EnterDepthHack( float depth ) {
-    if( !inDepthHack ) {
-        depthHackMatrix = projection;
+    if( !mInDepthHack ) {
+        mDepthHackMatrix = mProjection;
     }
-    inDepthHack = true;
-    projection._43 -= depth;
+    mInDepthHack = true;
+    mProjection._43 -= depth;
     CalculateInverseViewProjection();
 }
 
 void Camera::LeaveDepthHack() {
-    inDepthHack = false;
-    projection = depthHackMatrix;
+    mInDepthHack = false;
+    mProjection = mDepthHackMatrix;
     CalculateInverseViewProjection();
+}
+
+void Camera::ManagePath() {
+	const float delta = 5.0f;
+	ruVector3 position = GetPosition();
+	if( (position - mLastPosition).Length2() > delta ) {
+		mLastPosition = position;
+		bool addNewPoint = true;
+		float distToNearest = -FLT_MAX;
+		for( auto pPoint : mPath ) {
+			float dist = (position - pPoint->mPoint ).Length2();
+			if( dist < distToNearest ) {
+				mNearestPathPoint = pPoint;
+				distToNearest = dist;
+			}
+			if( dist < delta ) {				
+				addNewPoint = false;
+			}
+		}
+		if( addNewPoint ) {
+			PathPoint * pathPoint = new PathPoint;
+			pathPoint->mPoint = position;
+			mPath.push_back( pathPoint );
+			mNearestPathPoint = pathPoint;
+		}
+	}
 }
 
 
@@ -103,7 +137,7 @@ ruNodeHandle ruCreateCamera( float fov ) {
 }
 
 void ruSetCameraFOV( ruNodeHandle camera, float fov ) {
-    Camera::CastHandle( camera )->fov = fov;
+    Camera::CastHandle( camera )->mFov = fov;
 }
 
 void ruSetActiveCamera( ruNodeHandle node ) {

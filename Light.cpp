@@ -50,6 +50,9 @@ Light::Light( int type ) {
         }
     }
     SetConeAngles( 45.0f, 80.0f );
+	gpDevice->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
+	trulyVisible = true;
+	inFrustum = false;
 }
 /*
 ==========
@@ -153,6 +156,8 @@ Light::~Light() {
     if( spotLight != g_spotLightList.end() ) {
         g_spotLightList.erase( spotLight );
     }
+
+	pQuery->Release();
 }
 
 /*
@@ -195,8 +200,8 @@ void Light::RenderLightFlares() {
         return;
     }
     CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, false ));
-    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_VIEW, &g_camera->view ));
-    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_PROJECTION, &g_camera->projection ));
+    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_VIEW, &g_camera->mView ));
+    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_PROJECTION, &g_camera->mProjection ));
     CheckDXErrorFatal( gpDevice->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
     CheckDXErrorFatal( gpDevice->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
     D3DXMATRIX world, scale;

@@ -8,6 +8,7 @@
 #include "Fan.h"
 #include "Sparks.h"
 #include "SteamStream.h"
+#include "Keypad.h"
 
 class LevelResearchFacility : public Level {
 private:
@@ -42,6 +43,15 @@ private:
 	ruNodeHandle mZoneExaminePlace;
 	ruNodeHandle mZoneNeedCrowbar;
 	ruNodeHandle mDoorUnderFloor;
+
+	Keypad * mKeypad1;
+	Door * mKeypad1DoorToUnlock;
+
+	Keypad * mKeypad2;
+	Door * mKeypad2DoorToUnlock;
+
+	Keypad * mKeypad3;
+	Door * mKeypad3DoorToUnlock;
 
     Item * fuse[3];
 	Item * mCrowbarItem;

@@ -44,7 +44,7 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 		}
 
         D3DXMATRIX mWVP;
-        D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &g_camera->viewProjection );
+        D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &g_camera->mViewProjection );
         gpRenderer->SetVertexShaderMatrix( 0, &mWVP );
 
         particleEmitter->Render();

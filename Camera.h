@@ -2,23 +2,35 @@
 
 #include "SceneNode.h"
 #include "Frustum.h"
+#include "Light.h"
 
 class Skybox;
 
 class Camera : public SceneNode {
 public:
-    float fov;
-    float nearZ;
-    float farZ;
+    float mFov;
+    float mNearZ;
+    float mFarZ;
 
-    D3DXMATRIX projection;
-    D3DXMATRIX view;
-    D3DXMATRIX viewProjection;
+    D3DXMATRIX mProjection;
+    D3DXMATRIX mView;
+    D3DXMATRIX mViewProjection;
     D3DXMATRIX invViewProjection;
-    D3DXMATRIX depthHackMatrix;
-    Frustum frustum;
-    bool inDepthHack;
-    Skybox * skybox;
+    D3DXMATRIX mDepthHackMatrix;
+    Frustum mFrustum;
+    bool mInDepthHack;
+    Skybox * mSkybox;
+
+	// dynamic light caching
+	class PathPoint {
+	public:
+		ruVector3 mPoint;
+		vector<Light*> mLightList;
+	};
+	PathPoint * mNearestPathPoint;
+	ruVector3 mLastPosition;
+	vector<PathPoint*> mPath;
+	void ManagePath();
 public:
     explicit Camera( float fov );
     virtual ~Camera();

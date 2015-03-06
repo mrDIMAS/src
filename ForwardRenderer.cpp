@@ -15,7 +15,7 @@ void ForwardRenderer::RenderMeshes() {
         for( auto pMesh : meshes ) {
             D3DXMATRIX world, wvp;
             GetD3DMatrixFromBulletTransform( pMesh->mOwnerNode->mGlobalTransform, world );
-            D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->viewProjection );
+            D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->mViewProjection );
 
             CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
             CheckDXErrorFatal( gpDevice->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 ));

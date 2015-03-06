@@ -40,7 +40,7 @@ void ParticleEmitter::Update() {
     mOwner->mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
     GetD3DMatrixFromBulletTransform( mOwner->mGlobalTransform, mWorldTransform );
 
-    D3DXMATRIX view = g_camera->view;
+    D3DXMATRIX view = g_camera->mView;
 
     ruVector3 rightVect = ruVector3( view._11, view._21, view._31 ).Normalize();
     ruVector3 upVect = ruVector3( view._12, view._22, view._32 ).Normalize();
@@ -73,14 +73,42 @@ void ParticleEmitter::Update() {
                 ResurrectParticle( p );
             }
         } else {
-            vertices[ vertexNum ] = ParticleVertex( p.position + leftTop * p.size, 0.0, 0.0, RGBAToInt( p.color, p.mOpacity ));
-            vertices[ vertexNum + 1 ] = ParticleVertex( p.position + rightTop * p.size, 1.0, 0.0, RGBAToInt( p.color, p.mOpacity ));
-            vertices[ vertexNum + 2 ] = ParticleVertex( p.position + rightBottom * p.size, 1.0, 1.0, RGBAToInt( p.color, p.mOpacity ));
-            vertices[ vertexNum + 3 ] = ParticleVertex( p.position + leftBottom * p.size, 0.0, 1.0, RGBAToInt( p.color, p.mOpacity ));
+			int color = RGBAToInt( p.color, p.mOpacity );
+
+			short v1 = vertexNum + 1;
+			short v2 = vertexNum + 2;
+			short v3 = vertexNum + 3;
+
+            vertices[ vertexNum ].pos = p.position + leftTop * p.size;
+			vertices[ vertexNum ].tex.x = 0.0f;
+			vertices[ vertexNum ].tex.y = 0.0f; 
+			vertices[ vertexNum ].color = color;
+
+            vertices[ v1 ].pos = p.position + rightTop * p.size;
+			vertices[ v1 ].tex.x = 1.0f;
+			vertices[ v1 ].tex.y = 0.0f;
+			vertices[ v1 ].color = color;
+
+            vertices[ v2 ].pos = p.position + rightBottom * p.size;
+			vertices[ v2 ].tex.x = 1.0f;
+			vertices[ v2 ].tex.y = 1.0f;
+			vertices[ v2 ].color = color;
+
+            vertices[ v3 ].pos = p.position + leftBottom * p.size;
+			vertices[ v3 ].tex.x = 0.0f;
+			vertices[ v3 ].tex.y = 1.0f;
+			vertices[ v3 ].color = color;
 
             // indices
-            faces[ faceNum + 0 ] = ParticleFace( vertexNum + 0, vertexNum + 1, vertexNum + 3 );
-            faces[ faceNum + 1 ] = ParticleFace( vertexNum + 1, vertexNum + 2, vertexNum + 3 );
+            faces[ faceNum ].v1 = vertexNum;
+			faces[ faceNum ].v2 = v1;
+			faces[ faceNum ].v3 = v3;
+
+			int f1 = faceNum + 1;
+
+            faces[ f1 ].v1 = v1;
+			faces[ f1 ].v2 = v2;
+			faces[ f1 ].v3 = v3;
 
             ++mAliveParticleCount;
             vertexNum += 4;
@@ -175,32 +203,6 @@ ParticleEmitter::Particle::Particle( const ruVector3 & thePosition, const ruVect
     color = theColor;
     mOpacity = theTranslucency;
     size = theSize;
-}
-
-ParticleEmitter::ParticleFace::ParticleFace() {
-    v1 = v2 = v3 = 0;
-}
-
-ParticleEmitter::ParticleFace::ParticleFace( short theFirstVertex, short theSecondVertex, short theThirdVertex ) {
-    v1 = theFirstVertex;
-    v2 = theSecondVertex;
-    v3 = theThirdVertex;
-}
-
-ParticleEmitter::ParticleVertex::ParticleVertex() {
-    x = y = z = tx = ty = 0.0f;
-    color = 0xFFFFFFFF;
-}
-
-ParticleEmitter::ParticleVertex::ParticleVertex( ruVector3 thePosition, float theTextureCoordX, float theTextureCoordY, int theColor ) {
-    x = thePosition.x;
-    y = thePosition.y;
-    z = thePosition.z;
-
-    tx = theTextureCoordX;
-    ty = theTextureCoordY;
-
-    color = theColor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

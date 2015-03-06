@@ -29,6 +29,7 @@ public:
     void SetSize( float width, float height );
 
     void Bind( bool bindInternalVertexShader = true );
+	void BindNoShader();
     void Render();
 	void OnDeviceLost();
 };

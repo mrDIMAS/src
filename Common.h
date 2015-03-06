@@ -30,7 +30,7 @@
 #include <dinput.h>
 #include <fstream>
 #include FT_FREETYPE_H
-#include "vld.h"
+//#include "vld.h"
 
 #define DEG2RAD ( 3.14159f / 180.0f )
 

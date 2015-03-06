@@ -6,13 +6,10 @@
 #include "GUIText.h"
 #include "GUIButton.h"
 
-class TextVertex {
-public:
+struct TextVertex {
     ruVector3 p;
     ruVector2 t;
     DWORD color;
-    explicit TextVertex( ruVector3 cp, ruVector2 tp, DWORD clr );
-	TextVertex();
 };
 
 class TextQuad {

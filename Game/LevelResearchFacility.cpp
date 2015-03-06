@@ -39,6 +39,7 @@ LevelResearchFacility::LevelResearchFacility() {
 	AddSheet( new Sheet( GetUniqueObject( "Note1" ), mLocalization.GetString( "note1Desc" ), mLocalization.GetString( "note1" ) ) );
     AddSheet( new Sheet( GetUniqueObject( "Note2" ), mLocalization.GetString( "note2Desc" ), mLocalization.GetString( "note2" ) ) );
 	AddSheet( new Sheet( GetUniqueObject( "Note3" ), mLocalization.GetString( "note3Desc" ), mLocalization.GetString( "note3" ) ) );
+	AddSheet( new Sheet( GetUniqueObject( "Note4" ), mLocalization.GetString( "note4Desc" ), mLocalization.GetString( "note4" ) ) );
 
     AddSound( mLeverSound = ruLoadSound3D( "data/sounds/lever.ogg"));
 
@@ -80,10 +81,10 @@ LevelResearchFacility::LevelResearchFacility() {
 		GetUniqueObject( "Ladder6BeginLeavePoint"), GetUniqueObject( "Ladder6EndLeavePoint")));
 	AddLadder( new Ladder( GetUniqueObject( "Ladder7Begin" ), GetUniqueObject( "Ladder7End" ), GetUniqueObject( "Ladder7Enter" ),
 		GetUniqueObject( "Ladder7BeginLeavePoint"), GetUniqueObject( "Ladder7EndLeavePoint")));
-    AddDoor( new Door( GetUniqueObject( "Door4" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door5" ), 90.0f ));
+    AddDoor( mKeypad3DoorToUnlock = new Door( GetUniqueObject( "Door4" ), 90.0f ));
+    AddDoor( mKeypad1DoorToUnlock = new Door( GetUniqueObject( "Door5" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door6" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door8" ), 90.0f ));
+    AddDoor( mKeypad2DoorToUnlock = new Door( GetUniqueObject( "Door8" ), 90.0f ));
     AddDoor( new Door( GetUniqueObject( "Door009" ), 90.0f ));
     mScaryBarell = GetUniqueObject( "ScaryBarell" );
     mScaryBarellPositionNode = GetUniqueObject( "ScaryBarellPos" );
@@ -101,6 +102,24 @@ LevelResearchFacility::LevelResearchFacility() {
 	mStages[ "DoorUnderFloorOpen" ] = false;
 
 	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
+
+	mKeypad1 = new Keypad( GetUniqueObject( "Keypad1"), GetUniqueObject( "Keypad1Key0" ), GetUniqueObject( "Keypad1Key1"),
+						   GetUniqueObject( "Keypad1Key2"), GetUniqueObject( "Keypad1Key3"), GetUniqueObject( "Keypad1Key4"),
+						   GetUniqueObject( "Keypad1Key5"), GetUniqueObject( "Keypad1Key6" ), GetUniqueObject( "Keypad1Key7"),
+						   GetUniqueObject( "Keypad1Key8"), GetUniqueObject( "Keypad1Key9"), GetUniqueObject( "Keypad1KeyCancel"), 
+						   mKeypad1DoorToUnlock, "3065" );
+
+	mKeypad2 = new Keypad( GetUniqueObject( "Keypad2"), GetUniqueObject( "Keypad2Key0" ), GetUniqueObject( "Keypad2Key1"),
+		GetUniqueObject( "Keypad2Key2"), GetUniqueObject( "Keypad2Key3"), GetUniqueObject( "Keypad2Key4"),
+		GetUniqueObject( "Keypad2Key5"), GetUniqueObject( "Keypad2Key6" ), GetUniqueObject( "Keypad2Key7"),
+		GetUniqueObject( "Keypad2Key8"), GetUniqueObject( "Keypad2Key9"), GetUniqueObject( "Keypad2KeyCancel"), 
+		mKeypad2DoorToUnlock, "6497" );
+
+	mKeypad3 = new Keypad( GetUniqueObject( "Keypad3"), GetUniqueObject( "Keypad3Key0" ), GetUniqueObject( "Keypad3Key1"),
+		GetUniqueObject( "Keypad3Key2"), GetUniqueObject( "Keypad3Key3"), GetUniqueObject( "Keypad3Key4"),
+		GetUniqueObject( "Keypad3Key5"), GetUniqueObject( "Keypad3Key6" ), GetUniqueObject( "Keypad3Key7"),
+		GetUniqueObject( "Keypad3Key8"), GetUniqueObject( "Keypad3Key9"), GetUniqueObject( "Keypad3KeyCancel"), 
+		mKeypad3DoorToUnlock, "1487" );
 
     DoneInitialization();
 }
@@ -214,6 +233,9 @@ void LevelResearchFacility::DoScenario() {
 		}
 	}
 
+	mKeypad1->Update();
+	mKeypad2->Update();
+	mKeypad3->Update();
 
     mpSteamValve->Update();
     mpExtemeSteam->Update();

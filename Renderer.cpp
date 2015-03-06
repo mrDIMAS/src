@@ -230,7 +230,7 @@ Renderer::IsMeshVisible
 ==========
 */
 bool Renderer::IsMeshVisible( Mesh * mesh ) {
-    mesh->mOwnerNode->mInFrustum = g_camera->frustum.IsAABBInside( mesh->mAABB, ruVector3( mesh->mOwnerNode->mGlobalTransform.getOrigin().m_floats ));
+    mesh->mOwnerNode->mInFrustum = g_camera->mFrustum.IsAABBInside( mesh->mAABB, ruVector3( mesh->mOwnerNode->mGlobalTransform.getOrigin().m_floats ));
     return mesh->mOwnerNode->mSkinned || mesh->mOwnerNode->IsVisible() ;///&& mesh->mOwnerNode->mInFrustum;
 }
 
@@ -657,13 +657,13 @@ ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     coord.z = -1.0f;
 
     // Back project the ray from screen to the far clip plane
-    coord.x /= g_camera->projection._11;
-    coord.y /= g_camera->projection._22;
+    coord.x /= g_camera->mProjection._11;
+    coord.y /= g_camera->mProjection._22;
 
-    D3DXMATRIX matinv = g_camera->view;
+    D3DXMATRIX matinv = g_camera->mView;
     D3DXMatrixInverse( &matinv, NULL, &matinv );
 
-    coord *= g_camera->farZ;
+    coord *= g_camera->mFarZ;
     D3DXVec3TransformCoord ( &coord, &coord, &matinv );
 
     btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );

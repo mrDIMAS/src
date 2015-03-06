@@ -22,13 +22,17 @@ ruNodeHandle SceneNode::HandleFromPointer( SceneNode * ptr ) {
 }
 
 void SceneNode::EraseUnusedNodes() {
-    for( auto node : g_nodes )
-        for( auto iter = node->mChildList.begin(); iter != node->mChildList.end();  )
+    for( auto node : g_nodes ) {
+		auto begin = node->mChildList.begin();
+		auto end = node->mChildList.end();
+        for( auto iter = begin; iter != end;  ) {
             if( *iter == 0 ) {
                 node->mChildList.erase( iter );
             } else {
                 ++iter;
             }
+		}
+	}
 }
 
 bool SceneNode::IsVisible() {

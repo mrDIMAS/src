@@ -15,7 +15,7 @@ public:
     virtual ~GUIText( );
     RECT GetBoundingRect();
     int GetTextAlignment();
-    string GetText();
+    string & GetText();
     BitmapFont * GetFont();
     void SetText( const string & text ) {
         mText = text;

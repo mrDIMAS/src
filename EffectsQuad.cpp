@@ -22,9 +22,16 @@ void EffectsQuad::Bind( bool bindInternalVertexShader ) {
 		vertexShader->Bind();
 		gpRenderer->SetVertexShaderMatrix( 0, &orthoProjection );
 		gpRenderer->SetVertexShaderMatrix( 5, &g_camera->invViewProjection );
-		ruVector3 camPos = ruVector3( g_camera->view._41, g_camera->view._42, g_camera->view._43 );
+		ruVector3 camPos = ruVector3( g_camera->mView._41, g_camera->mView._42, g_camera->mView._43 );
 		gpRenderer->SetVertexShaderFloat3( 10, camPos.elements );
 	}
+}
+
+void EffectsQuad::BindNoShader() {
+	gpRenderer->SetVertexShaderMatrix( 0, &orthoProjection );
+	gpRenderer->SetVertexShaderMatrix( 5, &g_camera->invViewProjection );
+	ruVector3 camPos = ruVector3( g_camera->mView._41, g_camera->mView._42, g_camera->mView._43 );
+	gpRenderer->SetVertexShaderFloat3( 10, camPos.elements );
 }
 
 EffectsQuad::~EffectsQuad() {

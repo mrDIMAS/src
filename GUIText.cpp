@@ -33,7 +33,7 @@ BitmapFont * GUIText::GetFont() {
     return mFont;
 }
 
-std::string GUIText::GetText() {
+std::string & GUIText::GetText() {
     return mText;
 }
 

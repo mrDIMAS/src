@@ -19,13 +19,13 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
         GetD3DMatrixFromBulletTransform( mesh->GetOwner()->mGlobalTransform, world );
     }
     mesh->BindBuffers();
-    D3DXMatrixMultiply( &vwp, &world, &g_camera->viewProjection );
-	D3DXMatrixMultiply( &worldView, &world, &g_camera->view );
+    D3DXMatrixMultiply( &vwp, &world, &g_camera->mViewProjection );
+	D3DXMatrixMultiply( &worldView, &world, &g_camera->mView );
 	// pass albedo
     constantRegister[0] = mesh->GetOwner()->mAlbedo;
     gpDevice->SetPixelShaderConstantF( 0, constantRegister, 1 );
 	// pass far z plane
-	constantRegister[0] = g_camera->farZ;
+	constantRegister[0] = g_camera->mFarZ;
 	gpDevice->SetPixelShaderConstantF( 1, constantRegister, 1 );
 	// pass vertex shader matrices
     gpDevice->SetVertexShaderConstantF( 0, &world.m[0][0], 4 );

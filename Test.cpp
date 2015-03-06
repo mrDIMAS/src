@@ -18,7 +18,7 @@ void main( ) {
 
     v3 = 10 * v1 ;
 
-    ruCreateRenderer( 0, 0, 0, 0 );
+    ruCreateRenderer( 1280, 720, 0, 0 );
 
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
@@ -71,7 +71,7 @@ void main( ) {
     int perfTime=0;
 
     ruEnableSpotLightShadows( false );
-    //ruDisableFXAA();
+    ruDisableFXAA();
 
     ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );

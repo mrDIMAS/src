@@ -46,10 +46,31 @@ void TextRenderer::RenderText( GUIText* guiText ) {
             int currentX = caretX + charMetr.bitmapLeft;
             int currentY = caretY - charMetr.bitmapTop + guiText->GetFont()->glyphSize;
 
-            quad->v1 = TextVertex( ruVector3( currentX, currentY, 0.0f ), charMetr.texCoords[0], guiText->GetPackedColor() );
-            quad->v2 = TextVertex( ruVector3( currentX + guiText->GetFont()->glyphSize, currentY, 0.0f ), charMetr.texCoords[1], guiText->GetPackedColor() );
-            quad->v3 = TextVertex( ruVector3( currentX + guiText->GetFont()->glyphSize, currentY + guiText->GetFont()->glyphSize, 0.0f ), charMetr.texCoords[2], guiText->GetPackedColor() );
-            quad->v4 = TextVertex( ruVector3( currentX, currentY + guiText->GetFont()->glyphSize, 0.0f ), charMetr.texCoords[3], guiText->GetPackedColor() );
+			int color = guiText->GetPackedColor();
+
+            quad->v1.p.x = currentX;
+			quad->v1.p.y = currentY;
+			quad->v1.p.z = 0.0f;
+			quad->v1.t = charMetr.texCoords[0];
+			quad->v1.color = color;
+
+            quad->v2.p.x = currentX + guiText->GetFont()->glyphSize;
+			quad->v2.p.y = currentY;
+			quad->v2.p.z = 0.0f;
+			quad->v2.t = charMetr.texCoords[1];
+			quad->v2.color = color;
+
+            quad->v3.p.x = currentX + guiText->GetFont()->glyphSize;
+			quad->v3.p.y = currentY + guiText->GetFont()->glyphSize;
+			quad->v3.p.z = 0.0f;
+			quad->v3.t = charMetr.texCoords[2];
+			quad->v3.color = color;
+
+            quad->v4.p.x = currentX;
+			quad->v4.p.y = currentY + guiText->GetFont()->glyphSize;
+			quad->v4.p.z = 0.0f;
+			quad->v4.t = charMetr.texCoords[3];
+			quad->v4.color = color;
 
             caretX += charMetr.advanceX;
 
@@ -102,7 +123,11 @@ void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & hei
     int totalHeight = 0;
 
     int symbolCount = 0;
-    for( unsigned char symbol : guiText->GetText() ) {
+	string & str = guiText->GetText();
+	int size = str.size();
+    //for( unsigned char symbol : str ) {
+	for( int i = 0; i < size; i++ ) {
+		unsigned char symbol = str[i];
         BitmapFont::CharMetrics & charMetr = guiText->GetFont()->charsMetrics[ symbol ];
 
         caretX += charMetr.advanceX;
