@@ -11,6 +11,11 @@ Valve::Valve( ruNodeHandle obj, ruVector3 axis, int turnCount ) {
     mValue = 0.0f;
 }
 
+void Valve::Reset() {
+	mAngle = 0.0f;
+	mDone = false;
+}
+
 void Valve::Update() {
     if( mDone ) {
         return;
@@ -36,4 +41,9 @@ float Valve::GetClosedCoeffecient()
 bool Valve::IsDone()
 {
 	return mDone;
+}
+
+bool Valve::IsPickedByPlayer()
+{
+	return pPlayer->mNearestPickedNode == mObject;
 }

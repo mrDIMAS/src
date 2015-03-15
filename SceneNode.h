@@ -38,6 +38,10 @@ public:
     btTransform mGlobalTransform;
     btTransform mLocalTransform;
 
+	ruVector3 GetRotationAxis( );
+
+	float GetRotationAngle( );
+
     // Methods
     explicit SceneNode();
     virtual ~SceneNode();

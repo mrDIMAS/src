@@ -59,17 +59,38 @@ struct XYZNormalVertex {
 };
 
 void DeferredRenderer::CreateBoundingVolumes() {
+	ID3DXMesh * temp = nullptr;
     int quality = 6;
 
+	D3DXCreateSphere( gpDevice, 1.0, quality, quality, &mBoundingStar, 0 );
+	XYZNormalVertex * data;
+	mBoundingStar->LockVertexBuffer( 0, (void**)&data );
+	int n = 0;
+	for( int i = 0; i < mBoundingStar->GetNumVertices(); i++ ) {
+		XYZNormalVertex * v = &data[ i ];
+		n++;
+		if( n == 5 ) {
+			v->p.x = 0;
+			v->p.y = 0;
+			v->p.z = 0;
+			n = 0;
+		}
+	}
+	mBoundingStar->UnlockVertexBuffer();
+	mBoundingStar->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, gpDevice, &temp );
+	mBoundingStar->Release();
+	mBoundingStar = temp;
+
+	
+
     D3DXCreateSphere( gpDevice, 1.0, quality, quality, &mBoundingSphere, 0 );
-	ID3DXMesh * temp = nullptr;
+	
 	mBoundingSphere->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, gpDevice, &temp );
 	mBoundingSphere->Release();
 	mBoundingSphere = temp;
 
     D3DXCreateCylinder( gpDevice, 0.0f, 1.0f, 1.0f, quality, quality, &mBoundingCone, 0 );
     // rotate cylinder on 90 degrees
-    XYZNormalVertex * data;
     mBoundingCone->LockVertexBuffer( 0, (void**)&data );
     D3DXMATRIX tran;
     D3DXMatrixTranslation( &tran, 0, -0.5, 0 );
@@ -260,6 +281,47 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     //icosphere->DrawSubset( 0 );
 }
 
+void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
+	ruVector3 realPosition = pLight->GetRealPosition();
+	float scl = 2.5f * pLight->radius * scale;
+	D3DXMATRIX world;
+	world._11 = scl;
+	world._12 = 0.0f;
+	world._13 = 0.0f;
+	world._14 = 0.0f;
+	world._21 = 0.0f;
+	world._22 = scl;
+	world._23 = 0.0f;
+	world._24 = 0.0f;
+	world._31 = 0.0f;
+	world._32 = 0.0f;
+	world._33 = scl;
+	world._34 = 0.0f;
+	world._41 = realPosition.x;
+	world._42 = realPosition.y;
+	world._43 = realPosition.z;
+	world._44 = 1.0f;
+
+	bvRenderer->Bind();
+
+	D3DXMATRIX wvp;
+	D3DXMatrixMultiply( &wvp, &world, &g_camera->mViewProjection );
+	bvRenderer->SetTransform( wvp );
+
+
+	IDirect3DVertexBuffer9 * vb;
+	IDirect3DIndexBuffer9 * ib;
+	mBoundingStar->GetVertexBuffer( &vb );
+	mBoundingStar->GetIndexBuffer( &ib );
+	gpDevice->SetStreamSource( 0, vb, 0, mBoundingStar->GetNumBytesPerVertex());
+	gpDevice->SetIndices( ib );
+	gpDevice->SetFVF( mBoundingStar->GetFVF() );
+
+	CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingStar->GetNumVertices(), 0, mBoundingStar->GetNumFaces()));
+
+	//icosphere->DrawSubset( 0 );
+}
+
 void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
     float height = lit->GetRadius() * 2.05;
     float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
@@ -311,19 +373,21 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
 	int countInFrustum = 0;
 	for( auto pLight : g_pointLightList ) {
-		if( g_camera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
-			//auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );
-			//if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
-				CheckDXErrorFatal( pLight->pQuery->Issue( D3DISSUE_BEGIN ));
-				RenderSphere( pLight );
-				RenderSphere( pLight, 0.25f );
-				CheckDXErrorFatal( pLight->pQuery->Issue( D3DISSUE_END));
-				pLight->trulyVisible = false;
+		if( pLight->mQueryDone ) {
+			if( g_camera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
+				auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );
+				if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
+					pLight->pQuery->Issue( D3DISSUE_BEGIN );
+					RenderStar( pLight );
+					pLight->pQuery->Issue( D3DISSUE_END );
+				}
 				pLight->inFrustum = true;
 				countInFrustum++;
-			//}
-		} else {
-			pLight->inFrustum = false;
+				pLight->mQueryDone = false;
+				//pLight->trulyVisible = false;
+			} else {
+				pLight->inFrustum = false;
+			}
 		}
 	}
 
@@ -331,35 +395,39 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
 	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 	
-	int readyCount = 0;
-	do {
+	//int readyCount = 0;
+	//do {
 		for( auto pLight : g_pointLightList ) {
 			auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );			
 			DWORD pixelsVisible;
-			if( !pLight->trulyVisible ) {
-				if( pLight->inFrustum ) {
-					HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
-					if( result == S_OK ) {
-						readyCount++;
-						if( pixelsVisible > 0 ) {				
-							pLight->trulyVisible = true;
-							// add light to light list of nearest path point of camera		
-							if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
-								g_camera->mNearestPathPoint->mLightList.push_back( pLight );				
+			//if( !pLight->trulyVisible ) {
+				if( pLight->inFrustum  && !pLight->mQueryDone ) {
+					if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
+						HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
+						if( result == S_OK ) {
+							pLight->mQueryDone = true;
+							//readyCount++;
+							if( pixelsVisible > 0 ) {				
+								pLight->trulyVisible = true;
+								// add light to light list of nearest path point of camera									
+								g_camera->mNearestPathPoint->mLightList.push_back( pLight );								
 							}
 						}
+					} else {
+						//readyCount++;
 					}
 				}
-			}
+			//}
 		}
-	} while( readyCount < countInFrustum );
+	//} while( readyCount < countInFrustum );
+
 
 	// Render point lights
 	mFullscreenQuad->vertexShader->Bind();	
 	PixelShader * lastPixelShader = nullptr;
 	
     for( auto pLight : g_camera->mNearestPathPoint->mLightList ) {
-		if( pLight->inFrustum ) {
+		if( pLight->inFrustum  ) {
 			if( pLight->pointTexture ) {
 				if( lastPixelShader != mPointLightShader->pixelShaderTexProj ) {
 					mPointLightShader->pixelShaderTexProj->Bind();

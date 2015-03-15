@@ -12,6 +12,7 @@
 class Light : public SceneNode {
 public:
 	IDirect3DQuery9 * pQuery;
+	bool mQueryDone;
 	bool trulyVisible;
 	bool inFrustum;
     typedef struct {

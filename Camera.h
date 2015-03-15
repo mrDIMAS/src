@@ -30,6 +30,7 @@ public:
 	PathPoint * mNearestPathPoint;
 	ruVector3 mLastPosition;
 	vector<PathPoint*> mPath;
+	float mPathNewPointDelta;
 	void ManagePath();
 public:
     explicit Camera( float fov );

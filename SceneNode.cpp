@@ -1057,6 +1057,17 @@ ruVector3 SceneNode::GetLinearVelocity() {
 	return vel;
 }
 
+float SceneNode::GetRotationAngle()
+{
+	return mLocalTransform.getRotation().getAngle() * 180.0f / 3.14159;
+}
+
+ruVector3 SceneNode::GetRotationAxis()
+{
+	btVector3 axis = mLocalTransform.getRotation().getAxis();
+	return ruVector3( axis.x(), axis.y(), axis.z() );
+}
+
 ////////////////////////////////////////////////////
 // API Functions
 ////////////////////////////////////////////////////
@@ -1384,4 +1395,12 @@ ruAnimation * ruGetCurrentAnimation( ruNodeHandle node ) {
 
 void ruSetNodeBodyLocalScale( ruNodeHandle node, ruVector3 scale ) {
 	return SceneNode::CastHandle( node )->SetBodyLocalScaling( scale );
+}
+
+RUAPI ruVector3 ruGetNodeRotationAxis( ruNodeHandle node ) {
+	return SceneNode::CastHandle( node )->GetRotationAxis();
+}
+
+RUAPI float ruGetNodeRotationAngle( ruNodeHandle node ) {
+	return SceneNode::CastHandle( node )->GetRotationAngle();
 }

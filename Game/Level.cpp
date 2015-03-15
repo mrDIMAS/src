@@ -9,6 +9,7 @@
 #include "LevelIntroduction.h"
 #include "SaveLoader.h"
 #include "SaveWriter.h"
+#include "LevelSewers.h"
 
 ruTextHandle Level::msGUILoadingText;
 ruRectHandle Level::msGUILoadingBackground;
@@ -126,6 +127,10 @@ void Level::Change( int levelId, bool continueFromSave ) {
         if( Level::msCurLevelID == LevelName::L3ResearchFacility ) {
             pCurrentLevel = new LevelResearchFacility;
         }
+
+		if( Level::msCurLevelID == LevelName::L4Sewers ) {
+			pCurrentLevel = new LevelSewers;
+		}
 
         if( Level::msCurLevelID == LevelName::LXTestingChamber ) {
             pCurrentLevel = new TestingChamber;

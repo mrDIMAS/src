@@ -30,6 +30,7 @@ public:
     BoundingVolumeRenderingShader * bvRenderer;
 
     ID3DXMesh * mBoundingSphere;
+	ID3DXMesh * mBoundingStar;
     ID3DXMesh * mBoundingCone;
 
     // Ambient Light
@@ -81,6 +82,7 @@ public:
     void CreateBoundingVolumes();
 
     void RenderSphere( Light * pLight, float scale = 1.0f );
+	void RenderStar( Light * pLight, float scale = 1.0f );
     void RenderConeIntoStencilBuffer( Light * lit );
     void RenderMeshShadow( Mesh * mesh );
 public:

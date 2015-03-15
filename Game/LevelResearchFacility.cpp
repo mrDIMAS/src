@@ -91,7 +91,7 @@ LevelResearchFacility::LevelResearchFacility() {
     mPowerLamp = GetUniqueObject( "PowerLamp");
     mPowerLeverSnd = GetUniqueObject( "PowerLeverSnd");
     mSmallSteamPosition = GetUniqueObject( "RFSteamPos" );
-	
+	mZoneNewLevelLoad = GetUniqueObject( "NewLevelLoadZone" );
 
 	mStages[ "EnterSteamActivateZone" ] = false;
 	mStages[ "EnterScaryBarellThrowZone" ] = false;

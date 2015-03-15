@@ -79,6 +79,7 @@ Camera::Camera( float fov ) {
     mSkybox = nullptr;
     g_camera = this;
     mInDepthHack = false;
+	mPathNewPointDelta = 5.0f;
 	mNearestPathPoint = new PathPoint;
 	mNearestPathPoint->mPoint = GetPosition();
 	mPath.push_back( mNearestPathPoint );
@@ -102,9 +103,21 @@ void Camera::LeaveDepthHack() {
 }
 
 void Camera::ManagePath() {
-	const float delta = 5.0f;
+	if( mPath.size() > 64 ) {
+		for( auto pPoint : mPath ) {
+			delete pPoint;
+		}
+		float mRangeSum = 0;
+		for( auto pLight : g_pointLightList ) {
+			mRangeSum += pLight->GetRadius();
+		}
+		mPathNewPointDelta = ( mRangeSum / g_pointLightList.size() ) / 2;
+		mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
+		mPath.clear();
+	}
+	
 	ruVector3 position = GetPosition();
-	if( (position - mLastPosition).Length2() > delta ) {
+	if( (position - mLastPosition).Length2() > mPathNewPointDelta ) {
 		mLastPosition = position;
 		bool addNewPoint = true;
 		float distToNearest = -FLT_MAX;
@@ -114,7 +127,7 @@ void Camera::ManagePath() {
 				mNearestPathPoint = pPoint;
 				distToNearest = dist;
 			}
-			if( dist < delta ) {				
+			if( dist < mPathNewPointDelta ) {				
 				addNewPoint = false;
 			}
 		}

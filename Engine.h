@@ -402,7 +402,8 @@ RUAPI ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPic
 RUAPI ruVector3 ruGetNodeEulerAngles( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node );
 RUAPI BodyType ruGetNodeBodyType( ruNodeHandle node );
-
+RUAPI ruVector3 ruGetNodeRotationAxis( ruNodeHandle node );
+RUAPI float ruGetNodeRotationAngle( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions
 ////////////////////////////////////////////////////////////////////////////////////

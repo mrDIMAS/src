@@ -43,6 +43,7 @@ private:
 	ruNodeHandle mZoneExaminePlace;
 	ruNodeHandle mZoneNeedCrowbar;
 	ruNodeHandle mDoorUnderFloor;
+	ruNodeHandle mZoneNewLevelLoad;
 
 	Keypad * mKeypad1;
 	Door * mKeypad1DoorToUnlock;

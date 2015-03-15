@@ -35,6 +35,7 @@ Light::Light( int type ) {
     pointTexture = nullptr;
     spotTexture = nullptr;
     floating = false;
+	mQueryDone = true;
     brightness = 1.0f;
     this->type = type;
     if( type == LT_POINT ) {
