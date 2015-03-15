@@ -338,6 +338,7 @@ RUAPI void ruSetSoundVolume( ruSoundHandle sound, float vol );
 RUAPI void ruSetSoundPosition( ruSoundHandle sound, ruVector3 pos );
 RUAPI void ruSetSoundReferenceDistance( ruSoundHandle sound, float rd );
 RUAPI void ruSetRolloffFactor( ruSoundHandle sound, float rolloffDistance );
+RUAPI void ruSetRoomRolloffFactor( ruSoundHandle sound, float rolloffDistance );
 RUAPI void ruSetSoundMaxDistance( ruSoundHandle sound, float maxDistance );
 RUAPI int ruIsSoundPlaying( ruSoundHandle sound );
 RUAPI void ruFreeSound( ruSoundHandle sound );

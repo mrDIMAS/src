@@ -10,10 +10,11 @@ LevelResearchFacility::LevelResearchFacility() {
 	LoadLocalization( "rf.loc" );
 
     pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject( "PlayerPosition" ) ));
-
-    ruSetAudioReverb( 13 );   
-
-    AddSound( mSteamHissSound = ruLoadSound3D( "data/sounds/steamhiss.ogg" ));
+	
+	AddSound( mSteamHissSound = ruLoadSound3D( "data/sounds/steamhiss.ogg" ));
+	ruSetRolloffFactor( mSteamHissSound, 5 );
+	ruSetSoundReferenceDistance( mSteamHissSound, 4 );
+	ruSetRoomRolloffFactor( mSteamHissSound, 2.5f );
 
     mLift1 = new Lift( GetUniqueObject( "Lift1" ) );
     mLift1->SetControlPanel( GetUniqueObject( "Lift1Screen" ));
@@ -45,6 +46,9 @@ LevelResearchFacility::LevelResearchFacility() {
 
     AddValve( mpSteamValve = new Valve( GetUniqueObject( "SteamValve" ), ruVector3( 0, 1, 0 )));
     ruSoundHandle steamHis = ruLoadSound3D( "data/sounds/steamhiss_loop.ogg" ) ;
+	ruSetRolloffFactor( steamHis, 5 );
+	ruSetSoundReferenceDistance( steamHis, 4 );
+	ruSetRoomRolloffFactor( steamHis, 2.5f );
     AddSound( steamHis );
     mpExtemeSteam = new SteamStream( GetUniqueObject( "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis );
 
@@ -121,6 +125,9 @@ LevelResearchFacility::LevelResearchFacility() {
 		GetUniqueObject( "Keypad3Key8"), GetUniqueObject( "Keypad3Key9"), GetUniqueObject( "Keypad3KeyCancel"), 
 		mKeypad3DoorToUnlock, "1487" );
 
+	ruSetAudioReverb( 10 );
+
+	pPlayer->SetRockFootsteps();
     DoneInitialization();
 }
 

@@ -13,6 +13,7 @@
 #include "Parser.h"
 #include "AmbientSoundSet.h"
 #include "PathFinder.h"
+#include "Lamp.h"
 
 class Level {
 private:
@@ -23,6 +24,7 @@ private:
     vector<ItemPlace*> mItemPlaceList;
     vector<Valve*> mValveList;
     vector<Lift*> mLiftList;
+	vector<Lamp*> mLampList;
     vector<ruSoundHandle> mSounds;
     virtual void OnSerialize( TextFileStream & out ) = 0;
     virtual void OnDeserialize( TextFileStream & in ) = 0;
@@ -42,10 +44,21 @@ public:
     void AddLadder( Ladder * ladder );
     void AddValve( Valve * valve );
     void AddLift( Lift * lift );
+	void AddLamp( Lamp * lamp );
+	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound ) {
+		std::regex rx( namePattern );
+		for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
+			ruNodeHandle child = ruGetNodeChild( mScene, i );
+			if( regex_match( ruGetNodeName( child ), rx )) {
+				AddLamp( new Lamp( child, ruLoadSound3D( buzzSound )));
+			}
+		}
+	}
     void AddSound( ruSoundHandle sound );
     void LoadLocalization( string fn );
     void AddAmbientSound( ruSoundHandle sound );
     void PlayAmbientSounds();
+	void UpdateGenericObjectsIdle();
     void LoadSceneFromFile( const string & file );
     explicit Level();
     virtual ~Level();

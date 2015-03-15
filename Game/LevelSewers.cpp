@@ -12,6 +12,8 @@ LevelSewers::LevelSewers( ) {
 		GetUniqueObject( "Ladder2BeginLeavePoint"), GetUniqueObject( "Ladder2EndLeavePoint")));
 	AddLadder( new Ladder( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
 		GetUniqueObject( "Ladder3BeginLeavePoint"), GetUniqueObject( "Ladder3EndLeavePoint")));
+	AddLadder( new Ladder( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
+		GetUniqueObject( "Ladder4BeginLeavePoint"), GetUniqueObject( "Ladder4EndLeavePoint")));
 
 	mGate1 = new Gate( GetUniqueObject( "SmallGate1" ), GetUniqueObject( "Button1Open" ), GetUniqueObject( "Button1Close" ),
 		GetUniqueObject( "Button1Open2" ), GetUniqueObject( "Button1Close2" ) );
@@ -19,6 +21,15 @@ LevelSewers::LevelSewers( ) {
 	mGate2 = new Gate( GetUniqueObject( "SmallGate2" ), GetUniqueObject( "Button2Open" ), GetUniqueObject( "Button2Close" ),
 		GetUniqueObject( "Button2Open2" ), GetUniqueObject( "Button2Close2" ) );
 
+	AutoCreateLampsByNamePattern( "Lamp?([[:digit:]]+)", "data/sounds/lamp_buzz.ogg" );
+
+	mZoneKnocks = GetUniqueObject( "ZoneKnocks" );
+	mKnocksSound = ruLoadSound3D( "data/sounds/knocks.ogg" );
+	ruSetSoundPosition( mKnocksSound, ruGetNodePosition( mZoneKnocks ));
+
+	ruSetAudioReverb( 10 );
+ 
+	pPlayer->SetRockFootsteps();
 	DoneInitialization();
 }
 
@@ -30,6 +41,10 @@ void LevelSewers::DoScenario() {
 	ruSetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
 	mGate1->Update();
 	mGate2->Update();
+
+	if( pPlayer->IsInsideZone( mZoneKnocks )) {
+		ruPlaySound( mKnocksSound );
+	}
 }
 
 void LevelSewers::Show() {

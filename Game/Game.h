@@ -18,6 +18,7 @@
 #include <windows.h>
 #include <assert.h>
 #include <sstream>
+#include <regex>
 
 #define _USE_MATH_DEFINES
 #include <math.h>

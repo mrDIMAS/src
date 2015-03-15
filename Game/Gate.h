@@ -19,6 +19,10 @@ public:
 	ruVector3 mInitialPosition;
 	State mState;
 	float mGateYOffset;
+	ruSoundHandle mBeginSound;
+	ruSoundHandle mIdleSound;
+	ruSoundHandle mEndSound;
+	ruSoundHandle mButtonSound;
 	
 	explicit Gate( ruNodeHandle gate, ruNodeHandle buttonOpen, ruNodeHandle buttonClose, ruNodeHandle buttonOpen2, ruNodeHandle buttonClose2  ) {
 		mGate = gate;
@@ -30,21 +34,47 @@ public:
 		mGateYOffset = 0.0f;
 		mInitialPosition = ruGetNodePosition( mGate );
 		mState = State::Closed;
+
+		mBeginSound = ruLoadSound3D( "data/sounds/door_open_start.ogg" );
+		mIdleSound = ruLoadSound3D( "data/sounds/door_open_idle.ogg" );
+		mEndSound = ruLoadSound3D( "data/sounds/door_open_end.ogg" );
+		mButtonSound = ruLoadSound3D( "data/sounds/button.ogg" );
+
+		ruSetSoundPosition( mBeginSound, ruGetNodePosition( mGate ) );
+		ruSetSoundPosition( mIdleSound, ruGetNodePosition( mGate ) );
+		ruSetSoundPosition( mEndSound, ruGetNodePosition( mGate ) );
+	}
+
+	void OnEndMoving() {
+		ruPauseSound( mIdleSound );
+		ruPlaySound( mEndSound );
 	}
 
 	void Update() {
-		if( pPlayer->mNearestPickedNode == mButtonOpen[0] ||
-			pPlayer->mNearestPickedNode == mButtonOpen[1] ) {
-			pPlayer->SetActionText( "Открыть" );
-			if( ruIsKeyHit( pPlayer->mKeyUse )) {
-				mState = State::Opening;
+		if( pPlayer->mNearestPickedNode == mButtonOpen[0] || pPlayer->mNearestPickedNode == mButtonOpen[1] ) {
+			if( !( mState == State::Closing || mState == State::Opening )) {
+				pPlayer->SetActionText( "Открыть" );
+				if( ruIsKeyHit( pPlayer->mKeyUse )) {
+					ruSetSoundPosition( mButtonSound, ruGetNodePosition( pPlayer->mNearestPickedNode ));
+					ruPlaySound( mButtonSound );
+					if( mState != State::Opened ) {
+						mState = State::Opening;
+						ruPlaySound( mBeginSound );
+					}
+				}
 			}
 		}
-		if( pPlayer->mNearestPickedNode == mButtonClose[0] ||
-			pPlayer->mNearestPickedNode == mButtonClose[1] ) {
-			pPlayer->SetActionText( "Закрыть" );
-			if( ruIsKeyHit( pPlayer->mKeyUse )) {
-				mState = State::Closing;
+		if( pPlayer->mNearestPickedNode == mButtonClose[0] || pPlayer->mNearestPickedNode == mButtonClose[1] ) {
+			if( !( mState == State::Closing || mState == State::Opening )) {
+				pPlayer->SetActionText( "Закрыть" );
+				if( ruIsKeyHit( pPlayer->mKeyUse )) {	
+					ruSetSoundPosition( mButtonSound, ruGetNodePosition( pPlayer->mNearestPickedNode ));
+					ruPlaySound( mButtonSound );
+					if( mState != State::Closed ) {
+						mState = State::Closing;
+						ruPlaySound( mBeginSound );
+					}
+				}
 			}
 		}
 		if( mState == State::Closing ) {
@@ -52,6 +82,7 @@ public:
 			if( mGateYOffset > 0.0f ) {
 				mGateYOffset = 0.0f;
 				mState = State::Closed;
+				OnEndMoving();
 			}
 		}
 		if( mState == State::Opening ) {
@@ -59,6 +90,13 @@ public:
 			if( mGateYOffset < -mGateHeight ) {
 				mGateYOffset = -mGateHeight;
 				mState = State::Opened;
+				OnEndMoving();
+			}
+		}
+
+		if( mState == State::Opening || mState == State::Closing ) {
+			if( !ruIsSoundPlaying( mBeginSound )) {
+				ruPlaySound( mIdleSound );
 			}
 		}
 		ruSetNodePosition( mGate, mInitialPosition + ruVector3( 0, mGateYOffset, 0 ));

@@ -10,6 +10,9 @@ public:
 	Gate * mGate1;
 	Gate * mGate2;
 
+	ruNodeHandle mZoneKnocks;
+	ruSoundHandle mKnocksSound;
+
 	explicit LevelSewers( );
 	~LevelSewers( );
 

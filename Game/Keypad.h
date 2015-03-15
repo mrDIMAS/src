@@ -15,6 +15,8 @@ private:
 	char mKeyState[10];
 	ruVector3 mKeysInitialPosition[10];
 	ruVector3 mKeysPressedOffsets[10];
+	ruSoundHandle mButtonPushSound;
+	ruSoundHandle mButtonPopSound;
 
 	void Reset() {
 		for( int i = 0; i < 10; i++ ) {
@@ -22,6 +24,7 @@ private:
 			mCurrentCode.clear();
 			ruSetNodePosition( mKeys[i], mKeysInitialPosition[i] );
 		}
+		ruPlaySound( mButtonPopSound );
 	}
 public:
 	explicit Keypad( ruNodeHandle keypad, ruNodeHandle key0, ruNodeHandle key1, ruNodeHandle key2, ruNodeHandle key3, 
@@ -56,6 +59,12 @@ public:
 			mDoorToUnlock->SetLocked( true );
 
 			Reset();
+
+			mButtonPushSound = ruLoadSound3D( "data/sounds/button_push.ogg" );
+			mButtonPopSound = ruLoadSound3D( "data/sounds/button_pop.ogg" );
+
+			ruSetSoundPosition( mButtonPushSound, ruGetNodePosition( mKeypad ));
+			ruSetSoundPosition( mButtonPopSound, ruGetNodePosition( mKeypad ));
 	}
 
 	void Update() {
@@ -66,11 +75,11 @@ public:
 					if( ruIsKeyHit( pPlayer->mKeyUse ) ) {
 						mCurrentCode += to_string( i );
 						mKeyState[i] = 1;
+						ruPlaySound( mButtonPushSound );
 						if( mCurrentCode.size() == 4 ) {
 							if( mCurrentCode == mCodeToUnlock ) {
 								mDoorToUnlock->SetLocked( false );
-								mDoorToUnlock->Open();
-								
+								mDoorToUnlock->Open();								
 							} 
 							Reset();						
 						} else {

@@ -25,7 +25,8 @@ SteamStream::SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedM
     ps = ruCreateParticleSystem( 60, psProps );
     ruSetNodePosition( ps, ruGetNodePosition( obj ));
     ruAttachSound( snd, ps );
-    ruSetSoundReferenceDistance( snd, 15.0f );
-    ruSetRolloffFactor( snd, 50.0f );
+	ruSetRolloffFactor( snd, 5 );
+	ruSetSoundReferenceDistance( snd, 0.4 );
+	ruSetRoomRolloffFactor( snd, 2.5f );
     power = 1;
 }

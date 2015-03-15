@@ -98,6 +98,7 @@ void main( ) {
                         }
                     }
                     if( pCurrentLevel ) {
+						pCurrentLevel->UpdateGenericObjectsIdle();
                         pCurrentLevel->DoScenario();
                     }
                     InteractiveObject::UpdateAll();

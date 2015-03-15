@@ -62,6 +62,10 @@ void ruSetRolloffFactor( ruSoundHandle sound, float rolloffFactor ) {
     pfSetRolloffFactor( sound.pfHandle, rolloffFactor );
 };
 
+void ruSetRoomRolloffFactor( ruSoundHandle sound, float rolloffDistance ) {
+	pfSetRoomRolloffFactor( sound.pfHandle, rolloffDistance );
+}
+
 void ruPlaySound( ruSoundHandle sound, int oneshot ) {
     pfPlaySound( sound.pfHandle, oneshot );
 }

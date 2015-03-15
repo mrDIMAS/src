@@ -57,6 +57,10 @@ Level::~Level() {
         delete pLift;
     }
 
+	for( auto pLamp : mLampList ) {
+		delete pLamp;
+	}
+
     for( auto iSound : mSounds ) {
         ruFreeSound( iSound );
     }
@@ -71,6 +75,9 @@ void Level::Hide() {
     for( auto & sound : mSounds ) {
         ruPauseSound( sound );
     }
+	for( auto pLamp : mLampList ) {
+		pLamp->Hide();
+	}
 }
 
 void Level::Show() {
@@ -80,6 +87,9 @@ void Level::Show() {
             ruPlaySound( sound );
         }
     }
+	for( auto pLamp : mLampList ) {
+		pLamp->Show();
+	}
 }
 
 void Level::Change( int levelId, bool continueFromSave ) {
@@ -288,4 +298,16 @@ void Level::CreateLoadingScreen()
 	ruSetGUINodeVisible( msGUILoadingText, false );
 	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
 	ruSetGUINodeVisible( msGUILoadingBackground, false );
+}
+
+void Level::AddLamp( Lamp * lamp )
+{
+	mLampList.push_back( lamp );
+}
+
+void Level::UpdateGenericObjectsIdle()
+{
+	for( auto pLamp : mLampList ) {
+		pLamp->Update();
+	}
 }
