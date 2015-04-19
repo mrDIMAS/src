@@ -370,12 +370,7 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
     scene->mTotalFrameCount = framesCount;
 
     for ( int meshObjectNum = 0; meshObjectNum < numMeshes; meshObjectNum++ ) {
-		SceneNode * node = nullptr;
-		if( meshObjectNum == 0 ) {
-			node = scene;
-		} else {
-			node = new SceneNode;
-		}
+		SceneNode * node = new SceneNode;
 
         node->mLocalTransform.setOrigin( reader.GetVector() );
         node->mLocalTransform.setRotation( reader.GetQuaternion() );
@@ -470,10 +465,9 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
             }
         }
 		        
-		if( scene != node ) {
-			node->mParent = scene;
-			scene->mChildList.push_back( node );
-		}
+		node->mParent = scene;
+		scene->mChildList.push_back( node );
+		
         node->mScene = scene;
         node->ApplyProperties();
     }
@@ -1163,6 +1157,15 @@ void ruRutheniumHandle::Invalidate() {
 bool ruNodeHandle::operator == ( const ruNodeHandle & node ) {
     return pointer == node.pointer;
 }
+
+bool ruNodeHandle::IsValid() {
+	if( g_debugMode ) {
+		return ruIsNodeHandleValid( *this );
+	} else {
+		return ruRutheniumHandle::IsValid();
+	} 
+}
+
 
 ruVector3 ruGetNodeLinearVelocity( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->GetLinearVelocity();

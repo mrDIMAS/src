@@ -14,6 +14,7 @@
 #include "SmoothFloat.h"
 #include "Tip.h"
 #include "Actor.h"
+#include "Weapon.h"
 
 class Player : public Actor {
 public:
@@ -91,6 +92,9 @@ public:
 
     vector< ruSoundHandle > mFootstepList;
 
+	Weapon * mCurrentWeapon;
+	vector<Weapon*> mWeaponList;
+
     bool mObjectThrown;
     bool mLanded;
     bool mDead;
@@ -142,6 +146,8 @@ public:
     void Update( );
     void UpdateMouseLook();
     void UpdateMoving();
+	Weapon * AddWeapon( Weapon::Type type );
+	void UpdateWeapons();
     void DrawStatusBar();
     void SetObjective( string text );
     void CompleteObjective();

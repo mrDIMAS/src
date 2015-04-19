@@ -2,6 +2,7 @@
 #include "Menu.h"
 #include "Door.h"
 #include "utils.h"
+#include "Enemy.h"
 
 Player * pPlayer = 0;
 
@@ -58,6 +59,8 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
     mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
 
     mpCurrentWay = nullptr;
+
+
 	
     LoadGUIElements();
     CreateCamera();
@@ -78,6 +81,8 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
         mGUIStaminaBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 3 * 15, 8, 16, pGUI->staminaBarImg, ruVector3( 255, 255, 255 ), mStaminaAlpha );
         mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
     }
+
+	mCurrentWeapon = nullptr;
 }
 
 void Player::DrawStatusBar() {
@@ -143,6 +148,27 @@ void Player::Damage( float dmg ) {
     }
 }
 
+Weapon * Player::AddWeapon( Weapon::Type type ) {
+	for( auto pWeapon : mWeaponList ) {
+		if( pWeapon->GetType() == type ) {
+			return pWeapon;
+		}
+	}
+
+	switch ( type )	{
+	case Weapon::Type::Pistol:
+		mCurrentWeapon = new Weapon( mpCamera->mNode );
+	default:
+		break;
+	}
+
+	mpFlashlight->SwitchOff();
+
+	mWeaponList.push_back( mCurrentWeapon );
+
+	return mCurrentWeapon;
+}
+
 void Player::AddItem( Item * pItem ) {
     if( !pItem ) {
         return;
@@ -151,6 +177,8 @@ void Player::AddItem( Item * pItem ) {
     if( mInventory.Contains( pItem )) {
         return;
     }
+
+	pItem->PickUp(); // do item logic
 
     ruFreeze( pItem->mObject );
     //ruDetachNode( pItem->mObject );
@@ -456,7 +484,7 @@ void Player::Update( ) {
     if( !pMainMenu->IsVisible() ) {
 		mGoal.AnimateAndRender();
 		DrawStatusBar();
-		if( !mDead ) {
+		if( !mDead ) {			
 			ruSetGUINodeVisible( mGUIStealthSign, mStealthMode );
 			UpdateFright();
 			UpdateFlashLight();
@@ -470,6 +498,7 @@ void Player::Update( ) {
 			UpdateInventory();
 			DrawSheetInHands();
 			UpdateCursor();
+			UpdateWeapons();
 		}
 	}
 }
@@ -727,6 +756,12 @@ void Player::UpdatePicking() {
 
     mNearestPickedNode.Invalidate();
 
+	for( auto pEnemy : Enemy::msEnemyList ) {
+		if( mPickedNode == pEnemy->GetBody() ) {
+			mPickedNode.Invalidate();
+		}
+	}
+
     if( mPickedNode.IsValid() && !mNodeInHands.IsValid()  ) {
         mNodeInHands.Invalidate();
 
@@ -777,6 +812,13 @@ void Player::UpdateFlashLight() {
 
     if( ruIsKeyHit( mKeyFlashLight ) && !mNodeInHands.IsValid() ) {
         mpFlashlight->Switch();
+		if( mCurrentWeapon ) {
+			if( mpFlashlight->IsOn() ) {
+				mCurrentWeapon->SetVisible( false );
+			} else {
+				mCurrentWeapon->SetVisible( true );
+			}
+		}
     }
 }
 
@@ -898,6 +940,12 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadInteger( mKeyInventory );
     in.ReadInteger( mKeyUse );
 
+	int weaponCount = in.ReadInteger();
+	for( int i = 0; i < weaponCount; i++ ) {
+		Weapon * pWeapon = AddWeapon( Weapon::Type::Pistol ); // TODO
+		pWeapon->DeserializeWith( in );
+	}
+
     mStealthMode = in.ReadBoolean();
 
     mpFlashlight->DeserializeWith( in );
@@ -907,6 +955,8 @@ void Player::DeserializeWith( TextFileStream & in ) {
     mpCamera->FadePercent( 100 );
     mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ) );
     ruSetNodeFriction( mBody, 0 );
+	  
+
 }
 
 void Player::SerializeWith( TextFileStream & out ) {
@@ -970,11 +1020,18 @@ void Player::SerializeWith( TextFileStream & out ) {
     out.WriteInteger( mKeyInventory );
     out.WriteInteger( mKeyUse );
 
+	out.WriteInteger( mWeaponList.size() );
+	for( auto pWeapon : mWeaponList ) {
+		pWeapon->SerializeWith( out );
+	}
+
     out.WriteBoolean( mStealthMode );
 
     mpFlashlight->SerializeWith( out );
 
     mTip.Serialize( out );
+
+
 }
 
 void Player::CloseCurrentSheet() {
@@ -1026,8 +1083,7 @@ void Player::SetHUDVisible( bool state ) {
 	}
 }
 
-void Player::ManageEnvironmentDamaging()
-{
+void Player::ManageEnvironmentDamaging() {
 	/*
 	for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
 		ruContact contact = ruGetContact( mBody, i );
@@ -1039,4 +1095,24 @@ void Player::ManageEnvironmentDamaging()
 			}
 		}
 	}*/
+}
+
+void Player::UpdateWeapons() {
+	if( !mInventory.IsOpened() ) {
+		if( mNodeInHands.IsValid() ) {
+			mpFlashlight->SwitchOn();
+		}
+		if( !mpFlashlight->IsOn() ) {
+			if( mCurrentWeapon ) {
+				if( ruIsMouseHit( MB_Left )) {
+					mCurrentWeapon->Shoot();
+				}
+				mCurrentWeapon->Update();
+			}
+		} else {
+			if( mCurrentWeapon ) {
+				mCurrentWeapon->SetVisible( false );
+			}
+		}
+	}
 }

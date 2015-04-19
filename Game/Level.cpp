@@ -217,11 +217,23 @@ void Level::DeserializeWith( TextFileStream & in ) {
     }
 	int pointLightCount = in.ReadInteger();
 	for( int i = 0; i < pointLightCount; i++ ) {
-		ruSetLightRange( ruGetWorldPointLight( i ), in.ReadFloat() );
+		ruNodeHandle lit = ruGetWorldPointLight( i );
+		if( lit.IsValid() ) {
+			ruSetLightRange( lit, in.ReadFloat() );
+		} else {
+			// ignore
+			in.ReadFloat();
+		}
 	}
 	int spotLightCount = in.ReadInteger();
 	for( int i = 0; i < spotLightCount; i++ ) {
-		ruSetLightRange( ruGetWorldSpotLight( i ), in.ReadFloat() );
+		ruNodeHandle spot = ruGetWorldSpotLight( i );
+		if( spot.IsValid() ) {
+			ruSetLightRange( spot, in.ReadFloat() );
+		} else {
+			// ignore
+			in.ReadFloat();
+		}
 	}
     OnDeserialize( in );
 }
@@ -340,6 +352,16 @@ void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buz
 		ruNodeHandle child = ruGetNodeChild( mScene, i );
 		if( regex_match( ruGetNodeName( child ), rx )) {
 			AddLamp( new Lamp( child, ruLoadSound3D( buzzSound )));
+		}
+	}
+}
+
+void Level::AutoCreateBulletsByNamePatters( const string & namePattern ) {
+	std::regex rx( namePattern );
+	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
+		ruNodeHandle child = ruGetNodeChild( mScene, i );
+		if( regex_match( ruGetNodeName( child ), rx )) {
+			AddItem( new Item( child, Item::Type::Bullet ));
 		}
 	}
 }

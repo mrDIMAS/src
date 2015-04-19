@@ -61,7 +61,7 @@ void main( ) {
     ruShowCursor();
 
     while( g_running ) {
-        try {
+        //try {
             ruRenderWorld( );
 
             double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
@@ -108,9 +108,9 @@ void main( ) {
 				ruUpdateWorld();
             }			
 			fpsCounter.RegisterFrame();
-        } catch( std::exception exc ) {
-            RaiseError( exc.what() );
-        }
+        //} catch( std::exception exc ) {
+        //    RaiseError( exc.what() );
+        //}
     }
 
     if( pCurrentLevel ) {

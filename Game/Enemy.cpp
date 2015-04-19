@@ -2,6 +2,8 @@
 #include "Menu.h"
 #include "Door.h"
 
+vector<Enemy*> Enemy::msEnemyList;
+
 Enemy::Enemy( const string & file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Actor( 0.5f, 0.25f ) {
 	mPathfinder.SetVertices( path );
 	mPatrolPointList = patrol;
@@ -34,6 +36,14 @@ Enemy::Enemy( const string & file, vector<GraphVertex*> & path, vector<GraphVert
 	mLastDestinationIndex = -1;
 	mPlayerDetected = false;
 	mPlayerInSightTimer = ruCreateTimer();
+
+	msEnemyList.push_back( this );
+
+	mDead = false;
+
+	mFadeAwaySound = ruLoadSound2D( "data/sounds/fadeaway.ogg" );
+	ruSetSoundVolume( mFadeAwaySound, 1.5f );
+	mResurrectTimer = ruCreateTimer();
 }
 
 
@@ -42,6 +52,13 @@ void Enemy::Think() {
 		ruPauseSound( mScreamSound );
 		ruPauseSound( mBreathSound );
 		ruPauseSound( mHitFleshWithAxeSound );
+
+		if( mDead ) {
+			if( ruGetElapsedTimeInSeconds( mResurrectTimer ) >= 10 ) {
+				Resurrect();
+			}
+		}
+
         return;
     }
 
@@ -225,9 +242,20 @@ void Enemy::Think() {
 		mRunAnimation.Update();
 
 		ManageEnvironmentDamaging();
+
+
 	}
 }
 
+void Enemy::Resurrect() {
+	mDead = false;
+	ruSetNodePosition( mBody, mDeathPosition );
+	ruUnfreeze( mBody );
+	ruShowNode( mBody );
+	
+	DoBloodSpray();
+	mHealth = 100;
+}
 
 void Enemy::SetWalkAnimation() {
     SetCommonAnimation( &mWalkAnimation );
@@ -328,22 +356,54 @@ void Enemy::FindBodyparts() {
 
 void Enemy::Serialize( TextFileStream & out ) {
     out.WriteVector3( ruGetNodePosition( mBody ));
+	out.WriteBoolean( mDead );
+	out.WriteFloat( mHealth );
 }
 
 void Enemy::Deserialize( TextFileStream & in ) {
     ruSetNodePosition( mBody, in.ReadVector3( ));
+	mDead = in.ReadBoolean();
+	mHealth = in.ReadFloat();
 }
 
 Enemy::~Enemy() {
 
 }
 
+void Enemy::DoBloodSpray() {
+	if( mBloodSpray.IsValid() ) {
+		ruFreeSceneNode( mBloodSpray );
+	} 
+
+	ruParticleSystemProperties psProps;
+	psProps.texture = ruGetTexture( "data/textures/particles/spray.png");
+	psProps.type = PS_BOX;
+	psProps.speedDeviationMin = ruVector3( -0.0015, 0.02, -0.0015 );
+	psProps.speedDeviationMax = ruVector3( 0.0015, -0.09, 0.0015 );
+	psProps.colorBegin = ruVector3( 200, 0, 0 );
+	psProps.colorEnd = ruVector3( 200, 0, 0 );
+	psProps.pointSize = 0.455f;
+	psProps.boundingBoxMin = ruVector3( -mBodyWidth, 0.0, -mBodyWidth );
+	psProps.boundingBoxMax = ruVector3(  mBodyWidth, mBodyHeight, mBodyWidth );
+	psProps.particleThickness = 20.5f;
+	psProps.autoResurrectDeadParticles = false;
+	psProps.useLighting = false;
+	mBloodSpray = ruCreateParticleSystem( 50, psProps );
+	ruSetNodePosition( mBloodSpray, ruGetNodePosition( mBody ));	
+}
+
 void Enemy::Damage( float dmg ) {
 	Actor::Damage( dmg );
-	if( dmg > 2.5f ) {
-		Stun( true );
-	}
 	if( mHealth <= 0.0f ) {
+		ruRestartTimer( mResurrectTimer );
+		if( !mDead ) {
+			DoBloodSpray();
+			ruPlaySound( mFadeAwaySound );
+			mDead = true;
+		}
+		mDeathPosition = ruGetNodePosition( mBody );
+		ruSetNodePosition( mBody, ruVector3( 1000, 1000, 1000 ));
+		ruHideNode( mBody );
 		ruFreeze( mBody );
 	}
 }

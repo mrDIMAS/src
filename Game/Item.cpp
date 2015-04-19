@@ -67,6 +67,26 @@ void Item::SetType( Type type ) {
 		mContentTypeDesc = msLocalization.GetString( "crowbarContentType" );
 	}
 
+	if( mType == Type::Pistol ) {
+		mDesc = msLocalization.GetString( "pistolDesc" );
+		mName = msLocalization.GetString( "pistolName" );
+		mPic = ruGetTexture( "data/gui/inventory/items/pistol.png" );
+		mModelFile = "data/models/pistol/pistol.scene";
+		mCombinePair = Type::Bullet;
+		mThrowable = false;
+		mMass = 4.0f;
+	}
+
+	if( mType == Type::Bullet ) {
+		mDesc = msLocalization.GetString( "bulletDesc" );
+		mName = msLocalization.GetString( "bulletName" );
+		mPic = ruGetTexture( "data/gui/inventory/items/bullet.png" );
+		mModelFile = "data/models/bullet/bullet.scene";
+		mCombinePair = Type::Pistol;
+		mThrowable = false;
+		mMass = 0.12f;
+	}
+
     if( mType == Type::Lighter ) {
         mDesc = msLocalization.GetString( "flashlightDesc" );
         mName = msLocalization.GetString( "flashlightName" );
@@ -96,6 +116,17 @@ void Item::SetType( Type type ) {
         mMass = 1.5f;
         mContentTypeDesc = msLocalization.GetString( "medkitContentType" );
     }
+
+}
+
+void Item::PickUp() {
+	switch ( mType ) {
+	case Type::Pistol:
+		pPlayer->AddWeapon( Weapon::Type::Pistol );
+		break;
+	default:
+		break;
+	}
 }
 
 Item::Item( ruNodeHandle obj, Type type ): InteractiveObject( obj ) {
@@ -166,6 +197,29 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
                 pUsedItem = pCanister;
                 return true;
             }
+
+			// pistol reloading
+			Item * pPistol = nullptr;
+			Item * pBullet = nullptr;
+			if( mType == Type::Pistol && pItem->GetType() == Type::Bullet ) {
+				pPistol = this;
+				pBullet = pItem;
+			} else {
+				pPistol = pItem;
+				pBullet = this;
+			}
+			if( pPistol && pBullet ) {
+				if( pPlayer->mCurrentWeapon ) {
+					if( pPlayer->mCurrentWeapon->GetType() == Weapon::Type::Pistol ) {
+						bool bulletLoaded = pPlayer->mCurrentWeapon->LoadBullet();
+						if( bulletLoaded ) {
+							pPlayer->GetInventory()->RemoveItem( pBullet );
+							delete pBullet;
+							return true;
+						}
+					}
+				}
+			}
         }
     }
     return false;

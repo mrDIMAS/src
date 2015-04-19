@@ -23,6 +23,19 @@ Light * Light::GetLightByHandle( ruNodeHandle handle ) {
     }
     return light;
 };
+
+bool ruIsLightHandeValid( ruNodeHandle handle ) {
+	auto pointIter = find( g_pointLightList.begin(), g_pointLightList.end(), Light::GetLightByHandle( handle ) );
+	if( pointIter != g_pointLightList.end() ) {
+		return true;
+	}
+	auto spotIter = find( g_spotLightList.begin(), g_spotLightList.end(), Light::GetLightByHandle( handle ) );
+	if( spotIter != g_spotLightList.end() ) {
+		return true;
+	}
+	return false;
+}
+
 /*
 ==========
 Light::Light

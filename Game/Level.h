@@ -46,6 +46,7 @@ public:
     void AddLift( Lift * lift );
 	void AddLamp( Lamp * lamp );
 	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound );
+	void AutoCreateBulletsByNamePatters( const string & namePattern );
     void AddSound( ruSoundHandle sound );
     void LoadLocalization( string fn );
     void AddAmbientSound( ruSoundHandle sound );

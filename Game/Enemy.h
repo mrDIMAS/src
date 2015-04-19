@@ -30,6 +30,7 @@ private:
 
     ruVector3 mTarget;
     ruVector3 mDestination;
+	ruVector3 mDeathPosition;
 
     ruNodeHandle mRightLeg;
     ruNodeHandle mLeftLeg;
@@ -69,9 +70,20 @@ private:
     ruAnimation mRunAnimation;
     ruAnimation mAttackAnimation;
     ruAnimation mWalkAnimation;
-public:
-    int GetVertexIndexNearestTo( ruVector3 position );
+	ruTimerHandle mResurrectTimer;
 
+	ruNodeHandle mBloodSpray;
+	ruSoundHandle mFadeAwaySound;
+	bool mDead;
+public:
+	static vector<Enemy*> msEnemyList;
+
+    int GetVertexIndexNearestTo( ruVector3 position );
+	ruNodeHandle GetBody() {
+		return mBody;
+	}
+	void DoBloodSpray();
+	void Resurrect();
     void SetLegsAnimation( ruAnimation *pAnim );
     void SetTorsoAnimation( ruAnimation * anim );
     void SetCommonAnimation( ruAnimation * anim );

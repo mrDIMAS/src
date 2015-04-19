@@ -30,7 +30,7 @@ LevelMine::LevelMine() {
 
     mNewLevelZone = GetUniqueObject( "NewLevel" );
 
-    ruSetAudioReverb( 8 );
+    ruSetAudioReverb( 10 );
 
     AddSound( mMusic = ruLoadMusic( "data/music/chapter2.ogg" ));
 
@@ -47,6 +47,10 @@ LevelMine::LevelMine() {
     mDetonatorActivated = 0;
 
     mExplosionFlashAnimator = 0;
+
+	AddItem( new Item( GetUniqueObject( "Pistol" ), Item::Type::Pistol ));
+
+	AutoCreateBulletsByNamePatters( "Bullet?([[:digit:]]+)" );
 
     // Create detonator places
     AddItemPlace( mDetonatorPlace[0] = new ItemPlace( GetUniqueObject( "DetonatorPlace1" ), Item::Type::Explosives ));

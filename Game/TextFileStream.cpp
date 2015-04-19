@@ -53,7 +53,7 @@ void TextFileStream::ReadFloat( float & f ) {
 }
 
 int TextFileStream::ReadInteger() {
-    int i;
+    int i = 0;
     mStream >> i;
     return i;
 }

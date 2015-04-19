@@ -12,10 +12,12 @@ public:
         FuelCanister	= 2,
         Wires			= 3,
         Explosives		= 4,
-        Lighter		= 5,
+        Lighter			= 5,
         Fuse			= 6,
         Medkit			= 7,
 		Crowbar			= 8,
+		Pistol			= 9,
+		Bullet			= 10,
     };
 private:
     static Parser msLocalization;
@@ -55,6 +57,7 @@ public:
     void MarkAsGrabbed();
     void MarkAsFree();
     bool IsFree();
+	void PickUp();
     static vector<Item*> msItemList;
     static Item * GetItemPointerByNode( ruNodeHandle obj );
 };

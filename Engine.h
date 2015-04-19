@@ -199,6 +199,8 @@ public:
 class RUAPI ruNodeHandle : public ruRutheniumHandle {
 public:
     bool operator == ( const ruNodeHandle & node );
+
+	virtual bool IsValid();
 };
 
 struct ruContact {
@@ -452,6 +454,7 @@ RUAPI void ruSetNodeAlbedo( ruNodeHandle node, float albedo );
 RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point );
 RUAPI ruVector3 ruGetNodeLinearVelocity( ruNodeHandle node );
 RUAPI bool ruIsNodeHandleValid( ruNodeHandle handle );
+RUAPI bool ruIsLightHandeValid( ruNodeHandle handle );
 // Octree manipulation
 // Note, that nodes with octree's optimization can't be moved or modified, so
 // it can be used for large static geometry, like game levels
