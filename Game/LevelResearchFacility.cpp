@@ -65,6 +65,7 @@ LevelResearchFacility::LevelResearchFacility() {
 	mZoneObjectiveRestorePower = GetUniqueObject( "ObjectiveRestorePower" );
 	mZoneExaminePlace = GetUniqueObject( "ObjectiveExaminePlace" );
 	mZoneNeedCrowbar = GetUniqueObject( "ObjectiveNeedCrowbar" );
+	mZoneObjectiveNeedPassThroughMesh = GetUniqueObject( "ObjectiveNeedPassThroughMesh" );
 
     CreatePowerUpSequence();
 
@@ -104,6 +105,7 @@ LevelResearchFacility::LevelResearchFacility() {
 	mStages[ "EnterObjectiveNeedCrowbar" ] = false;
 	mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = false;
 	mStages[ "DoorUnderFloorOpen" ] = false;
+	mStages[ "NeedPassThroughMesh" ] = false;
 
 	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
 
@@ -222,6 +224,13 @@ void LevelResearchFacility::DoScenario() {
 				pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedOpenDoorOntoFloor" ) );
 				mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = true;
 			}
+		}
+	}
+
+	if( !mStages[ "NeedPassThroughMesh" ] ) {
+		if( pPlayer->IsInsideZone( mZoneObjectiveNeedPassThroughMesh )) {
+			pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedPassThroughMesh" ));
+			mStages[ "NeedPassThroughMesh" ] = true;
 		}
 	}
 	

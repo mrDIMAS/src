@@ -153,7 +153,7 @@ void Player::AddItem( Item * pItem ) {
     }
 
     ruFreeze( pItem->mObject );
-    ruDetachNode( pItem->mObject );
+    //ruDetachNode( pItem->mObject );
     pItem->MarkAsGrabbed();
 
     ruSetNodePosition( pItem->mObject, ruVector3( 10000, 10000, 10000 )); // far far away
@@ -306,22 +306,18 @@ void Player::UpdateMoving() {
     if( mpCurrentWay ) {
         mStealthMode = false;
         mpCurrentWay->DoEntering();
-        if( !mpCurrentWay->IsFreeLook() ) {
-            mpCurrentWay->LookAtTarget();
-        }
         if( mpCurrentWay->IsPlayerInside() ) {
-            bool move = false;
+            mMoved = false;
             if( ruIsKeyDown( mKeyMoveForward )) {
                 mpCurrentWay->SetDirection( Way::Direction::Forward );
-                move = true;
+                mMoved = true;
             }
             if( ruIsKeyDown( mKeyMoveBackward )) {
                 mpCurrentWay->SetDirection( Way::Direction::Backward );
-                move = true;
-            }
-            if( move ) {
-                mpCurrentWay->DoPlayerCrawling();
                 mMoved = true;
+            }
+            if( mMoved ) {
+                mpCurrentWay->DoPlayerCrawling();
                 if( !mpCurrentWay->IsPlayerInside() ) {
                     mpCurrentWay = nullptr;
                 }
@@ -720,6 +716,10 @@ void Player::UpdateItemsHandling() {
     }
 }
 
+void Player::RepairInventory() {
+	mInventory.Repair();
+}
+
 void Player::UpdatePicking() {
     ruVector3 pickPosition;
 
@@ -849,7 +849,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     in.ReadVector3( mGravity );
     in.ReadVector3( mJumpTo );
 
-    mpCurrentWay = Way::GetByObject( ruFindByName( in.Readstring() ));
+    mpCurrentWay = Way::GetByObject( ruFindByName( in.ReadString() ));
     if( mpCurrentWay ) {
         ruFreeze( pPlayer->mBody );
     }
@@ -886,7 +886,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
     mHeartBeatPitch.Deserialize( in );
     mBreathPitch.Deserialize( in );
 
-    mpSheetInHands = Sheet::GetSheetPointerByNode( ruFindByName( in.Readstring() ));
+    mpSheetInHands = Sheet::GetSheetPointerByNode( ruFindByName( in.ReadString() ));
 
     in.ReadInteger( mKeyMoveForward );
     in.ReadInteger( mKeyMoveBackward );

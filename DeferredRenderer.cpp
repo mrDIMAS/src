@@ -367,7 +367,6 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	// begin occlusion queries
 	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
 	gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-	//gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
 	gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
 	gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );	
 
@@ -509,6 +508,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 		gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
 		gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
+		gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
         mHDRShader->CalculateFrameLuminance( );
         if( g_fxaaEnabled ) {
             mHDRShader->DoToneMapping( mFXAA->renderTarget );
@@ -535,6 +535,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 			gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
         }
     }
+
+	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 }
 
 

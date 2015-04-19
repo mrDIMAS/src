@@ -6,14 +6,24 @@
 
 unordered_map< IDirect3DTexture9*, vector< Mesh*>> Mesh::msMeshList;
 
-Mesh::Mesh( SceneNode * theParent ) {
+Mesh::Mesh() {
     mDiffuseTexture = nullptr;
     mIndexBuffer = nullptr;
     mVertexBuffer = nullptr;
-    mOwnerNode = theParent;
     mNormalTexture = nullptr;
     mOctree = nullptr;
     mOpacity = 1.0f;
+}
+
+void Mesh::LinkTo( SceneNode * owner ) {
+	mOwnerList.push_back( owner );
+}
+
+void Mesh::Unlink( SceneNode * owner ) {
+	auto iter = find( mOwnerList.begin(), mOwnerList.end(), owner ); 
+	if( iter != mOwnerList.end() ) {
+		mOwnerList.erase( iter );
+	}
 }
 
 void Mesh::Register( Mesh * mesh ) {
@@ -82,13 +92,35 @@ void Mesh::UpdateIndexBuffer( vector< Triangle > & triangles ) {
     CheckDXErrorFatal( mIndexBuffer->Unlock());
 }
 
-SceneNode * Mesh::GetOwner() {
-    return mOwnerNode;
+vector<SceneNode*> & Mesh::GetOwners() {
+    return mOwnerList;
 }
 
 void Mesh::UpdateBuffers() {
     UpdateVertexBuffer();
     UpdateIndexBuffer( mTriangles );
+}
+
+void Mesh::EraseOrphanMeshes() {
+	for( auto iMeshGroup : msMeshList ) {
+		for( auto iMesh = iMeshGroup.second.begin(); iMesh != iMeshGroup.second.end(); ) {
+			Mesh * pMesh = *iMesh;
+			if( pMesh->GetOwners().size() == 0 ) {
+				delete pMesh;
+				iMesh = iMeshGroup.second.erase( iMesh );
+			} else {
+				iMesh++;
+			}
+		}
+	}
+}
+
+void Mesh::EraseAll() {
+	for( auto iMeshGroup : msMeshList ) {
+		for( auto iMesh = iMeshGroup.second.begin(); iMesh != iMeshGroup.second.end(); iMesh++ ) {
+			delete (*iMesh);
+		}
+	}
 }
 
 Texture * Mesh::GetDiffuseTexture() {

@@ -41,16 +41,21 @@ public:
     vector<Triangle> mTriangles;
     vector<Weight> mWeightTable;
     vector<Vertex> mSkinVertices;
-    SceneNode * mOwnerNode;
+    // mesh can be shared between multiply nodes
+	vector<SceneNode*> mOwnerList;
     AABB mAABB;
     Octree * mOctree;
     float mOpacity;
 public:
     static unordered_map< IDirect3DTexture9*, vector< Mesh*>> msMeshList;
     static void Register( Mesh * mesh );
-    explicit Mesh( SceneNode * theParent );
+	static void EraseOrphanMeshes();
+	static void EraseAll();
+    explicit Mesh();
     virtual ~Mesh();
-    SceneNode * GetOwner();
+	void LinkTo( SceneNode * owner );
+	void Unlink( SceneNode * owner );
+    vector<SceneNode*> & GetOwners();
     void UpdateVertexBuffer();
     void UpdateIndexBuffer( vector< Triangle > & idc );
     void UpdateBuffers();

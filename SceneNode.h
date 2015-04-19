@@ -31,6 +31,7 @@ public:
     ruContact mContactList[ BODY_MAX_CONTACTS ];
     int mContactCount;
     int mTotalFrameCount;
+	void AutoName();
 public:
     // Components
     ParticleEmitter * particleEmitter;
@@ -44,6 +45,7 @@ public:
 
     // Methods
     explicit SceneNode();
+	explicit SceneNode( const SceneNode & source );
     virtual ~SceneNode();
 
     void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
@@ -66,8 +68,8 @@ public:
     void PerformAnimation( );
     void Freeze( );
     void Unfreeze();
-	ruVector3 GetTotalForce();;
-	BodyType GetBodyType();
+	ruVector3 GetTotalForce();
+	BodyType GetBodyType() const;
     void SetAnimationEnabled( bool state, bool dontAffectChilds = false );
     void Hide( );
     void Show( );

@@ -44,6 +44,7 @@ private:
 	ruNodeHandle mZoneNeedCrowbar;
 	ruNodeHandle mDoorUnderFloor;
 	ruNodeHandle mZoneNewLevelLoad;
+	ruNodeHandle mZoneObjectiveNeedPassThroughMesh;
 
 	Keypad * mKeypad1;
 	Door * mKeypad1DoorToUnlock;

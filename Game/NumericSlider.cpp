@@ -1,8 +1,6 @@
 #include "NumericSlider.h"
 #include "GUI.h"
 
-
-
 void NumericSlider::Update( ) {
     ruSetGUINodeText( mGUIValueText, StringBuilder() << setprecision( 1 ) << mValue );
 

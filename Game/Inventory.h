@@ -46,14 +46,8 @@ private:
 public:
     bool IsOpened() const;
     void Open(bool val);
-	bool GotAnyItemOfType( Item::Type type ) {
-		for( auto pItem : mItemList ) {
-			if( pItem->GetType() == type ) {
-				return true;
-			}
-		}
-		return false;
-	}
+	bool GotAnyItemOfType( Item::Type type );
+	void Repair();
     explicit Inventory();
     virtual ~Inventory();
     void Update();

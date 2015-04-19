@@ -32,13 +32,13 @@ void TextFileStream::WriteQuaternion( ruQuaternion q ) {
     WriteFloat( q.w );
 }
 
-string TextFileStream::Readstring() {
+string TextFileStream::ReadString() {
     string str;
     mStream >> str;
     return str;
 }
 
-void TextFileStream::Readstring( string & str ) {
+void TextFileStream::ReadString( string & str ) {
     getline( mStream, str );
 }
 

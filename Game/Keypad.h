@@ -12,7 +12,7 @@ private:
 	Door * mDoorToUnlock;
 	string mCurrentCode;
 	string mCodeToUnlock;
-	char mKeyState[10];
+	bool mKeyState[10];
 	ruVector3 mKeysInitialPosition[10];
 	ruVector3 mKeysPressedOffsets[10];
 	ruSoundHandle mButtonPushSound;
@@ -20,7 +20,7 @@ private:
 
 	void Reset() {
 		for( int i = 0; i < 10; i++ ) {
-			mKeyState[i] = 0;
+			mKeyState[i] = false;
 			mCurrentCode.clear();
 			ruSetNodePosition( mKeys[i], mKeysInitialPosition[i] );
 		}
@@ -74,7 +74,7 @@ public:
 					pPlayer->SetActionText( StringBuilder() << i << pPlayer->mLocalization.GetString( "pressButton" ) );
 					if( ruIsKeyHit( pPlayer->mKeyUse ) ) {
 						mCurrentCode += to_string( i );
-						mKeyState[i] = 1;
+						mKeyState[i] = true;
 						ruPlaySound( mButtonPushSound );
 						if( mCurrentCode.size() == 4 ) {
 							if( mCurrentCode == mCodeToUnlock ) {

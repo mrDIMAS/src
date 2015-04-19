@@ -21,6 +21,8 @@ float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 
 void main( ) {
+	ruEnableDebugMode( true );
+
     Parser config;
     config.ParseFile( "mine.cfg" );
 
@@ -69,13 +71,7 @@ void main( ) {
 				g_dt = fixedTick;
 
 				if( !pMainMenu->IsVisible() )  {
-					//float physBegin = ruGetTimeInSeconds( dtTimer );
 					ruUpdatePhysics( fixedTick, 1, fixedTick );
-					/*
-					float delta = ruGetTimeInSeconds( dtTimer ) - physBegin;
-					if( delta > 0.25f ) {
-						break;
-					}*/
 				}
 
                 ruInputUpdate();
@@ -87,6 +83,9 @@ void main( ) {
                 pMainMenu->Update();
 
                 if( !pMainMenu->IsVisible() ) {
+					if( ruIsMouseHit( 1 )) {
+						Level::Change( L2Mine );
+					}
                     if( ruIsKeyHit( g_keyQuickSave )) {
                         SaveWriter( "quickSave.save" ).SaveWorldState();
                         pPlayer->SetTip( config.GetString( "saved" ) );
@@ -109,8 +108,8 @@ void main( ) {
 				ruUpdateWorld();
             }			
 			fpsCounter.RegisterFrame();
-        } catch( runtime_error ) {
-            break;
+        } catch( std::exception exc ) {
+            RaiseError( exc.what() );
         }
     }
 

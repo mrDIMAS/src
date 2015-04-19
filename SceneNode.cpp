@@ -12,6 +12,11 @@
 vector< SceneNode* > g_nodes;
 
 SceneNode * SceneNode::CastHandle( ruNodeHandle handle ) {
+	if( g_debugMode ) {
+		if( !ruIsNodeHandleValid( handle )) {
+			throw std::exception( "Cast handle failed!" );
+		}
+	}
     return reinterpret_cast< SceneNode *>( handle.pointer );
 }
 
@@ -49,29 +54,134 @@ bool SceneNode::IsRenderable() {
     return IsVisible();
 }
 
+void SceneNode::AutoName() {
+	mName = StringBuilder( "Unnamed" ) << g_nodes.size();
+}
+
 SceneNode::SceneNode( ) {
-    char buf[ 64 ] = { 0 };
-    sprintf_s( buf, "Unnamed%i", g_nodes.size());
-    mName = buf;
+	AutoName();    
     mInFrustum = false;
-    mParent = 0;
-    mBody = 0;
+    mParent = nullptr;
+    mBody = nullptr;
     mTotalFrameCount = 0;
     mSkinned = false;
-    trimesh = 0;
+    trimesh = nullptr;
     mVisible = true;
     mAnimationEnabled = false;
-    mScene = 0;
+    mScene = nullptr;
     mLocalTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
     mGlobalTransform = mLocalTransform;
     mContactCount = 0;
     mFrozen = false;
     mDepthHack = 0;
-    particleEmitter = 0;
+    particleEmitter = nullptr;
     mAlbedo = 0.0f;
     mCurrentAnimation = nullptr;
     g_nodes.push_back( this );
+}
+
+SceneNode::SceneNode( const SceneNode & source ) {
+	AutoName();
+	mInFrustum = source.mInFrustum;
+	mParent = nullptr;
+	mTotalFrameCount = 0;
+	mSkinned = false;
+	trimesh = nullptr;
+	mVisible = true;
+	mAnimationEnabled = false;
+	mScene = nullptr;
+	mBody = nullptr;
+	mLocalTransform = source.mLocalTransform;
+	mGlobalTransform = mLocalTransform;
+	mContactCount = source.mContactCount;
+	mFrozen = source.mFrozen;
+	mDepthHack = source.mDepthHack;
+	particleEmitter = nullptr;
+	mAlbedo = source.mAlbedo;
+	mCurrentAnimation = nullptr;
+
+	// copy surfaces
+	for( auto pMesh : source.mMeshList ) {
+		pMesh->LinkTo( this );
+		mMeshList.push_back( pMesh );
+	}
 	
+	// create body
+	switch( source.GetBodyType() ) {
+	case BodyType::Box:
+		SetBoxBody();
+		break;
+	case BodyType::Convex:
+		SetConvexBody();
+		break;
+	case BodyType::Sphere:
+		SetSphereBody();
+		break;
+	case BodyType::Trimesh:
+		SetTrimeshBody();
+		break;
+	}
+
+	if( mFrozen ) {
+		Freeze();
+	}
+
+	// copy childs
+	for( auto pChild : source.mChildList ) {
+		SceneNode * pNewChild = new SceneNode( *pChild );
+		pNewChild->mParent = this;
+		mChildList.push_back( pNewChild );
+	}
+
+	g_nodes.push_back( this );
+}
+
+SceneNode::~SceneNode() {
+	for( auto pMesh : mMeshList ) {
+		pMesh->Unlink( this );
+	}
+
+	for( auto child : mChildList ) {
+		if( child ) {
+			delete child;
+		}
+	}
+
+	for( auto theNode : g_nodes ) {
+		for( size_t i = 0; i < theNode->mChildList.size(); i++ ) {
+			if( theNode->mChildList[i] == this ) {
+				theNode->mChildList[i] = nullptr;
+			}
+		}
+	}
+
+	for( auto keyframe : mKeyframeList ) {
+		delete keyframe;
+	}
+
+	if( trimesh ) {
+		delete trimesh;
+	}
+
+	if( mBody ) {
+		if( mBody->getCollisionShape() ) {
+			delete mBody->getCollisionShape();
+		}
+
+		if( mBody->getMotionState() ) {
+			delete mBody->getMotionState();
+		}
+
+		g_dynamicsWorld->removeRigidBody( mBody );
+
+		delete mBody;
+	}
+
+	if( particleEmitter ) {
+		delete particleEmitter;
+	}
+
+	g_nodes.erase( find( g_nodes.begin(), g_nodes.end(), this ));
 }
 
 void SceneNode::SetConvexBody() {
@@ -260,7 +370,12 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
     scene->mTotalFrameCount = framesCount;
 
     for ( int meshObjectNum = 0; meshObjectNum < numMeshes; meshObjectNum++ ) {
-        SceneNode * node = new SceneNode;
+		SceneNode * node = nullptr;
+		if( meshObjectNum == 0 ) {
+			node = scene;
+		} else {
+			node = new SceneNode;
+		}
 
         node->mLocalTransform.setOrigin( reader.GetVector() );
         node->mLocalTransform.setRotation( reader.GetQuaternion() );
@@ -287,7 +402,8 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
         node->mTotalFrameCount = framesCount - 1; // - 1 because numeration started from zero
 
         for( int i = 0; i < meshCount; i++ ) {
-            Mesh * mesh = new Mesh( node );
+            Mesh * mesh = new Mesh;
+			mesh->LinkTo( node );
 
             int vertexCount = reader.GetInteger();
             int indexCount = reader.GetInteger();
@@ -353,9 +469,11 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
                 Mesh::Register( mesh );
             }
         }
-
-        node->mParent = scene;
-        scene->mChildList.push_back( node );
+		        
+		if( scene != node ) {
+			node->mParent = scene;
+			scene->mChildList.push_back( node );
+		}
         node->mScene = scene;
         node->ApplyProperties();
     }
@@ -420,12 +538,12 @@ void SceneNode::PerformAnimation() {
             for( auto & vertex : mesh->mVertices ) {
                 Mesh::Weight & weight = mesh->mWeightTable[ vertexNumber ];
 
-                btVector3 initialPosition = btVector3( vertex.coords.x, vertex.coords.y, vertex.coords.z );
-                btVector3 initialNormal = btVector3( vertex.normals.x, vertex.normals.y, vertex.normals.z );
-                btVector3 initialTangent = btVector3( vertex.tangents.x, vertex.tangents.y, vertex.tangents.z );
-                btVector3 newPosition = btVector3( 0, 0, 0 );
-                btVector3 newNormal = btVector3( 0, 0, 0 );
-                btVector3 newTangent = btVector3( 0, 0, 0 );
+                btVector3 initialPosition( vertex.coords.x, vertex.coords.y, vertex.coords.z );
+                btVector3 initialNormal( vertex.normals.x, vertex.normals.y, vertex.normals.z );
+                btVector3 initialTangent( vertex.tangents.x, vertex.tangents.y, vertex.tangents.z );
+                btVector3 newPosition( 0, 0, 0 );
+                btVector3 newNormal( 0, 0, 0 );
+                btVector3 newTangent( 0, 0, 0 );
 
                 for( int j = 0; j < weight.mBoneCount; j++ ) {
                     Mesh::Bone & bone = weight.mBone[ j ];
@@ -684,15 +802,17 @@ void SceneNode::ApplyProperties() {
             }
         }
 
-        if ( pname == "mass" )
+        if ( pname == "mass" ) {
             if( mBody ) {
                 SetMass( atof( value.c_str()) );
             }
+		}
 
-        if ( pname == "friction" )
+        if ( pname == "friction" ) {
             if( mBody ) {
                 mBody->setFriction ( atof( value.c_str()) );
             }
+		}
 
         if ( pname == "hitSound" ) {
             mHitSound = ruLoadSound3D( value.c_str());
@@ -716,9 +836,9 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
         return 0;
     }
 
-    btVector3 pos = mGlobalTransform.getOrigin();
+    btVector3 pos( mGlobalTransform.getOrigin());
 
-    ruVector3 point = ruVector3( pos.x(), pos.y(), pos.z() );
+    ruVector3 point( pos.x(), pos.y(), pos.z() );
 
     int result = 0;
 
@@ -764,55 +884,7 @@ SceneNode * SceneNode::FindByName( const string & name ) {
     return nullptr;
 }
 
-SceneNode::~SceneNode() {
-    for( auto mesh : mMeshList ) {
-        if( mesh ) {
-            delete mesh;
-        }
-    }
 
-    for( auto child : mChildList ) {
-        if( child ) {
-            delete child;
-        }
-    }
-
-    for( auto theNode : g_nodes ) {
-        for( size_t i = 0; i < theNode->mChildList.size(); i++ ) {
-            if( theNode->mChildList[i] == this ) {
-                theNode->mChildList[i] = nullptr;
-            }
-        }
-    }
-
-    for( auto keyframe : mKeyframeList ) {
-        delete keyframe;
-    }
-
-    if( trimesh ) {
-        delete trimesh;
-    }
-
-    if( mBody ) {
-        if( mBody->getCollisionShape() ) {
-            delete mBody->getCollisionShape();
-        }
-
-        if( mBody->getMotionState() ) {
-            delete mBody->getMotionState();
-        }
-
-        g_dynamicsWorld->removeRigidBody( mBody );
-
-        delete mBody;
-    }
-
-    if( particleEmitter ) {
-        delete particleEmitter;
-    }
-
-    g_nodes.erase( find( g_nodes.begin(), g_nodes.end(), this ));
-}
 
 void SceneNode::SetFriction( float friction ) {
     if( mBody ) {
@@ -1017,7 +1089,7 @@ void SceneNode::SetAnimation( ruAnimation * newAnim, bool dontAffectChilds ) {
     }
 }
 
-BodyType SceneNode::GetBodyType()
+BodyType SceneNode::GetBodyType() const
 {
 	BodyType bodyType = BodyType::None;
 	if( mBody ) {
@@ -1160,6 +1232,11 @@ ruNodeHandle ruCreateSceneNode( ) {
     return SceneNode::HandleFromPointer( new SceneNode );
 }
 
+ruNodeHandle ruCreateNodeInstance( ruNodeHandle source ) {
+	SceneNode * pNode = SceneNode::CastHandle( source );
+	return SceneNode::HandleFromPointer( new SceneNode( *pNode ));
+}
+
 ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const string & name ) {
     return SceneNode::HandleFromPointer( SceneNode::FindInObjectByName( SceneNode::CastHandle( node ), name ));
 }
@@ -1178,6 +1255,15 @@ void ruSetCapsuleBody( ruNodeHandle node, float height, float radius ) {
 
 void ruSetAngularFactor( ruNodeHandle node, ruVector3 fact ) {
     SceneNode::CastHandle( node )->SetAngularFactor( fact );
+}
+
+bool ruIsNodeHandleValid( ruNodeHandle handle ) {
+	for( auto pNode : g_nodes ) {
+		if( pNode == handle.pointer ) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void ruSetTrimeshBody( ruNodeHandle node ) {
@@ -1263,6 +1349,7 @@ void ruFreeSceneNode( ruNodeHandle node ) {
 void ruSetNodeFriction( ruNodeHandle node, float friction ) {
     SceneNode::CastHandle( node )->SetFriction( friction );
 }
+
 
 void ruSetNodeAlbedo( ruNodeHandle node, float albedo ) {
     SceneNode::CastHandle( node )->mAlbedo = albedo;

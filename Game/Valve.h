@@ -5,6 +5,7 @@
 class Valve {
 private:
 	ruNodeHandle mObject;
+	ruSoundHandle mTurnSound;
 	ruVector3 mTurnAxis;
 	float mAngle;
 	bool mDone;

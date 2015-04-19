@@ -12,7 +12,7 @@ public:
         FuelCanister	= 2,
         Wires			= 3,
         Explosives		= 4,
-        Flashlight		= 5,
+        Lighter		= 5,
         Fuse			= 6,
         Medkit			= 7,
 		Crowbar			= 8,
@@ -30,10 +30,12 @@ private:
     float mVolume;
     float mMass;
     float mContent;
+	string mModelFile;
     string mContentTypeDesc;
 public:
     explicit Item( ruNodeHandle obj, Type type );
     virtual ~Item();
+	void Repair();
     bool Combine( Item * pItem, Item* & throwItem );
     Type GetType() const;
     Type GetCombineType() const;

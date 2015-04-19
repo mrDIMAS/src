@@ -1,7 +1,12 @@
 #include "Common.h"
 #include "Utility.h"
 
+bool g_debugMode = false;
 ofstream g_log;
+
+void ruEnableDebugMode( bool state ) {
+	g_debugMode = state;
+}
 
 void ParseString ( string str, map<string,string> & values ) {
     if ( str.size() <= 1 ) {

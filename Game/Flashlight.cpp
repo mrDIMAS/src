@@ -144,7 +144,7 @@ Flashlight::~Flashlight() {
 }
 
 Item * Flashlight::CreateAppropriateItem() {
-    return new Item( mModel, Item::Type::Flashlight );
+    return new Item( mModel, Item::Type::Lighter );
 }
 
 bool Flashlight::IsBeamContainsPoint( ruVector3 point ) const {

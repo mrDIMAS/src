@@ -24,13 +24,18 @@ LevelSewers::LevelSewers( ) {
 	AutoCreateLampsByNamePattern( "Lamp?([[:digit:]]+)", "data/sounds/lamp_buzz.ogg" );
 
 	mZoneKnocks = GetUniqueObject( "ZoneKnocks" );
+
 	mKnocksSound = ruLoadSound3D( "data/sounds/knocks.ogg" );
 	ruSetSoundPosition( mKnocksSound, ruGetNodePosition( mZoneKnocks ));
+	ruSetRolloffFactor( mKnocksSound, 0.2f );
+	ruSetRoomRolloffFactor( mKnocksSound, 0.2f );
 
 	ruSetAudioReverb( 10 );
  
 	pPlayer->SetRockFootsteps();
 	DoneInitialization();
+
+	mStages[ "KnocksDone" ] = false;
 }
 
 LevelSewers::~LevelSewers( ) {
@@ -42,8 +47,11 @@ void LevelSewers::DoScenario() {
 	mGate1->Update();
 	mGate2->Update();
 
-	if( pPlayer->IsInsideZone( mZoneKnocks )) {
-		ruPlaySound( mKnocksSound );
+	if( !mStages[ "KnocksDone" ] ) {
+		if( pPlayer->IsInsideZone( mZoneKnocks )) {
+			ruPlaySound( mKnocksSound );
+			mStages[ "KnocksDone" ] = true;
+		}
 	}
 }
 

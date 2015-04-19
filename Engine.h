@@ -265,6 +265,7 @@ public:
     bool operator == ( const ruLineHandle & node );
 };
 
+void ruEnableDebugMode( bool state );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Renderer functions
@@ -413,6 +414,7 @@ RUAPI ruNodeHandle ruCreateSceneNode( );
 RUAPI ruNodeHandle ruLoadScene( const string & file );
 RUAPI ruNodeHandle ruFindByName( const string & name );
 RUAPI ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const string & name );
+RUAPI ruNodeHandle ruCreateNodeInstance( ruNodeHandle source );
 RUAPI int ruGetWorldObjectsCount();
 RUAPI ruNodeHandle ruGetWorldObject( int i );
 // Common
@@ -449,6 +451,7 @@ RUAPI bool ruIsNodeInFrustum( ruNodeHandle node );
 RUAPI void ruSetNodeAlbedo( ruNodeHandle node, float albedo );
 RUAPI bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point );
 RUAPI ruVector3 ruGetNodeLinearVelocity( ruNodeHandle node );
+RUAPI bool ruIsNodeHandleValid( ruNodeHandle handle );
 // Octree manipulation
 // Note, that nodes with octree's optimization can't be moved or modified, so
 // it can be used for large static geometry, like game levels

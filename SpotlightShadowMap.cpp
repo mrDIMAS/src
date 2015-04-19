@@ -25,21 +25,23 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
         auto & group = meshGroupIter.second;
         CheckDXErrorFatal( gpDevice->SetTexture( 0, meshGroupIter.first ));
         for( auto mesh : group ) {
-            // if owner of mesh is visible
-            if( mesh->GetOwner()->IsVisible()) {
-                // if light "sees" mesh, it can cast shadow
-                if( spotLight->frustum.IsAABBInside( mesh->mAABB, mesh->GetOwner()->GetPosition())) {
-                    // if mesh in light range, it can cast shadow
-                    //if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
-                    D3DXMATRIX world, wvp;
-                    GetD3DMatrixFromBulletTransform( mesh->GetOwner()->mGlobalTransform, world );
-                    D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
-                    CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-                    mesh->BindBuffers();
-                    mesh->Render();
-                    //}
-                }
-            }
+			for( auto pOwner : mesh->GetOwners() ) {
+				// if owner of mesh is visible
+				if( pOwner->IsVisible()) {
+					// if light "sees" mesh, it can cast shadow
+					if( spotLight->frustum.IsAABBInside( mesh->mAABB, pOwner->GetPosition())) {
+						// if mesh in light range, it can cast shadow
+						//if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
+						D3DXMATRIX world, wvp;
+						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+						D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
+						CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+						mesh->BindBuffers();
+						mesh->Render();
+						//}
+					}
+				}
+			}
         };
     }
 

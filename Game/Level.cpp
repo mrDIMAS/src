@@ -28,10 +28,11 @@ Level::Level() {
 Level::~Level() {
     ruFreeSceneNode( mScene );
 
-    for( auto pItem : mItemList )
+    for( auto pItem : mItemList ) {
         if( pItem->IsFree() ) {
             delete pItem;
         }
+	}
 
     for( auto pSheet : mSheetList ) {
         delete pSheet;
@@ -146,6 +147,10 @@ void Level::Change( int levelId, bool continueFromSave ) {
             pCurrentLevel = new TestingChamber;
         }
 
+		if( pPlayer ) {
+			pPlayer->RepairInventory();
+		}
+
         if( continueFromSave ) {
             SaveLoader( "lastGame.save" ).RestoreWorldState();
         }
@@ -191,7 +196,7 @@ void Level::AddItemPlace( ItemPlace * pItemPlace ) {
 void Level::DeserializeWith( TextFileStream & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
-        string name = in.Readstring();
+        string name = in.ReadString();
         ruNodeHandle node = ruFindInObjectByName( mScene, name );
         if( node.IsValid() ) {
             ruSetNodeLocalPosition( node, in.ReadVector3() );
@@ -206,10 +211,18 @@ void Level::DeserializeWith( TextFileStream & in ) {
     }
     int countStages = in.ReadInteger();
     for( int i = 0; i < countStages; i++ ) {
-        string stageName = in.Readstring();
+        string stageName = in.ReadString();
         bool stageState = in.ReadBoolean();
         mStages[ stageName ] = stageState;
     }
+	int pointLightCount = in.ReadInteger();
+	for( int i = 0; i < pointLightCount; i++ ) {
+		ruSetLightRange( ruGetWorldPointLight( i ), in.ReadFloat() );
+	}
+	int spotLightCount = in.ReadInteger();
+	for( int i = 0; i < spotLightCount; i++ ) {
+		ruSetLightRange( ruGetWorldSpotLight( i ), in.ReadFloat() );
+	}
     OnDeserialize( in );
 }
 
@@ -228,6 +241,14 @@ void Level::SerializeWith( TextFileStream & out ) {
         out.WriteString( stage.first );
         out.WriteBoolean( stage.second );
     }
+	out.WriteInteger( ruGetWorldPointLightCount() );
+	for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
+		out.WriteFloat( ruGetLightRange( ruGetWorldPointLight( i )));
+	}
+	out.WriteInteger( ruGetWorldSpotLightCount() );
+	for( int i = 0; i < ruGetWorldSpotLightCount(); i++ ) {
+		out.WriteFloat( ruGetLightRange( ruGetWorldSpotLight( i )));
+	}
     OnSerialize( out );
 }
 
@@ -309,5 +330,16 @@ void Level::UpdateGenericObjectsIdle()
 {
 	for( auto pLamp : mLampList ) {
 		pLamp->Update();
+	}
+}
+
+void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound )
+{
+	std::regex rx( namePattern );
+	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
+		ruNodeHandle child = ruGetNodeChild( mScene, i );
+		if( regex_match( ruGetNodeName( child ), rx )) {
+			AddLamp( new Lamp( child, ruLoadSound3D( buzzSound )));
+		}
 	}
 }

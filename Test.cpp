@@ -71,7 +71,7 @@ void main( ) {
     int perfTime=0;
 
     ruEnableSpotLightShadows( false );
-    ruDisableFXAA();
+    
 
     ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
@@ -81,6 +81,11 @@ void main( ) {
 	//ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
 	//ruNodeHandle testScene = ruLoadScene( "data/maps/release/mine/mine.scene" );
 	ruSetAmbientColor( ruVector3( 0.4, 0.4, 0.4 ));
+	ruSetHDREnabled( true );
+	ruDisableFXAA();
+
+	ruNodeHandle cube = ruLoadScene( "data/cube.scene" );
+
     while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();
@@ -114,6 +119,11 @@ void main( ) {
 			ruEnableFXAA();
 		if( ruIsKeyHit( KEY_2 ))
 			ruDisableFXAA();
+
+		if( ruIsMouseHit( MB_Left )) {
+			ruNodeHandle newCube = ruCreateNodeInstance( cube );
+			ruSetNodePosition( newCube, ruGetNodePosition( camera ));
+		}
 
         if( ruIsKeyDown( KEY_W )) {
             speed = speed + look;

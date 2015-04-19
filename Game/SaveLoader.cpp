@@ -17,7 +17,7 @@ void SaveLoader::RestoreWorldState() {
     int itemCount = ReadInteger();
 
     for( int i = 0; i < itemCount; i++ ) {
-        string itemName = Readstring();
+        string itemName = ReadString();
 
         ruNodeHandle itemObject = ruFindByName( itemName);
 
@@ -32,11 +32,11 @@ void SaveLoader::RestoreWorldState() {
     int countItemPlaces = ReadInteger();
 
     for( int i = 0; i < countItemPlaces; i++ ) {
-        string ipName = Readstring();
+        string ipName = ReadString();
         bool gotPlacedItem = ReadBoolean();
         string itemName;
         if( gotPlacedItem ) {
-            itemName = Readstring();
+            itemName = ReadString();
         }
         int placedType = ReadInteger();
 
@@ -59,7 +59,7 @@ void SaveLoader::RestoreWorldState() {
     // deserialize ways
     int wayCount = ReadInteger();
     for( int i = 0; i < wayCount; i++ ) {
-        Way * way = Way::GetByObject( ruFindByName( Readstring() ));
+        Way * way = Way::GetByObject( ruFindByName( ReadString() ));
         way->DeserializeWith( *this );
     }
 

@@ -1,13 +1,6 @@
 #include "Ladder.h"
 #include "Player.h"
 
-void Ladder::LookAtTarget() {
-    ruVector3 direction = ruGetNodePosition( mTarget ) - ruGetNodePosition( pPlayer->mpCamera->mNode );
-
-    pPlayer->mPitch = atan2f( direction.y, direction.z ) * 180.0f / 3.14159f;
-    pPlayer->mPitch = ( pPlayer->mPitch > 0 ? pPlayer->mPitch : ( 360 + pPlayer->mPitch ) );
-}
-
 Ladder::Ladder( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
     : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
     mFreeLook = true;

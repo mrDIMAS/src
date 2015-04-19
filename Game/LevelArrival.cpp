@@ -95,9 +95,7 @@ void LevelArrival::DoScenario() {
     ruSetAmbientColor( ruVector3( 0.11, 0.11, 0.11 ));
 
     PlayAmbientSounds();
-
-    ruPlaySound( generatorSound );
-
+	
     if( !mStages[ "DoneStrangeSoundPlayed" ] ) {
         if( pPlayer->IsInsideZone( strangeSoundZone )) {
             ruPlaySound( strangeSound );
@@ -107,6 +105,7 @@ void LevelArrival::DoScenario() {
     }
 
     if( !mStages[ "DoneRocksFall" ] ) {
+		ruPlaySound( generatorSound );
         if( pPlayer->IsInsideZone( rocksFallZone )) {
             ruSetNodePosition( rocks, ruGetNodePosition( rocksPos ) );
 
@@ -122,7 +121,9 @@ void LevelArrival::DoScenario() {
 
             mStages[ "DoneRocksFall" ] = true;
         }
-    }
+	} else	{
+		ruPauseSound( generatorSound );
+	}
 
     if( pPlayer->IsInsideZone( nextLevelLoadZone )) {
         Level::Change( LevelName::L2Mine );

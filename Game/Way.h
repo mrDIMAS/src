@@ -34,7 +34,6 @@ public:
     void DoEntering();
     virtual void Enter();
     virtual void DoPlayerCrawling() = 0;
-    virtual void LookAtTarget() = 0;
     virtual void SetDirection( Direction direction ) = 0;
     static Way * GetByObject( ruNodeHandle obj );
     void SerializeWith( TextFileStream & out );

@@ -352,6 +352,7 @@ void Inventory::RemoveItem( Item * pItem ) {
 }
 
 void Inventory::ThrowItem( Item * pItem ) {
+	
     pItem->MarkAsFree();
 	ruVector3 pickPoint, playerPos = pPlayer->GetCurrentPosition();
 	ruNodeHandle handle = ruCastRay( playerPos - ruVector3( 0,0.1,0), playerPos - ruVector3(0,100,0), &pickPoint );
@@ -422,5 +423,20 @@ int Inventory::GetItemCount( Item::Type type ) {
             count++;
         }
     return count;
+}
+
+void Inventory::Repair() {
+	for( auto pItem : mItemList ) {
+		pItem->Repair();
+	}
+}
+
+bool Inventory::GotAnyItemOfType( Item::Type type ) {
+	for( auto pItem : mItemList ) {
+		if( pItem->GetType() == type ) {
+			return true;
+		}
+	}
+	return false;
 }
 

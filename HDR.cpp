@@ -46,17 +46,15 @@ HDRShader::HDRShader( D3DFORMAT rtFormat ) {
     hdrTexture->GetSurfaceLevel( 0, &hdrSurface );
 
     string toneMapShaderSource =
-        "sampler hdrTexture : register( s0 );\n"
-        "sampler avgLum : register( s7 );\n"
 
-        "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{\n"
-        "	float exposure = tex2D( avgLum, float2( 0.5f, 0.5f )).r;\n"
-        "	float3 texColor = tex2D( hdrTexture, texCoord );\n"
-        "	float key = 0.1f;\n"
-        "	texColor *=  key / ( exposure + 0.034f );\n"
-        "	texColor /= ( 1.0f + texColor );\n"
-        "	return float4(texColor,1);\n"
-        "};\n";
+		"sampler hdrTexture : register( s0 );\n"
+		"sampler avgLum : register( s7 );\n"
+		"float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{\n"
+		"	float luminance = clamp( tex2D( avgLum, float2( 0.5f, 0.5f )), 0.041, 1.5f ).r;\n"
+		"	float3 texColor = tex2D( hdrTexture, texCoord );\n"
+		"	texColor /= luminance * 10;\n"
+		"	return float4( texColor, 1 );\n"
+		"};\n";
 
     toneMapShader = new PixelShader( toneMapShaderSource );
     screenQuad = new EffectsQuad( false );
@@ -83,20 +81,21 @@ HDRShader::HDRShader( D3DFORMAT rtFormat ) {
         "sampler hdrTexture : register( s7 );\n"
         "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
         "	float4 hdrTexel = tex2D( hdrTexture, texCoord );\n"
-        "	return hdrTexel.r * 0.27 + hdrTexel.g * 0.67 + hdrTexel.b * 0.06;\n"
+        //"	return hdrTexel.r * 0.27 + hdrTexel.g * 0.67 + hdrTexel.b * 0.06;\n"
+		"	return hdrTexel;\n"
         "};\n";
 
     scaleScenePixelShader = new PixelShader( scalePixelShaderSource );
 
     string adaptationPixelShaderSource =
-        "sampler s0 : register( s6 );\n"
-        "sampler s1 : register( s7 );\n"
+        "sampler last : register( s6 );\n"
+        "sampler current : register( s7 );\n"
         "float adaptation;\n"
         "float4 main( ) : COLOR0\n {"
-        "	float fAdaptedLum = tex2D(s0, float2(0.5f, 0.5f)).r;\n"
-        "	float fCurrentLum = tex2D(s1, float2(0.5f, 0.5f)).r;\n"
-        "	float fNewAdaptation = fAdaptedLum + (fCurrentLum - fAdaptedLum) * ( 1 - pow( 0.98f, adaptation ) );\n"
-        "	return float4(fNewAdaptation, fNewAdaptation, fNewAdaptation, 1.0f);\n"
+        "	float fAdaptedLum = tex2D( last, float2(0.5f, 0.5f)).r;\n"
+        "	float fCurrentLum = tex2D( current, float2(0.5f, 0.5f)).r;\n"
+		"	float fNewAdaptation = fAdaptedLum + (fCurrentLum - fAdaptedLum) * ( 1 - pow( 0.98, adaptation ));\n"
+        "	return float4(fNewAdaptation, 0.0f, 0.0f, 1.0f);\n"
         "};\n";
 
     adaptationPixelShader = new PixelShader( adaptationPixelShaderSource );
@@ -135,55 +134,46 @@ void HDRShader::CalculateFrameLuminance( ) {
     // 256x256
     gpDevice->SetTexture( 7, scaledScene );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 0 ] );
-    //downScaleQuad->SetSize( 256, 256 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 256.0f );
     screenQuad->Render();
     // 128x128
     gpDevice->SetTexture( 7, downSampTex[ 0 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 1 ] );
-    //downScaleQuad->SetSize( 128, 128 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 128.0f );
     screenQuad->Render();
     // 64x64
     gpDevice->SetTexture( 7, downSampTex[ 1 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 2 ] );
-    //downScaleQuad->SetSize( 64, 64 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 64.0f );
     screenQuad->Render();
     // 32x32
     gpDevice->SetTexture( 7, downSampTex[ 2 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 3 ] );
-    //downScaleQuad->SetSize( 32, 32 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 32.0f );
     screenQuad->Render();
     // 16x16
     gpDevice->SetTexture( 7, downSampTex[ 3 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 4 ] );
-    //downScaleQuad->SetSize( 16, 16 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 16.0f );
     screenQuad->Render();
     // 8x8
     gpDevice->SetTexture( 7, downSampTex[ 4 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 5 ] );
-    //downScaleQuad->SetSize( 8, 8 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 8.0f );
     screenQuad->Render();
     // 4x4
     gpDevice->SetTexture( 7, downSampTex[ 5 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 6 ] );
-    //downScaleQuad->SetSize( 4, 4 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 4.0f );
     screenQuad->Render();
     // 2x2
     gpDevice->SetTexture( 7, downSampTex[ 6 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 7 ] );
-    //downScaleQuad->SetSize( 2, 2 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 2.0f );
     screenQuad->Render();
     // final 1x1
     gpDevice->SetTexture( 7, downSampTex[ 7 ] );
     gpDevice->SetRenderTarget( 0, downSampSurf[ 8 ] );
-    //downScaleQuad->SetSize( 1, 1 );
     downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f );
     screenQuad->Render();
     // now we get average frame luminance presented as 1x1 pixel RGBA8 texture
@@ -192,11 +182,11 @@ void HDRShader::CalculateFrameLuminance( ) {
         gpDevice->SetTexture( i, 0 );
     }
 
-    PDIRECT3DTEXTURE9 pTexSwap = adaptedLuminanceLast;
+    IDirect3DTexture9 * pTexSwap = adaptedLuminanceLast;
     adaptedLuminanceLast = adaptedLuminanceCurrent;
     adaptedLuminanceCurrent = pTexSwap;
 
-    PDIRECT3DSURFACE9 pSurfAdaptedLum = NULL;
+    IDirect3DSurface9 * pSurfAdaptedLum = NULL;
     adaptedLuminanceCurrent->GetSurfaceLevel( 0, &pSurfAdaptedLum );
 
     gpDevice->SetRenderTarget( 0, pSurfAdaptedLum );
@@ -204,7 +194,7 @@ void HDRShader::CalculateFrameLuminance( ) {
     gpDevice->SetTexture( 7, downSampTex[8] );
 
     adaptationPixelShader->Bind();
-    adaptationPixelShader->GetConstantTable()->SetFloat( gpDevice, hAdaptation, 0.2f );
+    adaptationPixelShader->GetConstantTable()->SetFloat( gpDevice, hAdaptation, 0.75f );
     screenQuad->Render();
 
     pSurfAdaptedLum->Release();

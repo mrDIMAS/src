@@ -106,6 +106,7 @@ extern btCollisionDispatcher * g_collisionDispatcher;
 extern btBroadphaseInterface * g_broadphase;
 extern btSequentialImpulseConstraintSolver * g_solver;
 // common
+extern bool g_debugMode;
 extern bool g_fxaaEnabled;
 extern vector< SceneNode* > g_nodes;
 extern vector< Light* > g_pointLightList;

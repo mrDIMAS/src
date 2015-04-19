@@ -21,7 +21,8 @@ void Item::SetType( Type type ) {
     if( mType == Type::Detonator ) {
         mDesc = msLocalization.GetString( "detonatorDesc" );
         mName = msLocalization.GetString( "detonatorName" );
-        mPic = ruGetTexture( "data/gui/inventory/items/detonator.png" );;
+        mPic = ruGetTexture( "data/gui/inventory/items/detonator.png" );
+		mModelFile = "data/models/detonator/detonator.scene";
         mCombinePair = Type::Unknown;
         mMorphType = Type::Unknown;
         mContentTypeDesc = msLocalization.GetString( "detonatorContentType" );
@@ -30,8 +31,9 @@ void Item::SetType( Type type ) {
         mDesc = msLocalization.GetString( "fuelDesc" );
         mName = msLocalization.GetString( "fuelName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuel.png" );
-        mCombinePair = Type::Flashlight;
-        mMorphType = Type::Flashlight;
+        mCombinePair = Type::Lighter;
+        mMorphType = Type::Lighter;
+		mModelFile = "data/models/fuel/fuel.scene";
         mVolume = mContent;
         mContentTypeDesc = msLocalization.GetString( "fuelContentType" );
     }
@@ -39,6 +41,7 @@ void Item::SetType( Type type ) {
         mDesc = msLocalization.GetString( "wiresDesc" );
         mName = msLocalization.GetString( "wiresName" );
         mPic = ruGetTexture( "data/gui/inventory/items/wires.png" );
+		mModelFile = "data/models/wires/wires.scene";
         mCombinePair = Type::Unknown;
         mMorphType = Type::Unknown;
         mContentTypeDesc = msLocalization.GetString( "wiresContentType" );
@@ -48,6 +51,7 @@ void Item::SetType( Type type ) {
         mDesc = msLocalization.GetString( "explosivesDesc" );
         mName = msLocalization.GetString( "explosivesName" );
         mPic = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
+		mModelFile = "data/models/explosives/explosives.scene";
         mCombinePair = Type::Unknown;
         mMass = 0.3f;
         mContentTypeDesc = msLocalization.GetString( "explosivesContentType" );
@@ -57,17 +61,19 @@ void Item::SetType( Type type ) {
 		mDesc = msLocalization.GetString( "crowbarDesc" );
 		mName = msLocalization.GetString( "crowbarName" );
 		mPic = ruGetTexture( "data/gui/inventory/items/crowbarpic.png" );
+		mModelFile = "data/models/crowbar/crowbar.scene";
 		mCombinePair = Type::Unknown;
 		mMass = 4.0f;
 		mContentTypeDesc = msLocalization.GetString( "crowbarContentType" );
 	}
 
-    if( mType == Type::Flashlight ) {
+    if( mType == Type::Lighter ) {
         mDesc = msLocalization.GetString( "flashlightDesc" );
         mName = msLocalization.GetString( "flashlightName" );
         mPic = ruGetTexture( "data/gui/inventory/items/lighter.png" );
+		mModelFile = "data/models/lighter/lighter.scene";
         mCombinePair = Type::FuelCanister;
-        mMorphType = Type::Flashlight;
+        mMorphType = Type::Lighter;
         mThrowable = false;
         mMass = 1.3f;
         mVolume = 0.6;
@@ -77,6 +83,7 @@ void Item::SetType( Type type ) {
         mDesc = msLocalization.GetString( "fuseDesc" );
         mName = msLocalization.GetString( "fuseName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuse.png" );
+		mModelFile = "data/models/fuse/fuse.scene";
         mCombinePair = Type::Unknown;
         mMass = 5.0f;
         mContentTypeDesc = msLocalization.GetString( "fuseContentType" );
@@ -144,10 +151,10 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
             // player flashlight charge
             Item * pCanister = nullptr;
             Item * pFlashlight = nullptr;
-            if( mType == Type::FuelCanister && pItem->GetType() == Type::Flashlight ) {
+            if( mType == Type::FuelCanister && pItem->GetType() == Type::Lighter ) {
                 pCanister = this;
                 pFlashlight = pItem;
-            } else if( mType == Type::Flashlight && pItem->GetType() == Type::FuelCanister ) {
+            } else if( mType == Type::Lighter && pItem->GetType() == Type::FuelCanister ) {
                 pCanister = pItem;
                 pFlashlight = this;
             }
@@ -198,4 +205,16 @@ void Item::MarkAsGrabbed() {
 
 bool Item::IsFree() {
     return mInInventory == false;
+}
+
+void Item::Repair() {
+	// when level is changed, handle to object becomes invalid
+	// so we need to reload item model from it source file
+	if( !ruIsNodeHandleValid( mObject )) {
+		if( mModelFile.empty() ) {
+			RaiseError( "Item::mModelFile is empty! Model source must be defined!" );
+		}
+		mObject = ruLoadScene( mModelFile );
+		ruFreeze( mObject );
+	}
 }

@@ -151,7 +151,7 @@ public:
     bool IsObjectHasNormalMass( ruNodeHandle node );
     void DoFright();
     void ComputeStealth();
-
+	void RepairInventory();
     Inventory * GetInventory();
     Flashlight * GetFlashLight();
     Parser * GetLocalization();

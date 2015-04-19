@@ -38,6 +38,7 @@ ruVector3 g_ambientColor = ruVector3( 0.05, 0.05, 0.05 );
 vector< Light*> affectedLights;
 
 Renderer::~Renderer() {
+	
     for( auto fnt : BitmapFont::fonts ) {
         delete fnt;
     }
@@ -58,6 +59,7 @@ Renderer::~Renderer() {
     while( g_nodes.size() ) {
         delete g_nodes.front();
     }
+	Mesh::EraseAll();
     if( g_forwardRenderer ) {
         delete g_forwardRenderer;
     }
@@ -226,16 +228,6 @@ bool IsFullNPOTTexturesSupport()
 
 /*
 ==========
-Renderer::IsMeshVisible
-==========
-*/
-bool Renderer::IsMeshVisible( Mesh * mesh ) {
-    mesh->mOwnerNode->mInFrustum = g_camera->mFrustum.IsAABBInside( mesh->mAABB, ruVector3( mesh->mOwnerNode->mGlobalTransform.getOrigin().m_floats ));
-    return mesh->mOwnerNode->mSkinned || mesh->mOwnerNode->IsVisible() ;///&& mesh->mOwnerNode->mInFrustum;
-}
-
-/*
-==========
 Renderer::CreateRenderWindow
 ==========
 */
@@ -304,6 +296,7 @@ void Renderer::RenderWorld() {
     }
     g_fpsCounter.RegisterFrame();
     // erase marked nodes
+	Mesh::EraseOrphanMeshes();
     SceneNode::EraseUnusedNodes();
     // window message pump
     UpdateMessagePump();
@@ -409,21 +402,19 @@ void Renderer::RenderMeshesIntoGBuffer() {
         // each group has same texture
         g_textureChanges++;
         for( auto pMesh : meshes ) {
-            if( IsMeshVisible( pMesh ) ) {
-                // prevent overhead with normal texture
-                if( pMesh->GetNormalTexture() ) {
-                    IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
-                    if( meshNormalTexture != pNormalTexture ) {
-                        g_textureChanges++;
-                        pMesh->GetNormalTexture()->Bind( 1 );
-                        pNormalTexture = meshNormalTexture;
-                    }
+            // prevent overhead with normal texture
+            if( pMesh->GetNormalTexture() ) {
+                IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
+                if( meshNormalTexture != pNormalTexture ) {
+                    g_textureChanges++;
+                    pMesh->GetNormalTexture()->Bind( 1 );
+                    pNormalTexture = meshNormalTexture;
                 }
-                if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
-                    continue;
-                }
-                g_deferredRenderer->RenderMesh( pMesh );
             }
+            if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
+                continue;
+            }
+            g_deferredRenderer->RenderMesh( pMesh );            
         }
     }
 }

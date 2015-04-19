@@ -12,7 +12,7 @@ public:
     void RenderMeshesIntoGBuffer();
     void CreatePhysics( );
     int CreateRenderWindow( int width, int height, int fullscreen );
-    bool IsMeshVisible( Mesh * mesh );
+	
     Timer * performanceTimer;
     HWND window;
 public:

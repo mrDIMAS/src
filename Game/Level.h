@@ -45,15 +45,7 @@ public:
     void AddValve( Valve * valve );
     void AddLift( Lift * lift );
 	void AddLamp( Lamp * lamp );
-	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound ) {
-		std::regex rx( namePattern );
-		for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
-			ruNodeHandle child = ruGetNodeChild( mScene, i );
-			if( regex_match( ruGetNodeName( child ), rx )) {
-				AddLamp( new Lamp( child, ruLoadSound3D( buzzSound )));
-			}
-		}
-	}
+	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound );
     void AddSound( ruSoundHandle sound );
     void LoadLocalization( string fn );
     void AddAmbientSound( ruSoundHandle sound );

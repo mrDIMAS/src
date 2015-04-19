@@ -15,14 +15,14 @@ public:
     void ReadBoolean( bool & b );
     void ReadInteger( int & i );
     void ReadFloat( float & f );
-    void Readstring( string & str );
+    void ReadString( string & str );
 
     ruQuaternion ReadQuaternion();
     ruVector3 ReadVector3();
     bool ReadBoolean();
     int ReadInteger();
     float ReadFloat();
-    string Readstring();
+    string ReadString();
 
     // Write functions
     void WriteQuaternion( ruQuaternion q );

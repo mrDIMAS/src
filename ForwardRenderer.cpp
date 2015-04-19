@@ -14,14 +14,18 @@ void ForwardRenderer::RenderMeshes() {
 
         for( auto pMesh : meshes ) {
             D3DXMATRIX world, wvp;
-            GetD3DMatrixFromBulletTransform( pMesh->mOwnerNode->mGlobalTransform, world );
-            D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->mViewProjection );
 
-            CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-            CheckDXErrorFatal( gpDevice->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 ));
+			// draw instances
+			for( auto pOwner : pMesh->GetOwners() ) {
+				GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+				D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->mViewProjection );
 
-            pMesh->BindBuffers();
-            pMesh->Render();
+				CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+				CheckDXErrorFatal( gpDevice->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 ));
+
+				pMesh->BindBuffers();
+				pMesh->Render();
+			}
         }
     }
 }
