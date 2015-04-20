@@ -49,6 +49,8 @@ public:
 
     int RGBAToInt( ruVector3 color, int alpha );
     ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
+
+	static vector<ParticleEmitter*> msParticleEmitters;
 public:
     ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps );
     ~ParticleEmitter();

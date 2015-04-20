@@ -1,9 +1,9 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "Shader.h"
 
 void VertexShader::Bind() {
-    CheckDXErrorFatal( gpDevice->SetVertexShader( shader ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexShader( shader ));
 }
 
 ID3DXConstantTable * VertexShader::GetConstantTable() {
@@ -29,7 +29,7 @@ VertexShader::VertexShader( string source ) {
         exit( -1 );
     }
 
-    CheckDXErrorFatal( gpDevice->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }
 
 VertexShader::VertexShader( string fileName, bool binary ) {
@@ -49,13 +49,13 @@ VertexShader::VertexShader( string fileName, bool binary ) {
         numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
     }
     fclose(pFile);
-    CheckDXErrorFatal( gpDevice->CreateVertexShader ( ( DWORD*)shaderCode, &shader ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexShader ( ( DWORD*)shaderCode, &shader ));
     constants = 0;
 }
 
 
 void PixelShader::Bind() {
-    CheckDXErrorFatal( gpDevice->SetPixelShader( shader ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetPixelShader( shader ));
 }
 
 ID3DXConstantTable * PixelShader::GetConstantTable() {
@@ -82,7 +82,7 @@ PixelShader::PixelShader( string source ) {
         exit( -1 );
     }
 
-    CheckDXErrorFatal( gpDevice->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
 }
 
 
@@ -103,6 +103,6 @@ PixelShader::PixelShader( string fileName, bool binary ) {
         numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
     }
     fclose(pFile);
-    CheckDXErrorFatal( gpDevice->CreatePixelShader ( ( DWORD*)shaderCode, &shader ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreatePixelShader ( ( DWORD*)shaderCode, &shader ));
     constants = 0;
 }

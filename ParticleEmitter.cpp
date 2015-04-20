@@ -1,11 +1,11 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "ParticleEmitter.h"
 #include "Camera.h"
 #include "Texture.h"
 #include "Utility.h"
 
-vector<ParticleEmitter*> g_particleEmitters;
+vector<ParticleEmitter*> ParticleEmitter::msParticleEmitters;
 
 ParticleEmitter::~ParticleEmitter() {
     vertexBuffer->Release();
@@ -14,12 +14,12 @@ ParticleEmitter::~ParticleEmitter() {
     delete vertices;
     delete faces;
 
-    g_particleEmitters.erase( find( g_particleEmitters.begin(), g_particleEmitters.end(), this ));
+    ParticleEmitter::msParticleEmitters.erase( find( ParticleEmitter::msParticleEmitters.begin(), ParticleEmitter::msParticleEmitters.end(), this ));
 }
 
 void ParticleEmitter::Render() {
-    g_dips++;
-    CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 ));
+    Engine::Instance().RegisterDIP();
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 ));
 }
 
 void ParticleEmitter::Bind() {
@@ -27,8 +27,8 @@ void ParticleEmitter::Bind() {
     if( texPtr ) {
         texPtr->Bind( 0 );
     }
-    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( ParticleVertex )));
-    CheckDXErrorFatal( gpDevice->SetIndices( indexBuffer ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( ParticleVertex )));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetIndices( indexBuffer ));
 }
 
 void ParticleEmitter::Update() {
@@ -42,7 +42,7 @@ void ParticleEmitter::Update() {
     mOwner->mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
     GetD3DMatrixFromBulletTransform( mOwner->mGlobalTransform, mWorldTransform );
 
-    D3DXMATRIX view = g_camera->mView;
+    D3DXMATRIX view = Camera::msCurrentCamera->mView;
 
     ruVector3 rightVect = ruVector3( view._11, view._21, view._31 ).Normalize();
     ruVector3 upVect = ruVector3( view._12, view._22, view._32 ).Normalize();
@@ -178,8 +178,8 @@ void ParticleEmitter::ResurrectParticles() {
 ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps ) {
     mOwner = theParent;
     mAliveParticleCount = theParticleCount;
-    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( theParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
-    CheckDXErrorFatal( gpDevice->CreateIndexBuffer( theParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( theParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( theParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
     faces = new ParticleFace[ theParticleCount * 2 ];
     vertices = new ParticleVertex[ theParticleCount * 4 ];
     for( int i = 0; i < theParticleCount; i++ ) {
@@ -187,7 +187,7 @@ ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, r
     }
     props = creationProps;
     firstTimeUpdate = false;
-    g_particleEmitters.push_back( this );
+    ParticleEmitter::msParticleEmitters.push_back( this );
     ResurrectParticles();
 }
 

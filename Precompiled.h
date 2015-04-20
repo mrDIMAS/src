@@ -26,3 +26,33 @@
 #include <dinput.h>
 #include <fstream>
 #include FT_FREETYPE_H
+
+#include "RutheniumAPI.h"
+
+#define DEG2RAD ( 3.14159f / 180.0f )
+
+#pragma warning( disable:4244 ) // double to float
+#pragma warning( disable:4305 ) // double to float
+#pragma warning( disable:4018 ) // < signed/unsigned mismatch
+#pragma warning( disable:4800 ) // bool to int
+
+#ifdef _DEBUG
+#   pragma comment(lib, "BulletCollision_debug")
+#   pragma comment(lib, "BulletDynamics_debug")
+#   pragma comment(lib, "LinearMath_debug")
+#   pragma comment(lib, "FreeType253MT_D")
+#else
+#   pragma comment(lib, "BulletCollision")
+#   pragma comment(lib, "BulletDynamics")
+#   pragma comment(lib, "LinearMath")
+#   pragma comment(lib, "FreeType253MT")
+#endif
+
+#pragma comment( lib, "ProjectF")
+#pragma comment( lib, "d3d9" )
+#pragma comment( lib, "d3dx9" )
+#pragma comment( lib, "dxerr" )
+#pragma comment( lib, "dinput8.lib" )
+#pragma comment( lib, "dxguid.lib" )
+
+using namespace std;

@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Physics.h"
 #include "Common.h"
 #include "FastReader.h"
 #include "ParticleEmitter.h"
@@ -9,9 +9,9 @@
 #include "Octree.h"
 #include "Texture.h"
 #include "Vertex.h"
-#include "Renderer.h"
+#include "Engine.h"
 
-vector< SceneNode* > g_nodes;
+vector< SceneNode* > SceneNode::msNodeList;
 
 SceneNode * SceneNode::CastHandle( ruNodeHandle handle ) {
 	if( g_debugMode ) {
@@ -29,7 +29,7 @@ ruNodeHandle SceneNode::HandleFromPointer( SceneNode * ptr ) {
 }
 
 void SceneNode::EraseUnusedNodes() {
-    for( auto node : g_nodes ) {
+    for( auto node : SceneNode::msNodeList ) {
 		auto begin = node->mChildList.begin();
 		auto end = node->mChildList.end();
         for( auto iter = begin; iter != end;  ) {
@@ -57,7 +57,7 @@ bool SceneNode::IsRenderable() {
 }
 
 void SceneNode::AutoName() {
-	mName = StringBuilder( "Unnamed" ) << g_nodes.size();
+	mName = StringBuilder( "Unnamed" ) << SceneNode::msNodeList.size();
 }
 
 SceneNode::SceneNode( ) {
@@ -79,7 +79,7 @@ SceneNode::SceneNode( ) {
     particleEmitter = nullptr;
     mAlbedo = 0.0f;
     mCurrentAnimation = nullptr;
-    g_nodes.push_back( this );
+    SceneNode::msNodeList.push_back( this );
 }
 
 SceneNode::SceneNode( const SceneNode & source ) {
@@ -135,7 +135,7 @@ SceneNode::SceneNode( const SceneNode & source ) {
 		mChildList.push_back( pNewChild );
 	}
 
-	g_nodes.push_back( this );
+	SceneNode::msNodeList.push_back( this );
 }
 
 SceneNode::~SceneNode() {
@@ -149,7 +149,7 @@ SceneNode::~SceneNode() {
 		}
 	}
 
-	for( auto theNode : g_nodes ) {
+	for( auto theNode : SceneNode::msNodeList ) {
 		for( size_t i = 0; i < theNode->mChildList.size(); i++ ) {
 			if( theNode->mChildList[i] == this ) {
 				theNode->mChildList[i] = nullptr;
@@ -174,7 +174,7 @@ SceneNode::~SceneNode() {
 			delete mBody->getMotionState();
 		}
 
-		g_dynamicsWorld->removeRigidBody( mBody );
+		Physics::mpDynamicsWorld->removeRigidBody( mBody );
 
 		delete mBody;
 	}
@@ -183,7 +183,7 @@ SceneNode::~SceneNode() {
 		delete particleEmitter;
 	}
 
-	g_nodes.erase( find( g_nodes.begin(), g_nodes.end(), this ));
+	SceneNode::msNodeList.erase( find( SceneNode::msNodeList.begin(), SceneNode::msNodeList.end(), this ));
 }
 
 void SceneNode::SetConvexBody() {
@@ -594,7 +594,7 @@ void SceneNode::Unfreeze() {
 	mBody->activate(true);
     mBody->setAngularFactor( 1 );
     mBody->setLinearFactor( btVector3( 1, 1, 1 ));
-    mBody->setGravity( g_dynamicsWorld->getGravity() );
+    mBody->setGravity( Physics::mpDynamicsWorld->getGravity() );
 }
 
 void SceneNode::SetAnimationEnabled( bool state, bool dontAffectChilds ) {
@@ -640,15 +640,15 @@ void SceneNode::UpdateSounds() {
 }
 
 void SceneNode::UpdateContacts() {
-    int numManifolds = g_dynamicsWorld->getDispatcher()->getNumManifolds();
+    int numManifolds = Physics::mpDynamicsWorld->getDispatcher()->getNumManifolds();
 
-    for( auto node : g_nodes )
+    for( auto node : SceneNode::msNodeList )
         if( node->mBody ) {
             node->mContactCount = 0;
         }
 
     for (int i=0; i < numManifolds; i++) {
-        btPersistentManifold* contactManifold = g_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+        btPersistentManifold* contactManifold = Physics::mpDynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
         const btCollisionObject* obA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
         const btCollisionObject* obB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
 
@@ -873,7 +873,7 @@ int SceneNode::GetCountChildren() {
 }
 
 SceneNode * SceneNode::FindByName( const string & name ) {
-    for( auto node : g_nodes )
+    for( auto node : SceneNode::msNodeList )
         if( node->mName == name ) {
             return node;
         }
@@ -1073,7 +1073,7 @@ void SceneNode::SetBody( btRigidBody * theBody ) {
 	mBody->setCcdSweptSphereRadius( 0.2f );
 	mBody->setSleepingThresholds( 1.0f, 1.0f );
 	mBody->getCollisionShape()->setMargin(0.02);
-    g_dynamicsWorld->addRigidBody ( mBody );
+    Physics::mpDynamicsWorld->addRigidBody ( mBody );
 }
 
 void SceneNode::SetAnimation( ruAnimation * newAnim, bool dontAffectChilds ) {
@@ -1287,7 +1287,7 @@ void ruSetAngularFactor( ruNodeHandle node, ruVector3 fact ) {
 }
 
 bool ruIsNodeHandleValid( ruNodeHandle handle ) {
-	for( auto pNode : g_nodes ) {
+	for( auto pNode : SceneNode::msNodeList ) {
 		if( pNode == handle.pointer ) {
 			return true;
 		}
@@ -1448,7 +1448,7 @@ ruQuaternion ruGetNodeLocalRotation( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetLocalRotation();
 }
 
-RUAPI ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node ) {
+ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node ) {
     return SceneNode::CastHandle( node )->GetAbsoluteLookVector();
 }
 
@@ -1479,12 +1479,12 @@ void ruSetNodeName( ruNodeHandle node, const string & name ) {
 }
 
 int ruGetWorldObjectsCount() {
-    return g_nodes.size();
+    return SceneNode::msNodeList.size();
 }
 
-RUAPI ruNodeHandle ruGetWorldObject( int i ) {
+ruNodeHandle ruGetWorldObject( int i ) {
     ruNodeHandle handle;
-    handle.pointer = g_nodes[ i ];
+    handle.pointer = SceneNode::msNodeList[ i ];
     return handle;
 }
 
@@ -1513,10 +1513,10 @@ void ruSetNodeBodyLocalScale( ruNodeHandle node, ruVector3 scale ) {
 	return SceneNode::CastHandle( node )->SetBodyLocalScaling( scale );
 }
 
-RUAPI ruVector3 ruGetNodeRotationAxis( ruNodeHandle node ) {
+ruVector3 ruGetNodeRotationAxis( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->GetRotationAxis();
 }
 
-RUAPI float ruGetNodeRotationAngle( ruNodeHandle node ) {
+float ruGetNodeRotationAngle( ruNodeHandle node ) {
 	return SceneNode::CastHandle( node )->GetRotationAngle();
 }

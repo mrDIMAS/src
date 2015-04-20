@@ -1,9 +1,7 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "TextRenderer.h"
 #include "GUIRenderer.h"
-
-TextRenderer * g_textRenderer = nullptr;
 
 void TextRenderer::RenderText( GUIText* guiText ) {
     TextQuad * quad = nullptr;
@@ -102,14 +100,14 @@ void TextRenderer::RenderText( GUIText* guiText ) {
     CheckDXErrorFatal( vertexBuffer->Unlock());
     CheckDXErrorFatal( indexBuffer->Unlock());
 
-    CheckDXErrorFatal( gpDevice->SetTexture( 0, guiText->GetFont()->atlas ) );
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, guiText->GetFont()->atlas ) );
 
-    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
-    CheckDXErrorFatal( gpDevice->SetIndices( indexBuffer ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetIndices( indexBuffer ));
 	if( totalLetters > 0 ) {
-		CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
+		CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
 	}
-    g_dips++;
+    Engine::Instance().RegisterDIP();
 }
 
 
@@ -153,9 +151,9 @@ void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & hei
 TextRenderer::TextRenderer() {
     maxChars = 8192;
     int vBufLen = maxChars * sizeof( TextQuad );
-	CheckDXErrorFatal( gpDevice->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
     int iBufLen = maxChars * sizeof( Face );
-    CheckDXErrorFatal( gpDevice->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
 }
 
 TextRenderer::~TextRenderer() {

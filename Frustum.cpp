@@ -1,5 +1,4 @@
 #include "Precompiled.h"
-
 #include "Frustum.h"
 
 bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset ) {

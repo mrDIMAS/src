@@ -2,35 +2,35 @@
 
 #include "Physics.h"
 
-btDynamicsWorld * g_dynamicsWorld = 0;
-btDefaultCollisionConfiguration * g_defaultCollision = 0;
-btCollisionDispatcher * g_collisionDispatcher = 0;
-btBroadphaseInterface * g_broadphase = 0;
-btSequentialImpulseConstraintSolver * g_solver = 0;
+btDynamicsWorld * Physics::mpDynamicsWorld = 0;
+btDefaultCollisionConfiguration * Physics::mpDefaultCollision = 0;
+btCollisionDispatcher * Physics::mpCollisionDispatcher = 0;
+btBroadphaseInterface * Physics::mpBroadphase = 0;
+btSequentialImpulseConstraintSolver * Physics::mpSolver = 0;
 
 void Physics::DestructWorld() {
-    if( g_dynamicsWorld ) {
-        delete g_dynamicsWorld;
+    if( Physics::mpDynamicsWorld ) {
+        delete Physics::mpDynamicsWorld;
     }
-    if( g_solver ) {
-        delete g_solver;
+    if( Physics::mpSolver ) {
+        delete Physics::mpSolver;
     }
-    if( g_broadphase ) {
-        delete g_broadphase;
+    if( Physics::mpBroadphase ) {
+        delete Physics::mpBroadphase;
     }
-    if( g_collisionDispatcher ) {
-        delete g_collisionDispatcher;
+    if( Physics::mpCollisionDispatcher ) {
+        delete Physics::mpCollisionDispatcher;
     }
-    if( g_defaultCollision ) {
-        delete g_defaultCollision;
+    if( Physics::mpDefaultCollision ) {
+        delete Physics::mpDefaultCollision;
     }
 }
 
 void Physics::CreateWorld() {
-    g_defaultCollision = new btDefaultCollisionConfiguration();
-    g_collisionDispatcher = new btCollisionDispatcher ( g_defaultCollision );
-    g_broadphase = new btDbvtBroadphase( );
-    g_solver = new btSequentialImpulseConstraintSolver();
-    g_dynamicsWorld = new btDiscreteDynamicsWorld ( g_collisionDispatcher, g_broadphase, g_solver, g_defaultCollision );
-    g_dynamicsWorld->setGravity ( btVector3 ( 0.f, -9.81f,0.f ) );
+    Physics::mpDefaultCollision = new btDefaultCollisionConfiguration();
+    Physics::mpCollisionDispatcher = new btCollisionDispatcher ( Physics::mpDefaultCollision );
+    Physics::mpBroadphase = new btDbvtBroadphase( );
+    Physics::mpSolver = new btSequentialImpulseConstraintSolver();
+    Physics::mpDynamicsWorld = new btDiscreteDynamicsWorld ( Physics::mpCollisionDispatcher, Physics::mpBroadphase, Physics::mpSolver, Physics::mpDefaultCollision );
+    Physics::mpDynamicsWorld->setGravity ( btVector3 ( 0.f, -9.81f,0.f ) );
 }

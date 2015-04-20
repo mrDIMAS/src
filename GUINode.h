@@ -3,6 +3,8 @@
 #include "Common.h"
 #include "BitmapFont.h"
 
+class Texture;
+
 class GUINode {
 protected:
     float mX;

@@ -1,6 +1,5 @@
 #include "Precompiled.h"
-
-#include "Engine.h"
+#include "RutheniumAPI.h"
 #include "Common.h"
 #include "SceneNode.h"
 
@@ -34,7 +33,7 @@ void ruAnimation::Update( float dt ) {
         } else if( currentFrame == endFrame ) { //
             if ( !looped ) {
                 // find all nodes, which use this animation and disable it's animationEnabled flag
-                for( auto node : g_nodes ) {
+                for( auto node : SceneNode::msNodeList ) {
                     if( node->mCurrentAnimation == this ) {
                         node->mAnimationEnabled = false;
                     }

@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "Texture.h"
 #include "Utility.h"
 #include <sys/stat.h>
@@ -40,11 +40,11 @@ Texture * Texture::Require( string file ) {
         FILE * pFile = fopen( cacheFileName.c_str(), "r" );
 		if(pFile) {       
 			fclose(pFile);
-            if( FAILED( D3DXCreateTextureFromFileExA( gpDevice, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture ))) {
+            if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture ))) {
                 LogMessage( StringBuilder( "Unable to load " ) << file << " texture!" );
             }
         } else {
-            if( FAILED( D3DXCreateTextureFromFileExA( gpDevice, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->texture ))) {
+            if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->texture ))) {
                 LogMessage( StringBuilder( "Unable to load " ) << file << " texture!" );
             }
         }
@@ -70,7 +70,7 @@ Texture::~Texture( ) {
 }
 
 void Texture::Bind( int level ) {
-    CheckDXErrorFatal( gpDevice->SetTexture( level, texture ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( level, texture ));
 }
 
 IDirect3DTexture9 * Texture::GetInterface() {

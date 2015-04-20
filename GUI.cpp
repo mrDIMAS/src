@@ -1,30 +1,30 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "Common.h"
 #include "GUIRenderer.h"
 #include "Cursor.h"
 
 void ruSetCursorSettings( ruTextureHandle texture, int w, int h ) {
-    if( !g_cursor ) {
-        g_cursor = new Cursor( w, h, (Texture*)texture.pointer );
+    if( !Cursor::msCurrentCursor ) {
+        Cursor::msCurrentCursor = new Cursor( w, h, (Texture*)texture.pointer );
     }
 }
 
 void ruHideCursor( ) {
-    if( g_cursor ) {
-        g_cursor->Hide();
+    if( Cursor::msCurrentCursor ) {
+        Cursor::msCurrentCursor->Hide();
     } else {
         ShowCursor( FALSE );
-        gpDevice->ShowCursor( FALSE );
+        Engine::Instance().GetDevice()->ShowCursor( FALSE );
     }
 }
 
 void ruShowCursor( ) {
-    if( g_cursor ) {
-        g_cursor->Show();
+    if( Cursor::msCurrentCursor ) {
+        Cursor::msCurrentCursor->Show();
     } else {
         ShowCursor( TRUE );
-        gpDevice->ShowCursor( TRUE );
+        Engine::Instance().GetDevice()->ShowCursor( TRUE );
     }
 }
 

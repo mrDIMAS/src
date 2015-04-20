@@ -1,14 +1,26 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "Mesh.h"
 #include "Octree.h"
 #include "Texture.h"
 #include "Vertex.h"
 #include "ForwardRenderer.h"
 
+IDirect3DVertexDeclaration9 * Mesh::msVertexDeclaration = 0;
 unordered_map< IDirect3DTexture9*, vector< Mesh*>> Mesh::msMeshList;
 
 Mesh::Mesh() {
+	if( !msVertexDeclaration ) {
+		D3DVERTEXELEMENT9 vd[ ] = {
+			{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+			{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+			{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+			{ 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
+			D3DDECL_END()
+		};
+
+		CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration ));
+	}
     mDiffuseTexture = nullptr;
     mIndexBuffer = nullptr;
     mVertexBuffer = nullptr;
@@ -38,7 +50,7 @@ void Mesh::Register( Mesh * mesh ) {
 
         Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
     } else { // pass it to forward renderer
-        g_forwardRenderer->AddMesh( mesh );
+        Engine::Instance().GetForwardRenderer()->AddMesh( mesh );
     }
 }
 
@@ -62,7 +74,7 @@ Mesh::~Mesh() {
         }
     }
     if( !removed ) {
-        g_forwardRenderer->RemoveMesh( this );
+        Engine::Instance().GetForwardRenderer()->RemoveMesh( this );
     }
     if( mOctree ) {
         delete mOctree;
@@ -72,7 +84,7 @@ Mesh::~Mesh() {
 void Mesh::UpdateVertexBuffer() {
     int sizeBytes = mVertices.size() * sizeof( Vertex );
     if( !mVertexBuffer ) {
-        CheckDXErrorFatal( gpDevice->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &mVertexBuffer, 0 ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &mVertexBuffer, 0 ));
     }
     if( mVertices.size() == 0 ) {
         return;
@@ -86,7 +98,7 @@ void Mesh::UpdateVertexBuffer() {
 void Mesh::UpdateIndexBuffer( vector< Triangle > & triangles ) {
     int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
     if( !mIndexBuffer ) {
-        CheckDXErrorFatal( gpDevice->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 ));
     }
     void * indexData = 0;
     CheckDXErrorFatal( mIndexBuffer->Lock( 0, 0, &indexData, 0 ));
@@ -117,12 +129,13 @@ void Mesh::EraseOrphanMeshes() {
 	}
 }
 
-void Mesh::EraseAll() {
+void Mesh::CleanUp() {
 	for( auto iMeshGroup : msMeshList ) {
 		for( auto iMesh = iMeshGroup.second.begin(); iMesh != iMeshGroup.second.end(); iMesh++ ) {
 			delete (*iMesh);
 		}
 	}
+	msVertexDeclaration->Release();
 }
 
 Texture * Mesh::GetDiffuseTexture() {
@@ -134,15 +147,15 @@ Texture * Mesh::GetNormalTexture() {
 }
 
 void Mesh::BindBuffers() {
-    CheckDXErrorFatal( gpDevice->SetVertexDeclaration( g_meshVertexDeclaration ));
-    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex )));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex )));
     if( mOctree ) {
         vector< Triangle > & id = mOctree->GetTrianglesToRender();
         if( id.size() ) {
             UpdateIndexBuffer( id );
         }
     }
-    CheckDXErrorFatal( gpDevice->SetIndices( mIndexBuffer ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetIndices( mIndexBuffer ));
 }
 
 void Mesh::Render() {
@@ -152,12 +165,12 @@ void Mesh::Render() {
         ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", mOctree->mVisibleNodeCount, mOctree->mVisibleTriangleCount ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( mOctree->mVisibleTriangleList.size() ) {
-            CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mOctree->mVisibleTriangleList.size() ));
+            CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mOctree->mVisibleTriangleList.size() ));
         }
     } else {
-        CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mTriangles.size() ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mTriangles.size() ));
     }
 
     // each mesh renders in one DIP
-    g_dips++;
+    Engine::Instance().RegisterDIP();
 }

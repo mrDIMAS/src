@@ -4,6 +4,8 @@
 
 class Mesh;
 
+class ParticleEmitter;
+
 class SceneNode {
 public:
     friend class DeferredRenderer;
@@ -32,6 +34,8 @@ public:
     int mContactCount;
     int mTotalFrameCount;
 	void AutoName();
+
+	static vector< SceneNode* > msNodeList;
 public:
     // Components
     ParticleEmitter * particleEmitter;

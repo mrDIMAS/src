@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "CubeTexture.h"
 
 map< string, CubeTexture*> CubeTexture::all;
@@ -16,7 +16,7 @@ CubeTexture * CubeTexture::Require( string fn ) {
 }
 
 CubeTexture::CubeTexture( string fn ) {
-    CheckDXErrorFatal( D3DXCreateCubeTextureFromFileA( gpDevice, fn.c_str(), &cubeTexture ));
+    CheckDXErrorFatal( D3DXCreateCubeTextureFromFileA( Engine::Instance().GetDevice(), fn.c_str(), &cubeTexture ));
 }
 
 CubeTexture::~CubeTexture() {

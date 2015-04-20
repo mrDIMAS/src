@@ -49,34 +49,34 @@ Timer::Timer() {
 //////////////////////////////////////////////////////////////////////////
 
 
-RUAPI ruTimerHandle ruCreateTimer( ) {
+ruTimerHandle ruCreateTimer( ) {
     return reinterpret_cast< ruTimerHandle >( new Timer );
 }
 
-RUAPI void ruRestartTimer( ruTimerHandle timer ) {
+void ruRestartTimer( ruTimerHandle timer ) {
     (reinterpret_cast< Timer* >( timer ))->RestartTimer();
 }
 
-RUAPI double ruGetElapsedTimeInSeconds( ruTimerHandle timer ) {
+double ruGetElapsedTimeInSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInSeconds();
 }
 
-RUAPI double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer ) {
+double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMilliSeconds();
 }
 
-RUAPI double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer ) {
+double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMicroSeconds();
 }
 
-RUAPI double ruGetTimeInSeconds( ruTimerHandle timer ) {
+double ruGetTimeInSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetTimeInSeconds();
 }
 
-RUAPI double ruGetTimeInMilliSeconds( ruTimerHandle timer ) {
+double ruGetTimeInMilliSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetTimeInMilliSeconds();
 }
 
-RUAPI double ruGetTimeInMicroSeconds( ruTimerHandle timer ) {
+double ruGetTimeInMicroSeconds( ruTimerHandle timer ) {
     return (reinterpret_cast< Timer* >( timer ))->GetTimeInMicroSeconds();
 }

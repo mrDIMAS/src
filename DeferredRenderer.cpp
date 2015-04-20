@@ -1,5 +1,4 @@
 #include "Precompiled.h"
-
 #include "DeferredRenderer.h"
 #include "Light.h"
 #include "SceneNode.h"
@@ -7,15 +6,9 @@
 #include "Camera.h"
 #include "Skybox.h"
 #include "Utility.h"
-#include "Renderer.h"
-
-DeferredRenderer * g_deferredRenderer = 0;
+#include "Engine.h"
 
 bool g_fxaaEnabled = true;
-
-bool IsTextureFormatOk( D3DFORMAT TextureFormat ) {
-    return SUCCEEDED( g_d3d->CheckDeviceFormat( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_TEXTURE, TextureFormat) );
-}
 
 DeferredRenderer::DeferredRenderer() {
     mFullscreenQuad = new EffectsQuad;
@@ -29,7 +22,7 @@ DeferredRenderer::DeferredRenderer() {
     bvRenderer = new BoundingVolumeRenderingShader;
     mSpotLightShadowMap = new SpotlightShadowMap;
     // check support of floating-point textures first
-    if( IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
+    if( Engine::Instance().IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
         mHDRShader = new HDRShader( D3DFMT_A16B16G16R16 );
     } else {
         mHDRShader = nullptr;
@@ -64,7 +57,7 @@ void DeferredRenderer::CreateBoundingVolumes() {
 	ID3DXMesh * temp = nullptr;
     int quality = 6;
 
-	D3DXCreateSphere( gpDevice, 1.0, quality, quality, &mBoundingStar, 0 );
+	D3DXCreateSphere( Engine::Instance().GetDevice(), 1.0, quality, quality, &mBoundingStar, 0 );
 	XYZNormalVertex * data;
 	mBoundingStar->LockVertexBuffer( 0, (void**)&data );
 	int n = 0;
@@ -79,19 +72,19 @@ void DeferredRenderer::CreateBoundingVolumes() {
 		}
 	}
 	mBoundingStar->UnlockVertexBuffer();
-	mBoundingStar->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, gpDevice, &temp );
+	mBoundingStar->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, Engine::Instance().GetDevice(), &temp );
 	mBoundingStar->Release();
 	mBoundingStar = temp;
 
 	
 
-    D3DXCreateSphere( gpDevice, 1.0, quality, quality, &mBoundingSphere, 0 );
+    D3DXCreateSphere( Engine::Instance().GetDevice(), 1.0, quality, quality, &mBoundingSphere, 0 );
 	
-	mBoundingSphere->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, gpDevice, &temp );
+	mBoundingSphere->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, Engine::Instance().GetDevice(), &temp );
 	mBoundingSphere->Release();
 	mBoundingSphere = temp;
 
-    D3DXCreateCylinder( gpDevice, 0.0f, 1.0f, 1.0f, quality, quality, &mBoundingCone, 0 );
+    D3DXCreateCylinder( Engine::Instance().GetDevice(), 0.0f, 1.0f, 1.0f, quality, quality, &mBoundingCone, 0 );
     // rotate cylinder on 90 degrees
     mBoundingCone->LockVertexBuffer( 0, (void**)&data );
     D3DXMATRIX tran;
@@ -106,7 +99,7 @@ void DeferredRenderer::CreateBoundingVolumes() {
     }
     mBoundingCone->UnlockVertexBuffer();
 
-	mBoundingCone->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, gpDevice, &temp );
+	mBoundingCone->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, Engine::Instance().GetDevice(), &temp );
 	mBoundingCone->Release();
 	mBoundingCone = temp;
 }
@@ -123,26 +116,26 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
 	/*
 	if( light->pointTexture ) {
 		pixelShaderTexProj->Bind();
-		gpDevice->SetTexture( 3, light->pointTexture->cubeTexture );
+		Renderer::Instance().GetDevice()->SetTexture( 3, light->pointTexture->cubeTexture );
 	} else {
 		pixelShader->Bind();
 	}*/
 	if( light->pointTexture ) {
-		gpDevice->SetTexture( 3, light->pointTexture->cubeTexture );
+		Engine::Instance().GetDevice()->SetTexture( 3, light->pointTexture->cubeTexture );
 	};
-	gpRenderer->SetPixelShaderFloat3( 8, g_camera->mGlobalTransform.getOrigin().m_floats );
-	gpRenderer->SetPixelShaderMatrix( 0, &invViewProj );
+	Engine::Instance().SetPixelShaderFloat3( 8, Camera::msCurrentCamera->mGlobalTransform.getOrigin().m_floats );
+	Engine::Instance().SetPixelShaderMatrix( 0, &invViewProj );
 	
 	// position
-    gpRenderer->SetPixelShaderFloat3( 5, light->GetRealPosition().elements ); 
+    Engine::Instance().SetPixelShaderFloat3( 5, light->GetRealPosition().elements ); 
 	// color
-    gpRenderer->SetPixelShaderFloat3( 6, light->GetColor().elements ); 
+    Engine::Instance().SetPixelShaderFloat3( 6, light->GetColor().elements ); 
 	 // range
-    //gpRenderer->SetPixelShaderFloat( 7, powf( light->GetRadius(), 4 ));
+    //Renderer::Instance().SetPixelShaderFloat( 7, powf( light->GetRadius(), 4 ));
 	float lightRange = light->GetRadius();
-	gpRenderer->SetPixelShaderFloat( 7, lightRange * lightRange * lightRange * lightRange );
+	Engine::Instance().SetPixelShaderFloat( 7, lightRange * lightRange * lightRange * lightRange );
 	// brightness
-    gpRenderer->SetPixelShaderFloat( 9, g_hdrEnabled ? light->brightness : 1.0f ); 
+    Engine::Instance().SetPixelShaderFloat( 9, Engine::Instance().IsHDREnabled() ? light->brightness : 1.0f ); 
 }
 
 DeferredRenderer::PointLightShader::~PointLightShader() {
@@ -159,7 +152,7 @@ DeferredRenderer::AmbientLightShader::AmbientLightShader() {
 
 void DeferredRenderer::AmbientLightShader::Bind( ) {
     pixelShader->Bind();
-    gpRenderer->SetPixelShaderFloat3( 0, g_ambientColor.elements );
+    Engine::Instance().SetPixelShaderFloat3( 0, Engine::Instance().GetAmbientColor().elements );
 }
 
 DeferredRenderer::AmbientLightShader::~AmbientLightShader() {
@@ -176,7 +169,7 @@ DeferredRenderer::SpotLightShader::SpotLightShader( ) {
 }
 
 void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Light * lit ) {
-	if( g_useSpotLightShadows ) {		
+	if( Engine::Instance().IsSpotLightShadowsEnabled() ) {		
 		pixelShaderShadows->Bind();		
 	} else {
 		pixelShader->Bind();
@@ -184,25 +177,25 @@ void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Ligh
 
 	lit->spotTexture->Bind(3);
 	lit->BuildSpotProjectionMatrixAndFrustum();
-	gpRenderer->SetPixelShaderMatrix( 5, &lit->spotViewProjectionMatrix );
-	gpRenderer->SetPixelShaderFloat3( 13, g_camera->mGlobalTransform.getOrigin().m_floats );
-	gpRenderer->SetPixelShaderMatrix( 0, &invViewProj );
+	Engine::Instance().SetPixelShaderMatrix( 5, &lit->spotViewProjectionMatrix );
+	Engine::Instance().SetPixelShaderFloat3( 13, Camera::msCurrentCamera->mGlobalTransform.getOrigin().m_floats );
+	Engine::Instance().SetPixelShaderMatrix( 0, &invViewProj );
 
     btVector3 direction = ( lit->mGlobalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
     // position
-    gpRenderer->SetPixelShaderFloat3( 10, lit->GetRealPosition().elements );
+    Engine::Instance().SetPixelShaderFloat3( 10, lit->GetRealPosition().elements );
     // range
-    gpRenderer->SetPixelShaderFloat( 14, powf( lit->GetRadius(), 4 ));
+    Engine::Instance().SetPixelShaderFloat( 14, powf( lit->GetRadius(), 4 ));
     // color
-    gpRenderer->SetPixelShaderFloat3( 11, lit->GetColor().elements );
+    Engine::Instance().SetPixelShaderFloat3( 11, lit->GetColor().elements );
     // inner angle
-    gpRenderer->SetPixelShaderFloat( 15, lit->GetCosHalfInnerAngle() );
+    Engine::Instance().SetPixelShaderFloat( 15, lit->GetCosHalfInnerAngle() );
     // outer angle
-    gpRenderer->SetPixelShaderFloat( 16, lit->GetCosHalfOuterAngle() );
+    Engine::Instance().SetPixelShaderFloat( 16, lit->GetCosHalfOuterAngle() );
     // direction
-    gpRenderer->SetPixelShaderFloat3( 12, direction.m_floats );
+    Engine::Instance().SetPixelShaderFloat3( 12, direction.m_floats );
     // brightness
-    gpRenderer->SetPixelShaderFloat( 17, (g_hdrEnabled ? lit->brightness : 1.0f) );
+    Engine::Instance().SetPixelShaderFloat( 17, (Engine::Instance().IsHDREnabled() ? lit->brightness : 1.0f) );
 }
 
 DeferredRenderer::SpotLightShader::~SpotLightShader() {
@@ -223,7 +216,7 @@ DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader()
         //{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
         D3DDECL_END()
     };
-    gpDevice->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
+    Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
 }
 
 DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader() {
@@ -235,11 +228,11 @@ DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader(
 void DeferredRenderer::BoundingVolumeRenderingShader::Bind() {
     //ps->Bind();
     //vs->Bind();
-    gpDevice->SetVertexDeclaration( vertexDeclaration );
+    Engine::Instance().GetDevice()->SetVertexDeclaration( vertexDeclaration );
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX & wvp ) {
-    gpRenderer->SetVertexShaderMatrix( 0, &wvp );
+    Engine::Instance().SetVertexShaderMatrix( 0, &wvp );
 }
 
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
@@ -266,7 +259,7 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     bvRenderer->Bind();
 
     D3DXMATRIX wvp;
-    D3DXMatrixMultiply( &wvp, &world, &g_camera->mViewProjection );
+    D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
     bvRenderer->SetTransform( wvp );
 	
 	
@@ -274,11 +267,11 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
 	IDirect3DIndexBuffer9 * ib;
 	mBoundingSphere->GetVertexBuffer( &vb );
 	mBoundingSphere->GetIndexBuffer( &ib );
-	gpDevice->SetStreamSource( 0, vb, 0, mBoundingSphere->GetNumBytesPerVertex());
-	gpDevice->SetIndices( ib );
-	gpDevice->SetFVF( mBoundingSphere->GetFVF() );
+	Engine::Instance().GetDevice()->SetStreamSource( 0, vb, 0, mBoundingSphere->GetNumBytesPerVertex());
+	Engine::Instance().GetDevice()->SetIndices( ib );
+	Engine::Instance().GetDevice()->SetFVF( mBoundingSphere->GetFVF() );
 	
-	CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingSphere->GetNumVertices(), 0, mBoundingSphere->GetNumFaces()));
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingSphere->GetNumVertices(), 0, mBoundingSphere->GetNumFaces()));
 
     //icosphere->DrawSubset( 0 );
 }
@@ -307,7 +300,7 @@ void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 	bvRenderer->Bind();
 
 	D3DXMATRIX wvp;
-	D3DXMatrixMultiply( &wvp, &world, &g_camera->mViewProjection );
+	D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
 	bvRenderer->SetTransform( wvp );
 
 
@@ -315,11 +308,11 @@ void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 	IDirect3DIndexBuffer9 * ib;
 	mBoundingStar->GetVertexBuffer( &vb );
 	mBoundingStar->GetIndexBuffer( &ib );
-	gpDevice->SetStreamSource( 0, vb, 0, mBoundingStar->GetNumBytesPerVertex());
-	gpDevice->SetIndices( ib );
-	gpDevice->SetFVF( mBoundingStar->GetFVF() );
+	Engine::Instance().GetDevice()->SetStreamSource( 0, vb, 0, mBoundingStar->GetNumBytesPerVertex());
+	Engine::Instance().GetDevice()->SetIndices( ib );
+	Engine::Instance().GetDevice()->SetFVF( mBoundingStar->GetFVF() );
 
-	CheckDXErrorFatal( gpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingStar->GetNumVertices(), 0, mBoundingStar->GetNumFaces()));
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingStar->GetNumVertices(), 0, mBoundingStar->GetNumFaces()));
 
 	//icosphere->DrawSubset( 0 );
 }
@@ -334,7 +327,7 @@ void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
     D3DXMatrixMultiply( &world, &scale, &world );
     bvRenderer->Bind();
     D3DXMATRIX wvp;
-    D3DXMatrixMultiply( &wvp, &world, &g_camera->mViewProjection );
+    D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
     bvRenderer->SetTransform( wvp );
     mBoundingCone->DrawSubset( 0 );
 }
@@ -342,7 +335,7 @@ void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
 void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     OnEnd();
 
-    if( mHDRShader && g_hdrEnabled ) {
+    if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
         mHDRShader->SetAsRenderTarget();
     } else {
         if( g_fxaaEnabled ) {
@@ -352,32 +345,32 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         }
     }
 
-    gpDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+    Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 	
-    if( g_camera->mSkybox ) {
-        g_camera->mSkybox->Render( g_camera->mGlobalTransform.getOrigin() );
+    if( Camera::msCurrentCamera->mSkybox ) {
+        Camera::msCurrentCamera->mSkybox->Render( Camera::msCurrentCamera->mGlobalTransform.getOrigin() );
     }  
 
 	mGBuffer->BindTextures();
-	gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
 	mAmbientLightShader->Bind();
 	mFullscreenQuad->Bind();
 	mFullscreenQuad->Render();
 
-	gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
 
 	// begin occlusion queries
-	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-	gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-	gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-	gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );	
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );	
 
 	int countInFrustum = 0;
-	for( auto pLight : g_pointLightList ) {
+	for( auto pLight : Light::msPointLightList ) {
 		if( pLight->mQueryDone ) {
-			if( g_camera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
-				auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );
-				if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
+			if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
+				auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mLightList.end(), pLight );
+				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
 					pLight->pQuery->Issue( D3DISSUE_BEGIN );
 					RenderStar( pLight );
 					pLight->pQuery->Issue( D3DISSUE_END );
@@ -392,18 +385,18 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		}
 	}
 
-	gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-	gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 	
 	//int readyCount = 0;
 	//do {
-		for( auto pLight : g_pointLightList ) {
-			auto iter = find( g_camera->mNearestPathPoint->mLightList.begin(), g_camera->mNearestPathPoint->mLightList.end(), pLight );			
+		for( auto pLight : Light::msPointLightList ) {
+			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mLightList.end(), pLight );			
 			DWORD pixelsVisible;
 			//if( !pLight->trulyVisible ) {
 				if( pLight->inFrustum  && !pLight->mQueryDone ) {
-					if( iter == g_camera->mNearestPathPoint->mLightList.end() ) {
+					if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
 						HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
 						if( result == S_OK ) {
 							pLight->mQueryDone = true;
@@ -411,7 +404,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 							if( pixelsVisible > 0 ) {				
 								pLight->trulyVisible = true;
 								// add light to light list of nearest path point of camera									
-								g_camera->mNearestPathPoint->mLightList.push_back( pLight );								
+								Camera::msCurrentCamera->mNearestPathPoint->mLightList.push_back( pLight );								
 							}
 						}
 					} else {
@@ -427,7 +420,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	mFullscreenQuad->vertexShader->Bind();	
 	PixelShader * lastPixelShader = nullptr;
 	
-    for( auto pLight : g_camera->mNearestPathPoint->mLightList ) {
+    for( auto pLight : Camera::msCurrentCamera->mNearestPathPoint->mLightList ) {
 		if( pLight->inFrustum  ) {
 			if( pLight->pointTexture ) {
 				if( lastPixelShader != mPointLightShader->pixelShaderTexProj ) {
@@ -441,32 +434,32 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 				}
 			}
 
-			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
 
-			gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
 
 			RenderSphere( pLight );
 
-			mPointLightShader->SetLight( g_camera->invViewProjection, pLight );
+			mPointLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
 
 			mFullscreenQuad->BindNoShader();
 
-			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
-			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
 
 			mFullscreenQuad->Render();			
 		}		
     }
 	
     // Render spot lights
-    for( auto pLight : g_spotLightList ) {
-		if( g_camera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible()  ) {
-			if( g_useSpotLightShadows ) {
+    for( auto pLight : Light::msSpotLightList ) {
+		if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible()  ) {
+			if( Engine::Instance().IsSpotLightShadowsEnabled() ) {
 				IDirect3DSurface9 * prevSurface = nullptr;
-				if( mHDRShader && g_hdrEnabled ) {
+				if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
 					prevSurface = mHDRShader->hdrSurface;
 				} else if( g_fxaaEnabled ) {
 					prevSurface = mFXAA->renderTarget;
@@ -475,30 +468,30 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 				}
 				mSpotLightShadowMap->UnbindSpotShadowMap( 4 );
 
-				gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-				gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-				gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
 
 				mSpotLightShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
 
-				gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-				gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-				gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
 
 				mSpotLightShadowMap->BindSpotShadowMap( 4 );
 			}
 
-			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
-			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
 
 			RenderConeIntoStencilBuffer( pLight );
 
-			mSpotLightShader->SetLight( g_camera->invViewProjection, pLight );
+			mSpotLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
 
-			gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-			gpDevice->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-			gpDevice->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
 
 
 			mFullscreenQuad->Bind();
@@ -506,11 +499,11 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		}
     }
 	
-    if( mHDRShader && g_hdrEnabled ) {
-		gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-		gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-		gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-		gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+    if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
+		Engine::Instance().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+		Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
         mHDRShader->CalculateFrameLuminance( );
         if( g_fxaaEnabled ) {
             mHDRShader->DoToneMapping( mFXAA->renderTarget );
@@ -520,25 +513,25 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         }
     } else {
         if( g_fxaaEnabled ) {
-            gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-            gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-			gpDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
-			gpDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
-			gpDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
-			gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
-			gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-			gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+            Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+            Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
             mFXAA->DoAntialiasing( mFXAA->texture );
-			gpDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			gpDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-			gpDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-			gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-			gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
         }
     }
 
-	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 }
 
 

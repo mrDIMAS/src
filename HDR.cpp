@@ -1,20 +1,20 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "HDR.h"
 #include "Utility.h"
 
 void HDRShader::DoToneMapping( IDirect3DSurface9 * targetSurface ) {
-    gpDevice->SetRenderTarget( 0, targetSurface );
-    gpDevice->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
-    gpDevice->SetTexture( 0, hdrTexture );
-    gpDevice->SetTexture( 7, adaptedLuminanceCurrent );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, targetSurface );
+    Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+    Engine::Instance().GetDevice()->SetTexture( 0, hdrTexture );
+    Engine::Instance().GetDevice()->SetTexture( 7, adaptedLuminanceCurrent );
     toneMapShader->Bind();
     screenQuad->Bind();
     screenQuad->Render();
 }
 
 void HDRShader::SetAsRenderTarget() {
-    gpDevice->SetRenderTarget( 0, hdrSurface );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, hdrSurface );
 }
 
 HDRShader::~HDRShader() {
@@ -38,13 +38,13 @@ HDRShader::~HDRShader() {
 }
 
 HDRShader::HDRShader( D3DFORMAT rtFormat ) {
-	int width = g_width;
-	int height = g_height;
+	int width = Engine::Instance().GetResolutionWidth();
+	int height = Engine::Instance().GetResolutionHeight();
 	if( !IsFullNPOTTexturesSupport()) {
-		width = NearestPow2( g_width );
-		height = NearestPow2( g_height );
+		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
+		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}
-    D3DXCreateTexture( gpDevice, width, height, 0, D3DUSAGE_RENDERTARGET  , rtFormat, D3DPOOL_DEFAULT, &hdrTexture );
+    D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET  , rtFormat, D3DPOOL_DEFAULT, &hdrTexture );
     hdrTexture->GetSurfaceLevel( 0, &hdrSurface );
 
     string toneMapShaderSource =
@@ -62,21 +62,21 @@ HDRShader::HDRShader( D3DFORMAT rtFormat ) {
     screenQuad = new EffectsQuad( false );
 
 
-    D3DXCreateTexture( gpDevice, 512, 512, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &scaledScene );
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 512, 512, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &scaledScene );
     scaledScene->GetSurfaceLevel( 0, &scaledSceneSurf );
 
-    D3DXCreateTexture( gpDevice, 256, 256, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 0 ]);
-    D3DXCreateTexture( gpDevice, 128, 128, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 1 ]);
-    D3DXCreateTexture( gpDevice, 64, 64, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 2 ]);
-    D3DXCreateTexture( gpDevice, 32, 32, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 3 ]);
-    D3DXCreateTexture( gpDevice, 16, 16, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 4 ]);
-    D3DXCreateTexture( gpDevice, 8, 8, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 5 ]);
-    D3DXCreateTexture( gpDevice, 4, 4, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 6 ]);
-    D3DXCreateTexture( gpDevice, 2, 2, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 7 ]);
-    D3DXCreateTexture( gpDevice, 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 8 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 256, 256, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 0 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 128, 128, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 1 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 64, 64, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 2 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 32, 32, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 3 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 16, 16, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 4 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 8, 8, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 5 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 4, 4, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 6 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 2, 2, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 7 ]);
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &downSampTex[ 8 ]);
 
-    D3DXCreateTexture( gpDevice, 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &adaptedLuminanceLast );
-    D3DXCreateTexture( gpDevice, 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &adaptedLuminanceCurrent );
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &adaptedLuminanceLast );
+    D3DXCreateTexture( Engine::Instance().GetDevice(), 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &adaptedLuminanceCurrent );
 
 
     string scalePixelShaderSource =
@@ -126,62 +126,62 @@ HDRShader::HDRShader( D3DFORMAT rtFormat ) {
 void HDRShader::CalculateFrameLuminance( ) {
     screenQuad->Bind();
 
-    gpDevice->SetTexture( 7, hdrTexture );
-    gpDevice->SetRenderTarget( 0, scaledSceneSurf );
+    Engine::Instance().GetDevice()->SetTexture( 7, hdrTexture );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, scaledSceneSurf );
     scaleScenePixelShader->Bind();
     screenQuad->Render();
 
     // next, do downsampling until we get 1x1 luminance texture
     downScalePixelShader->Bind();
     // 256x256
-    gpDevice->SetTexture( 7, scaledScene );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 0 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 256.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, scaledScene );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 0 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 256.0f );
     screenQuad->Render();
     // 128x128
-    gpDevice->SetTexture( 7, downSampTex[ 0 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 1 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 128.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 0 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 1 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 128.0f );
     screenQuad->Render();
     // 64x64
-    gpDevice->SetTexture( 7, downSampTex[ 1 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 2 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 64.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 1 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 2 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 64.0f );
     screenQuad->Render();
     // 32x32
-    gpDevice->SetTexture( 7, downSampTex[ 2 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 3 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 32.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 2 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 3 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 32.0f );
     screenQuad->Render();
     // 16x16
-    gpDevice->SetTexture( 7, downSampTex[ 3 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 4 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 16.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 3 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 4 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 16.0f );
     screenQuad->Render();
     // 8x8
-    gpDevice->SetTexture( 7, downSampTex[ 4 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 5 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 8.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 4 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 5 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 8.0f );
     screenQuad->Render();
     // 4x4
-    gpDevice->SetTexture( 7, downSampTex[ 5 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 6 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 4.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 5 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 6 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 4.0f );
     screenQuad->Render();
     // 2x2
-    gpDevice->SetTexture( 7, downSampTex[ 6 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 7 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f / 2.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 6 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 7 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 2.0f );
     screenQuad->Render();
     // final 1x1
-    gpDevice->SetTexture( 7, downSampTex[ 7 ] );
-    gpDevice->SetRenderTarget( 0, downSampSurf[ 8 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( gpDevice, hPixelSize, 1.0f );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 7 ] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 8 ] );
+    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f );
     screenQuad->Render();
     // now we get average frame luminance presented as 1x1 pixel RGBA8 texture
     // render it into R32F luminance texture
     for( int i = 0; i < 8; i++ ) {
-        gpDevice->SetTexture( i, 0 );
+        Engine::Instance().GetDevice()->SetTexture( i, 0 );
     }
 
     IDirect3DTexture9 * pTexSwap = adaptedLuminanceLast;
@@ -191,12 +191,12 @@ void HDRShader::CalculateFrameLuminance( ) {
     IDirect3DSurface9 * pSurfAdaptedLum = NULL;
     adaptedLuminanceCurrent->GetSurfaceLevel( 0, &pSurfAdaptedLum );
 
-    gpDevice->SetRenderTarget( 0, pSurfAdaptedLum );
-    gpDevice->SetTexture( 6, adaptedLuminanceLast );
-    gpDevice->SetTexture( 7, downSampTex[8] );
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, pSurfAdaptedLum );
+    Engine::Instance().GetDevice()->SetTexture( 6, adaptedLuminanceLast );
+    Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[8] );
 
     adaptationPixelShader->Bind();
-    adaptationPixelShader->GetConstantTable()->SetFloat( gpDevice, hAdaptation, 0.75f );
+    adaptationPixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hAdaptation, 0.75f );
     screenQuad->Render();
 
     pSurfAdaptedLum->Release();

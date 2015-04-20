@@ -5,9 +5,12 @@
 
 class Cursor : public GUIRect {
 public:
-    explicit Cursor( int w, int h, Texture * texture ) : GUIRect( 0, 0, w, h, texture, ruVector3( 255, 255, 255 ), 255, false ) {
+	static Cursor * msCurrentCursor;
 
+    explicit Cursor( int w, int h, Texture * texture ) : GUIRect( 0, 0, w, h, texture, ruVector3( 255, 255, 255 ), 255, false ) {
+		msCurrentCursor = this;
     }
+
     void Show();
     void Hide();
 };

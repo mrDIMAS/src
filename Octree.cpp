@@ -55,7 +55,7 @@ void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & tr
 bool Octree::CubeInFrustum( const AABB & box ) {
 	bool inFrustum = false;
 	for( auto pOwner : mMesh->GetOwners() ) {
-		inFrustum |= g_camera->mFrustum.IsAABBInside( box, ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ) );
+		inFrustum |= Camera::msCurrentCamera->mFrustum.IsAABBInside( box, ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ) );
 	}
     return inFrustum;
 }

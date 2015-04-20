@@ -1,8 +1,6 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "ForwardRenderer.h"
-
-ForwardRenderer * g_forwardRenderer = nullptr;
 
 void ForwardRenderer::RenderMeshes() {
     mPixelShader->Bind();
@@ -12,7 +10,7 @@ void ForwardRenderer::RenderMeshes() {
         IDirect3DTexture9 * diffuseTexture = group.first;
         vector< Mesh* > & meshes = group.second;
 
-        gpDevice->SetTexture( 0, diffuseTexture );
+        Engine::Instance().GetDevice()->SetTexture( 0, diffuseTexture );
 
         for( auto pMesh : meshes ) {
             D3DXMATRIX world, wvp;
@@ -20,10 +18,10 @@ void ForwardRenderer::RenderMeshes() {
 			// draw instances
 			for( auto pOwner : pMesh->GetOwners() ) {
 				GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-				D3DXMatrixMultiplyTranspose( &wvp, &world, &g_camera->mViewProjection );
+				D3DXMatrixMultiplyTranspose( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
 
-				CheckDXErrorFatal( gpDevice->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
-				CheckDXErrorFatal( gpDevice->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 ));
+				CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+				CheckDXErrorFatal( Engine::Instance().GetDevice()->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 ));
 
 				pMesh->BindBuffers();
 				pMesh->Render();

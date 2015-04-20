@@ -75,7 +75,7 @@ void ruInputUpdate( ) {
     }
 };
 
-RUAPI void ruInputInit( void * window ) {
+void ruInputInit( void * window ) {
     HINSTANCE hInstance = GetModuleHandle( 0 );
     hwnd = (HWND)(*(HWND*)window);
     CheckDXErrorFatal( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL));
@@ -96,7 +96,7 @@ RUAPI void ruInputInit( void * window ) {
     GetClientRect( hwnd, &windowRect );
 };
 
-RUAPI void ruInputDestroy() {
+void ruInputDestroy() {
     CheckDXErrorFatal( pMouse->Unacquire());
     pMouse->Release();
     CheckDXErrorFatal( pKeyboard->Unacquire());

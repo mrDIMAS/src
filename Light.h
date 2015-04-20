@@ -38,9 +38,12 @@ public:
     CubeTexture * pointTexture;
     static IDirect3DVertexBuffer9 * flareBuffer;
     Texture * flareTexture;
+
     static vector<Light*> lights;
     static Texture * defaultSpotTexture;
     static CubeTexture * defaultPointCubeTexture;
+	static vector< Light* > msPointLightList;
+	static vector< Light* > msSpotLightList;
 public:
     explicit Light( int type );
     virtual ~Light();

@@ -84,18 +84,18 @@ int ruIsSoundPlaying( ruSoundHandle sound ) {
     return pfIsSoundPlaying( sound.pfHandle );
 }
 
-RUAPI void ruSetMasterVolume( float volume ) {
+void ruSetMasterVolume( float volume ) {
     pfSetMasterVolume( volume );
 }
 
-RUAPI float ruGetMasterVolume() {
+float ruGetMasterVolume() {
     return pfGetMasterVolume();
 }
 
-RUAPI void ruSetSoundsPitch( ruSoundHandle sound, float pitch ) {
+void ruSetSoundsPitch( ruSoundHandle sound, float pitch ) {
     pfSetSoundPitch( sound.pfHandle, pitch );
 }
 
-RUAPI bool ruIsSoundPaused( ruSoundHandle sound ) {
+bool ruIsSoundPaused( ruSoundHandle sound ) {
     return pfIsSoundPlayingUntilPaused( sound.pfHandle );
 }

@@ -7,7 +7,7 @@
 #include "Mesh.h"
 #include "Camera.h"
 #include "Texture.h"
-#include "Renderer.h"
+#include "Engine.h"
 #include "Physics.h"
 #include "MultipleRTDeferredRenderer.h"
 #include "FXAA.h"
@@ -16,30 +16,14 @@
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 
-Renderer * gpRenderer = 0;
-
-IDirect3D9 * g_d3d = 0;
-IDirect3DDevice9 * gpDevice = 0;
-IDirect3DVertexDeclaration9 * g_meshVertexDeclaration = 0;
-
-float g_width = 0;
-float g_height = 0;
-int g_dips = 0;
 int g_debugDraw = 0;
 int g_textureChanges = 0;
-int g_fps = 0;
 
-FPSCounter g_fpsCounter;
-bool g_usePointLightShadows = true;
-bool g_useSpotLightShadows = true;
 bool g_engineRunning = true;
-bool g_hdrEnabled = false;
-
-ruVector3 g_ambientColor = ruVector3( 0.05, 0.05, 0.05 );
 
 vector< Light*> affectedLights;
 
-Renderer::~Renderer() {
+Engine::~Engine() {
 	
     for( auto fnt : BitmapFont::fonts ) {
         delete fnt;
@@ -51,30 +35,30 @@ Renderer::~Renderer() {
         delete kv.second;
     }
     FT_Done_FreeType( g_ftLibrary );
-    delete g_textRenderer;
-    delete g_particleSystemRenderer;
-    delete g_deferredRenderer;
-    delete g_guiRenderer;
+    delete mpTextRenderer;
+    delete mpParticleSystemRenderer;
+    delete mpDeferredRenderer;
+    delete mpGUIRenderer;
     while( GUINode::msNodeList.size() ) {
         delete GUINode::msNodeList.front();
     }
-    while( g_nodes.size() ) {
-        delete g_nodes.front();
+    while( SceneNode::msNodeList.size() ) {
+        delete SceneNode::msNodeList.front();
     }
-	Mesh::EraseAll();
-    if( g_forwardRenderer ) {
-        delete g_forwardRenderer;
+	Mesh::CleanUp();
+    if( mpForwardRenderer ) {
+        delete mpForwardRenderer;
     }
     Texture::DeleteAll();
-    g_meshVertexDeclaration->Release();
+    
     int counter = 0;
-    if( gpDevice ) {
-        while( gpDevice->Release() ) {
+    if( Engine::Instance().GetDevice() ) {
+        while( Engine::Instance().GetDevice()->Release() ) {
             counter++;
         }
     }
-    if( g_d3d ) {
-        while( g_d3d->Release() ) {
+    if( mpDirect3D ) {
+        while( mpDirect3D->Release() ) {
             counter++;
         }
     }
@@ -83,7 +67,7 @@ Renderer::~Renderer() {
     CloseLogFile();
 }
 
-Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
+void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     if ( width == 0 ) {
         width = GetSystemMetrics ( SM_CXSCREEN );
     }
@@ -97,10 +81,10 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     CreateLogFile();
 
     // try to create Direct3D9
-    g_d3d = Direct3DCreate9( D3D_SDK_VERSION );
+    mpDirect3D = Direct3DCreate9( D3D_SDK_VERSION );
 
     // epic fail
-    if( !g_d3d ) {
+    if( !mpDirect3D ) {
         MessageBoxA( 0, "Failed to Direct3DCreate9! Ensure, that you have latest video drivers! Engine initialization failed!", "ERROR", MB_OK | MB_ICONERROR );
         CloseLogFile();
         exit( -1 );
@@ -108,7 +92,7 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
 
     // check d3d caps, to ensure, that user have modern hardware
     D3DCAPS9 dCaps;
-    CheckDXErrorFatal( g_d3d->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps ));
+    CheckDXErrorFatal( mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps ));
 
     unsigned char psVerHi = D3DSHADER_VERSION_MAJOR( dCaps.PixelShaderVersion );
     unsigned char psVerLo = D3DSHADER_VERSION_MINOR( dCaps.PixelShaderVersion );
@@ -117,15 +101,15 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     if( psVerHi < 2 ) {
         MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
         CloseLogFile();
-        g_d3d->Release();
+        mpDirect3D->Release();
         exit( -1 );
     }
 
-    g_width = width;
-    g_height = height;
+    mResWidth = width;
+    mResHeight = height;
 
     D3DDISPLAYMODE displayMode = { 0 };
-    g_d3d->GetAdapterDisplayMode ( D3DADAPTER_DEFAULT, &displayMode );
+    mpDirect3D->GetAdapterDisplayMode ( D3DADAPTER_DEFAULT, &displayMode );
 
     // present parameters
     D3DPRESENT_PARAMETERS presentParameters = { 0 };
@@ -156,62 +140,56 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    if( FAILED( g_d3d->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &gpDevice )))
+    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &mpDevice )))
 	{
 		MessageBoxA( 0, "Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
 		CloseLogFile();
-		g_d3d->Release();
+		mpDirect3D->Release();
 		exit( -1 );
 	}
 
-    // create main "pipeline" vertex declaration
-    D3DVERTEXELEMENT9 vd[ ] = {
-        { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-        { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
-        { 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-        { 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
-        D3DDECL_END()
-    };
 
-    CheckDXErrorFatal( gpDevice->CreateVertexDeclaration( vd, &g_meshVertexDeclaration ));
 
-    gpDevice->SetRenderState ( D3DRS_LIGHTING, FALSE );
-    gpDevice->SetRenderState ( D3DRS_ZENABLE, TRUE );
-    gpDevice->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-    gpDevice->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-    gpDevice->SetRenderState ( D3DRS_ALPHAREF, 10 );
-    gpDevice->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-    gpDevice->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-    gpDevice->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
+    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
 
-    gpDevice->SetRenderState( D3DRS_STENCILREF, 0x0 );
-    gpDevice->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-    gpDevice->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-    gpDevice->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-    gpDevice->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-    gpDevice->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-    gpDevice->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 
     // setup samplers
-    gpDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-    gpDevice->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+    Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+    Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+    Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+    Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+    Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+    Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+    Engine::Instance().GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+    Engine::Instance().GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 
-    g_deferredRenderer = new MultipleRTDeferredRenderer();
-    g_forwardRenderer = new ForwardRenderer();
-    g_particleSystemRenderer = new ParticleSystemRenderer();
-    g_textRenderer = new TextRenderer();
-    g_guiRenderer = new GUIRenderer();
-    gpRenderer = this;
-    performanceTimer = new Timer;
+    mpDeferredRenderer = new MultipleRTDeferredRenderer();
+    mpForwardRenderer = new ForwardRenderer();
+    mpParticleSystemRenderer = new ParticleSystemRenderer();
+    mpTextRenderer = new TextRenderer();
+    mpGUIRenderer = new GUIRenderer();
+	mAmbientColor = ruVector3( 0.05, 0.05, 0.05 );
+
+	mUsePointLightShadows = false;
+	mUseSpotLightShadows = false;
+	mHDREnabled = false;
 
     // init freetype
     if( FT_Init_FreeType( &g_ftLibrary ) ) {
@@ -222,7 +200,7 @@ Renderer::Renderer( int width, int height, int fullscreen, char vSync ) {
 bool IsFullNPOTTexturesSupport()
 {
 	D3DCAPS9 caps;
-	gpDevice->GetDeviceCaps( &caps );
+	Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
 	char npotcond = caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL;
 	char pot = caps.TextureCaps & D3DPTEXTURECAPS_POW2;
 	return !(npotcond || pot);
@@ -233,7 +211,7 @@ bool IsFullNPOTTexturesSupport()
 Renderer::CreateRenderWindow
 ==========
 */
-int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
+int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
     // get instance of this process
     HINSTANCE instance = GetModuleHandle ( 0 );
     // setup window class
@@ -280,7 +258,7 @@ int Renderer::CreateRenderWindow( int width, int height, int fullscreen ) {
 Renderer::CreatePhysics
 ===============
 */
-void Renderer::CreatePhysics() {
+void Engine::CreatePhysics() {
     Physics::CreateWorld();
 }
 
@@ -289,26 +267,26 @@ void Renderer::CreatePhysics() {
 Renderer::RenderWorld
 ===============
 */
-void Renderer::RenderWorld() {
+void Engine::RenderWorld() {
     if( !g_engineRunning ) {
         return;
     }
-    if( !g_camera ) {
+    if( !Camera::msCurrentCamera ) {
         return;
     }
-    g_fpsCounter.RegisterFrame();
+    mFPSCounter.RegisterFrame();
     // erase marked nodes
 	Mesh::EraseOrphanMeshes();
     SceneNode::EraseUnusedNodes();
     // window message pump
     UpdateMessagePump();
     // clear statistics
-    g_dips = 0;
+    mDIPCount = 0;
     g_textureChanges = 0;
     // build view and projection matrices, frustum, also attach sound listener to camera
-    g_camera->Update();
+    Camera::msCurrentCamera->Update();
     // precalculations
-    for( auto node : g_nodes ) {
+    for( auto node : SceneNode::msNodeList ) {
         node->CalculateGlobalTransform();
         node->PerformAnimation();
         // update all sounds attached to node, and physical interaction sounds( roll, hit )
@@ -318,60 +296,60 @@ void Renderer::RenderWorld() {
         node->mInFrustum = false;
     }
     // update lights
-    for( auto light : g_spotLightList ) {
+    for( auto light : Light::msSpotLightList ) {
         light->DoFloating();
     }
-    for( auto light : g_pointLightList ) {
+    for( auto light : Light::msPointLightList ) {
         light->DoFloating();
     }
     // begin dx scene
-    CheckDXErrorFatal( gpDevice->BeginScene());
+    CheckDXErrorFatal( GetDevice()->BeginScene());
     // begin rendering into G-Buffer
-    gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
-    gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
-    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-    gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-    g_deferredRenderer->BeginFirstPass();
+    GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
+    GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+    GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+    mpDeferredRenderer->BeginFirstPass();
     // render from current camera
     RenderMeshesIntoGBuffer();
     // end render into G-Buffer and do a lighting passes
-    if( g_hdrEnabled ) {
-        gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
-        gpDevice->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
+    if( IsHDREnabled() ) {
+        GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+        GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
     } else {
-        gpDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-        gpDevice->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
+        GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+        GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
     }
-	gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-	gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-    gpDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
-    gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
-    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-    g_deferredRenderer->EndFirstPassAndDoSecondPass();
+	GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+	GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+    GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+    GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+    GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    mpDeferredRenderer->EndFirstPassAndDoSecondPass();
     // render all opacity meshes with forward renderer
-    gpDevice->SetRenderState( D3DRS_ZENABLE, TRUE );
-	gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
-    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-	gpDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-	gpDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
-    g_forwardRenderer->RenderMeshes();
-	gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
+	GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+	GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+	GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+    mpForwardRenderer->RenderMeshes();
+	GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
     // render particles after all, because deferred shading doesnt support transparency
-    gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
 
-    g_particleSystemRenderer->RenderAllParticleSystems();
+    mpParticleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
-    gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-    g_guiRenderer->RenderAllGUIElements();
+    GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+    mpGUIRenderer->RenderAllGUIElements();
     // render light flares without writing to z-buffer
     //Light::RenderLightFlares();
     // finalize
-    gpDevice->EndScene();
-    if( gpDevice->Present( 0, 0, 0, 0 ) == D3DERR_DEVICELOST ) {
-		g_deferredRenderer->OnDeviceLost();
+    GetDevice()->EndScene();
+    if( GetDevice()->Present( 0, 0, 0, 0 ) == D3DERR_DEVICELOST ) {
+		mpDeferredRenderer->OnDeviceLost();
 		OnDeviceLost();
 	}
     // grab info about node's physic contacts
@@ -380,8 +358,8 @@ void Renderer::RenderWorld() {
     pfSystemUpdate();
 }
 
-RUAPI void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep ) {
-    g_dynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
+void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep ) {
+    Physics::mpDynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
 }
 /*
 ===============
@@ -390,7 +368,7 @@ Renderer::RenderMeshesIntoGBuffer
 all registered meshes are sorted by texture, so rendering becomes really fast - there no redundant texture changes
 ===============
 */
-void Renderer::RenderMeshesIntoGBuffer() {
+void Engine::RenderMeshesIntoGBuffer() {
     for( auto groupIterator : Mesh::msMeshList ) {
         IDirect3DTexture9 * pDiffuseTexture = groupIterator.first;
         IDirect3DTexture9 * pNormalTexture = nullptr;
@@ -400,7 +378,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
             continue;
         }
         // bind diffuse texture
-        CheckDXErrorFatal( gpDevice->SetTexture( 0, pDiffuseTexture ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, pDiffuseTexture ));
         // each group has same texture
         g_textureChanges++;
         for( auto pMesh : meshes ) {
@@ -416,7 +394,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
             if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
                 continue;
             }
-            g_deferredRenderer->RenderMesh( pMesh );            
+            mpDeferredRenderer->RenderMesh( pMesh );            
         }
     }
 }
@@ -425,7 +403,7 @@ void Renderer::RenderMeshesIntoGBuffer() {
 Renderer::UpdateMessagePump
 ===============
 */
-void Renderer::UpdateMessagePump() {
+void Engine::UpdateMessagePump() {
     MSG message;
     while ( PeekMessage ( &message, NULL, 0, 0, PM_REMOVE ) ) {
         DispatchMessage ( &message );
@@ -439,7 +417,7 @@ void Renderer::UpdateMessagePump() {
 Renderer::WindowProcess
 ===============
 */
-LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
+LRESULT CALLBACK Engine::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
     switch ( msg ) {
     case WM_PAINT:
         PAINTSTRUCT ps;
@@ -459,42 +437,148 @@ LRESULT CALLBACK Renderer::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPA
     return DefWindowProc ( wnd, msg, wParam, lParam );
 }
 
-void Renderer::SetPixelShaderInt( UINT startRegister, int v ) {
+void Engine::SetPixelShaderInt( UINT startRegister, int v ) {
     int buffer[ 4 ] = { v, 0, 0, 0 };
-    gpDevice->SetPixelShaderConstantI( startRegister, buffer, 1 );
+    Engine::Instance().GetDevice()->SetPixelShaderConstantI( startRegister, buffer, 1 );
 }
 
-void Renderer::SetPixelShaderFloat( UINT startRegister, float v ) {
+void Engine::SetPixelShaderFloat( UINT startRegister, float v ) {
     float buffer[ 4 ] = { v, 0.0f, 0.0f, 0.0f };
-    gpDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
+    Engine::Instance().GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
-void Renderer::SetPixelShaderFloat3( UINT startRegister, float * v ) {
+void Engine::SetPixelShaderFloat3( UINT startRegister, float * v ) {
     float buffer[ 4 ] = { v[0], v[1], v[2], 0.0f };
-    gpDevice->SetPixelShaderConstantF( startRegister, buffer, 1 );
+    Engine::Instance().GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
-void Renderer::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
-    gpDevice->SetPixelShaderConstantF( startRegister, &matrix->m[0][0], 4 );
+void Engine::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
+    Engine::Instance().GetDevice()->SetPixelShaderConstantF( startRegister, &matrix->m[0][0], 4 );
 }
 
-void Renderer::SetVertexShaderInt( UINT startRegister, int v ) {
+void Engine::SetVertexShaderInt( UINT startRegister, int v ) {
     int buffer[ 4 ] = { v, 0, 0, 0 };
-    gpDevice->SetVertexShaderConstantI( startRegister, buffer, 1 );
+    Engine::Instance().GetDevice()->SetVertexShaderConstantI( startRegister, buffer, 1 );
 }
 
-void Renderer::SetVertexShaderFloat( UINT startRegister, float v ) {
+void Engine::SetVertexShaderFloat( UINT startRegister, float v ) {
     float buffer[ 4 ] = { v, 0.0f, 0.0f, 0.0f };
-    gpDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
+    Engine::Instance().GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
-void Renderer::SetVertexShaderFloat3( UINT startRegister, float * v ) {
+void Engine::SetVertexShaderFloat3( UINT startRegister, float * v ) {
     float buffer[ 4 ] = { v[0], v[1], v[2], 0.0f };
-    gpDevice->SetVertexShaderConstantF( startRegister, buffer, 1 );
+    Engine::Instance().GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
-void Renderer::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
-    gpDevice->SetVertexShaderConstantF( startRegister, &matrix->m[0][0], 4 );
+void Engine::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
+    Engine::Instance().GetDevice()->SetVertexShaderConstantF( startRegister, &matrix->m[0][0], 4 );
+}
+
+void Engine::OnDeviceLost()
+{
+
+}
+
+Engine::Engine()
+{
+
+}
+
+Engine & Engine::Instance()
+{
+	static Engine instance;
+	return instance;
+}
+
+bool Engine::IsTextureFormatOk( D3DFORMAT TextureFormat )
+{
+	return SUCCEEDED( mpDirect3D->CheckDeviceFormat( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_TEXTURE, TextureFormat) );
+}
+
+IDirect3DDevice9 * Engine::GetDevice()
+{
+	return mpDevice;
+}
+
+void Engine::SetSpotLightShadowMapSize( int size )
+{
+	mpDeferredRenderer->SetSpotLightShadowMapSize( size );
+}
+
+int Engine::GetDIPCount()
+{
+	return mDIPCount;
+}
+
+float Engine::GetResolutionHeight()
+{
+	return mResHeight;
+}
+
+float Engine::GetResolutionWidth()
+{
+	return mResWidth;
+}
+
+void Engine::RegisterDIP()
+{
+	mDIPCount++;
+}
+
+ForwardRenderer * Engine::GetForwardRenderer()
+{
+	return mpForwardRenderer;
+}
+
+DeferredRenderer * Engine::GetDeferredRenderer()
+{
+	return mpDeferredRenderer;
+}
+
+TextRenderer * Engine::GetTextRenderer()
+{
+	return mpTextRenderer;
+}
+
+bool Engine::IsSpotLightShadowsEnabled()
+{
+	return mUseSpotLightShadows;
+}
+
+bool Engine::IsPointLightShadowsEnabled()
+{
+	return mUsePointLightShadows;
+}
+
+void Engine::SetSpotLightShadowsEnabled( bool state )
+{
+	mUseSpotLightShadows = state;
+}
+
+void Engine::SetPointLightShadowsEnabled( bool state )
+{
+	mUsePointLightShadows = state;
+}
+
+void Engine::SetAmbientColor( ruVector3 ambColor )
+{
+	mAmbientColor = ambColor;
+}
+
+ruVector3 Engine::GetAmbientColor()
+{
+	return mAmbientColor;
+}
+
+void Engine::SetHDREnabled( bool state )
+{
+	mHDREnabled = state;
+}
+
+bool Engine::IsHDREnabled()
+{
+	return mHDREnabled;
 }
 
 
@@ -507,8 +591,8 @@ void Renderer::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
 SetSpotLightShadowMapSize
 ===============
 */
-RUAPI void ruSetSpotLightShadowMapSize( int size ) {
-    g_deferredRenderer->SetSpotLightShadowMapSize( size );
+void ruSetSpotLightShadowMapSize( int size ) {
+    Engine::Instance().SetSpotLightShadowMapSize( size );
 }
 
 /*
@@ -516,8 +600,8 @@ RUAPI void ruSetSpotLightShadowMapSize( int size ) {
 EnableSpotLightShadows
 ===============
 */
-RUAPI void ruEnableSpotLightShadows( bool state ) {
-    g_useSpotLightShadows = state;
+void ruEnableSpotLightShadows( bool state ) {
+    Engine::Instance().SetSpotLightShadowsEnabled( state );
 }
 
 /*
@@ -525,8 +609,8 @@ RUAPI void ruEnableSpotLightShadows( bool state ) {
 EnableSpotLightShadows
 ===============
 */
-RUAPI bool ruIsSpotLightShadowsEnabled() {
-    return g_useSpotLightShadows;
+bool ruIsSpotLightShadowsEnabled() {
+    return Engine::Instance().IsSpotLightShadowsEnabled();
 }
 
 /*
@@ -573,7 +657,7 @@ DIPs
 ===============
 */
 int ruDIPs( ) {
-    return g_dips;
+    return Engine::Instance().GetDIPCount();
 }
 /*
 ===============
@@ -581,7 +665,7 @@ CreateRenderer
 ===============
 */
 int ruCreateRenderer( int width, int height, int fullscreen, char vSync ) {
-    Renderer * renderer = new Renderer( width, height, fullscreen, vSync ) ;
+    Engine::Instance().Initialize( width, height, fullscreen, vSync ) ;
     return 1;
 }
 
@@ -591,7 +675,7 @@ SetAmbientColor
 ===============
 */
 void ruSetAmbientColor( ruVector3 color ) {
-    g_ambientColor = color;
+    Engine::Instance().SetAmbientColor( color );
 }
 
 /*
@@ -600,7 +684,7 @@ GetAvailableTextureMemory
 ===============
 */
 int ruGetAvailableTextureMemory() {
-    return gpDevice->GetAvailableTextureMem();
+    return Engine::Instance().GetDevice()->GetAvailableTextureMem();
 }
 
 /*
@@ -608,12 +692,12 @@ int ruGetAvailableTextureMemory() {
 RayTest
 ===============
 */
-RUAPI ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
+ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
     btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
     btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
 
     btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
-    g_dynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
+    Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
 
     if ( rayCallback.hasHit() ) {
         const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
@@ -642,7 +726,7 @@ RayPick
 */
 ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     D3DVIEWPORT9 vp;
-    gpDevice->GetViewport( &vp );
+    Engine::Instance().GetDevice()->GetViewport( &vp );
     // Find screen coordinates normalized to -1,1
     D3DXVECTOR3 coord;
     coord.x = ( ( ( 2.0f * x ) / (float)vp.Width ) - 1 );
@@ -650,20 +734,20 @@ ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     coord.z = -1.0f;
 
     // Back project the ray from screen to the far clip plane
-    coord.x /= g_camera->mProjection._11;
-    coord.y /= g_camera->mProjection._22;
+    coord.x /= Camera::msCurrentCamera->mProjection._11;
+    coord.y /= Camera::msCurrentCamera->mProjection._22;
 
-    D3DXMATRIX matinv = g_camera->mView;
+    D3DXMATRIX matinv = Camera::msCurrentCamera->mView;
     D3DXMatrixInverse( &matinv, NULL, &matinv );
 
-    coord *= g_camera->mFarZ;
+    coord *= Camera::msCurrentCamera->mFarZ;
     D3DXVec3TransformCoord ( &coord, &coord, &matinv );
 
     btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
-    btVector3 rayBegin = g_camera->mGlobalTransform.getOrigin();
+    btVector3 rayBegin = Camera::msCurrentCamera->mGlobalTransform.getOrigin();
 
     btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
-    g_dynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
+    Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
 
     if ( rayCallback.hasHit() ) {
         const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
@@ -691,7 +775,7 @@ GetMaxAnisotropy
 */
 int ruGetRendererMaxAnisotropy() {
     D3DCAPS9 caps;
-    CheckDXErrorFatal( gpDevice->GetDeviceCaps( &caps ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDeviceCaps( &caps ));
 
     return caps.MaxAnisotropy;
 }
@@ -703,7 +787,6 @@ FreeRenderer
 */
 int ruFreeRenderer( ) {
     g_engineRunning = false;
-    delete gpRenderer;
     return 1;
 }
 
@@ -713,7 +796,7 @@ GetResolutionWidth
 ===============
 */
 int ruGetResolutionWidth( ) {
-    return g_width;
+    return Engine::Instance().GetResolutionWidth();
 }
 
 /*
@@ -722,7 +805,7 @@ GetResolutionHeight
 ===============
 */
 int ruGetResolutionHeight( ) {
-    return g_height;
+    return Engine::Instance().GetResolutionHeight();
 }
 
 /*
@@ -740,7 +823,7 @@ RenderWorld
 ===============
 */
 int ruRenderWorld( ) {
-    gpRenderer->RenderWorld();
+    Engine::Instance().RenderWorld();
     return 1;
 }
 
@@ -749,9 +832,9 @@ int ruRenderWorld( ) {
 EnableShadows
 ===============
 */
-RUAPI void ruEnableShadows( bool state ) {
-    g_useSpotLightShadows = state;
-    g_usePointLightShadows = state;
+void ruEnableShadows( bool state ) {
+    Engine::Instance().SetSpotLightShadowsEnabled( state );
+    Engine::Instance().SetPointLightShadowsEnabled( state );
 }
 
 /*
@@ -759,8 +842,8 @@ RUAPI void ruEnableShadows( bool state ) {
 SetHDREnabled
 ===============
 */
-RUAPI void ruSetHDREnabled( bool state ) {
-    g_hdrEnabled = state;
+void ruSetHDREnabled( bool state ) {
+    Engine::Instance().SetHDREnabled( state );
 }
 
 /*
@@ -768,8 +851,8 @@ RUAPI void ruSetHDREnabled( bool state ) {
 IsHDREnabled
 ===============
 */
-RUAPI bool ruIsHDREnabled( ) {
-    return g_hdrEnabled;
+bool ruIsHDREnabled( ) {
+    return Engine::Instance().IsHDREnabled();
 }
 
 /*
@@ -796,7 +879,7 @@ GetHDRExposure
 ===============
 */
 void ruUpdateWorld() {
-	for( auto node : g_nodes ) {
+	for( auto node : SceneNode::msNodeList ) {
 		node->CalculateGlobalTransform();
 	}
 }

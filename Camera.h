@@ -4,6 +4,7 @@
 #include "Frustum.h"
 #include "Light.h"
 
+class Light;
 class Skybox;
 
 class Camera : public SceneNode {
@@ -32,6 +33,8 @@ public:
 	vector<PathPoint*> mPath;
 	float mPathNewPointDelta;
 	void ManagePath();
+
+	static Camera * msCurrentCamera;
 public:
     explicit Camera( float fov );
     virtual ~Camera();

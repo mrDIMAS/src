@@ -1,11 +1,11 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "SceneNode.h"
 #include "AABB.h"
 #include "Camera.h"
 #include "Skybox.h"
 
-Camera * g_camera = 0;
+Camera * Camera::msCurrentCamera = nullptr;
 
 Camera * Camera::CastHandle( ruNodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
@@ -61,7 +61,7 @@ void Camera::CalculateInverseViewProjection() {
 
 void Camera::CalculateProjectionMatrix() {
     D3DVIEWPORT9 vp;
-    gpDevice->GetViewport( &vp );
+    Engine::Instance().GetDevice()->GetViewport( &vp );
     D3DXMatrixPerspectiveFovRH( &mProjection, mFov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, mNearZ, mFarZ );
 }
 
@@ -79,7 +79,7 @@ Camera::Camera( float fov ) {
     mNearZ = 0.025f;
     mFarZ = 6000.0f;
     mSkybox = nullptr;
-    g_camera = this;
+    Camera::msCurrentCamera = this;
     mInDepthHack = false;
 	mPathNewPointDelta = 5.0f;
 	mNearestPathPoint = new PathPoint;
@@ -110,10 +110,10 @@ void Camera::ManagePath() {
 			delete pPoint;
 		}
 		float mRangeSum = 0;
-		for( auto pLight : g_pointLightList ) {
+		for( auto pLight : Light::msPointLightList ) {
 			mRangeSum += pLight->GetRadius();
 		}
-		mPathNewPointDelta = ( mRangeSum / g_pointLightList.size() ) / 2;
+		mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
 		mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 		mPath.clear();
 	}
@@ -156,7 +156,7 @@ void ruSetCameraFOV( ruNodeHandle camera, float fov ) {
 }
 
 void ruSetActiveCamera( ruNodeHandle node ) {
-    g_camera = Camera::CastHandle( node );
+    Camera::msCurrentCamera = Camera::CastHandle( node );
 }
 
 int ruSetCameraSkybox( ruNodeHandle node, const string & path ) {

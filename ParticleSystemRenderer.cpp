@@ -3,9 +3,7 @@
 #include "ParticleSystemRenderer.h"
 #include "DeferredRenderer.h"
 #include "Camera.h"
-#include "Renderer.h"
-
-ParticleSystemRenderer * g_particleSystemRenderer = 0;
+#include "Engine.h"
 
 ParticleSystemRenderer::ParticleSystemRenderer() {
     vertexShader = new VertexShader( "data/shaders/particle.vso", true );
@@ -18,7 +16,7 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         D3DDECL_END()
     };
 
-    gpDevice->CreateVertexDeclaration( vdElem, &vd );
+    Engine::Instance().GetDevice()->CreateVertexDeclaration( vdElem, &vd );
 }
 
 ParticleSystemRenderer::~ParticleSystemRenderer() {
@@ -31,9 +29,9 @@ ParticleSystemRenderer::~ParticleSystemRenderer() {
 void ParticleSystemRenderer::RenderAllParticleSystems() {
     pixelShader->Bind();
 
-    gpDevice->SetVertexDeclaration( vd );
+    Engine::Instance().GetDevice()->SetVertexDeclaration( vd );
     vertexShader->Bind();
-    for( auto particleEmitter : g_particleEmitters ) {
+    for( auto particleEmitter : ParticleEmitter::msParticleEmitters ) {
         if( !particleEmitter->GetOwner()->IsVisible() || !particleEmitter->IsEnabled() || !particleEmitter->HasAliveParticles() ) {
             continue;
         }
@@ -42,17 +40,17 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
         particleEmitter->Bind();
 
 		if( fabs( particleEmitter->props.depthHack ) > 0.001 ) {
-			g_camera->EnterDepthHack( fabs( particleEmitter->props.depthHack ));
+			Camera::msCurrentCamera->EnterDepthHack( fabs( particleEmitter->props.depthHack ));
 		}
 
         D3DXMATRIX mWVP;
-        D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &g_camera->mViewProjection );
-        gpRenderer->SetVertexShaderMatrix( 0, &mWVP );
+        D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &Camera::msCurrentCamera->mViewProjection );
+        Engine::Instance().SetVertexShaderMatrix( 0, &mWVP );
 
         particleEmitter->Render();
 
 		if( fabs( particleEmitter->props.depthHack ) > 0.001 ) {
-			g_camera->LeaveDepthHack();
+			Camera::msCurrentCamera->LeaveDepthHack();
 		}
     }
 }

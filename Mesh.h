@@ -5,6 +5,8 @@
 
 class Octree;
 
+class Texture;
+
 class Mesh {
 public:
     class Bone {
@@ -46,11 +48,13 @@ public:
     AABB mAABB;
     Octree * mOctree;
     float mOpacity;
+
+	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
 public:
     static unordered_map< IDirect3DTexture9*, vector< Mesh*>> msMeshList;
     static void Register( Mesh * mesh );
 	static void EraseOrphanMeshes();
-	static void EraseAll();
+	static void CleanUp();
     explicit Mesh();
     virtual ~Mesh();
 	void LinkTo( SceneNode * owner );

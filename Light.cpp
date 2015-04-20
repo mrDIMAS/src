@@ -1,11 +1,11 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "Light.h"
 #include "SceneNode.h"
 #include "Utility.h"
 
-vector<Light*> g_pointLightList;
-vector<Light*> g_spotLightList;
+vector< Light* > Light::msPointLightList;
+vector< Light* > Light::msSpotLightList;
 vector<Light*> Light::lights;
 IDirect3DVertexBuffer9 * Light::flareBuffer = nullptr;
 Texture * Light::defaultSpotTexture = nullptr;
@@ -27,12 +27,12 @@ Light * Light::GetLightByHandle( ruNodeHandle handle ) {
 };
 
 bool ruIsLightHandeValid( ruNodeHandle handle ) {
-	auto pointIter = find( g_pointLightList.begin(), g_pointLightList.end(), Light::GetLightByHandle( handle ) );
-	if( pointIter != g_pointLightList.end() ) {
+	auto pointIter = find( Light::msPointLightList.begin(), Light::msPointLightList.end(), Light::GetLightByHandle( handle ) );
+	if( pointIter != Light::msPointLightList.end() ) {
 		return true;
 	}
-	auto spotIter = find( g_spotLightList.begin(), g_spotLightList.end(), Light::GetLightByHandle( handle ) );
-	if( spotIter != g_spotLightList.end() ) {
+	auto spotIter = find( Light::msSpotLightList.begin(), Light::msSpotLightList.end(), Light::GetLightByHandle( handle ) );
+	if( spotIter != Light::msSpotLightList.end() ) {
 		return true;
 	}
 	return false;
@@ -54,19 +54,19 @@ Light::Light( int type ) {
     brightness = 1.0f;
     this->type = type;
     if( type == LT_POINT ) {
-        g_pointLightList.push_back( this );
+        Light::msPointLightList.push_back( this );
         if( defaultPointCubeTexture ) {
             pointTexture = defaultPointCubeTexture;
         }
     }
     if( type == LT_SPOT ) {
-        g_spotLightList.push_back( this );
+        Light::msSpotLightList.push_back( this );
         if( defaultSpotTexture ) {
             spotTexture = defaultSpotTexture;
         }
     }
     SetConeAngles( 45.0f, 80.0f );
-	gpDevice->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
+	Engine::Instance().GetDevice()->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
 	trulyVisible = true;
 	inFrustum = false;
 }
@@ -163,14 +163,14 @@ Light::~Light
 ==========
 */
 Light::~Light() {
-    auto pointLight = find( g_pointLightList.begin(), g_pointLightList.end(), this );
-    if( pointLight != g_pointLightList.end() ) {
-        g_pointLightList.erase( pointLight );
+    auto pointLight = find( Light::msPointLightList.begin(), Light::msPointLightList.end(), this );
+    if( pointLight != Light::msPointLightList.end() ) {
+        Light::msPointLightList.erase( pointLight );
     }
 
-    auto spotLight = find( g_spotLightList.begin(), g_spotLightList.end(), this );
-    if( spotLight != g_spotLightList.end() ) {
-        g_spotLightList.erase( spotLight );
+    auto spotLight = find( Light::msSpotLightList.begin(), Light::msSpotLightList.end(), this );
+    if( spotLight != Light::msSpotLightList.end() ) {
+        Light::msSpotLightList.erase( spotLight );
     }
 
 	pQuery->Release();
@@ -215,18 +215,18 @@ void Light::RenderLightFlares() {
     if( !flareBuffer ) {
         return;
     }
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ZWRITEENABLE, false ));
-    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_VIEW, &g_camera->mView ));
-    CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_PROJECTION, &g_camera->mProjection ));
-    CheckDXErrorFatal( gpDevice->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
-    CheckDXErrorFatal( gpDevice->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, false ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTransform( D3DTS_VIEW, &Camera::msCurrentCamera->mView ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTransform( D3DTS_PROJECTION, &Camera::msCurrentCamera->mProjection ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
     D3DXMATRIX world, scale;
     for( auto light : lights ) {
         if( !light->flareTexture ) {
             continue;
         }
         btVector3 btOrigin = light->mGlobalTransform.getOrigin();
-        float flareScale = (btOrigin - g_camera->mGlobalTransform.getOrigin()).length();
+        float flareScale = (btOrigin - Camera::msCurrentCamera->mGlobalTransform.getOrigin()).length();
         if( flareScale > 1.2f ) {
             flareScale = 1.2f;
         }
@@ -234,8 +234,8 @@ void Light::RenderLightFlares() {
         D3DXMatrixScaling( &scale, flareScale, flareScale, flareScale );
         D3DXMatrixMultiply( &world, &world, &scale );
         light->flareTexture->Bind( 0 );
-        CheckDXErrorFatal( gpDevice->SetTransform( D3DTS_WORLD, &world ));
-        CheckDXErrorFatal( gpDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTransform( D3DTS_WORLD, &world ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
     }
 }
 
@@ -257,7 +257,7 @@ void Light::SetFlare( Texture * texture ) {
             {  0.5f, -0.5f, 1.0f, 1.0f, 0.0f },
             { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f }
         };
-        CheckDXErrorFatal( gpDevice->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
     }
     flareTexture = texture;
 }
@@ -290,29 +290,29 @@ ruVector3 Light::GetRealPosition() {
 
 // API Functions
 int ruGetWorldSpotLightCount() {
-    return g_spotLightList.size();
+    return Light::msSpotLightList.size();
 }
 
 ruNodeHandle ruGetWorldSpotLight( int n ) {
     ruNodeHandle handle;
-    if( n >= g_spotLightList.size() || n < 0 ) {
+    if( n >= Light::msSpotLightList.size() || n < 0 ) {
         return handle;
     } else {
-        handle.pointer = g_spotLightList[n];
+        handle.pointer = Light::msSpotLightList[n];
         return handle;
     }
 }
 
 int ruGetWorldPointLightCount() {
-    return g_pointLightList.size();
+    return Light::msPointLightList.size();
 }
 
 ruNodeHandle ruGetWorldPointLight( int n ) {
     ruNodeHandle handle;
-    if( n >= g_pointLightList.size() || n < 0 ) {
+    if( n >= Light::msPointLightList.size() || n < 0 ) {
         return handle;
     } else {
-        handle.pointer = g_pointLightList[n];
+        handle.pointer = Light::msPointLightList[n];
         return handle;
     }
 }
@@ -332,7 +332,7 @@ bool ruIsLight( ruNodeHandle node ) {
 
 void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
     Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
-    for( auto spot : g_spotLightList ) {
+    for( auto spot : Light::msSpotLightList ) {
         if( !spot->spotTexture ) {
             spot->spotTexture = Light::defaultSpotTexture;
         }
@@ -341,7 +341,7 @@ void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
 
 void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture ) {
     Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
-    for( auto point : g_pointLightList ) {
+    for( auto point : Light::msPointLightList ) {
         if( !point->pointTexture ) {
             point->pointTexture = Light::defaultPointCubeTexture;
         }

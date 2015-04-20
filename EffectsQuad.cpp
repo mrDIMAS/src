@@ -1,39 +1,38 @@
 #include "Precompiled.h"
-
 #include "EffectsQuad.h"
-#include "Renderer.h"
+#include "Engine.h"
 #include "Camera.h"
 
 void EffectsQuad::Render() {
-    gpDevice->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
-    gpDevice->SetVertexDeclaration( vertexDeclaration );
-    gpDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
+    Engine::Instance().GetDevice()->SetVertexDeclaration( vertexDeclaration );
+    Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
     if( debug ) {
-        gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-        gpDevice->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+        Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+        Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
     }
 }
 
 void EffectsQuad::Bind( bool bindInternalVertexShader ) {
     if( debug ) {
         debugPixelShader->Bind();
-        gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-        gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+        Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+        Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
     }
 	if( bindInternalVertexShader ) {
 		vertexShader->Bind();
-		gpRenderer->SetVertexShaderMatrix( 0, &orthoProjection );
-		gpRenderer->SetVertexShaderMatrix( 5, &g_camera->invViewProjection );
-		ruVector3 camPos = ruVector3( g_camera->mView._41, g_camera->mView._42, g_camera->mView._43 );
-		gpRenderer->SetVertexShaderFloat3( 10, camPos.elements );
+		Engine::Instance().SetVertexShaderMatrix( 0, &orthoProjection );
+		Engine::Instance().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
+		ruVector3 camPos = ruVector3( Camera::msCurrentCamera->mView._41, Camera::msCurrentCamera->mView._42, Camera::msCurrentCamera->mView._43 );
+		Engine::Instance().SetVertexShaderFloat3( 10, camPos.elements );
 	}
 }
 
 void EffectsQuad::BindNoShader() {
-	gpRenderer->SetVertexShaderMatrix( 0, &orthoProjection );
-	gpRenderer->SetVertexShaderMatrix( 5, &g_camera->invViewProjection );
-	ruVector3 camPos = ruVector3( g_camera->mView._41, g_camera->mView._42, g_camera->mView._43 );
-	gpRenderer->SetVertexShaderFloat3( 10, camPos.elements );
+	Engine::Instance().SetVertexShaderMatrix( 0, &orthoProjection );
+	Engine::Instance().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
+	ruVector3 camPos = ruVector3( Camera::msCurrentCamera->mView._41, Camera::msCurrentCamera->mView._42, Camera::msCurrentCamera->mView._43 );
+	Engine::Instance().SetVertexShaderFloat3( 10, camPos.elements );
 }
 
 EffectsQuad::~EffectsQuad() {
@@ -60,15 +59,15 @@ void EffectsQuad::SetSize( float width, float height ) {
 }
 
 EffectsQuad::EffectsQuad( bool bDebug ) {
-    CheckDXErrorFatal( gpDevice->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
     debug = bDebug;
     debugPixelShader = nullptr;
 
     if( !debug ) {
         QuadVertex vertices[ ] = {
-            {           -0.5, -0.5, 0, 0, 0 }, { g_width - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, g_height - 0.5, 0, 0, 1 },
-            {  g_width - 0.5, -0.5, 0, 1, 0 }, { g_width - 0.5,  g_height - 0.5, 0, 1, 1 }, { -0.5, g_height - 0.5, 0, 0, 1 }
+            {           -0.5, -0.5, 0, 0, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 },
+            {  Engine::Instance().GetResolutionWidth() - 0.5, -0.5, 0, 1, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,  Engine::Instance().GetResolutionHeight() - 0.5, 0, 1, 1 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 }
         };
 
         void * data = 0;
@@ -104,10 +103,10 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
         D3DDECL_END()
     };
 
-    gpDevice->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
+    Engine::Instance().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
 
     vertexShader = new VertexShader( "data/shaders/quad.vso", true );
-    D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, g_width, g_height, 0, 0, 1024 );
+    D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::Instance().GetResolutionWidth(), Engine::Instance().GetResolutionHeight(), 0, 0, 1024 );
 }
 
 void EffectsQuad::OnDeviceLost()

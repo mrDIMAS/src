@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Engine.h"
 #include "BitmapFont.h"
 #include "Utility.h"
 
@@ -7,17 +7,17 @@ FT_Library g_ftLibrary;
 vector< BitmapFont* > BitmapFont::fonts;
 
 void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
-    CheckDXErrorFatal( gpDevice->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL));
-    CheckDXErrorFatal( gpDevice->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL));
-    CheckDXErrorFatal( gpDevice->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO ));
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ZENABLE, FALSE ));
-    CheckDXErrorFatal( gpDevice->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState(D3DRS_CCW_STENCILFUNC, D3DCMP_NOTEQUAL));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE ));
 
-    gpDevice->SetTexture( 4, atlas );
+    Engine::Instance().GetDevice()->SetTexture( 4, atlas );
     quad->Bind();
     quad->SetSize( atlasWidth, atlasHeight );
     quad->Render();
@@ -40,7 +40,7 @@ BitmapFont::BitmapFont( const string & file, int size ) {
     }
     // create atlas texture
 	atlasWidth = atlasHeight = size * 16;
-    CheckDXErrorFatal( D3DXCreateTexture( gpDevice, atlasWidth, atlasHeight, 0, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &atlas ));
+    CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), atlasWidth, atlasHeight, 0, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &atlas ));
     IDirect3DSurface9 * atlasSurface = nullptr;
     atlas->GetSurfaceLevel( 0, &atlasSurface );
     D3DLOCKED_RECT lockedRect;
