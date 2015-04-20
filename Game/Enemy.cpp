@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Enemy.h"
 #include "Menu.h"
 #include "Door.h"

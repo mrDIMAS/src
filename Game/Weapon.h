@@ -53,20 +53,17 @@ protected:
 	float mShotFlashIntensity;
 	float mShakeCoeff;
 	virtual void OnShoot();
+	bool mVisible;
 public:
+	bool IsVisible();
+
+	ruNodeHandle GetModel();
 	explicit Weapon( ruNodeHandle owner );	
 	void SetVisible( bool state );
 	Type GetType();
 	void Shoot();
 	void Update();
-	bool LoadBullet( ) {
-		if( mProjectileCount < 8 ) {
-			mProjectileCount++;
-			return true;
-		}
-
-		return false;
-	}
+	bool LoadBullet( );
 	void SerializeWith( TextFileStream & out );
 	void DeserializeWith( TextFileStream & in );
 };

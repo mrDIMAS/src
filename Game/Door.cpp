@@ -1,5 +1,6 @@
-#include "Door.h"
+#include "Precompiled.h"
 
+#include "Door.h"
 #include "Player.h"
 
 vector< Door* > Door::msDoorList;

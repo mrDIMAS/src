@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "LevelResearchFacility.h"
 #include "Player.h"
 #include "Door.h"
@@ -66,6 +68,8 @@ LevelResearchFacility::LevelResearchFacility() {
 	mZoneExaminePlace = GetUniqueObject( "ObjectiveExaminePlace" );
 	mZoneNeedCrowbar = GetUniqueObject( "ObjectiveNeedCrowbar" );
 	mZoneObjectiveNeedPassThroughMesh = GetUniqueObject( "ObjectiveNeedPassThroughMesh" );
+	mZoneRemovePathBlockingMesh = GetUniqueObject( "ZoneRemovePathBlockingMesh" );
+	mPathBlockingMesh = GetUniqueObject( "PathBlockingMesh" );
 
     CreatePowerUpSequence();
 
@@ -106,6 +110,9 @@ LevelResearchFacility::LevelResearchFacility() {
 	mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = false;
 	mStages[ "DoorUnderFloorOpen" ] = false;
 	mStages[ "NeedPassThroughMesh" ] = false;
+	mStages[ "PassedThroughBlockingMesh" ] = false;
+
+	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
 	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
 
@@ -204,6 +211,12 @@ void LevelResearchFacility::DoScenario() {
 		}
 	}
 
+	if( !mStages[ "PassedThroughBlockingMesh" ] ) {
+		if( pPlayer->IsInsideZone( mZoneRemovePathBlockingMesh )) {
+			ruSetNodePosition( mPathBlockingMesh, ruVector3( 1000, 1000, 1000 ));
+			mStages[ "PassedThroughBlockingMesh" ] = true;
+		}
+	}
 	if( !mStages[ "EnterObjectiveNeedCrowbar" ] ) {
 		if( pPlayer->IsInsideZone( mZoneNeedCrowbar )) {
 			pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedCrowbar" ) );

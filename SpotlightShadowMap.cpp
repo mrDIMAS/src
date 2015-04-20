@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "SpotlightShadowMap.h"
 #include "Renderer.h"
 

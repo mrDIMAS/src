@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "ItemPlace.h"
 
 vector<ItemPlace*> ItemPlace::sItemPlaceList;

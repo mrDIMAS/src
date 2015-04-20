@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Skybox.h"
 #include "Texture.h"
 #include "Vertex.h"

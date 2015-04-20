@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GUIText.h"
 
 vector<GUIText*> GUIText::msTextList;

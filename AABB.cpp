@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "AABB.h"
 
 bool AABB::IsTriangleInside( const ruVector3 & v1, const ruVector3 & v2, const ruVector3 & v3 ) {

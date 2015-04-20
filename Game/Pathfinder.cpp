@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Pathfinder.h"
 
 void Pathfinder::BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints ) {

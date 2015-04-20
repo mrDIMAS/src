@@ -4,33 +4,16 @@
 
 class Lamp {
 private:
-	void PlaySounds() {
-		if( mBuzzSound.IsValid() ) {
-			ruPlaySound( mBuzzSound );
-		}
-	}
+	void PlaySounds();
 public:
 	ruSoundHandle mBuzzSound;
 	ruNodeHandle mLamp;
 
-	explicit Lamp( ruNodeHandle lamp, ruSoundHandle buzz ) {
-		mLamp = lamp;
-		mBuzzSound = buzz;
-		ruSetRolloffFactor( mBuzzSound, 5 );
-		ruSetRolloffFactor( mBuzzSound, 2.5f );
-		ruSetSoundReferenceDistance( mBuzzSound, 2.0f );
-		ruSetSoundPosition( mBuzzSound, ruGetNodePosition( mLamp ));
-	}
+	explicit Lamp( ruNodeHandle lamp, ruSoundHandle buzz );
 
-	void Hide() {
-		ruPauseSound( mBuzzSound );
-	}
+	void Hide();
 
-	void Show( ) {
-		PlaySounds();
-	}
+	void Show( );
 
-	void Update() {
-		PlaySounds();
-	}
+	void Update();
 };

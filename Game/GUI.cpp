@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GUI.h"
 
 GUI * pGUI = 0;

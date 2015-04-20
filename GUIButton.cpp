@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GUIButton.h"
 
 vector< GUIButton* > GUIButton::msButtonList;

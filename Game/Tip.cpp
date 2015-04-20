@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Tip.h"
 
 void Tip::Deserialize( TextFileStream & in ) {

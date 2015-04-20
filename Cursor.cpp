@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Cursor.h"
 #include "GUIRenderer.h"
 

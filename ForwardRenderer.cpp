@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "ForwardRenderer.h"
 
 ForwardRenderer * g_forwardRenderer = nullptr;

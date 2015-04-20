@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Shader.h"
 
 void VertexShader::Bind() {

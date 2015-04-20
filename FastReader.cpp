@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "FastReader.h"
-
-
-
 
 bool FastReader::IsEnded() {
     return cursor > size;

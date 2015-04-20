@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Inventory.h"
 #include "GUI.h"
 #include "Player.h"

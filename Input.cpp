@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Common.h"
 #include "GUIButton.h"
 

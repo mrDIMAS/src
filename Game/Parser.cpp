@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Parser.h"
 #include "Game.h"
 

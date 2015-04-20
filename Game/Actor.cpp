@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Actor.h"
 
 void Actor::Move( ruVector3 direction, float speed ) {

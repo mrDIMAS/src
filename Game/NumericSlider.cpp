@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "NumericSlider.h"
 #include "GUI.h"
 

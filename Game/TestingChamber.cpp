@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "TestingChamber.h"
 #include "Player.h"
 #include "Item.h"

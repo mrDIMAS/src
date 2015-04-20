@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "LevelIntroduction.h"
-
-
-
 
 void LevelIntroduction::Hide() {
 

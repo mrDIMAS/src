@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "MultipleRTDeferredRenderer.h"
 #include "Mesh.h"
 #include "SceneNode.h"

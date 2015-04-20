@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GBuffer.h"
 
 GBuffer::GBuffer() {

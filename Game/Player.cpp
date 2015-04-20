@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Player.h"
 #include "Menu.h"
 #include "Door.h"
@@ -60,8 +62,6 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
 
     mpCurrentWay = nullptr;
 
-
-	
     LoadGUIElements();
     CreateCamera();
     CreateFlashLight();
@@ -162,6 +162,10 @@ Weapon * Player::AddWeapon( Weapon::Type type ) {
 		break;
 	}
 
+	if( !mInventory.GotAnyItemOfType( Item::Type::Pistol )) {
+		mInventory.AddItem( new Item( mCurrentWeapon->GetModel(), Item::Type::Pistol ));
+	}
+
 	mpFlashlight->SwitchOff();
 
 	mWeaponList.push_back( mCurrentWeapon );
@@ -178,7 +182,7 @@ void Player::AddItem( Item * pItem ) {
         return;
     }
 
-	pItem->PickUp(); // do item logic
+	
 
     ruFreeze( pItem->mObject );
     //ruDetachNode( pItem->mObject );
@@ -187,6 +191,8 @@ void Player::AddItem( Item * pItem ) {
     ruSetNodePosition( pItem->mObject, ruVector3( 10000, 10000, 10000 )); // far far away
 
     mInventory.AddItem( pItem );
+
+	pItem->PickUp(); // do item logic
 }
 
 void Player::UpdateInventory() {
@@ -811,12 +817,17 @@ void Player::UpdateFlashLight() {
     mpFlashLightItem->SetContent( mpFlashlight->GetCharge() );
 
     if( ruIsKeyHit( mKeyFlashLight ) && !mNodeInHands.IsValid() ) {
-        mpFlashlight->Switch();
+        
 		if( mCurrentWeapon ) {
-			if( mpFlashlight->IsOn() ) {
+			if( mCurrentWeapon->IsVisible() ) {
 				mCurrentWeapon->SetVisible( false );
 			} else {
-				mCurrentWeapon->SetVisible( true );
+				mpFlashlight->Switch();
+				if( mpFlashlight->IsOn() ) {
+					mCurrentWeapon->SetVisible( false );
+				} else {
+					mCurrentWeapon->SetVisible( true );
+				}
 			}
 		}
     }
@@ -1104,8 +1115,10 @@ void Player::UpdateWeapons() {
 		}
 		if( !mpFlashlight->IsOn() ) {
 			if( mCurrentWeapon ) {
-				if( ruIsMouseHit( MB_Left )) {
-					mCurrentWeapon->Shoot();
+				if( mCurrentWeapon->IsVisible() ) {
+					if( ruIsMouseHit( MB_Left )) {
+						mCurrentWeapon->Shoot();
+					}
 				}
 				mCurrentWeapon->Update();
 			}

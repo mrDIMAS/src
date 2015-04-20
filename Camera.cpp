@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "SceneNode.h"
 #include "AABB.h"
 #include "Camera.h"

@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GUINode.h"
 
 vector<GUINode*> GUINode::msNodeList;

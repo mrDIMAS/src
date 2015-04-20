@@ -1,5 +1,6 @@
-#include "AmbientSoundSet.h"
+#include "Precompiled.h"
 
+#include "AmbientSoundSet.h"
 #include "Player.h"
 
 void AmbientSoundSet::DoRandomPlaying() {

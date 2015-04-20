@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Level.h"
 #include "LevelArrival.h"
 #include "LevelMine.h"
@@ -198,10 +200,12 @@ void Level::DeserializeWith( TextFileStream & in ) {
     for( int i = 0; i < childCount; i++ ) {
         string name = in.ReadString();
         ruNodeHandle node = ruFindInObjectByName( mScene, name );
+		ruVector3 pos = in.ReadVector3();
+		ruQuaternion quat = in.ReadQuaternion();
+		bool visible = in.ReadBoolean();
         if( node.IsValid() ) {
-            ruSetNodeLocalPosition( node, in.ReadVector3() );
-            ruSetNodeLocalRotation( node, in.ReadQuaternion() );
-            bool visible = in.ReadBoolean();
+            ruSetNodeLocalPosition( node, pos );
+            ruSetNodeLocalRotation( node, quat );           
             if( visible ) {
                 ruShowNode( node );
             } else {
@@ -356,7 +360,7 @@ void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buz
 	}
 }
 
-void Level::AutoCreateBulletsByNamePatters( const string & namePattern ) {
+void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
 	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
 		ruNodeHandle child = ruGetNodeChild( mScene, i );

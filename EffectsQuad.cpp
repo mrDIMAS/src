@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "EffectsQuad.h"
 #include "Renderer.h"
 #include "Camera.h"

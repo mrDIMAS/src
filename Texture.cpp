@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Texture.h"
 #include "Utility.h"
 #include <sys/stat.h>

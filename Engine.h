@@ -408,6 +408,9 @@ RUAPI ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node );
 RUAPI BodyType ruGetNodeBodyType( ruNodeHandle node );
 RUAPI ruVector3 ruGetNodeRotationAxis( ruNodeHandle node );
 RUAPI float ruGetNodeRotationAngle( ruNodeHandle node );
+RUAPI void ruNodeAddForce( ruNodeHandle node, ruVector3 force );
+RUAPI void ruNodeAddForceAtPoint( ruNodeHandle node, ruVector3 force, ruVector3 point );
+RUAPI void ruNodeAddTorque( ruNodeHandle node, ruVector3 torque );
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions
 ////////////////////////////////////////////////////////////////////////////////////

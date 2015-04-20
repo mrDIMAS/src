@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "CubeTexture.h"
 
 map< string, CubeTexture*> CubeTexture::all;

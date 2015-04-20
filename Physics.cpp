@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Physics.h"
 
 btDynamicsWorld * g_dynamicsWorld = 0;

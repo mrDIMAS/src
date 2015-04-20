@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Lift.h"
 #include "Player.h"
 #include "Utils.h"

@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Game.h"
 #include "Menu.h"
 #include "Player.h"
@@ -21,7 +23,7 @@ float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 
 void main( ) {
-	ruEnableDebugMode( true );
+	//ruEnableDebugMode( true );
 
     Parser config;
     config.ParseFile( "mine.cfg" );
@@ -83,9 +85,6 @@ void main( ) {
                 pMainMenu->Update();
 
                 if( !pMainMenu->IsVisible() ) {
-					if( ruIsMouseHit( 1 )) {
-						Level::Change( L2Mine );
-					}
                     if( ruIsKeyHit( g_keyQuickSave )) {
                         SaveWriter( "quickSave.save" ).SaveWorldState();
                         pPlayer->SetTip( config.GetString( "saved" ) );

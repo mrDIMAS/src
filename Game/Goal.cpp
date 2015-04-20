@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "Goal.h"
-
-
-
 
 void Goal::AnimateAndRender() {
     if( ruGetElapsedTimeInSeconds( mWaitTimer ) >= mWaitSec ) {

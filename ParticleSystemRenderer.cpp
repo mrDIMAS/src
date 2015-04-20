@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "ParticleSystemRenderer.h"
 #include "DeferredRenderer.h"
 #include "Camera.h"

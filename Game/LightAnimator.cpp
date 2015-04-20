@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "LightAnimator.h"
 
 LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult ) {

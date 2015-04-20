@@ -40,17 +40,13 @@ public:
     btTransform mLocalTransform;
 
 	ruVector3 GetRotationAxis( );
-
 	float GetRotationAngle( );
-
     // Methods
     explicit SceneNode();
 	explicit SceneNode( const SceneNode & source );
     virtual ~SceneNode();
-
     void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
     ruAnimation * GetCurrentAnimation( );
-
     void EraseChild( const SceneNode * child );
     void SetConvexBody( );
     void SetBoxBody(  );
@@ -60,6 +56,9 @@ public:
     void SetAngularFactor( ruVector3 fact );
     void SetTrimeshBody();
     void AttachTo( SceneNode * parent );
+	void AddForce( ruVector3 force );
+	void AddForceAtPoint( ruVector3 force, ruVector3 point );
+	void AddTorque( ruVector3 torque );
     btTransform & CalculateGlobalTransform();
     ruVector3 GetAABBMin( );
     ruVector3 GetAABBMax( );

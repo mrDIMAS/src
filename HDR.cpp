@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "HDR.h"
 #include "Utility.h"
 

@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Way.h"
 #include "Player.h"
 

@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Ladder.h"
 #include "Player.h"
 

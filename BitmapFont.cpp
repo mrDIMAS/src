@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "BitmapFont.h"
 #include "Utility.h"
 

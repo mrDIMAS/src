@@ -1,33 +1,7 @@
 #pragma once
 
 
-#define _CRT_SECURE_NO_WARNINGS
-#pragma warning( disable:4244 )
-#pragma warning( disable:4305 )
 
-#include <string>
-#include "Engine.h"
-#include <math.h>
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <stdarg.h>
-#include <fstream>
-#include <unordered_map>
-/*#include <vld.h>*/
-#include <windows.h>
-#include <assert.h>
-#include <sstream>
-#include <regex>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-#ifdef _DEBUG
-#	pragma comment( lib, "Ruthenium_d.lib" )
-#else
-#	pragma comment( lib, "Ruthenium.lib" )
-#endif 
 
 enum class FootstepsType {
     Rock,
@@ -46,7 +20,7 @@ enum LevelName {
     LXTestingChamber,
 };
 
-using namespace std;
+
 void RaiseError( const string & text );
 
 extern float mouseSens;

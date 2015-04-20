@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "InteractiveObject.h"
 #include "Player.h"
 

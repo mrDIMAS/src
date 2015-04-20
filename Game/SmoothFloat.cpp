@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "SmoothFloat.h"
 
 void SmoothFloat::Deserialize( TextFileStream & in ) {

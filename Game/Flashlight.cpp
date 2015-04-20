@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Flashlight.h"
 #include "Player.h"
 

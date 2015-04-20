@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "Fan.h"
-
-
-
 
 void Fan::DoTurn() {
     mAngle += mTurnSpeed;

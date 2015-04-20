@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Light.h"
 #include "SceneNode.h"
 #include "Utility.h"

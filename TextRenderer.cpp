@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "TextRenderer.h"
 #include "GUIRenderer.h"
 

@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GUIRenderer.h"
 #include "Camera.h"
 #include "Texture.h"

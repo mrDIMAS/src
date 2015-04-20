@@ -1,7 +1,7 @@
+#include "Precompiled.h"
+
 #include "WaitKeyButton.h"
 #include "Utils.h"
-
-
 
 void WaitKeyButton::Update( ) {
     ruSetGUINodeText( ruGetButtonText( mGUIButton ), mGrabKey ? "[ Key ]" : GetKeyName( mSelectedKey ) );

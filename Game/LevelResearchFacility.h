@@ -45,6 +45,8 @@ private:
 	ruNodeHandle mDoorUnderFloor;
 	ruNodeHandle mZoneNewLevelLoad;
 	ruNodeHandle mZoneObjectiveNeedPassThroughMesh;
+	ruNodeHandle mZoneRemovePathBlockingMesh;
+	ruNodeHandle mPathBlockingMesh;
 
 	Keypad * mKeypad1;
 	Door * mKeypad1DoorToUnlock;

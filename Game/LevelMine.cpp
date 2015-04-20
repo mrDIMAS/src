@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "LevelMine.h"
 #include "Player.h"
 #include "Pathfinder.h"
@@ -50,7 +52,7 @@ LevelMine::LevelMine() {
 
 	AddItem( new Item( GetUniqueObject( "Pistol" ), Item::Type::Pistol ));
 
-	AutoCreateBulletsByNamePatters( "Bullet?([[:digit:]]+)" );
+	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
     // Create detonator places
     AddItemPlace( mDetonatorPlace[0] = new ItemPlace( GetUniqueObject( "DetonatorPlace1" ), Item::Type::Explosives ));

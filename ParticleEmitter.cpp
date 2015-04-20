@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "ParticleEmitter.h"
 #include "Camera.h"
 #include "Texture.h"

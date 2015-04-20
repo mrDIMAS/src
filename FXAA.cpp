@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "FXAA.h"
 #include "Renderer.h"
 

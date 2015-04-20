@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Vertex.h"
 
 Vertex::Vertex() {

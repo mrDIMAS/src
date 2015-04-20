@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Octree.h"
 #include "Camera.h"
 #include "Vertex.h"

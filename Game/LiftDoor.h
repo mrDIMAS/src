@@ -6,13 +6,7 @@ class LiftDoor : public Door {
 private:
 	float mAngleOffset;
 public:
-	LiftDoor(  ruNodeHandle hDoor, float fMaxAngle, float angleOffset ) : Door( hDoor, fMaxAngle ) {
-		mAngleOffset = angleOffset;
-	}
+	LiftDoor(  ruNodeHandle hDoor, float fMaxAngle, float angleOffset );
 
-	virtual void DoInteraction() {
-		Door::DoInteraction();
-
-		ruSetNodeRotation( mDoorNode, ruQuaternion( ruGetNodeUpVector( mDoorNode ), mAngleOffset + mCurrentAngle ));
-	}
+	virtual void DoInteraction();
 };

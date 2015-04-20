@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "FPSCounter.h"
-
-
-
 
 void FPSCounter::RegisterFrame() {
     frameCounter++;

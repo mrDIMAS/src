@@ -1,18 +1,18 @@
+#include "Precompiled.h"
+
 #include "Weapon.h"
 #include "TextFileStream.h"
 #include "Player.h"
 #include "Enemy.h"
 
-void Weapon::DeserializeWith( TextFileStream & in )
-{
+void Weapon::DeserializeWith( TextFileStream & in ) {
 	mType = (Type)in.ReadInteger();
 	mProjectileCount = in.ReadInteger();
 	mShotInterval = in.ReadInteger();
 	mShotFlashIntensity = in.ReadFloat();
 }
 
-void Weapon::SerializeWith( TextFileStream & out )
-{
+void Weapon::SerializeWith( TextFileStream & out ) {
 	out.WriteInteger( 0 );
 	out.WriteInteger( mProjectileCount );
 	out.WriteInteger( mShotInterval );
@@ -41,8 +41,7 @@ void Weapon::Update() {
 	}
 }
 
-void Weapon::Shoot()
-{
+void Weapon::Shoot() {
 	if( mProjectileCount > 0 ) {
 		if( mShotInterval <= 0 ) {			
 			mShotInterval = 20;
@@ -57,13 +56,12 @@ void Weapon::Shoot()
 	}
 }
 
-Weapon::Type Weapon::GetType()
-{
+Weapon::Type Weapon::GetType() {
 	return mType;
 }
 
-void Weapon::SetVisible( bool state )
-{
+void Weapon::SetVisible( bool state ) {
+	mVisible = state;
 	if( state ) {
 		ruShowNode( mModel );
 	} else {
@@ -71,8 +69,7 @@ void Weapon::SetVisible( bool state )
 	}
 }
 
-Weapon::Weapon( ruNodeHandle owner )
-{
+Weapon::Weapon( ruNodeHandle owner ) {
 	mModel = ruLoadScene( "data/models/hands_pistol/handspistol.scene" );
 	mShootPoint = ruFindInObjectByName( mModel, "ShootPoint" );
 	ruAttachNode( mModel, owner );
@@ -81,7 +78,7 @@ Weapon::Weapon( ruNodeHandle owner )
 	mEmptySound = ruLoadSound3D( "data/sounds/pistol_empty.ogg" );
 	ruAttachSound( mEmptySound, mShootPoint );
 	mShotInterval = 0;
-	mProjectileCount = 8;
+	mProjectileCount = 6;
 	mType = Type::Pistol;
 	mShotFlash = ruCreateLight( LT_POINT );
 	ruAttachNode( mShotFlash, mModel );
@@ -90,8 +87,7 @@ Weapon::Weapon( ruNodeHandle owner )
 	mShakeCoeff = 0.0f;
 }
 
-void Weapon::OnShoot()
-{
+void Weapon::OnShoot() {
 	ruVector3 look = ruGetNodeAbsoluteLookVector( mModel );
 	ruNodeHandle node = ruCastRay( ruGetNodePosition( mShootPoint ) + look * 0.1, ruGetNodePosition( mShootPoint ) + look * 1000 );
 	if( node.IsValid() ) {
@@ -100,5 +96,23 @@ void Weapon::OnShoot()
 				pEnemy->Damage( 1000 );
 			}
 		}
+		ruNodeAddForce( node, look.Normalize() * 200 );
 	}
+}
+
+bool Weapon::LoadBullet() {
+	if( mProjectileCount < 8 ) {
+		mProjectileCount++;
+		return true;
+	}
+
+	return false;
+}
+
+ruNodeHandle Weapon::GetModel() {
+	return mModel;
+}
+
+bool Weapon::IsVisible() {
+	return mVisible;
 }

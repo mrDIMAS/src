@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "DeferredRenderer.h"
 #include "Light.h"
 #include "SceneNode.h"

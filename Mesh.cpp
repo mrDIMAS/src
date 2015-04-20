@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Mesh.h"
 #include "Octree.h"
 #include "Texture.h"

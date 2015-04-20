@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Utility.h"
 
 void GetD3DMatrixFromBulletTransform ( const btTransform & trn, D3DMATRIX & outMatrix ) {

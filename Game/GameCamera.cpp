@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "GameCamera.h"
 
 GameCamera * GameCamera::currentCamera = 0;

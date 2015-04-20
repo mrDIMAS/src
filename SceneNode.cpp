@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Common.h"
 #include "FastReader.h"
 #include "ParticleEmitter.h"
@@ -1123,15 +1125,31 @@ ruVector3 SceneNode::GetLinearVelocity() {
 	return vel;
 }
 
-float SceneNode::GetRotationAngle()
-{
+float SceneNode::GetRotationAngle() {
 	return mLocalTransform.getRotation().getAngle() * 180.0f / 3.14159;
 }
 
-ruVector3 SceneNode::GetRotationAxis()
-{
+ruVector3 SceneNode::GetRotationAxis() {
 	btVector3 axis = mLocalTransform.getRotation().getAxis();
 	return ruVector3( axis.x(), axis.y(), axis.z() );
+}
+
+void SceneNode::AddTorque( ruVector3 torque ) {
+	if( mBody ) {
+		mBody->applyTorque( btVector3( torque.x, torque.y, torque.z ));
+	}
+}
+
+void SceneNode::AddForceAtPoint( ruVector3 force, ruVector3 point ) {
+	if( mBody ) {
+		mBody->applyForce( btVector3( force.x, force.y, force.z ), btVector3( point.x, point.y, point.z ) );
+	}
+}
+
+void SceneNode::AddForce( ruVector3 force ) {
+	if( mBody ) {
+		mBody->applyCentralForce( btVector3( force.x, force.y, force.z ));
+	}
 }
 
 ////////////////////////////////////////////////////
@@ -1159,11 +1177,7 @@ bool ruNodeHandle::operator == ( const ruNodeHandle & node ) {
 }
 
 bool ruNodeHandle::IsValid() {
-	if( g_debugMode ) {
-		return ruIsNodeHandleValid( *this );
-	} else {
-		return ruRutheniumHandle::IsValid();
-	} 
+	return ruIsNodeHandleValid( *this ) && ruRutheniumHandle::IsValid();
 }
 
 
@@ -1183,6 +1197,18 @@ void ruCreateOctree( ruNodeHandle node, int splitCriteria ) {
 
         mesh->mOctree = new Octree( mesh, splitCriteria );
     }
+}
+
+void ruNodeAddForce( ruNodeHandle node, ruVector3 force ) {
+	SceneNode::CastHandle( node )->AddForce( force );
+}
+
+void ruNodeAddForceAtPoint( ruNodeHandle node, ruVector3 force, ruVector3 point ) {
+	SceneNode::CastHandle( node )->AddForceAtPoint( force, point );
+}
+
+void ruNodeAddTorque( ruNodeHandle node, ruVector3 torque ) {
+	SceneNode::CastHandle( node )->AddTorque( torque );
 }
 
 void ruSetNodeGravity( ruNodeHandle node, ruVector3 gravity ) {

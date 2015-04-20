@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "TextFileStream.h"
-
-
-
 
 void TextFileStream::WriteString( string str ) {
     mStream << str << endl;

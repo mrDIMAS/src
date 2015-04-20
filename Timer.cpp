@@ -1,3 +1,5 @@
+#include "Precompiled.h"
+
 #include "Timer.h"
 
 vector<Timer*> Timer::timers;

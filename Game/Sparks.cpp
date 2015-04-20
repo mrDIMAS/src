@@ -1,7 +1,6 @@
+#include "Precompiled.h"
+
 #include "Sparks.h"
-
-
-
 
 void Sparks::Update() {
     if( ruGetParticleSystemAliveParticles( ps ) <= 0 ) {
