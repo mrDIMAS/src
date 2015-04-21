@@ -43,7 +43,7 @@ public:
     static Texture * defaultSpotTexture;
     static CubeTexture * defaultPointCubeTexture;
 	static vector< Light* > msPointLightList;
-	static vector< Light* > msSpotLightList;
+	static vector< Light* > msSpotLightList; 
 public:
     explicit Light( int type );
     virtual ~Light();

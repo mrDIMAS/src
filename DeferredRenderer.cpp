@@ -504,6 +504,13 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
         mHDRShader->CalculateFrameLuminance( );
         if( g_fxaaEnabled ) {
             mHDRShader->DoToneMapping( mFXAA->renderTarget );
@@ -511,6 +518,13 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         } else {
             mHDRShader->DoToneMapping( mGBuffer->backSurface );
         }
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+
     } else {
         if( g_fxaaEnabled ) {
             Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );

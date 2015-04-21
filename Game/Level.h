@@ -47,6 +47,7 @@ public:
 	void AddLamp( Lamp * lamp );
 	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound );
 	void AutoCreateBulletsByNamePattern( const string & namePattern );
+	void AutoCreateDoorsByNamePattern( const string & namePattern );
     void AddSound( ruSoundHandle sound );
     void LoadLocalization( string fn );
     void AddAmbientSound( ruSoundHandle sound );

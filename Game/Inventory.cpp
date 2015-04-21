@@ -12,15 +12,15 @@ Inventory::Inventory() {
     mCellTexture = ruGetTexture( "data/gui/inventory/inventoryCell.png" );
     mButtonTexture = ruGetTexture( "data/gui/inventory/inventoryButton.png" );
 
-    mOpen = 0;
-    mpSelectedItem = 0;
+    mOpen = false;
+    mpSelectedItem = nullptr;
 
     mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf", 0, 0 );
 
-    mpCombineItemFirst = 0;
-    mpCombineItemSecond = 0;
+    mpCombineItemFirst = nullptr;
+    mpCombineItemSecond = nullptr;
 
-    mpItemForUse = 0;
+    mpItemForUse = nullptr;
 
     mPickSound = ruLoadSound2D( "data/sounds/menupick.ogg" );
 
@@ -144,6 +144,12 @@ void Inventory::DoCombine() {
 }
 
 void Inventory::Update() {
+	for( int i = 0; i < mItemList.size(); i++ ) {
+		if( mItemList[i]->mCanBeDeleted ) {
+			delete mItemList[i];
+		}
+	}
+
     ruVector3 whiteColor = ruVector3( 255, 255, 255 );
     int screenCenterX = ruGetResolutionWidth() / 2;
     int screenCenterY = ruGetResolutionHeight() / 2;
@@ -196,9 +202,15 @@ void Inventory::Update() {
 
     bool canCombine = ( mpCombineItemFirst != 0 && mpCombineItemSecond != 0 );
     int useAlpha = mpSelectedItem ? 255 : 60;
+	int throwAlpha = 255;
+	if( mpSelectedItem ) {
+		if( mpSelectedItem->IsThrowable() ) {
+			throwAlpha = 60;
+		}
+	}
     ruSetGUINodeAlpha( mGUIButtonUse, useAlpha );
     ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonUse ), useAlpha );
-    ruSetGUINodeAlpha( mGUIButtonThrow, useAlpha );
+    ruSetGUINodeAlpha( mGUIButtonThrow, throwAlpha );
     ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonThrow ), useAlpha );
     int combineAlpha = canCombine ? 255 : 60;
     ruSetGUINodeAlpha( mGUIButtonCombine, combineAlpha );
@@ -350,11 +362,13 @@ void Inventory::Update() {
 }
 
 void Inventory::RemoveItem( Item * pItem ) {
-    mItemList.erase( find( mItemList.begin(), mItemList.end(), pItem ));
+	auto iter = find( mItemList.begin(), mItemList.end(), pItem );
+	if( iter != mItemList.end() ) {
+		mItemList.erase( iter );
+	}
 }
 
-void Inventory::ThrowItem( Item * pItem ) {
-	
+void Inventory::ThrowItem( Item * pItem ) {	
     pItem->MarkAsFree();
 	ruVector3 pickPoint, playerPos = pPlayer->GetCurrentPosition();
 	ruNodeHandle handle = ruCastRay( playerPos - ruVector3( 0,0.1,0), playerPos - ruVector3(0,100,0), &pickPoint );

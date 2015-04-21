@@ -11,10 +11,10 @@ bool DirExists(const std::string& dirName_in)
 	return GetFileAttributesA(dirName_in.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
 }
 
-string g_texturePath = "data/textures/generic/";
+
 Texture * Texture::Require( string file ) {
 	if( !DirExists( "./cache/" )) {
-		LogError( "You must rebuild texture cache!" );
+		Log::Error( "You must rebuild texture cache!" );
 	}
 
     Texture * pTexture = 0;
@@ -41,11 +41,11 @@ Texture * Texture::Require( string file ) {
 		if(pFile) {       
 			fclose(pFile);
             if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture ))) {
-                LogMessage( StringBuilder( "Unable to load " ) << file << " texture!" );
+                Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
             }
         } else {
             if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->texture ))) {
-                LogMessage( StringBuilder( "Unable to load " ) << file << " texture!" );
+                Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
             }
         }
         pTexture->width = imgInfo.Width;

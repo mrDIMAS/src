@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "RutheniumAPI.h"
-#include "Common.h"
+
 #include "SceneNode.h"
 
 ruAnimation::ruAnimation() {

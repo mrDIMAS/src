@@ -1,7 +1,7 @@
 #ifndef _SDXE_FAST_READER_
 #define _SDXE_FAST_READER_
 
-#include "common.h"
+
 
 class FastReader {
 private:

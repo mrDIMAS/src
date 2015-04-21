@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Common.h"
-
 class Vertex {
 public:
     ruVector3 coords;

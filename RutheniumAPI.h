@@ -252,7 +252,6 @@ public:
     bool operator == ( const ruLineHandle & node );
 };
 
-void ruEnableDebugMode( bool state );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Renderer functions
@@ -267,7 +266,6 @@ void ruShowCursor( );
 void ruSetCursorSettings( ruTextureHandle texture, int w, int h );
 int ruDIPs( );
 int ruTextureUsedPerFrame( );
-void ruDebugDrawEnabled( int state );
 void ruSetAmbientColor( ruVector3 color );
 int ruGetAvailableTextureMemory();
 void ruEnableShadows( bool state );
@@ -280,8 +278,6 @@ bool ruFXAAEnabled();
 // HDR
 void ruSetHDREnabled( bool state );
 bool ruIsHDREnabled( );
-void ruSetHDRExposure( float exposure );
-float ruGetHDRExposure( );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Shadow functions

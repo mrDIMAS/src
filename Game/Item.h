@@ -20,6 +20,7 @@ public:
 		Bullet			= 10,
     };
 private:
+	friend class Inventory;
     static Parser msLocalization;
     ruTextureHandle mPic;
     string mDesc;
@@ -29,13 +30,16 @@ private:
     Type mMorphType;
     bool mThrowable;
     bool mInInventory;
+	bool mCanBeDeleted;
     float mVolume;
     float mMass;
     float mContent;
 	string mModelFile;
     string mContentTypeDesc;
+	void Initialize( Type type );
 public:
     explicit Item( ruNodeHandle obj, Type type );
+	explicit Item( Type type );
     virtual ~Item();
 	void Repair();
     bool Combine( Item * pItem, Item* & throwItem );

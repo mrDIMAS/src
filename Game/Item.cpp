@@ -85,7 +85,7 @@ void Item::SetType( Type type ) {
 		mPic = ruGetTexture( "data/gui/inventory/items/bullet.png" );
 		mModelFile = "data/models/bullet/bullet.scene";
 		mCombinePair = Type::Pistol;
-		mThrowable = false;
+		mThrowable = true;
 		mMass = 0.12f;
 	}
 
@@ -119,6 +119,10 @@ void Item::SetType( Type type ) {
         mContentTypeDesc = msLocalization.GetString( "medkitContentType" );
     }
 
+	if( !mObject.IsValid() ) {
+		mObject = ruLoadScene( mModelFile );
+		ruFreeze( mObject );
+	}
 }
 
 void Item::PickUp() {
@@ -131,19 +135,19 @@ void Item::PickUp() {
 	}
 }
 
-Item::Item( ruNodeHandle obj, Type type ): InteractiveObject( obj ) {
-    if( !msLocalization.IsParsed() ) {
-        msLocalization.ParseFile( localizationPath + "items.loc" );
-    }
-    mMorphType = Type::Unknown;
-    mCombinePair = Type::Unknown;
-    msItemList.push_back( this );
-    mInInventory = false;
-    SetType( type );
+Item::Item( ruNodeHandle obj, Type type ) : InteractiveObject( obj ) {
+	Initialize( type );
+}
+
+Item::Item( Type type ) {
+	Initialize( type );
 }
 
 Item::~Item() {
-
+	auto iter = find( msItemList.begin(), msItemList.end(), this );
+	if( iter != msItemList.end() ) {
+		msItemList.erase( iter );
+	}
 }
 
 const string & Item::GetName() const {
@@ -216,7 +220,8 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
 						bool bulletLoaded = pPlayer->mCurrentWeapon->LoadBullet();
 						if( bulletLoaded ) {
 							pPlayer->GetInventory()->RemoveItem( pBullet );
-							delete pBullet;
+							pBullet->mCanBeDeleted = true;
+							//delete pBullet;
 							return true;
 						}
 					}
@@ -273,4 +278,16 @@ void Item::Repair() {
 		mObject = ruLoadScene( mModelFile );
 		ruFreeze( mObject );
 	}
+}
+
+void Item::Initialize( Type type ) {
+	if( !msLocalization.IsParsed() ) {
+		msLocalization.ParseFile( localizationPath + "items.loc" );
+	}
+	mMorphType = Type::Unknown;
+	mCombinePair = Type::Unknown;
+	msItemList.push_back( this );
+	mInInventory = false;
+	SetType( type );
+	mCanBeDeleted = false;
 }

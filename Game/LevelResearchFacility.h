@@ -26,7 +26,6 @@ private:
     ruNodeHandle mZoneScaryBarellThrow;
     ruNodeHandle mZoneSteamActivate;
     ruNodeHandle mSteamPS;
-    ruNodeHandle mDoorOpenLever;
     ruNodeHandle mLockedDoor;
     ruNodeHandle mExtremeSteamBlock;
     ruNodeHandle mZoneExtremeSteamHurt;
@@ -56,6 +55,12 @@ private:
 
 	Keypad * mKeypad3;
 	Door * mKeypad3DoorToUnlock;
+
+	Keypad * mLabKeypad;
+	Door * mLabDoorToUnlock;
+
+	Keypad * mColliderKeypad;
+	Door * mColliderDoorToUnlock;
 
     Item * fuse[3];
 	Item * mCrowbarItem;

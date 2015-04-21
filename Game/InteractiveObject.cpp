@@ -3,16 +3,16 @@
 #include "InteractiveObject.h"
 #include "Player.h"
 
-vector< InteractiveObject* > InteractiveObject::objects;
+vector< InteractiveObject* > InteractiveObject::msObjectList;
 
 void InteractiveObject::DeleteAll() {
-    for( auto it = objects.begin(); it != objects.end(); it++ ) {
+    for( auto it = msObjectList.begin(); it != msObjectList.end(); it++ ) {
         delete *it;
     }
 }
 
 void InteractiveObject::UpdateAll() {
-    for( auto it = objects.begin(); it != objects.end(); it++ ) {
+    for( auto it = msObjectList.begin(); it != msObjectList.end(); it++ ) {
         InteractiveObject * io = *it;
 
         io->UpdateFlashing();
@@ -41,7 +41,7 @@ void InteractiveObject::UpdateFlashing() {
 }
 
 InteractiveObject::InteractiveObject( ruNodeHandle object ) {
-    objects.push_back( this );
+    msObjectList.push_back( this );
     this->mObject = object;
     ruFreeze( object );
     mFlashAlbedo = 0.2f;
@@ -50,6 +50,19 @@ InteractiveObject::InteractiveObject( ruNodeHandle object ) {
     mFlashDirection = true;
 }
 
+InteractiveObject::InteractiveObject()
+{
+	mFlashAlbedo = 0.0f;
+	mFlashAlbedoTo = 0.0f;
+	mFlashSpeed = 0.0f;
+	mFlashDirection = false;
+}
+
 InteractiveObject::~InteractiveObject() {
-    objects.erase( find( objects.begin(), objects.end(), this ));
+    msObjectList.erase( find( msObjectList.begin(), msObjectList.end(), this ));
+}
+
+void InteractiveObject::Update()
+{
+
 }

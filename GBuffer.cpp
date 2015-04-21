@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "Engine.h"
 #include "GBuffer.h"
+#include "Utility.h"
 
 GBuffer::GBuffer() {
 	CreateRenderTargets();
@@ -77,7 +78,7 @@ void GBuffer::FreeRenderTargets() {
 void GBuffer::CreateRenderTargets() {
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
-	if( !IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
 		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
 		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}

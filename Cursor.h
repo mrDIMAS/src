@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 #include "GUIRenderer.h"
 
 class Cursor : public GUIRect {

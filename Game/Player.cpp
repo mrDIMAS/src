@@ -177,21 +177,13 @@ void Player::AddItem( Item * pItem ) {
     if( !pItem ) {
         return;
     }
-
     if( mInventory.Contains( pItem )) {
         return;
     }
-
-	
-
     ruFreeze( pItem->mObject );
-    //ruDetachNode( pItem->mObject );
     pItem->MarkAsGrabbed();
-
     ruSetNodePosition( pItem->mObject, ruVector3( 10000, 10000, 10000 )); // far far away
-
     mInventory.AddItem( pItem );
-
 	pItem->PickUp(); // do item logic
 }
 
@@ -200,7 +192,6 @@ void Player::UpdateInventory() {
 		if( ruIsKeyHit( mKeyInventory ) ) {
 			mInventory.Open( !mInventory.IsOpened() );
 		}
-
 		mInventory.Update();
 	}
 }
@@ -844,7 +835,9 @@ void Player::ChargeFlashLight() {
 Player::~Player() {
     delete mpFlashlight;
     delete mpCamera;
-    delete mpFlashLightItem;
+	for( auto pWeapon : mWeaponList ) {
+		delete pWeapon;
+	}
 }
 
 void Player::SetMetalFootsteps() {
@@ -885,6 +878,15 @@ bool Player::IsUseButtonHit() {
 
 bool Player::IsObjectHasNormalMass( ruNodeHandle node ) {
     return ruGetNodeMass( node ) > 0 && ruGetNodeMass( node ) < 40;
+}
+
+
+void Player::Resurrect() {
+	mHealth = 100.0f;
+	mDead = false;
+	mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ));
+	ruSetAngularFactor( mBody, ruVector3( 0, 0, 0 ));
+	ruSetNodeRotation( mBody, ruQuaternion( 0, 0, 0 ));
 }
 
 void Player::DeserializeWith( TextFileStream & in ) {
@@ -1128,4 +1130,9 @@ void Player::UpdateWeapons() {
 			}
 		}
 	}
+}
+
+bool Player::IsDead()
+{
+	return mHealth <= 0.0f;
 }

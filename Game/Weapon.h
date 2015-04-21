@@ -56,9 +56,8 @@ protected:
 	bool mVisible;
 public:
 	bool IsVisible();
-
 	ruNodeHandle GetModel();
-	explicit Weapon( ruNodeHandle owner );	
+	explicit Weapon( ruNodeHandle owner );
 	void SetVisible( bool state );
 	Type GetType();
 	void Shoot();
@@ -66,4 +65,5 @@ public:
 	bool LoadBullet( );
 	void SerializeWith( TextFileStream & out );
 	void DeserializeWith( TextFileStream & in );
+	void SetProjectileCount( int projCount );
 };

@@ -119,7 +119,7 @@ public:
     int mKeyLookLeft;
     int mKeyLookRight;
 
-    Goal mGoal;
+    Goal mGoal; 
 
     Tip mTip;
 
@@ -155,6 +155,8 @@ public:
     void ChargeFlashLight( );
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( ruNodeHandle node );
+	bool IsDead();
+	void Resurrect();
     void DoFright();
     void ComputeStealth();
 	void RepairInventory();

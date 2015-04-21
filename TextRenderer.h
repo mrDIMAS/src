@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 #include "BitmapFont.h"
 #include "Shader.h"
 

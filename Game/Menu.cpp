@@ -162,9 +162,18 @@ void Menu::Update( ) {
                 if( mLoadFromSave ) {
                     SaveLoader( mLoadSaveGameName ).RestoreWorldState();
                 }
-                if( !pCurrentLevel && mStartPressed ) {
+
+				bool startNewGame = !pCurrentLevel && mStartPressed;
+				if( pPlayer && mStartPressed ) {
+					if( pPlayer->IsDead() ) {
+						startNewGame = true;
+					}
+				}
+
+                if( startNewGame ) {
                     Level::Change( g_initialLevel );
                 }
+
                 mStartPressed = false;
                 mContinuePressed = false;
                 mReturnToGameByEsc = false;
@@ -201,7 +210,15 @@ void Menu::Update( ) {
         int optionsPosX = ( mPage == Page::Options || mPage == Page::OptionsGraphics || mPage == Page::OptionsKeys || mPage == Page::OptionsCommon ) ? mainButtonsX + 20 : mainButtonsX;
 
         ruSetGUINodeVisible( mGUIContinueGameButton, pCurrentLevel || mCanContinueGameFromLast );
-        ruSetGUINodeVisible( mGUIStartButton, !pCurrentLevel );
+		 ruSetGUINodeVisible( mGUIStartButton, !pCurrentLevel );
+
+		if( pPlayer ) {
+			if( pPlayer->IsDead() ) {
+				ruSetGUINodeVisible( mGUIContinueGameButton, false );
+				 ruSetGUINodeVisible( mGUIStartButton, true );
+			}
+		}       
+
         ruSetGUINodePosition( mGUIContinueGameButton, mainButtonsX, g_resH - 4.0 * mDistBetweenButtons + startOffsetIfInGame );
         ruSetGUINodePosition( mGUIStartButton, mainButtonsX, g_resH - 3.5 * mDistBetweenButtons );
         ruSetGUINodePosition( mGUISaveGameButton, saveGamePosX, g_resH - 3.0 * mDistBetweenButtons);

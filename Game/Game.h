@@ -26,21 +26,15 @@ void RaiseError( const string & text );
 extern float mouseSens;
 
 class Item;
-class Inventory;
 class Level;
-class LevelArrival;
 class Player;
 class Menu;
 class GUI;
-class ScreenScreamer;
-
-int CreateFog( int obj, int density = 3000 );
 
 extern Player * pPlayer;
 extern Menu * pMainMenu;
 extern Level * pCurrentLevel;
 extern GUI * pGUI;
-extern ScreenScreamer * screamer;
 extern bool g_running;
 extern string localizationPath;
 extern bool g_showFPS;

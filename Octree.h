@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 #include "Mesh.h"
 #include "AABB.h"
 

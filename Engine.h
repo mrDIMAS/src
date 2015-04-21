@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 #include "Timer.h"
 #include "BitmapFont.h"
 #include "Mesh.h"
@@ -11,6 +11,14 @@ class ForwardRenderer;
 class ParticleSystemRenderer;
 class TextRenderer;
 class GUIRenderer;
+
+void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line );
+
+#ifdef _DEBUG
+#	define CheckDXErrorFatal( func ) CheckDXErrorFatalFunc( func, __FILE__, __LINE__ )
+#else
+#	define CheckDXErrorFatal( func ) (func)
+#endif
 
 class Engine {
 private:
@@ -23,17 +31,17 @@ private:
 	GUIRenderer * mpGUIRenderer;
 	TextRenderer * mpTextRenderer;
 	FPSCounter mFPSCounter;
-
 	bool mUsePointLightShadows;
 	bool mUseSpotLightShadows;
 	bool mHDREnabled;
-
+	bool mRunning;
+	bool mFXAAEnabled;
 	float mResWidth;
 	float mResHeight;
 	int mDIPCount;
-
+	int mTextureChangeCount;
+	string mTextureStoragePath;
 	ruVector3 mAmbientColor;
-
 	explicit Engine();
 	Engine( const Engine & other );
 	void operator = ( const Engine & other );
@@ -74,4 +82,11 @@ public:
 	void SetAmbientColor( ruVector3 ambColor );
 	bool IsHDREnabled();
 	void SetHDREnabled( bool state );
+	bool IsFullNPOTTexturesSupport();
+	void Shutdown();
+	bool IsFXAAEnabled();
+	void SetFXAAEnabled( bool state );
+	int GetTextureChangeCount();
+	string GetTextureStoragePath();
+	void SetTextureStoragePath( const string & path );
 };

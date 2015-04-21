@@ -369,7 +369,10 @@ void Enemy::Deserialize( TextFileStream & in ) {
 }
 
 Enemy::~Enemy() {
-
+	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
+	if( iter != msEnemyList.end() ) {
+		msEnemyList.erase( iter );
+	}
 }
 
 void Enemy::DoBloodSpray() {

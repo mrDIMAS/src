@@ -95,76 +95,147 @@ void Level::Show() {
 	}
 }
 
+struct WeaponTransfer {
+	Weapon::Type mType;
+	int projCount;
+};
+
 void Level::Change( int levelId, bool continueFromSave ) {
     Level::msCurLevelID = levelId;
+		
+	/////////////////////////////////////////////////////
+	// draw 'loading' string
+	ruSetGUINodeVisible( msGUILoadingText, true );
+	ruSetGUINodeVisible( msGUILoadingBackground, true );
+	if( pPlayer ) {
+		pPlayer->SetHUDVisible( false );
+	}
+    
+    ruRenderWorld();
+	ruSetGUINodeVisible( msGUILoadingText, false );
+	ruSetGUINodeVisible( msGUILoadingBackground, false );
 
-    static int lastLevel = 0;
+	/////////////////////////////////////////////////////
+	// before load new level, we must clean up everything
 
-    if( lastLevel != Level::msCurLevelID ) {
-		ruSetGUINodeVisible( msGUILoadingText, true );
-		ruSetGUINodeVisible( msGUILoadingBackground, true );
-		if( pPlayer ) {
-			pPlayer->SetHUDVisible( false );
-		}
-        // draw 'loading' string
-        ruRenderWorld();
-		ruSetGUINodeVisible( msGUILoadingText, false );
-		ruSetGUINodeVisible( msGUILoadingBackground, false );
-		if( pPlayer ) {
-			pPlayer->SetHUDVisible( true );
-		}
-        lastLevel = Level::msCurLevelID;
+	// items can be transfered through levels, so store it
+	vector<Item::Type> items;
+	// weapons
+	vector<WeaponTransfer> weapons;
 
-        if( !pPlayer && Level::msCurLevelID != LevelName::L0Introduction ) {
-            pPlayer = new Player();
-        }
+	
+	if( pPlayer ) {
+		pPlayer->GetInventory()->GetItemList( items );
+		delete pPlayer;
+		pPlayer = nullptr;
+	}
 
-        if( pCurrentLevel ) {
-            delete pCurrentLevel;
-        }
+	if( pCurrentLevel ) {
+		delete pCurrentLevel;
+		pCurrentLevel = nullptr;
+	}
 
-        if( Level::msCurLevelID == LevelName::L0Introduction ) {
-            pCurrentLevel = new LevelIntroduction;
-        } else {
-            pPlayer->FreeHands();
-        }
+	while( Door::msDoorList.size() ) {
+		delete Door::msDoorList.front();
+	}
+	Door::msDoorList.clear();
 
-        if( Level::msCurLevelID == LevelName::L1Arrival ) {
-            pCurrentLevel = new LevelArrival;
-        }
+	while( Way::msWayList.size() ) {
+		delete Way::msWayList.front();
+	}
+	Way::msWayList.clear();
 
-        if( Level::msCurLevelID == LevelName::L2Mine ) {
-            pCurrentLevel = new LevelMine;
-        }
+	while( Enemy::msEnemyList.size() ) {
+		delete Enemy::msEnemyList.front();
+	}
+	Enemy::msEnemyList.clear();
 
-        if( Level::msCurLevelID == LevelName::L3ResearchFacility ) {
-            pCurrentLevel = new LevelResearchFacility;
-        }
+	while( Item::msItemList.size() ) {
+		delete Item::msItemList.front();
+	}
+	Item::msItemList.clear();
 
-		if( Level::msCurLevelID == LevelName::L4Sewers ) {
-			pCurrentLevel = new LevelSewers;
-		}
+	while( InteractiveObject::msObjectList.size() ) {
+		delete InteractiveObject::msObjectList.front();
+	}
+	InteractiveObject::msObjectList.clear();
 
-        if( Level::msCurLevelID == LevelName::LXTestingChamber ) {
-            pCurrentLevel = new TestingChamber;
-        }
+	while( Sheet::msSheetList.size() ) {
+		delete Sheet::msSheetList.front();
+	}
+	Sheet::msSheetList.clear();
 
-		if( pPlayer ) {
-			pPlayer->RepairInventory();
-		}
+	while( ItemPlace::sItemPlaceList .size() ) {
+		delete ItemPlace::sItemPlaceList .front();
+	}
+	ItemPlace::sItemPlaceList.clear();	
 
-        if( continueFromSave ) {
-            SaveLoader( "lastGame.save" ).RestoreWorldState();
-        }
-        for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-			ruNodeHandle light = ruGetWorldPointLight( i );
-			if( !(light == pPlayer->mpFlashlight->GetLight() )) {
-				ruSetLightFloatingEnabled( light, true );
-				float d = 0.1f;
-				ruSetLightFloatingLimits( light, ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
-			}
-        }
+	/////////////////////////////////////////////////////
+	// and now we can load new level
+    if( !pPlayer && Level::msCurLevelID != LevelName::L0Introduction ) {
+        pPlayer = new Player();
     }
+	
+    if( Level::msCurLevelID == LevelName::L0Introduction ) {
+        pCurrentLevel = new LevelIntroduction;
+    } else {
+        pPlayer->FreeHands();
+    }
+
+    if( Level::msCurLevelID == LevelName::L1Arrival ) {
+        pCurrentLevel = new LevelArrival;
+    }
+
+    if( Level::msCurLevelID == LevelName::L2Mine ) {
+        pCurrentLevel = new LevelMine;
+    }
+
+    if( Level::msCurLevelID == LevelName::L3ResearchFacility ) {
+        pCurrentLevel = new LevelResearchFacility;
+    }
+
+	if( Level::msCurLevelID == LevelName::L4Sewers ) {
+		pCurrentLevel = new LevelSewers;
+	}
+
+    if( Level::msCurLevelID == LevelName::LXTestingChamber ) {
+        pCurrentLevel = new TestingChamber;
+    }
+
+	if( pPlayer ) {
+		pPlayer->RepairInventory();
+	}
+
+    if( continueFromSave ) {
+        SaveLoader( "lastGame.save" ).RestoreWorldState();
+    }
+    for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
+		ruNodeHandle light = ruGetWorldPointLight( i );
+		bool ingore = false;
+		if( pPlayer ) { // stupid hack
+			if( light == pPlayer->mpFlashlight->GetLight() ) {
+				ingore = true;
+			}
+		}
+		if( !ingore ) {
+			ruSetLightFloatingEnabled( light, true );
+			float d = 0.1f;
+			ruSetLightFloatingLimits( light, ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
+		}
+    }
+
+	// after loading, give old items to the player
+	for( auto itemType : items ) {
+		if( itemType != Item::Type::Lighter ) { // lighter automatically added to player
+			pPlayer->AddItem( new Item( itemType ));
+		}
+	}
+
+	// weapons
+	for( auto wpnTransfer : weapons ) {
+		Weapon * pWpn = pPlayer->AddWeapon( wpnTransfer.mType );
+		pWpn->SetProjectileCount( wpnTransfer.projCount );
+	}
 }
 
 void Level::AddLift( Lift * pLift ) {
@@ -180,6 +251,11 @@ void Level::AddLadder( Ladder * pLadder ) {
 }
 
 void Level::AddDoor( Door * pDoor ) {
+	for( auto iDoor : mDoorList ) {
+		if( iDoor->mDoorNode == pDoor->mDoorNode ) {
+			return;
+		}
+	}
     mDoorList.push_back( pDoor );
 }
 
@@ -366,6 +442,17 @@ void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 		ruNodeHandle child = ruGetNodeChild( mScene, i );
 		if( regex_match( ruGetNodeName( child ), rx )) {
 			AddItem( new Item( child, Item::Type::Bullet ));
+		}
+	}
+}
+
+
+void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
+	std::regex rx( namePattern );
+	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
+		ruNodeHandle child = ruGetNodeChild( mScene, i );
+		if( regex_match( ruGetNodeName( child ), rx )) {
+			AddDoor( new Door( child, 90 ));
 		}
 	}
 }

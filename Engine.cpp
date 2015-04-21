@@ -1,6 +1,4 @@
 #include "Precompiled.h"
-
-#include "Common.h"
 #include "ParticleSystemRenderer.h"
 #include "GUIRenderer.h"
 #include "Light.h"
@@ -16,15 +14,15 @@
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 
-int g_debugDraw = 0;
-int g_textureChanges = 0;
+void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line ) {
+	if( FAILED( errCode )) {
+		string message = (string)(StringBuilder( "DirectX 9 Error. Code: " ) << errCode << "\nError: " << DXGetErrorString( errCode ) << "\nDescription: " << DXGetErrorDescription( errCode ) << "\nFile: " << file << "\nLine: " << line);
+		Log::Error( message );
+	}
+}
 
-bool g_engineRunning = true;
 
-vector< Light*> affectedLights;
-
-Engine::~Engine() {
-	
+Engine::~Engine() {	
     for( auto fnt : BitmapFont::fonts ) {
         delete fnt;
     }
@@ -34,7 +32,7 @@ Engine::~Engine() {
     for( auto & kv : CubeTexture::all ) {
         delete kv.second;
     }
-    FT_Done_FreeType( g_ftLibrary );
+   
     delete mpTextRenderer;
     delete mpParticleSystemRenderer;
     delete mpDeferredRenderer;
@@ -64,7 +62,6 @@ Engine::~Engine() {
     }
     Physics::DestructWorld();
     pfSystemDestroy();
-    CloseLogFile();
 }
 
 void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
@@ -78,16 +75,12 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
         return;
     }
 
-    CreateLogFile();
-
     // try to create Direct3D9
     mpDirect3D = Direct3DCreate9( D3D_SDK_VERSION );
 
     // epic fail
     if( !mpDirect3D ) {
-        MessageBoxA( 0, "Failed to Direct3DCreate9! Ensure, that you have latest video drivers! Engine initialization failed!", "ERROR", MB_OK | MB_ICONERROR );
-        CloseLogFile();
-        exit( -1 );
+		Log::Error( "Failed to Direct3DCreate9! Ensure, that you have latest video drivers! Engine initialization failed!" );
     }
 
     // check d3d caps, to ensure, that user have modern hardware
@@ -99,10 +92,8 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 
     // epic fail
     if( psVerHi < 2 ) {
-        MessageBoxA( 0, "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
-        CloseLogFile();
-        mpDirect3D->Release();
-        exit( -1 );
+		mpDirect3D->Release();
+        Log::Error( "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!" );        
     }
 
     mResWidth = width;
@@ -140,42 +131,40 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &mpDevice )))
-	{
-		MessageBoxA( 0, "Engine initialization failed! Buy a modern video card!", "Epic fail", 0 );
-		CloseLogFile();
+    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &mpDevice ))) {
 		mpDirect3D->Release();
-		exit( -1 );
+		Log::Error( "Engine initialization failed! Buy a modern video card!" );	
 	}
 
+    GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
+    GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
+    GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
+    GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
+    GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
+    GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+    GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
+    GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
 
-
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-    Engine::Instance().GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
-
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+    GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
+    GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
+    GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
+    GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
+    GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
+    GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+    GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 
     // setup samplers
-    Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-    Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-    Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-    Engine::Instance().GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-    Engine::Instance().GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+    GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+    GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+
+    GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+    GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );    
+    GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+
+    GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+    GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
@@ -186,31 +175,14 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     mpTextRenderer = new TextRenderer();
     mpGUIRenderer = new GUIRenderer();
 	mAmbientColor = ruVector3( 0.05, 0.05, 0.05 );
-
 	mUsePointLightShadows = false;
 	mUseSpotLightShadows = false;
 	mHDREnabled = false;
-
-    // init freetype
-    if( FT_Init_FreeType( &g_ftLibrary ) ) {
-        throw std::runtime_error( "Unable to initialize FreeType 2.53" );
-    }
+	mRunning = true;
+	mFXAAEnabled = false;
+	mTextureStoragePath = "data/textures/generic/";
 }
 
-bool IsFullNPOTTexturesSupport()
-{
-	D3DCAPS9 caps;
-	Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
-	char npotcond = caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL;
-	char pot = caps.TextureCaps & D3DPTEXTURECAPS_POW2;
-	return !(npotcond || pot);
-}
-
-/*
-==========
-Renderer::CreateRenderWindow
-==========
-*/
 int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
     // get instance of this process
     HINSTANCE instance = GetModuleHandle ( 0 );
@@ -253,22 +225,12 @@ int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
     return 1;
 }
 
-/*
-===============
-Renderer::CreatePhysics
-===============
-*/
 void Engine::CreatePhysics() {
     Physics::CreateWorld();
 }
 
-/*
-===============
-Renderer::RenderWorld
-===============
-*/
 void Engine::RenderWorld() {
-    if( !g_engineRunning ) {
+    if( !mRunning ) {
         return;
     }
     if( !Camera::msCurrentCamera ) {
@@ -282,7 +244,7 @@ void Engine::RenderWorld() {
     UpdateMessagePump();
     // clear statistics
     mDIPCount = 0;
-    g_textureChanges = 0;
+    mTextureChangeCount = 0;
     // build view and projection matrices, frustum, also attach sound listener to camera
     Camera::msCurrentCamera->Update();
     // precalculations
@@ -361,13 +323,7 @@ void Engine::RenderWorld() {
 void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep ) {
     Physics::mpDynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
 }
-/*
-===============
-Renderer::RenderMeshesIntoGBuffer
 
-all registered meshes are sorted by texture, so rendering becomes really fast - there no redundant texture changes
-===============
-*/
 void Engine::RenderMeshesIntoGBuffer() {
     for( auto groupIterator : Mesh::msMeshList ) {
         IDirect3DTexture9 * pDiffuseTexture = groupIterator.first;
@@ -380,13 +336,13 @@ void Engine::RenderMeshesIntoGBuffer() {
         // bind diffuse texture
         CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, pDiffuseTexture ));
         // each group has same texture
-        g_textureChanges++;
+        mTextureChangeCount++;
         for( auto pMesh : meshes ) {
             // prevent overhead with normal texture
             if( pMesh->GetNormalTexture() ) {
                 IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
                 if( meshNormalTexture != pNormalTexture ) {
-                    g_textureChanges++;
+                    mTextureChangeCount++;
                     pMesh->GetNormalTexture()->Bind( 1 );
                     pNormalTexture = meshNormalTexture;
                 }
@@ -398,11 +354,7 @@ void Engine::RenderMeshesIntoGBuffer() {
         }
     }
 }
-/*
-===============
-Renderer::UpdateMessagePump
-===============
-*/
+
 void Engine::UpdateMessagePump() {
     MSG message;
     while ( PeekMessage ( &message, NULL, 0, 0, PM_REMOVE ) ) {
@@ -412,19 +364,9 @@ void Engine::UpdateMessagePump() {
         }
     }
 }
-/*
-===============
-Renderer::WindowProcess
-===============
-*/
+
 LRESULT CALLBACK Engine::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
     switch ( msg ) {
-    case WM_PAINT:
-        PAINTSTRUCT ps;
-        BeginPaint ( wnd, &ps );
-        EndPaint ( wnd, &ps );
-        return 0;
-
     case WM_DESTROY:
         ruFreeRenderer();
         PostQuitMessage ( 0 );
@@ -475,110 +417,134 @@ void Engine::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
     Engine::Instance().GetDevice()->SetVertexShaderConstantF( startRegister, &matrix->m[0][0], 4 );
 }
 
-void Engine::OnDeviceLost()
-{
+void Engine::OnDeviceLost() {
 
 }
 
-Engine::Engine()
-{
-
+Engine::Engine() {
+	mpDevice = nullptr;
+	mpDirect3D = nullptr;
+	mpDeferredRenderer = nullptr;
+	mpForwardRenderer = nullptr;
+	mpParticleSystemRenderer = nullptr;
+	mpTextRenderer = nullptr;
+	mpGUIRenderer = nullptr;
+	mAmbientColor = ruVector3( 0.05, 0.05, 0.05 );
+	mUsePointLightShadows = false;
+	mUseSpotLightShadows = false;
+	mHDREnabled = false;
+	mRunning = true;
+	mFXAAEnabled = false;
+	mTextureStoragePath = "data/textures/generic/";
 }
 
-Engine & Engine::Instance()
-{
+Engine & Engine::Instance() {
 	static Engine instance;
 	return instance;
 }
 
-bool Engine::IsTextureFormatOk( D3DFORMAT TextureFormat )
-{
+bool Engine::IsTextureFormatOk( D3DFORMAT TextureFormat ) {
 	return SUCCEEDED( mpDirect3D->CheckDeviceFormat( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_TEXTURE, TextureFormat) );
 }
 
-IDirect3DDevice9 * Engine::GetDevice()
-{
+IDirect3DDevice9 * Engine::GetDevice() {
 	return mpDevice;
 }
 
-void Engine::SetSpotLightShadowMapSize( int size )
-{
+void Engine::SetSpotLightShadowMapSize( int size ) {
 	mpDeferredRenderer->SetSpotLightShadowMapSize( size );
 }
 
-int Engine::GetDIPCount()
-{
+int Engine::GetDIPCount() {
 	return mDIPCount;
 }
 
-float Engine::GetResolutionHeight()
-{
+float Engine::GetResolutionHeight() {
 	return mResHeight;
 }
 
-float Engine::GetResolutionWidth()
-{
+float Engine::GetResolutionWidth() {
 	return mResWidth;
 }
 
-void Engine::RegisterDIP()
-{
+void Engine::RegisterDIP() {
 	mDIPCount++;
 }
 
-ForwardRenderer * Engine::GetForwardRenderer()
-{
+ForwardRenderer * Engine::GetForwardRenderer() {
 	return mpForwardRenderer;
 }
 
-DeferredRenderer * Engine::GetDeferredRenderer()
-{
+DeferredRenderer * Engine::GetDeferredRenderer() {
 	return mpDeferredRenderer;
 }
 
-TextRenderer * Engine::GetTextRenderer()
-{
+TextRenderer * Engine::GetTextRenderer() {
 	return mpTextRenderer;
 }
 
-bool Engine::IsSpotLightShadowsEnabled()
-{
+bool Engine::IsSpotLightShadowsEnabled() {
 	return mUseSpotLightShadows;
 }
 
-bool Engine::IsPointLightShadowsEnabled()
-{
+bool Engine::IsPointLightShadowsEnabled() {
 	return mUsePointLightShadows;
 }
 
-void Engine::SetSpotLightShadowsEnabled( bool state )
-{
+void Engine::SetSpotLightShadowsEnabled( bool state ) {
 	mUseSpotLightShadows = state;
 }
 
-void Engine::SetPointLightShadowsEnabled( bool state )
-{
+void Engine::SetPointLightShadowsEnabled( bool state ) {
 	mUsePointLightShadows = state;
 }
 
-void Engine::SetAmbientColor( ruVector3 ambColor )
-{
+void Engine::SetAmbientColor( ruVector3 ambColor ) {
 	mAmbientColor = ambColor;
 }
 
-ruVector3 Engine::GetAmbientColor()
-{
+ruVector3 Engine::GetAmbientColor() {
 	return mAmbientColor;
 }
 
-void Engine::SetHDREnabled( bool state )
-{
+void Engine::SetHDREnabled( bool state ) {
 	mHDREnabled = state;
 }
 
-bool Engine::IsHDREnabled()
-{
+bool Engine::IsHDREnabled() {
 	return mHDREnabled;
+}
+
+void Engine::SetFXAAEnabled( bool state ) {
+	mFXAAEnabled = state;
+}
+
+bool Engine::IsFXAAEnabled() {
+	return mFXAAEnabled;
+}
+
+void Engine::Shutdown() {
+	mRunning = false;
+}
+
+bool Engine::IsFullNPOTTexturesSupport() {
+	D3DCAPS9 caps;
+	Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
+	char npotcond = caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL;
+	char pot = caps.TextureCaps & D3DPTEXTURECAPS_POW2;
+	return !(npotcond || pot);
+}
+
+int Engine::GetTextureChangeCount() {
+	return mTextureChangeCount;
+}
+
+void Engine::SetTextureStoragePath( const string & path ) {
+	mTextureStoragePath = path;
+}
+
+std::string Engine::GetTextureStoragePath() {
+	return mTextureStoragePath;
 }
 
 
@@ -586,47 +552,18 @@ bool Engine::IsHDREnabled()
 // API
 //////////////////////////////////////////////////////////
 
-/*
-===============
-SetSpotLightShadowMapSize
-===============
-*/
 void ruSetSpotLightShadowMapSize( int size ) {
     Engine::Instance().SetSpotLightShadowMapSize( size );
 }
 
-/*
-===============
-EnableSpotLightShadows
-===============
-*/
 void ruEnableSpotLightShadows( bool state ) {
     Engine::Instance().SetSpotLightShadowsEnabled( state );
 }
 
-/*
-===============
-EnableSpotLightShadows
-===============
-*/
 bool ruIsSpotLightShadowsEnabled() {
     return Engine::Instance().IsSpotLightShadowsEnabled();
 }
 
-/*
-===============
-DebugDrawEnabled
-===============
-*/
-void ruDebugDrawEnabled( int state ) {
-    g_debugDraw = state;
-}
-
-/*
-===============
-SetTextureFiltering
-===============
-*/
 void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality ) {
     /*
     int minMagFilter = D3DTEXF_POINT;
@@ -651,47 +588,24 @@ void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality )
     CheckDXErrorFatal( g_pDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter ));
     CheckDXErrorFatal( g_pDevice->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));*/
 }
-/*
-===============
-DIPs
-===============
-*/
+
 int ruDIPs( ) {
     return Engine::Instance().GetDIPCount();
 }
-/*
-===============
-CreateRenderer
-===============
-*/
+
 int ruCreateRenderer( int width, int height, int fullscreen, char vSync ) {
     Engine::Instance().Initialize( width, height, fullscreen, vSync ) ;
     return 1;
 }
 
-/*
-===============
-SetAmbientColor
-===============
-*/
 void ruSetAmbientColor( ruVector3 color ) {
     Engine::Instance().SetAmbientColor( color );
 }
 
-/*
-===============
-GetAvailableTextureMemory
-===============
-*/
 int ruGetAvailableTextureMemory() {
     return Engine::Instance().GetDevice()->GetAvailableTextureMem();
 }
 
-/*
-===============
-RayTest
-===============
-*/
 ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
     btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
     btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
@@ -719,11 +633,6 @@ ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint
     return SceneNode::HandleFromPointer( 0 );
 }
 
-/*
-===============
-RayPick
-===============
-*/
 ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
     D3DVIEWPORT9 vp;
     Engine::Instance().GetDevice()->GetViewport( &vp );
@@ -768,11 +677,7 @@ ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
 
     return SceneNode::HandleFromPointer( 0 );
 }
-/*
-===============
-GetMaxAnisotropy
-===============
-*/
+
 int ruGetRendererMaxAnisotropy() {
     D3DCAPS9 caps;
     CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDeviceCaps( &caps ));
@@ -780,104 +685,41 @@ int ruGetRendererMaxAnisotropy() {
     return caps.MaxAnisotropy;
 }
 
-/*
-===============
-FreeRenderer
-===============
-*/
 int ruFreeRenderer( ) {
-    g_engineRunning = false;
+    Engine::Instance().Shutdown();
     return 1;
 }
 
-/*
-===============
-GetResolutionWidth
-===============
-*/
 int ruGetResolutionWidth( ) {
     return Engine::Instance().GetResolutionWidth();
 }
 
-/*
-===============
-GetResolutionHeight
-===============
-*/
 int ruGetResolutionHeight( ) {
     return Engine::Instance().GetResolutionHeight();
 }
 
-/*
-===============
-TextureUsedPerFrame
-===============
-*/
 int ruTextureUsedPerFrame( ) {
-    return g_textureChanges;
+    return Engine::Instance().GetTextureChangeCount();
 }
 
-/*
-===============
-RenderWorld
-===============
-*/
 int ruRenderWorld( ) {
     Engine::Instance().RenderWorld();
     return 1;
 }
 
-/*
-===============
-EnableShadows
-===============
-*/
 void ruEnableShadows( bool state ) {
     Engine::Instance().SetSpotLightShadowsEnabled( state );
     Engine::Instance().SetPointLightShadowsEnabled( state );
 }
 
-/*
-===============
-SetHDREnabled
-===============
-*/
 void ruSetHDREnabled( bool state ) {
     Engine::Instance().SetHDREnabled( state );
 }
 
-/*
-===============
-IsHDREnabled
-===============
-*/
 bool ruIsHDREnabled( ) {
     return Engine::Instance().IsHDREnabled();
 }
 
-/*
-===============
-SetHDRExposure
-===============
-*/
-void ruSetHDRExposure( float exposure ) {
-    //g_deferredRenderer->hdrRenderer->exposure = exposure;
-}
-
-/*
-===============
-GetHDRExposure
-===============
-*/
-float ruGetHDRExposure( ) {
-    return 1.0f;//g_deferredRenderer->hdrRenderer->exposure;
-}
-
-/*
-===============
-GetHDRExposure
-===============
-*/
 void ruUpdateWorld() {
 	for( auto node : SceneNode::msNodeList ) {
 		node->CalculateGlobalTransform();

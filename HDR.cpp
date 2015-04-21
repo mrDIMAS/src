@@ -40,7 +40,7 @@ HDRShader::~HDRShader() {
 HDRShader::HDRShader( D3DFORMAT rtFormat ) {
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
-	if( !IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
 		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
 		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}

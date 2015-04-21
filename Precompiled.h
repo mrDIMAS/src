@@ -28,6 +28,7 @@
 #include FT_FREETYPE_H
 
 #include "RutheniumAPI.h"
+#include "Log.h"
 
 #define DEG2RAD ( 3.14159f / 180.0f )
 

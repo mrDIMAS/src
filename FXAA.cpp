@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Utility.h"
 #include "FXAA.h"
 #include "Engine.h"
 
@@ -25,7 +25,7 @@ FXAA::FXAA() {
 	pixelShader = new PixelShader( "data/shaders/fxaa.pso", true );
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
-	if( !IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
 		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
 		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}
@@ -49,13 +49,13 @@ FXAA::~FXAA() {
 //////////////////////////////////////////////////////////////////////////
 
 void ruEnableFXAA( ) {
-    g_fxaaEnabled = true;
+    Engine::Instance().SetFXAAEnabled( true );
 }
 
 void ruDisableFXAA( ) {
-    g_fxaaEnabled = false;
+    Engine::Instance().SetFXAAEnabled( false );
 }
 
 bool ruFXAAEnabled() {
-    return g_fxaaEnabled;
+    return Engine::Instance().IsFXAAEnabled();
 }

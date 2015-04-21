@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 #include "SceneNode.h"
 
 class ParticleEmitter {

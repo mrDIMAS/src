@@ -116,3 +116,8 @@ ruNodeHandle Weapon::GetModel() {
 bool Weapon::IsVisible() {
 	return mVisible;
 }
+
+void Weapon::SetProjectileCount( int projCount )
+{
+	mProjectileCount = projCount;
+}

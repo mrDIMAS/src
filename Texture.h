@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 
 class Texture {
 private:

@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 
-#include "Common.h"
+
 #include "GUIButton.h"
 
 LPDIRECTINPUT8			pInput;
@@ -78,15 +78,15 @@ void ruInputUpdate( ) {
 void ruInputInit( void * window ) {
     HINSTANCE hInstance = GetModuleHandle( 0 );
     hwnd = (HWND)(*(HWND*)window);
-    CheckDXErrorFatal( DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL));
-    CheckDXErrorFatal( pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL ));
-    CheckDXErrorFatal( pKeyboard->SetDataFormat( &c_dfDIKeyboard ));
-    CheckDXErrorFatal( pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
-    CheckDXErrorFatal( pKeyboard->Acquire());
-    CheckDXErrorFatal( pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL ));
-    CheckDXErrorFatal( pMouse->SetDataFormat(&c_dfDIMouse));
-    CheckDXErrorFatal( pMouse->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ));
-    CheckDXErrorFatal( pMouse->Acquire());
+    DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL);
+    pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL );
+    pKeyboard->SetDataFormat( &c_dfDIKeyboard );
+    pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE );
+    pKeyboard->Acquire();
+    pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL );
+    pMouse->SetDataFormat(&c_dfDIMouse);
+    pMouse->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE );
+    pMouse->Acquire();
     RECT initialWindowRect;
     GetWindowRect( hwnd, &initialWindowRect );
     GetClientRect( hwnd, &windowRect );
@@ -97,9 +97,9 @@ void ruInputInit( void * window ) {
 };
 
 void ruInputDestroy() {
-    CheckDXErrorFatal( pMouse->Unacquire());
+    pMouse->Unacquire();
     pMouse->Release();
-    CheckDXErrorFatal( pKeyboard->Unacquire());
+    pKeyboard->Unacquire();
     pKeyboard->Release();
     pInput->Release();
 };

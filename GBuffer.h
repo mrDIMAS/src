@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 
 #define USE_R32F_DEPTH
 

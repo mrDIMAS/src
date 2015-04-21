@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 
-#include "Common.h"
+
 
 ruQuaternion::ruQuaternion( ) {
     x = 0.0f;

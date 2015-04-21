@@ -43,6 +43,8 @@ LevelResearchFacility::LevelResearchFacility() {
     AddSheet( new Sheet( GetUniqueObject( "Note2" ), mLocalization.GetString( "note2Desc" ), mLocalization.GetString( "note2" ) ) );
 	AddSheet( new Sheet( GetUniqueObject( "Note3" ), mLocalization.GetString( "note3Desc" ), mLocalization.GetString( "note3" ) ) );
 	AddSheet( new Sheet( GetUniqueObject( "Note4" ), mLocalization.GetString( "note4Desc" ), mLocalization.GetString( "note4" ) ) );
+	AddSheet( new Sheet( GetUniqueObject( "Note5" ), mLocalization.GetString( "note5Desc" ), mLocalization.GetString( "note5" ) ) );
+	AddSheet( new Sheet( GetUniqueObject( "Note6" ), mLocalization.GetString( "note6Desc" ), mLocalization.GetString( "note6" ) ) );
 
     AddSound( mLeverSound = ruLoadSound3D( "data/sounds/lever.ogg"));
 
@@ -57,7 +59,6 @@ LevelResearchFacility::LevelResearchFacility() {
     ruSetAmbientColor( ruVector3( 0, 0, 0 ));
 
 	mDoorUnderFloor = GetUniqueObject( "DoorUnderFloor" );
-    mDoorOpenLever = GetUniqueObject( "DoorOpenLever" );
     mLockedDoor = GetUniqueObject( "LockedDoor" );
 
 	mZoneScaryBarellThrow = GetUniqueObject( "ScaryBarellThrowZone" );
@@ -92,9 +93,13 @@ LevelResearchFacility::LevelResearchFacility() {
 		GetUniqueObject( "Ladder7BeginLeavePoint"), GetUniqueObject( "Ladder7EndLeavePoint")));
     AddDoor( mKeypad3DoorToUnlock = new Door( GetUniqueObject( "Door4" ), 90.0f ));
     AddDoor( mKeypad1DoorToUnlock = new Door( GetUniqueObject( "Door5" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door6" ), 90.0f ));
     AddDoor( mKeypad2DoorToUnlock = new Door( GetUniqueObject( "Door8" ), 90.0f ));
-    AddDoor( new Door( GetUniqueObject( "Door009" ), 90.0f ));
+	AddDoor( mLabDoorToUnlock = new Door( GetUniqueObject( "LabDoor" ), 90 ));
+	AddDoor( mColliderDoorToUnlock = new Door( GetUniqueObject( "DoorToCollider" ), 90 ));
+	
+
+	AutoCreateDoorsByNamePattern( "Door?([[:digit:]]+)" );
+
     mScaryBarell = GetUniqueObject( "ScaryBarell" );
     mScaryBarellPositionNode = GetUniqueObject( "ScaryBarellPos" );
     mPowerLamp = GetUniqueObject( "PowerLamp");
@@ -133,6 +138,19 @@ LevelResearchFacility::LevelResearchFacility() {
 		GetUniqueObject( "Keypad3Key5"), GetUniqueObject( "Keypad3Key6" ), GetUniqueObject( "Keypad3Key7"),
 		GetUniqueObject( "Keypad3Key8"), GetUniqueObject( "Keypad3Key9"), GetUniqueObject( "Keypad3KeyCancel"), 
 		mKeypad3DoorToUnlock, "1487" );
+
+	mLabKeypad = new Keypad( GetUniqueObject( "Keypad4"), GetUniqueObject( "Keypad4Key0" ), GetUniqueObject( "Keypad4Key1"),
+		GetUniqueObject( "Keypad4Key2"), GetUniqueObject( "Keypad4Key3"), GetUniqueObject( "Keypad4Key4"),
+		GetUniqueObject( "Keypad4Key5"), GetUniqueObject( "Keypad4Key6" ), GetUniqueObject( "Keypad4Key7"),
+		GetUniqueObject( "Keypad4Key8"), GetUniqueObject( "Keypad4Key9"), GetUniqueObject( "Keypad4KeyCancel"), 
+		mLabDoorToUnlock, "8279" );
+
+	mColliderKeypad = new Keypad( GetUniqueObject( "Keypad5"), GetUniqueObject( "Keypad5Key0" ), GetUniqueObject( "Keypad5Key1"),
+		GetUniqueObject( "Keypad5Key2"), GetUniqueObject( "Keypad5Key3"), GetUniqueObject( "Keypad5Key4"),
+		GetUniqueObject( "Keypad5Key5"), GetUniqueObject( "Keypad5Key6" ), GetUniqueObject( "Keypad5Key7"),
+		GetUniqueObject( "Keypad5Key8"), GetUniqueObject( "Keypad5Key9"), GetUniqueObject( "Keypad5KeyCancel"), 
+		mColliderDoorToUnlock, "1598" );
+
 
 	ruSetAudioReverb( 10 );
 
@@ -265,6 +283,8 @@ void LevelResearchFacility::DoScenario() {
 	mKeypad1->Update();
 	mKeypad2->Update();
 	mKeypad3->Update();
+	mLabKeypad->Update();
+	mColliderKeypad->Update();
 
     mpSteamValve->Update();
     mpExtemeSteam->Update();

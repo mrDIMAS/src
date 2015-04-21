@@ -191,7 +191,7 @@ LevelMine::LevelMine() {
 }
 
 LevelMine::~LevelMine() {
-    delete mEnemy;
+
 }
 
 void LevelMine::Show() {

@@ -64,4 +64,9 @@ public:
     void Serialize( TextFileStream & out );
     void Deserialize( TextFileStream & in );
     void SetVisible( bool state );
+	void GetItemList( vector<Item::Type> & itemList ) {
+		for( auto pItem : mItemList ) {
+			itemList.push_back( pItem->GetType() );
+		}
+	}
 };

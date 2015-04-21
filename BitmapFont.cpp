@@ -3,7 +3,6 @@
 #include "BitmapFont.h"
 #include "Utility.h"
 
-FT_Library g_ftLibrary;
 vector< BitmapFont* > BitmapFont::fonts;
 
 void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
@@ -24,19 +23,23 @@ void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
 }
 
 BitmapFont::BitmapFont( const string & file, int size ) {
-	if( !IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
 		size = NearestPow2(size);
+	}
+	FT_Library ftLibrary;
+	if( FT_Init_FreeType( &ftLibrary ) ) {
+		throw std::runtime_error( "Unable to initialize FreeType 2.53" );
 	}
     glyphSize = size;
     // load new font face
-    if( FT_New_Face( g_ftLibrary, file.c_str(), 0, &face ) ) {
-        LogError( StringBuilder( "Failed to load" ) << file << "font!" );
+    if( FT_New_Face( ftLibrary, file.c_str(), 0, &face ) ) {
+        Log::Error( StringBuilder( "Failed to load" ) << file << "font!" );
     }
     if( FT_Set_Pixel_Sizes( face, 0, size )) {
-        LogError( StringBuilder( "Failed to FT_Set_Pixel_Sizes!" ));
+        Log::Error( StringBuilder( "Failed to FT_Set_Pixel_Sizes!" ));
     }
     if( FT_Select_Charmap( face, FT_ENCODING_UNICODE )) {
-        LogError( StringBuilder( "Failed to FT_Select_Charmap!" ));
+        Log::Error( StringBuilder( "Failed to FT_Select_Charmap!" ));
     }
     // create atlas texture
 	atlasWidth = atlasHeight = size * 16;
@@ -60,10 +63,10 @@ BitmapFont::BitmapFont( const string & file, int size ) {
             charIndexOffset++;
         }
         if( FT_Load_Glyph( face, FT_Get_Char_Index( face, charIndex + charIndexOffset ), FT_LOAD_DEFAULT )) {
-            LogError( StringBuilder( "Failed to FT_Load_Glyph!" ));
+            Log::Error( StringBuilder( "Failed to FT_Load_Glyph!" ));
         }
         if( FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL )) {
-            LogError( StringBuilder( "Failed to FT_Load_Glyph!" ));
+            Log::Error( StringBuilder( "Failed to FT_Load_Glyph!" ));
         }
         int memOffsetBytes = subRectRow * lockedRect.Pitch * size + subRectCol * size * sizeof( ARGB8Pixel );
         ARGB8Pixel * subRectPixel = (ARGB8Pixel *)( (char*)lockedRect.pBits + memOffsetBytes );
@@ -106,6 +109,7 @@ BitmapFont::BitmapFont( const string & file, int size ) {
     FT_Done_Face( face );
     BitmapFont::fonts.push_back( this );
     CheckDXErrorFatal( atlasSurface->UnlockRect());
+	FT_Done_FreeType( ftLibrary );
 }
 
 BitmapFont::~BitmapFont()

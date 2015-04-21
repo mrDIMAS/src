@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Physics.h"
-#include "Common.h"
+
 #include "FastReader.h"
 #include "ParticleEmitter.h"
 #include "Light.h"
@@ -14,11 +14,9 @@
 vector< SceneNode* > SceneNode::msNodeList;
 
 SceneNode * SceneNode::CastHandle( ruNodeHandle handle ) {
-	if( g_debugMode ) {
-		if( !ruIsNodeHandleValid( handle )) {
-			throw std::exception( "Cast handle failed!" );
-		}
-	}
+	if( !ruIsNodeHandleValid( handle )) {
+		throw std::exception( "Cast handle failed!" );
+	}	
     return reinterpret_cast< SceneNode *>( handle.pointer );
 }
 
@@ -440,9 +438,9 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
                 mesh->mTriangles.push_back( Mesh::Triangle( a, b, c ));
             }
 
-            mesh->mDiffuseTexture = Texture::Require( g_texturePath + diffuse );
+            mesh->mDiffuseTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + diffuse );
 			if( mesh->mOpacity > 0.95f )
-				mesh->mNormalTexture = Texture::Require( g_texturePath + normal );
+				mesh->mNormalTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + normal );
 
             node->mMeshList.push_back( mesh );
 

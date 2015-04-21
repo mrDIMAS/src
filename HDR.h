@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+
 #include "EffectsQuad.h"
 
 class HDRShader {

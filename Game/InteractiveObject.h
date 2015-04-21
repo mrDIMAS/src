@@ -2,7 +2,6 @@
 
 #include "Game.h"
 
-
 class InteractiveObject {
 private:
 	float mFlashAlbedo;
@@ -11,17 +10,12 @@ private:
 	bool mFlashDirection;
 public:
     ruNodeHandle mObject;
-
-    static vector< InteractiveObject* > objects;
-
+    static vector< InteractiveObject* > msObjectList;
     explicit InteractiveObject( ruNodeHandle object );
+	explicit InteractiveObject();
     virtual ~InteractiveObject();
     void UpdateFlashing();
-
-    virtual void Update() {
-    }
-
+    virtual void Update();
     static void UpdateAll();
-
     static void DeleteAll();
 };
