@@ -67,6 +67,8 @@ Level::~Level() {
     for( auto iSound : mSounds ) {
         ruFreeSound( iSound );
     }
+
+	ruFreeSound( mMusic );
 }
 
 void Level::LoadLocalization( string fn ) {
@@ -98,9 +100,15 @@ void Level::Show() {
 struct WeaponTransfer {
 	Weapon::Type mType;
 	int projCount;
+	WeaponTransfer( Weapon::Type type, int prc ) {
+		mType = type;
+		projCount = prc;
+	}
 };
 
 void Level::Change( int levelId, bool continueFromSave ) {
+	static int lastLevel = 0;
+
     Level::msCurLevelID = levelId;
 		
 	/////////////////////////////////////////////////////
@@ -122,10 +130,12 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	vector<Item::Type> items;
 	// weapons
 	vector<WeaponTransfer> weapons;
-
-	
+		
 	if( pPlayer ) {
 		pPlayer->GetInventory()->GetItemList( items );
+		for( auto pWeapon : pPlayer->mWeaponList ) {
+			weapons.push_back( WeaponTransfer( pWeapon->GetType(), pWeapon->GetProjectileCount()));
+		}
 		delete pPlayer;
 		pPlayer = nullptr;
 	}
@@ -171,71 +181,57 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	ItemPlace::sItemPlaceList.clear();	
 
 	/////////////////////////////////////////////////////
-	// and now we can load new level
-    if( !pPlayer && Level::msCurLevelID != LevelName::L0Introduction ) {
-        pPlayer = new Player();
-    }
 	
-    if( Level::msCurLevelID == LevelName::L0Introduction ) {
-        pCurrentLevel = new LevelIntroduction;
-    } else {
-        pPlayer->FreeHands();
-    }
-
-    if( Level::msCurLevelID == LevelName::L1Arrival ) {
-        pCurrentLevel = new LevelArrival;
-    }
-
-    if( Level::msCurLevelID == LevelName::L2Mine ) {
-        pCurrentLevel = new LevelMine;
-    }
-
-    if( Level::msCurLevelID == LevelName::L3ResearchFacility ) {
-        pCurrentLevel = new LevelResearchFacility;
-    }
-
-	if( Level::msCurLevelID == LevelName::L4Sewers ) {
-		pCurrentLevel = new LevelSewers;
+	// create player
+	if( Level::msCurLevelID != LevelName::L0Introduction ) {
+		pPlayer = new Player();
 	}
 
-    if( Level::msCurLevelID == LevelName::LXTestingChamber ) {
-        pCurrentLevel = new TestingChamber;
-    }
-
-	if( pPlayer ) {
-		pPlayer->RepairInventory();
+	// and now we can load new level
+	switch( Level::msCurLevelID )
+	{
+	case LevelName::L0Introduction:
+		pCurrentLevel = new LevelIntroduction;
+		break;
+	case LevelName::L1Arrival:
+		pCurrentLevel = new LevelArrival;
+		break;
+	case LevelName::L2Mine:
+		pCurrentLevel = new LevelMine;
+		break;
+	case LevelName::L3ResearchFacility:
+		pCurrentLevel = new LevelResearchFacility;
+		break;
+	case LevelName::L4Sewers:
+		pCurrentLevel = new LevelSewers;
+		break;
+	case LevelName::LXTestingChamber:
+		pCurrentLevel = new TestingChamber;
+		break;
+	default:
+		break;
 	}
 
     if( continueFromSave ) {
         SaveLoader( "lastGame.save" ).RestoreWorldState();
     }
-    for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-		ruNodeHandle light = ruGetWorldPointLight( i );
-		bool ingore = false;
-		if( pPlayer ) { // stupid hack
-			if( light == pPlayer->mpFlashlight->GetLight() ) {
-				ingore = true;
+
+	// only if level is changed to another
+	if( lastLevel != levelId ) {
+		// after loading, give old items to the player
+		for( auto itemType : items ) {
+			if( itemType != Item::Type::Lighter ) { // lighter automatically added to player
+				pPlayer->AddItem( new Item( itemType ));
 			}
 		}
-		if( !ingore ) {
-			ruSetLightFloatingEnabled( light, true );
-			float d = 0.1f;
-			ruSetLightFloatingLimits( light, ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
-		}
-    }
-
-	// after loading, give old items to the player
-	for( auto itemType : items ) {
-		if( itemType != Item::Type::Lighter ) { // lighter automatically added to player
-			pPlayer->AddItem( new Item( itemType ));
+		// weapons
+		for( auto wpnTransfer : weapons ) {
+			Weapon * pWpn = pPlayer->AddWeapon( wpnTransfer.mType );
+			pWpn->SetProjectileCount( wpnTransfer.projCount );
 		}
 	}
 
-	// weapons
-	for( auto wpnTransfer : weapons ) {
-		Weapon * pWpn = pPlayer->AddWeapon( wpnTransfer.mType );
-		pWpn->SetProjectileCount( wpnTransfer.projCount );
-	}
+	lastLevel = levelId;
 }
 
 void Level::AddLift( Lift * pLift ) {
@@ -279,6 +275,11 @@ void Level::DeserializeWith( TextFileStream & in ) {
 		ruVector3 pos = in.ReadVector3();
 		ruQuaternion quat = in.ReadQuaternion();
 		bool visible = in.ReadBoolean();
+		bool isLight = in.ReadBoolean();
+		float litRange = 0.0f;
+		if( isLight ) {
+			litRange = in.ReadFloat();
+		}
         if( node.IsValid() ) {
             ruSetNodeLocalPosition( node, pos );
             ruSetNodeLocalRotation( node, quat );           
@@ -287,6 +288,12 @@ void Level::DeserializeWith( TextFileStream & in ) {
             } else {
                 ruHideNode( node );
             }
+			if( isLight ) {
+				ruSetLightRange( node, litRange );
+				ruSetLightFloatingEnabled( node, true );
+				float d = 0.1f;
+				ruSetLightFloatingLimits( node, ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
+			}
         }
     }
     int countStages = in.ReadInteger();
@@ -295,24 +302,11 @@ void Level::DeserializeWith( TextFileStream & in ) {
         bool stageState = in.ReadBoolean();
         mStages[ stageName ] = stageState;
     }
-	int pointLightCount = in.ReadInteger();
-	for( int i = 0; i < pointLightCount; i++ ) {
-		ruNodeHandle lit = ruGetWorldPointLight( i );
-		if( lit.IsValid() ) {
-			ruSetLightRange( lit, in.ReadFloat() );
-		} else {
-			// ignore
-			in.ReadFloat();
-		}
-	}
-	int spotLightCount = in.ReadInteger();
-	for( int i = 0; i < spotLightCount; i++ ) {
-		ruNodeHandle spot = ruGetWorldSpotLight( i );
-		if( spot.IsValid() ) {
-			ruSetLightRange( spot, in.ReadFloat() );
-		} else {
-			// ignore
-			in.ReadFloat();
+	int doorCount = in.ReadInteger();
+	for( int i = 0; i < doorCount; i++ ) {
+		Door * pDoor = Door::GetByName( in.ReadString() );
+		if( pDoor ) {
+			pDoor->DeserializeWith( in );
 		}
 	}
     OnDeserialize( in );
@@ -327,19 +321,21 @@ void Level::SerializeWith( TextFileStream & out ) {
         out.WriteVector3( ruGetNodeLocalPosition( node ));
         out.WriteQuaternion( ruGetNodeLocalRotation( node ));
         out.WriteBoolean( ruIsNodeVisible( node ));
+		out.WriteBoolean( ruIsLight( node ) );
+		if( ruIsLight( node )) {
+			out.WriteFloat( ruGetLightRange( node ));
+		}
     }
     out.WriteInteger( mStages.size());
     for( auto stage : mStages ) {
         out.WriteString( stage.first );
         out.WriteBoolean( stage.second );
     }
-	out.WriteInteger( ruGetWorldPointLightCount() );
-	for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-		out.WriteFloat( ruGetLightRange( ruGetWorldPointLight( i )));
-	}
-	out.WriteInteger( ruGetWorldSpotLightCount() );
-	for( int i = 0; i < ruGetWorldSpotLightCount(); i++ ) {
-		out.WriteFloat( ruGetLightRange( ruGetWorldSpotLight( i )));
+
+	out.WriteInteger( Door::msDoorList.size() );
+	for( auto pDoor : Door::msDoorList ) {
+		out.WriteString( ruGetNodeName( pDoor->mDoorNode ) );
+		pDoor->SerializeWith( out );
 	}
     OnSerialize( out );
 }

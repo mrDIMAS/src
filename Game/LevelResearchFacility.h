@@ -68,8 +68,16 @@ private:
     int fuseInsertedCount;
     bool mPowerOn;
 
+	ruNodeHandle mThermiteSmall;
+	ruNodeHandle mThermiteBig;
+	ruNodeHandle mMeshLock;
+	ruNodeHandle mThermitePlace;
+	ruNodeHandle mMeshToSewers;
+	ItemPlace * mThermiteItemPlace;
+
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
+	void UpdateThermiteSequence();
 public:
     explicit LevelResearchFacility();
     virtual ~LevelResearchFacility();

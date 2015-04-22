@@ -66,4 +66,7 @@ public:
 	void SerializeWith( TextFileStream & out );
 	void DeserializeWith( TextFileStream & in );
 	void SetProjectileCount( int projCount );
+	int GetProjectileCount() {
+		return mProjectileCount;
+	}
 };

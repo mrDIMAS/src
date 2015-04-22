@@ -95,3 +95,48 @@ void Door::Open() {
         ruPlaySound( mOpenSound );
     }
 }
+
+Door * Door::GetByName( const string & name )
+{
+	for( auto pDoor : msDoorList ) {
+		if( ruGetNodeName( pDoor->mDoorNode ) == name ) {
+			return pDoor;
+		}
+	}
+	return nullptr;
+}
+
+void Door::DeserializeWith( TextFileStream & in )
+{
+	in.ReadFloat( mMaxAngle );
+	in.ReadFloat( mOffsetAngle );
+	in.ReadFloat( mCurrentAngle );
+	mTurnDirection = (TurnDirection)in.ReadInteger();
+	mState = (State)in.ReadInteger();
+	in.ReadBoolean( mLocked );
+}
+
+void Door::SerializeWith( TextFileStream & out )
+{
+	out.WriteFloat( mMaxAngle );
+	out.WriteFloat( mOffsetAngle );
+	out.WriteFloat( mCurrentAngle );
+	out.WriteInteger( (int)mTurnDirection );
+	out.WriteInteger( (int)mState );
+	out.WriteBoolean( mLocked );
+}
+
+void Door::SetLocked( bool state )
+{
+	mLocked = state;
+}
+
+bool Door::IsLocked()
+{
+	return mLocked;
+}
+
+void Door::SetTurnDirection( TurnDirection direction )
+{
+	mTurnDirection = direction;
+}

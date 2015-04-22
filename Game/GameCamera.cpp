@@ -53,3 +53,9 @@ void GameCamera::FadePercent( int percent ) {
 void GameCamera::SetFadeColor( ruVector3 newFadeColor ) {
     fadeColor = newFadeColor;
 }
+
+GameCamera::~GameCamera()
+{
+	ruFreeSceneNode( mNode );
+	ruFreeGUINode( mFullscreenQuad );
+}

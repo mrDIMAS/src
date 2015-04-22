@@ -113,13 +113,20 @@ DeferredRenderer::PointLightShader::PointLightShader() {
 }
 
 void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Light * light ) {
-	/*
-	if( light->pointTexture ) {
-		pixelShaderTexProj->Bind();
-		Renderer::Instance().GetDevice()->SetTexture( 3, light->pointTexture->cubeTexture );
-	} else {
-		pixelShader->Bind();
-	}*/
+	// HACK HACK HACK
+	bool found = false;
+	auto pointIter = find( Light::msPointLightList.begin(), Light::msPointLightList.end(), light );
+	if( pointIter != Light::msPointLightList.end() ) {
+		found = true;
+	}
+
+	if( !found ) {
+		auto spotIter = find( Light::msSpotLightList.begin(), Light::msSpotLightList.end(), light );
+		if( spotIter == Light::msSpotLightList.end() ) {
+			return;
+		}
+	}
+
 	if( light->pointTexture ) {
 		Engine::Instance().GetDevice()->SetTexture( 3, light->pointTexture->cubeTexture );
 	};

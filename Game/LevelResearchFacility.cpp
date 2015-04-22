@@ -71,7 +71,12 @@ LevelResearchFacility::LevelResearchFacility() {
 	mZoneObjectiveNeedPassThroughMesh = GetUniqueObject( "ObjectiveNeedPassThroughMesh" );
 	mZoneRemovePathBlockingMesh = GetUniqueObject( "ZoneRemovePathBlockingMesh" );
 	mPathBlockingMesh = GetUniqueObject( "PathBlockingMesh" );
-
+	mThermiteSmall = GetUniqueObject( "ThermiteSmall" );
+	mThermiteBig = GetUniqueObject( "ThermiteBig" );
+	mMeshLock = GetUniqueObject( "MeshLock" );
+	mThermitePlace = GetUniqueObject( "ThermitePlace" );
+	mMeshToSewers = GetUniqueObject( "MeshToSewers" );
+	
     CreatePowerUpSequence();
 
     AddSound( mMusic = ruLoadMusic( "data/music/rf.ogg" ));
@@ -98,6 +103,8 @@ LevelResearchFacility::LevelResearchFacility() {
 	AddDoor( mColliderDoorToUnlock = new Door( GetUniqueObject( "DoorToCollider" ), 90 ));
 	
 
+	mThermiteItemPlace = new ItemPlace( mThermitePlace, Item::Type::AluminumPowder );
+
 	AutoCreateDoorsByNamePattern( "Door?([[:digit:]]+)" );
 
     mScaryBarell = GetUniqueObject( "ScaryBarell" );
@@ -120,6 +127,8 @@ LevelResearchFacility::LevelResearchFacility() {
 	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
 	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
+	AddItem( new Item( GetUniqueObject( "FerrumOxide" ), Item::Type::FerrumOxide ));
+	AddItem( new Item( GetUniqueObject( "AluminumPowder" ), Item::Type::AluminumPowder ));
 
 	mKeypad1 = new Keypad( GetUniqueObject( "Keypad1"), GetUniqueObject( "Keypad1Key0" ), GetUniqueObject( "Keypad1Key1"),
 						   GetUniqueObject( "Keypad1Key2"), GetUniqueObject( "Keypad1Key3"), GetUniqueObject( "Keypad1Key4"),
@@ -291,6 +300,7 @@ void LevelResearchFacility::DoScenario() {
     mpExtemeSteam->power = 1.0f - mpSteamValve->GetClosedCoeffecient();
 
     UpdatePowerupSequence();
+	UpdateThermiteSequence();
 
     if( mPowerOn && mpPowerSparks ) {
         mpPowerSparks->Update();
@@ -323,6 +333,57 @@ void LevelResearchFacility::DoScenario() {
             pPlayer->Damage( 0.6 );
         }
     }
+
+	if( pPlayer->IsInsideZone( mZoneNewLevelLoad )) {
+		Level::Change( L4Sewers );
+	}
+}
+
+void LevelResearchFacility::UpdateThermiteSequence() {
+	if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {
+		if( mThermiteItemPlace->IsPickedByPlayer() ) {
+			if( ruIsKeyHit( pPlayer->mKeyUse )) {			
+				bool placed = mThermiteItemPlace->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
+				if( placed ) {
+					if( mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder ) {
+						ruShowNode( mThermiteSmall );
+						mThermiteItemPlace->SetPlaceType( Item::Type::FerrumOxide );
+					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::FerrumOxide ) {
+						ruShowNode( mThermiteBig );
+						mThermiteItemPlace->SetPlaceType( Item::Type::Lighter );
+					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter ) {
+						ruHideNode( mMeshLock );
+						ruSetNodeRotation( mMeshToSewers, ruQuaternion( ruVector3( 0, 0, 1 ), 90 ));
+						ruHideNode( mThermiteSmall );
+						ruHideNode( mThermiteBig );
+
+						ruSoundHandle burn = ruLoadSound3D( "data/sounds/burn.ogg" );
+						ruSetSoundPosition( burn, ruGetNodePosition( mThermiteSmall ));
+						ruPlaySound( burn );
+
+						mThermiteItemPlace->SetPlaceType( Item::Type::Unknown );
+						
+						ruParticleSystemProperties psProps;
+						psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
+						psProps.type = PS_BOX;
+						psProps.speedDeviationMin = ruVector3( -0.001, 0.001, -0.001 );
+						psProps.speedDeviationMax = ruVector3( 0.001, 0.009, 0.001 );
+						psProps.colorBegin = ruVector3( 255, 255, 255 );
+						psProps.colorEnd = ruVector3( 255, 255, 255 );
+						psProps.pointSize = 0.045f;
+						psProps.boundingBoxMin = ruVector3( -0.2, 0.0, -0.2 );
+						psProps.boundingBoxMax = ruVector3( 0.2, 0.4, 0.2 );
+						psProps.particleThickness = 20.5f;
+						psProps.autoResurrectDeadParticles = false;
+						psProps.useLighting = false;
+						ruNodeHandle ps = ruCreateParticleSystem( 150, psProps );
+						ruSetNodePosition( ps, ruGetNodePosition( mThermiteSmall ));
+					}
+				}
+			}		
+			pPlayer->SetActionText( "Поместить" );
+		}				
+	}
 }
 
 void LevelResearchFacility::UpdatePowerupSequence() {

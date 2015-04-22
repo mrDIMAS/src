@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game.h"
+#include "TextFileStream.h"
 
 class Door {
 public:
@@ -10,44 +11,34 @@ public:
         Closing,
         Opening,
     };
-
 	enum class TurnDirection {
 		Clockwise,
 		Counterclockwise,
 	};
 public:
     ruNodeHandle mDoorNode;
-
     float mMaxAngle;
     float mOffsetAngle;
     float mCurrentAngle;
 	TurnDirection mTurnDirection;
-
     State mState;
-
 	bool mLocked;
-
     ruSoundHandle mOpenSound;
     ruSoundHandle mCloseSound;
 public:
     static vector< Door* > msDoorList;
-
     explicit Door( ruNodeHandle hDoor, float fMaxAngle );
     virtual ~Door();
     bool IsPickedByPlayer();
     void SwitchState();
     State GetState();
-	void SetTurnDirection( TurnDirection direction ) {
-		mTurnDirection = direction;
-	}
-	bool IsLocked()
-	{
-		return mLocked;
-	}
-	void SetLocked( bool state ) {
-		mLocked = state;
-	}
+	void SetTurnDirection( TurnDirection direction );
+	bool IsLocked();
+	void SetLocked( bool state );
     void Open( );
     void Close();
-    virtual void DoInteraction();
+    virtual void DoInteraction();	
+	void SerializeWith( TextFileStream & out );
+	void DeserializeWith( TextFileStream & in );
+	static Door * GetByName( const string & name );
 };

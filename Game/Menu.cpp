@@ -204,23 +204,30 @@ void Menu::Update( ) {
 
         int mainButtonsX = 20;
         int startOffsetIfInGame = pCurrentLevel ? 0.5 * mDistBetweenButtons : 0;
+		
 
         int saveGamePosX = ( mPage == Page::SaveGame ) ? mainButtonsX + 20 : mainButtonsX;
         int loadGamePosX = ( mPage == Page::LoadGame ) ? mainButtonsX + 20 : mainButtonsX;
         int optionsPosX = ( mPage == Page::Options || mPage == Page::OptionsGraphics || mPage == Page::OptionsKeys || mPage == Page::OptionsCommon ) ? mainButtonsX + 20 : mainButtonsX;
 
         ruSetGUINodeVisible( mGUIContinueGameButton, pCurrentLevel || mCanContinueGameFromLast );
-		 ruSetGUINodeVisible( mGUIStartButton, !pCurrentLevel );
+		ruSetGUINodeVisible( mGUIStartButton, !pCurrentLevel );
 
+		int canSaveOffset = 0;
 		if( pPlayer ) {
 			if( pPlayer->IsDead() ) {
 				ruSetGUINodeVisible( mGUIContinueGameButton, false );
-				 ruSetGUINodeVisible( mGUIStartButton, true );
+				ruSetGUINodeVisible( mGUIStartButton, true );
+				ruSetGUINodeVisible( mGUISaveGameButton, false );
+				canSaveOffset = 0.5 * mDistBetweenButtons;
 			}
+		} else {
+			ruSetGUINodeVisible( mGUISaveGameButton, false );
+			canSaveOffset = 0.5 * mDistBetweenButtons;
 		}       
 
-        ruSetGUINodePosition( mGUIContinueGameButton, mainButtonsX, g_resH - 4.0 * mDistBetweenButtons + startOffsetIfInGame );
-        ruSetGUINodePosition( mGUIStartButton, mainButtonsX, g_resH - 3.5 * mDistBetweenButtons );
+        ruSetGUINodePosition( mGUIContinueGameButton, mainButtonsX, g_resH - 4.0 * mDistBetweenButtons + startOffsetIfInGame  + canSaveOffset );
+        ruSetGUINodePosition( mGUIStartButton, mainButtonsX, g_resH - 3.5 * mDistBetweenButtons  + canSaveOffset );
         ruSetGUINodePosition( mGUISaveGameButton, saveGamePosX, g_resH - 3.0 * mDistBetweenButtons);
         ruSetGUINodePosition( mGUILoadGameButton, loadGamePosX, g_resH - 2.5 * mDistBetweenButtons );
         ruSetGUINodePosition( mGUIOptionsButton, optionsPosX, g_resH - 2.0 * mDistBetweenButtons );

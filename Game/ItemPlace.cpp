@@ -12,8 +12,10 @@ bool ItemPlace::PlaceItem( Item * pItem ) {
     if( pItem->GetType() == mItemTypeCanBePlaced ) {
         pPlacedItem = pItem;
 
-        pPlayer->mInventory.ResetSelectedForUse();
-        pPlayer->mInventory.RemoveItem( pItem );
+		pPlayer->mInventory.ResetSelectedForUse();
+		if( pItem->IsThrowable() ) {			
+			pPlayer->mInventory.RemoveItem( pItem );
+		}
 
         return true;
     }

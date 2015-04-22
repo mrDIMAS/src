@@ -11,11 +11,6 @@ IDirect3DVertexBuffer9 * Light::flareBuffer = nullptr;
 Texture * Light::defaultSpotTexture = nullptr;
 CubeTexture * Light::defaultPointCubeTexture = nullptr;
 
-/*
-==========
-Light::GetLightByHandle
-==========
-*/
 Light * Light::GetLightByHandle( ruNodeHandle handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
     Light * light = dynamic_cast< Light* >( n );
@@ -38,11 +33,6 @@ bool ruIsLightHandeValid( ruNodeHandle handle ) {
 	return false;
 }
 
-/*
-==========
-Light::Light
-==========
-*/
 Light::Light( int type ) {
     color = ruVector3( 1.0f, 1.0f, 1.0f );
     radius = 1.0f;
@@ -70,67 +60,33 @@ Light::Light( int type ) {
 	trulyVisible = true;
 	inFrustum = false;
 }
-/*
-==========
-Light::SetColor
-==========
-*/
+
 void Light::SetColor( const ruVector3 & theColor ) {
     color.x = theColor.x / 255.0f;
     color.y = theColor.y / 255.0f;
     color.z = theColor.z / 255.0f;
 }
 
-/*
-==========
-Light::GetColor
-==========
-*/
 ruVector3 Light::GetColor() const {
     return color;
 }
 
-/*
-==========
-Light::SetRadius
-==========
-*/
 void Light::SetRadius( const float & theRadius ) {
     radius = theRadius;
 }
 
-/*
-==========
-Light::GetRadius
-==========
-*/
 float Light::GetRadius() const {
     return radius;
 }
 
-/*
-==========
-Light::GetInnerAngle
-==========
-*/
 float Light::GetInnerAngle() const {
     return innerAngle;
 }
 
-/*
-==========
-Light::GetOuterAngle
-==========
-*/
 float Light::GetOuterAngle() const {
     return outerAngle;
 }
 
-/*
-==========
-Light::SetConeAngles
-==========
-*/
 void Light::SetConeAngles( float theInner, float theOuter ) {
     innerAngle = theInner;
     outerAngle = theOuter;
@@ -139,29 +95,14 @@ void Light::SetConeAngles( float theInner, float theOuter ) {
     cosHalfOuterAngle = cosf( ( outerAngle / 2 ) * SIMD_PI / 180.0f );
 }
 
-/*
-==========
-Light::GetCosHalfInnerAngle
-==========
-*/
 float Light::GetCosHalfInnerAngle( ) {
     return cosHalfInnerAngle;
 }
 
-/*
-==========
-Light::GetCosHalfOuterAngle
-==========
-*/
 float Light::GetCosHalfOuterAngle( ) {
     return cosHalfOuterAngle;
 }
 
-/*
-==========
-Light::~Light
-==========
-*/
 Light::~Light() {
     auto pointLight = find( Light::msPointLightList.begin(), Light::msPointLightList.end(), this );
     if( pointLight != Light::msPointLightList.end() ) {
@@ -173,14 +114,18 @@ Light::~Light() {
         Light::msSpotLightList.erase( spotLight );
     }
 
+	if( Camera::msCurrentCamera ) {
+		if( Camera::msCurrentCamera->mNearestPathPoint ) {
+			auto & litList = Camera::msCurrentCamera->mNearestPathPoint->mLightList;
+			auto iter = find( litList.begin(), litList.end(), this );
+			if( iter != litList.end() ) {
+				litList.erase( iter );
+			}
+		}		
+	}
 	pQuery->Release();
 }
 
-/*
-==========
-Light::BuildSpotProjectionMatrix
-==========
-*/
 void Light::BuildSpotProjectionMatrixAndFrustum() {
     btVector3 bEye = btVector3( GetRealPosition().x, GetRealPosition().y, GetRealPosition().z );
     btVector3 bLookAt = bEye + mGlobalTransform.getBasis() * btVector3( 0, -1, 0 );
@@ -197,20 +142,10 @@ void Light::BuildSpotProjectionMatrixAndFrustum() {
     frustum.Build( spotViewProjectionMatrix );
 }
 
-/*
-==========
-Light::SetSpotTexture
-==========
-*/
 void Light::SetSpotTexture( Texture * tex ) {
     spotTexture = tex;
 }
 
-/*
-==========
-Light::RenderLightFlares
-==========
-*/
 void Light::RenderLightFlares() {
     if( !flareBuffer ) {
         return;
@@ -239,11 +174,6 @@ void Light::RenderLightFlares() {
     }
 }
 
-/*
-==========
-Light::SetFlare
-==========
-*/
 void Light::SetFlare( Texture * texture ) {
     if( !texture ) {
         return;

@@ -18,6 +18,9 @@ public:
 		Crowbar			= 8,
 		Pistol			= 9,
 		Bullet			= 10,
+		Beaker			= 11,
+		AluminumPowder  = 12,
+		FerrumOxide		= 13,
     };
 private:
 	friend class Inventory;

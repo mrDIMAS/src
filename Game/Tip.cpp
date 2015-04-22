@@ -46,3 +46,11 @@ Tip::Tip() : mAlpha( 255.0f, 0.0f, 255.0f ) {
     mGUIText = ruCreateGUIText( " ", 0, 0, mWidth, mHeight, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , mAlpha );
 	SetNewText( " " );
 }
+
+void Tip::SetVisible( bool state ) {
+	ruSetGUINodeVisible( mGUIText, state );
+}
+
+Tip::~Tip() {
+	ruFreeGUINode( mGUIText );
+}

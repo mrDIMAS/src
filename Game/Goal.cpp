@@ -42,7 +42,7 @@ Goal::Goal() {
 }
 
 Goal::~Goal() {
-
+	ruFreeGUINode( mGoalText );
 }
 
 void Goal::SetVisible( bool state ) {

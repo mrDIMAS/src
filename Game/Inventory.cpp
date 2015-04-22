@@ -383,7 +383,30 @@ void Inventory::ThrowItem( Item * pItem ) {
 }
 
 Inventory::~Inventory() {
-
+	ruFreeGUINode( mGUIRectItemForUse );
+	ruFreeGUINode( mGUIBackground );
+	ruFreeGUINode( mGUIRightPanel );
+	ruFreeGUINode( mGUIDescription );
+	ruFreeGUINode( mGUIActions );
+	ruFreeGUINode( mGUIButtonUse );
+	ruFreeGUINode( mGUIButtonCombine );
+	ruFreeGUINode( mGUIButtonThrow );
+	ruFreeGUINode( mGUIFirstCombineItem );
+	ruFreeGUINode( mGUISecondCombineItem );
+	ruFreeGUINode( mGUIFirstCombineItemCell );
+	ruFreeGUINode( mGUISecondCombineItemCell );
+	ruFreeGUINode( mGUICharacteristics );
+	for( int i = 0; i < mCellCountWidth; i++ ) {
+		for( int j = 0; j < mCellCountHeight; j++ ) {
+			ruFreeGUINode( mGUIItem[i][j] );
+			ruFreeGUINode( mGUIItemCell[i][j] );
+		}
+	}
+	ruFreeGUINode( mGUIItemDescription );
+	ruFreeGUINode( mGUIItemMass );
+	ruFreeGUINode( mGUIItemContent );
+	ruFreeGUINode( mGUIItemContentType );
+	ruFreeGUINode( mGUIItemVolume );
 }
 
 void Inventory::Open( bool val ) {
@@ -454,5 +477,12 @@ bool Inventory::GotAnyItemOfType( Item::Type type ) {
 		}
 	}
 	return false;
+}
+
+void Inventory::GetItemList( vector<Item::Type> & itemList )
+{
+	for( auto pItem : mItemList ) {
+		itemList.push_back( pItem->GetType() );
+	}
 }
 

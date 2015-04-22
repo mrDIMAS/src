@@ -838,6 +838,28 @@ Player::~Player() {
 	for( auto pWeapon : mWeaponList ) {
 		delete pWeapon;
 	}
+
+	ruFreeGUINode( mGUIActionText );
+	for( int i = 0; i < mGUISegmentCount; i++ ) {
+		ruFreeGUINode( mGUIHealthBarSegment[i] );
+		ruFreeGUINode( mGUIStaminaBarSegment[i] );
+	}
+	ruFreeGUINode( mGUIBackground );
+	ruFreeGUINode( mGUIStealthSign );
+
+	ruFreeSound( mLighterCloseSound );
+	ruFreeSound( mLighterOpenSound );
+	ruFreeSound( mItemPickupSound );
+	ruFreeSound( mHeartBeatSound );
+	ruFreeSound( mBreathSound );
+
+	for( auto snd : mFootstepList ) {
+		ruFreeSound( snd );
+	}
+
+	ruFreeGUINode( mGUICursorPickUp );
+	ruFreeGUINode( mGUICursorPut );
+	ruFreeGUINode( mGUICrosshair );
 }
 
 void Player::SetMetalFootsteps() {

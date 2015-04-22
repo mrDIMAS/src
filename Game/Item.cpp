@@ -119,6 +119,32 @@ void Item::SetType( Type type ) {
         mContentTypeDesc = msLocalization.GetString( "medkitContentType" );
     }
 
+	if( mType == Type::Beaker ) {
+		mDesc = msLocalization.GetString( "beakerDesc" );
+		mName = msLocalization.GetString( "beakerName" );
+		mPic = ruGetTexture( "data/gui/inventory/items/beaker.png" );
+		mCombinePair = Type::Unknown;
+		mMass = 0.25f;
+	}
+
+	if( mType == Type::FerrumOxide ) {
+		mDesc = msLocalization.GetString( "fe2o3Desc" );
+		mName = msLocalization.GetString( "fe2o3Name" );
+		mPic = ruGetTexture( "data/gui/inventory/items/jar.png" );
+		mCombinePair = Type::Unknown;
+		mModelFile = "data/models/jar/jar.scene";
+		mMass = 0.25f;
+	}
+
+	if( mType == Type::AluminumPowder ) {
+		mDesc = msLocalization.GetString( "aluminumDesc" );
+		mName = msLocalization.GetString( "aluminumName" );
+		mPic = ruGetTexture( "data/gui/inventory/items/jar.png" );
+		mCombinePair = Type::Unknown;
+		mModelFile = "data/models/jar/jar.scene";
+		mMass = 0.25f;
+	}
+
 	if( !mObject.IsValid() ) {
 		mObject = ruLoadScene( mModelFile );
 		ruFreeze( mObject );

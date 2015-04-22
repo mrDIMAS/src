@@ -15,10 +15,9 @@ private:
     ruTimerHandle mTimer;
     ruTextHandle mGUIText;
 public:
-    Tip();
-	void SetVisible( bool state ) {
-		ruSetGUINodeVisible( mGUIText, state );
-	}
+    explicit Tip();
+	virtual ~Tip();
+	void SetVisible( bool state );
     void SetNewText( string text );
     void AnimateAndDraw();
     void Serialize( TextFileStream & out );

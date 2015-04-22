@@ -66,6 +66,9 @@ void Camera::CalculateProjectionMatrix() {
 }
 
 Camera::~Camera() {
+	if( msCurrentCamera == this ) {
+		msCurrentCamera = nullptr;
+	}
     if( mSkybox ) {
         delete mSkybox;
     }
