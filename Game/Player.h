@@ -140,6 +140,8 @@ public:
 
 	ruSoundHandle mDeadSound;
 	ruVector3 mAirPosition;
+
+	ruTimerHandle mAutoSaveTimer;
 public:
     explicit Player();
     virtual ~Player();

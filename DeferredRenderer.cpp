@@ -8,8 +8,6 @@
 #include "Utility.h"
 #include "Engine.h"
 
-bool g_fxaaEnabled = true;
-
 DeferredRenderer::DeferredRenderer() {
     mFullscreenQuad = new EffectsQuad;
     mDebugQuad = new EffectsQuad( true );
@@ -346,7 +344,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
     if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
         mHDRShader->SetAsRenderTarget();
     } else {
-        if( g_fxaaEnabled ) {
+        if( Engine::Instance().IsFXAAEnabled() ) {
             mFXAA->BeginDrawIntoTexture();
         } else {
             mGBuffer->BindBackSurfaceAsRT();
@@ -469,7 +467,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 				IDirect3DSurface9 * prevSurface = nullptr;
 				if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
 					prevSurface = mHDRShader->hdrSurface;
-				} else if( g_fxaaEnabled ) {
+				} else if( Engine::Instance().IsFXAAEnabled() ) {
 					prevSurface = mFXAA->renderTarget;
 				} else {
 					prevSurface = mGBuffer->backSurface;
@@ -513,54 +511,31 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
 
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_POINT, true );
+
         mHDRShader->CalculateFrameLuminance( );
-        if( g_fxaaEnabled ) {
+        if( Engine::Instance().IsFXAAEnabled() ) {
             mHDRShader->DoToneMapping( mFXAA->renderTarget );
             mFXAA->DoAntialiasing( mFXAA->texture );
         } else {
             mHDRShader->DoToneMapping( mGBuffer->backSurface );
         }
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-
     } else {
-        if( g_fxaaEnabled ) {
+        if( Engine::Instance().IsFXAAEnabled() ) {
             Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
             Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
 
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
-
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
-
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+			Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_POINT, true );
 
             mFXAA->DoAntialiasing( mFXAA->texture );
-
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
         }
     }
+
+	if( Engine::Instance().IsAnisotropicFilteringEnabled() ) {
+		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_ANISOTROPIC, false );
+	} else {
+		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_LINEAR, false );
+	}
 
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 }

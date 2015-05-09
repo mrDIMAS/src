@@ -270,6 +270,7 @@ void ruSetAmbientColor( ruVector3 color );
 int ruGetAvailableTextureMemory();
 void ruEnableShadows( bool state );
 void ruUpdateWorld();
+void ruSetAnisotropicTextureFiltration( bool state );
 // FXAA
 void ruEnableFXAA( );
 void ruDisableFXAA( );
@@ -289,18 +290,9 @@ bool ruIsSpotLightShadowsEnabled();
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture functions
 ////////////////////////////////////////////////////////////////////////////////////
-// Texture sampling
-namespace ruTextureFilter {
-enum {
-    Nearest,
-    Linear,
-    Anisotropic
-};
-};
-void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality );
-int ruGetRendererMaxAnisotropy();
 ruTextureHandle ruGetTexture( const string & file );
 ruCubeTextureHandle ruGetCubeTexture( const string & file );
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
 ////////////////////////////////////////////////////////////////////////////////////

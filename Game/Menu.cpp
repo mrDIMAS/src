@@ -348,9 +348,9 @@ void Menu::Update( ) {
             // texture filtering
             mpTextureFiltering->Update( );
             if( mpTextureFiltering->GetCurrentValue() == 0 ) {
-                ruSetRendererTextureFiltering( ruTextureFilter::Anisotropic, ruGetRendererMaxAnisotropy() );
+                ruSetAnisotropicTextureFiltration( false );
             } else {
-                ruSetRendererTextureFiltering( ruTextureFilter::Linear, 0 );
+                ruSetAnisotropicTextureFiltration( true );
             }
 
             mpSpotShadowsButton->Update();
@@ -537,7 +537,7 @@ void Menu::LoadConfig() {
         ruSetHDREnabled( mpHDRButton->IsEnabled() );
 
         mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
-        ruSetRendererTextureFiltering( mpTextureFiltering->GetCurrentValue(), ruGetRendererMaxAnisotropy() );
+        ruSetAnisotropicTextureFiltration( mpTextureFiltering->GetCurrentValue() );
 
 		mpLookLeftKey->SetSelected( config.GetNumber( "keyLookLeft" ) );
 		mpLookRightKey->SetSelected( config.GetNumber( "keyLookRight" ) );
@@ -606,8 +606,8 @@ void Menu::WriteFloat( ofstream & stream, string name, float value ) {
 void Menu::CreateLists() {
     mpTextureFiltering = new ScrollList( 200, g_resH - 1.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "filtering" ) );
 
-    mpTextureFiltering->AddValue( mLocalization.GetString( "anisotropic" ));
-    mpTextureFiltering->AddValue( mLocalization.GetString( "trilinear" ));
+	mpTextureFiltering->AddValue( mLocalization.GetString( "trilinear" ));
+    mpTextureFiltering->AddValue( mLocalization.GetString( "anisotropic" ));    
 }
 
 Menu::~Menu() {

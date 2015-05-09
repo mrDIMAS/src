@@ -4,7 +4,7 @@
 #include "GUI.h"
 
 void NumericSlider::Update( ) {
-    ruSetGUINodeText( mGUIValueText, StringBuilder() << setprecision( 1 ) << mValue );
+    ruSetGUINodeText( mGUIValueText, StringBuilder() << fixed << setprecision( 1 ) << mValue );
 
     if( ruIsButtonHit( mGUIIncreaseButton )  ) {
         if( mValue < mfMaximum ) {

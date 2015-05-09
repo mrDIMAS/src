@@ -169,6 +169,8 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 
+	SetAnisotropicTextureFiltration( true );
+
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
@@ -568,31 +570,6 @@ bool ruIsSpotLightShadowsEnabled() {
     return Engine::Instance().IsSpotLightShadowsEnabled();
 }
 
-void ruSetRendererTextureFiltering( const int & filter, int anisotropicQuality ) {
-    /*
-    int minMagFilter = D3DTEXF_POINT;
-
-    if( filter == ruTextureFilter::Nearest )
-        minMagFilter = D3DTEXF_POINT;
-    if( filter == ruTextureFilter::Linear )
-        minMagFilter = D3DTEXF_LINEAR;
-    if( filter == ruTextureFilter::Anisotropic )
-        minMagFilter = D3DTEXF_ANISOTROPIC;
-    int mipFilter = D3DTEXF_LINEAR;
-
-    if( mipFilter == ruTextureFilter::Nearest )
-        mipFilter = D3DTEXF_POINT;
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, minMagFilter ));
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, mipFilter ));
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, minMagFilter ));
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));
-
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 1, D3DSAMP_MINFILTER, minMagFilter ));
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 1, D3DSAMP_MIPFILTER, mipFilter ));
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 1, D3DSAMP_MAGFILTER, minMagFilter ));
-    CheckDXErrorFatal( g_pDevice->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, anisotropicQuality ));*/
-}
-
 int ruDIPs( ) {
     return Engine::Instance().GetDIPCount();
 }
@@ -718,6 +695,10 @@ void ruEnableShadows( bool state ) {
 
 void ruSetHDREnabled( bool state ) {
     Engine::Instance().SetHDREnabled( state );
+}
+
+void ruSetAnisotropicTextureFiltration( bool state ) {
+	Engine::Instance().SetAnisotropicTextureFiltration( state );
 }
 
 bool ruIsHDREnabled( ) {

@@ -5,6 +5,7 @@
 #include "Door.h"
 #include "utils.h"
 #include "Enemy.h"
+#include "SaveWriter.h"
 
 Player * pPlayer = 0;
 
@@ -89,6 +90,11 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
 
 	mInAir = false;
 	mCurrentWeapon = nullptr;
+
+	// hack
+	pMainMenu->SetPlayerControls();
+
+	mAutoSaveTimer = ruCreateTimer();
 }
 
 void Player::DrawStatusBar() {
@@ -518,6 +524,12 @@ void Player::Update( ) {
 					}
 					mInAir = false;
 				}
+			}
+
+			// this must be placed in other place :)
+			if( ruGetElapsedTimeInSeconds( mAutoSaveTimer ) >= 30 ) {
+				SaveWriter( "autosave.save").SaveWorldState();
+				ruRestartTimer( mAutoSaveTimer );
 			}
 		} else {
 			ruSetGUINodeVisible( mGUIYouDied, true );

@@ -109,7 +109,7 @@ private:
     void WriteInteger( ofstream & stream, string name, int value );
     void WriteString( ofstream & stream, string name, string value );
     void WriteConfig();
-    void SetPlayerControls();
+    
     void LoadConfig();
     void CreateSliders();
     void CreateWaitKeys();
@@ -123,7 +123,7 @@ public:
     void Show();
     void Hide( );
     void Update( );
-
+	void SetPlayerControls();
     void CameraFloating();
 
     bool IsVisible();
