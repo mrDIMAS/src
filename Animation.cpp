@@ -8,17 +8,17 @@ ruAnimation::ruAnimation() {
     beginFrame = 0;
     endFrame = 0;
     currentFrame = 0;
-    timeSeconds = 0.0f;
+    animSpeed = 0.0f;
     interpolator = 0.0f;
     nextFrame = 0;
 }
 
-ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped ) {
+ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theAnimSpeed, bool theLooped ) {
     currentFrame = theBeginFrame;
     nextFrame = currentFrame + 1;
     beginFrame = theBeginFrame;
     endFrame = theEndFrame;
-    timeSeconds = theTimeSeconds;
+    animSpeed = theAnimSpeed;
     looped = theLooped;
     interpolator = 0.0f;
 }
@@ -45,7 +45,7 @@ void ruAnimation::Update( float dt ) {
         }
         interpolator = 0.0f;
     }
-    interpolator += dt / timeSeconds;
+    interpolator += animSpeed;
 }
 
 void ruAnimation::SetCurrentFrame( int frame ) {

@@ -46,6 +46,8 @@ Enemy::Enemy( const string & file, vector<GraphVertex*> & path, vector<GraphVert
 	mFadeAwaySound = ruLoadSound2D( "data/sounds/fadeaway.ogg" );
 	ruSetSoundVolume( mFadeAwaySound, 1.5f );
 	mResurrectTimer = ruCreateTimer();
+
+	mPathCheckTimer = ruCreateTimer();
 }
 
 
@@ -63,6 +65,8 @@ void Enemy::Think() {
 
         return;
     }
+
+
 
 	if( mStun ) {
 		ruPauseSound( mScreamSound );
@@ -87,10 +91,7 @@ void Enemy::Think() {
 		if( mDoPatrol ) {
 			mMoveType = MoveType::GoToDestination ;
 			if( mDestinationWaypointNum - mCurrentWaypointNum == 0 ) {
-				mCurrentPatrolPoint++;
-				if( mCurrentPatrolPoint >= mPatrolPointList.size() ) {
-					mCurrentPatrolPoint = 0;
-				}
+				SetNextPatrolPoint();
 			}
 			mDestination = mPatrolPointList[mCurrentPatrolPoint]->mPosition;
 			mTargetIsPlayer = false;
@@ -161,6 +162,9 @@ void Enemy::Think() {
 			}
 		}
 
+		// DEBUG
+		enemyDetectPlayer = false;
+
 		if( enemyDetectPlayer ) {
 			mMoveType = MoveType::ChasePlayer;
 			mDoPatrol = false;
@@ -207,13 +211,15 @@ void Enemy::Think() {
 			GraphVertex * enemyNearestVertex = mPathfinder.GetVertexNearestTo( ruGetNodePosition( mBody ) );
 			if( mCurrentDestinationIndex != mLastDestinationIndex ) { // means player has moved to another waypoint
 				mPathfinder.BuildPath( enemyNearestVertex, destNearestVertex, mCurrentPath );
-				mDestinationWaypointNum = GetVertexIndexNearestTo( mCurrentPath[ mCurrentPath.size() - 1 ]->mPosition );
-				mCurrentWaypointNum = GetVertexIndexNearestTo( mCurrentPath[0]->mPosition );
+				mDestinationWaypointNum = GetVertexIndexNearestTo( mCurrentPath.back()->mPosition );
+				mCurrentWaypointNum = GetVertexIndexNearestTo( mCurrentPath.front()->mPosition );
+				// go back
 				if( mCurrentWaypointNum > mDestinationWaypointNum ) {
 					int temp = mCurrentWaypointNum;
 					mCurrentWaypointNum = mDestinationWaypointNum;
 					mDestinationWaypointNum = temp;
 				}
+				
 				mLastDestinationIndex = mCurrentDestinationIndex;
 			}
 			SetRunAnimation();
@@ -222,7 +228,7 @@ void Enemy::Think() {
 		// check doors
 		for( auto pDoor : Door::msDoorList ) {
 			if( ( ruGetNodePosition( pDoor->mDoorNode ) - ruGetNodePosition( mBody )).Length2() < 2.5f ) {
-				if( pDoor->GetState() == Door::State::Closed ) {
+				if( pDoor->GetState() == Door::State::Closed && !pDoor->IsLocked() ) {
 					pDoor->Open();
 				}
 			}
@@ -236,6 +242,21 @@ void Enemy::Think() {
 			}
 			ruVector3 speedVector = direction * mRunSpeed;// + Vector3( 0, -.1, 0 );
 			ruMoveNode( mBody, speedVector );
+
+			// adjust animation speed according to real speed of moving
+			float realSpeed = (ruGetNodePosition( mModel ) - mLastPosition).Length();
+			mWalkAnimation.animSpeed = 7 * realSpeed;
+			mRunAnimation.animSpeed = 7 * realSpeed;
+		}
+
+		if( ruGetElapsedTimeInSeconds( mPathCheckTimer ) > 0.85f ) {
+			// got obstacle (door), can't get throuh it, try next patrol point
+			if( (ruGetNodePosition( mModel ) - mLastCheckPosition).Length2() < 0.05 ) {
+				SetNextPatrolPoint( );
+			}
+			mLastCheckPosition = ruGetNodePosition( mModel );
+
+			ruRestartTimer( mPathCheckTimer );
 		}
 
 		ruSetAnimationEnabled( mModel, true );
@@ -245,7 +266,7 @@ void Enemy::Think() {
 
 		ManageEnvironmentDamaging();
 
-
+		mLastPosition = ruGetNodePosition( mModel );
 	}
 }
 
@@ -299,10 +320,10 @@ void Enemy::SetLegsAnimation( ruAnimation *pAnim ) {
 
 void Enemy::CreateAnimations() {
     // Animations
-    mIdleAnimation = ruAnimation( 0, 15, 0.08, true );
-    mRunAnimation = ruAnimation( 16, 34, 0.08, true );
-    mAttackAnimation = ruAnimation( 35, 46, 0.035, true );
-    mWalkAnimation = ruAnimation( 47, 58, 0.045, true );
+    mIdleAnimation = ruAnimation( 0, 15, 4.8, true );
+    mRunAnimation = ruAnimation( 16, 34, 4.8, true );
+    mAttackAnimation = ruAnimation( 35, 46, 2.1, true );
+    mWalkAnimation = ruAnimation( 47, 58, 2.7, true );
 }
 
 void Enemy::CreateSounds() {
@@ -422,4 +443,15 @@ void Enemy::Stun( bool state ) {
 	} else {
 		ruSetNodeLinearFactor( mBody, ruVector3( 1,1,1 ));
 	}
+}
+
+void Enemy::SetNextPatrolPoint() {
+	mCurrentPatrolPoint++;
+	if( mCurrentPatrolPoint >= mPatrolPointList.size() ) {
+		mCurrentPatrolPoint = 0;
+	}
+}
+
+ruNodeHandle Enemy::GetBody() {
+	return mBody;
 }

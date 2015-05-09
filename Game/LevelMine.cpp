@@ -156,18 +156,23 @@ LevelMine::LevelMine() {
     allPaths.insert( allPaths.end(), pathUpperRightTwo.mVertexList.begin(), pathUpperRightTwo.mVertexList.end() );
 
     vector< GraphVertex* > patrolPoints;
-    patrolPoints.push_back( path.mVertexList[0] );
-    patrolPoints.push_back( path.mVertexList[ path.mVertexList.size() - 1 ] );
-    patrolPoints.push_back( pathOnUpperLevel.mVertexList[0] );
-    patrolPoints.push_back( pathOnUpperLevel.mVertexList[ pathOnUpperLevel.mVertexList.size() - 1 ] );
-    patrolPoints.push_back( pathUpperRight.mVertexList[0] );
-    patrolPoints.push_back( pathUpperRight.mVertexList[ pathUpperRight.mVertexList.size() - 1 ] );
-    patrolPoints.push_back( pathUpperLeft.mVertexList[0] );
-    patrolPoints.push_back( pathUpperLeft.mVertexList[ pathUpperLeft.mVertexList.size() - 1 ] );
-    patrolPoints.push_back( pathUpperRightTwo.mVertexList[0] );
-    patrolPoints.push_back( pathUpperRightTwo.mVertexList[ pathUpperRightTwo.mVertexList.size() - 1 ] );
-    patrolPoints.push_back( pathToRoom.mVertexList[0] );
-    patrolPoints.push_back( pathToRoom.mVertexList[ pathToRoom.mVertexList.size() - 1 ] );
+    patrolPoints.push_back( path.mVertexList.front() );
+    patrolPoints.push_back( path.mVertexList.back()
+		);
+    patrolPoints.push_back( pathOnUpperLevel.mVertexList.front() );
+    patrolPoints.push_back( pathOnUpperLevel.mVertexList.back() );
+
+    patrolPoints.push_back( pathUpperRight.mVertexList.front() );
+    patrolPoints.push_back( pathUpperRight.mVertexList.back() );
+
+    patrolPoints.push_back( pathUpperLeft.mVertexList.front() );
+    patrolPoints.push_back( pathUpperLeft.mVertexList.back() );
+
+    patrolPoints.push_back( pathUpperRightTwo.mVertexList.front() );
+    patrolPoints.push_back( pathUpperRightTwo.mVertexList.back() );
+
+    patrolPoints.push_back( pathToRoom.mVertexList.front() );
+    patrolPoints.push_back( pathToRoom.mVertexList.back() );
 
     mEnemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
     mEnemy->SetPosition( ruGetNodePosition( GetUniqueObject( "EnemyPosition" )));

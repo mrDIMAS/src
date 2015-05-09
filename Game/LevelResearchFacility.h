@@ -46,6 +46,7 @@ private:
 	ruNodeHandle mZoneObjectiveNeedPassThroughMesh;
 	ruNodeHandle mZoneRemovePathBlockingMesh;
 	ruNodeHandle mPathBlockingMesh;
+	ruNodeHandle mZoneEnemySpawn;
 
 	Keypad * mKeypad1;
 	Door * mKeypad1DoorToUnlock;
@@ -73,11 +74,16 @@ private:
 	ruNodeHandle mMeshLock;
 	ruNodeHandle mThermitePlace;
 	ruNodeHandle mMeshToSewers;
+	ruNodeHandle mEnemySpawnPosition;
 	ItemPlace * mThermiteItemPlace;
+
+	Enemy * mEnemy;
 
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
 	void UpdateThermiteSequence();
+
+	void CreateEnemy();
 public:
     explicit LevelResearchFacility();
     virtual ~LevelResearchFacility();

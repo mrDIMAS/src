@@ -56,6 +56,7 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
     mKeyStealth = KEY_C;
     mKeyLookLeft = KEY_Q;
     mKeyLookRight = KEY_E;
+
     // GUI vars
     mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
     mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
@@ -82,6 +83,11 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
         mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
     }
 
+	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font1.otf", 0, 0 );
+	mGUIYouDied = ruCreateGUIText( mLocalization.GetString( "youDied" ), (ruGetResolutionWidth() - 300) / 2, ruGetResolutionHeight() / 2, 300, 50, mGUIYouDiedFont, ruVector3( 255, 0, 0 ), 1, 255 );
+	ruSetGUINodeVisible( mGUIYouDied, false );
+
+	mInAir = false;
 	mCurrentWeapon = nullptr;
 }
 
@@ -141,6 +147,8 @@ void Player::Damage( float dmg ) {
             ruSetNodeAnisotropicFriction( mBody, ruVector3( 1.0f, 1.0f, 1.0f ));
             ruMoveNode( mBody, ruVector3( 1.0f, 1.0f, 1.0f ));
         }
+		mDeadSound = ruLoadSound2D( "data/sounds/dead.ogg" );
+		ruPlaySound( mDeadSound );
         mDead = true;
         mpFlashlight->SwitchOff();
         mpCamera->FadePercent( 5 );
@@ -481,7 +489,8 @@ void Player::Update( ) {
     if( !pMainMenu->IsVisible() ) {
 		mGoal.AnimateAndRender();
 		DrawStatusBar();
-		if( !mDead ) {			
+		if( !mDead ) {		
+			ruSetGUINodeVisible( mGUIYouDied, false );
 			ruSetGUINodeVisible( mGUIStealthSign, mStealthMode );
 			UpdateFright();
 			UpdateFlashLight();
@@ -496,7 +505,35 @@ void Player::Update( ) {
 			DrawSheetInHands();
 			UpdateCursor();
 			UpdateWeapons();
+
+			if( !mpCurrentWay ) { // prevent damaging from ladders
+				if( !IsCanJump() && !mInAir ) { // in air
+					mAirPosition = ruGetNodePosition( mBody );
+					mInAir = true;
+				} else if( IsCanJump() && mInAir ) { // landing 
+					ruVector3 curPos = ruGetNodePosition( mBody );
+					float heightDelta = fabsf( curPos.y - mAirPosition.y );
+					if( heightDelta > 2.0f ) {
+						Damage( heightDelta * 10 );
+					}
+					mInAir = false;
+				}
+			}
+		} else {
+			ruSetGUINodeVisible( mGUIYouDied, true );
 		}
+
+		if( mDeadSound.IsValid() ) {
+			if( !ruIsSoundPlaying( mDeadSound )) {
+				pMainMenu->Show();
+			}
+		}
+
+	} else {
+		if( mDeadSound.IsValid() ) {
+			ruPauseSound( mDeadSound );
+		}
+		ruSetGUINodeVisible( mGUIYouDied, false );
 	}
 }
 
@@ -614,15 +651,6 @@ void Player::UpdateFright() {
     mHeartBeatVolume.ChaseTarget( 0.075f );
     mHeartBeatPitch.ChaseTarget( 0.0025f );
     mBreathPitch.ChaseTarget( 0.0025f );
-	/*
-    ruSetSoundVolume( breathSound, breathVolume );
-    ruSetSoundVolume( heartBeatSound, heartBeatVolume );
-
-    ruPlaySound( heartBeatSound, true );
-    ruPlaySound( breathSound, true );
-
-	ruSetSoundsPitch( breathSound, breathPitch );
-	ruSetSoundsPitch( heartBeatSound, heartBeatPitch );*/
 }
 
 void Player::UpdateCameraShake() {
@@ -852,7 +880,9 @@ Player::~Player() {
 	ruFreeSound( mItemPickupSound );
 	ruFreeSound( mHeartBeatSound );
 	ruFreeSound( mBreathSound );
-
+	if( mDeadSound.IsValid() ) {
+		ruFreeSound( mDeadSound );
+	}
 	for( auto snd : mFootstepList ) {
 		ruFreeSound( snd );
 	}
@@ -860,6 +890,7 @@ Player::~Player() {
 	ruFreeGUINode( mGUICursorPickUp );
 	ruFreeGUINode( mGUICursorPut );
 	ruFreeGUINode( mGUICrosshair );
+	ruFreeGUINode( mGUIYouDied );
 }
 
 void Player::SetMetalFootsteps() {

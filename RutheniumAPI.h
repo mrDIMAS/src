@@ -461,7 +461,7 @@ private:
     int nextFrame;
     float interpolator;
 public:
-    float timeSeconds;
+    float animSpeed;
     bool looped;
     explicit ruAnimation();
     explicit ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );

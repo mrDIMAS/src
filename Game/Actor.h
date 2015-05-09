@@ -15,7 +15,7 @@ protected:
 public:
     explicit Actor( float height, float width );
     virtual ~Actor();
-    void SetPosition( ruVector3 position );
+    virtual void SetPosition( ruVector3 position );
     void Move( ruVector3 direction, float speed );
 	void Step( ruVector3 direction, float speed );
     ruVector3 GetCurrentPosition( );

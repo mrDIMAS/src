@@ -131,7 +131,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     presentParameters.MultiSampleQuality = 0;
 
     // create device
-    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &presentParameters, &mpDevice ))) {
+    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE, &presentParameters, &mpDevice ))) {
 		mpDirect3D->Release();
 		Log::Error( "Engine initialization failed! Buy a modern video card!" );	
 	}
@@ -154,16 +154,20 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 
     // setup samplers
-    GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+    GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+    GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
 
-    GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-    GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );    
-    GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+    GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+    GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );    
+
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 
     GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
     GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 
     CreatePhysics( );
     pfSystemInit( );

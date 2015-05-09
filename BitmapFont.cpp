@@ -43,7 +43,7 @@ BitmapFont::BitmapFont( const string & file, int size ) {
     }
     // create atlas texture
 	atlasWidth = atlasHeight = size * 16;
-    CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), atlasWidth, atlasHeight, 0, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &atlas ));
+    CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), atlasWidth, atlasHeight, 0, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &atlas ));
     IDirect3DSurface9 * atlasSurface = nullptr;
     atlas->GetSurfaceLevel( 0, &atlasSurface );
     D3DLOCKED_RECT lockedRect;
@@ -52,7 +52,7 @@ BitmapFont::BitmapFont( const string & file, int size ) {
     // render
     int subRectRow = 0;
     int subRectCol = 0;
-    float tcStep = 1.0f / 16.0f;
+    float tcStep = 1.0f / 16.0f; 
     float tcX = 0.0f;
     float tcY = 0.0f;
     int charIndexOffset = 0;
@@ -106,9 +106,11 @@ BitmapFont::BitmapFont( const string & file, int size ) {
             subRectRow++;
         }
     }
+	CheckDXErrorFatal( atlasSurface->UnlockRect());
     FT_Done_Face( face );
     BitmapFont::fonts.push_back( this );
-    CheckDXErrorFatal( atlasSurface->UnlockRect());
+   
+	atlasSurface->Release();
 	FT_Done_FreeType( ftLibrary );
 }
 

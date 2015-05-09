@@ -103,6 +103,7 @@ public:
     bool mSmoothCamera;
     bool mStealthMode;
     bool mRunning;
+	bool mInAir;
 
     Inventory mInventory;
 
@@ -134,6 +135,11 @@ public:
     ruRectHandle mGUIStaminaBarSegment[mGUISegmentCount];
     ruRectHandle mGUIBackground;
 	ruRectHandle mGUIStealthSign;
+	ruTextHandle mGUIYouDied;
+	ruFontHandle mGUIYouDiedFont;
+
+	ruSoundHandle mDeadSound;
+	ruVector3 mAirPosition;
 public:
     explicit Player();
     virtual ~Player();
@@ -160,6 +166,10 @@ public:
     void DoFright();
     void ComputeStealth();
 	void RepairInventory();
+	virtual void SetPosition( ruVector3 position ) {
+		Actor::SetPosition( position );
+		mAirPosition = ruGetNodePosition( mBody ); // prevent dying from 'accident' landing :)
+	}
     Inventory * GetInventory();
     Flashlight * GetFlashLight();
     Parser * GetLocalization();

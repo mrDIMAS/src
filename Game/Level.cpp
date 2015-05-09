@@ -447,8 +447,17 @@ void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
 	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
 		ruNodeHandle child = ruGetNodeChild( mScene, i );
-		if( regex_match( ruGetNodeName( child ), rx )) {
-			AddDoor( new Door( child, 90 ));
+		bool ignore = false;
+		for( auto pDoor : mDoorList ) {
+			if( pDoor->mDoorNode == child ) {
+				ignore = true;
+				break;
+			}
+		}
+		if( !ignore ) {
+			if( regex_match( ruGetNodeName( child ), rx )) {
+				AddDoor( new Door( child, 90 ));
+			}
 		}
 	}
 }

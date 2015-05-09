@@ -139,8 +139,9 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
     Engine::Instance().SetPixelShaderFloat3( 6, light->GetColor().elements ); 
 	 // range
     //Renderer::Instance().SetPixelShaderFloat( 7, powf( light->GetRadius(), 4 ));
-	float lightRange = light->GetRadius();
-	Engine::Instance().SetPixelShaderFloat( 7, lightRange * lightRange * lightRange * lightRange );
+	//float lightRange = light->GetRadius();
+	//Engine::Instance().SetPixelShaderFloat( 7, lightRange * lightRange * lightRange * lightRange );
+	Engine::Instance().SetPixelShaderFloat( 7, light->GetRadius() );
 	// brightness
     Engine::Instance().SetPixelShaderFloat( 9, Engine::Instance().IsHDREnabled() ? light->brightness : 1.0f ); 
 }
@@ -244,7 +245,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX &
 
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     ruVector3 realPosition = pLight->GetRealPosition();
-    float scl = 2.5f * pLight->radius * scale;
+    float scl = 1.25f * pLight->radius * scale;
     D3DXMATRIX world;
     world._11 = scl;
     world._12 = 0.0f;
@@ -285,7 +286,7 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
 
 void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 	ruVector3 realPosition = pLight->GetRealPosition();
-	float scl = 2.5f * pLight->radius * scale;
+	float scl = 1.25f * pLight->radius * scale;
 	D3DXMATRIX world;
 	world._11 = scl;
 	world._12 = 0.0f;
@@ -525,10 +526,12 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         } else {
             mHDRShader->DoToneMapping( mGBuffer->backSurface );
         }
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+
 		Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 		Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 
@@ -536,17 +539,24 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         if( g_fxaaEnabled ) {
             Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
             Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+
 			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_NONE );
 			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+
 			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_NONE );
 			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_NONE );
+
 			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
 			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+
             mFXAA->DoAntialiasing( mFXAA->texture );
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+
 			Engine::Instance().GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 			Engine::Instance().GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
         }

@@ -2,8 +2,14 @@
 #include "Engine.h"
 #include "Shader.h"
 
+IDirect3DVertexShader9 * VertexShader::msLastBinded = nullptr;
+IDirect3DPixelShader9 * PixelShader::msLastBinded = nullptr;
+
 void VertexShader::Bind() {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexShader( shader ));
+	if( msLastBinded != shader ) {
+		CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexShader( shader ));
+		msLastBinded = shader;
+	}
 }
 
 ID3DXConstantTable * VertexShader::GetConstantTable() {
@@ -55,7 +61,10 @@ VertexShader::VertexShader( string fileName, bool binary ) {
 
 
 void PixelShader::Bind() {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetPixelShader( shader ));
+	if( msLastBinded != shader ) {
+		CheckDXErrorFatal( Engine::Instance().GetDevice()->SetPixelShader( shader ));
+		msLastBinded = shader;
+	}
 }
 
 ID3DXConstantTable * PixelShader::GetConstantTable() {

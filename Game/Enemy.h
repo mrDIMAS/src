@@ -72,6 +72,11 @@ private:
     ruAnimation mWalkAnimation;
 	ruTimerHandle mResurrectTimer;
 
+	ruTimerHandle mPathCheckTimer;
+	ruVector3 mLastCheckPosition;
+
+	ruVector3 mLastPosition;
+
 	ruNodeHandle mBloodSpray;
 	ruSoundHandle mFadeAwaySound;
 	bool mDead;
@@ -79,9 +84,8 @@ public:
 	static vector<Enemy*> msEnemyList;
 
     int GetVertexIndexNearestTo( ruVector3 position );
-	ruNodeHandle GetBody() {
-		return mBody;
-	}
+	ruNodeHandle GetBody();
+	void SetNextPatrolPoint();
 	void DoBloodSpray();
 	void Resurrect();
     void SetLegsAnimation( ruAnimation *pAnim );

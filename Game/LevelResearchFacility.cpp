@@ -8,6 +8,8 @@
 LevelResearchFacility::LevelResearchFacility() {
     mTypeNum = 4;
 
+	mEnemy = nullptr;
+
     LoadSceneFromFile( "data/maps/release/researchFacility/rf.scene" );
 	LoadLocalization( "rf.loc" );
 
@@ -76,7 +78,8 @@ LevelResearchFacility::LevelResearchFacility() {
 	mMeshLock = GetUniqueObject( "MeshLock" );
 	mThermitePlace = GetUniqueObject( "ThermitePlace" );
 	mMeshToSewers = GetUniqueObject( "MeshToSewers" );
-	
+	mZoneEnemySpawn = GetUniqueObject( "ZoneEnemySpawn" );
+
     CreatePowerUpSequence();
 
     AddSound( mMusic = ruLoadMusic( "data/music/rf.ogg" ));
@@ -123,6 +126,7 @@ LevelResearchFacility::LevelResearchFacility() {
 	mStages[ "DoorUnderFloorOpen" ] = false;
 	mStages[ "NeedPassThroughMesh" ] = false;
 	mStages[ "PassedThroughBlockingMesh" ] = false;
+	mStages[ "EnemySpawned" ] = false;
 
 	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
@@ -164,7 +168,66 @@ LevelResearchFacility::LevelResearchFacility() {
 	ruSetAudioReverb( 10 );
 
 	pPlayer->SetRockFootsteps();
+
+	mEnemySpawnPosition = GetUniqueObject( "EnemyPosition" );
+		
     DoneInitialization();
+}
+
+void LevelResearchFacility::CreateEnemy() {
+	// create paths
+	Path pathStraight; BuildPath( pathStraight, "PathStraight" );
+	Path pathCircle; BuildPath( pathCircle, "PathCircle" );
+	Path pathRoomA; BuildPath( pathRoomA, "PathRoomA" );
+	Path pathRoomB;	BuildPath( pathRoomB, "PathRoomB" );
+	Path pathRoomC;	BuildPath( pathRoomC, "PathRoomC" );
+	Path pathRoomD;	BuildPath( pathRoomD, "PathRoomD" );
+	Path pathToBasement; BuildPath( pathToBasement, "PathToBasement" );
+
+	// add edges
+	pathStraight.mVertexList[7]->AddEdge( pathCircle.mVertexList[0] );
+	pathStraight.mVertexList[5]->AddEdge( pathToBasement.mVertexList[0] );
+	pathStraight.mVertexList[2]->AddEdge( pathRoomA.mVertexList[0] );
+	pathStraight.mVertexList[2]->AddEdge( pathRoomB.mVertexList[0] );
+	pathStraight.mVertexList[3]->AddEdge( pathRoomC.mVertexList[0] );
+	pathStraight.mVertexList[3]->AddEdge( pathRoomD.mVertexList[0] );
+
+	// concatenate paths
+	vector<GraphVertex*> allPaths;
+	allPaths.insert( allPaths.end(), pathStraight.mVertexList.begin(), pathStraight.mVertexList.end() );
+	allPaths.insert( allPaths.end(), pathToBasement.mVertexList.begin(), pathToBasement.mVertexList.end() );
+	allPaths.insert( allPaths.end(), pathCircle.mVertexList.begin(), pathCircle.mVertexList.end() );
+	allPaths.insert( allPaths.end(), pathRoomA.mVertexList.begin(), pathRoomA.mVertexList.end() );
+	allPaths.insert( allPaths.end(), pathRoomB.mVertexList.begin(), pathRoomB.mVertexList.end() );
+	allPaths.insert( allPaths.end(), pathRoomC.mVertexList.begin(), pathRoomC.mVertexList.end() );
+	allPaths.insert( allPaths.end(), pathRoomD.mVertexList.begin(), pathRoomD.mVertexList.end() );
+
+	// create patrol paths
+	vector< GraphVertex* > patrolPoints;
+
+	patrolPoints.push_back( pathToBasement.mVertexList.front() );
+	patrolPoints.push_back( pathToBasement.mVertexList.back() );
+
+	patrolPoints.push_back( pathStraight.mVertexList.front() );
+	patrolPoints.push_back( pathStraight.mVertexList.back() );
+
+	patrolPoints.push_back( pathCircle.mVertexList.front() );
+	patrolPoints.push_back( pathCircle.mVertexList.back() );
+
+	patrolPoints.push_back( pathRoomA.mVertexList.front() );
+	patrolPoints.push_back( pathRoomA.mVertexList.back() );
+
+	patrolPoints.push_back( pathRoomB.mVertexList.front() );
+	patrolPoints.push_back( pathRoomB.mVertexList.back() );
+
+	patrolPoints.push_back( pathRoomC.mVertexList.front() );
+	patrolPoints.push_back( pathRoomC.mVertexList.back() );
+
+	patrolPoints.push_back( pathRoomD.mVertexList.front() );
+	patrolPoints.push_back( pathRoomD.mVertexList.back() );
+
+	mEnemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
+	mEnemy->SetPosition( ruGetNodePosition( mEnemySpawnPosition ));
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
@@ -200,6 +263,10 @@ void LevelResearchFacility::DoScenario() {
     }
 
 	mLift2->Update();
+
+	if( mEnemy ) {
+		mEnemy->Think();
+	}
 
     if( !mStages[ "EnterSteamActivateZone" ] ) {
         if( pPlayer->IsInsideZone( mZoneSteamActivate )) {
@@ -257,6 +324,14 @@ void LevelResearchFacility::DoScenario() {
             mStages[ "EnterScaryBarellThrowZone" ] = true;
         }
     }
+
+	if( !mStages[ "EnemySpawned" ] ) {
+		if( pPlayer->IsInsideZone( mZoneEnemySpawn ))  {
+			CreateEnemy();
+			mStages[ "EnemySpawned" ] = true;
+		}
+	}
+
 
 	if( !mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] ) {
 		if( pPlayer->IsInsideZone( mZoneNeedCrowbar )) {
@@ -381,7 +456,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 					}
 				}
 			}		
-			pPlayer->SetActionText( "Поместить" );
+			pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "placeReactive" ) );
 		}				
 	}
 }
@@ -465,9 +540,15 @@ void LevelResearchFacility::CreatePowerUpSequence() {
 }
 
 void LevelResearchFacility::OnDeserialize( TextFileStream & in ) {
-
+	if( in.ReadBoolean() ) {
+		CreateEnemy();
+		mEnemy->SetPosition( in.ReadVector3() );
+	}
 }
 
 void LevelResearchFacility::OnSerialize( TextFileStream & out ) {
-
+	out.WriteBoolean( mEnemy != nullptr );
+	if( mEnemy ) {
+		out.WriteVector3( ruGetNodePosition( mEnemy->GetBody() ));
+	}
 }
