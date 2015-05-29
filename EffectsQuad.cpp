@@ -105,7 +105,7 @@ EffectsQuad::EffectsQuad( bool bDebug ) {
 
     Engine::Instance().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
 
-    vertexShader = new VertexShader( "data/shaders/quad.vso", true );
+    vertexShader = new VertexShader( "data/shaders/quad.vso" );
     D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::Instance().GetResolutionWidth(), Engine::Instance().GetResolutionHeight(), 0, 0, 1024 );
 }
 

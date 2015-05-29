@@ -6,8 +6,8 @@
 #include "Engine.h"
 
 ParticleSystemRenderer::ParticleSystemRenderer() {
-    vertexShader = new VertexShader( "data/shaders/particle.vso", true );
-    pixelShader = new PixelShader( "data/shaders/particle.pso", true );
+    vertexShader = new VertexShader( "data/shaders/particle.vso" );
+    pixelShader = new PixelShader( "data/shaders/particle.pso" );
 
     D3DVERTEXELEMENT9 vdElem[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },

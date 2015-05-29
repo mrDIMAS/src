@@ -10,8 +10,6 @@
 #include "Engine.h"
 
 GUIRenderer::GUIRenderer() {
-    int maxLineCount = 16536;
-
     sizeOfRectBytes = 6 * sizeof( Vertex2D  );
     CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( sizeOfRectBytes, D3DUSAGE_DYNAMIC, D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
@@ -28,8 +26,8 @@ GUIRenderer::GUIRenderer() {
     CheckDXErrorFatal( Engine::Instance().GetDevice()->GetViewport( &vp ));
     D3DXMatrixOrthoOffCenterLH ( &orthoMatrix, 0, vp.Width, vp.Height, 0, 0.0f, 1024.0f );
 
-    vertexShader = new VertexShader( "data/shaders/gui.vso", true );
-    pixelShader = new PixelShader( "data/shaders/gui.pso", true );
+    vertexShader = new VertexShader( "data/shaders/gui.vso" );
+    pixelShader = new PixelShader( "data/shaders/gui.pso" );
 }
 
 GUIRenderer::~GUIRenderer() {
@@ -39,7 +37,7 @@ GUIRenderer::~GUIRenderer() {
     CheckDXErrorFatal( vertDecl->Release());
 }
 
-ruFontHandle GUIRenderer::CreateFont( int size, const string & name, int italic, int underlined ) {
+ruFontHandle GUIRenderer::CreateFont( int size, const string & name ) {
     BitmapFont * font = new BitmapFont( name, size );
     ruFontHandle handle;
     handle.pointer = font;
@@ -56,7 +54,9 @@ void GUIRenderer::RenderAllGUIElements() {
     Engine::Instance().GetDevice()->SetVertexDeclaration( vertDecl );
     Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D ));
 
-
+	for( auto pNode : GUINode::msNodeList ) {
+		pNode->DoActions();
+	}
 
     for( auto pRect : GUIRect::msRectList ) {
         if( pRect->IsVisible() ) {
@@ -81,17 +81,17 @@ void GUIRenderer::RenderAllGUIElements() {
 
 
 void GUIRenderer::RenderRect( GUIRect * rect ) {
+	if( !rect->GetTexture() )  {
+		return;
+	}
     void * data = nullptr;
     Vertex2D vertices[6];
+	rect->CalculateTransform();
     rect->GetSixVertices( vertices );
     CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
     memcpy( data, vertices, sizeOfRectBytes );
     CheckDXErrorFatal( vertexBuffer->Unlock( ));
-    if( rect->GetTexture() ) {
-        rect->GetTexture()->Bind( 0 );
-    } else {
-        Engine::Instance().GetDevice()->SetTexture( 0, nullptr );
-    }
+    rect->GetTexture()->Bind( 0 );
     Engine::Instance().RegisterDIP();
     CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
 }

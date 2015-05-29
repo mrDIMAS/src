@@ -28,8 +28,3 @@ void RadioButton::SetEnabled( bool state ) {
 bool RadioButton::IsEnabled() {
     return mOn;
 }
-
-void RadioButton::SetVisible( bool state ) {
-    ruSetGUINodeVisible( mGUIText, state );
-    ruSetGUINodeVisible( mGUIButton, state );
-}

@@ -1,6 +1,7 @@
 #ifndef _ENGINE_
 #define _ENGINE_
 
+#include <vector>
 #include <math.h>
 #include <string>
 #include <windows.h>
@@ -292,6 +293,8 @@ bool ruIsSpotLightShadowsEnabled();
 ////////////////////////////////////////////////////////////////////////////////////
 ruTextureHandle ruGetTexture( const string & file );
 ruCubeTextureHandle ruGetCubeTexture( const string & file );
+int ruGetTextureWidth( ruTextureHandle texture );
+int ruGetTextureHeight( ruTextureHandle texture );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
@@ -471,7 +474,7 @@ public:
     int GetNextFrame() {
         return nextFrame;
     }
-    void Update( float dt = 1.0f / 60.0f );
+    void Update();
 };
 
 int ruIsAnimationEnabled( ruNodeHandle node );
@@ -483,14 +486,92 @@ ruAnimation * ruGetCurrentAnimation( ruNodeHandle node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Font functions
 ////////////////////////////////////////////////////////////////////////////////////
-ruFontHandle ruCreateGUIFont( int size, const string & name, int italic, int underlined );
+ruFontHandle ruCreateGUIFont( int size, const string & name );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // GUI functions
 ////////////////////////////////////////////////////////////////////////////////////
+enum class ruGUIAction {
+	OnClick,
+	OnMouseEnter,
+	OnMouseLeave,
+};
+
+class ruIContainer {
+public:
+	virtual ~ruIContainer() {	
+
+	};
+
+	virtual void Call() = 0;
+};
+
+template< class T, class M > class ruContainer : public ruIContainer {
+private:
+	T * mClass;
+	M mMethod;
+public:
+	explicit ruContainer( T * theClass, M  theMethod ) : mClass( theClass ), mMethod( theMethod ) {
+
+	};
+
+	virtual void Call() {
+		(mClass->*mMethod)();
+	}
+};
+
+class ruDelegate {
+private:
+	ruIContainer * mContainer;
+public:
+	ruDelegate() : mContainer( nullptr ) {
+
+	};
+	~ruDelegate() {
+		if( mContainer ) {
+			delete mContainer;
+		}
+	}
+	ruDelegate( const ruDelegate & other ) {
+		mContainer = other.mContainer;
+		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
+	}
+	template< class T, class M > static ruDelegate Bind( T * theClass, M  theMethod ) {
+		ruDelegate delegat;
+		delegat.mContainer = new ruContainer< T, M >( theClass, theMethod );
+		return delegat;
+	}
+	void Call() {
+		mContainer->Call();
+	}
+};
+
+class ruEvent {
+private:
+	vector<ruDelegate> mListenerList;
+public:
+	void AddListener( const ruDelegate & delegat ) {
+		mListenerList.push_back( delegat );
+	}
+
+	void RemoveAllListeners() {
+		mListenerList.clear();
+	}
+
+	void DoActions() {
+		for( auto iter = mListenerList.begin(); iter != mListenerList.end(); iter++ ) {
+			iter->Call();
+		}
+	}
+};
+
 ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
 ruTextHandle ruCreateGUIText( const string & text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
 ruButtonHandle ruCreateGUIButton( int x, int y, int w, int h, ruTextureHandle texture, const string & text, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
+void ruAttachGUINode( ruGUINodeHandle node, ruGUINodeHandle parent );
+void ruAddGUINodeAction( ruGUINodeHandle node, ruGUIAction action, const ruDelegate & delegat );
+void ruRemoveGUINodeAction( ruGUINodeHandle node, ruGUIAction action );
+void ruRemoveAllGUINodeActions( ruGUINodeHandle node );
 void ruSetGUINodeText( ruTextHandle node, const string & text );
 void ruSetGUINodePosition( ruGUINodeHandle node, float x, float y );
 void ruSetGUINodeSize( ruGUINodeHandle node, float w, float h );
@@ -508,6 +589,8 @@ bool ruIsButtonHit( ruButtonHandle node );
 bool ruIsButtonPicked( ruButtonHandle node );
 ruTextHandle ruGetButtonText( ruButtonHandle node );
 void ruFreeGUINode( ruGUINodeHandle node );
+void ruSetGUIButtonActive( ruButtonHandle button, bool state );
+void ruSetGUINodeChildAlphaControl( ruGUINodeHandle node, bool controlChildAlpha );
 ////////////////////////////////////////////////////////////////////////////////////
 // Time functions
 ////////////////////////////////////////////////////////////////////////////////////

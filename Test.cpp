@@ -48,9 +48,9 @@ void main( ) {
     float pitch = 0, yaw = 0;
     int cameraNum = 0;
 
-    ruFontHandle font = ruCreateGUIFont( 12, "data/fonts/font1.otf", 1, 0 );
-    ruFontHandle font2 = ruCreateGUIFont( 16, "data/fonts/font1.otf", 1, 0 );
-    ruFontHandle font3 = ruCreateGUIFont( 20, "data/fonts/font1.otf", 1, 0 );
+    ruFontHandle font = ruCreateGUIFont( 12, "data/fonts/font1.otf" );
+    ruFontHandle font2 = ruCreateGUIFont( 16, "data/fonts/font1.otf" );
+    ruFontHandle font3 = ruCreateGUIFont( 20, "data/fonts/font1.otf" );
 
     int counter = 0;
     int fps = 0;
@@ -76,9 +76,12 @@ void main( ) {
 
     ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
-    ruButtonHandle testButton = ruCreateGUIButton( 200, 200, 128, 32, ruGetTexture( "data/gui/button.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
-	ruRectHandle testrect = ruCreateGUIRect( 0, 0, 200, 200, ruGetTexture( "data/gui/inventory/items/detonator.png" ));
-
+    
+	ruRectHandle testrect = ruCreateGUIRect( 100, 100, 200, 200, ruGetTexture( "data/gui/inventory/items/detonator.png" ));
+	ruButtonHandle testButton = ruCreateGUIButton( 10, 30, 128, 32, ruGetTexture( "data/gui/menubutton.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
+	ruButtonHandle testButton2 = ruCreateGUIButton( 0, 100, 128, 32, ruGetTexture( "data/gui/menubutton.png" ), "Test", font, ruVector3( 255, 255, 255 ), 1 );
+	ruAttachGUINode( testButton, testrect );
+	ruAttachGUINode( testButton2, testrect );
 	//ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
 	//ruNodeHandle testScene = ruLoadScene( "data/maps/release/mine/mine.scene" );
 	ruSetAmbientColor( ruVector3( 0.4, 0.4, 0.4 ));
@@ -116,10 +119,14 @@ void main( ) {
 
         ruUpdatePhysics( 1.0f / 60.0f, 10, 1.0f / 60.0f );
 
-		if( ruIsKeyHit( KEY_1 ))
+		if( ruIsKeyHit( KEY_1 )) {
+			ruSetGUINodeVisible( testrect, false );
 			ruEnableFXAA();
-		if( ruIsKeyHit( KEY_2 ))
+		}
+		if( ruIsKeyHit( KEY_2 )) {
+			ruSetGUINodeVisible( testrect, true );
 			ruDisableFXAA();
+		}
 
 		if( ruIsMouseHit( MB_Left )) {
 			ruNodeHandle newCube = ruCreateNodeInstance( cube );

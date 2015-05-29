@@ -56,4 +56,10 @@
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "dxguid.lib" )
 
+static void RaiseError( const string & text ) {
+	MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
+	throw runtime_error( text );
+}
+
+
 using namespace std;

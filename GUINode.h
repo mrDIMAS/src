@@ -7,16 +7,29 @@ class Texture;
 
 class GUINode {
 protected:
+	float mGlobalX;
+	float mGlobalY;
     float mX;
     float mY;
     float mWidth;
     float mHeight;
     int mAlpha;
     bool mVisible;
+	bool mControlChildAlpha;
+	bool mLastMouseInside;
     ruVector3 mColor;
     Texture * mpTexture;
     int mColorPacked;
+	vector<GUINode*> mChildList;
+	GUINode * mParent;
+	unordered_map<ruGUIAction, ruEvent> mEventList;
+	bool IsGotAction( ruGUIAction act );
+	bool IsMouseInside();	
+	virtual void OnClick();
+	virtual void OnMouseEnter();
+	virtual void OnMouseLeave();	
 public:
+	void DoActions();
     static vector<GUINode*> msNodeList;
     explicit GUINode();
     virtual ~GUINode();
@@ -38,4 +51,10 @@ public:
     ruVector2 GetSize( );
     ruVector3 GetColor();
     int GetAlpha();
+	void AttachTo( GUINode * parent );
+	void CalculateTransform();
+	void SetControlChildAlpha( bool control );
+	void AddAction( ruGUIAction act, const ruDelegate & delegat );
+	void RemoveAction( ruGUIAction act );
+	void RemoveAllActions();
 };

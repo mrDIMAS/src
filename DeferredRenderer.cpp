@@ -10,7 +10,6 @@
 
 DeferredRenderer::DeferredRenderer() {
     mFullscreenQuad = new EffectsQuad;
-    mDebugQuad = new EffectsQuad( true );
     CreateBoundingVolumes();
     mFXAA = new FXAA;
     mGBuffer = new GBuffer;
@@ -39,7 +38,6 @@ DeferredRenderer::~DeferredRenderer() {
     delete mSpotLightShadowMap;
     delete mFXAA;
     delete mHDRShader;
-    delete mDebugQuad;
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {
@@ -106,8 +104,8 @@ void DeferredRenderer::CreateBoundingVolumes() {
 // Point Light Subclass
 ////////////////////////////////////////////////////////////
 DeferredRenderer::PointLightShader::PointLightShader() {
-    pixelShader = new PixelShader( "data/shaders/deferredPointLight.pso", true );
-    pixelShaderTexProj = new PixelShader( "data/shaders/deferredPointLightTexProj.pso", true );
+    pixelShader = new PixelShader( "data/shaders/deferredPointLight.pso" );
+    pixelShaderTexProj = new PixelShader( "data/shaders/deferredPointLightTexProj.pso" );
 }
 
 void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Light * light ) {
@@ -153,7 +151,7 @@ DeferredRenderer::PointLightShader::~PointLightShader() {
 ////////////////////////////////////////////////////////////
 
 DeferredRenderer::AmbientLightShader::AmbientLightShader() {
-    pixelShader = new PixelShader( "data/shaders/deferredAmbientLight.pso", true );
+    pixelShader = new PixelShader( "data/shaders/deferredAmbientLight.pso" );
 }
 
 void DeferredRenderer::AmbientLightShader::Bind( ) {
@@ -170,8 +168,8 @@ DeferredRenderer::AmbientLightShader::~AmbientLightShader() {
 ////////////////////////////////////////////////////////////
 
 DeferredRenderer::SpotLightShader::SpotLightShader( ) {
-    pixelShader = new PixelShader( "data/shaders/deferredSpotLight.pso", true );
-	pixelShaderShadows = new PixelShader( "data/shaders/deferredSpotLightShadows.pso", true );
+    pixelShader = new PixelShader( "data/shaders/deferredSpotLight.pso" );
+	pixelShaderShadows = new PixelShader( "data/shaders/deferredSpotLightShadows.pso" );
 }
 
 void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Light * lit ) {
@@ -200,8 +198,6 @@ void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Ligh
     Engine::Instance().SetPixelShaderFloat( 16, lit->GetCosHalfOuterAngle() );
     // direction
     Engine::Instance().SetPixelShaderFloat3( 12, direction.m_floats );
-    // brightness
-    Engine::Instance().SetPixelShaderFloat( 17, (Engine::Instance().IsHDREnabled() ? lit->brightness : 1.0f) );
 }
 
 DeferredRenderer::SpotLightShader::~SpotLightShader() {
@@ -215,7 +211,7 @@ DeferredRenderer::SpotLightShader::~SpotLightShader() {
 // a oriented cone for a spot light
 DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader() {
     //vs = new VertexShader( "data/shaders/boundingVolume.vso", true );
-    ps = new PixelShader( "data/shaders/boundingVolume.pso", true );
+    ps = new PixelShader( "data/shaders/boundingVolume.pso" );
     D3DVERTEXELEMENT9 vd[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
 		{ 0,  0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
@@ -243,7 +239,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX &
 
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     ruVector3 realPosition = pLight->GetRealPosition();
-    float scl = 1.25f * pLight->radius * scale;
+    float scl = 2.5f * pLight->radius * scale;
     D3DXMATRIX world;
     world._11 = scl;
     world._12 = 0.0f;

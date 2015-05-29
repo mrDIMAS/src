@@ -398,7 +398,7 @@ void Level::DoneInitialization() {
 
 void Level::CreateLoadingScreen()
 {
-	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf", 0, 0 );
+	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf" );
 	int w = 200;
 	int h = 32;
 	int x = ( ruGetResolutionWidth() - w ) / 2;

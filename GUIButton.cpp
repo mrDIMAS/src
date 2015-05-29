@@ -5,49 +5,67 @@
 vector< GUIButton* > GUIButton::msButtonList;
 
 void GUIButton::Update() {
-    int mouseX = ruGetMouseX();
-    int mouseY = ruGetMouseY();
+	if( IsVisible() ) {
+		CalculateTransform();
 
-    mpText->SetColor( ruVector3( 255, 255, 255 ));
+		int mouseX = ruGetMouseX();
+		int mouseY = ruGetMouseY();
 
-    mPicked = false;
-    mLeftPressed = false;
-    mRightPressed = false;
-    mLeftHit = false;
-    mRightHit = false;
+		mPicked = false;
+		mLeftPressed = false;
+		mRightPressed = false;
+		mLeftHit = false;
+		mRightHit = false;
 
-    if( mouseX > mX && mouseX < ( mX + mWidth ) && mouseY > mY && mouseY < ( mY + mHeight ) ) {
-        mPicked = true;
+		if( mActive ) {
+			mpText->SetColor( ruVector3( 255, 255, 255 ));
 
-        if( ruIsMouseHit( MB_Left )) {
-            mLeftHit = true;
-        }
+			if( mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight ) ) {
+				mPicked = true;
 
-        if( ruIsMouseHit( MB_Right )) {
-            mRightHit = true;
-        }
+				if( ruIsMouseHit( MB_Left )) {
+					if( IsGotAction( ruGUIAction::OnClick )) {
+						mEventList[ ruGUIAction::OnClick ].DoActions();
+					}
 
-        if( ruIsMouseDown( MB_Left )) {
-            mLeftPressed = true;
-        }
+					mLeftHit = true;
+				}
 
-        if( ruIsMouseDown( MB_Right )) {
-            mRightPressed = true;
-        }
+				if( ruIsMouseHit( MB_Right )) {
+					mRightHit = true;
+				}
 
-        mpText->SetColor( ruVector3( 255, 0, 0 ));
-    }
+				if( ruIsMouseDown( MB_Left )) {
+					mLeftPressed = true;
+				}
+
+				if( ruIsMouseDown( MB_Right )) {
+					mRightPressed = true;
+				}
+
+				mpText->SetColor( ruVector3( 255, 0, 0 ));
+			}
+
+			SetColor( mInitColor );
+		} else {
+			SetColor( ruVector3( 90, 90, 90 ));
+			mpText->SetColor( ruVector3( 90, 90, 90 ));
+		}
+	}
 }
 
 GUIButton::GUIButton( int x, int y, int w, int h, Texture* texture, const string & text, BitmapFont * font, ruVector3 color, int textAlign, int alpha )
     : GUIRect( x, y, w, h, texture, color, alpha, true ) {
-    mpText = new GUIText( text, x, y, w, h, color, alpha, textAlign, font );
+    mpText = new GUIText( text, 0, 0, w, h, color, alpha, textAlign, font );
+	mpText->AttachTo( this );
     msButtonList.push_back( this );
     mPicked = false;
     mLeftPressed = false;
     mRightPressed = false;
     mLeftHit = false;
     mRightHit = false;
+	mActive = true;
+	mInitColor = color;
     pickedColor = ruVector3( 255, 255, 255 );
 }
 
@@ -88,18 +106,13 @@ GUIButton::~GUIButton() {
     msButtonList.erase( find( msButtonList.begin(), msButtonList.end(), this ));
 }
 
-void GUIButton::SetVisible( bool visible ) {
-    GUINode::SetVisible( visible );
-    mpText->SetVisible( visible );
-}
-
-void GUIButton::SetPosition( float x, float y ) {
-    GUINode::SetPosition( x, y );
-    mpText->SetPosition( x, y );
-}
-
 void GUIButton::SetAlpha( int alpha )
 {
 	GUINode::SetAlpha( alpha );
 	mpText->SetAlpha( alpha );
+}
+
+void GUIButton::SetActive( bool state )
+{
+	mActive = state;
 }

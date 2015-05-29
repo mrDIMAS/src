@@ -23,7 +23,7 @@ void BitmapFont::RenderAtlas( EffectsQuad * quad ) {
 }
 
 BitmapFont::BitmapFont( const string & file, int size ) {
-	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
 		size = NearestPow2(size);
 	}
 	FT_Library ftLibrary;

@@ -4,4 +4,4 @@
 
 string GetKeyName( unsigned int vk );
 bool FileExist( const string & file );
-void GetFilesWithDefExt( string folder, vector< string > & names );
+void GetFilesWithExtension( string folder, vector< string > & names );

@@ -28,10 +28,10 @@ const char * keyNames [] = {
     "I",
     "O",
     "P",
-    "LeftBracket",
-    "RightBracket",
+    "LBracket",
+    "RBracket",
     "Enter",
-    "LeftControl",
+    "LControl",
     "A",
     "S",
     "D",
@@ -44,7 +44,7 @@ const char * keyNames [] = {
     "Semicolon",
     "Apostrophe",
     "Grave",
-    "LeftShift",
+    "LShift",
     "BackSlash",
     "Z",
     "X",
@@ -56,9 +56,9 @@ const char * keyNames [] = {
     "Comma",
     "Period",
     "Slash",
-    "RightShift",
+    "RShift",
     "Multiply",
-    "LeftAlt",
+    "LAlt",
     "Space",
     "Capital",
     "F1",
@@ -169,7 +169,7 @@ bool FileExist( const string & file ) {
     return state;
 }
 
-void GetFilesWithDefExt( string folder, vector< string > & names ) {
+void GetFilesWithExtension( string folder, vector< string > & names ) {
     WIN32_FIND_DATAA fd;
     HANDLE hFind = FindFirstFileA( folder.c_str(), &fd);
     if(hFind != INVALID_HANDLE_VALUE) {

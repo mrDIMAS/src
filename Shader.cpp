@@ -25,26 +25,17 @@ VertexShader::~VertexShader() {
     }
 }
 
-VertexShader::VertexShader( string source ) {
-    ID3DXBuffer * buffer = 0;
-    ID3DXBuffer * errMessages = 0;
-    DWORD flags = D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3DXSHADER_OPTIMIZATION_LEVEL3;
-
-    if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "vs_2_0", flags, &buffer, &errMessages, &constants ))) {
-        MessageBoxA( 0, ( const char * ) errMessages->GetBufferPointer(), "Error", MB_OK ) ;
-        exit( -1 );
-    }
-
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexShader ( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
-}
-
-VertexShader::VertexShader( string fileName, bool binary ) {
+VertexShader::VertexShader( string fileName ) {
     FILE * pFile = 0;
     BYTE * shaderCode = 0;
     UINT fSize = 0;
     UINT numRead = 0;
 
     pFile = fopen( fileName.c_str(), "rb" );
+
+	if( !pFile ) {
+		RaiseError( StringBuilder( "Failed to load shader " ) << fileName << " !" );
+	}
 
     fseek(pFile, 0, SEEK_END);
     fSize = ftell(pFile);
@@ -80,28 +71,17 @@ PixelShader::~PixelShader() {
     }
 }
 
-PixelShader::PixelShader( string source ) {
-    ID3DXBuffer * buffer = 0;
-    ID3DXBuffer * errMessages = 0;
-    DWORD flags = D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3DXSHADER_OPTIMIZATION_LEVEL3;
-
-    if( FAILED( D3DXCompileShader ( source.c_str(), source.size(), 0, 0, "main", "ps_2_0", flags, &buffer, &errMessages, &constants ))) {
-        MessageBoxA( 0, ( const char * ) errMessages->GetBufferPointer(), "Error", MB_OK ) ;
-
-        exit( -1 );
-    }
-
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreatePixelShader( ( DWORD * ) buffer->GetBufferPointer(), &shader ));
-}
-
-
-PixelShader::PixelShader( string fileName, bool binary ) {
+PixelShader::PixelShader( string fileName ) {
     FILE * pFile = 0;
     BYTE * shaderCode = 0;
     UINT fSize = 0;
     UINT numRead = 0;
 
     pFile = fopen( fileName.c_str(), "rb" );
+
+	if( !pFile ) {
+		RaiseError( StringBuilder( "Failed to load shader " ) << fileName << " !" );
+	}
 
     fseek(pFile, 0, SEEK_END);
     fSize = ftell(pFile);

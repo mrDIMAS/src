@@ -24,10 +24,11 @@ GUIText::~GUIText() {
 }
 
 RECT GUIText::GetBoundingRect() {
-    mRect.left = mX;
-    mRect.top = mY;
-    mRect.right = mX + mWidth;
-    mRect.bottom = mY + mHeight;
+	CalculateTransform();
+    mRect.left = mGlobalX;
+    mRect.top = mGlobalY;
+    mRect.right = mGlobalX + mWidth;
+    mRect.bottom = mGlobalY + mHeight;
     return mRect;
 }
 
@@ -41,4 +42,9 @@ std::string & GUIText::GetText() {
 
 int GUIText::GetTextAlignment() {
     return mTextAlign;
+}
+
+void GUIText::SetText( const string & text )
+{
+	mText = text;
 }

@@ -15,7 +15,7 @@ Inventory::Inventory() {
     mOpen = false;
     mpSelectedItem = nullptr;
 
-    mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf", 0, 0 );
+    mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf" );
 
     mpCombineItemFirst = nullptr;
     mpCombineItemSecond = nullptr;
@@ -41,12 +41,14 @@ Inventory::Inventory() {
     int backgroundY = coordY - backGroundSpace;
     int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX;
     int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY;
-    mGUIBackground = ruCreateGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture );
+    mGUICanvas = ruCreateGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture );
     int combineH = 128;
     int combineY = backgroundY + backgroundH;
     int descriptionY = combineY + 10;
     mGUIRightPanel = ruCreateGUIRect( backgroundX, combineY, backgroundW, combineH, mBackgroundTexture );
+	//ruAttachGUINode( mGUIRightPanel, mGUICanvas );
     mGUIDescription = ruCreateGUIText( mLocalization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW, combineH, mFont, whiteColor, 0 );
+	//ruAttachGUINode( mGUIDescription, mGUICanvas );
     // item actions
     int actionsW = 128;
     int actionsX = backgroundX + backgroundW;
@@ -98,9 +100,9 @@ Inventory::Inventory() {
 
 void Inventory::SetVisible( bool state ) {
 	mOpen = state;
-    ruSetGUINodeVisible( mGUIBackground, state );
+    ruSetGUINodeVisible( mGUICanvas, state );
     ruSetGUINodeVisible( mGUIRectItemForUse, state );
-    ruSetGUINodeVisible( mGUIBackground, state );
+    ruSetGUINodeVisible( mGUICanvas, state );
     ruSetGUINodeVisible( mGUIRightPanel, state );
     ruSetGUINodeVisible( mGUIDescription, state );
     ruSetGUINodeVisible( mGUIActions, state );
@@ -384,7 +386,7 @@ void Inventory::ThrowItem( Item * pItem ) {
 
 Inventory::~Inventory() {
 	ruFreeGUINode( mGUIRectItemForUse );
-	ruFreeGUINode( mGUIBackground );
+	ruFreeGUINode( mGUICanvas );
 	ruFreeGUINode( mGUIRightPanel );
 	ruFreeGUINode( mGUIDescription );
 	ruFreeGUINode( mGUIActions );

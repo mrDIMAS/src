@@ -23,7 +23,7 @@ ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theAnimSpeed
     interpolator = 0.0f;
 }
 
-void ruAnimation::Update( float dt ) {
+void ruAnimation::Update() {
     if ( interpolator >= 1.0f ) {
         currentFrame++;
         // get next frame number

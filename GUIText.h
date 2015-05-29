@@ -17,7 +17,5 @@ public:
     int GetTextAlignment();
     string & GetText();
     BitmapFont * GetFont();
-    void SetText( const string & text ) {
-        mText = text;
-    }
+    void SetText( const string & text );
 };

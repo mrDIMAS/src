@@ -48,6 +48,6 @@ ForwardRenderer::~ForwardRenderer() {
 }
 
 ForwardRenderer::ForwardRenderer() {
-    mVertexShader = new VertexShader( "data/shaders/forwardTransparent.vso", true );
-    mPixelShader = new PixelShader( "data/shaders/forwardTransparent.pso", true );
+    mVertexShader = new VertexShader( "data/shaders/forwardTransparent.vso" );
+    mPixelShader = new PixelShader( "data/shaders/forwardTransparent.pso" );
 }

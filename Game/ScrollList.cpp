@@ -54,10 +54,3 @@ ScrollList::~ScrollList() {
     ruFreeGUINode( mGUIIncreaseButton );
     ruFreeGUINode( mGUIDecreaseButton );
 }
-
-void ScrollList::SetVisible( bool state ) {
-    ruSetGUINodeVisible( mGUIText, state );
-    ruSetGUINodeVisible( mGUIValueText, state );
-    ruSetGUINodeVisible( mGUIIncreaseButton, state );
-    ruSetGUINodeVisible( mGUIDecreaseButton, state );
-}

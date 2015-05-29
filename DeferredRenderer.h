@@ -66,8 +66,7 @@ public:
         void SetLight( D3DXMATRIX & invViewProj, Light * lit );
     };
 
-    EffectsQuad * mFullscreenQuad;
-    EffectsQuad * mDebugQuad;
+	EffectsQuad * mFullscreenQuad;
 
     GBuffer * mGBuffer;
 

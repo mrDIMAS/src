@@ -17,5 +17,10 @@ public:
     int GetCurrentValue();
     void AddValue( string val );
     void Update(  );
-    void SetVisible( bool state );
+    void AttachTo( ruGUINodeHandle node ) {
+		ruAttachGUINode( mGUIIncreaseButton, node );
+		ruAttachGUINode( mGUIDecreaseButton, node );
+		ruAttachGUINode( mGUIText, node );
+		ruAttachGUINode( mGUIValueText, node );
+	}
 };

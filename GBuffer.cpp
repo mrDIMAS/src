@@ -78,7 +78,7 @@ void GBuffer::FreeRenderTargets() {
 void GBuffer::CreateRenderTargets() {
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
-	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
 		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
 		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}

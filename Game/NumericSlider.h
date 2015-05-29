@@ -2,7 +2,7 @@
 
 #include "Game.h"
 
-class NumericSlider {
+class Slider {
 private:
     float mValue;
     float mfMinimum, mfMaximum;
@@ -12,10 +12,15 @@ private:
     ruTextHandle mGUIText;
     ruTextHandle mGUIValueText;
 public:
-    explicit NumericSlider( float x, float y, float minimum, float maximum, float step,  ruTextureHandle buttonImage, const string & text );
+    explicit Slider( float x, float y, float minimum, float maximum, float step,  ruTextureHandle buttonImage, const string & text );
     void Update(  );
     float GetValue();
     void SetValue( float value );
-    ~NumericSlider();
-    void SetVisible( bool state );
+    ~Slider();
+    void AttachTo( ruGUINodeHandle node ) {
+		ruAttachGUINode( mGUIIncreaseButton, node );
+		ruAttachGUINode( mGUIDecreaseButton, node );
+		ruAttachGUINode( mGUIText, node );
+		ruAttachGUINode( mGUIValueText, node );
+	}
 };

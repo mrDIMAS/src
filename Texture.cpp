@@ -25,7 +25,7 @@ Texture * Texture::Require( string file ) {
         // texture not found in the storage, so create new one
         pTexture = new Texture;
 
-        pTexture->texture = 0;
+        pTexture->mTexture = 0;
         pTexture->name = file;
 
 		D3DXIMAGE_INFO imgInfo;
@@ -40,17 +40,17 @@ Texture * Texture::Require( string file ) {
         FILE * pFile = fopen( cacheFileName.c_str(), "r" );
 		if(pFile) {       
 			fclose(pFile);
-            if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->texture ))) {
+            if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &pTexture->mTexture ))) {
                 Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
             }
         } else {
-            if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->texture ))) {
+            if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &pTexture->mTexture ))) {
                 Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
             }
         }
-        pTexture->width = imgInfo.Width;
-        pTexture->height = imgInfo.Height;
-        pTexture->bpp = 32;
+        pTexture->mWidth = imgInfo.Width;
+        pTexture->mHeight = imgInfo.Height;
+        pTexture->mColorDepth = 32;
         msTextureList[ file ] = pTexture;
     } else {
         pTexture = existing->second;
@@ -60,9 +60,9 @@ Texture * Texture::Require( string file ) {
 }
 
 Texture::Texture() {
-    height = 0;
-    width = 0;
-    bpp = 0;
+    mHeight = 0;
+    mWidth = 0;
+    mColorDepth = 0;
 }
 
 Texture::~Texture( ) {
@@ -70,20 +70,30 @@ Texture::~Texture( ) {
 }
 
 void Texture::Bind( int level ) {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( level, texture ));
+    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( level, mTexture ));
 }
 
 IDirect3DTexture9 * Texture::GetInterface() {
-    return texture;
+    return mTexture;
 }
 
 void Texture::DeleteAll() {
     for( auto tex : msTextureList ) {
-        if( tex.second->texture ) {
-            tex.second->texture->Release();
+        if( tex.second->mTexture ) {
+            tex.second->mTexture->Release();
         }
         delete tex.second;
     }
+}
+
+int Texture::GetWidth()
+{
+	return mWidth;
+}
+
+int Texture::GetHeight()
+{
+	return mHeight;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -99,4 +109,12 @@ ruTextureHandle ruGetTexture( const string & file ) {
     ruTextureHandle handle;
     handle.pointer = Texture::Require( file );
     return handle;
+}
+
+int ruGetTextureWidth( ruTextureHandle texture ) {
+	return ((Texture*)texture.pointer)->GetWidth();
+}
+
+int ruGetTextureHeight( ruTextureHandle texture ) {
+	return ((Texture*)texture.pointer)->GetHeight();
 }

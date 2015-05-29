@@ -12,5 +12,8 @@ public:
     void Update(  );
     bool IsEnabled( );
     void SetEnabled( bool state );
-    void SetVisible( bool state );
+    void AttachTo( ruGUINodeHandle node ) {
+		ruAttachGUINode( mGUIText, node );
+		ruAttachGUINode( mGUIButton, node );
+	}
 };

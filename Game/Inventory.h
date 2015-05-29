@@ -24,7 +24,7 @@ private:
     ruFontHandle mFont;
     Parser mLocalization;
     ruRectHandle mGUIRectItemForUse;
-    ruRectHandle mGUIBackground;
+    ruRectHandle mGUICanvas;
     ruRectHandle mGUIRightPanel;
     ruTextHandle mGUIDescription;
     ruRectHandle mGUIActions;

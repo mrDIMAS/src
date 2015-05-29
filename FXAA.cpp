@@ -22,10 +22,10 @@ void FXAA::BeginDrawIntoTexture() {
 }
 
 FXAA::FXAA() {
-	pixelShader = new PixelShader( "data/shaders/fxaa.pso", true );
+	pixelShader = new PixelShader( "data/shaders/fxaa.pso" );
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
-	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
 		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
 		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}

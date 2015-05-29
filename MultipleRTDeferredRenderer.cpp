@@ -53,8 +53,8 @@ void MultipleRTDeferredRenderer::BeginFirstPass() {
 }
 
 MultipleRTDeferredRenderer::MultipleRTDeferredRenderer() {
-	mGBufferVertexShader = new VertexShader( "data/shaders/deferredGBufferHQ.vso", true );
-	mGBufferPixelShader = new PixelShader( "data/shaders/deferredGBufferHQ.pso", true );
+	mGBufferVertexShader = new VertexShader( "data/shaders/deferredGBufferHQ.vso" );
+	mGBufferPixelShader = new PixelShader( "data/shaders/deferredGBufferHQ.pso" );
 }
 
 MultipleRTDeferredRenderer::~MultipleRTDeferredRenderer() {

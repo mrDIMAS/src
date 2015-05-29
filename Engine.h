@@ -71,42 +71,9 @@ public:
 	float GetResolutionWidth();
 	float GetResolutionHeight();
 	int GetDIPCount();
-	bool IsAnisotropicFilteringEnabled() {
-		return mAnisotropicFiltering;
-	}
-	void SetAnisotropicTextureFiltration( bool state ) {
-		mAnisotropicFiltering = state;
-	}
-	void SetDiffuseNormalSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips ) {
-		if( filter == D3DTEXF_NONE ) { // invalid argument to min and mag filters
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		} else if( filter == D3DTEXF_LINEAR ) {
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		} else if( filter == D3DTEXF_ANISOTROPIC ) {
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-		}
-
-		// mip filters
-		if( filter == D3DTEXF_NONE || disableMips ) { // actually disables mip-mapping
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-		} else if( filter == D3DTEXF_POINT ) {
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
-		} else if( filter == D3DTEXF_LINEAR ) {
-			GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-		}
-	}
+	bool IsAnisotropicFilteringEnabled();
+	void SetAnisotropicTextureFiltration( bool state );
+	void SetDiffuseNormalSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
 	void SetSpotLightShadowMapSize( int size );
 	DeferredRenderer * GetDeferredRenderer();
 	ForwardRenderer * GetForwardRenderer();
@@ -119,7 +86,7 @@ public:
 	void SetAmbientColor( ruVector3 ambColor );
 	bool IsHDREnabled();
 	void SetHDREnabled( bool state );
-	bool IsFullNPOTTexturesSupport();
+	bool IsNonPowerOfTwoTexturesSupport();
 	void Shutdown();
 	bool IsFXAAEnabled();
 	void SetFXAAEnabled( bool state );

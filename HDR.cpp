@@ -40,28 +40,16 @@ HDRShader::~HDRShader() {
 HDRShader::HDRShader( D3DFORMAT rtFormat ) {
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
-	if( !Engine::Instance().IsFullNPOTTexturesSupport()) {
+	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
 		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
 		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
 	}
     D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET  , rtFormat, D3DPOOL_DEFAULT, &hdrTexture );
     hdrTexture->GetSurfaceLevel( 0, &hdrSurface );
 
-    string toneMapShaderSource =
-
-		"sampler hdrTexture : register( s0 );\n"
-		"sampler avgLum : register( s7 );\n"
-		"float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{\n"
-		"	float luminance = clamp( tex2D( avgLum, float2( 0.5f, 0.5f )), 0.041, 1.5f ).r;\n"
-		"	float3 texColor = tex2D( hdrTexture, texCoord );\n"
-		"	texColor /= luminance * 10;\n"
-		"	return float4( texColor, 1 );\n"
-		"};\n";
-
-    toneMapShader = new PixelShader( toneMapShaderSource );
+	toneMapShader = new PixelShader( "data/shaders/hdrTonemap.pso" );
     screenQuad = new EffectsQuad( false );
-
-
+	
     D3DXCreateTexture( Engine::Instance().GetDevice(), 512, 512, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &scaledScene );
     scaledScene->GetSurfaceLevel( 0, &scaledSceneSurf );
 
@@ -78,49 +66,14 @@ HDRShader::HDRShader( D3DFORMAT rtFormat ) {
     D3DXCreateTexture( Engine::Instance().GetDevice(), 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &adaptedLuminanceLast );
     D3DXCreateTexture( Engine::Instance().GetDevice(), 1, 1, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &adaptedLuminanceCurrent );
 
-
-    string scalePixelShaderSource =
-        "sampler hdrTexture : register( s7 );\n"
-        "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
-        "	float4 hdrTexel = tex2D( hdrTexture, texCoord );\n"
-        //"	return hdrTexel.r * 0.27 + hdrTexel.g * 0.67 + hdrTexel.b * 0.06;\n"
-		"	return hdrTexel;\n"
-        "};\n";
-
-    scaleScenePixelShader = new PixelShader( scalePixelShaderSource );
-
-    string adaptationPixelShaderSource =
-        "sampler last : register( s6 );\n"
-        "sampler current : register( s7 );\n"
-        "float adaptation;\n"
-        "float4 main( ) : COLOR0\n {"
-        "	float fAdaptedLum = tex2D( last, float2(0.5f, 0.5f)).r;\n"
-        "	float fCurrentLum = tex2D( current, float2(0.5f, 0.5f)).r;\n"
-		"	float fNewAdaptation = fAdaptedLum + (fCurrentLum - fAdaptedLum) * ( 1 - pow( 0.98, adaptation ));\n"
-        "	return float4(fNewAdaptation, 0.0f, 0.0f, 1.0f);\n"
-        "};\n";
-
-    adaptationPixelShader = new PixelShader( adaptationPixelShaderSource );
-    hAdaptation = adaptationPixelShader->GetConstantTable()->GetConstantByName( 0, "adaptation" );
+    scaleScenePixelShader = new PixelShader( "data/shaders/hdrScale.pso" );
+    adaptationPixelShader = new PixelShader( "data/shaders/hdrAdaptation.pso" );
 
     for( int i = 0; i < DOWNSAMPLE_COUNT; i++ ) {
         downSampTex[i]->GetSurfaceLevel( 0, &downSampSurf[i] );
     }
 
-    string downScale2x2 =
-        "sampler s0 : register( s7 );\n"
-        "float pixelSize;\n"
-        "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
-        "	float sample = 0.0f;\n"
-        "	sample += tex2D( s0, texCoord + float2( -pixelSize, -pixelSize ) ).r;\n"
-        "	sample += tex2D( s0, texCoord + float2(  pixelSize, -pixelSize ) ).r;\n"
-        "	sample += tex2D( s0, texCoord + float2(  pixelSize,  pixelSize ) ).r;\n"
-        "	sample += tex2D( s0, texCoord + float2( -pixelSize,  pixelSize ) ).r;\n"
-        "	return sample / 4;\n"
-        "}\n";
-
-    downScalePixelShader = new PixelShader( downScale2x2 );
-    hPixelSize = downScalePixelShader->GetConstantTable()->GetConstantByName( 0, "pixelSize" );
+    downScalePixelShader = new PixelShader( "data/shaders/hdrDownscale.pso" );
 }
 
 void HDRShader::CalculateFrameLuminance( ) {
@@ -136,47 +89,47 @@ void HDRShader::CalculateFrameLuminance( ) {
     // 256x256
     Engine::Instance().GetDevice()->SetTexture( 7, scaledScene );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 0 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 256.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 256.0f );
     screenQuad->Render();
     // 128x128
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 0 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 1 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 128.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 128.0f );
     screenQuad->Render();
     // 64x64
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 1 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 2 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 64.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 64.0f );
     screenQuad->Render();
     // 32x32
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 2 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 3 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 32.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 32.0f );
     screenQuad->Render();
     // 16x16
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 3 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 4 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 16.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 16.0f );
     screenQuad->Render();
     // 8x8
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 4 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 5 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 8.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 8.0f );
     screenQuad->Render();
     // 4x4
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 5 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 6 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 4.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 4.0f );
     screenQuad->Render();
     // 2x2
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 6 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 7 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f / 2.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f / 2.0f );
     screenQuad->Render();
     // final 1x1
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[ 7 ] );
     Engine::Instance().GetDevice()->SetRenderTarget( 0, downSampSurf[ 8 ] );
-    downScalePixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hPixelSize, 1.0f );
+    Engine::Instance().SetPixelShaderFloat( 0, 1.0f );
     screenQuad->Render();
     // now we get average frame luminance presented as 1x1 pixel RGBA8 texture
     // render it into R32F luminance texture
@@ -196,7 +149,7 @@ void HDRShader::CalculateFrameLuminance( ) {
     Engine::Instance().GetDevice()->SetTexture( 7, downSampTex[8] );
 
     adaptationPixelShader->Bind();
-    adaptationPixelShader->GetConstantTable()->SetFloat( Engine::Instance().GetDevice(), hAdaptation, 0.75f );
+	Engine::Instance().SetPixelShaderFloat( 0, 0.75f ); // adaptation
     screenQuad->Render();
 
     pSurfAdaptedLum->Release();

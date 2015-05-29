@@ -84,7 +84,7 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
         mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
     }
 
-	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font1.otf", 0, 0 );
+	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font1.otf" );
 	mGUIYouDied = ruCreateGUIText( mLocalization.GetString( "youDied" ), (ruGetResolutionWidth() - 300) / 2, ruGetResolutionHeight() / 2, 300, 50, mGUIYouDiedFont, ruVector3( 255, 0, 0 ), 1, 255 );
 	ruSetGUINodeVisible( mGUIYouDied, false );
 
@@ -92,7 +92,7 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
 	mCurrentWeapon = nullptr;
 
 	// hack
-	pMainMenu->SetPlayerControls();
+	pMainMenu->SyncPlayerControls();
 
 	mAutoSaveTimer = ruCreateTimer();
 }
@@ -669,10 +669,10 @@ void Player::UpdateCameraShake() {
     static int stepPlayed = 0;
 
     if( mMoved ) {
-        mCameraBobCoeff += 7.5 * mRunCameraShakeCoeff * g_dt;
+        mCameraBobCoeff += 11.5 * mRunCameraShakeCoeff * g_dt;
 
-        float xOffset = sinf( mCameraBobCoeff ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff ) * 0.045f;
-        float yOffset = abs( xOffset );
+		float yOffset = 0.045f * sinf( mCameraBobCoeff ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff );
+        float xOffset = 0.045f * cosf( mCameraBobCoeff / 2 ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff );        
 
         if( yOffset < 0.02 && !ruIsSoundPlaying( mFootstepList[ stepPlayed ] ) ) {
             stepPlayed = rand() % mFootstepList.size();

@@ -32,8 +32,7 @@ public:
     IDirect3DSurface9 * downSampSurf[ DOWNSAMPLE_COUNT ];
     IDirect3DTexture9 * adaptedLuminanceLast;
     IDirect3DTexture9 * adaptedLuminanceCurrent;
-    D3DXHANDLE hPixelSize;
-    D3DXHANDLE hAdaptation;
+
 public:
     explicit HDRShader( D3DFORMAT rtFormat );
     virtual ~HDRShader();

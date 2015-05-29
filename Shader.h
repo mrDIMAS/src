@@ -9,8 +9,7 @@ private:
 	
 	static IDirect3DVertexShader9 * msLastBinded;
 public:
-    VertexShader( string source );
-    VertexShader( string fileName, bool binary );
+    VertexShader( string fileName );
     ~VertexShader();
     ID3DXConstantTable * GetConstantTable();
     void Bind();
@@ -24,8 +23,7 @@ private:
 
 	static IDirect3DPixelShader9 * msLastBinded;
 public:
-    PixelShader( string source );
-    PixelShader( string fileName, bool binary );
+    PixelShader( string fileName );
     ~PixelShader();
     ID3DXConstantTable * GetConstantTable();
     void Bind();

@@ -71,8 +71,8 @@ SpotlightShadowMap::SpotlightShadowMap( float size ) {
     // get surfaces
     CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
 
-    vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso", true );
-    pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso", true );
+    vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso" );
+    pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso" );
 
     CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDepthStencilSurface( &defaultDepthStencil ));
     CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));

@@ -49,7 +49,7 @@ bool ruLineHandle::operator == ( const ruLineHandle & node ) {
 }
 
 
-ruFontHandle ruCreateGUIFont( int size, const string & name, int italic, int underlined ) {
+ruFontHandle ruCreateGUIFont( int size, const string & name ) {
     ruFontHandle font;
     font.pointer = new BitmapFont( name, size );
     return font;
@@ -141,4 +141,28 @@ ruTextHandle ruGetButtonText( ruButtonHandle node ) {
 
 void ruFreeGUINode( ruGUINodeHandle node ) {
 	delete ((GUINode*)node.pointer);
+}
+
+void ruAttachGUINode( ruGUINodeHandle node, ruGUINodeHandle parent ) {
+	((GUINode*)node.pointer)->AttachTo( (GUINode*)parent.pointer );
+}
+
+void ruSetGUIButtonActive( ruButtonHandle button, bool state ) {
+	((GUIButton*)button.pointer)->SetActive( state );
+}
+
+void ruAddGUINodeAction( ruGUINodeHandle node, ruGUIAction action, const ruDelegate & delegat ) {
+	((GUINode*)node.pointer)->AddAction( action, delegat );
+}
+
+void ruRemoveGUINodeAction( ruGUINodeHandle node, ruGUIAction action ) {
+	((GUINode*)node.pointer)->RemoveAction( action );
+}
+
+void ruRemoveAllGUINodeActions( ruGUINodeHandle node ) {
+	((GUINode*)node.pointer)->RemoveAllActions();
+}
+
+void ruSetGUINodeChildAlphaControl( ruGUINodeHandle node, bool controlChildAlpha ) {
+	((GUINode*)node.pointer)->SetControlChildAlpha( controlChildAlpha );
 }

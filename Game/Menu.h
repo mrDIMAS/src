@@ -10,9 +10,18 @@
 #include <Windows.h>
 #include "ScrollList.h"
 #include "Parser.h"
+#include "ModalWindow.h"
 
 class Menu {
 private:
+	enum class Action {
+		None,
+		StartNewGame,
+		ContinueFromLastSave,
+		ContinueCurrentGame,
+		ExitGame,
+	};
+
     enum class Page {
         Main,
         Options,
@@ -30,8 +39,6 @@ private:
     ruTextureHandle mSmallButtonImage;
     int mDistBetweenButtons;
 
-    float mFadeSpeed;
-    bool mCanContinueGameFromLast;
     bool mStartPressed;
     bool mExitPressed;
     bool mContinuePressed;
@@ -40,14 +47,15 @@ private:
 	int mMainButtonsAlpha;
     string mLoadSaveGameName;
     bool mLoadFromSave;
+	bool mDoFade;
     ruSoundHandle mPickSound;
     Page mPage;
     ruSoundHandle mMusic;
     Parser mLocalization;
 
-    NumericSlider * mpMasterVolume;
-    NumericSlider * mpMusicVolume;
-    NumericSlider * mpMouseSensivity;
+    Slider * mpMasterVolume;
+    Slider * mpMusicVolume;
+    Slider * mpMouseSensivity;
     RadioButton * mpFXAAButton;
     RadioButton * mpFPSButton;
     RadioButton * mpSpotShadowsButton;
@@ -75,6 +83,15 @@ private:
 
     GameCamera * mpCamera;
 
+	ruGUINodeHandle mGUICanvas;
+	ruGUINodeHandle mGUIMainButtonsCanvas;
+	ruGUINodeHandle mGUIOptionsCanvas;
+	ruGUINodeHandle mGUIOptionsKeysCanvas;
+	ruGUINodeHandle mGUIOptionsGraphicsCanvas;
+	ruGUINodeHandle mGUISaveGameCanvas;
+	ruGUINodeHandle mGUILoadGameCanvas;
+	ruGUINodeHandle mGUIOptionsCommonCanvas;
+
     ruButtonHandle mGUIContinueGameButton;
     ruButtonHandle mGUIStartButton;
     ruButtonHandle mGUISaveGameButton;
@@ -90,6 +107,9 @@ private:
     ruTextHandle mGUIAuthorsText;
     ruRectHandle mGUIAuthorsBackground;
 
+	ModalWindow * mpModalWindow;
+
+	Action mCurrentAction;
 
     static const int mSaveLoadSlotCount = 7;
     ruButtonHandle mGUISaveGameSlot[mSaveLoadSlotCount];
@@ -98,32 +118,31 @@ private:
     void SetPage( Page page );
     void SetOptionsPageVisible( bool state );
     void SetAuthorsPageVisible( bool state );
-    void SetOptionsGraphicsPageVisible( bool state );
     void SetMainPageVisible( bool state );
-    void SetOptionsKeysPageVisible( bool state );
-    void SetOptionsCommonPageVisible( bool state );
-    void SetSaveSlotsVisible( bool state );
-    void SetLoadSlotsVisible( bool state );
-    void SetAllVisible( bool state );
     void WriteFloat( ofstream & stream, string name, float value );
     void WriteInteger( ofstream & stream, string name, int value );
     void WriteString( ofstream & stream, string name, string value );
     void WriteConfig();
     
     void LoadConfig();
-    void CreateSliders();
-    void CreateWaitKeys();
-    void CreateLists();
     void LoadSounds();
     void CreateCamera();
     void LoadTextures();
+
+	void OnStartNewGameClick();
+	void OnExitGameClick();
+	void OnContinueGameClick();
+
+	void ContinueGameFromLast();
+	void StartNewGame();
+	void ExitGame();
 public:
     explicit Menu( );
     virtual ~Menu();
     void Show();
     void Hide( );
     void Update( );
-	void SetPlayerControls();
+	void SyncPlayerControls();
     void CameraFloating();
 
     bool IsVisible();
