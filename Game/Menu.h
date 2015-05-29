@@ -14,14 +14,6 @@
 
 class Menu {
 private:
-	enum class Action {
-		None,
-		StartNewGame,
-		ContinueFromLastSave,
-		ContinueCurrentGame,
-		ExitGame,
-	};
-
     enum class Page {
         Main,
         Options,
@@ -38,16 +30,10 @@ private:
     ruTextureHandle mButtonImage;
     ruTextureHandle mSmallButtonImage;
     int mDistBetweenButtons;
-
-    bool mStartPressed;
-    bool mExitPressed;
-    bool mContinuePressed;
-    bool mReturnToGameByEsc;
-	bool mExitingGame;
 	int mMainButtonsAlpha;
     string mLoadSaveGameName;
-    bool mLoadFromSave;
-	bool mDoFade;
+	string mSaveGameSlotName;
+
     ruSoundHandle mPickSound;
     Page mPage;
     ruSoundHandle mMusic;
@@ -101,15 +87,13 @@ private:
     ruButtonHandle mGUIExitButton;
 
     ruButtonHandle mGUIOptionsCommonButton;
-    ruButtonHandle mGUIOptionsKeysButton;
+    ruButtonHandle mGUIOptionsControlsButton;
     ruButtonHandle mGUIOptionsGraphicsButton;
 
     ruTextHandle mGUIAuthorsText;
     ruRectHandle mGUIAuthorsBackground;
 
 	ModalWindow * mpModalWindow;
-
-	Action mCurrentAction;
 
     static const int mSaveLoadSlotCount = 7;
     ruButtonHandle mGUISaveGameSlot[mSaveLoadSlotCount];
@@ -129,13 +113,33 @@ private:
     void CreateCamera();
     void LoadTextures();
 
+	// Event handlers
 	void OnStartNewGameClick();
 	void OnExitGameClick();
 	void OnContinueGameClick();
+	void OnOptionsClick();
+	void OnOptionsGraphicsClick();
+	void OnOptionsCommonClick();
+	void OnOptionsControlsClick();
+	void OnHDRButtonClick();
+	void OnLoadSaveClick();
+	void OnSaveClick();
 
-	void ContinueGameFromLast();
+	bool mCameraFadeActionDone;
+	ruDelegate mCameraFadeDoneAction;
+	void CameraStartFadeOut( const ruDelegate & onFadeDoneAction );
+	void UpdateCamera();
+
+	void StartContinueGameFromLast();
+	void DoContinueGameFromLast();
 	void StartNewGame();
-	void ExitGame();
+	void DoStartNewGame();
+	void StartExitGame();
+	void DoExitGame(); 
+	void DoContinueGameCurrent();
+	void StartLoadFromSave();
+	void DoLoadFromSave();
+	void DoSaveCurrentGame();
 public:
     explicit Menu( );
     virtual ~Menu();

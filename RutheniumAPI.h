@@ -542,7 +542,13 @@ public:
 		return delegat;
 	}
 	void Call() {
-		mContainer->Call();
+		if( mContainer ) {
+			mContainer->Call();
+		}
+	}
+	void operator = ( const ruDelegate & other ) {
+		mContainer = other.mContainer;
+		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
 	}
 };
 

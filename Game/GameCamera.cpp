@@ -32,7 +32,7 @@ GameCamera::GameCamera( float fov ) {
 
     MakeCurrent();
 
-    mFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruTextureHandle::Empty(), fadeColor, quadAlpha );
+    mFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruGetTexture( "data/textures/generic/black.jpg" ), fadeColor, quadAlpha );
     ruSetGUINodeAlpha( mFullscreenQuad, 0 );
 }
 

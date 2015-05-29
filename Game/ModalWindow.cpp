@@ -15,33 +15,14 @@ ModalWindow::ModalWindow( int x, int y, int w, int h, ruTextureHandle texture, r
 	ruAttachGUINode( mNoButton, mCanvas );
 	ruAttachGUINode( mText, mCanvas );
 
-	mAnswer = Answer::None;
-	mOpen = true;
-}
+	ruAddGUINodeAction( mYesButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
+	ruAddGUINodeAction( mNoButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
 
-void ModalWindow::Update() {
-	if( mOpen ) {
-		if( ruIsButtonHit( mNoButton )) {
-			mAnswer = Answer::No;
-		}
-		if( ruIsButtonHit( mYesButton )) {
-			mAnswer = Answer::Yes;
-		}
-		if( mAnswer != Answer::None ) {
-			ruSetGUINodeVisible( mCanvas, false );
-			mOpen = false;
-		};
-	}
-}
-
-ModalWindow::Answer ModalWindow::GetAnswer() {
-	return mAnswer;
+	Close();
 }
 
 void ModalWindow::Ask( const string & text ) {
 	ruSetGUINodeText( mText, text );
-	mAnswer = Answer::None;
-	mOpen = true;
 	ruSetGUINodeVisible( mCanvas, true );
 }
 
@@ -49,22 +30,18 @@ void ModalWindow::AttachTo( ruGUINodeHandle node ) {
 	ruAttachGUINode( mCanvas, node );
 }
 
-bool ModalWindow::IsAnswered()
-{
-	return !mOpen;
-}
-
-void ModalWindow::Reset()
-{
-	mAnswer = Answer::None;
-}
-
 void ModalWindow::SetYesAction( const ruDelegate & yesAction ) {
 	ruRemoveAllGUINodeActions( mYesButton );
 	ruAddGUINodeAction( mYesButton, ruGUIAction::OnClick, yesAction );
+	ruAddGUINodeAction( mYesButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
 }
 
 void ModalWindow::SetNoAction( const ruDelegate & noAction ) {
 	ruRemoveAllGUINodeActions( mNoButton );
 	ruAddGUINodeAction( mNoButton, ruGUIAction::OnClick, noAction );
+	ruAddGUINodeAction( mNoButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
+}
+
+void ModalWindow::Close() {
+	ruSetGUINodeVisible( mCanvas, false );
 }

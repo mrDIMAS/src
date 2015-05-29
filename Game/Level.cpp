@@ -120,6 +120,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	}
     
     ruRenderWorld();
+
 	ruSetGUINodeVisible( msGUILoadingText, false );
 	ruSetGUINodeVisible( msGUILoadingBackground, false );
 

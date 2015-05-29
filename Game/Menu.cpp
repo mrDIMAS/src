@@ -19,17 +19,9 @@ Menu::Menu( ) {
     mScene = ruLoadScene( "data/maps/menu/menu.scene" );
 
     mDistBetweenButtons = 72;
-    mStartPressed = false;
-    mExitPressed = false;
     mVisible = true;
     mPage = Page::Main;
-    mContinuePressed = false;
-    mExitingGame = false;
-    mReturnToGameByEsc = false;
     mLoadSaveGameName = "";
-    mLoadFromSave = false;
-	mDoFade = false;
-	mCurrentAction = Action::None;
 
     CreateCamera();
     LoadSounds();
@@ -47,6 +39,7 @@ Menu::Menu( ) {
 	const ruVector3 canvasColor = ruVector3( 19, 83, 28 );
 	// Setup
 	mGUICanvas = ruCreateGUIRect( 0, 0, 0, 0, ruTextureHandle::Empty() );
+	ruSetGUINodeChildAlphaControl( mGUICanvas, true );
 	{
 		mGUIMainButtonsCanvas = ruCreateGUIRect( 20, g_resH - 4.0 * mDistBetweenButtons, buttonWidth + buttonXOffset, buttonHeight * 8, ruGetTexture( "data/gui/tab.png" ), canvasColor );    
 		ruSetGUINodeChildAlphaControl( mGUIMainButtonsCanvas, true );
@@ -68,6 +61,7 @@ Menu::Menu( ) {
 
 			mGUIOptionsButton = ruCreateGUIButton( buttonXOffset, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUI->mFont, buttonColor, 1 );
 			ruAttachGUINode( mGUIOptionsButton, mGUIMainButtonsCanvas );
+			ruAddGUINodeAction( mGUIOptionsButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsClick ));
 
 			mGUIAuthorsButton = ruCreateGUIButton( buttonXOffset, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUI->mFont, buttonColor, 1 );
 			ruAttachGUINode( mGUIAuthorsButton, mGUIMainButtonsCanvas );
@@ -84,12 +78,16 @@ Menu::Menu( ) {
 		ruAttachGUINode( mGUIOptionsCanvas, mGUICanvas );
 		{
 			mGUIOptionsCommonButton = ruCreateGUIButton( 0, 0, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "commonSettings" ), pGUI->mFont, buttonColor, 1 );
-			mGUIOptionsKeysButton = ruCreateGUIButton( 0, 0.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "controls" ), pGUI->mFont, buttonColor, 1 );
-			mGUIOptionsGraphicsButton = ruCreateGUIButton( 0, mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "graphics" ), pGUI->mFont, buttonColor, 1 );
-
 			ruAttachGUINode( mGUIOptionsCommonButton, mGUIOptionsCanvas );
-			ruAttachGUINode( mGUIOptionsKeysButton, mGUIOptionsCanvas );
+			ruAddGUINodeAction( mGUIOptionsCommonButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsCommonClick ));
+
+			mGUIOptionsControlsButton = ruCreateGUIButton( 0, 0.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "controls" ), pGUI->mFont, buttonColor, 1 );
+			ruAttachGUINode( mGUIOptionsControlsButton, mGUIOptionsCanvas );
+			ruAddGUINodeAction( mGUIOptionsControlsButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsControlsClick ));
+
+			mGUIOptionsGraphicsButton = ruCreateGUIButton( 0, mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "graphics" ), pGUI->mFont, buttonColor, 1 );
 			ruAttachGUINode( mGUIOptionsGraphicsButton, mGUIOptionsCanvas );
+			ruAddGUINodeAction( mGUIOptionsGraphicsButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsGraphicsClick ));
 		}
 
 		mGUIOptionsKeysCanvas = ruCreateGUIRect( 200, g_resH - 2.5 * mDistBetweenButtons, buttonWidth * 5, buttonHeight * 5, ruGetTexture( "data/gui/tab.png" ), canvasColor );  
@@ -161,6 +159,7 @@ Menu::Menu( ) {
 
 			mpHDRButton = new RadioButton( x, y + 1.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "hdr" ));
 			mpHDRButton->AttachTo( mGUIOptionsGraphicsCanvas );
+			mpHDRButton->SetChangeAction( ruDelegate::Bind( this, &Menu::OnHDRButtonClick ));
 
 			mpTextureFiltering = new ScrollList( x, y + 2.0 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "filtering" ) );
 			mpTextureFiltering->AttachTo( mGUIOptionsGraphicsCanvas );
@@ -183,6 +182,7 @@ Menu::Menu( ) {
 			for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
 				mGUISaveGameSlot[i] = ruCreateGUIButton( 0, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUI->mFont, buttonColor, 1 );
 				ruAttachGUINode( mGUISaveGameSlot[i], mGUISaveGameCanvas );
+				ruAddGUINodeAction( mGUISaveGameSlot[i], ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnSaveClick ));
 				y += 1.1f * buttonHeight;
 			}
 		}
@@ -194,6 +194,7 @@ Menu::Menu( ) {
 			for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
 				mGUILoadGameSlot[i] = ruCreateGUIButton( 0, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUI->mFont, buttonColor, 1 );
 				ruAttachGUINode( mGUILoadGameSlot[i], mGUILoadGameCanvas );
+				ruAddGUINodeAction( mGUILoadGameSlot[i], ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnLoadSaveClick ));
 				y += 1.1f * buttonHeight;
 			}
 		}
@@ -261,25 +262,45 @@ void Menu::Hide( ) {
 }
 
 void Menu::OnStartNewGameClick() {
-	mCurrentAction = Action::StartNewGame;
 	mpModalWindow->Ask( mLocalization.GetString( "newGameQuestion" ) );
 	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::StartNewGame ));
 	SetPage( Page::Main );
 }
 
 void Menu::OnExitGameClick() {
-	mCurrentAction = Action::ExitGame;
 	mpModalWindow->Ask( mLocalization.GetString( "endGameQuestion" ) );	
-	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::ExitGame ));
+	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::StartExitGame ));
 	SetPage( Page::Main );
 }
 
 void Menu::StartNewGame() {
+	CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoStartNewGame ));
+}
+
+void Menu::StartExitGame() {
+	CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoExitGame ));
+}
+
+void Menu::OnContinueGameClick() {
+	SetPage( Page::Main );
+	if( !pCurrentLevel ) {
+		mpModalWindow->Ask( mLocalization.GetString( "continueLastGameQuestion" ) );	
+		mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::StartContinueGameFromLast ));
+	} else {
+		CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameCurrent ));
+	}	
+}
+
+void Menu::DoContinueGameCurrent() {
+	Hide();
+}
+
+void Menu::DoStartNewGame() {
 	Level::Change( g_initialLevel );						
 	Hide();
 }
 
-void Menu::ExitGame() {
+void Menu::DoExitGame() {
 	if( pPlayer && pCurrentLevel ) {
 		if( !pPlayer->mDead ) {
 			SaveWriter( "lastGame.save" ).SaveWorldState();
@@ -289,128 +310,89 @@ void Menu::ExitGame() {
 	WriteConfig();
 }
 
-void Menu::OnContinueGameClick() {
-	if( !pCurrentLevel ) {
-		mpModalWindow->Ask( mLocalization.GetString( "continueLastGameQuestion" ) );	
-		mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::ContinueGameFromLast ));
-	} else {
-		Hide();
-	}	
+void Menu::OnOptionsClick() {
+	SetPage( Page::Options );
 }
 
-void Menu::ContinueGameFromLast() {
+void Menu::OnOptionsGraphicsClick() {
+	SetPage( Page::OptionsGraphics );
+}
+
+void Menu::OnOptionsCommonClick() {
+	SetPage( Page::OptionsCommon );
+}
+
+void Menu::OnOptionsControlsClick() {
+	SetPage( Page::OptionsKeys );
+}
+
+void Menu::StartContinueGameFromLast() {
+	CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameFromLast ));
+}
+
+void Menu::DoContinueGameFromLast() {
 	SaveLoader( "lastGame.save" ).RestoreWorldState();
 	Hide();
+}
+
+void Menu::UpdateCamera() {
+	mpCamera->Update();
+	if( !mCameraFadeActionDone ) {
+		mMainButtonsAlpha -= 10;
+		if( mMainButtonsAlpha < 0 ) {
+			mMainButtonsAlpha = 0;
+		}
+	}
+	if( mpCamera->FadeComplete() ) {
+		if( !mCameraFadeActionDone ) {
+			mCameraFadeDoneAction.Call();
+			mCameraFadeActionDone = true;
+		}
+	}
+}
+
+void Menu::StartLoadFromSave() {
+	CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoLoadFromSave ));
+}
+
+void Menu::OnLoadSaveClick() {	
+	mpModalWindow->Ask( mLocalization.GetString( "loadSaveQuestion" ) );	
+	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::StartLoadFromSave ));
+}
+
+void Menu::DoLoadFromSave() {
+	SaveLoader( mLoadSaveGameName ).RestoreWorldState(); 
+	Hide();
+}
+
+void Menu::OnSaveClick() {
+	mpModalWindow->Ask( mLocalization.GetString( "rewriteSaveQuestion" ) );	
+	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::DoSaveCurrentGame ));
+}
+
+void Menu::DoSaveCurrentGame() {
+	SaveWriter( mSaveGameSlotName ).SaveWorldState();
+	SetPage( Page::Main );
+}
+
+void Menu::CameraStartFadeOut( const ruDelegate & onFadeDoneAction ) {
+	mpCamera->FadeOut();
+	mCameraFadeActionDone = false;
+	mCameraFadeDoneAction = onFadeDoneAction;
 }
 
 void Menu::Update( ) {
     ruSetAmbientColor( ruVector3( 25 / 255.0f, 25 / 255.0f, 25  / 255.0f));
 
-    mpCamera->Update();
+    UpdateCamera();
 
 	SyncPlayerControls();
-
-	mpModalWindow->Update();
 
     if( mVisible ) {
 
         if( ruIsKeyHit( KEY_Esc ) ) {
-            mReturnToGameByEsc = pCurrentLevel != nullptr;
+            CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameCurrent ));
         }
-
-
-		if( mCurrentAction != Action::None ) {
-			if( mpModalWindow->IsAnswered() ) {	
-				if( mpModalWindow->GetAnswer() == ModalWindow::Answer::Yes ) {
-					mpCamera->FadeOut();
-					if( mMainButtonsAlpha > 0 )	{
-						mMainButtonsAlpha -= 10;
-						if( mMainButtonsAlpha < 0 ) {
-							mMainButtonsAlpha = 0;
-						}
-					}
-					// wait until screen goes black
-					if( mpCamera->FadeComplete() ) {
-						if( mCurrentAction == Action::StartNewGame ) {	
-							/*
-							ruSetGUIButtonActive( mGUIStartButton, true );
-							Level::Change( g_initialLevel );						
-							Hide();*/
-						}
-						if( mCurrentAction == Action::ExitGame ) {
-
-						}
-						mpModalWindow->Reset();						
-					}	
-					mCurrentAction = Action::None;	
-				} else {
-					if( mCurrentAction == Action::StartNewGame ) {	
-						ruSetGUIButtonActive( mGUIStartButton, true );
-					}
-				}
-			}			
-		}
-
-	/*
-        if( mStartPressed || mContinuePressed || mReturnToGameByEsc || mLoadFromSave ) {
-
-
-//			if( answer == ModalWindow::Answer::Yes ) {
-			
-				mpCamera->FadeOut();
-				if( mMainButtonsAlpha > 0 )	{
-					mMainButtonsAlpha -= 10;
-					if( mMainButtonsAlpha < 0 ) {
-						mMainButtonsAlpha = 0;
-					}
-				}
-				if( mpCamera->FadeComplete() ) {
-					if( !pCurrentLevel && mContinuePressed ) {
-						SaveLoader( "lastGame.save" ).RestoreWorldState();
-					}
-					if( mLoadFromSave ) {
-						SaveLoader( mLoadSaveGameName ).RestoreWorldState();
-					}
-
-					bool startNewGame = !pCurrentLevel && mStartPressed;
-					if( pPlayer && mStartPressed ) {
-						if( pPlayer->IsDead() ) {
-							startNewGame = true;
-						}
-					}
-
-
-					if( startNewGame ) {
-						Level::Change( g_initialLevel );
-					}
-
-					mStartPressed = false;
-					mContinuePressed = false;
-					mReturnToGameByEsc = false;
-					mLoadFromSave = false;
-					Hide();
-					return;
-				}			
-			//}
-        }
-		*/
-		/*
-        if( mExitPressed ) {
-            mExitingGame = true;
-			mMainButtonsAlpha -= 10;
-			if( mMainButtonsAlpha < 0 ) {
-				mMainButtonsAlpha = 0;
-			}
-            mpCamera->FadeOut();
-        }
-
-        if( mExitingGame ) {
-            if( mpCamera->FadeComplete() ) {
-                g_running = false;
-
-                WriteConfig();
-            }
-        }*/
 
         CameraFloating();
 
@@ -425,6 +407,7 @@ void Menu::Update( ) {
 				ruSetGUIButtonActive( mGUISaveGameButton, false );
 			} else {
 				ruSetGUIButtonActive( mGUIContinueGameButton, true );
+				ruSetGUIButtonActive( mGUISaveGameButton, true );
 			}
 		} else {
 			ruSetGUIButtonActive( mGUISaveGameButton, false );
@@ -448,15 +431,6 @@ void Menu::Update( ) {
 
         if( mPage == Page::Options ) {
             SetOptionsPageVisible( true );
-            if( ruIsButtonHit( mGUIOptionsCommonButton )) {
-                SetPage( Page::OptionsCommon );
-            }
-            if( ruIsButtonHit( mGUIOptionsKeysButton )) {
-                SetPage( Page::OptionsKeys );
-            }
-            if( ruIsButtonHit( mGUIOptionsGraphicsButton )) {
-                SetPage( Page::OptionsGraphics );
-            }
         } else {
             SetOptionsPageVisible( false );
         }
@@ -480,6 +454,7 @@ void Menu::Update( ) {
             ruSetGUINodeVisible( mGUIOptionsCommonCanvas, false );
         }
 
+
         if( mPage == Page::LoadGame ) {
             ruSetGUINodeVisible( mGUILoadGameCanvas, true );
             vector< string > nameList;
@@ -488,11 +463,16 @@ void Menu::Update( ) {
             if( count >= mSaveLoadSlotCount ) {
                 count = mSaveLoadSlotCount;
             }
+			// inactivate all buttons
+			for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
+				ruSetGUIButtonActive( mGUILoadGameSlot[i], false );
+			}
             for( int i = 0; i < count; i++ ) {
+				// activate button associated with file
+				ruSetGUIButtonActive( mGUILoadGameSlot[i], true );
                 ruSetGUINodeText( ruGetButtonText( mGUILoadGameSlot[i] ), nameList[i] );
                 if( ruIsButtonHit( mGUILoadGameSlot[i] ) ) {
                     mLoadSaveGameName = nameList[i];
-                    mLoadFromSave = true;
                     SetPage( Page::Main );
                 }
             }
@@ -518,11 +498,7 @@ void Menu::Update( ) {
             for( int iName = 0; iName < count; iName++ ) {
                 ruSetGUINodeText( ruGetButtonText( mGUISaveGameSlot[iName] ), nameList[iName] );
                 if( ruIsButtonHit( mGUISaveGameSlot[iName] ) ) {
-                    if( pCurrentLevel ) {
-                        SaveWriter( nameList[iName] ).SaveWorldState();
-                        SetPage( Page::Main );
-                        break;
-                    }
+                    mSaveGameSlotName = nameList[iName];
                 }
             }
         } else {
@@ -556,7 +532,7 @@ void Menu::Update( ) {
             ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
             mpHDRButton->Update();
-            ruSetHDREnabled( mpHDRButton->IsEnabled() );
+            
         } else {
             ruSetGUINodeVisible( mGUIOptionsGraphicsCanvas, false );
         }
@@ -581,26 +557,19 @@ void Menu::Update( ) {
             ruSetGUINodeVisible( mGUIOptionsKeysCanvas, false );
         }
 
-        if( !mStartPressed && !mReturnToGameByEsc ) {
-            ruPlaySound( mMusic );
 
-            if( ruIsButtonHit( mGUIContinueGameButton ) ) {
-                mContinuePressed = true;
-                SetPage( Page::Main );
-            }
-            if( ruIsButtonHit( mGUILoadGameButton ) ) {
-                SetPage( Page::LoadGame );
-            }
-            if( ruIsButtonHit( mGUISaveGameButton ) ) {
-                SetPage( Page::SaveGame );
-            }
-            if( ruIsButtonHit( mGUIOptionsButton ) ) {
-                SetPage( Page::Options );
-            }
-            if( ruIsButtonHit( mGUIAuthorsButton ) ) {
-                SetPage( Page::Authors );
-            }
-        }
+		ruPlaySound( mMusic );
+
+		if( ruIsButtonHit( mGUILoadGameButton ) ) {
+			SetPage( Page::LoadGame );
+		}
+		if( ruIsButtonHit( mGUISaveGameButton ) ) {
+			SetPage( Page::SaveGame );
+		}
+		if( ruIsButtonHit( mGUIAuthorsButton ) ) {
+			SetPage( Page::Authors );
+		}
+        
     } else {
         if( ruIsKeyHit( KEY_Esc ) ) {
             pMainMenu->Show();
@@ -623,6 +592,7 @@ void Menu::LoadTextures() {
 
 void Menu::CreateCamera() {
     mpCamera = new GameCamera;
+	mCameraFadeActionDone = false;
     mCameraInitialPosition = ruGetNodePosition( ruFindByName( "Camera") );
     mCameraAnimationNewOffset = ruVector3( 0.5, 0.5, 0.5 );
 }
@@ -799,4 +769,9 @@ void Menu::CameraFloating() {
     }
 
     ruSetNodePosition( mpCamera->mNode, mCameraInitialPosition + mCameraAnimationOffset );
+}
+
+void Menu::OnHDRButtonClick()
+{
+	ruSetHDREnabled( mpHDRButton->IsEnabled() );
 }
