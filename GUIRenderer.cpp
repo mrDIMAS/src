@@ -10,31 +10,16 @@
 #include "Engine.h"
 
 GUIRenderer::GUIRenderer() {
-    sizeOfRectBytes = 6 * sizeof( Vertex2D  );
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( sizeOfRectBytes, D3DUSAGE_DYNAMIC, D3DFVF_XYZ, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+   Initialize();
 
-    D3DVERTEXELEMENT9 guivd[ ] = {
-        { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-        { 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-        { 0, 20, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0  },
-        D3DDECL_END()
-    };
-
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexDeclaration( guivd, &vertDecl ));
-
-    D3DVIEWPORT9 vp;
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->GetViewport( &vp ));
-    D3DXMatrixOrthoOffCenterLH ( &orthoMatrix, 0, vp.Width, vp.Height, 0, 0.0f, 1024.0f );
-
-    vertexShader = new VertexShader( "data/shaders/gui.vso" );
-    pixelShader = new PixelShader( "data/shaders/gui.pso" );
+   mVertexShader = new VertexShader( "data/shaders/gui.vso" );
+   mPixelShader = new PixelShader( "data/shaders/gui.pso" );
 }
 
 GUIRenderer::~GUIRenderer() {
-    delete vertexShader;
-    delete pixelShader;
-    CheckDXErrorFatal( vertexBuffer->Release());
-    CheckDXErrorFatal( vertDecl->Release());
+	delete mVertexShader;
+	delete mPixelShader;
+    OnLostDevice();
 }
 
 ruFontHandle GUIRenderer::CreateFont( int size, const string & name ) {
@@ -45,14 +30,14 @@ ruFontHandle GUIRenderer::CreateFont( int size, const string & name ) {
 }
 
 void GUIRenderer::RenderAllGUIElements() {
-    pixelShader->Bind();
-    vertexShader->Bind();
+    mPixelShader->Bind();
+    mVertexShader->Bind();
 
-    Engine::Instance().GetDevice()->SetVertexDeclaration( vertDecl );
+    Engine::Instance().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
 
-    Engine::Instance().SetVertexShaderMatrix( 0, &orthoMatrix );
-    Engine::Instance().GetDevice()->SetVertexDeclaration( vertDecl );
-    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D ));
+    Engine::Instance().SetVertexShaderMatrix( 0, &mOrthoMatrix );
+    Engine::Instance().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
 
 	for( auto pNode : GUINode::msNodeList ) {
 		pNode->DoActions();
@@ -71,7 +56,7 @@ void GUIRenderer::RenderAllGUIElements() {
     }
 
     if( Cursor::msCurrentCursor ) {
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( Vertex2D )));
+        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D )));
         if( Cursor::msCurrentCursor->IsVisible() ) {
             Cursor::msCurrentCursor->SetPosition( ruGetMouseX(), ruGetMouseY());
             RenderRect( Cursor::msCurrentCursor );
@@ -88,15 +73,55 @@ void GUIRenderer::RenderRect( GUIRect * rect ) {
     Vertex2D vertices[6];
 	rect->CalculateTransform();
     rect->GetSixVertices( vertices );
-    CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
-    memcpy( data, vertices, sizeOfRectBytes );
-    CheckDXErrorFatal( vertexBuffer->Unlock( ));
+    CheckDXErrorFatal( mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD ));
+    memcpy( data, vertices, mSizeOfRectBytes );
+    CheckDXErrorFatal( mVertexBuffer->Unlock( ));
     rect->GetTexture()->Bind( 0 );
     Engine::Instance().RegisterDIP();
     CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
 }
 
-TextQuad::TextQuad()
-{
+void GUIRenderer::OnLostDevice() {
+	mVertexBuffer->Release();
+	mVertexDeclaration->Release();
+}
 
+void GUIRenderer::OnResetDevice() {
+	Initialize();
+}
+
+void GUIRenderer::Initialize() {
+	mSizeOfRectBytes = 6 * sizeof( Vertex2D  );
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 ));
+
+	D3DVERTEXELEMENT9 guivd[ ] = {
+		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		{ 0, 20, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0  },
+		D3DDECL_END()
+	};
+
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexDeclaration( guivd, &mVertexDeclaration ));
+
+	D3DVIEWPORT9 vp;
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->GetViewport( &vp ));
+	D3DXMatrixOrthoOffCenterLH ( &mOrthoMatrix, 0, vp.Width, vp.Height, 0, 0.0f, 1024.0f );
+
+}
+
+void Face::Set( unsigned short i1, unsigned short i2, unsigned short i3, unsigned short i4, unsigned short i5, unsigned short i6 ) {
+	mIndex[0] = i1;
+	mIndex[1] = i2;
+	mIndex[2] = i3;
+	mIndex[3] = i4;
+	mIndex[4] = i5;
+	mIndex[5] = i6;
+}
+
+void TextVertex::Set( float posX, float posY, ruVector2 & texCoord, DWORD color ) {
+	mPosition.x = posX;
+	mPosition.y = posY;
+	mPosition.z = 0.0f;
+	mTexCoord = texCoord;
+	mColor = color;
 }

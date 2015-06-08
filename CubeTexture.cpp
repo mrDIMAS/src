@@ -16,11 +16,27 @@ CubeTexture * CubeTexture::Require( string fn ) {
 }
 
 CubeTexture::CubeTexture( string fn ) {
-    CheckDXErrorFatal( D3DXCreateCubeTextureFromFileA( Engine::Instance().GetDevice(), fn.c_str(), &cubeTexture ));
+	mSourceName = fn;
+	Load();
 }
 
 CubeTexture::~CubeTexture() {
     cubeTexture->Release();
+}
+
+void CubeTexture::OnLostDevice()
+{
+	cubeTexture->Release();
+}
+
+void CubeTexture::OnResetDevice()
+{
+	Load();
+}
+
+void CubeTexture::Load()
+{
+	D3DXCreateCubeTextureFromFileA( Engine::Instance().GetDevice(), mSourceName.c_str(), &cubeTexture );
 }
 
 ruCubeTextureHandle ruGetCubeTexture( const string & file ) {

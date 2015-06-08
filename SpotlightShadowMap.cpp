@@ -48,6 +48,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     }
 
     CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, prevZeroSamplerTexture ));
+	prevZeroSamplerTexture->Release();
 
     // revert to the last used render target
     CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderTarget( rtIndex, lastUsedRT ));
@@ -55,25 +56,39 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 }
 
 SpotlightShadowMap::~SpotlightShadowMap() {
-    spotSurface->Release();
-    spotShadowMap->Release();
-    depthStencil->Release();
+	OnLostDevice();
     delete pixelShader;
     delete vertexShader;
 }
 
 SpotlightShadowMap::SpotlightShadowMap( float size ) {
     iSize = size;
+	Initialize();
+	vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso" );
+	pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso" );
+}
 
-    // create shadow maps
-    CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), size, size, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap ));
+void SpotlightShadowMap::OnLostDevice() {
+	depthStencil->Release();
+	spotSurface->Release();
+	spotShadowMap->Release();	
+	defaultDepthStencil->Release();
+}
 
-    // get surfaces
-    CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
+void SpotlightShadowMap::OnResetDevice() {
+	Initialize();
+}
 
-    vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso" );
-    pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso" );
+void SpotlightShadowMap::Initialize() {
+	// create shadow maps
+	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), iSize, iSize, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap ));
 
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDepthStencilSurface( &defaultDepthStencil ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateDepthStencilSurface( size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));
+	// get surfaces
+	CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
+
+
+
+
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDepthStencilSurface( &defaultDepthStencil ));
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateDepthStencilSurface( iSize, iSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));
 }

@@ -84,7 +84,7 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
         mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
     }
 
-	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font1.otf" );
+	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font2.ttf" );
 	mGUIYouDied = ruCreateGUIText( mLocalization.GetString( "youDied" ), (ruGetResolutionWidth() - 300) / 2, ruGetResolutionHeight() / 2, 300, 50, mGUIYouDiedFont, ruVector3( 255, 0, 0 ), 1, 255 );
 	ruSetGUINodeVisible( mGUIYouDied, false );
 

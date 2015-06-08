@@ -3,7 +3,7 @@
 
 #include "SceneNode.h"
 
-class ParticleEmitter {
+class ParticleEmitter : RendererComponent {
 public:
     struct ParticleVertex {
         ruVector3 pos;
@@ -40,6 +40,7 @@ public:
     SceneNode * mOwner;
 
     int mAliveParticleCount;
+	int mMaxParticleCount;
 
 	D3DXMATRIX mWorldTransform;
 
@@ -54,6 +55,8 @@ public:
 public:
     ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps );
     ~ParticleEmitter();
+	void OnResetDevice();
+	void OnLostDevice();
     void ResurrectParticles();
     float GetThickness( );
     bool IsEnabled();

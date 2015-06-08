@@ -14,6 +14,8 @@
 #include "AmbientSoundSet.h"
 #include "PathFinder.h"
 #include "Lamp.h"
+#include "Zone.h"
+#include "ActionTimer.h"
 
 class Level {
 private:
@@ -25,6 +27,7 @@ private:
     vector<Valve*> mValveList;
     vector<Lift*> mLiftList;
 	vector<Lamp*> mLampList;
+	vector<Zone*> mZoneList;
     vector<ruSoundHandle> mSounds;
     virtual void OnSerialize( TextFileStream & out ) = 0;
     virtual void OnDeserialize( TextFileStream & in ) = 0;
@@ -45,6 +48,7 @@ public:
     void AddValve( Valve * valve );
     void AddLift( Lift * lift );
 	void AddLamp( Lamp * lamp );
+	void AddZone( Zone * zone );
 	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound );
 	void AutoCreateBulletsByNamePattern( const string & namePattern );
 	void AutoCreateDoorsByNamePattern( const string & namePattern );

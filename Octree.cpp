@@ -113,7 +113,7 @@ Octree::Octree( Mesh * m, int _nodeSplitCriteria ) {
 
     vector< ruVector3 > vertices;
     for( auto & vertex : mMesh->mVertices ) {
-        vertices.push_back( vertex.coords );
+        vertices.push_back( vertex.mPosition );
     }
 
     mRoot->mAABB = AABB( GetAABBMin( vertices ), GetAABBMax( vertices ) );

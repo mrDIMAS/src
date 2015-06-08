@@ -26,7 +26,7 @@ AABB::AABB( const vector< Vertex > & vertices ) {
     mMax = ruVector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
     mMin = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
     for( auto & vert : vertices ) {
-        auto & v = vert.coords;
+        auto & v = vert.mPosition;
 		if( v.x > mMax.x ) {
 			mMax.x = v.x;
 		}

@@ -22,7 +22,7 @@ SteamStream::SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedM
     psProps.pointSize = 0.5f;
     psProps.particleThickness = 1.5f;
     psProps.boundingRadius = 0.8f;
-    psProps.useLighting = false;
+    psProps.useLighting = true;
     psProps.scaleFactor = 0.05f;
     ps = ruCreateParticleSystem( 60, psProps );
     ruSetNodePosition( ps, ruGetNodePosition( obj ));

@@ -2,7 +2,7 @@
 
 #include "Shader.h"
 
-class EffectsQuad {
+class EffectsQuad : public RendererComponent {
 private:
 	void Initialize();
 	void Free();
@@ -31,5 +31,12 @@ public:
     void Bind( bool bindInternalVertexShader = true );
 	void BindNoShader();
     void Render();
-	void OnDeviceLost();
+
+	void OnResetDevice() {
+		Initialize();
+	}
+
+	void OnLostDevice() {
+		Free();
+	}
 };

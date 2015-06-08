@@ -3,7 +3,7 @@
 #include "Shader.h"
 #include "EffectsQuad.h"
 
-class FXAA {
+class FXAA : public RendererComponent {
 public:
     PixelShader * pixelShader;
     EffectsQuad * effectsQuad;
@@ -17,4 +17,6 @@ public:
     virtual ~FXAA();
     void BeginDrawIntoTexture( );
     void DoAntialiasing( IDirect3DTexture9 * outTexture );
+	void OnResetDevice();
+	void OnLostDevice();
 };

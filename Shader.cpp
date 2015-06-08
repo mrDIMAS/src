@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "Shader.h"
 
+vector<Shader*> Shader::msShaderList;
 IDirect3DVertexShader9 * VertexShader::msLastBinded = nullptr;
 IDirect3DPixelShader9 * PixelShader::msLastBinded = nullptr;
 
@@ -12,42 +13,30 @@ void VertexShader::Bind() {
 	}
 }
 
-ID3DXConstantTable * VertexShader::GetConstantTable() {
-    return constants;
-}
-
 VertexShader::~VertexShader() {
     if( shader ) {
         shader->Release();
     }
-    if( constants ) {
-        constants->Release();
-    }
 }
 
-VertexShader::VertexShader( string fileName ) {
-    FILE * pFile = 0;
-    BYTE * shaderCode = 0;
-    UINT fSize = 0;
-    UINT numRead = 0;
+VertexShader::VertexShader( string fileName ) : Shader( fileName ) {
+    Initialize();
+}
 
-    pFile = fopen( fileName.c_str(), "rb" );
+void VertexShader::OnLostDevice() {
+	shader->Release();
+}
 
-	if( !pFile ) {
-		RaiseError( StringBuilder( "Failed to load shader " ) << fileName << " !" );
-	}
+void VertexShader::Initialize()
+{
+	DWORD * code = LoadBinary();
+	Engine::Instance().GetDevice()->CreateVertexShader( code, &shader );
+	delete code;
+}
 
-    fseek(pFile, 0, SEEK_END);
-    fSize = ftell(pFile);
-    fseek(pFile, 0, SEEK_SET);
-
-    shaderCode = new BYTE[fSize];
-    while (numRead != fSize) {
-        numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
-    }
-    fclose(pFile);
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexShader ( ( DWORD*)shaderCode, &shader ));
-    constants = 0;
+void VertexShader::OnResetDevice()
+{
+	Initialize();
 }
 
 
@@ -58,40 +47,70 @@ void PixelShader::Bind() {
 	}
 }
 
-ID3DXConstantTable * PixelShader::GetConstantTable() {
-    return constants;
-}
-
 PixelShader::~PixelShader() {
     if( shader ) {
         shader->Release();
     }
-    if( constants ) {
-        constants->Release();
-    }
 }
 
-PixelShader::PixelShader( string fileName ) {
-    FILE * pFile = 0;
-    BYTE * shaderCode = 0;
-    UINT fSize = 0;
-    UINT numRead = 0;
+PixelShader::PixelShader( string fileName ) : Shader( fileName )  {
+	Initialize();
+}
 
-    pFile = fopen( fileName.c_str(), "rb" );
+void PixelShader::OnLostDevice() {
+	shader->Release();	
+}
+
+void PixelShader::Initialize()
+{
+	DWORD * code = LoadBinary();
+	Engine::Instance().GetDevice()->CreatePixelShader( code, &shader );
+	delete code;
+}
+
+void PixelShader::OnResetDevice()
+{
+	Initialize();
+}
+
+Shader::Shader( const string & sourceName ) : mSourceName( sourceName ) {
+	msShaderList.push_back( this );
+}
+
+DWORD * Shader::LoadBinary() {
+	FILE * pFile = 0;
+	UINT fSize = 0;
+	UINT numRead = 0;
+	DWORD * binaryData;
+	pFile = fopen( mSourceName.c_str(), "rb" );
 
 	if( !pFile ) {
-		RaiseError( StringBuilder( "Failed to load shader " ) << fileName << " !" );
+		RaiseError( StringBuilder( "Failed to load shader " ) << mSourceName << " !" );
 	}
 
-    fseek(pFile, 0, SEEK_END);
-    fSize = ftell(pFile);
-    fseek(pFile, 0, SEEK_SET);
+	fseek(pFile, 0, SEEK_END);
+	fSize = ftell(pFile);
+	fseek(pFile, 0, SEEK_SET);
 
-    shaderCode = new BYTE[fSize];
-    while (numRead != fSize) {
-        numRead = fread(&shaderCode[numRead], 1, fSize, pFile);
-    }
-    fclose(pFile);
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreatePixelShader ( ( DWORD*)shaderCode, &shader ));
-    constants = 0;
+	binaryData = new DWORD[ fSize ];
+	while (numRead != fSize) {
+		numRead = fread( &binaryData[numRead], 1, fSize, pFile);
+	}
+	fclose(pFile);
+	return binaryData;
+}
+
+Shader::~Shader()
+{
+	msShaderList.erase( find( msShaderList.begin(), msShaderList.end(), this ));
+}
+
+void Shader::OnResetDevice()
+{
+
+}
+
+void Shader::OnLostDevice()
+{
+
 }

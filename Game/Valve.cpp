@@ -22,22 +22,22 @@ void Valve::Reset() {
 
 void Valve::Update() {
 	ruPauseSound( mTurnSound );
-    if( mDone ) {
-        return;
-    }
-	
-    if( pPlayer->mNearestPickedNode == mObject ) {
-		pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
-        if( ruIsKeyDown( pPlayer->mKeyUse )) {
-			ruPlaySound( mTurnSound );
-            mAngle += 5;
-            if( mAngle >= 360 * mTurnCount ) {
-                mDone = true;
-            }
-            ruSetNodeRotation( mObject, ruQuaternion( mTurnAxis, mAngle ));
-        } 
-    }
-    mValue = mAngle / (float)( 360 * mTurnCount );
+    if( !mDone ) {	
+		if( pPlayer->mNearestPickedNode == mObject ) {
+			pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
+			if( ruIsKeyDown( pPlayer->mKeyUse )) {
+				ruPlaySound( mTurnSound );
+				mAngle += 5;
+				OnTurn.DoActions();
+				if( mAngle >= 360 * mTurnCount ) {
+					mDone = true;
+					OnTurnDone.DoActions();
+				}
+				ruSetNodeRotation( mObject, ruQuaternion( mTurnAxis, mAngle ));
+			} 
+		}
+		mValue = mAngle / (float)( 360 * mTurnCount );
+	}
 }
 
 float Valve::GetClosedCoeffecient()

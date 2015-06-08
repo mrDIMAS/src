@@ -4,7 +4,7 @@
 
 #define USE_R32F_DEPTH
 
-class GBuffer {
+class GBuffer : public RendererComponent {
 public:
     IDirect3DTexture9 * depthMap;
     IDirect3DTexture9 * normalMap;
@@ -18,9 +18,11 @@ public:
 	void CreateRenderTargets();
 	void FreeRenderTargets();
 public:
-    GBuffer();
-    ~GBuffer();
+    explicit GBuffer();
+    virtual ~GBuffer();
 
+	void OnResetDevice();
+	void OnLostDevice();
     void BindRenderTargets();
     void UnbindRenderTargets();
     void BindTextures();
@@ -31,6 +33,4 @@ public:
     void BindDepthMapAsRT();
     void BindBackSurfaceAsRT();
     void UnbindTextures();
-
-	void OnDeviceLost();
 };

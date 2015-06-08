@@ -6,7 +6,7 @@
 
 class GUIText;
 
-class TextRenderer {
+class TextRenderer : public RendererComponent {
 public:
     int maxChars;
     IDirect3DVertexBuffer9 * vertexBuffer;
@@ -15,4 +15,6 @@ public:
     virtual ~TextRenderer( );
     void ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );
     void RenderText( GUIText* guiText );
+	void OnResetDevice();
+	void OnLostDevice();
 };

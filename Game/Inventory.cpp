@@ -15,7 +15,7 @@ Inventory::Inventory() {
     mOpen = false;
     mpSelectedItem = nullptr;
 
-    mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf" );
+    mFont = ruCreateGUIFont( 14, "data/fonts/font2.ttf" );
 
     mpCombineItemFirst = nullptr;
     mpCombineItemSecond = nullptr;
@@ -433,6 +433,7 @@ void Inventory::Serialize( TextFileStream & out ) {
 }
 
 void Inventory::AddItem( Item * pItem ) {
+	pItem->OnPickup.DoActions();
     mItemList.push_back( pItem );
 }
 

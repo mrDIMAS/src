@@ -21,7 +21,7 @@ bool g_showFPS = false;
 bool g_running = true;
 float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
-
+double gFixedTick = 1.0 / 60.0; // 0.016(6) sec
 void main( ) {
 	//ruEnableDebugMode( true );
 
@@ -56,60 +56,57 @@ void main( ) {
     ruTimerHandle dtTimer = ruCreateTimer();
 	Level::CreateLoadingScreen();
 
-    double fixedTick = 1.0 / 60.0;
+    
     double gameClock = ruGetTimeInSeconds( dtTimer );
 
     ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
     ruShowCursor();
 
     while( g_running ) {
-        //try {
-            ruRenderWorld( );
+        ruRenderWorld( );
 
-            double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
-            while( dt >= fixedTick ) {
-                dt -= fixedTick;
-                gameClock += fixedTick;              
-				g_dt = fixedTick;
+        double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
+        while( dt >= gFixedTick ) {
+            dt -= gFixedTick;
+            gameClock += gFixedTick;              
+			g_dt = gFixedTick;
 
-				if( !pMainMenu->IsVisible() )  {
-					ruUpdatePhysics( fixedTick, 1, fixedTick );
-				}
+			if( !pMainMenu->IsVisible() )  {
+				ruUpdatePhysics( gFixedTick, 1, gFixedTick );
+			}
 
-                ruInputUpdate();
+            ruInputUpdate();
 
-                if( pPlayer ) {
-                    pPlayer->Update();
+            if( pPlayer ) {
+                pPlayer->Update();
+            }
+
+            pMainMenu->Update();
+
+            if( !pMainMenu->IsVisible() ) {
+				ActionTimer::UpdateAll();
+                if( ruIsKeyHit( g_keyQuickSave )) {
+                    SaveWriter( "quickSave.save" ).SaveWorldState();
+                    pPlayer->SetTip( config.GetString( "saved" ) );
                 }
-
-                pMainMenu->Update();
-
-                if( !pMainMenu->IsVisible() ) {
-                    if( ruIsKeyHit( g_keyQuickSave )) {
-                        SaveWriter( "quickSave.save" ).SaveWorldState();
-                        pPlayer->SetTip( config.GetString( "saved" ) );
+                if( ruIsKeyHit( g_keyQuickLoad )) {
+                    if( FileExist( "quickSave.save" )) {
+                        SaveLoader( "quickSave.save" ).RestoreWorldState();
+                        pPlayer->SetTip( config.GetString( "loaded" ) );
                     }
-                    if( ruIsKeyHit( g_keyQuickLoad )) {
-                        if( FileExist( "quickSave.save" )) {
-                            SaveLoader( "quickSave.save" ).RestoreWorldState();
-                            pPlayer->SetTip( config.GetString( "loaded" ) );
-                        }
-                    }
-                    if( pCurrentLevel ) {
-						pCurrentLevel->UpdateGenericObjectsIdle();
-                        pCurrentLevel->DoScenario();
-                    }
-                    InteractiveObject::UpdateAll();
-				}
-                ruSetGUINodeText( fpsText, StringBuilder( "DIPs: " ) << ruDIPs() << "\nTCs: " << ruTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
-                ruSetGUINodeVisible( fpsText, g_showFPS );
-				// recalculate transforms of scene nodes
-				ruUpdateWorld();
-            }			
-			fpsCounter.RegisterFrame();
-        //} catch( std::exception exc ) {
-        //    RaiseError( exc.what() );
-        //}
+                }
+                if( pCurrentLevel ) {
+					pCurrentLevel->UpdateGenericObjectsIdle();
+                    pCurrentLevel->DoScenario();
+                }
+                InteractiveObject::UpdateAll();
+			}
+            ruSetGUINodeText( fpsText, StringBuilder( "DIPs: " ) << ruDIPs() << "\nTCs: " << ruTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
+            ruSetGUINodeVisible( fpsText, g_showFPS );
+			// recalculate transforms of scene nodes
+			ruUpdateWorld();
+        }			
+		fpsCounter.RegisterFrame();
     }
 
     if( pCurrentLevel ) {

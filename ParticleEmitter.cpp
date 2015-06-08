@@ -8,8 +8,7 @@
 vector<ParticleEmitter*> ParticleEmitter::msParticleEmitters;
 
 ParticleEmitter::~ParticleEmitter() {
-    vertexBuffer->Release();
-    indexBuffer->Release();
+	OnLostDevice();
 
     delete vertices;
     delete faces;
@@ -178,8 +177,8 @@ void ParticleEmitter::ResurrectParticles() {
 ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps ) {
     mOwner = theParent;
     mAliveParticleCount = theParticleCount;
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( theParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( theParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
+	mMaxParticleCount = theParticleCount;
+	OnResetDevice();
     faces = new ParticleFace[ theParticleCount * 2 ];
     vertices = new ParticleVertex[ theParticleCount * 4 ];
     for( int i = 0; i < theParticleCount; i++ ) {
@@ -189,6 +188,18 @@ ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, r
     firstTimeUpdate = false;
     ParticleEmitter::msParticleEmitters.push_back( this );
     ResurrectParticles();
+}
+
+void ParticleEmitter::OnLostDevice()
+{
+	vertexBuffer->Release();
+	indexBuffer->Release();
+}
+
+void ParticleEmitter::OnResetDevice()
+{
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
 }
 
 ParticleEmitter::Particle::Particle() {

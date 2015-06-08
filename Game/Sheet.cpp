@@ -17,7 +17,7 @@ Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObjec
     }
 
     if( !msSheetFont.IsValid() ) {
-        msSheetFont = ruCreateGUIFont( 16, "data/fonts/font1.otf" );
+        msSheetFont = ruCreateGUIFont( 16, "data/fonts/font2.ttf" );
     }
 
     int sw = ruGetResolutionWidth();

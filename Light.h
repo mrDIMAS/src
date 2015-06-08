@@ -45,6 +45,8 @@ public:
 	static vector< Light* > msPointLightList;
 	static vector< Light* > msSpotLightList; 
 public:
+	virtual void OnLostDevice();
+	virtual void OnResetDevice();
     explicit Light( int type );
     virtual ~Light();
     void SetColor( const ruVector3 & theColor );

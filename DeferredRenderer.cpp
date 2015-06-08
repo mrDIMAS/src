@@ -20,15 +20,14 @@ DeferredRenderer::DeferredRenderer() {
     mSpotLightShadowMap = new SpotlightShadowMap;
     // check support of floating-point textures first
     if( Engine::Instance().IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
-        mHDRShader = new HDRShader( D3DFMT_A16B16G16R16 );
+        mHDRShader = new HDRShader;
     } else {
         mHDRShader = nullptr;
     }
 }
 
 DeferredRenderer::~DeferredRenderer() {
-    mBoundingSphere->Release();
-    mBoundingCone->Release();
+	OnLostDevice();
     delete mGBuffer;
     delete mFullscreenQuad;
     delete mSpotLightShader;
@@ -53,32 +52,16 @@ void DeferredRenderer::CreateBoundingVolumes() {
 	ID3DXMesh * temp = nullptr;
     int quality = 6;
 
-	D3DXCreateSphere( Engine::Instance().GetDevice(), 1.0, quality, quality, &mBoundingStar, 0 );
-	XYZNormalVertex * data;
-	mBoundingStar->LockVertexBuffer( 0, (void**)&data );
-	int n = 0;
-	for( int i = 0; i < mBoundingStar->GetNumVertices(); i++ ) {
-		XYZNormalVertex * v = &data[ i ];
-		n++;
-		if( n == 5 ) {
-			v->p.x = 0;
-			v->p.y = 0;
-			v->p.z = 0;
-			n = 0;
-		}
-	}
-	mBoundingStar->UnlockVertexBuffer();
-	mBoundingStar->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, Engine::Instance().GetDevice(), &temp );
-	mBoundingStar->Release();
-	mBoundingStar = temp;
+	D3DVERTEXELEMENT9 vd[ ] = {
+		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		D3DDECL_END()
+	};
 
-	
+	XYZNormalVertex * data;
 
     D3DXCreateSphere( Engine::Instance().GetDevice(), 1.0, quality, quality, &mBoundingSphere, 0 );
-	
-	mBoundingSphere->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, Engine::Instance().GetDevice(), &temp );
-	mBoundingSphere->Release();
-	mBoundingSphere = temp;
+	mBoundingSphere->UpdateSemantics( vd );
 
     D3DXCreateCylinder( Engine::Instance().GetDevice(), 0.0f, 1.0f, 1.0f, quality, quality, &mBoundingCone, 0 );
     // rotate cylinder on 90 degrees
@@ -94,10 +77,24 @@ void DeferredRenderer::CreateBoundingVolumes() {
         D3DXVec3TransformCoord( &v->p, &v->p, &transform );
     }
     mBoundingCone->UnlockVertexBuffer();
+	mBoundingCone->UpdateSemantics( vd );
 
-	mBoundingCone->CloneMeshFVF( D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_TEX1, Engine::Instance().GetDevice(), &temp );
-	mBoundingCone->Release();
-	mBoundingCone = temp;
+	D3DXCreateSphere( Engine::Instance().GetDevice(), 1.0, quality, quality, &mBoundingStar, 0 );
+	
+	mBoundingStar->LockVertexBuffer( 0, (void**)&data );
+	int n = 0;
+	for( int i = 0; i < mBoundingStar->GetNumVertices(); i++ ) {
+		XYZNormalVertex * v = &data[ i ];
+		n++;
+		if( n == 5 ) {
+			v->p.x = 0;
+			v->p.y = 0;
+			v->p.z = 0;
+			n = 0;
+		}
+	}
+	mBoundingStar->UnlockVertexBuffer();
+	mBoundingStar->UpdateSemantics( vd );
 }
 
 ////////////////////////////////////////////////////////////
@@ -144,6 +141,7 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
 
 DeferredRenderer::PointLightShader::~PointLightShader() {
     delete pixelShader;
+	delete pixelShaderTexProj;
 }
 
 ////////////////////////////////////////////////////////////
@@ -189,7 +187,7 @@ void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Ligh
     // position
     Engine::Instance().SetPixelShaderFloat3( 10, lit->GetRealPosition().elements );
     // range
-    Engine::Instance().SetPixelShaderFloat( 14, powf( lit->GetRadius(), 4 ));
+    Engine::Instance().SetPixelShaderFloat( 14, lit->GetRadius() );
     // color
     Engine::Instance().SetPixelShaderFloat3( 11, lit->GetColor().elements );
     // inner angle
@@ -202,6 +200,7 @@ void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Ligh
 
 DeferredRenderer::SpotLightShader::~SpotLightShader() {
     delete pixelShader;
+	delete pixelShaderShadows;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -212,13 +211,7 @@ DeferredRenderer::SpotLightShader::~SpotLightShader() {
 DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader() {
     //vs = new VertexShader( "data/shaders/boundingVolume.vso", true );
     ps = new PixelShader( "data/shaders/boundingVolume.pso" );
-    D3DVERTEXELEMENT9 vd[ ] = {
-        { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-		{ 0,  0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-        //{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
-        D3DDECL_END()
-    };
-    Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
+    OnResetDevice();
 }
 
 DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader() {
@@ -228,8 +221,6 @@ DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader(
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::Bind() {
-    //ps->Bind();
-    //vs->Bind();
     Engine::Instance().GetDevice()->SetVertexDeclaration( vertexDeclaration );
 }
 
@@ -237,9 +228,25 @@ void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX &
     Engine::Instance().SetVertexShaderMatrix( 0, &wvp );
 }
 
+void DeferredRenderer::BoundingVolumeRenderingShader::OnLostDevice()
+{
+	vertexDeclaration->Release();
+}
+
+void DeferredRenderer::BoundingVolumeRenderingShader::OnResetDevice()
+{
+	D3DVERTEXELEMENT9 vd[ ] = {
+		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0,  0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		//{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+		D3DDECL_END()
+	};
+	Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
+}
+
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     ruVector3 realPosition = pLight->GetRealPosition();
-    float scl = 2.5f * pLight->radius * scale;
+    float scl = 3.0f * pLight->radius * scale;
     D3DXMATRIX world;
     world._11 = scl;
     world._12 = 0.0f;
@@ -263,24 +270,13 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     D3DXMATRIX wvp;
     D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
     bvRenderer->SetTransform( wvp );
-	
-	
-	IDirect3DVertexBuffer9 * vb;
-	IDirect3DIndexBuffer9 * ib;
-	mBoundingSphere->GetVertexBuffer( &vb );
-	mBoundingSphere->GetIndexBuffer( &ib );
-	Engine::Instance().GetDevice()->SetStreamSource( 0, vb, 0, mBoundingSphere->GetNumBytesPerVertex());
-	Engine::Instance().GetDevice()->SetIndices( ib );
-	Engine::Instance().GetDevice()->SetFVF( mBoundingSphere->GetFVF() );
-	
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingSphere->GetNumVertices(), 0, mBoundingSphere->GetNumFaces()));
 
-    //icosphere->DrawSubset( 0 );
+	mBoundingSphere->DrawSubset( 0 );
 }
 
 void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 	ruVector3 realPosition = pLight->GetRealPosition();
-	float scl = 1.25f * pLight->radius * scale;
+	float scl = 2.75f * pLight->radius * scale;
 	D3DXMATRIX world;
 	world._11 = scl;
 	world._12 = 0.0f;
@@ -305,22 +301,11 @@ void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 	D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
 	bvRenderer->SetTransform( wvp );
 
-
-	IDirect3DVertexBuffer9 * vb;
-	IDirect3DIndexBuffer9 * ib;
-	mBoundingStar->GetVertexBuffer( &vb );
-	mBoundingStar->GetIndexBuffer( &ib );
-	Engine::Instance().GetDevice()->SetStreamSource( 0, vb, 0, mBoundingStar->GetNumBytesPerVertex());
-	Engine::Instance().GetDevice()->SetIndices( ib );
-	Engine::Instance().GetDevice()->SetFVF( mBoundingStar->GetFVF() );
-
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mBoundingStar->GetNumVertices(), 0, mBoundingStar->GetNumFaces()));
-
-	//icosphere->DrawSubset( 0 );
+	mBoundingStar->DrawSubset( 0 );
 }
 
 void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
-    float height = lit->GetRadius() * 2.05;
+    float height = lit->GetRadius() * 2.5;
     float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
     D3DXMATRIX scale;
     D3DXMatrixScaling( &scale, radius, height, radius );
@@ -373,14 +358,13 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 			if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
 				auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mLightList.end(), pLight );
 				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
-					pLight->pQuery->Issue( D3DISSUE_BEGIN );
+					if( FAILED( pLight->pQuery->Issue( D3DISSUE_BEGIN ))) RaiseError( "Err" );
 					RenderStar( pLight );
 					pLight->pQuery->Issue( D3DISSUE_END );
 				}
 				pLight->inFrustum = true;
 				countInFrustum++;
 				pLight->mQueryDone = false;
-				//pLight->trulyVisible = false;
 			} else {
 				pLight->inFrustum = false;
 			}
@@ -391,32 +375,25 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 	
-	//int readyCount = 0;
-	//do {
-		for( auto pLight : Light::msPointLightList ) {
+	for( auto pLight : Light::msPointLightList ) {
+		if( pLight->IsVisible() ) {
 			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mLightList.end(), pLight );			
-			DWORD pixelsVisible;
-			//if( !pLight->trulyVisible ) {
-				if( pLight->inFrustum  && !pLight->mQueryDone ) {
-					if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
-						HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
-						if( result == S_OK ) {
-							pLight->mQueryDone = true;
-							//readyCount++;
-							if( pixelsVisible > 0 ) {				
-								pLight->trulyVisible = true;
-								// add light to light list of nearest path point of camera									
-								Camera::msCurrentCamera->mNearestPathPoint->mLightList.push_back( pLight );								
-							}
+			DWORD pixelsVisible = 0;
+			if( pLight->inFrustum  && !pLight->mQueryDone ) {
+				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
+					HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
+					if( result == S_OK ) {
+						pLight->mQueryDone = true;
+						if( pixelsVisible > 0 ) {				
+							pLight->trulyVisible = true;
+							// add light to light list of nearest path point of camera									
+							Camera::msCurrentCamera->mNearestPathPoint->mLightList.push_back( pLight );								
 						}
-					} else {
-						//readyCount++;
 					}
 				}
-			//}
+			}
 		}
-	//} while( readyCount < countInFrustum );
-
+	}
 
 	// Render point lights
 	mFullscreenQuad->vertexShader->Bind();	
@@ -544,4 +521,16 @@ void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
         }
         mSpotLightShadowMap = new SpotlightShadowMap( size );
     }
+}
+
+void DeferredRenderer::OnLostDevice()
+{
+	mBoundingStar->Release();
+	mBoundingSphere->Release();
+	mBoundingCone->Release();
+}
+
+void DeferredRenderer::OnResetDevice()
+{
+	CreateBoundingVolumes();
 }

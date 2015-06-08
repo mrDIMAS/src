@@ -21,4 +21,9 @@ public:
     void Update( );
     void SetVisible( bool state );
 	void AttachTo( ruGUINodeHandle node );
+	static void UpdateAll() {
+		for( auto pWaitKey : msWaitKeyList ) {
+			pWaitKey->Update();
+		}
+	}
 };

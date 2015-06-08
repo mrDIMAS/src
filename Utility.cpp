@@ -92,7 +92,7 @@ void ParseString ( string str, map<string,string> & values ) {
 
 
 
-int NearestPow2( int number )
+int FloorPow2( int number )
 {
 	int power = 1;
 	while( power < number ) {
@@ -101,4 +101,12 @@ int NearestPow2( int number )
 			break;
 	}
 	return power;
+}
+
+int CeilPow2( int number ) {
+	int power = 1;
+	while( power < number ) {
+		power *= 2;
+	}
+	return power;	
 }

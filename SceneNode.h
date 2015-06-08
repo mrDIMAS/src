@@ -6,7 +6,7 @@ class Mesh;
 
 class ParticleEmitter;
 
-class SceneNode {
+class SceneNode : public RendererComponent {
 public:
     friend class DeferredRenderer;
     SceneNode * mParent;
@@ -45,6 +45,9 @@ public:
 
 	ruVector3 GetRotationAxis( );
 	float GetRotationAngle( );
+
+	virtual void OnLostDevice();
+	virtual void OnResetDevice();
     // Methods
     explicit SceneNode();
 	explicit SceneNode( const SceneNode & source );

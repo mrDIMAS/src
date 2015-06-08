@@ -1,32 +1,40 @@
 #pragma once
 
-
-
-class VertexShader {
-private:
-    IDirect3DVertexShader9 * shader;
-    ID3DXConstantTable * constants;
-	
-	static IDirect3DVertexShader9 * msLastBinded;
+class Shader : public RendererComponent {
+protected:
+	string mSourceName;
+	DWORD * LoadBinary();
 public:
-    VertexShader( string fileName );
-    ~VertexShader();
-    ID3DXConstantTable * GetConstantTable();
-    void Bind();
-
+	static vector<Shader*> msShaderList;
+	explicit Shader( const string & sourceName );
+	virtual ~Shader();
+	virtual void OnLostDevice();
+	virtual void OnResetDevice();
 };
 
-class PixelShader {
+class VertexShader : public Shader {
+private:
+    IDirect3DVertexShader9 * shader;
+	static IDirect3DVertexShader9 * msLastBinded;
+	virtual void Initialize();
+public:
+    explicit VertexShader( string fileName );
+    virtual ~VertexShader();
+    void Bind();
+	virtual void OnLostDevice();
+	virtual void OnResetDevice();
+};
+
+class PixelShader : public Shader {
 private:
     IDirect3DPixelShader9 * shader;
-    ID3DXConstantTable * constants;
-
 	static IDirect3DPixelShader9 * msLastBinded;
+	virtual void Initialize();
 public:
-    PixelShader( string fileName );
-    ~PixelShader();
-    ID3DXConstantTable * GetConstantTable();
+    explicit PixelShader( string fileName );
+    virtual ~PixelShader();
     void Bind();
-
+	virtual void OnLostDevice();
+	virtual void OnResetDevice();
 };
 

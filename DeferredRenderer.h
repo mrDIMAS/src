@@ -9,9 +9,9 @@
 
 class Mesh;
 
-class DeferredRenderer {
+class DeferredRenderer : public RendererComponent {
 public:
-    class BoundingVolumeRenderingShader {
+    class BoundingVolumeRenderingShader : public RendererComponent {
     private:
         //VertexShader * vs;
         PixelShader * ps;
@@ -25,6 +25,9 @@ public:
 
         void Bind();
         void SetTransform( D3DXMATRIX & wvp );
+
+		void OnResetDevice();
+		void OnLostDevice();
     };
 
     BoundingVolumeRenderingShader * bvRenderer;
@@ -97,8 +100,6 @@ public:
     void SetSpotLightShadowMapSize( int size );
     void EndFirstPassAndDoSecondPass();
 
-	void OnDeviceLost() {
-
-		mGBuffer->OnDeviceLost();
-	}
+	void OnResetDevice();
+	void OnLostDevice();
 };

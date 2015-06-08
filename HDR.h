@@ -3,7 +3,7 @@
 
 #include "EffectsQuad.h"
 
-class HDRShader {
+class HDRShader : public RendererComponent {
 public:
     IDirect3DTexture9 * hdrTexture;
     IDirect3DSurface9 * hdrSurface;
@@ -34,9 +34,11 @@ public:
     IDirect3DTexture9 * adaptedLuminanceCurrent;
 
 public:
-    explicit HDRShader( D3DFORMAT rtFormat );
+    explicit HDRShader();
     virtual ~HDRShader();
     void SetAsRenderTarget( );
     void CalculateFrameLuminance( );
     void DoToneMapping( IDirect3DSurface9 * targetSurface );
+	void OnResetDevice();
+	void OnLostDevice();
 };

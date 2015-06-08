@@ -41,6 +41,7 @@ private:
     string mContentTypeDesc;
 	void Initialize( Type type );
 public:
+	ruEvent OnPickup;
     explicit Item( ruNodeHandle obj, Type type );
 	explicit Item( Type type );
     virtual ~Item();

@@ -2,10 +2,10 @@
 
 class Vertex {
 public:
-    ruVector3 coords;
-    ruVector3 normals;
-    ruVector2 texCoords;
-    ruVector3 tangents;
+    ruVector3 mPosition;
+    ruVector3 mNormal;
+    ruVector2 mTexCoord;
+    ruVector3 mTangent;
 
     Vertex( ruVector3 & theCoords, ruVector3 & theNormals, ruVector2 & theTexCoords, ruVector3 & theTangents );
     Vertex( float x, float y, float z, float tx, float ty );

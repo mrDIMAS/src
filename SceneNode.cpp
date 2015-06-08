@@ -193,7 +193,7 @@ void SceneNode::SetConvexBody() {
 
     for( auto mesh : mMeshList ) {
         for( auto & vertex : mesh->mVertices ) {
-            convex->addPoint ( btVector3( vertex.coords.x, vertex.coords.y, vertex.coords.z ));
+            convex->addPoint ( btVector3( vertex.mPosition.x, vertex.mPosition.y, vertex.mPosition.z ));
         }
     }
 
@@ -251,9 +251,9 @@ void SceneNode::SetTrimeshBody() {
 
     for ( auto mesh : mMeshList ) {
         for( auto triangle : mesh->mTriangles ) {
-            ruVector3 & a = mesh->mVertices[ triangle.mA ].coords;
-            ruVector3 & b = mesh->mVertices[ triangle.mB ].coords;
-            ruVector3 & c = mesh->mVertices[ triangle.mC ].coords;
+            ruVector3 & a = mesh->mVertices[ triangle.mA ].mPosition;
+            ruVector3 & b = mesh->mVertices[ triangle.mB ].mPosition;
+            ruVector3 & c = mesh->mVertices[ triangle.mC ].mPosition;
 
             trimesh->addTriangle ( btVector3( a.x, a.y, a.z ), btVector3( b.x, b.y, b.z ), btVector3( c.x, c.y, c.z ), false );
         };
@@ -417,11 +417,11 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
             for( int vertexNum = 0; vertexNum < vertexCount; vertexNum++ ) {
                 Vertex v;
 
-                v.coords = reader.GetBareVector();
-                v.normals = reader.GetBareVector();
-                v.texCoords = reader.GetBareVector2();
+                v.mPosition = reader.GetBareVector();
+                v.mNormal = reader.GetBareVector();
+                v.mTexCoord = reader.GetBareVector2();
                 ruVector2 tc2 = reader.GetBareVector2(); // just read secondary texcoords, but don't add it to the mesh. need to compatibility
-                v.tangents = reader.GetBareVector();
+                v.mTangent = reader.GetBareVector();
 
                 mesh->mVertices.push_back( v );
             }
@@ -532,9 +532,9 @@ void SceneNode::PerformAnimation() {
             for( auto & vertex : mesh->mVertices ) {
                 Mesh::Weight & weight = mesh->mWeightTable[ vertexNumber ];
 
-                btVector3 initialPosition( vertex.coords.x, vertex.coords.y, vertex.coords.z );
-                btVector3 initialNormal( vertex.normals.x, vertex.normals.y, vertex.normals.z );
-                btVector3 initialTangent( vertex.tangents.x, vertex.tangents.y, vertex.tangents.z );
+                btVector3 initialPosition( vertex.mPosition.x, vertex.mPosition.y, vertex.mPosition.z );
+                btVector3 initialNormal( vertex.mNormal.x, vertex.mNormal.y, vertex.mNormal.z );
+                btVector3 initialTangent( vertex.mTangent.x, vertex.mTangent.y, vertex.mTangent.z );
                 btVector3 newPosition( 0, 0, 0 );
                 btVector3 newNormal( 0, 0, 0 );
                 btVector3 newTangent( 0, 0, 0 );
@@ -549,9 +549,9 @@ void SceneNode::PerformAnimation() {
                     newTangent += transform.getBasis() * initialTangent * bone.mWeight;
                 }
 
-                vertex.coords = ruVector3( newPosition.m_floats );
-                vertex.normals = ruVector3( newNormal.m_floats );
-                vertex.tangents = ruVector3( newTangent.m_floats );
+                vertex.mPosition = ruVector3( newPosition.m_floats );
+                vertex.mNormal = ruVector3( newNormal.m_floats );
+                vertex.mTangent = ruVector3( newTangent.m_floats );
 
                 vertexNumber++;
             }
@@ -1148,6 +1148,14 @@ void SceneNode::AddForce( ruVector3 force ) {
 	if( mBody ) {
 		mBody->applyCentralForce( btVector3( force.x, force.y, force.z ));
 	}
+}
+
+void SceneNode::OnResetDevice() {
+
+}
+
+void SceneNode::OnLostDevice() {
+
 }
 
 ////////////////////////////////////////////////////

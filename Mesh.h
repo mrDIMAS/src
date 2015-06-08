@@ -7,7 +7,7 @@ class Octree;
 
 class Texture;
 
-class Mesh {
+class Mesh : public RendererComponent {
 public:
     class Bone {
     public:
@@ -27,11 +27,7 @@ public:
         unsigned short mB;
         unsigned short mC;
 
-        Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
-            mA = vA;
-            mB = vB;
-            mC = vC;
-        }
+        Triangle( unsigned short vA, unsigned short vB, unsigned short vC );
     };
 
 public:
@@ -51,6 +47,8 @@ public:
 
 	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
 public:
+	void OnResetDevice();
+	void OnLostDevice();
     static unordered_map< IDirect3DTexture9*, vector< Mesh*>> msMeshList;
     static void Register( Mesh * mesh );
 	static void EraseOrphanMeshes();

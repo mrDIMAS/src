@@ -207,10 +207,15 @@ Menu::Menu( ) {
 			float y = 0;
 			mpMasterVolume = new Slider( x, y, 0, 100, 2.5f, ruGetTexture( "data/gui/smallbuttonthick.png" ), mLocalization.GetString( "masterVolume" ) );
 			mpMasterVolume->AttachTo( mGUIOptionsCommonCanvas );
+			mpMasterVolume->SetChangeAction( ruDelegate::Bind( this, &Menu::OnSoundVolumeChange ));
+
 			mpMusicVolume = new Slider( x, y + 0.5f * mDistBetweenButtons, 0, 100, 2.5f, ruGetTexture( "data/gui/smallbuttonthick.png" ), mLocalization.GetString(  "musicVolume" ) );
 			mpMusicVolume->AttachTo( mGUIOptionsCommonCanvas );
+			mpMusicVolume->SetChangeAction( ruDelegate::Bind( this, &Menu::OnMusicVolumeChange ));
+
 			mpMouseSensivity = new Slider( x, y + 1.0f * mDistBetweenButtons, 0, 100, 2.5f, ruGetTexture( "data/gui/smallbuttonthick.png" ), mLocalization.GetString( "mouseSens" ) );
 			mpMouseSensivity->AttachTo( mGUIOptionsCommonCanvas );
+			mpMouseSensivity->SetChangeAction( ruDelegate::Bind( this, &Menu::OnMouseSensivityChange ));
 		}
 	}
 
@@ -370,6 +375,21 @@ void Menu::OnSaveClick() {
 	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::DoSaveCurrentGame ));
 }
 
+void Menu::OnMouseSensivityChange() {
+	mouseSens = mpMouseSensivity->GetValue() / 100.0f;
+}
+
+void Menu::OnMusicVolumeChange() {
+	ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
+	g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
+	if( pCurrentLevel ) {
+		ruSetSoundVolume( pCurrentLevel->mMusic, g_musicVolume );
+	}
+}
+void Menu::OnSoundVolumeChange() {
+	ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
+}
+
 void Menu::DoSaveCurrentGame() {
 	SaveWriter( mSaveGameSlotName ).SaveWorldState();
 	SetPage( Page::Main );
@@ -384,6 +404,7 @@ void Menu::CameraStartFadeOut( const ruDelegate & onFadeDoneAction ) {
 void Menu::Update( ) {
     ruSetAmbientColor( ruVector3( 25 / 255.0f, 25 / 255.0f, 25  / 255.0f));
 
+	WaitKeyButton::UpdateAll();
     UpdateCamera();
 
 	SyncPlayerControls();
@@ -438,18 +459,7 @@ void Menu::Update( ) {
         if( mPage == Page::OptionsCommon ) {
             ruSetGUINodeVisible( mGUIOptionsCommonCanvas, true );
 
-            mpMouseSensivity->Update();
-            mouseSens = mpMouseSensivity->GetValue() / 100.0f;
 
-            mpMasterVolume->Update();
-            ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
-
-            mpMusicVolume->Update();
-            ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
-            g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
-            if( pCurrentLevel ) {
-                ruSetSoundVolume( pCurrentLevel->mMusic, g_musicVolume );
-            }
         } else {
             ruSetGUINodeVisible( mGUIOptionsCommonCanvas, false );
         }
@@ -539,24 +549,9 @@ void Menu::Update( ) {
 
         if( mPage == Page::OptionsKeys ) {
             ruSetGUINodeVisible( mGUIOptionsKeysCanvas, true );
-            mpMoveForwardKey->Update();
-            mpMoveBackwardKey->Update();
-            mpStrafeLeftKey->Update();
-            mpStrafeRightKey->Update();
-            mpJumpKey->Update();
-            mpFlashLightKey->Update();
-            mpRunKey->Update();
-            mpInventoryKey->Update();
-            mpUseKey->Update();
-            mpQuickSaveKey->Update();
-            mpQuickLoadKey->Update();
-            mpStealthKey->Update();
-			mpLookLeftKey->Update();
-			mpLookRightKey->Update();
         } else {
             ruSetGUINodeVisible( mGUIOptionsKeysCanvas, false );
         }
-
 
 		ruPlaySound( mMusic );
 

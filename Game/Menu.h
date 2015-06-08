@@ -124,6 +124,9 @@ private:
 	void OnHDRButtonClick();
 	void OnLoadSaveClick();
 	void OnSaveClick();
+	void OnMouseSensivityChange();
+	void OnMusicVolumeChange();
+	void OnSoundVolumeChange();
 
 	bool mCameraFadeActionDone;
 	ruDelegate mCameraFadeDoneAction;

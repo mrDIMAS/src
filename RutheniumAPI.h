@@ -276,6 +276,7 @@ void ruSetAnisotropicTextureFiltration( bool state );
 void ruEnableFXAA( );
 void ruDisableFXAA( );
 bool ruFXAAEnabled();
+void ruChangeVideomode( int width, int height, int fullscreen, char vSync );
 
 // HDR
 void ruSetHDREnabled( bool state );

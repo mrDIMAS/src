@@ -59,60 +59,10 @@ void EffectsQuad::SetSize( float width, float height ) {
 }
 
 EffectsQuad::EffectsQuad( bool bDebug ) {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
-
-    debug = bDebug;
-    debugPixelShader = nullptr;
-
-    if( !debug ) {
-        QuadVertex vertices[ ] = {
-            {           -0.5, -0.5, 0, 0, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 },
-            {  Engine::Instance().GetResolutionWidth() - 0.5, -0.5, 0, 1, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,  Engine::Instance().GetResolutionHeight() - 0.5, 0, 1, 1 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 }
-        };
-
-        void * data = 0;
-
-        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
-        memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        CheckDXErrorFatal( vertexBuffer->Unlock( ));
-    } else {
-        int size = 500;
-        QuadVertex vertices[ ] = {
-            {        -0.5, -0.5, 0, 0, 0 }, { size - 0.5,        -0.5, 0, 1, 0 }, { -0.5, size - 0.5, 0, 0, 1 },
-            {  size - 0.5, -0.5, 0, 1, 0 }, { size - 0.5,  size - 0.5, 0, 1, 1 }, { -0.5, size - 0.5, 0, 0, 1 }
-        };
-
-        void * data = 0;
-
-        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
-        memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        CheckDXErrorFatal( vertexBuffer->Unlock( ));
-
-        string debugPixelShaderSource =
-            "sampler diffuse : register( s4 );\n"
-            "float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
-            "   return tex2D( diffuse, texCoord );\n"
-            "};\n";
-
-        debugPixelShader = new PixelShader( debugPixelShaderSource );
-    }
-
-    D3DVERTEXELEMENT9 quadVertexDeclation[ ] = {
-        { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-        { 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-        D3DDECL_END()
-    };
-
-    Engine::Instance().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
-
-    vertexShader = new VertexShader( "data/shaders/quad.vso" );
-    D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::Instance().GetResolutionWidth(), Engine::Instance().GetResolutionHeight(), 0, 0, 1024 );
-}
-
-void EffectsQuad::OnDeviceLost()
-{
-	Free();
+	debug = bDebug;
+	debugPixelShader = nullptr;
 	Initialize();
+	vertexShader = new VertexShader( "data/shaders/quad.vso" );
 }
 
 void EffectsQuad::Free()
@@ -123,5 +73,49 @@ void EffectsQuad::Free()
 
 void EffectsQuad::Initialize()
 {
+	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
 
+	if( !debug ) {
+		QuadVertex vertices[ ] = {
+			{           -0.5, -0.5, 0, 0, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 },
+			{  Engine::Instance().GetResolutionWidth() - 0.5, -0.5, 0, 1, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,  Engine::Instance().GetResolutionHeight() - 0.5, 0, 1, 1 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 }
+		};
+
+		void * data = 0;
+
+		CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
+		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
+		CheckDXErrorFatal( vertexBuffer->Unlock( ));
+	} else {
+		int size = 500;
+		QuadVertex vertices[ ] = {
+			{        -0.5, -0.5, 0, 0, 0 }, { size - 0.5,        -0.5, 0, 1, 0 }, { -0.5, size - 0.5, 0, 0, 1 },
+			{  size - 0.5, -0.5, 0, 1, 0 }, { size - 0.5,  size - 0.5, 0, 1, 1 }, { -0.5, size - 0.5, 0, 0, 1 }
+		};
+
+		void * data = 0;
+
+		CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
+		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
+		CheckDXErrorFatal( vertexBuffer->Unlock( ));
+
+		string debugPixelShaderSource =
+			"sampler diffuse : register( s4 );\n"
+			"float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {\n"
+			"   return tex2D( diffuse, texCoord );\n"
+			"};\n";
+
+		debugPixelShader = new PixelShader( debugPixelShaderSource );
+	}
+
+	D3DVERTEXELEMENT9 quadVertexDeclation[ ] = {
+		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		D3DDECL_END()
+	};
+
+	Engine::Instance().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
+
+	
+	D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::Instance().GetResolutionWidth(), Engine::Instance().GetResolutionHeight(), 0, 0, 1024 );
 }

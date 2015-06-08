@@ -4,37 +4,35 @@
 #include "fterrors.h"
 #include "EffectsQuad.h"
 
-class BitmapFont {
+struct CharMetrics {
+	int advanceX;
+	int advanceY;
+	int bitmapTop;
+	int bitmapLeft;
+	ruVector2 texCoords[4]; // texture coords in atlas
+};
+
+struct BGRA8Pixel {
+	unsigned char b;
+	unsigned char g;
+	unsigned char r;
+	unsigned char a;
+};
+
+class BitmapFont : public RendererComponent {
+private:
+	IDirect3DTexture9 * atlas;
+	vector< CharMetrics > charsMetrics;
+	string mSourceFile;
+	int glyphSize;
+	void Create( );
 public:
-    FT_Face face;
-    IDirect3DTexture9 * atlas;
-    int atlasWidth, atlasHeight;
-    int glyphSize;
-
-    typedef struct CharMetrics_s {
-        int advanceX;
-        int advanceY;
-        int offsetX;
-        int offsetY;
-        int bitmapWidth;
-        int bitmapHeight;
-        int bitmapTop;
-        int bitmapLeft;
-
-        ruVector2 texCoords[4]; // texture coords in atlas
-    } CharMetrics;
-
-    typedef struct ARGB8Pixel_s {
-        unsigned char b;
-        unsigned char g;
-        unsigned char r;
-        unsigned char a;
-    } ARGB8Pixel;
-
-    static vector< BitmapFont* > fonts;
-    vector< CharMetrics > charsMetrics;
+    static vector< BitmapFont* > fonts;   
     explicit BitmapFont( const string & file, int size );
     virtual ~BitmapFont( );
-    void RenderAtlas( EffectsQuad * quad );
-    void RenderText( string text, int x, int y );
+	int GetGlyphSize();
+	void BindAtlasToLevel( int level );
+	CharMetrics * GetCharacterMetrics( int charNum );
+	void OnResetDevice();
+	void OnLostDevice();
 };

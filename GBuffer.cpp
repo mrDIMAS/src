@@ -60,17 +60,12 @@ void GBuffer::BindDepthMap( int layer ) {
     CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( layer, depthMap ));
 }
 
-void GBuffer::OnDeviceLost() {
-	FreeRenderTargets();
-	CreateRenderTargets();
-}
 
 void GBuffer::FreeRenderTargets() {
 	depthSurface->Release();
 	normalSurface->Release();
 	diffuseSurface->Release();
-	backSurface->Release();
-	while( depthMap->Release() );
+	while( depthMap->Release());
 	while( normalMap->Release());
 	while( diffuseMap->Release());
 }
@@ -79,15 +74,25 @@ void GBuffer::CreateRenderTargets() {
 	int width = Engine::Instance().GetResolutionWidth();
 	int height = Engine::Instance().GetResolutionHeight();
 	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
-		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
-		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
+		width = FloorPow2( Engine::Instance().GetResolutionWidth() );
+		height = FloorPow2( Engine::Instance().GetResolutionHeight() );
 	}
 
-	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap ));
-	CheckDXErrorFatal(  D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap ));
-	CheckDXErrorFatal(  D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap ));
+	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap ));
+	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap ));
+	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap ));
 	CheckDXErrorFatal( depthMap->GetSurfaceLevel( 0, &depthSurface ));
 	CheckDXErrorFatal( normalMap->GetSurfaceLevel( 0, &normalSurface ));
 	CheckDXErrorFatal( diffuseMap->GetSurfaceLevel( 0, &diffuseSurface ));
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->GetRenderTarget( 0, &backSurface ));
+	backSurface = Engine::Instance().GetBackBuffer();
+}
+
+void GBuffer::OnLostDevice()
+{
+	FreeRenderTargets();
+}
+
+void GBuffer::OnResetDevice()
+{
+	CreateRenderTargets();
 }

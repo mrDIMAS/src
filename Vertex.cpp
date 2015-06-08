@@ -7,19 +7,19 @@ Vertex::Vertex() {
 }
 
 Vertex::Vertex( float x, float y, float z, float tx, float ty ) {
-    coords.x = x;
-    coords.y = y;
-    coords.z = z;
+    mPosition.x = x;
+    mPosition.y = y;
+    mPosition.z = z;
 
-    texCoords.x = tx;
-    texCoords.y = ty;
+    mTexCoord.x = tx;
+    mTexCoord.y = ty;
 }
 
 Vertex::Vertex( ruVector3 & theCoords, ruVector3 & theNormals, ruVector2 & theTexCoords, ruVector3 & theTangents ) {
-    coords = theCoords;
-    normals = theNormals;
-    texCoords = theTexCoords;
-    tangents = theTangents;
+    mPosition = theCoords;
+    mNormal = theNormals;
+    mTexCoord = theTexCoords;
+    mTangent = theTangents;
 }
 
 

@@ -7,6 +7,7 @@ class ParticleSystemRenderer {
 private:
     PixelShader * pixelShader;
     VertexShader * vertexShader;
+	VertexShader * vertexShaderLighting;
 
     IDirect3DVertexDeclaration9 * vd;
 public:

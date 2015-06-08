@@ -23,25 +23,36 @@ void FXAA::BeginDrawIntoTexture() {
 
 FXAA::FXAA() {
 	pixelShader = new PixelShader( "data/shaders/fxaa.pso" );
-	int width = Engine::Instance().GetResolutionWidth();
-	int height = Engine::Instance().GetResolutionHeight();
-	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
-		width = NearestPow2( Engine::Instance().GetResolutionWidth() );
-		height = NearestPow2( Engine::Instance().GetResolutionHeight() );
-	}
-    if( FAILED( D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture ))) {
-        MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
-    }
-    texture->GetSurfaceLevel( 0, &renderTarget );
-    Engine::Instance().GetDevice()->GetRenderTarget( 0, &backBufferRT );
+	OnResetDevice();
     effectsQuad = new EffectsQuad;
 }
 
 FXAA::~FXAA() {
     delete pixelShader;
     delete effectsQuad;
-    renderTarget->Release();
-    texture->Release();
+    OnLostDevice();
+}
+
+void FXAA::OnLostDevice()
+{
+	backBufferRT->Release();
+	renderTarget->Release();
+	texture->Release();
+}
+
+void FXAA::OnResetDevice()
+{
+	int width = Engine::Instance().GetResolutionWidth();
+	int height = Engine::Instance().GetResolutionHeight();
+	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
+		width = FloorPow2( Engine::Instance().GetResolutionWidth() );
+		height = FloorPow2( Engine::Instance().GetResolutionHeight() );
+	}
+	if( FAILED( D3DXCreateTexture( Engine::Instance().GetDevice(), width, height, 0, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture ))) {
+		MessageBoxA( 0, "Failed to create FXAA texture.", 0, MB_OK | MB_ICONERROR );
+	}
+	texture->GetSurfaceLevel( 0, &renderTarget );
+	backBufferRT = Engine::Instance().GetBackBuffer();
 }
 
 //////////////////////////////////////////////////////////////////////////

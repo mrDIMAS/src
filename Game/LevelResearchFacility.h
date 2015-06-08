@@ -23,8 +23,7 @@ private:
     ruSoundHandle mFanSound;
     ruSoundHandle mLeverSound;
     ruSoundHandle mSteamHissSound;
-    ruNodeHandle mZoneScaryBarellThrow;
-    ruNodeHandle mZoneSteamActivate;
+
     ruNodeHandle mSteamPS;
     ruNodeHandle mLockedDoor;
     ruNodeHandle mExtremeSteamBlock;
@@ -33,20 +32,23 @@ private:
     ruNodeHandle powerLever;
     ruNodeHandle mPowerLeverOffModel;
     ruNodeHandle mPowerLeverOnModel;
-    ruNodeHandle mScaryBarell;
-    ruNodeHandle mScaryBarellPositionNode;
     ruNodeHandle mPowerLamp;
     ruNodeHandle mPowerLeverSnd;
     ruNodeHandle mSmallSteamPosition;
-	ruNodeHandle mZoneObjectiveRestorePower;
-	ruNodeHandle mZoneExaminePlace;
-	ruNodeHandle mZoneNeedCrowbar;
+	
+	
+	
 	ruNodeHandle mDoorUnderFloor;
 	ruNodeHandle mZoneNewLevelLoad;
-	ruNodeHandle mZoneObjectiveNeedPassThroughMesh;
-	ruNodeHandle mZoneRemovePathBlockingMesh;
 	ruNodeHandle mPathBlockingMesh;
-	ruNodeHandle mZoneEnemySpawn;
+
+	Zone * mZoneObjectiveNeedPassThroughMesh;
+	Zone * mZoneEnemySpawn;
+	Zone * mZoneSteamActivate;
+	Zone * mZoneObjectiveRestorePower;
+	Zone * mZoneExaminePlace;
+	Zone * mZoneRemovePathBlockingMesh;
+	Zone * mZoneNeedCrowbar;
 
 	Keypad * mKeypad1;
 	Door * mKeypad1DoorToUnlock;
@@ -82,8 +84,16 @@ private:
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
 	void UpdateThermiteSequence();
-
 	void CreateEnemy();
+
+	void OnPlayerEnterSteamActivateZone();
+	void OnPlayerEnterRestorePowerZone();
+	void OnPlayerEnterExaminePlaceZone();
+	void OnPlayerEnterRemovePathBlockingMeshZone();
+	void OnPlayerEnterNeedCrowbarZone();
+	void OnPlayerEnterSpawnEnemyZone();
+	void OnPlayerEnterNeedPassThroughMeshZone();
+	void OnCrowbarPickup();
 public:
     explicit LevelResearchFacility();
     virtual ~LevelResearchFacility();

@@ -399,7 +399,7 @@ void Level::DoneInitialization() {
 
 void Level::CreateLoadingScreen()
 {
-	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf" );
+	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font2.ttf" );
 	int w = 200;
 	int h = 32;
 	int x = ( ruGetResolutionWidth() - w ) / 2;
@@ -419,6 +419,9 @@ void Level::UpdateGenericObjectsIdle()
 {
 	for( auto pLamp : mLampList ) {
 		pLamp->Update();
+	}
+	for( auto pZone : mZoneList ) {
+		pZone->Update();
 	}
 }
 
@@ -461,4 +464,9 @@ void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 			}
 		}
 	}
+}
+
+void Level::AddZone( Zone * zone )
+{
+	mZoneList.push_back( zone );
 }

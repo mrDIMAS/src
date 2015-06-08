@@ -63,22 +63,38 @@ LevelResearchFacility::LevelResearchFacility() {
 	mDoorUnderFloor = GetUniqueObject( "DoorUnderFloor" );
     mLockedDoor = GetUniqueObject( "LockedDoor" );
 
-	mZoneScaryBarellThrow = GetUniqueObject( "ScaryBarellThrowZone" );
-	mZoneSteamActivate = GetUniqueObject( "SteamActivateZone" );
     mExtremeSteamBlock = GetUniqueObject( "ExtremeSteamBlock" );
     mZoneExtremeSteamHurt = GetUniqueObject( "ExtremeSteamHurtZone" );
-	mZoneObjectiveRestorePower = GetUniqueObject( "ObjectiveRestorePower" );
-	mZoneExaminePlace = GetUniqueObject( "ObjectiveExaminePlace" );
-	mZoneNeedCrowbar = GetUniqueObject( "ObjectiveNeedCrowbar" );
-	mZoneObjectiveNeedPassThroughMesh = GetUniqueObject( "ObjectiveNeedPassThroughMesh" );
-	mZoneRemovePathBlockingMesh = GetUniqueObject( "ZoneRemovePathBlockingMesh" );
+	
+
+	
 	mPathBlockingMesh = GetUniqueObject( "PathBlockingMesh" );
 	mThermiteSmall = GetUniqueObject( "ThermiteSmall" );
 	mThermiteBig = GetUniqueObject( "ThermiteBig" );
 	mMeshLock = GetUniqueObject( "MeshLock" );
 	mThermitePlace = GetUniqueObject( "ThermitePlace" );
 	mMeshToSewers = GetUniqueObject( "MeshToSewers" );
-	mZoneEnemySpawn = GetUniqueObject( "ZoneEnemySpawn" );
+
+	AddZone( mZoneObjectiveNeedPassThroughMesh = new Zone( GetUniqueObject( "ObjectiveNeedPassThroughMesh" )));
+	mZoneObjectiveNeedPassThroughMesh->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterNeedPassThroughMeshZone ));
+
+	AddZone( mZoneEnemySpawn = new Zone( GetUniqueObject( "ZoneEnemySpawn" )));
+	mZoneEnemySpawn->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterSpawnEnemyZone ));
+
+	AddZone( mZoneSteamActivate = new Zone( GetUniqueObject( "SteamActivateZone" )));
+	mZoneSteamActivate->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterSteamActivateZone ));
+
+	AddZone( mZoneObjectiveRestorePower = new Zone( GetUniqueObject( "ObjectiveRestorePower" )));
+	mZoneObjectiveRestorePower->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterRestorePowerZone ));
+
+	AddZone( mZoneExaminePlace = new Zone( GetUniqueObject( "ObjectiveExaminePlace" )));
+	mZoneExaminePlace->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterExaminePlaceZone ));
+
+	AddZone( mZoneRemovePathBlockingMesh = new Zone( GetUniqueObject( "ZoneRemovePathBlockingMesh" )));
+	mZoneRemovePathBlockingMesh->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterRemovePathBlockingMeshZone ));
+
+	AddZone( mZoneNeedCrowbar = new Zone( GetUniqueObject( "ObjectiveNeedCrowbar" )));
+	mZoneNeedCrowbar->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterNeedCrowbarZone ));
 
     CreatePowerUpSequence();
 
@@ -110,15 +126,12 @@ LevelResearchFacility::LevelResearchFacility() {
 
 	AutoCreateDoorsByNamePattern( "Door?([[:digit:]]+)" );
 
-    mScaryBarell = GetUniqueObject( "ScaryBarell" );
-    mScaryBarellPositionNode = GetUniqueObject( "ScaryBarellPos" );
     mPowerLamp = GetUniqueObject( "PowerLamp");
     mPowerLeverSnd = GetUniqueObject( "PowerLeverSnd");
     mSmallSteamPosition = GetUniqueObject( "RFSteamPos" );
 	mZoneNewLevelLoad = GetUniqueObject( "NewLevelLoadZone" );
 
 	mStages[ "EnterSteamActivateZone" ] = false;
-	mStages[ "EnterScaryBarellThrowZone" ] = false;
 	mStages[ "EnterObjectiveRestorePowerZone" ] = false;
 	mStages[ "EnterObjectiveExaminePlace" ] = false;
 	mStages[ "EnterObjectiveNeedCrowbar" ] = false;
@@ -131,6 +144,8 @@ LevelResearchFacility::LevelResearchFacility() {
 	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
 	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
+	mCrowbarItem->OnPickup.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnCrowbarPickup ));
+
 	AddItem( new Item( GetUniqueObject( "FerrumOxide" ), Item::Type::FerrumOxide ));
 	AddItem( new Item( GetUniqueObject( "AluminumPowder" ), Item::Type::AluminumPowder ));
 
@@ -267,87 +282,6 @@ void LevelResearchFacility::DoScenario() {
 	if( mEnemy ) {
 		mEnemy->Think();
 	}
-
-    if( !mStages[ "EnterSteamActivateZone" ] ) {
-        if( pPlayer->IsInsideZone( mZoneSteamActivate )) {
-            ruParticleSystemProperties psProps;
-            psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
-            psProps.type = PS_STREAM;
-            psProps.speedDeviationMin = ruVector3( -0.0015, 0.08, -0.0015 );
-            psProps.speedDeviationMax = ruVector3( 0.0015, 0.2, 0.0015 );
-            psProps.boundingRadius = 0.4f;
-            psProps.colorBegin = ruVector3( 255, 255, 255 );
-            psProps.colorEnd = ruVector3( 255, 255, 255 );
-            psProps.pointSize = 0.15f;
-            psProps.particleThickness = 1.5f;
-            psProps.useLighting = false;
-            mSteamPS = ruCreateParticleSystem( 35, psProps );
-            ruSetNodePosition( mSteamPS, ruGetNodePosition( mSmallSteamPosition ));
-            ruAttachSound( mSteamHissSound, mSteamPS );
-
-            ruPlaySound( mSteamHissSound, true );
-
-            mStages[ "EnterSteamActivateZone" ] = true;
-        }
-    }
-
-	if( !mStages[ "EnterObjectiveRestorePowerZone" ] ) {
-		if( pPlayer->IsInsideZone( mZoneObjectiveRestorePower )) {
-			pPlayer->SetObjective( mLocalization.GetString( "objectiveRestorePower" ) );
-			mStages[ "EnterObjectiveRestorePowerZone" ] = true;
-		}
-	}
-
-	if( !mStages[ "EnterObjectiveExaminePlace" ] ) {
-		if( pPlayer->IsInsideZone( mZoneExaminePlace )) {
-			pPlayer->SetObjective( mLocalization.GetString( "objectiveExaminePlace" ) );
-			mStages[ "EnterObjectiveExaminePlace" ] = true;
-		}
-	}
-
-	if( !mStages[ "PassedThroughBlockingMesh" ] ) {
-		if( pPlayer->IsInsideZone( mZoneRemovePathBlockingMesh )) {
-			ruSetNodePosition( mPathBlockingMesh, ruVector3( 1000, 1000, 1000 ));
-			mStages[ "PassedThroughBlockingMesh" ] = true;
-		}
-	}
-	if( !mStages[ "EnterObjectiveNeedCrowbar" ] ) {
-		if( pPlayer->IsInsideZone( mZoneNeedCrowbar )) {
-			pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedCrowbar" ) );
-			mStages[ "EnterObjectiveNeedCrowbar" ] = true;
-		}
-	}
-	
-    if( !mStages[ "EnterScaryBarellThrowZone" ] ) {
-        if( pPlayer->IsInsideZone( mZoneScaryBarellThrow )) {
-            ruSetNodePosition( mScaryBarell, ruGetNodePosition( mScaryBarellPositionNode ));
-            mStages[ "EnterScaryBarellThrowZone" ] = true;
-        }
-    }
-
-	if( !mStages[ "EnemySpawned" ] ) {
-		if( pPlayer->IsInsideZone( mZoneEnemySpawn ))  {
-			CreateEnemy();
-			mStages[ "EnemySpawned" ] = true;
-		}
-	}
-
-
-	if( !mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] ) {
-		if( pPlayer->IsInsideZone( mZoneNeedCrowbar )) {
-			if( pPlayer->GetInventory()->GotAnyItemOfType( Item::Type::Crowbar )) {
-				pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedOpenDoorOntoFloor" ) );
-				mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = true;
-			}
-		}
-	}
-
-	if( !mStages[ "NeedPassThroughMesh" ] ) {
-		if( pPlayer->IsInsideZone( mZoneObjectiveNeedPassThroughMesh )) {
-			pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedPassThroughMesh" ));
-			mStages[ "NeedPassThroughMesh" ] = true;
-		}
-	}
 	
 	if( !mStages[ "DoorUnderFloorOpen" ] ) {
 		if( pPlayer->mNearestPickedNode.IsValid()) {
@@ -450,7 +384,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						psProps.boundingBoxMax = ruVector3( 0.2, 0.4, 0.2 );
 						psProps.particleThickness = 20.5f;
 						psProps.autoResurrectDeadParticles = false;
-						psProps.useLighting = false;
+						psProps.useLighting = true;
 						ruNodeHandle ps = ruCreateParticleSystem( 150, psProps );
 						ruSetNodePosition( ps, ruGetNodePosition( mThermiteSmall ));
 					}
@@ -550,5 +484,83 @@ void LevelResearchFacility::OnSerialize( TextFileStream & out ) {
 	out.WriteBoolean( mEnemy != nullptr );
 	if( mEnemy ) {
 		out.WriteVector3( ruGetNodePosition( mEnemy->GetBody() ));
+	}
+}
+
+void LevelResearchFacility::OnCrowbarPickup()
+{
+	if( !mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] ) {
+		pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedOpenDoorOntoFloor" ) );
+		mStages[ "EnterObjectiveNeedOpenDoorOntoFloor" ] = true;						
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterNeedCrowbarZone()
+{
+	if( !mStages[ "EnterObjectiveNeedCrowbar" ] ) {
+		pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedCrowbar" ) );
+		mStages[ "EnterObjectiveNeedCrowbar" ] = true;			
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterRemovePathBlockingMeshZone()
+{
+	if( !mStages[ "PassedThroughBlockingMesh" ] ) {
+		ruSetNodePosition( mPathBlockingMesh, ruVector3( 1000, 1000, 1000 ));
+		mStages[ "PassedThroughBlockingMesh" ] = true;			
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterExaminePlaceZone()
+{
+	if( !mStages[ "EnterObjectiveExaminePlace" ] ) {
+		pPlayer->SetObjective( mLocalization.GetString( "objectiveExaminePlace" ) );
+		mStages[ "EnterObjectiveExaminePlace" ] = true;			
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterRestorePowerZone()
+{
+	if( !mStages[ "EnterObjectiveRestorePowerZone" ] ) {
+		pPlayer->SetObjective( mLocalization.GetString( "objectiveRestorePower" ) );
+		mStages[ "EnterObjectiveRestorePowerZone" ] = true;
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterSteamActivateZone()
+{
+	if( !mStages[ "EnterSteamActivateZone" ] ) {
+		ruParticleSystemProperties psProps;
+		psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
+		psProps.type = PS_STREAM;
+		psProps.speedDeviationMin = ruVector3( -0.0015, 0.08, -0.0015 );
+		psProps.speedDeviationMax = ruVector3( 0.0015, 0.2, 0.0015 );
+		psProps.boundingRadius = 0.4f;
+		psProps.colorBegin = ruVector3( 255, 255, 255 );
+		psProps.colorEnd = ruVector3( 255, 255, 255 );
+		psProps.pointSize = 0.15f;
+		psProps.particleThickness = 1.5f;
+		psProps.useLighting = true;
+		mSteamPS = ruCreateParticleSystem( 35, psProps );
+		ruSetNodePosition( mSteamPS, ruGetNodePosition( mSmallSteamPosition ));
+		ruAttachSound( mSteamHissSound, mSteamPS );
+		ruPlaySound( mSteamHissSound, true );
+		mStages[ "EnterSteamActivateZone" ] = true;	
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterSpawnEnemyZone()
+{
+	if( !mStages[ "EnemySpawned" ] ) {
+		CreateEnemy();
+		mStages[ "EnemySpawned" ] = true;			
+	}
+}
+
+void LevelResearchFacility::OnPlayerEnterNeedPassThroughMeshZone()
+{
+	if( !mStages[ "NeedPassThroughMesh" ] ) {
+		pPlayer->SetObjective( mLocalization.GetString( "objectiveNeedPassThroughMesh" ));
+		mStages[ "NeedPassThroughMesh" ] = true;			
 	}
 }

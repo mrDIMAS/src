@@ -55,27 +55,8 @@ void Mesh::Register( Mesh * mesh ) {
 }
 
 Mesh::~Mesh() {
-    if( mIndexBuffer ) {
-        mIndexBuffer->Release();
-    }
-
-    if( mVertexBuffer ) {
-        mVertexBuffer->Release();
-    }
-    bool removed = false;
-    auto group = Mesh::msMeshList.find( mDiffuseTexture->GetInterface() );
-    if( group != Mesh::msMeshList.end()) {
-        auto & meshes = group->second;
-        for( size_t i = 0; i < meshes.size(); i++ ) {
-            if( meshes[i] == this ) {
-                meshes.erase( meshes.begin() + i );
-                removed = true;
-            }
-        }
-    }
-    if( !removed ) {
-        Engine::Instance().GetForwardRenderer()->RemoveMesh( this );
-    }
+    OnLostDevice();
+    
     if( mOctree ) {
         delete mOctree;
     }
@@ -130,10 +111,14 @@ void Mesh::EraseOrphanMeshes() {
 }
 
 void Mesh::CleanUp() {
+	vector<Mesh*> meshList;
 	for( auto iMeshGroup : msMeshList ) {
 		for( auto iMesh = iMeshGroup.second.begin(); iMesh != iMeshGroup.second.end(); iMesh++ ) {
-			delete (*iMesh);
+			meshList.push_back( *iMesh );//delete (*iMesh);
 		}
+	}
+	for( auto pMesh : meshList ) {
+		delete pMesh;
 	}
 	msVertexDeclaration->Release();
 }
@@ -173,4 +158,44 @@ void Mesh::Render() {
 
     // each mesh renders in one DIP
     Engine::Instance().RegisterDIP();
+}
+
+void Mesh::OnLostDevice()
+{
+	bool removed = false;
+	auto group = Mesh::msMeshList.find( mDiffuseTexture->GetInterface() );
+	if( group != Mesh::msMeshList.end()) {
+		auto & meshes = group->second;
+		for( size_t i = 0; i < meshes.size(); i++ ) {
+			if( meshes[i] == this ) {
+				meshes.erase( meshes.begin() + i );
+				removed = true;
+			}
+		}
+		if( group->second.size() == 0 ) {
+			Mesh::msMeshList.erase( group );
+		}
+	}
+
+	if( !removed ) {
+		Engine::Instance().GetForwardRenderer()->RemoveMesh( this );
+	}
+	mVertexBuffer->Release();
+	mIndexBuffer->Release();
+	mVertexBuffer = nullptr;
+	mIndexBuffer = nullptr;	
+
+}
+
+void Mesh::OnResetDevice()
+{
+	UpdateBuffers();
+	Mesh::Register( this );
+}
+
+Mesh::Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short vC )
+{
+	mA = vA;
+	mB = vB;
+	mC = vC;
 }

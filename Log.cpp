@@ -3,6 +3,7 @@
 
 void Log::Write( const string & message ) {
 	static ofstream output( "ruthenium.log" );
+	cout << message << endl;
 	output << message << endl;
 }
 

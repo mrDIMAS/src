@@ -35,6 +35,9 @@ void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
     if( groupIter != mRenderList.end() ) {
         auto & group = groupIter->second;
         group.erase( find( group.begin(), group.end(), mesh ));
+		if( group.size() == 0 ) {
+			mRenderList.erase( groupIter );
+		}
     }
 }
 
@@ -43,6 +46,16 @@ void ForwardRenderer::AddMesh( Mesh * mesh ) {
 }
 
 ForwardRenderer::~ForwardRenderer() {
+	vector<Mesh*> meshList;
+	for( auto group : mRenderList ) {
+		vector< Mesh* > & meshes = group.second;
+		for( auto pMesh : meshes ) {
+			meshList.push_back( pMesh );//delete pMesh;
+		}
+	}
+	for( auto pMesh : meshList ) {
+		delete pMesh;
+	}
     delete mPixelShader;
     delete mVertexShader;
 }

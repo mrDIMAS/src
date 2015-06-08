@@ -107,6 +107,7 @@ void Camera::LeaveDepthHack() {
     CalculateInverseViewProjection();
 }
 
+// this function builds path of camera by creating points in regular distance between them
 void Camera::ManagePath() {
 	if( mPath.size() > 64 ) {
 		for( auto pPoint : mPath ) {
@@ -143,6 +144,25 @@ void Camera::ManagePath() {
 			mNearestPathPoint = pathPoint;
 		}
 	}
+}
+
+void Camera::OnResetDevice()
+{
+	ManagePath();
+}
+
+void Camera::OnLostDevice()
+{
+	for( auto pPoint : mPath ) {
+		delete pPoint;
+	}
+	float mRangeSum = 0;
+	for( auto pLight : Light::msPointLightList ) {
+		mRangeSum += pLight->GetRadius();
+	}
+	mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
+	mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
+	mPath.clear();
 }
 
 

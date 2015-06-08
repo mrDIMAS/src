@@ -12,6 +12,8 @@ private:
 	int mTurnCount;
 	float mValue;
 public:
+	ruEvent OnTurn;
+	ruEvent OnTurnDone;
     explicit Valve( ruNodeHandle obj, ruVector3 axis, int turnCount = 2 );
     void Update();
 	bool IsDone();

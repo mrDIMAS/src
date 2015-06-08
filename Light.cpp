@@ -56,7 +56,7 @@ Light::Light( int type ) {
         }
     }
     SetConeAngles( 45.0f, 80.0f );
-	Engine::Instance().GetDevice()->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
+	OnResetDevice();
 	trulyVisible = true;
 	inFrustum = false;
 }
@@ -216,6 +216,17 @@ ruVector3 Light::GetRealPosition() {
     } else {
         return GetPosition();
     }
+}
+
+void Light::OnResetDevice()
+{
+	Engine::Instance().GetDevice()->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
+	mQueryDone = true;
+}
+
+void Light::OnLostDevice()
+{
+	pQuery->Release();
 }
 
 // API Functions

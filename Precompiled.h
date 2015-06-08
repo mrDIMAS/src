@@ -29,6 +29,7 @@
 
 #include "RutheniumAPI.h"
 #include "Log.h"
+#include "RendererComponent.h"
 
 #define DEG2RAD ( 3.14159f / 180.0f )
 
@@ -58,7 +59,7 @@
 
 static void RaiseError( const string & text ) {
 	MessageBoxA( 0, text.c_str(), "CriticalError", MB_OK | MB_ICONERROR );
-	throw runtime_error( text );
+	exit( -1 );
 }
 
 

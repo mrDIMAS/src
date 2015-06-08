@@ -19,7 +19,7 @@ void main( ) {
 
     v3 = 10 * v1 ;
 
-    ruCreateRenderer( 0, 0, 0, 0 );
+    ruCreateRenderer( 1280, 720, 0, 0 );
 
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
@@ -63,6 +63,7 @@ void main( ) {
     streamParticleEmitterProps.speedDeviationMin = ruVector3( -0.01, 0.0, -0.01 );
     streamParticleEmitterProps.speedDeviationMax = ruVector3(  0.01, 0.8,  0.01 );
     streamParticleEmitterProps.boundingRadius = 50;
+	streamParticleEmitterProps.useLighting = true;
 
     ruNodeHandle streamParticleEmitter = ruCreateParticleSystem( 256, streamParticleEmitterProps );
 
@@ -84,12 +85,12 @@ void main( ) {
 	ruAttachGUINode( testButton2, testrect );
 	//ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
 	//ruNodeHandle testScene = ruLoadScene( "data/maps/release/mine/mine.scene" );
-	ruSetAmbientColor( ruVector3( 0.4, 0.4, 0.4 ));
-	ruSetHDREnabled( true );
+	ruSetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
+	ruSetHDREnabled( false );
 	ruDisableFXAA();
 
 	ruNodeHandle cube = ruLoadScene( "data/cube.scene" );
-
+	
     while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();
@@ -97,7 +98,13 @@ void main( ) {
         if( ruIsMouseHit( MB_Right )) {
             ruSetHDREnabled( !ruIsHDREnabled() );
         }
-
+		
+		if( ruIsKeyHit( KEY_T )) {
+			ruChangeVideomode( 1280, 720, 0, 1 );
+		}
+		if( ruIsKeyHit( KEY_Y )) {
+			ruChangeVideomode( 1360, 768, 1, 1 );
+		}
         ruVector3 speed;
 
         pitchTo += ruGetMouseYSpeed() / 2.0;
@@ -156,10 +163,6 @@ void main( ) {
             }
         }
 
-        //if( !IsAnimationEnabled( dummy )) {
-        //	SetAnimationEnabled( dummy, true );
-        //}
-
         ruMoveNode( cameraPivot, speed * ruVector3( 100, 1, 100 ));
         ruSetNodeRotation( camera, pitchRotation );
         ruSetNodeRotation( cameraPivot, yawRotation );
@@ -171,23 +174,16 @@ void main( ) {
             fps = counter;
             counter = 0;
         }
+
         char buf[ 128 ];
-        //ruDrawGUIRect( 400, 400, 34, 34, ruTextureHandle::Empty() );
         sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruDIPs(), ruTextureUsedPerFrame(), fps, ruGetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruIsHDREnabled()  );
         ruSetGUINodeText( fpsText, buf );
-        /*
-        if( ruIsButtonPressed( testButton ))
-        {
+        
+        if( ruIsButtonPressed( testButton )) {
         	ruSetGUINodeVisible( fpsText, true );
-        }
-        else
-        {
+        } else {
         	ruSetGUINodeVisible( fpsText, false );
-        }*/
-        // ruDrawGUIText( buf, 0, 0, 200, 500, font, ruVector3( 255, 0, 255 ), 0, 100 );
-        //DrawGUIText( "Это текст с переносом \tслов и он работает отлично( или нет )", 0, 0, 200, 500, font, Vector3( 255, 0, 255 ), 0, 100 );
-        //ruDrawGUIText( "Простой текст", 200, 0, 100, 100, font2, ruVector3( 255, 0, 255 ), 0, 100 );
-        //ruDrawGUIText( "Простой текст", 400, 0, 100, 100, font3, ruVector3( 255, 0, 255 ), 0, 100 );
+        }
 
         ruRestartTimer( perfTimer );
         ruRenderWorld( ); // fixed FPS
