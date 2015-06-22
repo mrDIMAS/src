@@ -268,7 +268,7 @@ void Level::AddItemPlace( ItemPlace * pItemPlace ) {
     mItemPlaceList.push_back( pItemPlace );
 }
 
-void Level::DeserializeWith( TextFileStream & in ) {
+void Level::Deserialize( TextFileStream & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.ReadString();
@@ -307,13 +307,13 @@ void Level::DeserializeWith( TextFileStream & in ) {
 	for( int i = 0; i < doorCount; i++ ) {
 		Door * pDoor = Door::GetByName( in.ReadString() );
 		if( pDoor ) {
-			pDoor->DeserializeWith( in );
+			pDoor->Deserialize( in );
 		}
 	}
     OnDeserialize( in );
 }
 
-void Level::SerializeWith( TextFileStream & out ) {
+void Level::Serialize( TextFileStream & out ) {
     int childCount = ruGetNodeCountChildren( mScene );
     out.WriteInteger( childCount );
     for( int i = 0; i < childCount; i++ ) {
@@ -336,7 +336,7 @@ void Level::SerializeWith( TextFileStream & out ) {
 	out.WriteInteger( Door::msDoorList.size() );
 	for( auto pDoor : Door::msDoorList ) {
 		out.WriteString( ruGetNodeName( pDoor->mDoorNode ) );
-		pDoor->SerializeWith( out );
+		pDoor->Serialize( out );
 	}
     OnSerialize( out );
 }
@@ -399,7 +399,7 @@ void Level::DoneInitialization() {
 
 void Level::CreateLoadingScreen()
 {
-	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font2.ttf" );
+	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf" );
 	int w = 200;
 	int h = 32;
 	int x = ( ruGetResolutionWidth() - w ) / 2;

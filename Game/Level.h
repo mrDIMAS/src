@@ -73,6 +73,6 @@ public:
 	static ruRectHandle msGUILoadingBackground;
 	static ruFontHandle msGUIFont;
 	static void CreateLoadingScreen();
-    virtual void SerializeWith( TextFileStream & out ) final;
-    virtual void DeserializeWith( TextFileStream & in ) final;
+    virtual void Serialize( TextFileStream & out ) final;
+    virtual void Deserialize( TextFileStream & in ) final;
 };

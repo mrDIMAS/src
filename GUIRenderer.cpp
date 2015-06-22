@@ -56,7 +56,7 @@ void GUIRenderer::RenderAllGUIElements() {
     }
 
     if( Cursor::msCurrentCursor ) {
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D )));
+        Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
         if( Cursor::msCurrentCursor->IsVisible() ) {
             Cursor::msCurrentCursor->SetPosition( ruGetMouseX(), ruGetMouseY());
             RenderRect( Cursor::msCurrentCursor );
@@ -73,12 +73,12 @@ void GUIRenderer::RenderRect( GUIRect * rect ) {
     Vertex2D vertices[6];
 	rect->CalculateTransform();
     rect->GetSixVertices( vertices );
-    CheckDXErrorFatal( mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD ));
+    mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD );
     memcpy( data, vertices, mSizeOfRectBytes );
-    CheckDXErrorFatal( mVertexBuffer->Unlock( ));
+    mVertexBuffer->Unlock( );
     rect->GetTexture()->Bind( 0 );
     Engine::Instance().RegisterDIP();
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+    Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 }
 
 void GUIRenderer::OnLostDevice() {
@@ -92,7 +92,7 @@ void GUIRenderer::OnResetDevice() {
 
 void GUIRenderer::Initialize() {
 	mSizeOfRectBytes = 6 * sizeof( Vertex2D  );
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 ));
+	Engine::Instance().GetDevice()->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 
 	D3DVERTEXELEMENT9 guivd[ ] = {
 		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -101,12 +101,11 @@ void GUIRenderer::Initialize() {
 		D3DDECL_END()
 	};
 
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexDeclaration( guivd, &mVertexDeclaration ));
+	Engine::Instance().GetDevice()->CreateVertexDeclaration( guivd, &mVertexDeclaration );
 
 	D3DVIEWPORT9 vp;
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->GetViewport( &vp ));
+	Engine::Instance().GetDevice()->GetViewport( &vp );
 	D3DXMatrixOrthoOffCenterLH ( &mOrthoMatrix, 0, vp.Width, vp.Height, 0, 0.0f, 1024.0f );
-
 }
 
 void Face::Set( unsigned short i1, unsigned short i2, unsigned short i3, unsigned short i4, unsigned short i5, unsigned short i6 ) {

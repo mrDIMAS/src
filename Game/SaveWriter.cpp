@@ -10,7 +10,7 @@ void SaveWriter::SaveWorldState() {
     WriteInteger( pCurrentLevel->mTypeNum );
 
     if( pCurrentLevel ) {
-        pCurrentLevel->SerializeWith( *this );
+        pCurrentLevel->Serialize( *this );
     }
 
     SavePlayerInventory();
@@ -18,11 +18,11 @@ void SaveWriter::SaveWorldState() {
 
     WriteInteger( Way::msWayList.size() );
     for( auto pWay : Way::msWayList ) {
-        pWay->SerializeWith( *this );
+        pWay->Serialize( *this );
     }
 
     // save player state
-    pPlayer->SerializeWith( *this );
+    pPlayer->Serialize( *this );
 }
 
 SaveWriter::~SaveWriter() {

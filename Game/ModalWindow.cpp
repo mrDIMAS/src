@@ -45,3 +45,8 @@ void ModalWindow::SetNoAction( const ruDelegate & noAction ) {
 void ModalWindow::Close() {
 	ruSetGUINodeVisible( mCanvas, false );
 }
+
+void ModalWindow::CloseNoAction()
+{
+	Close();
+}

@@ -116,7 +116,7 @@ Light::~Light() {
 
 	if( Camera::msCurrentCamera ) {
 		if( Camera::msCurrentCamera->mNearestPathPoint ) {
-			auto & litList = Camera::msCurrentCamera->mNearestPathPoint->mLightList;
+			auto & litList = Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList;
 			auto iter = find( litList.begin(), litList.end(), this );
 			if( iter != litList.end() ) {
 				litList.erase( iter );
@@ -150,11 +150,11 @@ void Light::RenderLightFlares() {
     if( !flareBuffer ) {
         return;
     }
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, false ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTransform( D3DTS_VIEW, &Camera::msCurrentCamera->mView ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTransform( D3DTS_PROJECTION, &Camera::msCurrentCamera->mProjection ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t )));
+    Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, false );
+    Engine::Instance().GetDevice()->SetTransform( D3DTS_VIEW, &Camera::msCurrentCamera->mView );
+    Engine::Instance().GetDevice()->SetTransform( D3DTS_PROJECTION, &Camera::msCurrentCamera->mProjection );
+    Engine::Instance().GetDevice()->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 );
+    Engine::Instance().GetDevice()->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t ));
     D3DXMATRIX world, scale;
     for( auto light : lights ) {
         if( !light->flareTexture ) {
@@ -169,8 +169,8 @@ void Light::RenderLightFlares() {
         D3DXMatrixScaling( &scale, flareScale, flareScale, flareScale );
         D3DXMatrixMultiply( &world, &world, &scale );
         light->flareTexture->Bind( 0 );
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTransform( D3DTS_WORLD, &world ));
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 ));
+        Engine::Instance().GetDevice()->SetTransform( D3DTS_WORLD, &world );
+        Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
     }
 }
 
@@ -187,7 +187,7 @@ void Light::SetFlare( Texture * texture ) {
             {  0.5f, -0.5f, 1.0f, 1.0f, 0.0f },
             { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f }
         };
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 ));
+        Engine::Instance().GetDevice()->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 );
     }
     flareTexture = texture;
 }

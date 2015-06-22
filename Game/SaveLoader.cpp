@@ -12,7 +12,7 @@ void SaveLoader::RestoreWorldState() {
 
     // deserialize it's objects
     if( pCurrentLevel ) {
-        pCurrentLevel->DeserializeWith( *this );
+        pCurrentLevel->Deserialize( *this );
     }
 
     // deserialize items
@@ -62,10 +62,10 @@ void SaveLoader::RestoreWorldState() {
     int wayCount = ReadInteger();
     for( int i = 0; i < wayCount; i++ ) {
         Way * way = Way::GetByObject( ruFindByName( ReadString() ));
-        way->DeserializeWith( *this );
+        way->Deserialize( *this );
     }
 
-    pPlayer->DeserializeWith( *this );
+    pPlayer->Deserialize( *this );
 }
 
 SaveLoader::~SaveLoader() {

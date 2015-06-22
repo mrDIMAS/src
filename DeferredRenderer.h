@@ -69,6 +69,17 @@ public:
         void SetLight( D3DXMATRIX & invViewProj, Light * lit );
     };
 
+	class SkyboxShader {
+	private:
+		VertexShader * mVertexShader;
+		PixelShader * mPixelShader;
+		
+	public:
+		SkyboxShader();
+		~SkyboxShader();
+		void Bind( const btVector3 & position );
+	};
+
 	EffectsQuad * mFullscreenQuad;
 
     GBuffer * mGBuffer;
@@ -76,7 +87,7 @@ public:
     AmbientLightShader * mAmbientLightShader;
     PointLightShader * mPointLightShader;
     SpotLightShader * mSpotLightShader;
-
+	SkyboxShader * mSkyboxShader;
     FXAA * mFXAA;
     SpotlightShadowMap * mSpotLightShadowMap;
     HDRShader * mHDRShader;

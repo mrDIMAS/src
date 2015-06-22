@@ -163,7 +163,7 @@ void Enemy::Think() {
 		}
 
 		// DEBUG
-		enemyDetectPlayer = false;
+		//enemyDetectPlayer = false;
 
 		if( enemyDetectPlayer ) {
 			mMoveType = MoveType::ChasePlayer;

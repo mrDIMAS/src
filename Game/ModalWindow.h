@@ -14,4 +14,5 @@ public:
 	void AttachTo( ruGUINodeHandle node );
 	void Ask( const string & text );
 	void Update();
+	void CloseNoAction();
 };

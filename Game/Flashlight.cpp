@@ -118,7 +118,7 @@ Flashlight::Flashlight() {
 	ruAttachNode( mFire, ruFindInObjectByName( mModel, "FirePlace" ));
 }
 
-void Flashlight::DeserializeWith( TextFileStream & in ) {
+void Flashlight::Deserialize( TextFileStream & in ) {
     in.ReadFloat( mMaxCharge );
     in.ReadFloat( mCharge );
     in.ReadFloat( mOnRange );
@@ -132,7 +132,7 @@ void Flashlight::DeserializeWith( TextFileStream & in ) {
     }
 }
 
-void Flashlight::SerializeWith( TextFileStream & out ) {
+void Flashlight::Serialize( TextFileStream & out ) {
     out.WriteFloat( mMaxCharge );
     out.WriteFloat( mCharge );
     out.WriteFloat( mOnRange );

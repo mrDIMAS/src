@@ -80,7 +80,7 @@ ruNodeHandle Way::GetEnterZone() {
     return mEnterZone;
 }
 
-void Way::DeserializeWith( TextFileStream & in ) {
+void Way::Deserialize( TextFileStream & in ) {
     mInside = in.ReadBoolean(  );
     mEntering = in.ReadBoolean(  );
     mFreeLook = in.ReadBoolean(  );
@@ -100,7 +100,7 @@ void Way::DeserializeWith( TextFileStream & in ) {
     }
 }
 
-void Way::SerializeWith( TextFileStream & out ) {
+void Way::Serialize( TextFileStream & out ) {
     out.WriteString( ruGetNodeName( mEnterZone ));
     out.WriteBoolean( mInside );
     out.WriteBoolean( mEntering );

@@ -52,9 +52,9 @@ void EffectsQuad::SetSize( float width, float height ) {
 
         void * data = 0;
 
-        CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
+        vertexBuffer->Lock( 0, 0, &data, 0 );
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        CheckDXErrorFatal( vertexBuffer->Unlock( ));
+        vertexBuffer->Unlock( );
     }
 }
 
@@ -73,7 +73,7 @@ void EffectsQuad::Free()
 
 void EffectsQuad::Initialize()
 {
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
+	Engine::Instance().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
 
 	if( !debug ) {
 		QuadVertex vertices[ ] = {
@@ -82,10 +82,10 @@ void EffectsQuad::Initialize()
 		};
 
 		void * data = 0;
-
-		CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
+		
+		vertexBuffer->Lock( 0, 0, &data, 0 );
 		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		CheckDXErrorFatal( vertexBuffer->Unlock( ));
+		vertexBuffer->Unlock( );
 	} else {
 		int size = 500;
 		QuadVertex vertices[ ] = {
@@ -95,9 +95,9 @@ void EffectsQuad::Initialize()
 
 		void * data = 0;
 
-		CheckDXErrorFatal( vertexBuffer->Lock( 0, 0, &data, 0 ));
+		vertexBuffer->Lock( 0, 0, &data, 0 );
 		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		CheckDXErrorFatal( vertexBuffer->Unlock( ));
+		vertexBuffer->Unlock( );
 
 		string debugPixelShaderSource =
 			"sampler diffuse : register( s4 );\n"

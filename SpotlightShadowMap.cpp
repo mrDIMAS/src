@@ -12,20 +12,20 @@ void SpotlightShadowMap::BindSpotShadowMap( int index ) {
 }
 
 void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight ) {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderTarget( 0, spotSurface ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetDepthStencilSurface( depthStencil ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    Engine::Instance().GetDevice()->SetRenderTarget( 0, spotSurface );
+    Engine::Instance().GetDevice()->SetDepthStencilSurface( depthStencil );
+    Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
     pixelShader->Bind();
     vertexShader->Bind();
 
     spotLight->BuildSpotProjectionMatrixAndFrustum();
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->GetTexture( 0, &prevZeroSamplerTexture ));
+    Engine::Instance().GetDevice()->GetTexture( 0, &prevZeroSamplerTexture );
 
     for( auto meshGroupIter : Mesh::msMeshList ) {
         auto & group = meshGroupIter.second;
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, meshGroupIter.first ));
+        Engine::Instance().GetDevice()->SetTexture( 0, meshGroupIter.first );
         for( auto mesh : group ) {
 			for( auto pOwner : mesh->GetOwners() ) {
 				// if owner of mesh is visible
@@ -37,7 +37,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 						D3DXMATRIX world, wvp;
 						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
 						D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
-						CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 ));
+						Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
 						mesh->BindBuffers();
 						mesh->Render();
 						//}
@@ -47,12 +47,12 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
         };
     }
 
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, prevZeroSamplerTexture ));
+    Engine::Instance().GetDevice()->SetTexture( 0, prevZeroSamplerTexture );
 	prevZeroSamplerTexture->Release();
 
     // revert to the last used render target
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetRenderTarget( rtIndex, lastUsedRT ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetDepthStencilSurface( defaultDepthStencil ));
+    Engine::Instance().GetDevice()->SetRenderTarget( rtIndex, lastUsedRT );
+    Engine::Instance().GetDevice()->SetDepthStencilSurface( defaultDepthStencil );
 }
 
 SpotlightShadowMap::~SpotlightShadowMap() {
@@ -81,14 +81,11 @@ void SpotlightShadowMap::OnResetDevice() {
 
 void SpotlightShadowMap::Initialize() {
 	// create shadow maps
-	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), iSize, iSize, 0, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap ));
+	Engine::Instance().GetDevice()->CreateTexture( iSize, iSize, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap, nullptr );
 
 	// get surfaces
-	CheckDXErrorFatal( spotShadowMap->GetSurfaceLevel( 0, &spotSurface ));
+	spotShadowMap->GetSurfaceLevel( 0, &spotSurface );
 
-
-
-
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDepthStencilSurface( &defaultDepthStencil ));
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateDepthStencilSurface( iSize, iSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 ));
+	Engine::Instance().GetDevice()->GetDepthStencilSurface( &defaultDepthStencil );
+	Engine::Instance().GetDevice()->CreateDepthStencilSurface( iSize, iSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 );
 }

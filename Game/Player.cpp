@@ -84,7 +84,7 @@ Player::Player() : Actor( 0.7f, 0.2f ) {
         mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruGetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
     }
 
-	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font2.ttf" );
+	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font1.otf" );
 	mGUIYouDied = ruCreateGUIText( mLocalization.GetString( "youDied" ), (ruGetResolutionWidth() - 300) / 2, ruGetResolutionHeight() / 2, 300, 50, mGUIYouDiedFont, ruVector3( 255, 0, 0 ), 1, 255 );
 	ruSetGUINodeVisible( mGUIYouDied, false );
 
@@ -131,7 +131,16 @@ void Player::DrawStatusBar() {
 }
 
 bool Player::IsCanJump( ) {    
-    return ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight * 2, 0 ), 0 ).IsValid();
+	ruNodeHandle node = ruCastRay( ruGetNodePosition( mBody ) + ruVector3( 0, 0.1, 0 ), ruGetNodePosition( mBody ) - ruVector3( 0, mBodyHeight * 2, 0 ), 0 );
+	if( node.IsValid() ) {
+		if( node == mNodeInHands ) {
+			mNodeInHands.Invalidate();
+			return false;
+		} else {
+			return true;
+		}
+	}
+    return false;
 }
 
 bool Player::UseStamina( float required ) {
@@ -146,6 +155,9 @@ bool Player::UseStamina( float required ) {
 
 void Player::Damage( float dmg ) {
     Actor::Damage( dmg );
+	mDamageBackgroundAlpha = 60;
+	mPitch.SetTarget( mPitch.GetTarget() + frandom( 20, 40 ) );
+	mYaw.SetTarget( mYaw.GetTarget() + frandom( -40, 40 ) );
     if( mHealth <= 0.0f ) {
         if( !mDead ) {
             ruSetAngularFactor( mBody, ruVector3( 1.0f, 1.0f, 1.0f ));
@@ -492,6 +504,11 @@ void Player::ComputeStealth() {
 void Player::Update( ) {
     ruSetGUINodeVisible( mGUIActionText, false );    
     mpCamera->Update();
+	mDamageBackgroundAlpha--;
+	if( mDamageBackgroundAlpha < 0 ) {
+		mDamageBackgroundAlpha = 0;
+	}
+	ruSetGUINodeAlpha( mGUIDamageBackground, mDamageBackgroundAlpha );
     if( !pMainMenu->IsVisible() ) {
 		mGoal.AnimateAndRender();
 		DrawStatusBar();
@@ -557,6 +574,9 @@ void Player::LoadGUIElements() {
 	mGUICursorPut = ruCreateGUIRect( (ruGetResolutionWidth() - 32) / 2, (ruGetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/down.png" ) );
 	mGUICrosshair = ruCreateGUIRect( (ruGetResolutionWidth() - 32) / 2, (ruGetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/crosshair.png" ) );
 	mGUIStealthSign = ruCreateGUIRect( ruGetResolutionWidth() / 2 - 32, 200, 64, 32, ruGetTexture( "data/textures/effects/eye.png" ));
+
+	mDamageBackgroundAlpha = 0;
+	mGUIDamageBackground = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruGetTexture("data/textures/effects/damageBackground.tga" ),ruVector3( 200, 0, 0 ), mDamageBackgroundAlpha );
 }
 
 void Player::CreateCamera() {
@@ -860,6 +880,8 @@ void Player::UpdateFlashLight() {
 					mCurrentWeapon->SetVisible( true );
 				}
 			}
+		} else {
+			mpFlashlight->Switch();
 		}
     }
 }
@@ -954,7 +976,7 @@ void Player::Resurrect() {
 	ruSetNodeRotation( mBody, ruQuaternion( 0, 0, 0 ));
 }
 
-void Player::DeserializeWith( TextFileStream & in ) {
+void Player::Deserialize( TextFileStream & in ) {
     ruSetNodeLocalPosition( mBody, in.ReadVector3() );
 
     in.ReadBoolean( mSmoothCamera );
@@ -1021,12 +1043,12 @@ void Player::DeserializeWith( TextFileStream & in ) {
 	int weaponCount = in.ReadInteger();
 	for( int i = 0; i < weaponCount; i++ ) {
 		Weapon * pWeapon = AddWeapon( Weapon::Type::Pistol ); // TODO
-		pWeapon->DeserializeWith( in );
+		pWeapon->Deserialize( in );
 	}
 
     mStealthMode = in.ReadBoolean();
 
-    mpFlashlight->DeserializeWith( in );
+    mpFlashlight->Deserialize( in );
 
     mTip.Deserialize( in );
 
@@ -1037,7 +1059,7 @@ void Player::DeserializeWith( TextFileStream & in ) {
 
 }
 
-void Player::SerializeWith( TextFileStream & out ) {
+void Player::Serialize( TextFileStream & out ) {
     ruUnfreeze( mBody );
     out.WriteVector3( ruGetNodeLocalPosition( mBody ));
     ruSetAngularFactor( mBody, ruVector3( 0, 0, 0 ));
@@ -1100,12 +1122,12 @@ void Player::SerializeWith( TextFileStream & out ) {
 
 	out.WriteInteger( mWeaponList.size() );
 	for( auto pWeapon : mWeaponList ) {
-		pWeapon->SerializeWith( out );
+		pWeapon->Serialize( out );
 	}
 
     out.WriteBoolean( mStealthMode );
 
-    mpFlashlight->SerializeWith( out );
+    mpFlashlight->Serialize( out );
 
     mTip.Serialize( out );
 
@@ -1200,4 +1222,10 @@ void Player::UpdateWeapons() {
 bool Player::IsDead()
 {
 	return mHealth <= 0.0f;
+}
+
+void Player::SetPosition( ruVector3 position )
+{
+	Actor::SetPosition( position );
+	mAirPosition = ruGetNodePosition( mBody ); // prevent death from 'accident' landing :)
 }

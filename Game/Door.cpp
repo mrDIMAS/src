@@ -106,7 +106,7 @@ Door * Door::GetByName( const string & name )
 	return nullptr;
 }
 
-void Door::DeserializeWith( TextFileStream & in )
+void Door::Deserialize( TextFileStream & in )
 {
 	in.ReadFloat( mMaxAngle );
 	in.ReadFloat( mOffsetAngle );
@@ -116,7 +116,7 @@ void Door::DeserializeWith( TextFileStream & in )
 	in.ReadBoolean( mLocked );
 }
 
-void Door::SerializeWith( TextFileStream & out )
+void Door::Serialize( TextFileStream & out )
 {
 	out.WriteFloat( mMaxAngle );
 	out.WriteFloat( mOffsetAngle );

@@ -1,10 +1,7 @@
 #include "Precompiled.h"
 #include "Zone.h"
 
-Zone::Zone( ruNodeHandle object ) {
-	mObject = object;
-	mType = Type::OneShot;
-	mPlayerInside = false;
+Zone::Zone( ruNodeHandle object ) : mObject( object ), mType( Type::OneShot ), mPlayerInside( false ), mActive( true ) {
 }
 
 void Zone::Update() {
@@ -27,7 +24,6 @@ void Zone::Update() {
 	}
 }
 
-void Zone::SetActive( bool active )
-{
+void Zone::SetActive( bool active ) {
 	mActive = active;
 }

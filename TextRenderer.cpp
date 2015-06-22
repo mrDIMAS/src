@@ -19,9 +19,9 @@ int GetWordWidth( BitmapFont * font, string & text, int start ) {
 
 void TextRenderer::RenderText( GUIText* guiText ) {
     TextQuad * quad = nullptr;
-    CheckDXErrorFatal( vertexBuffer->Lock( 0, maxChars * sizeof( TextQuad ), (void**)&quad, D3DLOCK_DISCARD ));
+    vertexBuffer->Lock( 0, maxChars * sizeof( TextQuad ), (void**)&quad, D3DLOCK_DISCARD );
     Face * face = nullptr;
-    CheckDXErrorFatal( indexBuffer->Lock( 0, maxChars * sizeof( Face ), (void**)&face, D3DLOCK_DISCARD ));
+    indexBuffer->Lock( 0, maxChars * sizeof( Face ), (void**)&face, D3DLOCK_DISCARD );
     int n = 0, totalLetters = 0;
 
     RECT boundingRect = guiText->GetBoundingRect();
@@ -75,15 +75,15 @@ void TextRenderer::RenderText( GUIText* guiText ) {
 		symbolCounter++;
 	}
 
-    CheckDXErrorFatal( vertexBuffer->Unlock());
-    CheckDXErrorFatal( indexBuffer->Unlock());
+    vertexBuffer->Unlock();
+    indexBuffer->Unlock();
 
     font->BindAtlasToLevel( 0 );
 
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex )));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetIndices( indexBuffer ));
+    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex ));
+    Engine::Instance().GetDevice()->SetIndices( indexBuffer );
 	if( totalLetters > 0 ) {
-		CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 ));
+		Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 );
 	}
     Engine::Instance().RegisterDIP();
 }
@@ -144,8 +144,8 @@ void TextRenderer::OnResetDevice()
 {
 	maxChars = 8192;
 	int vBufLen = maxChars * sizeof( TextQuad );
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &vertexBuffer, nullptr ));
+	Engine::Instance().GetDevice()->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &vertexBuffer, nullptr );
 	int iBufLen = maxChars * sizeof( Face );
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr ));
+	Engine::Instance().GetDevice()->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr );
 }
 

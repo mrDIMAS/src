@@ -5,14 +5,14 @@
 #include "Player.h"
 #include "Enemy.h"
 
-void Weapon::DeserializeWith( TextFileStream & in ) {
+void Weapon::Deserialize( TextFileStream & in ) {
 	mType = (Type)in.ReadInteger();
 	mProjectileCount = in.ReadInteger();
 	mShotInterval = in.ReadInteger();
 	mShotFlashIntensity = in.ReadFloat();
 }
 
-void Weapon::SerializeWith( TextFileStream & out ) {
+void Weapon::Serialize( TextFileStream & out ) {
 	out.WriteInteger( 0 );
 	out.WriteInteger( mProjectileCount );
 	out.WriteInteger( mShotInterval );

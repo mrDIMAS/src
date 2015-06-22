@@ -70,12 +70,12 @@ void BitmapFont::Create()
 		Log::Error( StringBuilder( "Failed to FT_Select_Charmap!" ));
 	}
 	// create atlas texture
-	CheckDXErrorFatal( D3DXCreateTexture( Engine::Instance().GetDevice(), atlasWidth, atlasHeight, 0, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &atlas ));
+	Engine::Instance().GetDevice()->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &atlas, nullptr );
 	IDirect3DSurface9 * atlasSurface = nullptr;
 	atlas->GetSurfaceLevel( 0, &atlasSurface );
 	D3DLOCKED_RECT lockedRect;
 	RECT rect = { 0, 0, atlasWidth, atlasHeight };
-	CheckDXErrorFatal( atlasSurface->LockRect( &lockedRect, &rect, 0 ));
+	atlasSurface->LockRect( &lockedRect, &rect, 0 );
 	// render
 	int subRectRow = 0;
 	int subRectCol = 0;
@@ -129,10 +129,8 @@ void BitmapFont::Create()
 			subRectRow++;
 		}
 	}
-	CheckDXErrorFatal( atlasSurface->UnlockRect());
+	atlasSurface->UnlockRect();
 	FT_Done_Face( face );
-	
-
 	atlasSurface->Release();
 	FT_Done_FreeType( ftLibrary );
 }

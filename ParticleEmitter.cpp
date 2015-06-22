@@ -18,7 +18,7 @@ ParticleEmitter::~ParticleEmitter() {
 
 void ParticleEmitter::Render() {
     Engine::Instance().RegisterDIP();
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 ));
+    Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 );
 }
 
 void ParticleEmitter::Bind() {
@@ -26,8 +26,8 @@ void ParticleEmitter::Bind() {
     if( texPtr ) {
         texPtr->Bind( 0 );
     }
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( ParticleVertex )));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetIndices( indexBuffer ));
+    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( ParticleVertex ));
+    Engine::Instance().GetDevice()->SetIndices( indexBuffer );
 }
 
 void ParticleEmitter::Update() {
@@ -198,8 +198,8 @@ void ParticleEmitter::OnLostDevice()
 
 void ParticleEmitter::OnResetDevice()
 {
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 ));
-	CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 ));
+	Engine::Instance().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+	Engine::Instance().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 );
 }
 
 ParticleEmitter::Particle::Particle() {

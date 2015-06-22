@@ -21,7 +21,6 @@
 #include "ProjectF.h"
 #include <queue>
 #include "ft2build.h"
-#include <DxErr.h>
 #include <windows.h>
 #include <dinput.h>
 #include <fstream>
@@ -53,7 +52,6 @@
 #pragma comment( lib, "ProjectF")
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
-#pragma comment( lib, "dxerr" )
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "dxguid.lib" )
 

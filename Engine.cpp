@@ -14,14 +14,6 @@
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 
-void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line ) {
-	if( FAILED( errCode )) {
-		string message = (string)(StringBuilder( "DirectX 9 Error. Code: " ) << errCode << "\nError: " << DXGetErrorString( errCode ) << "\nDescription: " << DXGetErrorDescription( errCode ) << "\nFile: " << file << "\nLine: " << line);
-		Log::Error( message );
-	}
-}
-
-
 Engine::~Engine() {	
     for( auto fnt : BitmapFont::fonts ) {
         delete fnt;
@@ -65,12 +57,12 @@ Engine::~Engine() {
 }
 
 void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
-    if ( width == 0 ) {
+    if ( width == 0 || height == 0 ) {
         width = GetSystemMetrics ( SM_CXSCREEN );
+		height = GetSystemMetrics ( SM_CYSCREEN );
+		Log::Write( "0 passed as resolution, using desktop native resolution!" );
     }
-    if ( height == 0 ) {
-        height = GetSystemMetrics ( SM_CYSCREEN );
-    }
+  
     if( !CreateRenderWindow( width, height, fullscreen )) {
         return;
     }
@@ -81,11 +73,13 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     // epic fail
     if( !mpDirect3D ) {
 		Log::Error( "Failed to Direct3DCreate9! Ensure, that you have latest video drivers! Engine initialization failed!" );
-    }
+    } else {
+		Log::Write( "Direct3D 9 Created successfully!" );
+	}
 
     // check d3d caps, to ensure, that user have modern hardware
     D3DCAPS9 dCaps;
-    CheckDXErrorFatal( mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps ));
+    mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps );
 
     unsigned char psVerHi = D3DSHADER_VERSION_MAJOR( dCaps.PixelShaderVersion );
     unsigned char psVerLo = D3DSHADER_VERSION_MINOR( dCaps.PixelShaderVersion );
@@ -95,6 +89,25 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 		mpDirect3D->Release();
         Log::Error( "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!" );        
     }
+
+	bool passedResolutionValid = false;
+	for( int i = 0; i < mpDirect3D->GetAdapterModeCount( D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8 ); i++ ) {
+		D3DDISPLAYMODE mode;
+		mpDirect3D->EnumAdapterModes( D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, i, &mode );
+		Log::Write( StringBuilder( "Videomode: " ) << mode.Width << " x " << mode.Height << " x 32 @ " << mode.RefreshRate );
+		mVideomodeList.push_back( Videomode( mode.Width, mode.Height, mode.RefreshRate ));
+		if( mode.Width == width && mode.Height == height ) {
+			passedResolutionValid = true;
+		}
+	}
+
+	if( passedResolutionValid ) {
+		Log::Write( StringBuilder( "Setting resolution " ) << width << " x " << height << "..." );
+	} else {
+		Log::Write( StringBuilder( "WARNING! Resolution " ) << width << " x " << height << " is invalid! Using native desktop resolution instead" );
+		width = GetSystemMetrics ( SM_CXSCREEN );
+		height = GetSystemMetrics ( SM_CYSCREEN );
+	}
 
     mResWidth = width;
     mResHeight = height;
@@ -118,7 +131,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     mPresentParameters.AutoDepthStencilFormat = D3DFMT_D24S8;
     mPresentParameters.BackBufferWidth = width;
     mPresentParameters.BackBufferHeight = height;
-	mPresentParameters.hDeviceWindow = window;
+	mPresentParameters.hDeviceWindow = mWindowHandle;
     if ( fullscreen ) {
         mPresentParameters.BackBufferFormat = D3DFMT_X8R8G8B8;
         mPresentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
@@ -131,58 +144,24 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     }
 
     // no multisampling, because of deferred shading
-    mPresentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
     mPresentParameters.MultiSampleQuality = 0;
 
+	mPresentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
     // create device
-    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &mPresentParameters, &mpDevice ))) {
+    if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, mWindowHandle, D3DCREATE_HARDWARE_VERTEXPROCESSING, &mPresentParameters, &mpDevice ))) {
 		mpDirect3D->Release();
 		Log::Error( "Engine initialization failed! Buy a modern video card!" );	
+	} else {
+		Log::Write( "Direct3D 9 Device Created successfully!" );
 	}
-	
 
 	GetDevice()->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer );
 
-    GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
-    GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
-    GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-    GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-    GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
-    GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-    GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-    GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
-
-    GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
-    GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-    GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-    GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-    GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-    GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-    GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
-
-    // setup samplers
-    GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-    GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-
-    GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-    GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );    
-
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-
-    GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-    GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-
-	SetAnisotropicTextureFiltration( true );
+    SetDefaults();
 
     CreatePhysics( );
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
-
-	
 
     mpDeferredRenderer = new MultipleRTDeferredRenderer();	
     mpForwardRenderer = new ForwardRenderer();	
@@ -226,18 +205,18 @@ int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
     // make client region fits to the current resolution
     AdjustWindowRect ( &wRect, style, 0 );
     // create window
-    window = CreateWindowW( className, className, style, 0, 0, wRect.right - wRect.left, wRect.bottom - wRect.top, 0, 0, instance, 0 );
+    mWindowHandle = CreateWindowW( className, className, style, 0, 0, wRect.right - wRect.left, wRect.bottom - wRect.top, 0, 0, instance, 0 );
 
-    if( !window ) { // fail
+    if( !mWindowHandle ) { // fail
         return 0;
     }
     // setup window
-    ShowWindow ( window, SW_SHOW );
-    UpdateWindow ( window );
-    SetActiveWindow ( window );
-    SetForegroundWindow ( window );
+    ShowWindow ( mWindowHandle, SW_SHOW );
+    UpdateWindow ( mWindowHandle );
+    SetActiveWindow ( mWindowHandle );
+    SetForegroundWindow ( mWindowHandle );
     // init input
-    ruInputInit( &window );
+    ruInputInit( &mWindowHandle );
     // success
     return 1;
 }
@@ -247,6 +226,7 @@ void Engine::CreatePhysics() {
 }
 
 void Engine::RenderWorld() {
+	
 	if( GetDevice()->TestCooperativeLevel() == D3DERR_DEVICELOST ) {
 		if( !mPaused ) {
 			Log::Write( "Device lost. Engine paused!" );
@@ -255,6 +235,7 @@ void Engine::RenderWorld() {
 	}
 	 // window message pump
 	UpdateMessagePump();
+	
 	if( mPaused ) {
 		if( GetDevice()->TestCooperativeLevel() == D3DERR_DEVICENOTRESET )  {
 			OnLostDevice();
@@ -297,7 +278,7 @@ void Engine::RenderWorld() {
         light->DoFloating();
     }
     // begin dx scene
-    CheckDXErrorFatal( GetDevice()->BeginScene());
+    GetDevice()->BeginScene();
     // begin rendering into G-Buffer
     GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
     GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
@@ -362,7 +343,7 @@ void Engine::RenderMeshesIntoGBuffer() {
             continue;
         }
         // bind diffuse texture
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( 0, pDiffuseTexture ));
+        Engine::Instance().GetDevice()->SetTexture( 0, pDiffuseTexture );
         // each group has same texture
         mTextureChangeCount++;
         for( auto pMesh : meshes ) {
@@ -460,43 +441,7 @@ void Engine::OnLostDevice() {
 
 void Engine::Reset() {
 	mpDevice->Reset( &mPresentParameters );
-	GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
-	GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
-	GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-	GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-	GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
-	GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-	GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-	GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
-
-	GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
-	GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-	GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-	GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-	GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-	GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-	GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
-
-	// setup samplers
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );    
-
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-
-	GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-	GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-
-	D3DCAPS9 dCaps;
-	CheckDXErrorFatal( mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps ));
-
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-
-	SetAnisotropicTextureFiltration( true );
+	SetDefaults();
 	OnResetDevice();
 }
 
@@ -528,7 +473,7 @@ void Engine::ChangeVideomode( int width, int height, bool fullscreen, bool vsync
 	mPresentParameters.BackBufferWidth = width;
 	mPresentParameters.BackBufferHeight = height;
 	mPresentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	mPresentParameters.hDeviceWindow = window;
+	mPresentParameters.hDeviceWindow = mWindowHandle;
 	if ( fullscreen ) {
 		mPresentParameters.BackBufferFormat = D3DFMT_X8R8G8B8;		
 		mPresentParameters.Windowed = FALSE;
@@ -543,13 +488,13 @@ void Engine::ChangeVideomode( int width, int height, bool fullscreen, bool vsync
 	mPresentParameters.MultiSampleQuality = 0;
 
 	if( fullscreen ) {
-		SetWindowLongPtr( window, GWL_STYLE, WS_POPUP );
-		SetWindowPos( window, HWND_TOP, 0, 0, width, height, SWP_SHOWWINDOW );
+		SetWindowLongPtr( mWindowHandle, GWL_STYLE, WS_POPUP );
+		SetWindowPos( mWindowHandle, HWND_TOP, 0, 0, width, height, SWP_SHOWWINDOW );
 	} else {
 		RECT rect = { 0, 0, width, height };
 		AdjustWindowRect( &rect, WS_OVERLAPPEDWINDOW, false );
-		SetWindowLongPtr( window, GWL_STYLE, WS_OVERLAPPEDWINDOW );
-		SetWindowPos( window, HWND_TOP, 0, 0, rect.right, rect.bottom, SWP_SHOWWINDOW );
+		SetWindowLongPtr( mWindowHandle, GWL_STYLE, WS_OVERLAPPEDWINDOW );
+		SetWindowPos( mWindowHandle, HWND_TOP, 0, 0, rect.right, rect.bottom, SWP_SHOWWINDOW );
 	}
 
 	OnLostDevice();
@@ -726,7 +671,7 @@ void Engine::SetDiffuseNormalSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bo
 	}
 
 	// mip filters
-	if( filter == D3DTEXF_NONE || disableMips ) { // actually disables mip-mapping
+	if( filter == D3DTEXF_NONE || disableMips ) {
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
 	} else if( filter == D3DTEXF_POINT ) {
@@ -767,6 +712,52 @@ int Engine::GetDeviceRefCount()
 	int refCnt = GetDevice()->AddRef() - 1; 
 	GetDevice()->Release();
 	return refCnt;
+}
+
+void Engine::SetDefaults()
+{
+	GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
+	GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
+	GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
+	GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
+	GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
+	GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+	GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
+	GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
+
+	GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
+	GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
+	GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
+	GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
+	GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
+	GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+	GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+
+	// setup samplers
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );    
+
+	GetDevice()->SetSamplerState ( 3, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );   
+
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+	GetDevice()->SetSamplerState ( 3, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+
+	GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+	GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+
+	D3DCAPS9 dCaps;
+	mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps );
+
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+
+	SetAnisotropicTextureFiltration( true );
 }
 
 
@@ -877,7 +868,7 @@ ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
 
 int ruGetRendererMaxAnisotropy() {
     D3DCAPS9 caps;
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->GetDeviceCaps( &caps ));
+    Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
 
     return caps.MaxAnisotropy;
 }

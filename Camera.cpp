@@ -42,13 +42,12 @@ void Camera::Update() {
 	ManagePath();
 }
 
-void Camera::SetSkyBox( const string & path ) {
-    if( path.size() ) {
-        mSkybox = new Skybox( path );
+void Camera::SetSkyBox( Texture * up, Texture * left, Texture * right, Texture * forward, Texture * back ) {
+    if( up && left && right && forward && back ) {
+        mSkybox = new Skybox( up, left, right, forward, back );
     } else {
         if( mSkybox ) {
             delete mSkybox;
-
             mSkybox = nullptr;
         }
     }
@@ -85,8 +84,10 @@ Camera::Camera( float fov ) {
     Camera::msCurrentCamera = this;
     mInDepthHack = false;
 	mPathNewPointDelta = 5.0f;
-	mNearestPathPoint = new PathPoint;
-	mNearestPathPoint->mPoint = GetPosition();
+	mDefaultPathPoint = new PathPoint;
+	mDefaultPathPoint->mPoint = GetPosition();
+	mNearestPathPoint = mDefaultPathPoint;
+	
 	mPath.push_back( mNearestPathPoint );
     CalculateProjectionMatrix();
     D3DXMatrixLookAtRH( &mView, &D3DXVECTOR3( 0, 100, 100 ), &D3DXVECTOR3( 0, 0, 0), &D3DXVECTOR3( 0, 1, 0 ));
@@ -110,15 +111,17 @@ void Camera::LeaveDepthHack() {
 // this function builds path of camera by creating points in regular distance between them
 void Camera::ManagePath() {
 	if( mPath.size() > 64 ) {
-		for( auto pPoint : mPath ) {
-			delete pPoint;
+		if( Light::msPointLightList.size() ) {
+			for( auto pPoint : mPath ) {
+				delete pPoint;
+			}
+			float mRangeSum = 0;
+			for( auto pLight : Light::msPointLightList ) {
+				mRangeSum += pLight->GetRadius();
+			}
+			mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
+			mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 		}
-		float mRangeSum = 0;
-		for( auto pLight : Light::msPointLightList ) {
-			mRangeSum += pLight->GetRadius();
-		}
-		mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
-		mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 		mPath.clear();
 	}
 	
@@ -153,14 +156,20 @@ void Camera::OnResetDevice()
 
 void Camera::OnLostDevice()
 {
+	mNearestPathPoint = mDefaultPathPoint;
+
 	for( auto pPoint : mPath ) {
 		delete pPoint;
 	}
-	float mRangeSum = 0;
-	for( auto pLight : Light::msPointLightList ) {
-		mRangeSum += pLight->GetRadius();
+	if( Light::msPointLightList.size() ) {
+		float mRangeSum = 0;
+		for( auto pLight : Light::msPointLightList ) {
+			mRangeSum += pLight->GetRadius();
+		}	
+		mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
+	} else {
+		mPathNewPointDelta = 0.0f;
 	}
-	mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
 	mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 	mPath.clear();
 }
@@ -182,8 +191,8 @@ void ruSetActiveCamera( ruNodeHandle node ) {
     Camera::msCurrentCamera = Camera::CastHandle( node );
 }
 
-int ruSetCameraSkybox( ruNodeHandle node, const string & path ) {
-    Camera::CastHandle( node )->SetSkyBox( path );
-
+int ruSetCameraSkybox( ruNodeHandle node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back ) {
+    Camera::CastHandle( node )->SetSkyBox( (Texture*)up.pointer, (Texture*)left.pointer, (Texture*)right.pointer, (Texture*)forward.pointer, (Texture*)back.pointer );
     return 1;
 }
+ 

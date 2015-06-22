@@ -36,6 +36,6 @@ public:
     virtual void DoPlayerCrawling() = 0;
     virtual void SetDirection( Direction direction ) = 0;
     static Way * GetByObject( ruNodeHandle obj );
-    void SerializeWith( TextFileStream & out );
-    void DeserializeWith( TextFileStream & in );
+    void Serialize( TextFileStream & out );
+    void Deserialize( TextFileStream & in );
 };

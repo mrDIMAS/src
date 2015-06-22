@@ -72,7 +72,12 @@ LevelArrival::LevelArrival( ) {
     mStages[ "DoneStrangeSoundPlayed" ] = false;
     mStages[ "DoneRocksFall" ] = false;
 
-    ruSetCameraSkybox( pPlayer->mpCamera->mNode, "data/textures/skyboxes/night4/nnksky01" );
+    ruSetCameraSkybox( pPlayer->mpCamera->mNode,
+		ruGetTexture( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
+		ruGetTexture( "data/textures/skyboxes/night3/nightsky_l.jpg" ),
+		ruGetTexture( "data/textures/skyboxes/night3/nightsky_r.jpg" ),
+		ruGetTexture( "data/textures/skyboxes/night3/nightsky_f.jpg" ), 
+		ruGetTexture( "data/textures/skyboxes/night3/nightsky_b.jpg" ));
 
     DoneInitialization();
 }

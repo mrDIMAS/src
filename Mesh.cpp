@@ -19,7 +19,7 @@ Mesh::Mesh() {
 			D3DDECL_END()
 		};
 
-		CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration ));
+		Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration );
 	}
     mDiffuseTexture = nullptr;
     mIndexBuffer = nullptr;
@@ -63,28 +63,32 @@ Mesh::~Mesh() {
 }
 
 void Mesh::UpdateVertexBuffer() {
-    int sizeBytes = mVertices.size() * sizeof( Vertex );
-    if( !mVertexBuffer ) {
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &mVertexBuffer, 0 ));
-    }
-    if( mVertices.size() == 0 ) {
-        return;
-    }
-    void * vertexData = 0;
-    CheckDXErrorFatal( mVertexBuffer->Lock( 0, 0, &vertexData, 0 ));
-    memcpy( vertexData, &mVertices[ 0 ], sizeBytes );
-    CheckDXErrorFatal( mVertexBuffer->Unlock());
+	if( mVertices.size() ) {
+		int sizeBytes = mVertices.size() * sizeof( Vertex );
+		if( !mVertexBuffer ) {
+			Engine::Instance().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+		}
+		if( mVertices.size() == 0 ) {
+			return;
+		}
+		void * vertexData = 0;
+		mVertexBuffer->Lock( 0, 0, &vertexData, 0 );
+		memcpy( vertexData, &mVertices[ 0 ], sizeBytes );
+		mVertexBuffer->Unlock();
+	}
 }
 
 void Mesh::UpdateIndexBuffer( vector< Triangle > & triangles ) {
-    int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
-    if( !mIndexBuffer ) {
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 ));
-    }
-    void * indexData = 0;
-    CheckDXErrorFatal( mIndexBuffer->Lock( 0, 0, &indexData, 0 ));
-    memcpy( indexData, &triangles[ 0 ], sizeBytes );
-    CheckDXErrorFatal( mIndexBuffer->Unlock());
+	if( triangles.size() ) {
+		int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
+		if( !mIndexBuffer ) {
+			Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
+		}
+		void * indexData = 0;
+		mIndexBuffer->Lock( 0, 0, &indexData, 0 );
+		memcpy( indexData, &triangles[ 0 ], sizeBytes );
+		mIndexBuffer->Unlock();
+	}
 }
 
 vector<SceneNode*> & Mesh::GetOwners() {
@@ -97,16 +101,21 @@ void Mesh::UpdateBuffers() {
 }
 
 void Mesh::EraseOrphanMeshes() {
+	vector<Mesh*> eraseList;
 	for( auto iMeshGroup : msMeshList ) {
 		for( auto iMesh = iMeshGroup.second.begin(); iMesh != iMeshGroup.second.end(); ) {
 			Mesh * pMesh = *iMesh;
 			if( pMesh->GetOwners().size() == 0 ) {
-				delete pMesh;
+				eraseList.push_back( pMesh );
+				//delete pMesh;
 				iMesh = iMeshGroup.second.erase( iMesh );
 			} else {
 				iMesh++;
 			}
 		}
+	}
+	for( auto pMesh : eraseList ) {
+		delete pMesh;
 	}
 }
 
@@ -132,15 +141,15 @@ Texture * Mesh::GetNormalTexture() {
 }
 
 void Mesh::BindBuffers() {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration ));
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex )));
+    Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
+    Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
     if( mOctree ) {
         vector< Triangle > & id = mOctree->GetTrianglesToRender();
         if( id.size() ) {
             UpdateIndexBuffer( id );
         }
     }
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetIndices( mIndexBuffer ));
+    Engine::Instance().GetDevice()->SetIndices( mIndexBuffer );
 }
 
 void Mesh::Render() {
@@ -150,10 +159,10 @@ void Mesh::Render() {
         ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", mOctree->mVisibleNodeCount, mOctree->mVisibleTriangleCount ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( mOctree->mVisibleTriangleList.size() ) {
-            CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mOctree->mVisibleTriangleList.size() ));
+            Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mOctree->mVisibleTriangleList.size() );
         }
     } else {
-        CheckDXErrorFatal( Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mTriangles.size() ));
+        Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mTriangles.size() );
     }
 
     // each mesh renders in one DIP
@@ -180,8 +189,12 @@ void Mesh::OnLostDevice()
 	if( !removed ) {
 		Engine::Instance().GetForwardRenderer()->RemoveMesh( this );
 	}
-	mVertexBuffer->Release();
-	mIndexBuffer->Release();
+	if( mVertexBuffer ) {
+		mVertexBuffer->Release();
+	}
+	if( mIndexBuffer ) {
+		mIndexBuffer->Release();
+	}
 	mVertexBuffer = nullptr;
 	mIndexBuffer = nullptr;	
 

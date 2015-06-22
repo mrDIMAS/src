@@ -412,7 +412,9 @@ void Menu::Update( ) {
     if( mVisible ) {
 
         if( ruIsKeyHit( KEY_Esc ) ) {
-            CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameCurrent ));
+			if( pCurrentLevel ) {
+				CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameCurrent ));
+			}
         }
 
         CameraFloating();
@@ -445,6 +447,7 @@ void Menu::Update( ) {
 		ruSetGUINodeAlpha( mGUIMainButtonsCanvas, mMainButtonsAlpha );
 
         if( mPage == Page::Authors ) {
+			mpModalWindow->CloseNoAction();
             SetAuthorsPageVisible( true );
         } else {
             SetAuthorsPageVisible( false );
@@ -457,9 +460,7 @@ void Menu::Update( ) {
         }
 
         if( mPage == Page::OptionsCommon ) {
-            ruSetGUINodeVisible( mGUIOptionsCommonCanvas, true );
-
-
+            ruSetGUINodeVisible( mGUIOptionsCommonCanvas, true );			
         } else {
             ruSetGUINodeVisible( mGUIOptionsCommonCanvas, false );
         }

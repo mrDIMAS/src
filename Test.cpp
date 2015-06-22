@@ -34,11 +34,19 @@ void main( ) {
 
     ruNodeHandle camera = ruCreateCamera( 60 );
     ruAttachNode( camera, cameraPivot );
-    ruSetCameraSkybox( camera, "data/textures/skyboxes/test/red_sky");
+
+    ruSetCameraSkybox( camera, 
+		ruGetTexture( "data/textures/skyboxes/test/red_sky_u.jpg" ),
+		ruGetTexture( "data/textures/skyboxes/test/red_sky_l.jpg" ),
+		ruGetTexture( "data/textures/skyboxes/test/red_sky_r.jpg" ),
+		ruGetTexture( "data/textures/skyboxes/test/red_sky_f.jpg" ), 
+		ruGetTexture( "data/textures/skyboxes/test/red_sky_b.jpg" ));
+
     ruSetNodePosition( camera, ruVector3( 0, 6, 0 ));
 
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
-    ruNodeHandle node = ruLoadScene( "data/newFormat.scene" );
+    //ruNodeHandle node = ruLoadScene( "data/maps/release/arrival/arrival.scene");//ruLoadScene( "data/newFormat.scene" );
+	ruNodeHandle node = ruLoadScene( "data/newFormat.scene" );
 	//ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
     //int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
@@ -100,10 +108,10 @@ void main( ) {
         }
 		
 		if( ruIsKeyHit( KEY_T )) {
-			ruChangeVideomode( 1280, 720, 0, 1 );
+			ruChangeVideomode( 2560, 1440, 0, 1 );
 		}
 		if( ruIsKeyHit( KEY_Y )) {
-			ruChangeVideomode( 1360, 768, 1, 1 );
+			ruChangeVideomode( 1920, 1080, 0, 1 );
 		}
         ruVector3 speed;
 
@@ -133,6 +141,9 @@ void main( ) {
 		if( ruIsKeyHit( KEY_2 )) {
 			ruSetGUINodeVisible( testrect, true );
 			ruDisableFXAA();
+		}
+		if( ruIsKeyHit( KEY_3 )) {
+			ruFreeSceneNode( node );
 		}
 
 		if( ruIsMouseHit( MB_Left )) {

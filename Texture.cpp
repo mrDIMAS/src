@@ -50,7 +50,7 @@ Texture::~Texture( ) {
 }
 
 void Texture::Bind( int level ) {
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->SetTexture( level, mTexture ));
+    Engine::Instance().GetDevice()->SetTexture( level, mTexture );
 }
 
 IDirect3DTexture9 * Texture::GetInterface() {
@@ -78,7 +78,9 @@ int Texture::GetHeight()
 
 void Texture::OnLostDevice()
 {
-	mTexture->Release();
+	if( mTexture ) {
+		mTexture->Release();
+	}
 }
 
 void Texture::OnResetDevice()

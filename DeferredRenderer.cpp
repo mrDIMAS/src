@@ -18,6 +18,7 @@ DeferredRenderer::DeferredRenderer() {
     mPointLightShader = new PointLightShader;
     bvRenderer = new BoundingVolumeRenderingShader;
     mSpotLightShadowMap = new SpotlightShadowMap;
+	mSkyboxShader = new SkyboxShader;
     // check support of floating-point textures first
     if( Engine::Instance().IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
         mHDRShader = new HDRShader;
@@ -37,6 +38,7 @@ DeferredRenderer::~DeferredRenderer() {
     delete mSpotLightShadowMap;
     delete mFXAA;
     delete mHDRShader;
+	delete mSkyboxShader;
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {
@@ -122,7 +124,10 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
 
 	if( light->pointTexture ) {
 		Engine::Instance().GetDevice()->SetTexture( 3, light->pointTexture->cubeTexture );
-	};
+	} else {
+		Log::Write( "Environment light cube texture is not set! ");
+	}
+
 	Engine::Instance().SetPixelShaderFloat3( 8, Camera::msCurrentCamera->mGlobalTransform.getOrigin().m_floats );
 	Engine::Instance().SetPixelShaderMatrix( 0, &invViewProj );
 	
@@ -131,9 +136,6 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
 	// color
     Engine::Instance().SetPixelShaderFloat3( 6, light->GetColor().elements ); 
 	 // range
-    //Renderer::Instance().SetPixelShaderFloat( 7, powf( light->GetRadius(), 4 ));
-	//float lightRange = light->GetRadius();
-	//Engine::Instance().SetPixelShaderFloat( 7, lightRange * lightRange * lightRange * lightRange );
 	Engine::Instance().SetPixelShaderFloat( 7, light->GetRadius() );
 	// brightness
     Engine::Instance().SetPixelShaderFloat( 9, Engine::Instance().IsHDREnabled() ? light->brightness : 1.0f ); 
@@ -334,16 +336,37 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
     Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 	
-    if( Camera::msCurrentCamera->mSkybox ) {
-        Camera::msCurrentCamera->mSkybox->Render( Camera::msCurrentCamera->mGlobalTransform.getOrigin() );
-    }  
-
 	mGBuffer->BindTextures();
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
 	mAmbientLightShader->Bind();
+	Engine::Instance().SetPixelShaderMatrix( 1, &Camera::msCurrentCamera->invViewProjection );
+	Engine::Instance().SetPixelShaderFloat3( 6, Camera::msCurrentCamera->GetPosition().elements );
+	float fogParams[] = { 128, 256 - 128, 0 };
+	Engine::Instance().SetPixelShaderFloat3( 7, fogParams );
 	mFullscreenQuad->Bind();
 	mFullscreenQuad->Render();
 
+	if( Camera::msCurrentCamera ) {
+		if( Camera::msCurrentCamera->mSkybox ) {
+			if( Engine::Instance().IsHDREnabled() ) {
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+				Engine::Instance().GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
+			}
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+			mSkyboxShader->Bind( Camera::msCurrentCamera->mGlobalTransform.getOrigin() );
+			Camera::msCurrentCamera->mSkybox->Render( );		
+			if( Engine::Instance().IsHDREnabled() ) {
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+				Engine::Instance().GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
+			}
+		}  
+		mGBuffer->BindTextures();
+		mFullscreenQuad->Bind();
+	}
+	
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
 
 	// begin occlusion queries
@@ -356,9 +379,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	for( auto pLight : Light::msPointLightList ) {
 		if( pLight->mQueryDone ) {
 			if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
-				auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mLightList.end(), pLight );
-				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
-					if( FAILED( pLight->pQuery->Issue( D3DISSUE_BEGIN ))) RaiseError( "Err" );
+				auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );
+				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end() ) {
+					pLight->pQuery->Issue( D3DISSUE_BEGIN );
 					RenderStar( pLight );
 					pLight->pQuery->Issue( D3DISSUE_END );
 				}
@@ -377,17 +400,17 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	
 	for( auto pLight : Light::msPointLightList ) {
 		if( pLight->IsVisible() ) {
-			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mLightList.end(), pLight );			
+			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );			
 			DWORD pixelsVisible = 0;
 			if( pLight->inFrustum  && !pLight->mQueryDone ) {
-				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mLightList.end() ) {
+				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end() ) {
 					HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
 					if( result == S_OK ) {
 						pLight->mQueryDone = true;
 						if( pixelsVisible > 0 ) {				
 							pLight->trulyVisible = true;
 							// add light to light list of nearest path point of camera									
-							Camera::msCurrentCamera->mNearestPathPoint->mLightList.push_back( pLight );								
+							Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.push_back( pLight );								
 						}
 					}
 				}
@@ -397,20 +420,13 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
 	// Render point lights
 	mFullscreenQuad->vertexShader->Bind();	
-	PixelShader * lastPixelShader = nullptr;
-	
-    for( auto pLight : Camera::msCurrentCamera->mNearestPathPoint->mLightList ) {
+
+    for( auto pLight : Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList ) {
 		if( pLight->inFrustum  ) {
 			if( pLight->pointTexture ) {
-				if( lastPixelShader != mPointLightShader->pixelShaderTexProj ) {
-					mPointLightShader->pixelShaderTexProj->Bind();
-					lastPixelShader = mPointLightShader->pixelShaderTexProj;
-				}
+				mPointLightShader->pixelShaderTexProj->Bind();
 			} else {
-				if( lastPixelShader != mPointLightShader->pixelShader ) {
-					mPointLightShader->pixelShader->Bind();
-					lastPixelShader = mPointLightShader->pixelShader;
-				}
+				mPointLightShader->pixelShader->Bind();
 			}
 
 			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
@@ -503,7 +519,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
             mFXAA->DoAntialiasing( mFXAA->texture );
         }
     }
-
+	
 	if( Engine::Instance().IsAnisotropicFilteringEnabled() ) {
 		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_ANISOTROPIC, false );
 	} else {
@@ -523,14 +539,32 @@ void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
     }
 }
 
-void DeferredRenderer::OnLostDevice()
-{
+void DeferredRenderer::OnLostDevice() {
 	mBoundingStar->Release();
 	mBoundingSphere->Release();
 	mBoundingCone->Release();
 }
 
-void DeferredRenderer::OnResetDevice()
-{
+void DeferredRenderer::OnResetDevice() {
 	CreateBoundingVolumes();
+}
+
+void DeferredRenderer::SkyboxShader::Bind( const btVector3 & position ) {
+	mPixelShader->Bind();
+	mVertexShader->Bind();
+	D3DXMATRIX matrix;
+	D3DXMatrixTranslation( &matrix, position.x(), position.y(), position.z() );
+	D3DXMatrixMultiply( &matrix, &matrix, &Camera::msCurrentCamera->mViewProjection );
+
+	Engine::Instance().SetVertexShaderMatrix( 0, &matrix );
+}
+
+DeferredRenderer::SkyboxShader::~SkyboxShader() {
+	delete mPixelShader;
+	delete mVertexShader;
+}
+
+DeferredRenderer::SkyboxShader::SkyboxShader() {
+	mVertexShader = new VertexShader( "data/shaders/skybox.vso" );
+	mPixelShader = new PixelShader( "data/shaders/skybox.pso" );
 }

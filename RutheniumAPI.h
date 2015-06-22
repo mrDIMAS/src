@@ -302,7 +302,7 @@ int ruGetTextureHeight( ruTextureHandle texture );
 ////////////////////////////////////////////////////////////////////////////////////
 ruNodeHandle ruCreateCamera( float fov );
 void ruSetActiveCamera( ruNodeHandle node );
-int ruSetCameraSkybox( ruNodeHandle node, const string & path );
+int ruSetCameraSkybox( ruNodeHandle node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back );
 void ruSetCameraFOV( ruNodeHandle camera, float fov );
 
 ////////////////////////////////////////////////////////////////////////////////////

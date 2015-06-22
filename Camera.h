@@ -26,8 +26,10 @@ public:
 	class PathPoint {
 	public:
 		ruVector3 mPoint;
-		vector<Light*> mLightList;
+		// list of lights visible from that point, filled by occlusion queries
+		vector<Light*> mVisibleLightList;
 	};
+	PathPoint * mDefaultPathPoint;
 	PathPoint * mNearestPathPoint;
 	ruVector3 mLastPosition;
 	vector<PathPoint*> mPath;
@@ -40,7 +42,7 @@ public:
     virtual ~Camera();
     void CalculateProjectionMatrix();
     void CalculateInverseViewProjection();
-    void SetSkyBox( const string & path );
+    void SetSkyBox( Texture * up, Texture * left, Texture * right, Texture * forward, Texture * back );
     void Update();
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );

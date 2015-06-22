@@ -12,22 +12,27 @@ class ParticleSystemRenderer;
 class TextRenderer;
 class GUIRenderer;
 
-void CheckDXErrorFatalFunc( HRESULT errCode, const string & file, int line );
+class Videomode {
+public:
+	int mWidth;
+	int mHeight;
+	int mRefreshRate;
 
-#ifdef _DEBUG
-#	define CheckDXErrorFatal( func ) (func)
-//#	define CheckDXErrorFatal( func ) CheckDXErrorFatalFunc( func, __FILE__, __LINE__ )
-#else
-#	define CheckDXErrorFatal( func ) (func)
-#endif
+	Videomode( int width, int height, int refreshRate ) {
+		mWidth = width;
+		mHeight = height;
+		mRefreshRate = refreshRate;
+	}
+};
 
 class Engine {
 private:
-	HWND window;
+	HWND mWindowHandle;
 	IDirect3D9 * mpDirect3D;
 	IDirect3DDevice9 * mpDevice;
 	IDirect3DSurface9 * mpBackBuffer;
 	DeferredRenderer * mpDeferredRenderer;
+	IDirect3DTexture9 * mpWhiteTexture;
 	ParticleSystemRenderer * mpParticleSystemRenderer;
 	ForwardRenderer * mpForwardRenderer;
 	GUIRenderer * mpGUIRenderer;
@@ -58,6 +63,8 @@ private:
 	bool mChangeVideomode;
 	int mNativeResolutionWidth;
 	int mNativeResolutionHeight;
+	void SetDefaults();
+	vector<Videomode> mVideomodeList;
 public:
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();

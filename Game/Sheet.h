@@ -18,10 +18,7 @@ public:
     const string & GetText( ) const;
     void SetDescription( const string & description );
     const string & GetDescription( ) const;
-    void SetVisible( bool state ) {
-        ruSetGUINodeVisible( mGUIBackground, state );
-        ruSetGUINodeVisible( mGUIText, state );
-    }
+    void SetVisible( bool state );
     static Sheet * GetSheetPointerByNode( ruNodeHandle o );
     static vector<Sheet*> msSheetList;
     static ruSoundHandle msPaperFlipSound;

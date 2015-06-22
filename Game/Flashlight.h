@@ -48,6 +48,6 @@ public:
 	}
     bool IsBeamContainsPoint( ruVector3 point ) const;
     Item * CreateAppropriateItem();
-    virtual void SerializeWith( TextFileStream & out ) final;
-    virtual void DeserializeWith( TextFileStream & in ) final;
+    virtual void Serialize( TextFileStream & out ) final;
+    virtual void Deserialize( TextFileStream & in ) final;
 };

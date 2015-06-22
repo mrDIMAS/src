@@ -137,6 +137,8 @@ public:
 	ruRectHandle mGUIStealthSign;
 	ruTextHandle mGUIYouDied;
 	ruFontHandle mGUIYouDiedFont;
+	ruRectHandle mGUIDamageBackground;
+	int mDamageBackgroundAlpha;
 
 	ruSoundHandle mDeadSound;
 	ruVector3 mAirPosition;
@@ -168,16 +170,13 @@ public:
     void DoFright();
     void ComputeStealth();
 	void RepairInventory();
-	virtual void SetPosition( ruVector3 position ) {
-		Actor::SetPosition( position );
-		mAirPosition = ruGetNodePosition( mBody ); // prevent dying from 'accident' landing :)
-	}
+	virtual void SetPosition( ruVector3 position );
     Inventory * GetInventory();
     Flashlight * GetFlashLight();
     Parser * GetLocalization();
     void SetTip( const string & text );
-    virtual void SerializeWith( TextFileStream & out ) final;
-    virtual void DeserializeWith( TextFileStream & in ) final;
+    virtual void Serialize( TextFileStream & out ) final;
+    virtual void Deserialize( TextFileStream & in ) final;
     void SetActionText( const string & text );
     void SetHUDVisible( bool state );
 	virtual void ManageEnvironmentDamaging() final;

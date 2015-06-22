@@ -38,7 +38,7 @@ public:
     void Open( );
     void Close();
     virtual void DoInteraction();	
-	void SerializeWith( TextFileStream & out );
-	void DeserializeWith( TextFileStream & in );
+	void Serialize( TextFileStream & out );
+	void Deserialize( TextFileStream & in );
 	static Door * GetByName( const string & name );
 };

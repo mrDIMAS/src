@@ -63,8 +63,8 @@ public:
 	void Shoot();
 	void Update();
 	bool LoadBullet( );
-	void SerializeWith( TextFileStream & out );
-	void DeserializeWith( TextFileStream & in );
+	void Serialize( TextFileStream & out );
+	void Deserialize( TextFileStream & in );
 	void SetProjectileCount( int projCount );
 	int GetProjectileCount() {
 		return mProjectileCount;

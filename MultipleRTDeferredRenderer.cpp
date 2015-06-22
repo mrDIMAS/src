@@ -47,7 +47,7 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
 
 void MultipleRTDeferredRenderer::BeginFirstPass() {
     mGBuffer->BindRenderTargets();
-    CheckDXErrorFatal( Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 ));
+    Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 	mGBufferVertexShader->Bind();
 	mGBufferPixelShader->Bind();
 }

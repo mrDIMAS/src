@@ -28,6 +28,6 @@ public:
 	// useful to control time-critical actions, returns float in interval [0; 1]
 	float GetPercentage();
 	static void UpdateAll();
-	void SerializeWith( TextFileStream & out );
-	void DeserializeWith( TextFileStream & in );
+	void Serialize( TextFileStream & out );
+	void Deserialize( TextFileStream & in );
 };

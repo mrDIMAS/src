@@ -15,7 +15,7 @@ Inventory::Inventory() {
     mOpen = false;
     mpSelectedItem = nullptr;
 
-    mFont = ruCreateGUIFont( 14, "data/fonts/font2.ttf" );
+    mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf" );
 
     mpCombineItemFirst = nullptr;
     mpCombineItemSecond = nullptr;

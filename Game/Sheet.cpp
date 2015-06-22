@@ -1,5 +1,4 @@
 #include "Precompiled.h"
-
 #include "Sheet.h"
 #include "GUI.h"
 
@@ -7,9 +6,7 @@ vector<Sheet*> Sheet::msSheetList;
 ruSoundHandle Sheet::msPaperFlipSound;
 ruFontHandle Sheet::msSheetFont;
 
-Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObject( object ) {
-    mText = text;
-    this->mDescription = desc;
+Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
     mBackgroundTexture = ruGetTexture( "data/textures/generic/note.jpg" );
     msSheetList.push_back( this );
     if( !msPaperFlipSound.IsValid() ) {
@@ -17,14 +14,11 @@ Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObjec
     }
 
     if( !msSheetFont.IsValid() ) {
-        msSheetFont = ruCreateGUIFont( 16, "data/fonts/font2.ttf" );
+        msSheetFont = ruCreateGUIFont( 16, "data/fonts/font1.otf" );
     }
 
-    int sw = ruGetResolutionWidth();
-    int sh = ruGetResolutionHeight();
-
-    int cx = sw / 2;
-    int cy = sh / 2;
+    int cx = ruGetResolutionWidth() / 2;
+    int cy = ruGetResolutionHeight() / 2;
 
     int w = 400;
     int h = 600;
@@ -38,17 +32,16 @@ void Sheet::Draw( ) {
 
 }
 
-Sheet * Sheet::GetSheetPointerByNode( ruNodeHandle o ) {
-    for( auto sh : msSheetList )
-        if( sh->mObject == o ) {
-            return sh;
+Sheet * Sheet::GetSheetPointerByNode( ruNodeHandle node ) {
+    for( auto pSheet : msSheetList ) {
+        if( pSheet->mObject == node ) {
+            return pSheet;
         }
-
-    return 0;
+	}
+    return nullptr;
 }
 
 void Sheet::Update() {
-
 }
 
 const string & Sheet::GetDescription() const {
@@ -72,4 +65,9 @@ Sheet::~Sheet() {
     ruFreeGUINode(mGUIBackground);
     ruFreeGUINode(mGUIText);
     msSheetList.erase( find( msSheetList.begin(), msSheetList.end(), this ));
+}
+
+void Sheet::SetVisible( bool state ) {
+	ruSetGUINodeVisible( mGUIBackground, state );
+	ruSetGUINodeVisible( mGUIText, state );
 }

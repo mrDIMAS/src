@@ -8,7 +8,7 @@ IDirect3DPixelShader9 * PixelShader::msLastBinded = nullptr;
 
 void VertexShader::Bind() {
 	if( msLastBinded != shader ) {
-		CheckDXErrorFatal( Engine::Instance().GetDevice()->SetVertexShader( shader ));
+		Engine::Instance().GetDevice()->SetVertexShader( shader );
 		msLastBinded = shader;
 	}
 }
@@ -30,7 +30,11 @@ void VertexShader::OnLostDevice() {
 void VertexShader::Initialize()
 {
 	DWORD * code = LoadBinary();
-	Engine::Instance().GetDevice()->CreateVertexShader( code, &shader );
+	if( SUCCEEDED( Engine::Instance().GetDevice()->CreateVertexShader( code, &shader ))) {
+		Log::Write( StringBuilder( "New vertex shader successfully created from ") << mSourceName << " binary!" );
+	} else {
+		Log::Error( StringBuilder( "Unable to create vertex shader from ") << mSourceName << " binary!" );
+	}
 	delete code;
 }
 
@@ -42,7 +46,7 @@ void VertexShader::OnResetDevice()
 
 void PixelShader::Bind() {
 	if( msLastBinded != shader ) {
-		CheckDXErrorFatal( Engine::Instance().GetDevice()->SetPixelShader( shader ));
+		Engine::Instance().GetDevice()->SetPixelShader( shader );
 		msLastBinded = shader;
 	}
 }
@@ -64,7 +68,11 @@ void PixelShader::OnLostDevice() {
 void PixelShader::Initialize()
 {
 	DWORD * code = LoadBinary();
-	Engine::Instance().GetDevice()->CreatePixelShader( code, &shader );
+	if( SUCCEEDED( Engine::Instance().GetDevice()->CreatePixelShader( code, &shader ))) {
+		Log::Write( StringBuilder( "New pixel shader successfully created from ") << mSourceName << " binary!" );
+	} else {
+		Log::Error( StringBuilder( "Unable to create pixel shader from ") << mSourceName << " binary!" );
+	}
 	delete code;
 }
 
@@ -85,7 +93,7 @@ DWORD * Shader::LoadBinary() {
 	pFile = fopen( mSourceName.c_str(), "rb" );
 
 	if( !pFile ) {
-		RaiseError( StringBuilder( "Failed to load shader " ) << mSourceName << " !" );
+		Log::Error( StringBuilder( "Failed to load shader " ) << mSourceName << " !" );
 	}
 
 	fseek(pFile, 0, SEEK_END);
