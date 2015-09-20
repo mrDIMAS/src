@@ -4,10 +4,10 @@
 
 class SteamStream {
 public:
-    ruNodeHandle ps;
-    ruSoundHandle snd;
+    ruSceneNode ps;
+    ruSound snd;
     float power;
 
-    SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedMax, ruSoundHandle hissSound );
+    SteamStream( ruSceneNode obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound );
     void Update();
 };

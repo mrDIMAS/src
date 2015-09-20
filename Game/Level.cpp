@@ -12,6 +12,7 @@
 #include "SaveLoader.h"
 #include "SaveWriter.h"
 #include "LevelSewers.h"
+#include "LevelCutsceneIntro.h"
 
 ruTextHandle Level::msGUILoadingText;
 ruRectHandle Level::msGUILoadingBackground;
@@ -28,7 +29,7 @@ Level::Level() {
 }
 
 Level::~Level() {
-    ruFreeSceneNode( mScene );
+    mScene.Free();
 
     for( auto pItem : mItemList ) {
         if( pItem->IsFree() ) {
@@ -40,35 +41,15 @@ Level::~Level() {
         delete pSheet;
     }
 
-    for( auto pDoor : mDoorList ) {
-        delete pDoor;
+	for( auto iSound : mSounds ) {
+        iSound.Free();
     }
 
-    for( auto pLadder : mLadderList ) {
-        delete pLadder;
-    }
-
-    for( auto pItemPlace : mItemPlaceList ) {
-        delete pItemPlace;
-    }
-
-    for( auto pValve : mValveList ) {
-        delete pValve;
-    }
-
-    for( auto pLift : mLiftList ) {
-        delete pLift;
-    }
-
-	for( auto pLamp : mLampList ) {
-		delete pLamp;
+	for( auto pButton : mButtonList ) {
+		delete pButton;
 	}
 
-    for( auto iSound : mSounds ) {
-        ruFreeSound( iSound );
-    }
-
-	ruFreeSound( mMusic );
+	mMusic.Free();
 }
 
 void Level::LoadLocalization( string fn ) {
@@ -76,9 +57,9 @@ void Level::LoadLocalization( string fn ) {
 }
 
 void Level::Hide() {
-    ruHideNode( mScene );
+    mScene.Hide();
     for( auto & sound : mSounds ) {
-        ruPauseSound( sound );
+        sound.Pause();
     }
 	for( auto pLamp : mLampList ) {
 		pLamp->Hide();
@@ -86,10 +67,10 @@ void Level::Hide() {
 }
 
 void Level::Show() {
-    ruShowNode( mScene );
+    mScene.Show();
     for( auto & sound : mSounds ) {
-        if( ruIsSoundPaused( sound )) {
-            ruPlaySound( sound );
+        if( sound.IsPaused() ) {
+            sound.Play();
         }
     }
 	for( auto pLamp : mLampList ) {
@@ -119,7 +100,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
 		pPlayer->SetHUDVisible( false );
 	}
     
-    ruRenderWorld();
+    ruEngine::RenderWorld();
 
 	ruSetGUINodeVisible( msGUILoadingText, false );
 	ruSetGUINodeVisible( msGUILoadingBackground, false );
@@ -131,12 +112,14 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	vector<Item::Type> items;
 	// weapons
 	vector<WeaponTransfer> weapons;
-		
+	float playerHealth = 100.0f;
+
 	if( pPlayer ) {
 		pPlayer->GetInventory()->GetItemList( items );
 		for( auto pWeapon : pPlayer->mWeaponList ) {
 			weapons.push_back( WeaponTransfer( pWeapon->GetType(), pWeapon->GetProjectileCount()));
 		}
+		playerHealth = pPlayer->GetHealth();
 		delete pPlayer;
 		pPlayer = nullptr;
 	}
@@ -176,6 +159,8 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	}
 	Sheet::msSheetList.clear();
 
+
+
 	while( ItemPlace::sItemPlaceList .size() ) {
 		delete ItemPlace::sItemPlaceList .front();
 	}
@@ -184,13 +169,17 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	/////////////////////////////////////////////////////
 	
 	// create player
-	if( Level::msCurLevelID != LevelName::L0Introduction ) {
+	if( Level::msCurLevelID != LevelName::L0Introduction && Level::msCurLevelID != LevelName::LCSIntro ) {
 		pPlayer = new Player();
+		pPlayer->SetHealth( playerHealth );
 	}
 
 	// and now we can load new level
 	switch( Level::msCurLevelID )
 	{
+	case LevelName::LCSIntro:
+		pCurrentLevel = new LevelCutsceneIntro;
+		break;
 	case LevelName::L0Introduction:
 		pCurrentLevel = new LevelIntroduction;
 		break;
@@ -231,29 +220,29 @@ void Level::Change( int levelId, bool continueFromSave ) {
 			pWpn->SetProjectileCount( wpnTransfer.projCount );
 		}
 	}
-
+	
 	lastLevel = levelId;
 }
 
-void Level::AddLift( Lift * pLift ) {
-    mLiftList.push_back( pLift );
+void Level::AddLift( const shared_ptr<Lift> & lift ) {
+    mLiftList.push_back( lift );
 }
 
-void Level::AddValve( Valve * pValve ) {
-    mValveList.push_back( pValve );
+void Level::AddValve( const shared_ptr<Valve> & valve ) {
+    mValveList.push_back( valve );
 }
 
-void Level::AddLadder( Ladder * pLadder ) {
-    mLadderList.push_back( pLadder );
+void Level::AddLadder( const shared_ptr<Ladder> & ladder ) {
+    mLadderList.push_back( ladder );
 }
 
-void Level::AddDoor( Door * pDoor ) {
+void Level::AddDoor( const shared_ptr<Door> & door ) {
 	for( auto iDoor : mDoorList ) {
-		if( iDoor->mDoorNode == pDoor->mDoorNode ) {
+		if( iDoor->mDoorNode == door->mDoorNode ) {
 			return;
 		}
 	}
-    mDoorList.push_back( pDoor );
+    mDoorList.push_back( door );
 }
 
 void Level::AddSheet( Sheet * pSheet ) {
@@ -264,15 +253,15 @@ void Level::AddItem( Item * item ) {
     mItemList.push_back( item );
 }
 
-void Level::AddItemPlace( ItemPlace * pItemPlace ) {
+void Level::AddItemPlace( const shared_ptr<ItemPlace> & pItemPlace ) {
     mItemPlaceList.push_back( pItemPlace );
 }
 
-void Level::Deserialize( TextFileStream & in ) {
+void Level::Deserialize( SaveFile & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.ReadString();
-        ruNodeHandle node = ruFindInObjectByName( mScene, name );
+        ruSceneNode node = ruFindInObjectByName( mScene, name );
 		ruVector3 pos = in.ReadVector3();
 		ruQuaternion quat = in.ReadQuaternion();
 		bool visible = in.ReadBoolean();
@@ -282,12 +271,12 @@ void Level::Deserialize( TextFileStream & in ) {
 			litRange = in.ReadFloat();
 		}
         if( node.IsValid() ) {
-            ruSetNodeLocalPosition( node, pos );
-            ruSetNodeLocalRotation( node, quat );           
+            node.SetLocalPosition( pos );
+            node.SetLocalRotation( quat );           
             if( visible ) {
-                ruShowNode( node );
+                node.Show();
             } else {
-                ruHideNode( node );
+                node.Hide();
             }
 			if( isLight ) {
 				ruSetLightRange( node, litRange );
@@ -310,18 +299,23 @@ void Level::Deserialize( TextFileStream & in ) {
 			pDoor->Deserialize( in );
 		}
 	}
+
+	for( auto pLift : mLiftList ) {
+		pLift->Deserialize( in );
+	}
+
     OnDeserialize( in );
 }
 
-void Level::Serialize( TextFileStream & out ) {
-    int childCount = ruGetNodeCountChildren( mScene );
+void Level::Serialize( SaveFile & out ) {
+    int childCount = mScene.GetCountChildren();
     out.WriteInteger( childCount );
     for( int i = 0; i < childCount; i++ ) {
-        ruNodeHandle node = ruGetNodeChild( mScene, i );
-        out.WriteString( ruGetNodeName( node ));
-        out.WriteVector3( ruGetNodeLocalPosition( node ));
-        out.WriteQuaternion( ruGetNodeLocalRotation( node ));
-        out.WriteBoolean( ruIsNodeVisible( node ));
+        ruSceneNode node = mScene.GetChild( i );
+        out.WriteString( node.GetName() );
+        out.WriteVector3( node.GetLocalPosition() );
+        out.WriteQuaternion( node.GetLocalRotation());
+        out.WriteBoolean( node.IsVisible() );
 		out.WriteBoolean( ruIsLight( node ) );
 		if( ruIsLight( node )) {
 			out.WriteFloat( ruGetLightRange( node ));
@@ -335,13 +329,18 @@ void Level::Serialize( TextFileStream & out ) {
 
 	out.WriteInteger( Door::msDoorList.size() );
 	for( auto pDoor : Door::msDoorList ) {
-		out.WriteString( ruGetNodeName( pDoor->mDoorNode ) );
+		out.WriteString( pDoor->mDoorNode.GetName() );
 		pDoor->Serialize( out );
 	}
+
+	for( auto pLift : mLiftList ) {
+		pLift->Serialize( out );
+	}
+
     OnSerialize( out );
 }
 
-void Level::AddSound( ruSoundHandle sound ) {
+void Level::AddSound( ruSound sound ) {
     if( !sound.IsValid() ) {
         RaiseError( "Unable to add ambient sound! Invalid source!" );
     }
@@ -352,7 +351,7 @@ void Level::PlayAmbientSounds() {
     mAmbSoundSet.DoRandomPlaying();
 }
 
-void Level::AddAmbientSound( ruSoundHandle sound ) {
+void Level::AddAmbientSound( ruSound sound ) {
     if( !sound.IsValid() ) {
         RaiseError( "Unable to add ambient sound! Invalid source!" );
     }
@@ -360,7 +359,7 @@ void Level::AddAmbientSound( ruSoundHandle sound ) {
     mAmbSoundSet.AddSound( sound );
 }
 
-ruNodeHandle Level::GetUniqueObject( const string & name ) {
+ruSceneNode Level::GetUniqueObject( const string & name ) {
     // the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
     // game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
     // also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
@@ -370,7 +369,7 @@ ruNodeHandle Level::GetUniqueObject( const string & name ) {
     if( !mScene.IsValid() ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
     }
-    ruNodeHandle object = ruFindInObjectByName( mScene, name );
+    ruSceneNode object = ruFindInObjectByName( mScene, name );
     // each unique object must be presented in the scene, otherwise error will be generated
     if( !object.IsValid() ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
@@ -402,45 +401,46 @@ void Level::CreateLoadingScreen()
 	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf" );
 	int w = 200;
 	int h = 32;
-	int x = ( ruGetResolutionWidth() - w ) / 2;
-	int y = ( ruGetResolutionHeight() - h ) / 2;
+	int x = ( ruEngine::GetResolutionWidth() - w ) / 2;
+	int y = ( ruEngine::GetResolutionHeight() - h ) / 2;
 	msGUILoadingText = ruCreateGUIText( "Загрузка...", x, y, w, h, msGUIFont, ruVector3( 0, 0, 0 ), 1 );
 	ruSetGUINodeVisible( msGUILoadingText, false );
-	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
+	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
 	ruSetGUINodeVisible( msGUILoadingBackground, false );
 }
 
-void Level::AddLamp( Lamp * lamp )
-{
+void Level::AddLamp( const shared_ptr<Lamp> & lamp ) {
 	mLampList.push_back( lamp );
 }
 
-void Level::UpdateGenericObjectsIdle()
-{
+void Level::UpdateGenericObjectsIdle() {
 	for( auto pLamp : mLampList ) {
 		pLamp->Update();
 	}
 	for( auto pZone : mZoneList ) {
 		pZone->Update();
 	}
+	for( auto pButton : mButtonList ) {
+		pButton->Update();
+	}
 }
 
 void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound )
 {
 	std::regex rx( namePattern );
-	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
-		ruNodeHandle child = ruGetNodeChild( mScene, i );
-		if( regex_match( ruGetNodeName( child ), rx )) {
-			AddLamp( new Lamp( child, ruLoadSound3D( buzzSound )));
+	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
+		ruSceneNode child = mScene.GetChild( i );
+		if( regex_match( child.GetName(), rx )) {
+			AddLamp( make_shared<Lamp>( child, ruSound::Load3D( buzzSound )));
 		}
 	}
 }
 
 void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
-	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
-		ruNodeHandle child = ruGetNodeChild( mScene, i );
-		if( regex_match( ruGetNodeName( child ), rx )) {
+	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
+		ruSceneNode child = mScene.GetChild( i );
+		if( regex_match( child.GetName(), rx )) {
 			AddItem( new Item( child, Item::Type::Bullet ));
 		}
 	}
@@ -449,8 +449,8 @@ void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 
 void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
-	for( int i = 0; i < ruGetNodeCountChildren( mScene ); i++ ) {
-		ruNodeHandle child = ruGetNodeChild( mScene, i );
+	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
+		ruSceneNode child = mScene.GetChild( i );
 		bool ignore = false;
 		for( auto pDoor : mDoorList ) {
 			if( pDoor->mDoorNode == child ) {
@@ -459,14 +459,18 @@ void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 			}
 		}
 		if( !ignore ) {
-			if( regex_match( ruGetNodeName( child ), rx )) {
-				AddDoor( new Door( child, 90 ));
+			if( regex_match( child.GetName(), rx )) {
+				AddDoor( make_shared<Door>( child, 90 ));
 			}
 		}
 	}
 }
 
-void Level::AddZone( Zone * zone )
-{
+void Level::AddZone( const shared_ptr<Zone> & zone ) {
 	mZoneList.push_back( zone );
+}
+
+void Level::AddButton( Button * button )
+{
+	mButtonList.push_back( button );
 }

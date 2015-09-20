@@ -6,10 +6,10 @@ void LiftDoor::DoInteraction()
 {
 	Door::DoInteraction();
 
-	ruSetNodeRotation( mDoorNode, ruQuaternion( ruGetNodeUpVector( mDoorNode ), mAngleOffset + mCurrentAngle ));
+	mDoorNode.SetRotation( ruQuaternion( mDoorNode.GetUpVector(), mAngleOffset + mCurrentAngle ));
 }
 
-LiftDoor::LiftDoor( ruNodeHandle hDoor, float fMaxAngle, float angleOffset ) : Door( hDoor, fMaxAngle )
+LiftDoor::LiftDoor( ruSceneNode hDoor, float fMaxAngle, float angleOffset ) : Door( hDoor, fMaxAngle )
 {
 	mAngleOffset = angleOffset;
 }

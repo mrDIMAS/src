@@ -1,16 +1,16 @@
 #pragma once
 
 #include "Game.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
 class Way {
 protected:
-    ruNodeHandle mBegin;
-    ruNodeHandle mEnd;
-    ruNodeHandle mEnterZone;
-    ruNodeHandle mTarget;
-    ruNodeHandle mBeginLeavePoint;
-    ruNodeHandle mEndLeavePoint;
+    ruSceneNode mBegin;
+    ruSceneNode mEnd;
+    ruSceneNode mEnterZone;
+    ruSceneNode mTarget;
+    ruSceneNode mBeginLeavePoint;
+    ruSceneNode mEndLeavePoint;
     bool mInside;
     bool mEntering;
     bool mFreeLook;
@@ -23,19 +23,19 @@ public:
         Backward = 2,
     };
 
-    Way( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint );
+    Way( ruSceneNode hBegin, ruSceneNode hEnd, ruSceneNode hEnterZone, ruSceneNode hBeginLeavePoint, ruSceneNode hEndLeavePoint );
     virtual ~Way();
     bool IsEntering();
     bool IsPlayerInside();
     bool IsEnterPicked();
-    ruNodeHandle GetEnterZone();
-    ruNodeHandle GetTarget();
+    ruSceneNode GetEnterZone();
+    ruSceneNode GetTarget();
     bool IsFreeLook();
     void DoEntering();
     virtual void Enter();
     virtual void DoPlayerCrawling() = 0;
     virtual void SetDirection( Direction direction ) = 0;
-    static Way * GetByObject( ruNodeHandle obj );
-    void Serialize( TextFileStream & out );
-    void Deserialize( TextFileStream & in );
+    static Way * GetByObject( ruSceneNode obj );
+    void Serialize( SaveFile & out );
+    void Deserialize( SaveFile & in );
 };

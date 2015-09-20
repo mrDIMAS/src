@@ -66,9 +66,11 @@ void ParticleEmitter::Update() {
             insideCoeff = 1.0f;
         }
         p.color = props.colorBegin.Lerp( props.colorEnd, insideCoeff );
-        p.mOpacity = 255.0f * ( 1.0f - insideCoeff );
+		float fakeOpacity = 255.0f * ( 1.0f - insideCoeff );
+        p.mOpacity = fakeOpacity + props.alphaOffset;
         p.size += props.scaleFactor;
 
+		
         if( p.mOpacity <= 1.0f  ) {
             if( props.autoResurrectDeadParticles ) {
                 ResurrectParticle( p );
@@ -227,7 +229,7 @@ ParticleEmitter::Particle::Particle( const ruVector3 & thePosition, const ruVect
 CreateParticleSystem
 ===============
 */
-ruNodeHandle ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps ) {
+ruSceneNode ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps ) {
     SceneNode * node = new SceneNode;
     node->particleEmitter = new ParticleEmitter( node, particleNum, creationProps );
     return SceneNode::HandleFromPointer( node );
@@ -238,7 +240,7 @@ ruNodeHandle ruCreateParticleSystem( int particleNum, ruParticleSystemProperties
  GetParticleSystemAliveParticles
  ===============
 */
-int ruGetParticleSystemAliveParticles( ruNodeHandle ps ) {
+int ruGetParticleSystemAliveParticles( ruSceneNode ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
     if( n->particleEmitter ) {
@@ -253,7 +255,7 @@ int ruGetParticleSystemAliveParticles( ruNodeHandle ps ) {
 ResurrectDeadParticles
 ===============
 */
-void ruResurrectDeadParticles( ruNodeHandle ps ) {
+void ruResurrectDeadParticles( ruSceneNode ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
     if( n->particleEmitter ) {
@@ -266,7 +268,7 @@ void ruResurrectDeadParticles( ruNodeHandle ps ) {
 GetParticleSystemProperties
 ===============
 */
-ruParticleSystemProperties * ruGetParticleSystemProperties( ruNodeHandle ps ) {
+ruParticleSystemProperties * ruGetParticleSystemProperties( ruSceneNode ps ) {
     SceneNode * n = SceneNode::CastHandle( ps );
 
     if( n->particleEmitter ) {

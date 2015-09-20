@@ -64,7 +64,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     }
   
     if( !CreateRenderWindow( width, height, fullscreen )) {
-        return;
+		Log::Error( "Failed to create render window! Engine initialization failed!" );
     }
 
     // try to create Direct3D9
@@ -258,14 +258,11 @@ void Engine::RenderWorld() {
     // clear statistics
     mDIPCount = 0;
     mTextureChangeCount = 0;
-    // build view and projection matrices, frustum, also attach sound listener to camera
-    Camera::msCurrentCamera->Update();
+
     // precalculations
     for( auto node : SceneNode::msNodeList ) {
-        node->CalculateGlobalTransform();
-        node->PerformAnimation();
-        // update all sounds attached to node, and physical interaction sounds( roll, hit )
-        node->UpdateSounds();
+        //node->CalculateGlobalTransform();
+
         // skip frustum flag, it will be set to true, if one of node's mesh
         // are in frustum
         node->mInFrustum = false;
@@ -369,7 +366,7 @@ void Engine::UpdateMessagePump() {
     while ( PeekMessage ( &message, NULL, 0, 0, PM_REMOVE ) ) {
         DispatchMessage ( &message );
         if ( message.message == WM_QUIT ) {
-            ruFreeRenderer();
+            Shutdown();
         }
     }
 }
@@ -377,7 +374,7 @@ void Engine::UpdateMessagePump() {
 LRESULT CALLBACK Engine::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
     switch ( msg ) {
     case WM_DESTROY:
-        ruFreeRenderer();
+        ruEngine::Free();
         PostQuitMessage ( 0 );
         break;
 
@@ -765,159 +762,3 @@ void Engine::SetDefaults()
 // API
 //////////////////////////////////////////////////////////
 
-void ruSetSpotLightShadowMapSize( int size ) {
-    Engine::Instance().SetSpotLightShadowMapSize( size );
-}
-
-void ruEnableSpotLightShadows( bool state ) {
-    Engine::Instance().SetSpotLightShadowsEnabled( state );
-}
-
-bool ruIsSpotLightShadowsEnabled() {
-    return Engine::Instance().IsSpotLightShadowsEnabled();
-}
-
-int ruDIPs( ) {
-    return Engine::Instance().GetDIPCount();
-}
-
-int ruCreateRenderer( int width, int height, int fullscreen, char vSync ) {
-    Engine::Instance().Initialize( width, height, fullscreen, vSync ) ;
-    return 1;
-}
-
-void ruSetAmbientColor( ruVector3 color ) {
-    Engine::Instance().SetAmbientColor( color );
-}
-
-int ruGetAvailableTextureMemory() {
-    return Engine::Instance().GetDevice()->GetAvailableTextureMem();
-}
-
-ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
-    btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
-    btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
-
-    btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
-    Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
-
-    if ( rayCallback.hasHit() ) {
-        const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
-        if ( pBody ) {
-            SceneNode * node = ( SceneNode * ) pBody->getUserPointer();
-
-            if ( node ) {
-                if( outPickPoint ) {
-                    outPickPoint->x = rayCallback.m_hitPointWorld.x();
-                    outPickPoint->y = rayCallback.m_hitPointWorld.y();
-                    outPickPoint->z = rayCallback.m_hitPointWorld.z();
-                };
-
-                return SceneNode::HandleFromPointer( node );
-            }
-        }
-    }
-
-    return SceneNode::HandleFromPointer( 0 );
-}
-
-ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
-    D3DVIEWPORT9 vp;
-    Engine::Instance().GetDevice()->GetViewport( &vp );
-    // Find screen coordinates normalized to -1,1
-    D3DXVECTOR3 coord;
-    coord.x = ( ( ( 2.0f * x ) / (float)vp.Width ) - 1 );
-    coord.y = - ( ( ( 2.0f * y ) / (float)vp.Height ) - 1 );
-    coord.z = -1.0f;
-
-    // Back project the ray from screen to the far clip plane
-    coord.x /= Camera::msCurrentCamera->mProjection._11;
-    coord.y /= Camera::msCurrentCamera->mProjection._22;
-
-    D3DXMATRIX matinv = Camera::msCurrentCamera->mView;
-    D3DXMatrixInverse( &matinv, NULL, &matinv );
-
-    coord *= Camera::msCurrentCamera->mFarZ;
-    D3DXVec3TransformCoord ( &coord, &coord, &matinv );
-
-    btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
-    btVector3 rayBegin = Camera::msCurrentCamera->mGlobalTransform.getOrigin();
-
-    btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
-    Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
-
-    if ( rayCallback.hasHit() ) {
-        const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
-        if ( pBody ) {
-            SceneNode * node = ( SceneNode * ) pBody->getUserPointer();
-
-            if ( node ) {
-                if( outPickPoint ) {
-                    outPickPoint->x = rayCallback.m_hitPointWorld.x();
-                    outPickPoint->y = rayCallback.m_hitPointWorld.y();
-                    outPickPoint->z = rayCallback.m_hitPointWorld.z();
-                };
-
-                return SceneNode::HandleFromPointer( node );
-            }
-        }
-    }
-
-    return SceneNode::HandleFromPointer( 0 );
-}
-
-int ruGetRendererMaxAnisotropy() {
-    D3DCAPS9 caps;
-    Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
-
-    return caps.MaxAnisotropy;
-}
-
-void ruChangeVideomode( int width, int height, int fullscreen, char vSync ) {
-	Engine::Instance().ChangeVideomode( width, height, fullscreen, vSync );
-}
-
-int ruFreeRenderer( ) {
-    Engine::Instance().Shutdown();
-    return 1;
-}
-
-int ruGetResolutionWidth( ) {
-    return Engine::Instance().GetResolutionWidth();
-}
-
-int ruGetResolutionHeight( ) {
-    return Engine::Instance().GetResolutionHeight();
-}
-
-int ruTextureUsedPerFrame( ) {
-    return Engine::Instance().GetTextureChangeCount();
-}
-
-int ruRenderWorld( ) {
-    Engine::Instance().RenderWorld();
-    return 1;
-}
-
-void ruEnableShadows( bool state ) {
-    Engine::Instance().SetSpotLightShadowsEnabled( state );
-    Engine::Instance().SetPointLightShadowsEnabled( state );
-}
-
-void ruSetHDREnabled( bool state ) {
-    Engine::Instance().SetHDREnabled( state );
-}
-
-void ruSetAnisotropicTextureFiltration( bool state ) {
-	Engine::Instance().SetAnisotropicTextureFiltration( state );
-}
-
-bool ruIsHDREnabled( ) {
-    return Engine::Instance().IsHDREnabled();
-}
-
-void ruUpdateWorld() {
-	for( auto node : SceneNode::msNodeList ) {
-		node->CalculateGlobalTransform();
-	}
-}

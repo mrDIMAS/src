@@ -55,6 +55,10 @@ float ruVector3::Angle( const ruVector3 & v ) {
     return acosf( Dot(v) / s );
 }
 
+ruVector3 ruVector3::Abs( ) const {
+	return ruVector3( abs( x ), abs( y ), abs( z ));
+}
+
 void ruVector3::operator /= ( const ruVector3 & v ) {
     x /= v.x;
     y /= v.y;

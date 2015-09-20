@@ -2,34 +2,44 @@
 
 #include "Game.h"
 #include "LiftDoor.h"
+#include "SaveFile.h"
+
 class Lift {
 private:
-    ruNodeHandle mBaseNode;
-    ruNodeHandle mControlPanel;
-    ruNodeHandle mSourceNode;
-    ruNodeHandle mDestNode;
-    ruNodeHandle mTargetNode;
-    ruNodeHandle mDoorFrontLeftNode;
-    ruNodeHandle mDoorFrontRightNode;
-    ruNodeHandle mDoorBackLeftNode;
-    ruNodeHandle mDoorBackRightNode;
+    ruSceneNode mBaseNode;
+    ruSceneNode mControlPanel;
+    ruSceneNode mSourceNode;
+    ruSceneNode mDestNode;
+    ruSceneNode mTargetNode;
+    ruSceneNode mDoorFrontLeftNode;
+    ruSceneNode mDoorFrontRightNode;
+    ruSceneNode mDoorBackLeftNode;
+    ruSceneNode mDoorBackRightNode;
     bool mArrived;
-    ruSoundHandle mMotorSound;
-	LiftDoor * mDoorFrontLeft;
-	LiftDoor * mDoorFrontRight;
-	LiftDoor * mDoorBackLeft;
-	LiftDoor * mDoorBackRight;
+	bool mPaused;
+	bool mEngineSoundEnabled;
+	float mSpeedMultiplier;
+    ruSound mMotorSound;
+	unique_ptr<LiftDoor> mDoorFrontLeft;
+	unique_ptr<LiftDoor> mDoorFrontRight;
+	unique_ptr<LiftDoor> mDoorBackLeft;
+	unique_ptr<LiftDoor> mDoorBackRight;
 public:
-    explicit Lift( ruNodeHandle base );
+    explicit Lift( ruSceneNode base );
     virtual ~Lift( );
-    void SetControlPanel( ruNodeHandle panel );
-    void SetDestinationPoint( ruNodeHandle destNode );
-    void SetSourcePoint( ruNodeHandle sourceNode );
-    void SetMotorSound( ruSoundHandle motorSound );
-    void SetFrontDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor );
-    void SetBackDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor );
+    void SetControlPanel( ruSceneNode panel );
+    void SetDestinationPoint( ruSceneNode destNode );
+    void SetSourcePoint( ruSceneNode sourceNode );
+    void SetMotorSound( ruSound motorSound );
+    void SetFrontDoors( ruSceneNode leftDoor, ruSceneNode rightDoor );
+    void SetBackDoors( ruSceneNode leftDoor, ruSceneNode rightDoor );
     bool IsArrived( );
     void Update();
 	void SetDoorsLocked( bool state );
 	bool IsAllDoorsClosed();
+	void SetPaused( bool state );
+	void SetEngineSoundEnabled( bool state );
+	void SetSpeedMultiplier( float mult );
+	void Deserialize( SaveFile & in );
+	void Serialize( SaveFile & out );
 };

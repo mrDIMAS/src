@@ -8,44 +8,73 @@ ruAnimation::ruAnimation() {
     beginFrame = 0;
     endFrame = 0;
     currentFrame = 0;
-    animSpeed = 0.0f;
+    duration = 0.0f;
     interpolator = 0.0f;
     nextFrame = 0;
+	enabled = false;
 }
 
-ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theAnimSpeed, bool theLooped ) {
+ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped ) {
     currentFrame = theBeginFrame;
     nextFrame = currentFrame + 1;
     beginFrame = theBeginFrame;
     endFrame = theEndFrame;
-    animSpeed = theAnimSpeed;
+    duration = theDuration;
     looped = theLooped;
+	enabled = false;
     interpolator = 0.0f;
 }
 
-void ruAnimation::Update() {
-    if ( interpolator >= 1.0f ) {
-        currentFrame++;
-        // get next frame number
-        if( currentFrame > endFrame ) {
-            currentFrame = beginFrame;
-            nextFrame = currentFrame + 1;
-        } else if( currentFrame == endFrame ) { //
-            if ( !looped ) {
-                // find all nodes, which use this animation and disable it's animationEnabled flag
-                for( auto node : SceneNode::msNodeList ) {
-                    if( node->mCurrentAnimation == this ) {
-                        node->mAnimationEnabled = false;
-                    }
-                }
-            }
-            nextFrame = beginFrame;
-        } else {
-            nextFrame = currentFrame + 1;
-        }
-        interpolator = 0.0f;
-    }
-    interpolator += animSpeed;
+void ruAnimation::AddFrameListener( int frameNum, const ruDelegate & action ) {
+	if( frameNum >= 0 || frameNum < endFrame ) {
+		mFrameListenerList[ frameNum ] = AnimationEvent();
+		mFrameListenerList[ frameNum ].Event.AddListener( action );
+	}
+}
+
+void ruAnimation::Rewind() {
+	currentFrame = beginFrame;
+	nextFrame = beginFrame + 1;
+	interpolator = 0.0f;
+	for( auto & frameActionPair : mFrameListenerList ) {
+		frameActionPair.second.mState = false;
+	}
+}
+
+void ruAnimation::Update( float dt ) {
+	if( enabled ) {
+		if ( interpolator >= 1.0f ) {
+			currentFrame++;
+			// get next frame number
+			if( currentFrame > endFrame ) {
+				currentFrame = beginFrame;
+				nextFrame = currentFrame + 1;
+			} else if( currentFrame == endFrame ) { //
+				if ( !looped ) {
+					enabled = false;
+				}
+				nextFrame = beginFrame;
+
+				for( auto & frameActionPair : mFrameListenerList ) {
+					frameActionPair.second.mState = false;
+				}
+			} else {
+				nextFrame = currentFrame + 1;
+			}
+			interpolator = 0.0f;
+		}
+
+		interpolator += dt * ( ( endFrame - beginFrame ) / duration );
+
+		for( auto & frameActionPair : mFrameListenerList ) {
+			if( !frameActionPair.second.mState ) {
+				if( currentFrame == frameActionPair.first ) {
+					frameActionPair.second.Event.DoActions();
+					frameActionPair.second.mState = true;
+				}
+			}
+		}
+	}
 }
 
 void ruAnimation::SetCurrentFrame( int frame ) {

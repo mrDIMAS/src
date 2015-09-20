@@ -3,14 +3,14 @@
 #include "Ladder.h"
 #include "Player.h"
 
-Ladder::Ladder( ruNodeHandle hBegin, ruNodeHandle hEnd, ruNodeHandle hEnterZone, ruNodeHandle hBeginLeavePoint, ruNodeHandle hEndLeavePoint )
+Ladder::Ladder( ruSceneNode hBegin, ruSceneNode hEnd, ruSceneNode hEnterZone, ruSceneNode hBeginLeavePoint, ruSceneNode hEndLeavePoint )
     : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
     mFreeLook = true;
 }
 
 void Ladder::DoPlayerCrawling() {
     if( !mEntering ) {
-        ruVector3 direction = ruGetNodePosition( mTarget ) - pPlayer->GetCurrentPosition();
+        ruVector3 direction = mTarget.GetPosition() - pPlayer->GetCurrentPosition();
 
         float distance = direction.Length();
 
@@ -22,7 +22,7 @@ void Ladder::DoPlayerCrawling() {
             if( distance < 0.25f ) {
                 mLeave = true;
 
-                if( ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mEnd )).Length2() < ( pPlayer->GetCurrentPosition() - ruGetNodePosition( mBegin )).Length2()) {
+                if( ( pPlayer->GetCurrentPosition() - mEnd.GetPosition() ).Length2() < ( pPlayer->GetCurrentPosition() - mBegin.GetPosition() ).Length2()) {
                     mTarget = mEndLeavePoint;
                 } else {
                     mTarget = mBeginLeavePoint;
@@ -35,7 +35,7 @@ void Ladder::DoPlayerCrawling() {
 }
 
 void Ladder::DoLeave() {
-    ruVector3 direction = ruGetNodePosition( mTarget ) - pPlayer->GetCurrentPosition();
+    ruVector3 direction = mTarget.GetPosition() - pPlayer->GetCurrentPosition();
 
     float distance = direction.Length();
 

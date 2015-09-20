@@ -2,14 +2,14 @@
 
 #include "SmoothFloat.h"
 
-void SmoothFloat::Deserialize( TextFileStream & in ) {
+void SmoothFloat::Deserialize( SaveFile & in ) {
     mValue = in.ReadFloat();
     mChase = in.ReadFloat();
     mMin = in.ReadFloat();
     mMax = in.ReadFloat();
 }
 
-void SmoothFloat::Serialize( TextFileStream & out ) {
+void SmoothFloat::Serialize( SaveFile & out ) {
     out.WriteFloat( mValue );
     out.WriteFloat( mChase );
     out.WriteFloat( mMin );

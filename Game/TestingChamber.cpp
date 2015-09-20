@@ -9,7 +9,7 @@
 TestingChamber::TestingChamber( ) {
     LoadSceneFromFile( "data/maps/candidates/testingChamber/testingChamber.scene" );
 
-    pPlayer->SetPosition( ruGetNodePosition( ruFindByName("PlayerPosition") ) + ruVector3( 0, 1, 0 ) );
+    pPlayer->SetPosition( ruFindByName("PlayerPosition").GetPosition() + ruVector3( 0, 1, 0 ) );
 
     Item * fuelCanister = new Item( ruFindByName( "FuelCanister" ), Item::Type::FuelCanister );
     Item * detonator = new Item( ruFindByName( "Detonator" ), Item::Type::Detonator );
@@ -20,27 +20,27 @@ TestingChamber::TestingChamber( ) {
 
     Door * door = new Door( GetUniqueObject( "Door" ), 90 );
 
-    ruSetAmbientColor( ruVector3( 200, 200, 200 ));
+    ruEngine::SetAmbientColor( ruVector3( 200, 200, 200 ));
 
     // create path, bruteforce!!11
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path00" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path01" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path02" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path03" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path04" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path05" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path06" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path07" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path08" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path09" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path10" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "Path11" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "PathToLadder00" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "PathToLadder01" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "PathToLadder02" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "PathToLadder03" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "PathToLadder04" ))) );
-    path.push_back( new GraphVertex( ruGetNodePosition( GetUniqueObject( "PathToLadder05" ))) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path00" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path01" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path02" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path03" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path04" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path05" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path06" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path07" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path08" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path09" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path10" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path11" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder00" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder01" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder02" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder03" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder04" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder05" ).GetPosition()) );
 
     path[0]->AddEdge( path[1] );
     path[1]->AddEdge( path[2] );
@@ -81,6 +81,6 @@ void TestingChamber::Hide() {
 }
 
 void TestingChamber::DoScenario() {
-    ruSetAmbientColor( ruVector3( 200, 200, 200 ));
+    ruEngine::SetAmbientColor( ruVector3( 200, 200, 200 ));
     enemy->Think();
 }

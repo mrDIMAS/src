@@ -9,19 +9,19 @@
 #include "Engine.h"
 
 DeferredRenderer::DeferredRenderer() {
-    mFullscreenQuad = new EffectsQuad;
+    mFullscreenQuad = make_shared<EffectsQuad>();
     CreateBoundingVolumes();
-    mFXAA = new FXAA;
-    mGBuffer = new GBuffer;
-    mSpotLightShader = new SpotLightShader;
-    mAmbientLightShader = new AmbientLightShader;
-    mPointLightShader = new PointLightShader;
-    bvRenderer = new BoundingVolumeRenderingShader;
-    mSpotLightShadowMap = new SpotlightShadowMap;
-	mSkyboxShader = new SkyboxShader;
+    mFXAA = make_shared<FXAA>();
+    mGBuffer = make_shared<GBuffer>();
+    mSpotLightShader = make_shared<SpotLightShader>();
+    mAmbientLightShader = make_shared<AmbientLightShader>();
+    mPointLightShader = make_shared<PointLightShader>();
+    bvRenderer = make_shared<BoundingVolumeRenderingShader>();
+    mSpotLightShadowMap = make_shared<SpotlightShadowMap>();
+	mSkyboxShader = make_shared<SkyboxShader>();
     // check support of floating-point textures first
     if( Engine::Instance().IsTextureFormatOk( D3DFMT_A16B16G16R16 )) {
-        mHDRShader = new HDRShader;
+        mHDRShader = make_shared<HDRShader>();
     } else {
         mHDRShader = nullptr;
     }
@@ -29,20 +29,10 @@ DeferredRenderer::DeferredRenderer() {
 
 DeferredRenderer::~DeferredRenderer() {
 	OnLostDevice();
-    delete mGBuffer;
-    delete mFullscreenQuad;
-    delete mSpotLightShader;
-    delete mAmbientLightShader;
-    delete mPointLightShader;
-    delete bvRenderer;
-    delete mSpotLightShadowMap;
-    delete mFXAA;
-    delete mHDRShader;
-	delete mSkyboxShader;
 }
 
 GBuffer * DeferredRenderer::GetGBuffer() {
-    return mGBuffer;
+    return mGBuffer.get();
 }
 
 struct XYZNormalVertex {
@@ -533,9 +523,9 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
     if( size != mSpotLightShadowMap->iSize ) {
         if( mSpotLightShadowMap ) {
-            delete mSpotLightShadowMap;
+            mSpotLightShadowMap.reset();
         }
-        mSpotLightShadowMap = new SpotlightShadowMap( size );
+        mSpotLightShadowMap = make_shared<SpotlightShadowMap>( size );
     }
 }
 

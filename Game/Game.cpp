@@ -37,20 +37,21 @@ void main( ) {
     localizationPath = config.GetString( "languagePath" );
 
 #ifdef _DEBUG
-    ruCreateRenderer( 0, 0, 0, vSync );
+    ruEngine::Create( 0, 0, 0, vSync );
 #else
-    ruCreateRenderer( g_resW, g_resH, fullscreen, vSync );
+    ruEngine::Create( g_resW, g_resH, fullscreen, vSync );
 #endif
+
 	// get actual resolution settings
-	g_resW = ruGetResolutionWidth();
-	g_resH = ruGetResolutionHeight();
+	g_resW = ruEngine::GetResolutionWidth();
+	g_resH = ruEngine::GetResolutionHeight();
 
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
 	
     pGUI = new GUI;
     pMainMenu = new Menu;
-    ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
+    ruEngine::SetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     FPSCounter fpsCounter;
 
     ruTimerHandle dtTimer = ruCreateTimer();
@@ -60,10 +61,10 @@ void main( ) {
     double gameClock = ruGetTimeInSeconds( dtTimer );
 
     ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
-    ruShowCursor();
+    ruEngine::ShowCursor();
 
     while( g_running ) {
-        ruRenderWorld( );
+        ruEngine::RenderWorld( );
 
         double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
         while( dt >= gFixedTick ) {
@@ -101,10 +102,10 @@ void main( ) {
                 }
                 InteractiveObject::UpdateAll();
 			}
-            ruSetGUINodeText( fpsText, StringBuilder( "DIPs: " ) << ruDIPs() << "\nTCs: " << ruTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
+            ruSetGUINodeText( fpsText, StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() << "\nTCs: " << ruEngine::GetTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
             ruSetGUINodeVisible( fpsText, g_showFPS );
 			// recalculate transforms of scene nodes
-			ruUpdateWorld();
+			ruEngine::UpdateWorld();
         }			
 		fpsCounter.RegisterFrame();
     }
@@ -117,7 +118,7 @@ void main( ) {
     }
     delete pMainMenu;
     delete pGUI;
-    ruFreeRenderer();
+    ruEngine::Free();
 	std::locale::global(std::locale::classic()); 
 }
 

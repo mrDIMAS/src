@@ -5,25 +5,44 @@
 #include "AmbientSoundSet.h"
 
 class LevelArrival : public Level {
+private:
+	void ActLiftCrash_PowerDown();
+	void ActLiftCrash_AfterPowerDown();
+	void ActLiftCrash_AfterFirstStressSound();
+	void ActLiftCrash_AfterFalldown();
+	void GeneratorEnableAction( );
+	void ActGenerator_Start();
+	void ActGenerator_OnLine();
+	bool mChangeLevel;
 public:
     // Sounds
-    ruSoundHandle windSound;
-    ruSoundHandle generatorSound;
-    ruSoundHandle explosionSound;
-    ruSoundHandle strangeSound;
-
+    ruSound mWindSound;
+    ruSound mGeneratorSound;
+	ruSound mPowerDownSound;
+	ruSound mMetalWhineSound;
+	ruSound mMetalStressSound;
+	ruSound mLiftFallSound;
+	ruSound mGeneratorStartSound;
     // Zones
-    ruNodeHandle strangeSoundZone;
-    ruNodeHandle rocksFallZone;
-    ruNodeHandle nextLevelLoadZone;
+	ruSceneNode mLiftStopZone;
+	ruSceneNode mGeneratorSmoke;
+	ruVector3 mGeneratorSmokePosition;
 
     // Entities
-    ruNodeHandle rocks;
-    ruNodeHandle rocksPos;
-    ruNodeHandle generator;
+    ruSceneNode mGenerator;
 
-    ruNodeHandle lamp1;
-    ruNodeHandle lamp2;
+    ruSceneNode mLamp1;
+    ruSceneNode mLamp2;
+
+	ruSceneNode mLiftLamp;
+
+	ActionSeries mLiftCrashSeries;
+	ActionSeries mGeneratorStartSeries;
+
+	shared_ptr<Lift> mLift;
+	Button * mGeneratorButton;
+
+	bool mPowerRestored;
 
     LevelArrival( );
     ~LevelArrival( );
@@ -31,12 +50,6 @@ public:
     virtual void DoScenario();
     virtual void Show();
     virtual void Hide();
-
-    virtual void OnSerialize( TextFileStream & out ) final {
-
-    }
-
-    virtual void OnDeserialize( TextFileStream & in ) final {
-
-    }
+    virtual void OnSerialize( SaveFile & out ) final;
+    virtual void OnDeserialize( SaveFile & in ) final;
 };

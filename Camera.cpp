@@ -7,7 +7,7 @@
 
 Camera * Camera::msCurrentCamera = nullptr;
 
-Camera * Camera::CastHandle( ruNodeHandle handle ) {
+Camera * Camera::CastHandle( ruSceneNode handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
 
     Camera * camera = dynamic_cast< Camera* >( n );
@@ -179,19 +179,19 @@ void Camera::OnLostDevice()
 // API
 /////////////////////////////////////////////////////////////
 
-ruNodeHandle ruCreateCamera( float fov ) {
+ruSceneNode ruCreateCamera( float fov ) {
     return SceneNode::HandleFromPointer( new Camera( fov ) );
 }
 
-void ruSetCameraFOV( ruNodeHandle camera, float fov ) {
+void ruSetCameraFOV( ruSceneNode camera, float fov ) {
     Camera::CastHandle( camera )->mFov = fov;
 }
 
-void ruSetActiveCamera( ruNodeHandle node ) {
+void ruSetActiveCamera( ruSceneNode node ) {
     Camera::msCurrentCamera = Camera::CastHandle( node );
 }
 
-int ruSetCameraSkybox( ruNodeHandle node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back ) {
+int ruSetCameraSkybox( ruSceneNode node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back ) {
     Camera::CastHandle( node )->SetSkyBox( (Texture*)up.pointer, (Texture*)left.pointer, (Texture*)right.pointer, (Texture*)forward.pointer, (Texture*)back.pointer );
     return 1;
 }

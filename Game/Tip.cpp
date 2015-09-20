@@ -2,7 +2,7 @@
 
 #include "Tip.h"
 
-void Tip::Deserialize( TextFileStream & in ) {
+void Tip::Deserialize( SaveFile & in ) {
     mAlpha.Deserialize( in );
     in.ReadInteger( mX );
     mY.Deserialize( in );
@@ -10,7 +10,7 @@ void Tip::Deserialize( TextFileStream & in ) {
     in.ReadInteger( mHeight );
 }
 
-void Tip::Serialize( TextFileStream & out ) {
+void Tip::Serialize( SaveFile & out ) {
     mAlpha.Serialize( out );
     out.WriteInteger( mX );
     mY.Serialize( out );
@@ -33,8 +33,8 @@ void Tip::SetNewText( string text ) {
     ruRestartTimer( mTimer );
     mAlpha.Set( 255.0f );
 	ruSetGUINodeText( mGUIText, text );
-    mY.SetMax( ruGetResolutionHeight() - mHeight );
-    mY.SetMin( ruGetResolutionHeight() / 2 + mHeight );
+    mY.SetMax( ruEngine::GetResolutionHeight() - mHeight );
+    mY.SetMin( ruEngine::GetResolutionHeight() / 2 + mHeight );
     mY.Set( mY.GetMin());
 }
 
@@ -42,7 +42,7 @@ Tip::Tip() : mAlpha( 255.0f, 0.0f, 255.0f ) {
     mTimer = ruCreateTimer();
     mWidth = 256;
     mHeight = 32;
-    mX = ruGetResolutionWidth() / 2 - mWidth / 2;
+    mX = ruEngine::GetResolutionWidth() / 2 - mWidth / 2;
     mGUIText = ruCreateGUIText( " ", 0, 0, mWidth, mHeight, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , mAlpha );
 	SetNewText( " " );
 }

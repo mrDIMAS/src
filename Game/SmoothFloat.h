@@ -2,7 +2,7 @@
 
 #include <math.h>
 #include <limits.h>
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
 class SmoothFloat {
 protected:
@@ -28,6 +28,6 @@ public:
     void operator = ( float f ) {
         mValue = f;
     }
-    void Serialize( TextFileStream & out );
-    void Deserialize( TextFileStream & in );
+    void Serialize( SaveFile & out );
+    void Deserialize( SaveFile & in );
 };

@@ -56,11 +56,9 @@ ForwardRenderer::~ForwardRenderer() {
 	for( auto pMesh : meshList ) {
 		delete pMesh;
 	}
-    delete mPixelShader;
-    delete mVertexShader;
 }
 
 ForwardRenderer::ForwardRenderer() {
-    mVertexShader = new VertexShader( "data/shaders/forwardTransparent.vso" );
-    mPixelShader = new PixelShader( "data/shaders/forwardTransparent.pso" );
+    mVertexShader = make_shared<VertexShader>( "data/shaders/forwardTransparent.vso" );
+    mPixelShader = make_shared<PixelShader>( "data/shaders/forwardTransparent.pso" );
 }

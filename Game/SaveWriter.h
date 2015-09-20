@@ -2,9 +2,9 @@
 
 #include "Game.h"
 #include "ItemPlace.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
-class SaveWriter : public TextFileStream {
+class SaveWriter : public SaveFile {
 private:
     void SavePlayerInventory();
     void SaveItemPlaces();

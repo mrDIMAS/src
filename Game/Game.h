@@ -10,7 +10,8 @@ enum class FootstepsType {
 };
 
 enum LevelName {
-    LUndefined = 0,
+    LUndefined = -1,
+	LCSIntro = 0,
     L0Introduction = 1,
     L1Arrival,
     L2Mine,

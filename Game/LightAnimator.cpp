@@ -2,7 +2,7 @@
 
 #include "LightAnimator.h"
 
-LightAnimator::LightAnimator( ruNodeHandle lit, float as, float onRange, float peakRangeMult ) {
+LightAnimator::LightAnimator( ruSceneNode lit, float as, float onRange, float peakRangeMult ) {
     if( !ruIsLight( lit )) {
         RaiseError( "Node is not a light!" );
     }

@@ -6,10 +6,10 @@ class Lamp {
 private:
 	void PlaySounds();
 public:
-	ruSoundHandle mBuzzSound;
-	ruNodeHandle mLamp;
+	ruSound mBuzzSound;
+	ruSceneNode mLamp;
 
-	explicit Lamp( ruNodeHandle lamp, ruSoundHandle buzz );
+	explicit Lamp( ruSceneNode lamp, ruSound buzz );
 
 	void Hide();
 

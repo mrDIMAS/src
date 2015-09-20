@@ -10,7 +10,7 @@ private:
     ruRectHandle mGUIBackground;
     ruTextHandle mGUIText;
 public:
-    explicit Sheet( ruNodeHandle object, string desc, string text );
+    explicit Sheet( ruSceneNode object, string desc, string text );
     virtual ~Sheet();
     void Update();
     void Draw( );
@@ -19,8 +19,8 @@ public:
     void SetDescription( const string & description );
     const string & GetDescription( ) const;
     void SetVisible( bool state );
-    static Sheet * GetSheetPointerByNode( ruNodeHandle o );
+    static Sheet * GetSheetPointerByNode( ruSceneNode o );
     static vector<Sheet*> msSheetList;
-    static ruSoundHandle msPaperFlipSound;
+    static ruSound msPaperFlipSound;
     static ruFontHandle msSheetFont;
 };

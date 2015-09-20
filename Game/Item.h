@@ -42,7 +42,7 @@ private:
 	void Initialize( Type type );
 public:
 	ruEvent OnPickup;
-    explicit Item( ruNodeHandle obj, Type type );
+    explicit Item( ruSceneNode obj, Type type );
 	explicit Item( Type type );
     virtual ~Item();
 	void Repair();
@@ -67,6 +67,6 @@ public:
     bool IsFree();
 	void PickUp();
     static vector<Item*> msItemList;
-    static Item * GetItemPointerByNode( ruNodeHandle obj );
+    static Item * GetItemPointerByNode( ruSceneNode obj );
 };
 

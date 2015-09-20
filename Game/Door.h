@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Game.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
 class Door {
 public:
@@ -16,18 +16,18 @@ public:
 		Counterclockwise,
 	};
 public:
-    ruNodeHandle mDoorNode;
+    ruSceneNode mDoorNode;
     float mMaxAngle;
     float mOffsetAngle;
     float mCurrentAngle;
 	TurnDirection mTurnDirection;
     State mState;
 	bool mLocked;
-    ruSoundHandle mOpenSound;
-    ruSoundHandle mCloseSound;
+    ruSound mOpenSound;
+    ruSound mCloseSound;
 public:
     static vector< Door* > msDoorList;
-    explicit Door( ruNodeHandle hDoor, float fMaxAngle );
+    explicit Door( ruSceneNode hDoor, float fMaxAngle );
     virtual ~Door();
     bool IsPickedByPlayer();
     void SwitchState();
@@ -38,7 +38,7 @@ public:
     void Open( );
     void Close();
     virtual void DoInteraction();	
-	void Serialize( TextFileStream & out );
-	void Deserialize( TextFileStream & in );
+	void Serialize( SaveFile & out );
+	void Deserialize( SaveFile & in );
 	static Door * GetByName( const string & name );
 };

@@ -3,7 +3,7 @@
 #include "Game.h"
 #include "GUI.h"
 #include "SmoothFloat.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
 class Tip {
 private:
@@ -20,6 +20,6 @@ public:
 	void SetVisible( bool state );
     void SetNewText( string text );
     void AnimateAndDraw();
-    void Serialize( TextFileStream & out );
-    void Deserialize( TextFileStream & in );
+    void Serialize( SaveFile & out );
+    void Deserialize( SaveFile & in );
 };

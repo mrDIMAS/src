@@ -6,14 +6,14 @@
 
 class ItemPlace {
 public:
-    ruNodeHandle mObject;
+    ruSceneNode mObject;
     Item::Type mItemTypeCanBePlaced;
     Item * pPlacedItem;
 public:
     static vector<ItemPlace*> sItemPlaceList;
-    explicit ItemPlace( ruNodeHandle obj, Item::Type itemTypeCanBePlaced );
+    explicit ItemPlace( ruSceneNode obj, Item::Type itemTypeCanBePlaced );
     virtual ~ItemPlace();
-    static ItemPlace * FindByObject( ruNodeHandle handle );
+    static ItemPlace * FindByObject( ruSceneNode handle );
     bool PlaceItem( Item * item );
     Item * GetPlacedItem( );
     bool IsPickedByPlayer() const;

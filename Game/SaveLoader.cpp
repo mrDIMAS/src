@@ -21,7 +21,7 @@ void SaveLoader::RestoreWorldState() {
     for( int i = 0; i < itemCount; i++ ) {
         string itemName = ReadString();
 
-        ruNodeHandle itemObject = ruFindByName( itemName);
+        ruSceneNode itemObject = ruFindByName( itemName);
 
         if( itemObject.IsValid() ) {
             Item * item = Item::GetItemPointerByNode( itemObject );
@@ -66,12 +66,18 @@ void SaveLoader::RestoreWorldState() {
     }
 
     pPlayer->Deserialize( *this );
+
+	// restore sound playback positions
+	int count = ReadInteger();
+	for( int i = 0; i < count; i++ ) {
+		ruSound::GetSound( i ).SetPlaybackPosition( ReadFloat() );
+	}
 }
 
 SaveLoader::~SaveLoader() {
 
 }
 
-SaveLoader::SaveLoader( string fn ) : TextFileStream( fn, false ) {
+SaveLoader::SaveLoader( string fn ) : SaveFile( fn, false ) {
 
 }

@@ -3,24 +3,24 @@
 #include "Actor.h"
 
 void Actor::Move( ruVector3 direction, float speed ) {
-	ruMoveNode( mBody, direction * speed  );
+	mBody.Move( direction * speed  );
 }
 
 void Actor::Step( ruVector3 direction, float speed )
 {
 	// spring based step
-	ruVector3 currentPosition = ruGetNodePosition( mBody );
+	ruVector3 currentPosition = mBody.GetPosition();
 	ruVector3 rayBegin = currentPosition;
 	ruVector3 rayEnd = rayBegin - ruVector3( 0, 5, 0 );
 	ruVector3 intPoint;
-	ruNodeHandle rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
+	ruSceneNode rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
 	ruVector3 pushpullVelocity;
 	if( rayResult.IsValid() && !(rayResult == mBody) ) {
-		if( ruGetContactCount( rayResult ) > 0 ) {
+		if( rayResult.GetContactCount() > 0 ) {
 			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4.4f;
 		}		
 	}
-	ruMoveNode( mBody, direction * speed + pushpullVelocity );
+	mBody.Move( direction * speed + pushpullVelocity );
 }
 
 Actor::Actor( float height, float width ) :	mBodyHeight( height ), 
@@ -30,55 +30,55 @@ Actor::Actor( float height, float width ) :	mBodyHeight( height ),
 											mCrouchMultiplier( 1.0f )
 {
     mBody = ruCreateSceneNode();
-    ruSetCapsuleBody( mBody, mBodyHeight, mBodyWidth );
-    ruSetAngularFactor( mBody, ruVector3( 0, 0, 0 ));
-    ruSetNodeFriction( mBody, 0 );
-    ruSetNodeAnisotropicFriction( mBody, ruVector3( 1, 1, 1 ));
-    ruSetNodeDamping( mBody, 0, 0 );
-    ruSetNodeMass( mBody, 2 );
-    ruSetNodeGravity( mBody, ruVector3( 0, 0, 0 ));
+    mBody.SetCapsuleBody( mBodyHeight, mBodyWidth );
+    mBody.SetAngularFactor( ruVector3( 0, 0, 0 ));
+    mBody.SetFriction( 0 );
+    mBody.SetAnisotropicFriction( ruVector3( 1, 1, 1 ));
+    mBody.SetDamping( 0, 0 );
+    mBody.SetMass( 2 );
+    mBody.SetGravity( ruVector3( 0, 0, 0 ));
 
 	mMaxHealth = 100;
 	mHealth = mMaxHealth;
 }
 
 void Actor::SetPosition( ruVector3 position ) {
-    ruSetNodePosition( mBody, position );
+    mBody.SetPosition( position );
 }
 
 Actor::~Actor() {
-	ruFreeSceneNode( mBody );
+	mBody.Free();
 }
 
-char Actor::IsInsideZone( ruNodeHandle zone ) {
-    return ruIsNodeInsideNode( mBody, zone );
+char Actor::IsInsideZone( ruSceneNode zone ) {
+    return mBody.IsInsideNode( zone );
 }
 
 ruVector3 Actor::GetCurrentPosition() {
-    return ruGetNodePosition( mBody );
+    return mBody.GetPosition();
 }
 
 void Actor::StopInstant() {
-    ruMoveNode( mBody, ruVector3( 0.0f, 0.0f, 0.0f ));
+    mBody.Move( ruVector3( 0.0f, 0.0f, 0.0f ));
 }
 
 void Actor::Unfreeze() {
-    ruUnfreeze( mBody );
+    mBody.Unfreeze();
 }
 
 void Actor::Freeze() {
-    ruFreeze( mBody );
+    mBody.Freeze();
 }
 
 ruVector3 Actor::GetLookDirection() {
-    return ruGetNodeLookVector( mBody );
+    return mBody.GetLookVector();
 }
 
 void Actor::SetBodyVisible( bool state ) {
 	if( state ) {
-		ruShowNode( mBody );
+		mBody.Show();
 	} else {
-		ruHideNode( mBody );
+		mBody.Hide();
 	}
 }
 
@@ -91,9 +91,9 @@ void Actor::Crouch( bool state ) {
 
 	// stand up only if we can
 	ruVector3 pickPoint;
-	ruVector3 rayBegin = ruGetNodePosition(mBody) + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
-	ruVector3 rayEnd = ruGetNodePosition(mBody) + ruVector3(0, mBodyHeight * 1.05f, 0);
-	ruNodeHandle upCast = ruCastRay( rayBegin, rayEnd, &pickPoint);
+	ruVector3 rayBegin = mBody.GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
+	ruVector3 rayEnd = mBody.GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
+	ruSceneNode upCast = ruCastRay( rayBegin, rayEnd, &pickPoint);
 	if( upCast.IsValid() ) {
 		if( !mCrouch ) {
 			mCrouch = true;
@@ -114,7 +114,7 @@ void Actor::UpdateCrouch() {
 		}
 	}
 
-	ruSetNodeBodyLocalScale( mBody, ruVector3( 1.0f, mCrouchMultiplier, 1.0f ));
+	mBody.SetLocalScale( ruVector3( 1.0f, mCrouchMultiplier, 1.0f ));
 }
 
 bool Actor::IsCrouch() {
@@ -136,10 +136,10 @@ void Actor::Heal( float howMuch ) {
 }
 
 void Actor::ManageEnvironmentDamaging() {
-	for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
-		ruContact contact = ruGetContact( mBody, i );
+	for( int i = 0; i < mBody.GetContactCount(); i++ ) {
+		ruContact contact = mBody.GetContact( i );
 		if( contact.body.IsValid()) {
-			if( ruGetNodeLinearVelocity( contact.body ).Length2() >= 2.0f ) {
+			if( contact.body.GetLinearVelocity().Length2() >= 2.0f ) {
 				Damage( contact.impulse / 2.5f );
 			}
 		}

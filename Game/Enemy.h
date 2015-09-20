@@ -26,25 +26,25 @@ private:
 
     Pathfinder mPathfinder;
 
-    ruNodeHandle mModel;
+    ruSceneNode mModel;
 
     ruVector3 mTarget;
     ruVector3 mDestination;
 	ruVector3 mDeathPosition;
 
-    ruNodeHandle mRightLeg;
-    ruNodeHandle mLeftLeg;
+    ruSceneNode mRightLeg;
+    ruSceneNode mLeftLeg;
 
-    ruNodeHandle mRightLegDown;
-    ruNodeHandle mLeftLegDown;
+    ruSceneNode mRightLegDown;
+    ruSceneNode mLeftLegDown;
 
-    ruNodeHandle mTorsoBone;
-    ruNodeHandle mAttackHand;
-    ruNodeHandle mHead;
+    ruSceneNode mTorsoBone;
+    ruSceneNode mAttackHand;
+    ruSceneNode mHead;
 
-    ruSoundHandle mHitFleshWithAxeSound;
-    ruSoundHandle mBreathSound;
-    ruSoundHandle mScreamSound;
+    ruSound mHitFleshWithAxeSound;
+    ruSound mBreathSound;
+    ruSound mScreamSound;
 
     bool mPlayerDetected;
     ruTimerHandle mPlayerInSightTimer;
@@ -62,7 +62,7 @@ private:
 
     float mRunSpeed;
 
-    ruSoundHandle mFootstepsSounds[ 4 ];
+    ruSound mFootstepsSounds[ 4 ];
 
     ruTimerHandle mDamageTimer;
 
@@ -77,14 +77,14 @@ private:
 
 	ruVector3 mLastPosition;
 
-	ruNodeHandle mBloodSpray;
-	ruSoundHandle mFadeAwaySound;
+	ruSceneNode mBloodSpray;
+	ruSound mFadeAwaySound;
 	bool mDead;
 public:
 	static vector<Enemy*> msEnemyList;
 
     int GetVertexIndexNearestTo( ruVector3 position );
-	ruNodeHandle GetBody();
+	ruSceneNode GetBody();
 	void SetNextPatrolPoint();
 	void DoBloodSpray();
 	void Resurrect();
@@ -103,7 +103,7 @@ public:
     void CreateAnimations();
     void Think();
 	void Stun( bool state );
-    void Serialize( TextFileStream & out );
-    void Deserialize( TextFileStream & in );
+    void Serialize( SaveFile & out );
+    void Deserialize( SaveFile & in );
 	virtual void Damage( float dmg ) final;
 };

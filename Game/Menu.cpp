@@ -221,7 +221,7 @@ Menu::Menu( ) {
 
 
 	
-    ruSetHDREnabled( mpHDRButton->IsEnabled() );
+    ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );
     SetOptionsPageVisible( false );
     SetAuthorsPageVisible( false );
     SetPage( Page::Main );
@@ -232,7 +232,7 @@ Menu::Menu( ) {
 void Menu::Show() {
     mpCamera->MakeCurrent();
     mpCamera->FadeIn();
-    ruShowNode( mScene );
+    mScene.Show();
     if( pCurrentLevel ) {
         pCurrentLevel->Hide();
     }
@@ -241,7 +241,7 @@ void Menu::Show() {
         pPlayer->SetHUDVisible( false );
     }
     mVisible = true;
-    ruShowCursor();
+    ruEngine::ShowCursor();
     ruSetGUINodeVisible( mGUICanvas, true );
 	mMainButtonsAlpha = 255.0f;
 }
@@ -255,14 +255,14 @@ void Menu::Hide( ) {
         pPlayer->SetHUDVisible( true );
     }
     
-    ruHideNode( mScene );
+    mScene.Hide();
     if( pCurrentLevel ) {
         pCurrentLevel->Show();
     }
     mVisible = false;
     mPage = Page::Main;
-    ruHideCursor();
-    ruPauseSound( mMusic );
+    ruEngine::HideCursor();
+    mMusic.Pause();
     ruSetGUINodeVisible( mGUICanvas, false );
 }
 
@@ -380,10 +380,10 @@ void Menu::OnMouseSensivityChange() {
 }
 
 void Menu::OnMusicVolumeChange() {
-	ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
+	mMusic.SetVolume( mpMusicVolume->GetValue() / 100.0f );
 	g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
 	if( pCurrentLevel ) {
-		ruSetSoundVolume( pCurrentLevel->mMusic, g_musicVolume );
+		pCurrentLevel->mMusic.SetVolume( g_musicVolume );
 	}
 }
 void Menu::OnSoundVolumeChange() {
@@ -402,7 +402,7 @@ void Menu::CameraStartFadeOut( const ruDelegate & onFadeDoneAction ) {
 }
 
 void Menu::Update( ) {
-    ruSetAmbientColor( ruVector3( 25 / 255.0f, 25 / 255.0f, 25  / 255.0f));
+    ruEngine::SetAmbientColor( ruVector3( 25 / 255.0f, 25 / 255.0f, 25  / 255.0f));
 
 	WaitKeyButton::UpdateAll();
     UpdateCamera();
@@ -522,9 +522,9 @@ void Menu::Update( ) {
             // FXAA Options
             mpFXAAButton->Update();
             if( mpFXAAButton->IsEnabled() ) {
-                ruEnableFXAA();
+                ruEngine::EnableFXAA();
             } else {
-                ruDisableFXAA();
+                ruEngine::DisableFXAA();
             }
 
             // show fps
@@ -534,13 +534,13 @@ void Menu::Update( ) {
             // texture filtering
             mpTextureFiltering->Update( );
             if( mpTextureFiltering->GetCurrentValue() == 0 ) {
-                ruSetAnisotropicTextureFiltration( false );
+                ruEngine::SetAnisotropicTextureFiltration( false );
             } else {
-                ruSetAnisotropicTextureFiltration( true );
+                ruEngine::SetAnisotropicTextureFiltration( true );
             }
 
             mpSpotShadowsButton->Update();
-            ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
+            ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
             mpHDRButton->Update();
             
@@ -554,7 +554,7 @@ void Menu::Update( ) {
             ruSetGUINodeVisible( mGUIOptionsKeysCanvas, false );
         }
 
-		ruPlaySound( mMusic );
+		mMusic.Play();
 
 		if( ruIsButtonHit( mGUILoadGameButton ) ) {
 			SetPage( Page::LoadGame );
@@ -589,13 +589,13 @@ void Menu::LoadTextures() {
 void Menu::CreateCamera() {
     mpCamera = new GameCamera;
 	mCameraFadeActionDone = false;
-    mCameraInitialPosition = ruGetNodePosition( ruFindByName( "Camera") );
+    mCameraInitialPosition = ruFindByName( "Camera").GetPosition();
     mCameraAnimationNewOffset = ruVector3( 0.5, 0.5, 0.5 );
 }
 
 void Menu::LoadSounds() {
-    mPickSound = ruLoadSound2D( "data/sounds/menupick.ogg" );
-    mMusic = ruLoadMusic( "data/music/menu.ogg" );
+    mPickSound = ruSound::Load2D( "data/sounds/menupick.ogg" );
+    mMusic = ruSound::LoadMusic( "data/music/menu.ogg" );
 }
 
 void Menu::LoadConfig() {
@@ -612,9 +612,9 @@ void Menu::LoadConfig() {
         mpMouseSensivity->SetValue( config.GetNumber( "mouseSens" ));
         mpFXAAButton->SetEnabled( config.GetNumber( "fxaaEnabled" ) != 0 );
         if( mpFXAAButton->IsEnabled() ) {
-            ruEnableFXAA();
+            ruEngine::EnableFXAA();
         } else {
-            ruDisableFXAA();
+            ruEngine::DisableFXAA();
         };
         mpMoveForwardKey->SetSelected( config.GetNumber( "keyMoveForward" ) );
         mpMoveBackwardKey->SetSelected( config.GetNumber( "keyMoveBackward" ) );
@@ -635,16 +635,16 @@ void Menu::LoadConfig() {
         mpStealthKey->SetSelected( config.GetNumber( "keyStealth" ) );
 
         mpSpotShadowsButton->SetEnabled( config.GetNumber( "spotShadowsEnabled" ) != 0 );
-        ruEnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
+        ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
         ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
-        ruSetSoundVolume( mMusic, mpMusicVolume->GetValue() / 100.0f );
+        mMusic.SetVolume( mpMusicVolume->GetValue() / 100.0f );
 
         mpHDRButton->SetEnabled( config.GetNumber( "hdrEnabled" ) != 0 );
-        ruSetHDREnabled( mpHDRButton->IsEnabled() );
+        ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );
 
         mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
-        ruSetAnisotropicTextureFiltration( mpTextureFiltering->GetCurrentValue() );
+        ruEngine::SetAnisotropicTextureFiltration( mpTextureFiltering->GetCurrentValue() );
 
 		mpLookLeftKey->SetSelected( config.GetNumber( "keyLookLeft" ) );
 		mpLookRightKey->SetSelected( config.GetNumber( "keyLookRight" ) );
@@ -688,8 +688,8 @@ void Menu::WriteConfig() {
     WriteInteger( config, "keyUse", mpUseKey->GetSelectedKey() );
     WriteInteger( config, "keyQuickSave", mpQuickSaveKey->GetSelectedKey() );
     WriteInteger( config, "keyQuickLoad", mpQuickLoadKey->GetSelectedKey() );
-    WriteInteger( config, "spotShadowsEnabled", ruIsSpotLightShadowsEnabled() ? 1 : 0 );
-    WriteInteger( config, "hdrEnabled", ruIsHDREnabled() ? 1 : 0  );
+    WriteInteger( config, "spotShadowsEnabled", ruEngine::IsSpotLightShadowsEnabled() ? 1 : 0 );
+    WriteInteger( config, "hdrEnabled", ruEngine::IsHDREnabled() ? 1 : 0  );
     WriteInteger( config, "keyStealth", mpStealthKey->GetSelectedKey() );
     WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
 	WriteInteger( config, "keyLookLeft", mpLookLeftKey->GetSelectedKey() );
@@ -764,10 +764,10 @@ void Menu::CameraFloating() {
         mCameraAnimationNewOffset = ruVector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
     }
 
-    ruSetNodePosition( mpCamera->mNode, mCameraInitialPosition + mCameraAnimationOffset );
+    mpCamera->mNode.SetPosition( mCameraInitialPosition + mCameraAnimationOffset );
 }
 
 void Menu::OnHDRButtonClick()
 {
-	ruSetHDREnabled( mpHDRButton->IsEnabled() );
+	ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );
 }

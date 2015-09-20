@@ -10,8 +10,8 @@ public:
 	Gate * mGate1;
 	Gate * mGate2;
 
-	ruNodeHandle mZoneKnocks;
-	ruSoundHandle mKnocksSound;
+	ruSceneNode mZoneKnocks;
+	ruSound mKnocksSound;
 
 	explicit LevelSewers( );
 	~LevelSewers( );
@@ -20,7 +20,7 @@ public:
 	virtual void Show();
 	virtual void Hide();
 
-	virtual void OnSerialize( TextFileStream & out ) final;
+	virtual void OnSerialize( SaveFile & out ) final;
 
-	virtual void OnDeserialize( TextFileStream & in ) final;
+	virtual void OnDeserialize( SaveFile & in ) final;
 };

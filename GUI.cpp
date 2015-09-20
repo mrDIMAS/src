@@ -4,29 +4,9 @@
 #include "GUIRenderer.h"
 #include "Cursor.h"
 
-void ruSetCursorSettings( ruTextureHandle texture, int w, int h ) {
-    if( !Cursor::msCurrentCursor ) {
-        Cursor::msCurrentCursor = new Cursor( w, h, (Texture*)texture.pointer );
-    }
-}
 
-void ruHideCursor( ) {
-    if( Cursor::msCurrentCursor ) {
-        Cursor::msCurrentCursor->Hide();
-    } else {
-        ShowCursor( FALSE );
-        Engine::Instance().GetDevice()->ShowCursor( FALSE );
-    }
-}
 
-void ruShowCursor( ) {
-    if( Cursor::msCurrentCursor ) {
-        Cursor::msCurrentCursor->Show();
-    } else {
-        ShowCursor( TRUE );
-        Engine::Instance().GetDevice()->ShowCursor( TRUE );
-    }
-}
+
 
 bool ruGUINodeHandle::operator == ( const ruGUINodeHandle & node ) {
     return pointer == node.pointer;

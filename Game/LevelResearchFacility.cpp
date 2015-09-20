@@ -13,33 +13,33 @@ LevelResearchFacility::LevelResearchFacility() {
     LoadSceneFromFile( "data/maps/release/researchFacility/rf.scene" );
 	LoadLocalization( "rf.loc" );
 
-    pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject( "PlayerPosition" ) ));
+    pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" ).GetPosition() );
 	
-	AddSound( mSteamHissSound = ruLoadSound3D( "data/sounds/steamhiss.ogg" ));
-	ruSetRolloffFactor( mSteamHissSound, 5 );
-	ruSetSoundReferenceDistance( mSteamHissSound, 4 );
-	ruSetRoomRolloffFactor( mSteamHissSound, 2.5f );
+	AddSound( mSteamHissSound = ruSound::Load3D( "data/sounds/steamhiss.ogg" ));
+	mSteamHissSound.SetRolloffFactor( 5 );
+	mSteamHissSound.SetReferenceDistance( 4 );
+	mSteamHissSound.SetRoomRolloffFactor( 2.5f );
 
-    mLift1 = new Lift( GetUniqueObject( "Lift1" ) );
+    mLift1 = make_shared<Lift>( GetUniqueObject( "Lift1" ) );
     mLift1->SetControlPanel( GetUniqueObject( "Lift1Screen" ));
     mLift1->SetDestinationPoint( GetUniqueObject( "Lift1Dest" ));
     mLift1->SetSourcePoint( GetUniqueObject( "Lift1Source" ));
-    mLift1->SetMotorSound( ruLoadSound3D( "data/sounds/motor_idle.ogg"));
+    mLift1->SetMotorSound( ruSound::Load3D( "data/sounds/motor_idle.ogg"));
     mLift1->SetBackDoors( GetUniqueObject( "Lift1BackDoorLeft"), GetUniqueObject( "Lift1BackDoorRight" ));
     mLift1->SetFrontDoors( GetUniqueObject( "Lift1FrontDoorLeft"), GetUniqueObject( "Lift1FrontDoorRight" ));
     AddLift( mLift1 );
 	
-	mLift2 = new Lift( GetUniqueObject( "Lift2" ) );
+	mLift2 = make_shared<Lift>( GetUniqueObject( "Lift2" ) );
 	mLift2->SetControlPanel( GetUniqueObject( "Lift2Screen" ));
 	mLift2->SetDestinationPoint( GetUniqueObject( "Lift2Dest" ));
 	mLift2->SetSourcePoint( GetUniqueObject( "Lift2Source" ));
-	mLift2->SetMotorSound( ruLoadSound3D( "data/sounds/motor_idle.ogg"));
+	mLift2->SetMotorSound( ruSound::Load3D( "data/sounds/motor_idle.ogg"));
 	mLift2->SetBackDoors( GetUniqueObject( "Lift2BackDoorLeft"), GetUniqueObject( "Lift2BackDoorRight" ));
 	mLift2->SetFrontDoors( GetUniqueObject( "Lift2FrontDoorLeft"), GetUniqueObject( "Lift2FrontDoorRight" ));
 	AddLift( mLift2 );
 
-    mpFan1 = new Fan( GetUniqueObject( "Fan" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
-    mpFan2 = new Fan( GetUniqueObject( "Fan2" ), 15, ruVector3( 0, 1, 0 ), ruLoadSound3D( "data/sounds/fan.ogg" ));
+    mpFan1 = make_shared<Fan>( GetUniqueObject( "Fan" ), 15, ruVector3( 0, 1, 0 ), ruSound::Load3D( "data/sounds/fan.ogg" ));
+    mpFan2 = make_shared<Fan>( GetUniqueObject( "Fan2" ), 15, ruVector3( 0, 1, 0 ), ruSound::Load3D( "data/sounds/fan.ogg" ));
 
 	AddSheet( new Sheet( GetUniqueObject( "Note1" ), mLocalization.GetString( "note1Desc" ), mLocalization.GetString( "note1" ) ) );
     AddSheet( new Sheet( GetUniqueObject( "Note2" ), mLocalization.GetString( "note2Desc" ), mLocalization.GetString( "note2" ) ) );
@@ -48,26 +48,24 @@ LevelResearchFacility::LevelResearchFacility() {
 	AddSheet( new Sheet( GetUniqueObject( "Note5" ), mLocalization.GetString( "note5Desc" ), mLocalization.GetString( "note5" ) ) );
 	AddSheet( new Sheet( GetUniqueObject( "Note6" ), mLocalization.GetString( "note6Desc" ), mLocalization.GetString( "note6" ) ) );
 
-    AddSound( mLeverSound = ruLoadSound3D( "data/sounds/lever.ogg"));
+    AddSound( mLeverSound = ruSound::Load3D( "data/sounds/lever.ogg"));
 
-    AddValve( mpSteamValve = new Valve( GetUniqueObject( "SteamValve" ), ruVector3( 0, 1, 0 )));
-    ruSoundHandle steamHis = ruLoadSound3D( "data/sounds/steamhiss_loop.ogg" ) ;
-	ruSetRolloffFactor( steamHis, 5 );
-	ruSetSoundReferenceDistance( steamHis, 4 );
-	ruSetRoomRolloffFactor( steamHis, 2.5f );
+    AddValve( mpSteamValve = make_shared<Valve>( GetUniqueObject( "SteamValve" ), ruVector3( 0, 1, 0 )));
+    ruSound steamHis = ruSound::Load3D( "data/sounds/steamhiss_loop.ogg" ) ;
+	steamHis.SetRolloffFactor( 5 );
+	steamHis.SetReferenceDistance( 4 );
+	steamHis.SetRoomRolloffFactor( 2.5f );
     AddSound( steamHis );
     mpExtemeSteam = new SteamStream( GetUniqueObject( "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis );
 
-    ruSetAmbientColor( ruVector3( 0, 0, 0 ));
+    ruEngine::SetAmbientColor( ruVector3( 0, 0, 0 ));
 
 	mDoorUnderFloor = GetUniqueObject( "DoorUnderFloor" );
     mLockedDoor = GetUniqueObject( "LockedDoor" );
 
     mExtremeSteamBlock = GetUniqueObject( "ExtremeSteamBlock" );
     mZoneExtremeSteamHurt = GetUniqueObject( "ExtremeSteamHurtZone" );
-	
 
-	
 	mPathBlockingMesh = GetUniqueObject( "PathBlockingMesh" );
 	mThermiteSmall = GetUniqueObject( "ThermiteSmall" );
 	mThermiteBig = GetUniqueObject( "ThermiteBig" );
@@ -75,51 +73,51 @@ LevelResearchFacility::LevelResearchFacility() {
 	mThermitePlace = GetUniqueObject( "ThermitePlace" );
 	mMeshToSewers = GetUniqueObject( "MeshToSewers" );
 
-	AddZone( mZoneObjectiveNeedPassThroughMesh = new Zone( GetUniqueObject( "ObjectiveNeedPassThroughMesh" )));
+	AddZone( mZoneObjectiveNeedPassThroughMesh = make_shared<Zone>( GetUniqueObject( "ObjectiveNeedPassThroughMesh" )));
 	mZoneObjectiveNeedPassThroughMesh->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterNeedPassThroughMeshZone ));
 
-	AddZone( mZoneEnemySpawn = new Zone( GetUniqueObject( "ZoneEnemySpawn" )));
+	AddZone( mZoneEnemySpawn = make_shared<Zone>( GetUniqueObject( "ZoneEnemySpawn" )));
 	mZoneEnemySpawn->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterSpawnEnemyZone ));
 
-	AddZone( mZoneSteamActivate = new Zone( GetUniqueObject( "SteamActivateZone" )));
+	AddZone( mZoneSteamActivate = make_shared<Zone>( GetUniqueObject( "SteamActivateZone" )));
 	mZoneSteamActivate->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterSteamActivateZone ));
 
-	AddZone( mZoneObjectiveRestorePower = new Zone( GetUniqueObject( "ObjectiveRestorePower" )));
+	AddZone( mZoneObjectiveRestorePower = make_shared<Zone>( GetUniqueObject( "ObjectiveRestorePower" )));
 	mZoneObjectiveRestorePower->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterRestorePowerZone ));
 
-	AddZone( mZoneExaminePlace = new Zone( GetUniqueObject( "ObjectiveExaminePlace" )));
+	AddZone( mZoneExaminePlace = make_shared<Zone>( GetUniqueObject( "ObjectiveExaminePlace" )));
 	mZoneExaminePlace->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterExaminePlaceZone ));
 
-	AddZone( mZoneRemovePathBlockingMesh = new Zone( GetUniqueObject( "ZoneRemovePathBlockingMesh" )));
+	AddZone( mZoneRemovePathBlockingMesh = make_shared<Zone>( GetUniqueObject( "ZoneRemovePathBlockingMesh" )));
 	mZoneRemovePathBlockingMesh->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterRemovePathBlockingMeshZone ));
 
-	AddZone( mZoneNeedCrowbar = new Zone( GetUniqueObject( "ObjectiveNeedCrowbar" )));
+	AddZone( mZoneNeedCrowbar = make_shared<Zone>( GetUniqueObject( "ObjectiveNeedCrowbar" )));
 	mZoneNeedCrowbar->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterNeedCrowbarZone ));
 
     CreatePowerUpSequence();
 
-    AddSound( mMusic = ruLoadMusic( "data/music/rf.ogg" ));
-    ruSetSoundVolume( mMusic, 0.75f );
+    AddSound( mMusic = ruSound::LoadMusic( "data/music/rf.ogg" ));
+    mMusic.SetVolume( 0.75f );
 	
-	AddLadder( new Ladder( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
 		GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder2Begin" ), GetUniqueObject( "Ladder2End" ), GetUniqueObject( "Ladder2Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder2Begin" ), GetUniqueObject( "Ladder2End" ), GetUniqueObject( "Ladder2Enter" ),
 		GetUniqueObject( "Ladder2BeginLeavePoint"), GetUniqueObject( "Ladder2EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
 		GetUniqueObject( "Ladder3BeginLeavePoint"), GetUniqueObject( "Ladder3EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
 		GetUniqueObject( "Ladder4BeginLeavePoint"), GetUniqueObject( "Ladder4EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder5Begin" ), GetUniqueObject( "Ladder5End" ), GetUniqueObject( "Ladder5Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder5Begin" ), GetUniqueObject( "Ladder5End" ), GetUniqueObject( "Ladder5Enter" ),
 		GetUniqueObject( "Ladder5BeginLeavePoint"), GetUniqueObject( "Ladder5EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder6Begin" ), GetUniqueObject( "Ladder6End" ), GetUniqueObject( "Ladder6Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder6Begin" ), GetUniqueObject( "Ladder6End" ), GetUniqueObject( "Ladder6Enter" ),
 		GetUniqueObject( "Ladder6BeginLeavePoint"), GetUniqueObject( "Ladder6EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder7Begin" ), GetUniqueObject( "Ladder7End" ), GetUniqueObject( "Ladder7Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder7Begin" ), GetUniqueObject( "Ladder7End" ), GetUniqueObject( "Ladder7Enter" ),
 		GetUniqueObject( "Ladder7BeginLeavePoint"), GetUniqueObject( "Ladder7EndLeavePoint")));
-    AddDoor( mKeypad3DoorToUnlock = new Door( GetUniqueObject( "Door4" ), 90.0f ));
-    AddDoor( mKeypad1DoorToUnlock = new Door( GetUniqueObject( "Door5" ), 90.0f ));
-    AddDoor( mKeypad2DoorToUnlock = new Door( GetUniqueObject( "Door8" ), 90.0f ));
-	AddDoor( mLabDoorToUnlock = new Door( GetUniqueObject( "LabDoor" ), 90 ));
-	AddDoor( mColliderDoorToUnlock = new Door( GetUniqueObject( "DoorToCollider" ), 90 ));
+    AddDoor( mKeypad3DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door4" ), 90.0f ));
+    AddDoor( mKeypad1DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door5" ), 90.0f ));
+    AddDoor( mKeypad2DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door8" ), 90.0f ));
+	AddDoor( mLabDoorToUnlock = make_shared<Door>( GetUniqueObject( "LabDoor" ), 90 ));
+	AddDoor( mColliderDoorToUnlock = make_shared<Door>( GetUniqueObject( "DoorToCollider" ), 90 ));
 	
 
 	mThermiteItemPlace = new ItemPlace( mThermitePlace, Item::Type::AluminumPowder );
@@ -153,31 +151,31 @@ LevelResearchFacility::LevelResearchFacility() {
 						   GetUniqueObject( "Keypad1Key2"), GetUniqueObject( "Keypad1Key3"), GetUniqueObject( "Keypad1Key4"),
 						   GetUniqueObject( "Keypad1Key5"), GetUniqueObject( "Keypad1Key6" ), GetUniqueObject( "Keypad1Key7"),
 						   GetUniqueObject( "Keypad1Key8"), GetUniqueObject( "Keypad1Key9"), GetUniqueObject( "Keypad1KeyCancel"), 
-						   mKeypad1DoorToUnlock, "3065" );
+						   mKeypad1DoorToUnlock.get(), "3065" );
 
 	mKeypad2 = new Keypad( GetUniqueObject( "Keypad2"), GetUniqueObject( "Keypad2Key0" ), GetUniqueObject( "Keypad2Key1"),
 		GetUniqueObject( "Keypad2Key2"), GetUniqueObject( "Keypad2Key3"), GetUniqueObject( "Keypad2Key4"),
 		GetUniqueObject( "Keypad2Key5"), GetUniqueObject( "Keypad2Key6" ), GetUniqueObject( "Keypad2Key7"),
 		GetUniqueObject( "Keypad2Key8"), GetUniqueObject( "Keypad2Key9"), GetUniqueObject( "Keypad2KeyCancel"), 
-		mKeypad2DoorToUnlock, "6497" );
+		mKeypad2DoorToUnlock.get(), "6497" );
 
 	mKeypad3 = new Keypad( GetUniqueObject( "Keypad3"), GetUniqueObject( "Keypad3Key0" ), GetUniqueObject( "Keypad3Key1"),
 		GetUniqueObject( "Keypad3Key2"), GetUniqueObject( "Keypad3Key3"), GetUniqueObject( "Keypad3Key4"),
 		GetUniqueObject( "Keypad3Key5"), GetUniqueObject( "Keypad3Key6" ), GetUniqueObject( "Keypad3Key7"),
 		GetUniqueObject( "Keypad3Key8"), GetUniqueObject( "Keypad3Key9"), GetUniqueObject( "Keypad3KeyCancel"), 
-		mKeypad3DoorToUnlock, "1487" );
+		mKeypad3DoorToUnlock.get(), "1487" );
 
 	mLabKeypad = new Keypad( GetUniqueObject( "Keypad4"), GetUniqueObject( "Keypad4Key0" ), GetUniqueObject( "Keypad4Key1"),
 		GetUniqueObject( "Keypad4Key2"), GetUniqueObject( "Keypad4Key3"), GetUniqueObject( "Keypad4Key4"),
 		GetUniqueObject( "Keypad4Key5"), GetUniqueObject( "Keypad4Key6" ), GetUniqueObject( "Keypad4Key7"),
 		GetUniqueObject( "Keypad4Key8"), GetUniqueObject( "Keypad4Key9"), GetUniqueObject( "Keypad4KeyCancel"), 
-		mLabDoorToUnlock, "8279" );
+		mLabDoorToUnlock.get(), "8279" );
 
 	mColliderKeypad = new Keypad( GetUniqueObject( "Keypad5"), GetUniqueObject( "Keypad5Key0" ), GetUniqueObject( "Keypad5Key1"),
 		GetUniqueObject( "Keypad5Key2"), GetUniqueObject( "Keypad5Key3"), GetUniqueObject( "Keypad5Key4"),
 		GetUniqueObject( "Keypad5Key5"), GetUniqueObject( "Keypad5Key6" ), GetUniqueObject( "Keypad5Key7"),
 		GetUniqueObject( "Keypad5Key8"), GetUniqueObject( "Keypad5Key9"), GetUniqueObject( "Keypad5KeyCancel"), 
-		mColliderDoorToUnlock, "1598" );
+		mColliderDoorToUnlock.get(), "1598" );
 
 
 	ruSetAudioReverb( 10 );
@@ -241,13 +239,11 @@ void LevelResearchFacility::CreateEnemy() {
 	patrolPoints.push_back( pathRoomD.mVertexList.front() );
 	patrolPoints.push_back( pathRoomD.mVertexList.back() );
 
-	mEnemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
-	mEnemy->SetPosition( ruGetNodePosition( mEnemySpawnPosition ));
+	mEnemy = make_shared<Enemy>( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
+	mEnemy->SetPosition( mEnemySpawnPosition.GetPosition() );
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
-    delete mpFan1;
-    delete mpFan2;
     delete mpExtemeSteam;
 }
 
@@ -255,13 +251,13 @@ LevelResearchFacility::~LevelResearchFacility() {
 void LevelResearchFacility::Show() {
     Level::Show();
 
-    ruPlaySound( mMusic );
+    mMusic.Play();
 }
 
 void LevelResearchFacility::Hide() {
     Level::Hide();
 
-    ruPauseSound( mMusic );
+    mMusic.Pause();
 }
 
 void LevelResearchFacility::DoScenario() {
@@ -269,7 +265,7 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
-    ruSetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
+    ruEngine::SetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
 
     if( mPowerOn ) {
         mLift1->Update();
@@ -290,7 +286,7 @@ void LevelResearchFacility::DoScenario() {
 					pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
 					if( ruIsKeyHit( pPlayer->mKeyUse )) {
 						pPlayer->mInventory.ResetSelectedForUse();
-						ruSetNodeRotation( mDoorUnderFloor, ruQuaternion( 0, 0, -110 ));
+						mDoorUnderFloor.SetRotation( ruQuaternion( 0, 0, -110 ));
 						mStages[ "DoorUnderFloorOpen" ] = true;
 					}
 				}
@@ -321,7 +317,7 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-    if( ruIsSoundPlaying( mSteamHissSound ) && mSteamPS.IsValid() ) {
+    if( mSteamHissSound.IsPlaying() && mSteamPS.IsValid() ) {
         static float steamParticleSize = 0.15f;
 
         ruGetParticleSystemProperties( mSteamPS )->pointSize = steamParticleSize;
@@ -329,14 +325,14 @@ void LevelResearchFacility::DoScenario() {
         if( steamParticleSize > 0 ) {
             steamParticleSize -= 0.0005f;
         } else {
-            ruFreeSceneNode( mSteamPS );
+            mSteamPS.Free();
 
             mSteamPS.Invalidate();
         }
     }
 
     if( mpSteamValve->IsDone() ) {
-        ruSetNodePosition( mExtremeSteamBlock, ruVector3( 1000, 1000, 1000 ));
+        mExtremeSteamBlock.SetPosition( ruVector3( 1000, 1000, 1000 ));
     } else {
         if( pPlayer->IsInsideZone( mZoneExtremeSteamHurt )) {
             pPlayer->Damage( 0.6 );
@@ -355,20 +351,20 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 				bool placed = mThermiteItemPlace->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
 				if( placed ) {
 					if( mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder ) {
-						ruShowNode( mThermiteSmall );
+						mThermiteSmall.Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::FerrumOxide );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::FerrumOxide ) {
-						ruShowNode( mThermiteBig );
+						mThermiteBig.Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::Lighter );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter ) {
-						ruHideNode( mMeshLock );
-						ruSetNodeRotation( mMeshToSewers, ruQuaternion( ruVector3( 0, 0, 1 ), 90 ));
-						ruHideNode( mThermiteSmall );
-						ruHideNode( mThermiteBig );
+						mMeshLock.Hide();
+						mMeshToSewers.SetRotation( ruQuaternion( ruVector3( 0, 0, 1 ), 90 ));
+						mThermiteSmall.Hide();
+						mThermiteBig.Hide();
 
-						ruSoundHandle burn = ruLoadSound3D( "data/sounds/burn.ogg" );
-						ruSetSoundPosition( burn, ruGetNodePosition( mThermiteSmall ));
-						ruPlaySound( burn );
+						ruSound burn = ruSound::Load3D( "data/sounds/burn.ogg" );
+						burn.SetPosition( mThermiteSmall.GetPosition() );
+						burn.Play();
 
 						mThermiteItemPlace->SetPlaceType( Item::Type::Unknown );
 						
@@ -385,8 +381,8 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						psProps.particleThickness = 20.5f;
 						psProps.autoResurrectDeadParticles = false;
 						psProps.useLighting = true;
-						ruNodeHandle ps = ruCreateParticleSystem( 150, psProps );
-						ruSetNodePosition( ps, ruGetNodePosition( mThermiteSmall ));
+						ruSceneNode ps = ruCreateParticleSystem( 150, psProps );
+						ps.SetPosition( mThermiteSmall.GetPosition() );
 					}
 				}
 			}		
@@ -400,7 +396,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
         fuseInsertedCount = 0;
 
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
-            ItemPlace * pFuse = mFusePlaceList[iFuse];
+            shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFuse];
             if( pFuse->GetPlaceType() == Item::Type::Unknown ) {
                 fuseInsertedCount++;
             }
@@ -409,7 +405,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
     if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
-            ItemPlace * pFuse = mFusePlaceList[iFuse];
+            shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFuse];
             if( pFuse->IsPickedByPlayer() ) {
                 pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "insertFuse" ) );
             }
@@ -417,13 +413,13 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
         if( ruIsKeyHit( pPlayer->mKeyUse )) {
             for( int iFusePlace = 0; iFusePlace < 3; iFusePlace++ ) {
-                ItemPlace * pFuse = mFusePlaceList[iFusePlace];
+                shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFusePlace];
 
                 if( pFuse->IsPickedByPlayer() ) {
                     bool placed = pFuse->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
 
                     if( placed ) {
-                        ruShowNode( fuseModel[iFusePlace] );
+                        fuseModel[iFusePlace].Show();
                         pFuse->SetPlaceType( Item::Type::Unknown );
                     }
                 }
@@ -438,12 +434,12 @@ void LevelResearchFacility::UpdatePowerupSequence() {
             if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
                 ruSetLightColor( mPowerLamp, ruVector3( 0, 255, 0 ) );
 
-                ruPlaySound( mLeverSound, 1 );
+                mLeverSound.Play();
 
-                mpPowerSparks = new Sparks( mPowerLeverSnd, ruLoadSound3D( "data/sounds/sparks.ogg" ));
+                mpPowerSparks = new Sparks( mPowerLeverSnd, ruSound::Load3D( "data/sounds/sparks.ogg" ));
 
-                ruShowNode( mPowerLeverOnModel );
-                ruHideNode( mPowerLeverOffModel );
+                mPowerLeverOnModel.Show();
+                mPowerLeverOffModel.Hide();
 
                 mPowerOn = true;
             }
@@ -456,9 +452,9 @@ void LevelResearchFacility::CreatePowerUpSequence() {
     AddItem( fuse[1] = new Item( GetUniqueObject( "Fuse2" ), Item::Type::Fuse ));
     AddItem( fuse[2] = new Item( GetUniqueObject( "Fuse3" ), Item::Type::Fuse ));
 
-    AddItemPlace( mFusePlaceList[0] = new ItemPlace( GetUniqueObject( "FusePlace1" ), Item::Type::Fuse ));
-    AddItemPlace( mFusePlaceList[1] = new ItemPlace( GetUniqueObject( "FusePlace2" ), Item::Type::Fuse ));
-    AddItemPlace( mFusePlaceList[2] = new ItemPlace( GetUniqueObject( "FusePlace3" ), Item::Type::Fuse ));
+    AddItemPlace( mFusePlaceList[0] = make_shared<ItemPlace>( GetUniqueObject( "FusePlace1" ), Item::Type::Fuse ));
+    AddItemPlace( mFusePlaceList[1] = make_shared<ItemPlace>( GetUniqueObject( "FusePlace2" ), Item::Type::Fuse ));
+    AddItemPlace( mFusePlaceList[2] = make_shared<ItemPlace>( GetUniqueObject( "FusePlace3" ), Item::Type::Fuse ));
 
     fuseModel[0] = GetUniqueObject( "FuseModel1" );
     fuseModel[1] = GetUniqueObject( "FuseModel2" );
@@ -473,17 +469,17 @@ void LevelResearchFacility::CreatePowerUpSequence() {
     mPowerOn = false;
 }
 
-void LevelResearchFacility::OnDeserialize( TextFileStream & in ) {
+void LevelResearchFacility::OnDeserialize( SaveFile & in ) {
 	if( in.ReadBoolean() ) {
 		CreateEnemy();
 		mEnemy->SetPosition( in.ReadVector3() );
 	}
 }
 
-void LevelResearchFacility::OnSerialize( TextFileStream & out ) {
+void LevelResearchFacility::OnSerialize( SaveFile & out ) {
 	out.WriteBoolean( mEnemy != nullptr );
 	if( mEnemy ) {
-		out.WriteVector3( ruGetNodePosition( mEnemy->GetBody() ));
+		out.WriteVector3( mEnemy->GetBody().GetPosition());
 	}
 }
 
@@ -506,7 +502,7 @@ void LevelResearchFacility::OnPlayerEnterNeedCrowbarZone()
 void LevelResearchFacility::OnPlayerEnterRemovePathBlockingMeshZone()
 {
 	if( !mStages[ "PassedThroughBlockingMesh" ] ) {
-		ruSetNodePosition( mPathBlockingMesh, ruVector3( 1000, 1000, 1000 ));
+		mPathBlockingMesh.SetPosition( ruVector3( 1000, 1000, 1000 ));
 		mStages[ "PassedThroughBlockingMesh" ] = true;			
 	}
 }
@@ -542,9 +538,9 @@ void LevelResearchFacility::OnPlayerEnterSteamActivateZone()
 		psProps.particleThickness = 1.5f;
 		psProps.useLighting = true;
 		mSteamPS = ruCreateParticleSystem( 35, psProps );
-		ruSetNodePosition( mSteamPS, ruGetNodePosition( mSmallSteamPosition ));
-		ruAttachSound( mSteamHissSound, mSteamPS );
-		ruPlaySound( mSteamHissSound, true );
+		mSteamPS.SetPosition( mSmallSteamPosition.GetPosition());
+		mSteamHissSound.Attach( mSteamPS );
+		mSteamHissSound.Play();
 		mStages[ "EnterSteamActivateZone" ] = true;	
 	}
 }

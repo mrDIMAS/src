@@ -9,7 +9,7 @@
 #include "Flashlight.h"
 #include "Goal.h"
 #include "Way.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 #include "Parser.h"
 #include "SmoothFloat.h"
 #include "Tip.h"
@@ -41,12 +41,12 @@ public:
 
     GameCamera * mpCamera;
 
-    ruNodeHandle mHead;
-    ruNodeHandle mPickPoint;
-    ruNodeHandle mItemPoint;
-    ruNodeHandle mNodeInHands;
-    ruNodeHandle mNearestPickedNode;
-    ruNodeHandle mPickedNode;
+    ruSceneNode mHead;
+    ruSceneNode mPickPoint;
+    ruSceneNode mItemPoint;
+    ruSceneNode mNodeInHands;
+    ruSceneNode mNearestPickedNode;
+    ruSceneNode mPickedNode;
 
     ruTextureHandle mStatusBar;
 
@@ -73,6 +73,7 @@ public:
     float mCameraBobCoeff;
     float mRunCameraShakeCoeff;
     float mStealthFactor;
+	float mStepLength;
 
     ruVector3 mSpeed;
     ruVector3 mSpeedTo;
@@ -82,15 +83,18 @@ public:
     ruVector3 mCameraShakeOffset;
     ruVector3 mFrameColor;
 
+	float mCameraTrembleTime;
+	ruVector3 mCameraTrembleOffset;
+
     Way * mpCurrentWay;
 
-    ruSoundHandle mLighterCloseSound;
-    ruSoundHandle mLighterOpenSound;
-    ruSoundHandle mItemPickupSound;
-    ruSoundHandle mHeartBeatSound;
-    ruSoundHandle mBreathSound;
+    ruSound mLighterCloseSound;
+    ruSound mLighterOpenSound;
+    ruSound mItemPickupSound;
+    ruSound mHeartBeatSound;
+    ruSound mBreathSound;
 
-    vector< ruSoundHandle > mFootstepList;
+    vector< ruSound > mFootstepList;
 
 	Weapon * mCurrentWeapon;
 	vector<Weapon*> mWeaponList;
@@ -104,8 +108,14 @@ public:
     bool mStealthMode;
     bool mRunning;
 	bool mInAir;
+	bool mFlashlightLocked;
+
 
     Inventory mInventory;
+
+	void SwitchToWeapon() {
+		mCurrentWeapon->SetVisible( true );
+	};
 
     int mKeyMoveForward;
     int mKeyMoveBackward;
@@ -140,7 +150,7 @@ public:
 	ruRectHandle mGUIDamageBackground;
 	int mDamageBackgroundAlpha;
 
-	ruSoundHandle mDeadSound;
+	ruSound mDeadSound;
 	ruVector3 mAirPosition;
 
 	ruTimerHandle mAutoSaveTimer;
@@ -148,6 +158,16 @@ public:
     explicit Player();
     virtual ~Player();
     void FreeHands();
+	void LockFlashlight( bool state ) {
+		mFlashlightLocked = state;
+	}
+	void SetHealth( float health ) {
+		mHealth = health;
+	}
+	float GetHealth() {
+		return mHealth;
+	}
+	void TrembleCamera( float time );
     bool IsCanJump( );
     bool UseStamina( float st );
     virtual void Damage( float dmg );
@@ -164,7 +184,7 @@ public:
     void SetFootsteps( FootstepsType ft );
     void ChargeFlashLight( );
     bool IsUseButtonHit();
-    bool IsObjectHasNormalMass( ruNodeHandle node );
+    bool IsObjectHasNormalMass( ruSceneNode node );
 	bool IsDead();
 	void Resurrect();
     void DoFright();
@@ -175,8 +195,8 @@ public:
     Flashlight * GetFlashLight();
     Parser * GetLocalization();
     void SetTip( const string & text );
-    virtual void Serialize( TextFileStream & out ) final;
-    virtual void Deserialize( TextFileStream & in ) final;
+    virtual void Serialize( SaveFile & out ) final;
+    virtual void Deserialize( SaveFile & in ) final;
     void SetActionText( const string & text );
     void SetHUDVisible( bool state );
 	virtual void ManageEnvironmentDamaging() final;

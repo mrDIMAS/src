@@ -4,15 +4,15 @@
 #include "Player.h"
 #include "Utils.h"
 
-Valve::Valve( ruNodeHandle obj, ruVector3 axis, int turnCount ) {
+Valve::Valve( ruSceneNode obj, ruVector3 axis, int turnCount ) {
     mObject = obj;
     mTurnAxis = axis;
     mAngle = 0.0f;
     mDone = false;
     mTurnCount = turnCount;
     mValue = 0.0f;
-	mTurnSound = ruLoadSound3D( "data/sounds/valve_squeaky.ogg" );
-	ruSetSoundPosition( mTurnSound, ruGetNodePosition( mObject ));
+	mTurnSound = ruSound::Load3D( "data/sounds/valve_squeaky.ogg" );
+	mTurnSound.SetPosition( mObject.GetPosition() );
 }
 
 void Valve::Reset() {
@@ -21,19 +21,19 @@ void Valve::Reset() {
 }
 
 void Valve::Update() {
-	ruPauseSound( mTurnSound );
+	mTurnSound.Pause();
     if( !mDone ) {	
 		if( pPlayer->mNearestPickedNode == mObject ) {
 			pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
 			if( ruIsKeyDown( pPlayer->mKeyUse )) {
-				ruPlaySound( mTurnSound );
+				mTurnSound.Play();
 				mAngle += 5;
 				OnTurn.DoActions();
 				if( mAngle >= 360 * mTurnCount ) {
 					mDone = true;
 					OnTurnDone.DoActions();
 				}
-				ruSetNodeRotation( mObject, ruQuaternion( mTurnAxis, mAngle ));
+				mObject.SetRotation( ruQuaternion( mTurnAxis, mAngle ));
 			} 
 		}
 		mValue = mAngle / (float)( 360 * mTurnCount );

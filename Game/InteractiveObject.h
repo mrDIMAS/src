@@ -9,9 +9,9 @@ private:
 	float mFlashSpeed;
 	bool mFlashDirection;
 public:
-    ruNodeHandle mObject;
+    ruSceneNode mObject;
     static vector< InteractiveObject* > msObjectList;
-    explicit InteractiveObject( ruNodeHandle object );
+    explicit InteractiveObject( ruSceneNode object );
 	explicit InteractiveObject();
     virtual ~InteractiveObject();
     void UpdateFlashing();

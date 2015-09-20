@@ -9,15 +9,15 @@ void AmbientSoundSet::DoRandomPlaying() {
 
         int randomSound = rand() % sounds.size();
 
-        ruSetSoundPosition( sounds[ randomSound ], ruGetNodePosition( pPlayer->mpCamera->mNode ) + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
+        sounds[ randomSound ].SetPosition( pPlayer->mpCamera->mNode.GetPosition() + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
 
-        ruPlaySound( sounds[ randomSound ], true );
+        sounds[ randomSound ].Play();
 
         ruRestartTimer( timer );
     }
 }
 
-void AmbientSoundSet::AddSound( ruSoundHandle sound ) {
+void AmbientSoundSet::AddSound( ruSound sound ) {
     sounds.push_back( sound );
 }
 

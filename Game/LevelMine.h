@@ -12,22 +12,22 @@ private:
     void CleanUpExplodeArea();
     void CreateItems();
 
-    ruNodeHandle mScreamerZone;
-    ruNodeHandle mScreamerZone2;
-    ruNodeHandle mConcreteWall;
-    ruNodeHandle mDeathZone;
-    ruNodeHandle mDetonator;
-    ruNodeHandle mFindItemsZone;
-    ruNodeHandle mNewLevelZone;
-    ruNodeHandle mStoneFallZone;
-    ruNodeHandle mWireModels[4];
-    ruNodeHandle mDetonatorModels[4];
-    ruNodeHandle mExplosivesModels[4];
-    ruNodeHandle mExplosivesDummy[4];
-    ruNodeHandle mRock[3];
-    ruNodeHandle mExplosionFlashPosition;
-    ruNodeHandle mExplosionFlashLight;
-    ruNodeHandle mExplosionDustParticleSystem;
+    ruSceneNode mScreamerZone;
+    ruSceneNode mScreamerZone2;
+    ruSceneNode mConcreteWall;
+    ruSceneNode mDeathZone;
+    ruSceneNode mDetonator;
+    ruSceneNode mFindItemsZone;
+    ruSceneNode mNewLevelZone;
+    ruSceneNode mStoneFallZone;
+    ruSceneNode mWireModels[4];
+    ruSceneNode mDetonatorModels[4];
+    ruSceneNode mExplosivesModels[4];
+    ruSceneNode mExplosivesDummy[4];
+    ruSceneNode mRock[3];
+    ruSceneNode mExplosionFlashPosition;
+    ruSceneNode mExplosionFlashLight;
+    ruSceneNode mExplosionDustParticleSystem;
     ruVector3 mRockPosition[3];
 
     Item * mExplosives[4];
@@ -35,10 +35,10 @@ private:
     Item * mWires[4];
     Item * mFuel[2];
 
-    ItemPlace * mDetonatorPlace[4];
+    shared_ptr<ItemPlace> mDetonatorPlace[4];
 
-    ruSoundHandle mAlertSound;
-    ruSoundHandle mExplosionSound;
+    ruSound mAlertSound;
+    ruSound mExplosionSound;
 
     ruTimerHandle mExplosionTimer;
     ruTimerHandle mBeepSoundTimer;
@@ -58,6 +58,6 @@ public:
     virtual void DoScenario() final;
     virtual void Show() final;
     virtual void Hide() final;
-    virtual void OnSerialize( TextFileStream & out ) final;
-    virtual void OnDeserialize( TextFileStream & in ) final;
+    virtual void OnSerialize( SaveFile & out ) final;
+    virtual void OnDeserialize( SaveFile & in ) final;
 };

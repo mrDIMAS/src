@@ -6,7 +6,7 @@
 vector<Item*> Item::msItemList;
 Parser Item::msLocalization;
 
-Item * Item::GetItemPointerByNode( ruNodeHandle obj ) {
+Item * Item::GetItemPointerByNode( ruSceneNode obj ) {
     for( auto pItem : msItemList )
         if( pItem->mObject == obj ) {
             return pItem;
@@ -147,7 +147,7 @@ void Item::SetType( Type type ) {
 
 	if( !mObject.IsValid() ) {
 		mObject = ruLoadScene( mModelFile );
-		ruFreeze( mObject );
+		mObject.Freeze();
 	}
 }
 
@@ -161,7 +161,7 @@ void Item::PickUp() {
 	}
 }
 
-Item::Item( ruNodeHandle obj, Type type ) : InteractiveObject( obj ) {
+Item::Item( ruSceneNode obj, Type type ) : InteractiveObject( obj ) {
 	Initialize( type );
 }
 
@@ -302,7 +302,7 @@ void Item::Repair() {
 			RaiseError( "Item::mModelFile is empty! Model source must be defined!" );
 		}
 		mObject = ruLoadScene( mModelFile );
-		ruFreeze( mObject );
+		mObject.Freeze();
 	}
 }
 

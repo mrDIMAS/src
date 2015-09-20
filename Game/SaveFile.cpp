@@ -1,77 +1,77 @@
 #include "Precompiled.h"
 
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
-void TextFileStream::WriteString( string str ) {
+void SaveFile::WriteString( string str ) {
     mStream << str << endl;
 }
 
-void TextFileStream::WriteFloat( float fl ) {
+void SaveFile::WriteFloat( float fl ) {
     mStream << fl << endl;
 }
 
-void TextFileStream::WriteInteger( int i ) {
+void SaveFile::WriteInteger( int i ) {
     mStream << i << endl;
 }
 
-void TextFileStream::WriteBoolean( bool b ) {
+void SaveFile::WriteBoolean( bool b ) {
     mStream << b << endl;
 }
 
-void TextFileStream::WriteVector3( ruVector3 v ) {
+void SaveFile::WriteVector3( ruVector3 v ) {
     WriteFloat( v.x );
     WriteFloat( v.y );
     WriteFloat( v.z );
 }
 
-void TextFileStream::WriteQuaternion( ruQuaternion q ) {
+void SaveFile::WriteQuaternion( ruQuaternion q ) {
     WriteFloat( q.x );
     WriteFloat( q.y );
     WriteFloat( q.z );
     WriteFloat( q.w );
 }
 
-string TextFileStream::ReadString() {
+string SaveFile::ReadString() {
     string str;
     mStream >> str;
     return str;
 }
 
-void TextFileStream::ReadString( string & str ) {
+void SaveFile::ReadString( string & str ) {
     getline( mStream, str );
 }
 
-float TextFileStream::ReadFloat() {
+float SaveFile::ReadFloat() {
     float fl;
     mStream >> fl;
     return fl;
 }
 
-void TextFileStream::ReadFloat( float & f ) {
+void SaveFile::ReadFloat( float & f ) {
     mStream >> f;
 }
 
-int TextFileStream::ReadInteger() {
+int SaveFile::ReadInteger() {
     int i = 0;
     mStream >> i;
     return i;
 }
 
-void TextFileStream::ReadInteger( int & i ) {
+void SaveFile::ReadInteger( int & i ) {
     mStream >> i;
 }
 
-bool TextFileStream::ReadBoolean() {
+bool SaveFile::ReadBoolean() {
     bool b;
     mStream >> b;
     return b;
 }
 
-void TextFileStream::ReadBoolean( bool & b ) {
+void SaveFile::ReadBoolean( bool & b ) {
     mStream >> b;
 }
 
-ruVector3 TextFileStream::ReadVector3() {
+ruVector3 SaveFile::ReadVector3() {
     ruVector3 v;
     mStream >> v.x;
     mStream >> v.y;
@@ -79,13 +79,13 @@ ruVector3 TextFileStream::ReadVector3() {
     return v;
 }
 
-void TextFileStream::ReadVector3( ruVector3 & v ) {
+void SaveFile::ReadVector3( ruVector3 & v ) {
     mStream >> v.x;
     mStream >> v.y;
     mStream >> v.z;
 }
 
-ruQuaternion TextFileStream::ReadQuaternion() {
+ruQuaternion SaveFile::ReadQuaternion() {
     ruQuaternion q;
     mStream >> q.x;
     mStream >> q.y;
@@ -94,19 +94,22 @@ ruQuaternion TextFileStream::ReadQuaternion() {
     return q;
 }
 
-void TextFileStream::ReadQuaternion( ruQuaternion & q ) {
+void SaveFile::ReadQuaternion( ruQuaternion & q ) {
     mStream >> q.x;
     mStream >> q.y;
     mStream >> q.z;
     mStream >> q.w;
 }
 
-TextFileStream::~TextFileStream() {
+SaveFile::~SaveFile() {
     mStream.flush();
     mStream.close();
 }
 
-TextFileStream::TextFileStream( const string & fileName, bool save ) {
+SaveFile::SaveFile( const string & fileName, bool save ) {
     int flags = save ? ( fstream::out | fstream::trunc ) : ( fstream::in );
     mStream.open( fileName, flags );
+	if( mStream.bad() ) {
+		RaiseError( StringBuilder( "Unable to open " ) << fileName << " save file!" );
+	}
 }

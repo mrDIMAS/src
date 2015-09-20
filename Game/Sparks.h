@@ -4,11 +4,11 @@
 
 class Sparks {
 public:
-    ruNodeHandle ps;
+    ruSceneNode ps;
     int alive;
-    ruSoundHandle es;
+    ruSound es;
 public:
 
-    Sparks( ruNodeHandle at, ruSoundHandle emits );
+    Sparks( ruSceneNode at, ruSound emits );
     void Update();
 };

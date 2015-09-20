@@ -24,6 +24,8 @@
 #include <windows.h>
 #include <dinput.h>
 #include <fstream>
+#include <memory>
+
 #include FT_FREETYPE_H
 
 #include "RutheniumAPI.h"
@@ -42,14 +44,16 @@
 #   pragma comment(lib, "BulletDynamics_debug")
 #   pragma comment(lib, "LinearMath_debug")
 #   pragma comment(lib, "FreeType253MT_D")
+#	pragma comment( lib, "../external/ProjectF/ProjectF_debug")
 #else
 #   pragma comment(lib, "BulletCollision")
 #   pragma comment(lib, "BulletDynamics")
 #   pragma comment(lib, "LinearMath")
 #   pragma comment(lib, "FreeType253MT")
+#	pragma comment( lib, "../external/ProjectF/ProjectF")
 #endif
 
-#pragma comment( lib, "ProjectF")
+
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
 #pragma comment( lib, "dinput8.lib" )

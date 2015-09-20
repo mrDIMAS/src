@@ -3,7 +3,7 @@
 #include "Game.h"
 #include "Item.h"
 #include "Parser.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
 class Inventory {
 private:
@@ -20,7 +20,7 @@ private:
     static const int mCellCountHeight = 4;
     static const int mCellWidth = 64;
     static const int mCellHeight = 64;
-    ruSoundHandle mPickSound;
+    ruSound mPickSound;
     ruFontHandle mFont;
     Parser mLocalization;
     ruRectHandle mGUIRectItemForUse;
@@ -61,8 +61,8 @@ public:
     bool Contains( Item * pItem );
     void AddItem( Item * pItem );
     int GetItemCount( Item::Type type );
-    void Serialize( TextFileStream & out );
-    void Deserialize( TextFileStream & in );
+    void Serialize( SaveFile & out );
+    void Deserialize( SaveFile & in );
     void SetVisible( bool state );
 	void GetItemList( vector<Item::Type> & itemList );
 };

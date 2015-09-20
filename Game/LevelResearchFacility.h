@@ -12,74 +12,73 @@
 
 class LevelResearchFacility : public Level {
 private:
-    Lift * mLift1;
-	Lift * mLift2;
+    shared_ptr<Lift> mLift1;
+	shared_ptr<Lift> mLift2;
     Sparks * mpPowerSparks;
-    Valve * mpSteamValve;
+    shared_ptr<Valve> mpSteamValve;
     SteamStream * mpExtemeSteam;
-    Enemy * mpRipper;
-    Fan * mpFan1;
-    Fan * mpFan2;
-    ruSoundHandle mFanSound;
-    ruSoundHandle mLeverSound;
-    ruSoundHandle mSteamHissSound;
+    shared_ptr<Fan> mpFan1;
+    shared_ptr<Fan> mpFan2;
+    ruSound mFanSound;
+    ruSound mLeverSound;
+    ruSound mSteamHissSound;
 
-    ruNodeHandle mSteamPS;
-    ruNodeHandle mLockedDoor;
-    ruNodeHandle mExtremeSteamBlock;
-    ruNodeHandle mZoneExtremeSteamHurt;
-    ruNodeHandle fuseModel[3];
-    ruNodeHandle powerLever;
-    ruNodeHandle mPowerLeverOffModel;
-    ruNodeHandle mPowerLeverOnModel;
-    ruNodeHandle mPowerLamp;
-    ruNodeHandle mPowerLeverSnd;
-    ruNodeHandle mSmallSteamPosition;
+    ruSceneNode mSteamPS;
+    ruSceneNode mLockedDoor;
+    ruSceneNode mExtremeSteamBlock;
+    ruSceneNode mZoneExtremeSteamHurt;
+    ruSceneNode fuseModel[3];
+    ruSceneNode powerLever;
+    ruSceneNode mPowerLeverOffModel;
+    ruSceneNode mPowerLeverOnModel;
+    ruSceneNode mPowerLamp;
+    ruSceneNode mPowerLeverSnd;
+    ruSceneNode mSmallSteamPosition;
 	
 	
 	
-	ruNodeHandle mDoorUnderFloor;
-	ruNodeHandle mZoneNewLevelLoad;
-	ruNodeHandle mPathBlockingMesh;
+	ruSceneNode mDoorUnderFloor;
+	ruSceneNode mZoneNewLevelLoad;
+	ruSceneNode mPathBlockingMesh;
 
-	Zone * mZoneObjectiveNeedPassThroughMesh;
-	Zone * mZoneEnemySpawn;
-	Zone * mZoneSteamActivate;
-	Zone * mZoneObjectiveRestorePower;
-	Zone * mZoneExaminePlace;
-	Zone * mZoneRemovePathBlockingMesh;
-	Zone * mZoneNeedCrowbar;
+	shared_ptr<Zone> mZoneObjectiveNeedPassThroughMesh;
+	shared_ptr<Zone> mZoneEnemySpawn;
+	shared_ptr<Zone> mZoneSteamActivate;
+	shared_ptr<Zone> mZoneObjectiveRestorePower;
+	shared_ptr<Zone> mZoneExaminePlace;
+	shared_ptr<Zone> mZoneRemovePathBlockingMesh;
+	shared_ptr<Zone> mZoneNeedCrowbar;
 
 	Keypad * mKeypad1;
-	Door * mKeypad1DoorToUnlock;
+	shared_ptr<Door> mKeypad1DoorToUnlock;
 
 	Keypad * mKeypad2;
-	Door * mKeypad2DoorToUnlock;
+	shared_ptr<Door> mKeypad2DoorToUnlock;
 
 	Keypad * mKeypad3;
-	Door * mKeypad3DoorToUnlock;
+	shared_ptr<Door> mKeypad3DoorToUnlock;
 
 	Keypad * mLabKeypad;
-	Door * mLabDoorToUnlock;
+	shared_ptr<Door> mLabDoorToUnlock;
 
 	Keypad * mColliderKeypad;
-	Door * mColliderDoorToUnlock;
+	shared_ptr<Door> mColliderDoorToUnlock;
 
     Item * fuse[3];
 	Item * mCrowbarItem;
-    ItemPlace * mFusePlaceList[3];
+    shared_ptr<ItemPlace> mFusePlaceList[3];
     int fuseInsertedCount;
     bool mPowerOn;
 
-	ruNodeHandle mThermiteSmall;
-	ruNodeHandle mThermiteBig;
-	ruNodeHandle mMeshLock;
-	ruNodeHandle mThermitePlace;
-	ruNodeHandle mMeshToSewers;
-	ruNodeHandle mEnemySpawnPosition;
+	ruSceneNode mThermiteSmall;
+	ruSceneNode mThermiteBig;
+	ruSceneNode mMeshLock;
+	ruSceneNode mThermitePlace;
+	ruSceneNode mMeshToSewers;
+	ruSceneNode mEnemySpawnPosition;
 	ItemPlace * mThermiteItemPlace;
 
-	Enemy * mEnemy;
+	shared_ptr<Enemy> mEnemy;
 
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
@@ -100,8 +99,8 @@ public:
     virtual void DoScenario() final;
     virtual void Hide() final;
     virtual void Show() final;
-    virtual void OnSerialize( TextFileStream & out ) final;
-    virtual void OnDeserialize( TextFileStream & in ) final;
+    virtual void OnSerialize( SaveFile & out ) final;
+    virtual void OnDeserialize( SaveFile & in ) final;
 };
 
 

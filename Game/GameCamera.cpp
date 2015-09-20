@@ -32,7 +32,7 @@ GameCamera::GameCamera( float fov ) {
 
     MakeCurrent();
 
-    mFullscreenQuad = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(), ruGetTexture( "data/textures/generic/black.jpg" ), fadeColor, quadAlpha );
+    mFullscreenQuad = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruGetTexture( "data/textures/generic/black.jpg" ), fadeColor, quadAlpha );
     ruSetGUINodeAlpha( mFullscreenQuad, 0 );
 }
 
@@ -56,6 +56,6 @@ void GameCamera::SetFadeColor( ruVector3 newFadeColor ) {
 
 GameCamera::~GameCamera()
 {
-	ruFreeSceneNode( mNode );
+	mNode.Free();
 	ruFreeGUINode( mFullscreenQuad );
 }

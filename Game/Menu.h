@@ -25,7 +25,7 @@ private:
         LoadGame,
     };
 
-    ruNodeHandle mScene;
+    ruSceneNode mScene;
     bool mVisible;
     ruTextureHandle mButtonImage;
     ruTextureHandle mSmallButtonImage;
@@ -34,9 +34,9 @@ private:
     string mLoadSaveGameName;
 	string mSaveGameSlotName;
 
-    ruSoundHandle mPickSound;
+    ruSound mPickSound;
     Page mPage;
-    ruSoundHandle mMusic;
+    ruSound mMusic;
     Parser mLocalization;
 
     Slider * mpMasterVolume;

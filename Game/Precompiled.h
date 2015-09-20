@@ -26,5 +26,6 @@
 #include <sstream>
 #include <regex>
 #include <math.h>
- 
+#include <memory>
+
 using namespace std;

@@ -22,11 +22,11 @@ Inventory::Inventory() {
 
     mpItemForUse = nullptr;
 
-    mPickSound = ruLoadSound2D( "data/sounds/menupick.ogg" );
+    mPickSound = ruSound::Load2D( "data/sounds/menupick.ogg" );
 
     ruVector3 whiteColor = ruVector3( 255, 255, 255 );
-    int screenCenterX = ruGetResolutionWidth() / 2;
-    int screenCenterY = ruGetResolutionHeight() / 2;
+    int screenCenterX = ruEngine::GetResolutionWidth() / 2;
+    int screenCenterY = ruEngine::GetResolutionHeight() / 2;
 
     mGUIRectItemForUse = ruCreateGUIRect( screenCenterX, screenCenterY, 64, 64, ruTextureHandle::Empty(), whiteColor, 255 );
 
@@ -153,11 +153,11 @@ void Inventory::Update() {
 	}
 
     ruVector3 whiteColor = ruVector3( 255, 255, 255 );
-    int screenCenterX = ruGetResolutionWidth() / 2;
-    int screenCenterY = ruGetResolutionHeight() / 2;
+    int screenCenterX = ruEngine::GetResolutionWidth() / 2;
+    int screenCenterY = ruEngine::GetResolutionHeight() / 2;
 
     if( mpItemForUse ) {
-        ruHideCursor();
+        ruEngine::HideCursor();
         SetVisible( false );
         ruSetGUINodeTexture( mGUIRectItemForUse, mpItemForUse->GetPictogram() );
         ruSetGUINodeVisible( mGUIRectItemForUse, true );
@@ -176,11 +176,11 @@ void Inventory::Update() {
     }
 
     if( !mOpen ) {
-        ruHideCursor();
+        ruEngine::HideCursor();
         return;
     }
 
-    ruShowCursor();
+    ruEngine::ShowCursor();
 
     float distMult = 1.1f;
     int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
@@ -373,11 +373,11 @@ void Inventory::RemoveItem( Item * pItem ) {
 void Inventory::ThrowItem( Item * pItem ) {	
     pItem->MarkAsFree();
 	ruVector3 pickPoint, playerPos = pPlayer->GetCurrentPosition();
-	ruNodeHandle handle = ruCastRay( playerPos - ruVector3( 0,0.1,0), playerPos - ruVector3(0,100,0), &pickPoint );
+	ruSceneNode handle = ruCastRay( playerPos - ruVector3( 0,0.1,0), playerPos - ruVector3(0,100,0), &pickPoint );
 	if( handle.IsValid()) {
-		ruSetNodePosition( pItem->mObject, pickPoint );
+		pItem->mObject.SetPosition( pickPoint );
 	} else {
-		ruSetNodePosition( pItem->mObject, playerPos );
+		pItem->mObject.SetPosition( playerPos );
 	}
     RemoveItem( pItem );
     pItem->SetContent( 0.0f );
@@ -420,15 +420,15 @@ bool Inventory::IsOpened() const {
     return mOpen;
 }
 
-void Inventory::Deserialize( TextFileStream & in ) {
+void Inventory::Deserialize( SaveFile & in ) {
 
 }
 
-void Inventory::Serialize( TextFileStream & out ) {
+void Inventory::Serialize( SaveFile & out ) {
     out.WriteInteger( GetItemCount() );
     for( auto pItem : pPlayer->mInventory.mItemList ) {
         // write object name for further identification
-        out.WriteString( ruGetNodeName( pItem->mObject ) );
+        out.WriteString( pItem->mObject.GetName() );
     }
 }
 

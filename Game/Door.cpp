@@ -13,18 +13,18 @@ Door::~Door() {
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
-Door::Door( ruNodeHandle hDoor, float fMaxAngle ) : mDoorNode( hDoor ),
+Door::Door( ruSceneNode hDoor, float fMaxAngle ) : mDoorNode( hDoor ),
 													mMaxAngle( fMaxAngle ),
 													mLocked( false ),
 													mCurrentAngle( 0.0f ),
 													mState( State::Closed )
 {
-    mOffsetAngle = ruGetNodeEulerAngles( hDoor ).y;
+    mOffsetAngle = hDoor.GetEulerAngles().y;
 	SetTurnDirection( TurnDirection::Clockwise );
-    mOpenSound = ruLoadSound3D( "data/sounds/door/dooropen.ogg" );
-    ruAttachSound( mOpenSound, mDoorNode );
-    mCloseSound = ruLoadSound3D( "data/sounds/door/doorclose.ogg" );
-    ruAttachSound( mCloseSound, mDoorNode );
+    mOpenSound = ruSound::Load3D( "data/sounds/door/dooropen.ogg" );
+    mOpenSound.Attach( mDoorNode );
+    mCloseSound = ruSound::Load3D( "data/sounds/door/doorclose.ogg" );
+    mCloseSound.Attach( mDoorNode );
     msDoorList.push_back( this );
 }
 
@@ -64,7 +64,7 @@ void Door::DoInteraction() {
 
     }
 
-    ruSetNodeRotation( mDoorNode, ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
+    mDoorNode.SetRotation( ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
 }
 
 Door::State Door::GetState() {
@@ -74,40 +74,38 @@ Door::State Door::GetState() {
 void Door::SwitchState() {
     if( mState == State::Closed ) {
         mState = State::Opening;
-        ruPlaySound( mOpenSound );
+        mOpenSound.Play();
     }
     if( mState == State::Opened ) {
         mState = State::Closing;
-        ruPlaySound( mCloseSound );
+        mCloseSound.Play();
     }
 }
 
 void Door::Close() {
     if( mState == State::Opened ) {
         mState = State::Closing;
-        ruPlaySound( mCloseSound );
+        mCloseSound.Play();
     }
 }
 
 void Door::Open() {
     if( mState == State::Closed ) {
         mState = State::Opening;
-        ruPlaySound( mOpenSound );
+        mOpenSound.Play();
     }
 }
 
-Door * Door::GetByName( const string & name )
-{
+Door * Door::GetByName( const string & name ) {
 	for( auto pDoor : msDoorList ) {
-		if( ruGetNodeName( pDoor->mDoorNode ) == name ) {
+		if( pDoor->mDoorNode.GetName() == name ) {
 			return pDoor;
 		}
 	}
 	return nullptr;
 }
 
-void Door::Deserialize( TextFileStream & in )
-{
+void Door::Deserialize( SaveFile & in ) {
 	in.ReadFloat( mMaxAngle );
 	in.ReadFloat( mOffsetAngle );
 	in.ReadFloat( mCurrentAngle );
@@ -116,8 +114,7 @@ void Door::Deserialize( TextFileStream & in )
 	in.ReadBoolean( mLocked );
 }
 
-void Door::Serialize( TextFileStream & out )
-{
+void Door::Serialize( SaveFile & out ) {
 	out.WriteFloat( mMaxAngle );
 	out.WriteFloat( mOffsetAngle );
 	out.WriteFloat( mCurrentAngle );
@@ -126,17 +123,14 @@ void Door::Serialize( TextFileStream & out )
 	out.WriteBoolean( mLocked );
 }
 
-void Door::SetLocked( bool state )
-{
+void Door::SetLocked( bool state ) {
 	mLocked = state;
 }
 
-bool Door::IsLocked()
-{
+bool Door::IsLocked() {
 	return mLocked;
 }
 
-void Door::SetTurnDirection( TurnDirection direction )
-{
+void Door::SetTurnDirection( TurnDirection direction ) {
 	mTurnDirection = direction;
 }

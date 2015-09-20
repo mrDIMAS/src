@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Game.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
-class SaveLoader : public TextFileStream {
+class SaveLoader : public SaveFile {
 public:
     SaveLoader( string fn );
     ~SaveLoader();

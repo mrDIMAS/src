@@ -2,12 +2,12 @@
 
 #include "Game.h"
 
-class TextFileStream {
+class SaveFile {
 private:
     fstream mStream;
 public:
-    TextFileStream( const string & fileName, bool save );
-    ~TextFileStream();
+    SaveFile( const string & fileName, bool save );
+    ~SaveFile();
 
     // Read functions
     void ReadQuaternion( ruQuaternion & q );

@@ -61,7 +61,7 @@ float ActionTimer::GetPercentage() {
 	return mTimeCounter / mTimeInterval;
 }
 
-void ActionTimer::Deserialize( TextFileStream & in ) {
+void ActionTimer::Deserialize( SaveFile & in ) {
 	in.ReadBoolean( mActive );
 	in.ReadFloat( mTimeInterval );
 	in.ReadFloat( mTimeCounter );
@@ -70,7 +70,7 @@ void ActionTimer::Deserialize( TextFileStream & in ) {
 	in.ReadBoolean( mCanBeSelfDeleted );
 }
 
-void ActionTimer::Serialize( TextFileStream & out ) {
+void ActionTimer::Serialize( SaveFile & out ) {
 	out.WriteBoolean( mActive );
 	out.WriteFloat( mTimeInterval );
 	out.WriteFloat( mTimeCounter );

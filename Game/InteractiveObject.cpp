@@ -36,14 +36,14 @@ void InteractiveObject::UpdateFlashing() {
     }
 
     if( mObject.IsValid() ) {
-        ruSetNodeAlbedo( mObject, mFlashAlbedo );
+        mObject.SetAlbedo( mFlashAlbedo );
     }
 }
 
-InteractiveObject::InteractiveObject( ruNodeHandle object ) {
+InteractiveObject::InteractiveObject( ruSceneNode object ) {
     msObjectList.push_back( this );
     this->mObject = object;
-    ruFreeze( object );
+    object.Freeze();
     mFlashAlbedo = 0.2f;
     mFlashAlbedoTo = 1.0f;
     mFlashSpeed = 0.075f;

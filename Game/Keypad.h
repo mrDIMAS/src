@@ -6,23 +6,23 @@
 
 class Keypad {
 private:
-	ruNodeHandle mKeypad;
-	ruNodeHandle mKeys[10];
-	ruNodeHandle mKeyCancel;
+	ruSceneNode mKeypad;
+	ruSceneNode mKeys[10];
+	ruSceneNode mKeyCancel;
 	Door * mDoorToUnlock;
 	string mCurrentCode;
 	string mCodeToUnlock;
 	bool mKeyState[10];
 	ruVector3 mKeysInitialPosition[10];
 	ruVector3 mKeysPressedOffsets[10];
-	ruSoundHandle mButtonPushSound;
-	ruSoundHandle mButtonPopSound;
+	ruSound mButtonPushSound;
+	ruSound mButtonPopSound;
 
 	void Reset();
 public:
-	explicit Keypad( ruNodeHandle keypad, ruNodeHandle key0, ruNodeHandle key1, ruNodeHandle key2, ruNodeHandle key3, 
-		ruNodeHandle key4, ruNodeHandle key5, ruNodeHandle key6, ruNodeHandle key7, ruNodeHandle key8, ruNodeHandle key9,
-		ruNodeHandle keyCancel, Door * doorToUnlock, string codeToUnlock );
+	explicit Keypad( ruSceneNode keypad, ruSceneNode key0, ruSceneNode key1, ruSceneNode key2, ruSceneNode key3, 
+		ruSceneNode key4, ruSceneNode key5, ruSceneNode key6, ruSceneNode key7, ruSceneNode key8, ruSceneNode key9,
+		ruSceneNode keyCancel, Door * doorToUnlock, string codeToUnlock );
 
 	void Update();
 };

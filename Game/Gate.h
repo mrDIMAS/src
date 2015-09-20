@@ -12,42 +12,42 @@ public:
 		Closed,
 	};
 
-	ruNodeHandle mGate;
+	ruSceneNode mGate;
 	float mGateHeight;
-	ruNodeHandle mButtonOpen[2];
-	ruNodeHandle mButtonClose[2];
+	ruSceneNode mButtonOpen[2];
+	ruSceneNode mButtonClose[2];
 	ruVector3 mInitialPosition;
 	State mState;
 	float mGateYOffset;
-	ruSoundHandle mBeginSound;
-	ruSoundHandle mIdleSound;
-	ruSoundHandle mEndSound;
-	ruSoundHandle mButtonSound;
+	ruSound mBeginSound;
+	ruSound mIdleSound;
+	ruSound mEndSound;
+	ruSound mButtonSound;
 	
-	explicit Gate( ruNodeHandle gate, ruNodeHandle buttonOpen, ruNodeHandle buttonClose, ruNodeHandle buttonOpen2, ruNodeHandle buttonClose2  ) {
+	explicit Gate( ruSceneNode gate, ruSceneNode buttonOpen, ruSceneNode buttonClose, ruSceneNode buttonOpen2, ruSceneNode buttonClose2  ) {
 		mGate = gate;
-		mGateHeight = (ruGetNodeAABBMax( mGate ) - ruGetNodeAABBMin( mGate )).y * 0.9f;
+		mGateHeight = ( mGate.GetAABBMax() - mGate.GetAABBMin() ).y * 0.9f;
 		mButtonClose[0] = buttonClose;
 		mButtonOpen[0] = buttonOpen;
 		mButtonClose[1] = buttonClose2;
 		mButtonOpen[1] = buttonOpen2;
 		mGateYOffset = 0.0f;
-		mInitialPosition = ruGetNodePosition( mGate );
+		mInitialPosition = mGate.GetPosition();
 		mState = State::Closed;
 
-		mBeginSound = ruLoadSound3D( "data/sounds/door_open_start.ogg" );
-		mIdleSound = ruLoadSound3D( "data/sounds/door_open_idle.ogg" );
-		mEndSound = ruLoadSound3D( "data/sounds/door_open_end.ogg" );
-		mButtonSound = ruLoadSound3D( "data/sounds/button.ogg" );
+		mBeginSound = ruSound::Load3D( "data/sounds/door_open_start.ogg" );
+		mIdleSound = ruSound::Load3D( "data/sounds/door_open_idle.ogg" );
+		mEndSound = ruSound::Load3D( "data/sounds/door_open_end.ogg" );
+		mButtonSound = ruSound::Load3D( "data/sounds/button.ogg" );
 
-		ruSetSoundPosition( mBeginSound, ruGetNodePosition( mGate ) );
-		ruSetSoundPosition( mIdleSound, ruGetNodePosition( mGate ) );
-		ruSetSoundPosition( mEndSound, ruGetNodePosition( mGate ) );
+		mBeginSound.SetPosition( mGate.GetPosition() );
+		mIdleSound.SetPosition( mGate.GetPosition() );
+		mEndSound.SetPosition( mGate.GetPosition() );
 	}
 
 	void OnEndMoving() {
-		ruPauseSound( mIdleSound );
-		ruPlaySound( mEndSound );
+		mIdleSound.Pause();
+		mEndSound.Play();;
 	}
 
 	void Update() {
@@ -55,11 +55,11 @@ public:
 			if( !( mState == State::Closing || mState == State::Opening )) {
 				pPlayer->SetActionText( "Открыть" );
 				if( ruIsKeyHit( pPlayer->mKeyUse )) {
-					ruSetSoundPosition( mButtonSound, ruGetNodePosition( pPlayer->mNearestPickedNode ));
-					ruPlaySound( mButtonSound );
+					mButtonSound.SetPosition( pPlayer->mNearestPickedNode.GetPosition() );
+					mButtonSound.Play();
 					if( mState != State::Opened ) {
 						mState = State::Opening;
-						ruPlaySound( mBeginSound );
+						mBeginSound.Play();
 					}
 				}
 			}
@@ -68,11 +68,11 @@ public:
 			if( !( mState == State::Closing || mState == State::Opening )) {
 				pPlayer->SetActionText( "Закрыть" );
 				if( ruIsKeyHit( pPlayer->mKeyUse )) {	
-					ruSetSoundPosition( mButtonSound, ruGetNodePosition( pPlayer->mNearestPickedNode ));
-					ruPlaySound( mButtonSound );
+					mButtonSound.SetPosition( pPlayer->mNearestPickedNode.GetPosition() );
+					mButtonSound.Play();
 					if( mState != State::Closed ) {
 						mState = State::Closing;
-						ruPlaySound( mBeginSound );
+						mBeginSound.Play();
 					}
 				}
 			}
@@ -95,10 +95,10 @@ public:
 		}
 
 		if( mState == State::Opening || mState == State::Closing ) {
-			if( !ruIsSoundPlaying( mBeginSound )) {
-				ruPlaySound( mIdleSound );
+			if( !mBeginSound.IsPlaying() ) {
+				mIdleSound.Play();;
 			}
 		}
-		ruSetNodePosition( mGate, mInitialPosition + ruVector3( 0, mGateYOffset, 0 ));
+		mGate.SetPosition( mInitialPosition + ruVector3( 0, mGateYOffset, 0 ));
 	}
 };

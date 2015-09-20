@@ -30,11 +30,7 @@ public:
 		void OnLostDevice();
     };
 
-    BoundingVolumeRenderingShader * bvRenderer;
 
-    ID3DXMesh * mBoundingSphere;
-	ID3DXMesh * mBoundingStar;
-    ID3DXMesh * mBoundingCone;
 
     // Ambient Light
     class AmbientLightShader {
@@ -80,17 +76,20 @@ public:
 		void Bind( const btVector3 & position );
 	};
 
-	EffectsQuad * mFullscreenQuad;
+	ID3DXMesh * mBoundingSphere;
+	ID3DXMesh * mBoundingStar;
+	ID3DXMesh * mBoundingCone;
 
-    GBuffer * mGBuffer;
-
-    AmbientLightShader * mAmbientLightShader;
-    PointLightShader * mPointLightShader;
-    SpotLightShader * mSpotLightShader;
-	SkyboxShader * mSkyboxShader;
-    FXAA * mFXAA;
-    SpotlightShadowMap * mSpotLightShadowMap;
-    HDRShader * mHDRShader;
+	shared_ptr<BoundingVolumeRenderingShader> bvRenderer;
+	shared_ptr<EffectsQuad> mFullscreenQuad;
+    shared_ptr<GBuffer> mGBuffer;
+    shared_ptr<AmbientLightShader> mAmbientLightShader;
+    shared_ptr<PointLightShader> mPointLightShader;
+    shared_ptr<SpotLightShader> mSpotLightShader;
+	shared_ptr<SkyboxShader> mSkyboxShader;
+    shared_ptr<FXAA> mFXAA;
+    shared_ptr<SpotlightShadowMap> mSpotLightShadowMap;
+    shared_ptr<HDRShader> mHDRShader;
 
     void CreateBoundingVolumes();
 

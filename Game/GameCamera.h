@@ -4,7 +4,7 @@
 
 class GameCamera {
 public:
-    ruNodeHandle mNode;
+    ruSceneNode mNode;
     float quadAlpha;
     float quadAlphaTo;
     ruVector3 fadeColor;

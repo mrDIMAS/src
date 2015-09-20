@@ -55,19 +55,19 @@ LevelIntroduction::LevelIntroduction() {
     mShowIntro = true;
     mTypeNum = 1;
     LoadLocalization( "intro.loc" );
-    int scx = ruGetResolutionWidth() / 2;
-    int scy = ruGetResolutionHeight() / 2;
+    int scx = ruEngine::GetResolutionWidth() / 2;
+    int scy = ruEngine::GetResolutionHeight() / 2;
     int w = 600;
     int h = 400;
     mGUIText = ruCreateGUIText( mLocalization.GetString( "intro" ), scx - w / 2, scy - h / 2, w, h, pGUI->mFont, ruVector3( 0, 0, 0 ), 0, mTextAlpha );
-    mGUISkipText = ruCreateGUIText( mLocalization.GetString( "skip" ), ruGetResolutionWidth() / 2 - 256, ruGetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
-	mGUIBackground = ruCreateGUIRect( 0, 0, ruGetResolutionWidth(), ruGetResolutionHeight(),  ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
+    mGUISkipText = ruCreateGUIText( mLocalization.GetString( "skip" ), ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+	mGUIBackground = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(),  ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
 }
 
-void LevelIntroduction::OnDeserialize( TextFileStream & in ) {
+void LevelIntroduction::OnDeserialize( SaveFile & in ) {
 
 }
 
-void LevelIntroduction::OnSerialize( TextFileStream & out ) {
+void LevelIntroduction::OnSerialize( SaveFile & out ) {
 
 }

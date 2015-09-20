@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TextFileStream.h"
+#include "SaveFile.h"
 
 class ActionTimer {
 private:
@@ -28,6 +28,6 @@ public:
 	// useful to control time-critical actions, returns float in interval [0; 1]
 	float GetPercentage();
 	static void UpdateAll();
-	void Serialize( TextFileStream & out );
-	void Deserialize( TextFileStream & in );
+	void Serialize( SaveFile & out );
+	void Deserialize( SaveFile & in );
 };

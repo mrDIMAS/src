@@ -30,11 +30,17 @@ public:
         Triangle( unsigned short vA, unsigned short vB, unsigned short vC );
     };
 
+	struct RealBone {
+		SceneNode * node;
+		btTransform transform;
+	};
+
 public:
     IDirect3DVertexBuffer9 * mVertexBuffer;
     IDirect3DIndexBuffer9 * mIndexBuffer;
     Texture * mDiffuseTexture;
     Texture * mNormalTexture;
+	//vector<SceneNode*> mBoneList;
     vector<Vertex> mVertices;
     vector<Triangle> mTriangles;
     vector<Weight> mWeightTable;

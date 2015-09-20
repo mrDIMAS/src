@@ -6,15 +6,15 @@ LevelSewers::LevelSewers( ) {
 	mTypeNum = 5;
 	LoadSceneFromFile( "data/maps/release/sewers/sewers.scene" );
 
-	pPlayer->SetPosition( ruGetNodePosition( GetUniqueObject( "PlayerPosition" ) ));
+	pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" ).GetPosition() );
 
-	AddLadder( new Ladder( GetUniqueObject( "Ladder1Begin" ), GetUniqueObject( "Ladder1End" ), GetUniqueObject( "Ladder1Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder1Begin" ), GetUniqueObject( "Ladder1End" ), GetUniqueObject( "Ladder1Enter" ),
 		GetUniqueObject( "Ladder1BeginLeavePoint"), GetUniqueObject( "Ladder1EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder2Begin" ), GetUniqueObject( "Ladder2End" ), GetUniqueObject( "Ladder2Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder2Begin" ), GetUniqueObject( "Ladder2End" ), GetUniqueObject( "Ladder2Enter" ),
 		GetUniqueObject( "Ladder2BeginLeavePoint"), GetUniqueObject( "Ladder2EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
 		GetUniqueObject( "Ladder3BeginLeavePoint"), GetUniqueObject( "Ladder3EndLeavePoint")));
-	AddLadder( new Ladder( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
+	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
 		GetUniqueObject( "Ladder4BeginLeavePoint"), GetUniqueObject( "Ladder4EndLeavePoint")));
 
 	mGate1 = new Gate( GetUniqueObject( "SmallGate1" ), GetUniqueObject( "Button1Open" ), GetUniqueObject( "Button1Close" ),
@@ -27,10 +27,10 @@ LevelSewers::LevelSewers( ) {
 
 	mZoneKnocks = GetUniqueObject( "ZoneKnocks" );
 
-	mKnocksSound = ruLoadSound3D( "data/sounds/knocks.ogg" );
-	ruSetSoundPosition( mKnocksSound, ruGetNodePosition( mZoneKnocks ));
-	ruSetRolloffFactor( mKnocksSound, 0.2f );
-	ruSetRoomRolloffFactor( mKnocksSound, 0.2f );
+	mKnocksSound = ruSound::Load3D( "data/sounds/knocks.ogg" );
+	mKnocksSound.SetPosition( mZoneKnocks.GetPosition() );
+	mKnocksSound.SetRolloffFactor( 0.2f );
+	mKnocksSound.SetRoomRolloffFactor( 0.2f );
 
 	ruSetAudioReverb( 10 );
  
@@ -45,13 +45,13 @@ LevelSewers::~LevelSewers( ) {
 }
 
 void LevelSewers::DoScenario() {
-	ruSetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
+	ruEngine::SetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
 	mGate1->Update();
 	mGate2->Update();
 
 	if( !mStages[ "KnocksDone" ] ) {
 		if( pPlayer->IsInsideZone( mZoneKnocks )) {
-			ruPlaySound( mKnocksSound );
+			mKnocksSound.Play();
 			mStages[ "KnocksDone" ] = true;
 		}
 	}
@@ -65,12 +65,12 @@ void LevelSewers::Hide() {
 	Level::Hide();
 }
 
-void LevelSewers::OnDeserialize( TextFileStream & in )
+void LevelSewers::OnDeserialize( SaveFile & in )
 {
 
 }
 
-void LevelSewers::OnSerialize( TextFileStream & out )
+void LevelSewers::OnSerialize( SaveFile & out )
 {
 
 }

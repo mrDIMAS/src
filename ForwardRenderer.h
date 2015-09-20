@@ -12,8 +12,8 @@
 class ForwardRenderer {
 private:
     map< IDirect3DTexture9*, vector< Mesh* > > mRenderList;
-    PixelShader * mPixelShader;
-    VertexShader * mVertexShader;
+    shared_ptr<PixelShader> mPixelShader;
+    shared_ptr<VertexShader> mVertexShader;
 public:
     ForwardRenderer();
     ~ForwardRenderer();

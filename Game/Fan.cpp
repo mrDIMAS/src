@@ -4,17 +4,17 @@
 
 void Fan::DoTurn() {
     mAngle += mTurnSpeed;
-    ruSetNodeRotation( mBody, ruQuaternion( mTurnAxis, mAngle ));
-    ruPlaySound( mEngineSound, 1 );
+    mBody.SetRotation( ruQuaternion( mTurnAxis, mAngle ));
+    mEngineSound.Play();
 }
 
-Fan::Fan( ruNodeHandle obj, float ts, ruVector3 axis, ruSoundHandle snd ) {
+Fan::Fan( ruSceneNode obj, float ts, ruVector3 axis, ruSound snd ) {
     mBody = obj;
     mTurnSpeed = ts;
     mTurnAxis = axis;
     mAngle = 0;
     mEngineSound = snd;
-    ruAttachSound( mEngineSound, mBody );
+    mEngineSound.Attach( mBody );
 }
 
 Fan::~Fan() {

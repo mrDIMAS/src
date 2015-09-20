@@ -6,11 +6,11 @@ void SteamStream::Update() {
     ruParticleSystemProperties * psProps = ruGetParticleSystemProperties( ps );
     psProps->pointSize = power * 0.15;
     psProps->boundingRadius = power * 0.8;
-    ruPlaySound( snd );
-    ruSetSoundVolume( snd, power );
+    snd.Play();
+    snd.SetVolume( power );
 }
 
-SteamStream::SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedMax, ruSoundHandle hissSound ) {
+SteamStream::SteamStream( ruSceneNode obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound ) {
     snd = hissSound;
     ruParticleSystemProperties psProps;
     psProps.type = PS_STREAM;
@@ -25,10 +25,10 @@ SteamStream::SteamStream( ruNodeHandle obj, ruVector3 speedMin, ruVector3 speedM
     psProps.useLighting = true;
     psProps.scaleFactor = 0.05f;
     ps = ruCreateParticleSystem( 60, psProps );
-    ruSetNodePosition( ps, ruGetNodePosition( obj ));
-    ruAttachSound( snd, ps );
-	ruSetRolloffFactor( snd, 5 );
-	ruSetSoundReferenceDistance( snd, 0.4 );
-	ruSetRoomRolloffFactor( snd, 2.5f );
+    ps.SetPosition( obj.GetPosition() );
+    snd.Attach( ps );
+	snd.SetRolloffFactor( 5 );
+	snd.SetReferenceDistance( 0.4 );
+	snd.SetRoomRolloffFactor( 2.5f );
     power = 1;
 }

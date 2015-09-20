@@ -19,21 +19,21 @@ void main( ) {
 
     v3 = 10 * v1 ;
 
-    ruCreateRenderer( 1280, 720, 0, 0 );
+    ruEngine::Create( 1280, 720, 0, 0 );
 
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
 
-    ruNodeHandle cameraPivot = ruCreateSceneNode();
-    ruSetCapsuleBody( cameraPivot, 6, 2 );
-    ruSetAngularFactor( cameraPivot, ruVector3( 0, 0, 0 ));
-    ruSetNodePosition( cameraPivot, ruVector3( 0, 5, 0 ));
+    ruSceneNode cameraPivot = ruCreateSceneNode();
+	cameraPivot.SetCapsuleBody( 6, 2 );
+	cameraPivot.SetAngularFactor( ruVector3( 0, 0, 0 ));
+    cameraPivot.SetPosition( ruVector3( 0, 5, 0 ));
 
-    ruNodeHandle testCamera = ruCreateCamera( 90 );
-    ruSetNodePosition( testCamera, ruVector3( 10, 50, -100 ));
+    ruSceneNode testCamera = ruCreateCamera( 90 );
+    testCamera.SetPosition( ruVector3( 10, 50, -100 ));
 
-    ruNodeHandle camera = ruCreateCamera( 60 );
-    ruAttachNode( camera, cameraPivot );
+    ruSceneNode camera = ruCreateCamera( 60 );
+    camera.Attach( cameraPivot );
 
     ruSetCameraSkybox( camera, 
 		ruGetTexture( "data/textures/skyboxes/test/red_sky_u.jpg" ),
@@ -42,11 +42,11 @@ void main( ) {
 		ruGetTexture( "data/textures/skyboxes/test/red_sky_f.jpg" ), 
 		ruGetTexture( "data/textures/skyboxes/test/red_sky_b.jpg" ));
 
-    ruSetNodePosition( camera, ruVector3( 0, 6, 0 ));
+    camera.SetPosition( ruVector3( 0, 6, 0 ));
 
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
     //ruNodeHandle node = ruLoadScene( "data/maps/release/arrival/arrival.scene");//ruLoadScene( "data/newFormat.scene" );
-	ruNodeHandle node = ruLoadScene( "data/newFormat.scene" );
+	ruSceneNode node = ruLoadScene( "data/newFormat.scene" );
 	//ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
     //int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
@@ -73,17 +73,17 @@ void main( ) {
     streamParticleEmitterProps.boundingRadius = 50;
 	streamParticleEmitterProps.useLighting = true;
 
-    ruNodeHandle streamParticleEmitter = ruCreateParticleSystem( 256, streamParticleEmitterProps );
+    ruSceneNode streamParticleEmitter = ruCreateParticleSystem( 256, streamParticleEmitterProps );
 
     ruTimerHandle timer = ruCreateTimer();
 
     ruTimerHandle perfTimer = ruCreateTimer();
     int perfTime=0;
 
-    ruEnableSpotLightShadows( false );
+    ruEngine::EnableSpotLightShadows( false );
     
 
-    ruSetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
+    ruEngine::SetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
     ruTextHandle fpsText = ruCreateGUIText( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), 0, 150 );
     
 	ruRectHandle testrect = ruCreateGUIRect( 100, 100, 200, 200, ruGetTexture( "data/gui/inventory/items/detonator.png" ));
@@ -93,25 +93,28 @@ void main( ) {
 	ruAttachGUINode( testButton2, testrect );
 	//ruNodeHandle testScene = ruLoadScene( "data/test.scene" );
 	//ruNodeHandle testScene = ruLoadScene( "data/maps/release/mine/mine.scene" );
-	ruSetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
-	ruSetHDREnabled( false );
-	ruDisableFXAA();
+	ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
+	ruEngine::SetHDREnabled( false );
+	ruEngine::DisableFXAA();
 
-	ruNodeHandle cube = ruLoadScene( "data/cube.scene" );
+	ruSceneNode cube = ruLoadScene( "data/cube.scene" );
 	
+	ruSound snd = ruSound::LoadMusic( "data/music/rf.ogg" );
+	snd.SetVolume( 0.1 );
+
     while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();
 
         if( ruIsMouseHit( MB_Right )) {
-            ruSetHDREnabled( !ruIsHDREnabled() );
+            ruEngine::SetHDREnabled( !ruEngine::IsHDREnabled() );
         }
 		
 		if( ruIsKeyHit( KEY_T )) {
-			ruChangeVideomode( 2560, 1440, 0, 1 );
+			ruEngine::ChangeVideomode( 2560, 1440, 0, 1 );
 		}
 		if( ruIsKeyHit( KEY_Y )) {
-			ruChangeVideomode( 1920, 1080, 0, 1 );
+			ruEngine::ChangeVideomode( 1920, 1080, 0, 1 );
 		}
         ruVector3 speed;
 
@@ -124,8 +127,8 @@ void main( ) {
         ruQuaternion pitchRotation( ruVector3( 1, 0, 0 ), pitch );
         ruQuaternion yawRotation( ruVector3( 0, 1, 0 ), yaw );
 
-        ruVector3 look = ruGetNodeLookVector( cameraPivot );
-        ruVector3 right = ruGetNodeRightVector( cameraPivot );
+        ruVector3 look = cameraPivot.GetLookVector();
+        ruVector3 right = cameraPivot.GetRightVector();
 		 
         //SetPosition( Omni09, GetPosition( camera ));
         //ruSetNodePosition( streamParticleEmitter, ruGetNodePosition( cameraPivot ));
@@ -136,19 +139,20 @@ void main( ) {
 
 		if( ruIsKeyHit( KEY_1 )) {
 			ruSetGUINodeVisible( testrect, false );
-			ruEnableFXAA();
+			ruEngine::EnableFXAA();
 		}
 		if( ruIsKeyHit( KEY_2 )) {
 			ruSetGUINodeVisible( testrect, true );
-			ruDisableFXAA();
+			ruEngine::DisableFXAA();
 		}
 		if( ruIsKeyHit( KEY_3 )) {
-			ruFreeSceneNode( node );
+			node.Free();
 		}
 
 		if( ruIsMouseHit( MB_Left )) {
-			ruNodeHandle newCube = ruCreateNodeInstance( cube );
-			ruSetNodePosition( newCube, ruGetNodePosition( camera ));
+			ruSceneNode newCube = ruCreateNodeInstance( cube );
+			newCube.Attach( camera );
+			newCube.SetPosition( ruVector3( 0, 0, 1 ));
 		}
 
         if( ruIsKeyDown( KEY_W )) {
@@ -174,9 +178,9 @@ void main( ) {
             }
         }
 
-        ruMoveNode( cameraPivot, speed * ruVector3( 100, 1, 100 ));
-        ruSetNodeRotation( camera, pitchRotation );
-        ruSetNodeRotation( cameraPivot, yawRotation );
+        cameraPivot.Move( speed * ruVector3( 100, 1, 100 ));
+        camera.SetRotation( pitchRotation );
+        cameraPivot.SetRotation( yawRotation );
 
         counter++;
 
@@ -187,7 +191,7 @@ void main( ) {
         }
 
         char buf[ 128 ];
-        sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruDIPs(), ruTextureUsedPerFrame(), fps, ruGetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruIsHDREnabled()  );
+        sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruEngine::GetDIPs(), ruEngine::GetTextureUsedPerFrame(), fps, ruEngine::GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruEngine::IsHDREnabled()  );
         ruSetGUINodeText( fpsText, buf );
         
         if( ruIsButtonPressed( testButton )) {
@@ -197,11 +201,12 @@ void main( ) {
         }
 
         ruRestartTimer( perfTimer );
-        ruRenderWorld( ); // fixed FPS
+        ruEngine::RenderWorld( ); // fixed FPS
+		ruEngine::UpdateWorld();
         perfTime=ruGetElapsedTimeInMilliSeconds( perfTimer );
     }
 
-    ruFreeRenderer();
+    ruEngine::Free();
 }
 
 #endif

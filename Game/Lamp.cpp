@@ -2,34 +2,28 @@
 
 #include "Lamp.h"
 
-void Lamp::Update()
-{
+void Lamp::Update() {
 	PlaySounds();
 }
 
-void Lamp::Show()
-{
+void Lamp::Show() {
 	PlaySounds();
 }
 
-void Lamp::Hide()
-{
-	ruPauseSound( mBuzzSound );
+void Lamp::Hide() {
+	mBuzzSound.Pause();
 }
 
-Lamp::Lamp( ruNodeHandle lamp, ruSoundHandle buzz )
-{
+Lamp::Lamp( ruSceneNode lamp, ruSound buzz ) {
 	mLamp = lamp;
 	mBuzzSound = buzz;
-	ruSetRolloffFactor( mBuzzSound, 5 );
-	ruSetRolloffFactor( mBuzzSound, 2.5f );
-	ruSetSoundReferenceDistance( mBuzzSound, 2.0f );
-	ruSetSoundPosition( mBuzzSound, ruGetNodePosition( mLamp ));
+	mBuzzSound.SetRolloffFactor( 2.5f );
+	mBuzzSound.SetReferenceDistance( 2.0f );
+	mBuzzSound.SetPosition( mLamp.GetPosition() );
 }
 
-void Lamp::PlaySounds()
-{
+void Lamp::PlaySounds() {
 	if( mBuzzSound.IsValid() ) {
-		ruPlaySound( mBuzzSound );
+		mBuzzSound.Play();
 	}
 }

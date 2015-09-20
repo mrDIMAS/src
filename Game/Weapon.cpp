@@ -1,18 +1,18 @@
 #include "Precompiled.h"
 
 #include "Weapon.h"
-#include "TextFileStream.h"
+#include "SaveFile.h"
 #include "Player.h"
 #include "Enemy.h"
 
-void Weapon::Deserialize( TextFileStream & in ) {
+void Weapon::Deserialize( SaveFile & in ) {
 	mType = (Type)in.ReadInteger();
 	mProjectileCount = in.ReadInteger();
 	mShotInterval = in.ReadInteger();
 	mShotFlashIntensity = in.ReadFloat();
 }
 
-void Weapon::Serialize( TextFileStream & out ) {
+void Weapon::Serialize( SaveFile & out ) {
 	out.WriteInteger( 0 );
 	out.WriteInteger( mProjectileCount );
 	out.WriteInteger( mShotInterval );
@@ -20,7 +20,7 @@ void Weapon::Serialize( TextFileStream & out ) {
 }
 
 void Weapon::Update() {
-	ruSetNodeLocalPosition( mModel, mInitialPosition + mShotOffset + mOffset * 0.25f );
+	mModel.SetLocalPosition( mInitialPosition + mShotOffset + mOffset * 0.25f );
 	if( (mShotOffset - mShotOffsetTo).Length2() < 0.025 ) {
 		mShotOffsetTo = ruVector3( 0, 0, 0 );
 	}
@@ -47,12 +47,12 @@ void Weapon::Shoot() {
 			mShotInterval = 20;
 			mShotFlashIntensity = 5.0f;
 			mProjectileCount--;
-			ruPlaySound( mShotSound );
+			mShotSound.Play();
 			mShotOffsetTo = ruVector3( 0, 0.065, -0.18 );
 			OnShoot();			
 		}
 	} else {
-		ruPlaySound( mEmptySound );
+		mEmptySound.Play();
 	}
 }
 
@@ -63,40 +63,40 @@ Weapon::Type Weapon::GetType() {
 void Weapon::SetVisible( bool state ) {
 	mVisible = state;
 	if( state ) {
-		ruShowNode( mModel );
+		mModel.Show();
 	} else {
-		ruHideNode( mModel);
+		mModel.Hide();
 	}
 }
 
-Weapon::Weapon( ruNodeHandle owner ) {
+Weapon::Weapon( ruSceneNode owner ) {
 	mModel = ruLoadScene( "data/models/hands_pistol/handspistol.scene" );
 	mShootPoint = ruFindInObjectByName( mModel, "ShootPoint" );
-	ruAttachNode( mModel, owner );
-	mShotSound = ruLoadSound3D( "data/sounds/shot3.ogg" );
-	ruAttachSound( mShotSound, mShootPoint );
-	mEmptySound = ruLoadSound3D( "data/sounds/pistol_empty.ogg" );
-	ruAttachSound( mEmptySound, mShootPoint );
+	mModel.Attach( owner );
+	mShotSound = ruSound::Load3D( "data/sounds/shot3.ogg" );
+	mShotSound.Attach( mShootPoint );
+	mEmptySound = ruSound::Load3D( "data/sounds/pistol_empty.ogg" );
+	mEmptySound.Attach( mShootPoint );
 	mShotInterval = 0;
 	mProjectileCount = 6;
 	mType = Type::Pistol;
 	mShotFlash = ruCreateLight( LT_POINT );
-	ruAttachNode( mShotFlash, mModel );
+	mShotFlash.Attach( mModel );
 	mShotFlashIntensity = 0.01f;
-	mInitialPosition = ruGetNodeLocalPosition( mModel );
+	mInitialPosition = mModel.GetLocalPosition();
 	mShakeCoeff = 0.0f;
 }
 
 void Weapon::OnShoot() {
-	ruVector3 look = ruGetNodeAbsoluteLookVector( mModel );
-	ruNodeHandle node = ruCastRay( ruGetNodePosition( mShootPoint ) + look * 0.1, ruGetNodePosition( mShootPoint ) + look * 1000 );
+	ruVector3 look = mModel.GetAbsoluteLookVector();
+	ruSceneNode node = ruCastRay( mShootPoint.GetPosition() + look * 0.1, mShootPoint.GetPosition() + look * 1000 );
 	if( node.IsValid() ) {
 		for( auto pEnemy : Enemy::msEnemyList ) {
 			if( node == pEnemy->GetBody() ) {
 				pEnemy->Damage( 1000 );
 			}
 		}
-		ruNodeAddForce( node, look.Normalize() * 200 );
+		node.AddForce( look.Normalize() * 200 );
 	}
 }
 
@@ -109,7 +109,7 @@ bool Weapon::LoadBullet() {
 	return false;
 }
 
-ruNodeHandle Weapon::GetModel() {
+ruSceneNode Weapon::GetModel() {
 	return mModel;
 }
 

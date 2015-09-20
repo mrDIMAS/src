@@ -63,7 +63,7 @@ public:
     void SetSpotTexture( Texture * tex );
     void SetPointTexture( CubeTexture * ctex );
     void BuildSpotProjectionMatrixAndFrustum();
-    static Light * GetLightByHandle( ruNodeHandle handle );
+    static Light * GetLightByHandle( ruSceneNode handle );
     ruVector3 GetRealPosition( );
     void DoFloating();
 };

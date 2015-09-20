@@ -6,7 +6,7 @@ class Actor {
 protected:
     float mBodyHeight;
     float mBodyWidth;
-    ruNodeHandle mBody;
+    ruSceneNode mBody;
 	float mSpringLength;
 	bool mCrouch;
 	float mCrouchMultiplier;
@@ -19,7 +19,7 @@ public:
     void Move( ruVector3 direction, float speed );
 	void Step( ruVector3 direction, float speed );
     ruVector3 GetCurrentPosition( );
-    char IsInsideZone( ruNodeHandle zone );
+    char IsInsideZone( ruSceneNode zone );
     void StopInstant();
     void Freeze();
     void Unfreeze();

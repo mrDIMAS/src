@@ -4,16 +4,15 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift( ruNodeHandle base ) {
-    mBaseNode = base;
-    mArrived = true;
+Lift::Lift( ruSceneNode base ) : mPaused( false ), mBaseNode( base ), mArrived( true ), mEngineSoundEnabled( true ), mSpeedMultiplier( 1.0f ) {
+
 }
 
 void Lift::Update() {
     if( mBaseNode.IsValid() && mDoorBackLeftNode.IsValid() && mDoorBackRightNode.IsValid() &&
             mDoorFrontLeftNode.IsValid() && mDoorFrontRightNode.IsValid() && mSourceNode.IsValid() &&
             mDestNode.IsValid() && mControlPanel.IsValid() && mTargetNode.IsValid() ) {
-        ruVector3 directionVector = ruGetNodePosition( mTargetNode ) - ruGetNodePosition( mBaseNode );
+        ruVector3 directionVector = mTargetNode.GetPosition() - mBaseNode.GetPosition();
         ruVector3 speedVector = directionVector.Normalized() * 1.2 * g_dt;
         float distSqr = directionVector.Length2();
 
@@ -26,9 +25,13 @@ void Lift::Update() {
             distSqr = 1.0f;
         }
 
-        ruSetSoundVolume( mMotorSound, distSqr );
+        mMotorSound.SetVolume( distSqr );
 
-        ruPlaySound( mMotorSound, 1 );
+		if( mEngineSoundEnabled ) {
+			mMotorSound.Play();
+		} else {
+			mMotorSound.Pause();
+		}
 	
         // smooth arriving
         if( !mArrived ) {
@@ -39,7 +42,14 @@ void Lift::Update() {
             } else {
                 speed = distSqr;
             }
-            ruMoveNode( mBaseNode, speedVector * speed );
+			
+			speed *= mSpeedMultiplier;
+
+			if( !mPaused ) {
+				mBaseNode.Move( speedVector * speed );
+			} else {
+				mMotorSound.Pause();
+			}
         }
 
         // player interaction( TODO: must be moved to player class )
@@ -66,65 +76,96 @@ void Lift::Update() {
     }
 }
 
-void Lift::SetBackDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor ) {
+void Lift::SetBackDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
     mDoorBackLeftNode = leftDoor;
     mDoorBackRightNode = rightDoor;
-	mDoorBackLeft = new LiftDoor( mDoorBackLeftNode, 90, 0 );
+	mDoorBackLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackLeftNode, 90, 0 ));
 	mDoorBackLeft->SetTurnDirection( Door::TurnDirection::Clockwise );
-	mDoorBackRight = new LiftDoor( mDoorBackRightNode, 90, 0 );
+	mDoorBackRight = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackRightNode, 90, 0 ));
 	mDoorBackRight->SetTurnDirection( Door::TurnDirection::Counterclockwise );
 }
 
-void Lift::SetFrontDoors( ruNodeHandle leftDoor, ruNodeHandle rightDoor ) {
+void Lift::SetFrontDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
     mDoorFrontLeftNode = leftDoor;
     mDoorFrontRightNode = rightDoor;
-	mDoorFrontLeft = new LiftDoor( mDoorFrontLeftNode, 90, 0 );
+	mDoorFrontLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorFrontLeftNode, 90, 0 ));
 	mDoorFrontLeft->SetTurnDirection( Door::TurnDirection::Counterclockwise );
-	mDoorFrontRight = new LiftDoor( mDoorFrontRightNode, 90, 0 );
+	mDoorFrontRight = unique_ptr<LiftDoor>( new LiftDoor( mDoorFrontRightNode, 90, 0 ));
 	mDoorFrontRight->SetTurnDirection( Door::TurnDirection::Clockwise );
 }
 
-void Lift::SetMotorSound( ruSoundHandle motorSound ) {
+void Lift::SetMotorSound( ruSound motorSound ) {
     mMotorSound = motorSound;
-    ruAttachSound( mMotorSound, mBaseNode );
+    mMotorSound.Attach( mBaseNode );
 }
 
-void Lift::SetSourcePoint( ruNodeHandle sourceNode ) {
+void Lift::SetSourcePoint( ruSceneNode sourceNode ) {
     mSourceNode = sourceNode;
     mTargetNode = mSourceNode;
 }
 
-void Lift::SetDestinationPoint( ruNodeHandle destNode ) {
+void Lift::SetDestinationPoint( ruSceneNode destNode ) {
     mDestNode = destNode;
 }
 
-void Lift::SetControlPanel( ruNodeHandle panel ) {
+void Lift::SetControlPanel( ruSceneNode panel ) {
     mControlPanel = panel;
 }
 
 Lift::~Lift() {
-	delete mDoorFrontRight;
-	delete mDoorFrontLeft;
-	delete mDoorBackRight;
-	delete mDoorBackLeft;
+
 }
 
 bool Lift::IsArrived() {
     return mArrived;
 }
 
-bool Lift::IsAllDoorsClosed()
-{
+bool Lift::IsAllDoorsClosed() {
 	return mDoorFrontLeft->GetState() == Door::State::Closed &&
 		mDoorFrontRight->GetState() == Door::State::Closed && 
 		mDoorBackLeft->GetState() == Door::State::Closed &&
 		mDoorBackRight->GetState() == Door::State::Closed;
 }
 
-void Lift::SetDoorsLocked( bool state )
-{
+void Lift::SetDoorsLocked( bool state ) {
 	mDoorFrontLeft->SetLocked( state );
 	mDoorFrontRight->SetLocked( state );
 	mDoorBackLeft->SetLocked( state );
 	mDoorBackRight->SetLocked( state );
+}
+
+void Lift::SetPaused( bool state ) {
+	mPaused = state;
+}
+
+void Lift::SetEngineSoundEnabled( bool state ) {
+	mEngineSoundEnabled = state;
+}
+
+void Lift::SetSpeedMultiplier( float mult ) {
+	mSpeedMultiplier = mult;
+}
+
+void Lift::Serialize( SaveFile & out ) {
+	out.WriteBoolean( mArrived );
+	out.WriteBoolean( mPaused );
+	out.WriteBoolean( mEngineSoundEnabled );
+	out.WriteFloat( mSpeedMultiplier );
+	if( mTargetNode == mSourceNode ) {
+		out.WriteInteger( 0 );
+	} else {
+		out.WriteInteger( 1 );
+	}
+}
+
+void Lift::Deserialize( SaveFile & in ) {
+	in.ReadBoolean( mArrived );
+	in.ReadBoolean( mPaused );
+	in.ReadBoolean( mEngineSoundEnabled );
+	in.ReadFloat( mSpeedMultiplier );
+	if( in.ReadInteger() == 0 ) {
+		mTargetNode = mSourceNode;
+	} else {
+		mTargetNode = mDestNode;
+	}
 }

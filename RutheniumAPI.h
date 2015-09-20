@@ -1,3 +1,5 @@
+// C++11 API Header for Ruthenium Engine
+
 #ifndef _ENGINE_
 #define _ENGINE_
 
@@ -7,8 +9,83 @@
 #include <windows.h>
 #include <sstream>
 #include <iomanip>
+#include <unordered_map>
 
 using namespace std;
+
+class ruIContainer {
+public:
+	virtual ~ruIContainer() {	
+
+	};
+
+	virtual void Call() = 0;
+};
+
+template< class T, class M > class ruContainer : public ruIContainer {
+private:
+	T * mClass;
+	M mMethod;
+public:
+	explicit ruContainer( T * theClass, M  theMethod ) : mClass( theClass ), mMethod( theMethod ) {
+
+	};
+
+	virtual void Call() {
+		(mClass->*mMethod)();
+	}
+};
+
+class ruDelegate {
+private:
+	ruIContainer * mContainer;
+public:
+	ruDelegate() : mContainer( nullptr ) {
+
+	};
+	~ruDelegate() {
+		if( mContainer ) {
+			delete mContainer;
+		}
+	}
+	ruDelegate( const ruDelegate & other ) {
+		mContainer = other.mContainer;
+		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
+	}
+	template< class T, class M > static ruDelegate Bind( T * theClass, M  theMethod ) {
+		ruDelegate delegat;
+		delegat.mContainer = new ruContainer< T, M >( theClass, theMethod );
+		return delegat;
+	}
+	void Call() {
+		if( mContainer ) {
+			mContainer->Call();
+		}
+	}
+	void operator = ( const ruDelegate & other ) {
+		mContainer = other.mContainer;
+		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
+	}
+};
+
+class ruEvent {
+private:
+	vector<ruDelegate> mListenerList;
+public:
+	void AddListener( const ruDelegate & delegat ) {
+		mListenerList.push_back( delegat );
+	}
+
+	void RemoveAllListeners() {
+		mListenerList.clear();
+	}
+
+	void DoActions() {
+		for( auto iter = mListenerList.begin(); iter != mListenerList.end(); iter++ ) {
+			iter->Call();
+		}
+	}
+};
 
 class StringBuilder {
 protected:
@@ -74,6 +151,7 @@ public:
     float Angle( const ruVector3 & v );
     ruVector3 Rotate( const ruVector3 & axis, float angle );
     ruVector3 Lerp( const ruVector3 & v, float t ) const;
+	ruVector3 Abs( ) const;
 };
 
 static inline ruVector3 operator * ( const float & f, const ruVector3 & v ) {
@@ -171,29 +249,150 @@ enum {
     LT_SPOT,
 };
 
-class ruRutheniumHandle {
-public:
-    void * pointer;
 
-    explicit ruRutheniumHandle();
+class ruRutheniumHandle {
+protected:
+	
+public:
+	void * pointer;
+
+	explicit ruRutheniumHandle();
     virtual ~ruRutheniumHandle();
 
     virtual bool IsValid();
     virtual void Invalidate();
 };
 
-class ruNodeHandle : public ruRutheniumHandle {
+struct ruContact;
+
+
+// Animation
+class ruAnimation {
+private:
+	friend class SceneNode;
+	int beginFrame;
+	int endFrame;
+	int currentFrame;
+	int nextFrame;
+	float interpolator;
+
+	class AnimationEvent {
+	public:
+		bool mState;
+		ruEvent Event;
+		AnimationEvent( ) : mState( false ) {
+
+		}
+	};
+
+	// list of actions, which must be done on n-th frame 
+	unordered_map<int,AnimationEvent> mFrameListenerList;
 public:
-    bool operator == ( const ruNodeHandle & node );
+	float duration;
+	bool looped;
+	bool enabled;
+	explicit ruAnimation();
+	explicit ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped = false );
+	void SetFrameInterval( int begin, int end );
+	void SetCurrentFrame( int frame );
+	int GetCurrentFrame() {
+		return currentFrame;
+	}
+	int GetEndFrame() {
+		return endFrame;
+	}
+	int GetBeginFrame() {
+		return beginFrame;
+	}
+	int GetNextFrame() {
+		return nextFrame;
+	}
+	void AddFrameListener( int frameNum, const ruDelegate & action );
+	void Rewind();
+	void Update( float dt = 1.0f / 60.0f );
+};
+
+enum class BodyType {
+	None,
+	Sphere,
+	Box,
+	Trimesh,
+	Convex
+};
+
+class ruSceneNode : public ruRutheniumHandle {
+public:
+    bool operator == ( const ruSceneNode & node );
 
 	virtual bool IsValid();
+
+	string GetProperty( string propName );
+	void Hide();
+	void Show();
+	bool IsVisible();
+	void Free();
+	const string & GetName();
+	void SetDepthHack( float order );
+	void Attach( ruSceneNode parent );
+	void Detach();
+	void SetDamping( float linearDamping, float angularDamping );
+	void SetPosition( ruVector3 position );
+	void SetRotation( ruQuaternion rotation );
+	void SetGravity( ruVector3 gravity );
+	ruVector3 GetLookVector();
+	ruVector3 GetRightVector();
+	ruVector3 GetUpVector();
+	ruVector3 GetPosition();
+	void SetMass( float mass );
+	ruQuaternion GetLocalRotation();
+	ruVector3 GetLocalPosition();
+	void SetLocalPosition( ruVector3 pos );
+	void SetLocalRotation( ruQuaternion rot );
+	void SetName( const string & name );
+	ruVector3 GetAABBMin();
+	ruVector3 GetTotalForce();
+	ruVector3 GetAABBMax();
+	int IsInsideNode( ruSceneNode node );
+	ruSceneNode GetChild( int i );
+	int GetCountChildren();
+	bool IsInFrustum();
+	void SetAlbedo( float albedo );
+	ruVector3 GetLinearVelocity();
+	int GetContactCount();
+	ruContact GetContact( int num );
+	void Freeze();
+	void Unfreeze();
+	void SetConvexBody();
+	void SetCapsuleBody( float height, float radius );
+	void SetAngularFactor( ruVector3 fact );
+	void SetTrimeshBody( );
+	void Move( ruVector3 speed );
+	void SetFriction( float friction );
+	void SetLocalScale( ruVector3 scale );
+	void SetAnisotropicFriction( ruVector3 aniso );
+	float GetMass();
+	int IsFrozen();
+	void SetLinearFactor( ruVector3 lin );
+	void SetVelocity( ruVector3 velocity );
+	void SetAngularVelocity( ruVector3 velocity );
+	void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
+	int GetTotalAnimationFrameCount();
+	ruAnimation * GetCurrentAnimation();
+	ruVector3 GetEulerAngles();
+	ruVector3 GetAbsoluteLookVector();
+	BodyType GetBodyType();
+	ruVector3 GetRotationAxis();
+	float GetRotationAngle();
+	void AddForce( ruVector3 force );
+	void AddForceAtPoint( ruVector3 force, ruVector3 point );
+	void AddTorque( ruVector3 torque );
 };
 
 struct ruContact {
 	ruVector3 normal;
 	ruVector3 position;
 	float impulse;
-	ruNodeHandle body;
+	ruSceneNode body;
 
 	ruContact() {
 		impulse = 0;
@@ -217,15 +416,40 @@ public:
     bool operator == ( const ruCubeTextureHandle & node );
 };
 
-class ruSoundHandle : public ruRutheniumHandle {
+class ruSound : public ruRutheniumHandle {
 public:
     int pfHandle;
-    explicit ruSoundHandle();
-    virtual ~ruSoundHandle();
+    explicit ruSound();
+    virtual ~ruSound();
 
-    bool operator == ( const ruSoundHandle & node );
+    bool operator == ( const ruSound & node );
     virtual bool IsValid();
     virtual void Invalidate();
+
+	static ruSound Load2D( const string & file );
+	static ruSound Load3D( const string & file );
+	static ruSound LoadMusic( const string & file );
+	static int GetCount();
+	static ruSound GetSound( int n );
+
+	void Attach( ruSceneNode node );
+	void Play( int oneshot = 1 );
+	void Pause();
+	void SetVolume( float vol );
+	void SetPosition( ruVector3 pos );
+	void SetReferenceDistance( float rd );
+	void SetRolloffFactor( float rolloffDistance );
+	void SetRoomRolloffFactor( float rolloffDistance );
+	void SetMaxDistance( float maxDistance );
+	int IsPlaying();
+	void Free();
+	void SetPitch( float pitch );
+	bool IsPaused();
+	float GetLength();
+	void SetLoop( bool state );
+	float GetPlaybackPosition( );
+	void SetPlaybackPosition( float timeSeconds );
+
 };
 
 class ruGUINodeHandle : public ruRutheniumHandle {
@@ -257,37 +481,39 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////
 // Renderer functions
 ////////////////////////////////////////////////////////////////////////////////////
-int ruCreateRenderer( int width, int height, int fullscreen, char vSync );
-int ruFreeRenderer( );
-int ruRenderWorld( );
-int ruGetResolutionWidth( );
-int ruGetResolutionHeight( );
-void ruHideCursor( );
-void ruShowCursor( );
-void ruSetCursorSettings( ruTextureHandle texture, int w, int h );
-int ruDIPs( );
-int ruTextureUsedPerFrame( );
-void ruSetAmbientColor( ruVector3 color );
-int ruGetAvailableTextureMemory();
-void ruEnableShadows( bool state );
-void ruUpdateWorld();
-void ruSetAnisotropicTextureFiltration( bool state );
-// FXAA
-void ruEnableFXAA( );
-void ruDisableFXAA( );
-bool ruFXAAEnabled();
-void ruChangeVideomode( int width, int height, int fullscreen, char vSync );
 
-// HDR
-void ruSetHDREnabled( bool state );
-bool ruIsHDREnabled( );
+class ruEngine {
+public:
+	static void Create( int width, int height, int fullscreen, char vSync );
+	static void Free( );
+	static void RenderWorld( );
+	static int GetResolutionWidth( );
+	static int GetResolutionHeight( );
+	static void HideCursor( );
+	static void ShowCursor( );
+	static void SetCursorSettings( ruTextureHandle texture, int w, int h );
+	static int GetDIPs( );
+	static int GetTextureUsedPerFrame( );
+	static void SetAmbientColor( ruVector3 color );
+	static int GetAvailableTextureMemory();
+	static void EnableShadows( bool state );
+	static void UpdateWorld();
+	static void SetAnisotropicTextureFiltration( bool state );
+	// FXAA
+	static void EnableFXAA( );
+	static void DisableFXAA( );
+	static bool IsFXAAEnabled();
+	static void ChangeVideomode( int width, int height, int fullscreen, char vSync );
+	// HDR
+	static void SetHDREnabled( bool state );
+	static bool IsHDREnabled( );
+	// Shadow functions
+	static void SetSpotLightShadowMapSize( int size );
+	static void EnableSpotLightShadows( bool state );
+	static bool IsSpotLightShadowsEnabled();
+	static int GetMaxAnisotropy();
+};
 
-////////////////////////////////////////////////////////////////////////////////////
-// Shadow functions
-////////////////////////////////////////////////////////////////////////////////////
-void ruSetSpotLightShadowMapSize( int size );
-void ruEnableSpotLightShadows( bool state );
-bool ruIsSpotLightShadowsEnabled();
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Texture functions
@@ -300,141 +526,65 @@ int ruGetTextureHeight( ruTextureHandle texture );
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
 ////////////////////////////////////////////////////////////////////////////////////
-ruNodeHandle ruCreateCamera( float fov );
-void ruSetActiveCamera( ruNodeHandle node );
-int ruSetCameraSkybox( ruNodeHandle node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back );
-void ruSetCameraFOV( ruNodeHandle camera, float fov );
+ruSceneNode ruCreateCamera( float fov );
+void ruSetActiveCamera( ruSceneNode node );
+int ruSetCameraSkybox( ruSceneNode node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back );
+void ruSetCameraFOV( ruSceneNode camera, float fov );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Sounds functions
 ////////////////////////////////////////////////////////////////////////////////////
-ruSoundHandle ruLoadSound2D( const string & file );
-ruSoundHandle ruLoadSound3D( const string & file );
-ruSoundHandle ruLoadMusic( const string & file );
-void ruAttachSound( ruSoundHandle sound, ruNodeHandle node );
-void ruPlaySound( ruSoundHandle sound, int oneshot = 1 );
-void ruPauseSound( ruSoundHandle sound );
-void ruSetSoundVolume( ruSoundHandle sound, float vol );
-void ruSetSoundPosition( ruSoundHandle sound, ruVector3 pos );
-void ruSetSoundReferenceDistance( ruSoundHandle sound, float rd );
-void ruSetRolloffFactor( ruSoundHandle sound, float rolloffDistance );
-void ruSetRoomRolloffFactor( ruSoundHandle sound, float rolloffDistance );
-void ruSetSoundMaxDistance( ruSoundHandle sound, float maxDistance );
-int ruIsSoundPlaying( ruSoundHandle sound );
-void ruFreeSound( ruSoundHandle sound );
+
 void ruSetAudioReverb( int reverb );
 void ruSetMasterVolume( float volume );
 float ruGetMasterVolume();
-bool ruIsNodeHasBody( ruNodeHandle node );
-void ruSetSoundsPitch( ruSoundHandle sound, float pitch );
-bool ruIsSoundPaused( ruSoundHandle sound );
 ////////////////////////////////////////////////////////////////////////////////////
 // Light functions
 ////////////////////////////////////////////////////////////////////////////////////
-ruNodeHandle ruCreateLight( int type = LT_POINT );
-void ruSetLightRange( ruNodeHandle node, float rad );
-float ruGetLightRange( ruNodeHandle node );
-void ruSetLightColor( ruNodeHandle node, ruVector3 clr );
-void ruSetConeAngles( ruNodeHandle node, float innerAngle, float outerAngle );
-void ruSetLightSpotTexture( ruNodeHandle node, ruTextureHandle texture );
+ruSceneNode ruCreateLight( int type = LT_POINT );
+void ruSetLightRange( ruSceneNode node, float rad );
+float ruGetLightRange( ruSceneNode node );
+void ruSetLightColor( ruSceneNode node, ruVector3 clr );
+void ruSetConeAngles( ruSceneNode node, float innerAngle, float outerAngle );
+void ruSetLightSpotTexture( ruSceneNode node, ruTextureHandle texture );
 int ruGetWorldSpotLightCount();
-ruNodeHandle ruGetWorldSpotLight( int n );
+ruSceneNode ruGetWorldSpotLight( int n );
 int ruGetWorldPointLightCount();
-ruNodeHandle ruGetWorldPointLight( int n );
-void ruSetLightFlare( ruNodeHandle node, ruTextureHandle flareTexture );
+ruSceneNode ruGetWorldPointLight( int n );
+void ruSetLightFlare( ruSceneNode node, ruTextureHandle flareTexture );
 void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture );
 void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture );
-void ruSetLightPointTexture( ruNodeHandle node, ruCubeTextureHandle cubeTexture );
+void ruSetLightPointTexture( ruSceneNode node, ruCubeTextureHandle cubeTexture );
 void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture );
-void ruSetLightFloatingLimits( ruNodeHandle node, ruVector3 floatMin, ruVector3 floatMax );
-void ruSetLightFloatingEnabled( ruNodeHandle node, bool state );
-bool ruIsLightFloatingEnabled( ruNodeHandle node );
-bool ruIsLight( ruNodeHandle node );
+void ruSetLightFloatingLimits( ruSceneNode node, ruVector3 floatMin, ruVector3 floatMax );
+void ruSetLightFloatingEnabled( ruSceneNode node, bool state );
+bool ruIsLightFloatingEnabled( ruSceneNode node );
+bool ruIsLight( ruSceneNode node );
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////
-enum class BodyType {
-	None,
-	Sphere,
-	Box,
-	Trimesh,
-	Convex
-};
+
 void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep );
-int ruGetContactCount( ruNodeHandle node );
-ruContact ruGetContact( ruNodeHandle node, int num );
-void ruFreeze( ruNodeHandle node );
-void ruUnfreeze( ruNodeHandle node );
-void ruSetConvexBody( ruNodeHandle node );
-void ruSetCapsuleBody( ruNodeHandle node, float height, float radius );
-void ruSetAngularFactor( ruNodeHandle node, ruVector3 fact );
-void ruSetTrimeshBody( ruNodeHandle node );
-void ruMoveNode( ruNodeHandle node, ruVector3 speed );
-void ruSetNodeFriction( ruNodeHandle node, float friction );
-void ruSetNodeBodyLocalScale( ruNodeHandle node, ruVector3 scale );
-void ruSetNodeAnisotropicFriction( ruNodeHandle node, ruVector3 aniso );
-float ruGetNodeMass( ruNodeHandle node );
-int ruIsNodeFrozen( ruNodeHandle node );
-void ruSetNodeLinearFactor( ruNodeHandle node, ruVector3 lin );
-void ruSetNodeVelocity( ruNodeHandle node, ruVector3 velocity );
-void ruSetNodeAngularVelocity( ruNodeHandle node, ruVector3 velocity );
-ruNodeHandle ruRayPick( int x, int y, ruVector3 * outPickPoint = 0 );
-ruNodeHandle ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
-ruVector3 ruGetNodeEulerAngles( ruNodeHandle node );
-ruVector3 ruGetNodeAbsoluteLookVector( ruNodeHandle node );
-BodyType ruGetNodeBodyType( ruNodeHandle node );
-ruVector3 ruGetNodeRotationAxis( ruNodeHandle node );
-float ruGetNodeRotationAngle( ruNodeHandle node );
-void ruNodeAddForce( ruNodeHandle node, ruVector3 force );
-void ruNodeAddForceAtPoint( ruNodeHandle node, ruVector3 force, ruVector3 point );
-void ruNodeAddTorque( ruNodeHandle node, ruVector3 torque );
+
+ruSceneNode ruRayPick( int x, int y, ruVector3 * outPickPoint = 0 );
+ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions
 ////////////////////////////////////////////////////////////////////////////////////
 // Creation
-ruNodeHandle ruCreateSceneNode( );
-ruNodeHandle ruLoadScene( const string & file );
-ruNodeHandle ruFindByName( const string & name );
-ruNodeHandle ruFindInObjectByName( ruNodeHandle node, const string & name );
-ruNodeHandle ruCreateNodeInstance( ruNodeHandle source );
+ruSceneNode ruCreateSceneNode( );
+ruSceneNode ruLoadScene( const string & file );
+ruSceneNode ruFindByName( const string & name );
+ruSceneNode ruFindInObjectByName( ruSceneNode node, const string & name );
+ruSceneNode ruCreateNodeInstance( ruSceneNode source );
 int ruGetWorldObjectsCount();
-ruNodeHandle ruGetWorldObject( int i );
+ruSceneNode ruGetWorldObject( int i );
 // Common
-string ruGetProperty( ruNodeHandle node, string propName );
-void ruHideNode( ruNodeHandle node );
-void ruShowNode( ruNodeHandle node );
-bool ruIsNodeVisible( ruNodeHandle node );
-void ruFreeSceneNode( ruNodeHandle node );
-const string & ruGetNodeName( ruNodeHandle node );
-void ruSetNodeDepthHack( ruNodeHandle node, float order );
-void ruAttachNode( ruNodeHandle node1, ruNodeHandle node2 );
-void ruDetachNode( ruNodeHandle node );
-void ruSetNodeDamping( ruNodeHandle node, float linearDamping, float angularDamping );
-void ruSetNodePosition( ruNodeHandle node, ruVector3 position );
-void ruSetNodeRotation( ruNodeHandle node, ruQuaternion rotation );
-void ruSetNodeGravity( ruNodeHandle node, ruVector3 gravity );
-ruVector3 ruGetNodeLookVector( ruNodeHandle node );
-ruVector3 ruGetNodeRightVector( ruNodeHandle node );
-ruVector3 ruGetNodeUpVector( ruNodeHandle node );
-ruVector3 ruGetNodePosition( ruNodeHandle node );
-void ruSetNodeMass( ruNodeHandle node, float mass );
-ruQuaternion ruGetNodeLocalRotation( ruNodeHandle node );
-ruVector3 ruGetNodeLocalPosition( ruNodeHandle node );
-void ruSetNodeLocalPosition( ruNodeHandle node, ruVector3 pos );
-void ruSetNodeLocalRotation( ruNodeHandle node, ruQuaternion rot );
-void ruSetNodeName( ruNodeHandle node, const string & name );
-ruVector3 ruGetNodeAABBMin( ruNodeHandle node );
-ruVector3 ruGetNodeBodyTotalForce( ruNodeHandle node );
-ruVector3 ruGetNodeAABBMax( ruNodeHandle node );
-int ruIsNodeInsideNode( ruNodeHandle node1, ruNodeHandle node2 );
-ruNodeHandle ruGetNodeChild( ruNodeHandle node, int i );
-int ruGetNodeCountChildren( ruNodeHandle node );
-bool ruIsNodeInFrustum( ruNodeHandle node );
-void ruSetNodeAlbedo( ruNodeHandle node, float albedo );
-bool ruIsLightSeePoint( ruNodeHandle node, ruVector3 point );
-ruVector3 ruGetNodeLinearVelocity( ruNodeHandle node );
-bool ruIsNodeHandleValid( ruNodeHandle handle );
-bool ruIsLightHandeValid( ruNodeHandle handle );
+bool ruIsLightSeePoint( ruSceneNode node, ruVector3 point );
+bool ruIsNodeHandleValid( ruSceneNode handle );
+bool ruIsLightHandeValid( ruSceneNode handle );
+bool ruIsNodeHasBody( ruSceneNode node );
 // Octree manipulation
 // Note, that nodes with octree's optimization can't be moved or modified, so
 // it can be used for large static geometry, like game levels
@@ -444,45 +594,9 @@ bool ruIsLightHandeValid( ruNodeHandle handle );
 // Octree can't be modified. So if you want set another split criteria
 // you must call CreateOctree, instead using combination of DeleteOctree and
 // CreateOctree
-void ruCreateOctree( ruNodeHandle node, int splitCriteria = 45 );
-void ruDeleteOctree( ruNodeHandle node );
+void ruCreateOctree( ruSceneNode node, int splitCriteria = 45 );
+void ruDeleteOctree( ruSceneNode node );
 
-// Animation
-class ruAnimation {
-private:
-    friend class SceneNode;
-    int beginFrame;
-    int endFrame;
-    int currentFrame;
-    int nextFrame;
-    float interpolator;
-public:
-    float animSpeed;
-    bool looped;
-    explicit ruAnimation();
-    explicit ruAnimation( int theBeginFrame, int theEndFrame, float theTimeSeconds, bool theLooped = false );
-    void SetFrameInterval( int begin, int end );
-    void SetCurrentFrame( int frame );
-    int GetCurrentFrame() {
-        return currentFrame;
-    }
-    int GetEndFrame() {
-        return endFrame;
-    }
-    int GetBeginFrame() {
-        return beginFrame;
-    }
-    int GetNextFrame() {
-        return nextFrame;
-    }
-    void Update();
-};
-
-int ruIsAnimationEnabled( ruNodeHandle node );
-void ruSetAnimationEnabled( ruNodeHandle node, bool state, bool dontAffectChilds = false );
-void ruSetAnimation( ruNodeHandle node, ruAnimation * newAnim, bool dontAffectChilds = false );
-int ruGetTotalAnimationFrameCount( ruNodeHandle node );
-ruAnimation * ruGetCurrentAnimation( ruNodeHandle node );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Font functions
@@ -498,79 +612,7 @@ enum class ruGUIAction {
 	OnMouseLeave,
 };
 
-class ruIContainer {
-public:
-	virtual ~ruIContainer() {	
 
-	};
-
-	virtual void Call() = 0;
-};
-
-template< class T, class M > class ruContainer : public ruIContainer {
-private:
-	T * mClass;
-	M mMethod;
-public:
-	explicit ruContainer( T * theClass, M  theMethod ) : mClass( theClass ), mMethod( theMethod ) {
-
-	};
-
-	virtual void Call() {
-		(mClass->*mMethod)();
-	}
-};
-
-class ruDelegate {
-private:
-	ruIContainer * mContainer;
-public:
-	ruDelegate() : mContainer( nullptr ) {
-
-	};
-	~ruDelegate() {
-		if( mContainer ) {
-			delete mContainer;
-		}
-	}
-	ruDelegate( const ruDelegate & other ) {
-		mContainer = other.mContainer;
-		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
-	}
-	template< class T, class M > static ruDelegate Bind( T * theClass, M  theMethod ) {
-		ruDelegate delegat;
-		delegat.mContainer = new ruContainer< T, M >( theClass, theMethod );
-		return delegat;
-	}
-	void Call() {
-		if( mContainer ) {
-			mContainer->Call();
-		}
-	}
-	void operator = ( const ruDelegate & other ) {
-		mContainer = other.mContainer;
-		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
-	}
-};
-
-class ruEvent {
-private:
-	vector<ruDelegate> mListenerList;
-public:
-	void AddListener( const ruDelegate & delegat ) {
-		mListenerList.push_back( delegat );
-	}
-
-	void RemoveAllListeners() {
-		mListenerList.clear();
-	}
-
-	void DoActions() {
-		for( auto iter = mListenerList.begin(); iter != mListenerList.end(); iter++ ) {
-			iter->Call();
-		}
-	}
-};
 
 ruRectHandle ruCreateGUIRect( float x, float y, float w, float h, ruTextureHandle texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
 ruTextHandle ruCreateGUIText( const string & text, int x, int y, int w, int h, ruFontHandle font, ruVector3 color, int textAlign, int alpha = 255 );
@@ -641,6 +683,7 @@ public:
 
     bool enabled;
 	float depthHack;
+	float alphaOffset;
 
     ruTextureHandle texture;
 
@@ -662,6 +705,7 @@ public:
         scaleFactor = 0.0f;
 
 		depthHack = 0.0f;
+		alphaOffset = 0.0f;
 
         autoResurrectDeadParticles = true;
         useLighting = false;
@@ -672,10 +716,10 @@ public:
     }
 };
 
-ruNodeHandle ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps );
-int ruGetParticleSystemAliveParticles( ruNodeHandle ps );
-void ruResurrectDeadParticles( ruNodeHandle ps );
-ruParticleSystemProperties * ruGetParticleSystemProperties( ruNodeHandle ps );
+ruSceneNode ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps );
+int ruGetParticleSystemAliveParticles( ruSceneNode ps );
+void ruResurrectDeadParticles( ruSceneNode ps );
+ruParticleSystemProperties * ruGetParticleSystemProperties( ruSceneNode ps );
 ////////////////////////////////////////////////////////////////////////////////////
 // Input functions
 ////////////////////////////////////////////////////////////////////////////////////

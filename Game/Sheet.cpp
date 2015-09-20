@@ -3,22 +3,22 @@
 #include "GUI.h"
 
 vector<Sheet*> Sheet::msSheetList;
-ruSoundHandle Sheet::msPaperFlipSound;
+ruSound Sheet::msPaperFlipSound;
 ruFontHandle Sheet::msSheetFont;
 
-Sheet::Sheet( ruNodeHandle object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
+Sheet::Sheet( ruSceneNode object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
     mBackgroundTexture = ruGetTexture( "data/textures/generic/note.jpg" );
     msSheetList.push_back( this );
     if( !msPaperFlipSound.IsValid() ) {
-        msPaperFlipSound = ruLoadSound2D( "data/sounds/paperflip.ogg" );
+        msPaperFlipSound = ruSound::Load2D( "data/sounds/paperflip.ogg" );
     }
 
     if( !msSheetFont.IsValid() ) {
         msSheetFont = ruCreateGUIFont( 16, "data/fonts/font1.otf" );
     }
 
-    int cx = ruGetResolutionWidth() / 2;
-    int cy = ruGetResolutionHeight() / 2;
+    int cx = ruEngine::GetResolutionWidth() / 2;
+    int cy = ruEngine::GetResolutionHeight() / 2;
 
     int w = 400;
     int h = 600;
@@ -32,7 +32,7 @@ void Sheet::Draw( ) {
 
 }
 
-Sheet * Sheet::GetSheetPointerByNode( ruNodeHandle node ) {
+Sheet * Sheet::GetSheetPointerByNode( ruSceneNode node ) {
     for( auto pSheet : msSheetList ) {
         if( pSheet->mObject == node ) {
             return pSheet;

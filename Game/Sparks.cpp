@@ -5,12 +5,12 @@
 void Sparks::Update() {
     if( ruGetParticleSystemAliveParticles( ps ) <= 0 ) {
         alive = 0;
-        ruFreeSceneNode( ps );
-        ruFreeSound( es );
+        ps.Free();
+        es.Free();
     }
 }
 
-Sparks::Sparks( ruNodeHandle at, ruSoundHandle emits ) {
+Sparks::Sparks( ruSceneNode at, ruSound emits ) {
     ruParticleSystemProperties psProps;
     psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
     psProps.type = PS_BOX;
@@ -25,9 +25,9 @@ Sparks::Sparks( ruNodeHandle at, ruSoundHandle emits ) {
     psProps.autoResurrectDeadParticles = false;
     psProps.useLighting = false;
     ps = ruCreateParticleSystem( 50, psProps );
-    ruAttachNode( ps, at );
-    ruAttachSound( emits, ps );
-    ruPlaySound( emits );
+    ps.Attach( at );
+    emits.Attach( ps );
+    emits.Play();
     es = emits;
     alive = 1;
 }

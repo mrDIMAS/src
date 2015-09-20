@@ -46,7 +46,7 @@ public:
     void Update();
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );
-    static Camera * CastHandle( ruNodeHandle handle );
+    static Camera * CastHandle( ruSceneNode handle );
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
 };
