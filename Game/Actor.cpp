@@ -8,6 +8,7 @@ void Actor::Move( ruVector3 direction, float speed ) {
 
 void Actor::Step( ruVector3 direction, float speed )
 {
+	
 	// spring based step
 	ruVector3 currentPosition = mBody.GetPosition();
 	ruVector3 rayBegin = currentPosition;
@@ -27,7 +28,9 @@ Actor::Actor( float height, float width ) :	mBodyHeight( height ),
 											mBodyWidth( width ), 
 											mSpringLength( 1.0f ), 
 											mCrouch( false ),
-											mCrouchMultiplier( 1.0f )
+											mCrouchMultiplier( 1.0f ),
+											mVerticalSpeed( 0.0f ),
+											mLastVerticalPosition( 0.0f )
 {
     mBody = ruCreateSceneNode();
     mBody.SetCapsuleBody( mBodyHeight, mBodyWidth );

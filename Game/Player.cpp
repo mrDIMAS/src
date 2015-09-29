@@ -375,7 +375,6 @@ void Player::UpdateMoving() {
                 }
             } else {
                 StopInstant();
-                mMoved = false;
             }
         }
     } else {
@@ -453,10 +452,12 @@ void Player::ComputeStealth() {
     bool inLight = false;
  
     for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-        if( ruIsLightSeePoint( ruGetWorldPointLight( i ), mBody.GetPosition() )) {
-            inLight = true;
-            break;
-        }
+		if( !(ruGetWorldPointLight( i ) == mFakeLight)) {
+			if( ruIsLightSeePoint( ruGetWorldPointLight( i ), mBody.GetPosition() )) {
+				inLight = true;
+				break;
+			}
+		}
     }
 
     if( !inLight ) {
@@ -508,6 +509,13 @@ void Player::Update( ) {
 	mDamageBackgroundAlpha--;
 	if( mDamageBackgroundAlpha < 0 ) {
 		mDamageBackgroundAlpha = 0;
+	}
+	if( mpFlashlight ) {
+		if( mpFlashlight->IsOn() ) {
+			mFakeLight.Hide();
+		} else {
+			mFakeLight.Show();
+		}
 	}
 	ruSetGUINodeAlpha( mGUIDamageBackground, mDamageBackgroundAlpha );
     if( !pMainMenu->IsVisible() ) {
@@ -599,6 +607,11 @@ void Player::CreateCamera() {
     mItemPoint = ruCreateSceneNode();
     mItemPoint.Attach( mpCamera->mNode );
     mItemPoint.SetPosition( ruVector3( 0, 0, 1.0f ));
+
+	mFakeLight = ruCreateLight();
+	mFakeLight.Attach( mpCamera->mNode );
+	ruSetLightRange( mFakeLight, 25 );
+	ruSetLightColor( mFakeLight, ruVector3( 5, 5, 5 ));
 }
 
 void Player::SetRockFootsteps() {
@@ -1203,6 +1216,7 @@ void Player::UpdateFlashLight() {
 					mCurrentWeapon->SetVisible( false );
 				} else {
 					mpFlashlight->Switch();
+					mpFlashlight->OnSwitchOff.RemoveAllListeners();
 					mpFlashlight->OnSwitchOff.AddListener( ruDelegate::Bind( this, &Player::SwitchToWeapon ));
 				}
 			} else {
@@ -1215,13 +1229,15 @@ void Player::UpdateFlashLight() {
 void Player::UpdateWeapons() {
 	if( !mInventory.IsOpened() ) {
 		if( !mpFlashlight->IsOn() ) {
-			if( mCurrentWeapon ) {
-				if( mCurrentWeapon->IsVisible() ) {
-					if( ruIsMouseHit( MB_Left )) {
-						mCurrentWeapon->Shoot();
+			if( !mNodeInHands.IsValid() ) {
+				if( mCurrentWeapon ) {
+					if( mCurrentWeapon->IsVisible() ) {
+						if( ruIsMouseHit( MB_Left )) {
+							mCurrentWeapon->Shoot();
+						}
 					}
+					mCurrentWeapon->Update();
 				}
-				mCurrentWeapon->Update();
 			}
 		} else {
 			if( mCurrentWeapon ) {

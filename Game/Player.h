@@ -47,6 +47,7 @@ public:
     ruSceneNode mNodeInHands;
     ruSceneNode mNearestPickedNode;
     ruSceneNode mPickedNode;
+	ruSceneNode mFakeLight;
 
     ruTextureHandle mStatusBar;
 

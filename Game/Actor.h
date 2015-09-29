@@ -12,6 +12,8 @@ protected:
 	float mCrouchMultiplier;
 	float mHealth;
 	float mMaxHealth;
+	float mVerticalSpeed;
+	float mLastVerticalPosition;
 public:
     explicit Actor( float height, float width );
     virtual ~Actor();
