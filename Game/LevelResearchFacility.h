@@ -35,7 +35,8 @@ private:
     ruSceneNode mPowerLeverSnd;
     ruSceneNode mSmallSteamPosition;
 	
-	
+	ruAnimation mMeshAnimation;
+	ruAnimation mMeshLockAnimation;
 	
 	ruSceneNode mDoorUnderFloor;
 	ruSceneNode mZoneNewLevelLoad;

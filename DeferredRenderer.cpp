@@ -238,7 +238,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::OnResetDevice()
 
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     ruVector3 realPosition = pLight->GetRealPosition();
-    float scl = 3.0f * pLight->radius * scale;
+    float scl = 4.0f * pLight->radius * scale;
     D3DXMATRIX world;
     world._11 = scl;
     world._12 = 0.0f;

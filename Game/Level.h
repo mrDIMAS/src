@@ -79,4 +79,12 @@ public:
 	static void CreateLoadingScreen();
     virtual void Serialize( SaveFile & out ) final;
     virtual void Deserialize( SaveFile & in ) final;
+	void SerializeAnimation( SaveFile & out, ruAnimation & anim ) {
+		out.WriteInteger( anim.GetCurrentFrame() );
+		out.WriteBoolean( anim.enabled );
+	}
+	void DeserializeAnimation( SaveFile & in, ruAnimation & anim ) {
+		anim.SetCurrentFrame( in.ReadInteger());
+		in.ReadBoolean( anim.enabled );
+	}
 };

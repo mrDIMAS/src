@@ -69,9 +69,16 @@ LevelResearchFacility::LevelResearchFacility() {
 	mPathBlockingMesh = GetUniqueObject( "PathBlockingMesh" );
 	mThermiteSmall = GetUniqueObject( "ThermiteSmall" );
 	mThermiteBig = GetUniqueObject( "ThermiteBig" );
+
 	mMeshLock = GetUniqueObject( "MeshLock" );
+	mMeshLockAnimation = ruAnimation( 0, 30, 2 );
+	mMeshLock.SetAnimation( &mMeshLockAnimation );
+
 	mThermitePlace = GetUniqueObject( "ThermitePlace" );
+
 	mMeshToSewers = GetUniqueObject( "MeshToSewers" );
+	mMeshAnimation = ruAnimation( 0, 30, 2 );
+	mMeshToSewers.SetAnimation( &mMeshAnimation );
 
 	AddZone( mZoneObjectiveNeedPassThroughMesh = make_shared<Zone>( GetUniqueObject( "ObjectiveNeedPassThroughMesh" )));
 	mZoneObjectiveNeedPassThroughMesh->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterNeedPassThroughMeshZone ));
@@ -265,8 +272,11 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
-    ruEngine::SetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
-
+	mMeshAnimation.Update();
+	mMeshLockAnimation.Update();
+	
+   // ruEngine::SetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
+	ruEngine::SetAmbientColor( ruVector3( 0,0,0 ));
     if( mPowerOn ) {
         mLift1->Update();
         mpFan1->DoTurn();
@@ -357,8 +367,12 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						mThermiteBig.Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::Lighter );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter ) {
-						mMeshLock.Hide();
-						mMeshToSewers.SetRotation( ruQuaternion( ruVector3( 0, 0, 1 ), 90 ));
+						//mMeshLock.Hide();
+						//mMeshToSewers.SetRotation( ruQuaternion( ruVector3( 0, 0, 1 ), 90 ));
+
+						mMeshLockAnimation.enabled = true;
+						mMeshAnimation.enabled = true;
+
 						mThermiteSmall.Hide();
 						mThermiteBig.Hide();
 
@@ -474,6 +488,8 @@ void LevelResearchFacility::OnDeserialize( SaveFile & in ) {
 		CreateEnemy();
 		mEnemy->SetPosition( in.ReadVector3() );
 	}
+	DeserializeAnimation( in, mMeshAnimation );
+	DeserializeAnimation( in, mMeshLockAnimation );
 }
 
 void LevelResearchFacility::OnSerialize( SaveFile & out ) {
@@ -481,6 +497,8 @@ void LevelResearchFacility::OnSerialize( SaveFile & out ) {
 	if( mEnemy ) {
 		out.WriteVector3( mEnemy->GetBody().GetPosition());
 	}
+	SerializeAnimation( out, mMeshAnimation );
+	SerializeAnimation( out, mMeshLockAnimation );
 }
 
 void LevelResearchFacility::OnCrowbarPickup()
