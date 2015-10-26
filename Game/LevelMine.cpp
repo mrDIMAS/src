@@ -110,8 +110,6 @@ LevelMine::LevelMine() {
 
     mReadyExplosivesCount = 0;
 
-    pPlayer->SetFootsteps( FootstepsType::Rock );
-
     AddLadder( make_shared<Ladder>( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
                            GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
     AddDoor( make_shared<Door>( GetUniqueObject( "Door1" ), 90 ));
@@ -174,7 +172,7 @@ LevelMine::LevelMine() {
     patrolPoints.push_back( pathToRoom.mVertexList.front() );
     patrolPoints.push_back( pathToRoom.mVertexList.back() );
 
-    mEnemy = new Enemy( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
+    mEnemy = new Enemy( allPaths, patrolPoints );
     mEnemy->SetPosition( GetUniqueObject( "EnemyPosition" ).GetPosition());
 
     mRock[0] = GetUniqueObject( "Rock1" );

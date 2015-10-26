@@ -38,4 +38,9 @@ public:
     static Way * GetByObject( ruSceneNode obj );
     void Serialize( SaveFile & out );
     void Deserialize( SaveFile & in );
+	void LeaveInstantly() {
+		mInside = false;
+		mLeave = false;
+		mEntering = false;
+	}
 };

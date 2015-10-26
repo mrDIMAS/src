@@ -65,7 +65,7 @@ TestingChamber::TestingChamber( ) {
     patrolPoints.push_back( path[5] );
     patrolPoints.push_back( path[8] );
 
-    enemy = new Enemy( "data/models/ripper/ripper.scene", path, patrolPoints );
+    enemy = new Enemy( path, patrolPoints );
 }
 
 TestingChamber::~TestingChamber() {

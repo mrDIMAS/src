@@ -47,6 +47,7 @@ LevelResearchFacility::LevelResearchFacility() {
 	AddSheet( new Sheet( GetUniqueObject( "Note4" ), mLocalization.GetString( "note4Desc" ), mLocalization.GetString( "note4" ) ) );
 	AddSheet( new Sheet( GetUniqueObject( "Note5" ), mLocalization.GetString( "note5Desc" ), mLocalization.GetString( "note5" ) ) );
 	AddSheet( new Sheet( GetUniqueObject( "Note6" ), mLocalization.GetString( "note6Desc" ), mLocalization.GetString( "note6" ) ) );
+	AddSheet( new Sheet( GetUniqueObject( "Note7" ), mLocalization.GetString( "note7Desc" ), mLocalization.GetString( "note7" ) ) );
 
     AddSound( mLeverSound = ruSound::Load3D( "data/sounds/lever.ogg"));
 
@@ -61,14 +62,14 @@ LevelResearchFacility::LevelResearchFacility() {
     ruEngine::SetAmbientColor( ruVector3( 0, 0, 0 ));
 
 	mDoorUnderFloor = GetUniqueObject( "DoorUnderFloor" );
-    mLockedDoor = GetUniqueObject( "LockedDoor" );
 
     mExtremeSteamBlock = GetUniqueObject( "ExtremeSteamBlock" );
     mZoneExtremeSteamHurt = GetUniqueObject( "ExtremeSteamHurtZone" );
 
-	mPathBlockingMesh = GetUniqueObject( "PathBlockingMesh" );
 	mThermiteSmall = GetUniqueObject( "ThermiteSmall" );
 	mThermiteBig = GetUniqueObject( "ThermiteBig" );
+
+	mRadioHurtZone = GetUniqueObject( "RadioHurtZone" );
 
 	mMeshLock = GetUniqueObject( "MeshLock" );
 	mMeshLockAnimation = ruAnimation( 0, 30, 2 );
@@ -125,8 +126,9 @@ LevelResearchFacility::LevelResearchFacility() {
     AddDoor( mKeypad2DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door8" ), 90.0f ));
 	AddDoor( mLabDoorToUnlock = make_shared<Door>( GetUniqueObject( "LabDoor" ), 90 ));
 	AddDoor( mColliderDoorToUnlock = make_shared<Door>( GetUniqueObject( "DoorToCollider" ), 90 ));
+	AddDoor( mLockedDoor = make_shared<Door>( GetUniqueObject( "LockedDoor" ), 90 ));
+	mLockedDoor->SetLocked( true );
 	
-
 	mThermiteItemPlace = new ItemPlace( mThermitePlace, Item::Type::AluminumPowder );
 
 	AutoCreateDoorsByNamePattern( "Door?([[:digit:]]+)" );
@@ -187,8 +189,6 @@ LevelResearchFacility::LevelResearchFacility() {
 
 	ruSetAudioReverb( 10 );
 
-	pPlayer->SetRockFootsteps();
-
 	mEnemySpawnPosition = GetUniqueObject( "EnemyPosition" );
 		
     DoneInitialization();
@@ -246,7 +246,7 @@ void LevelResearchFacility::CreateEnemy() {
 	patrolPoints.push_back( pathRoomD.mVertexList.front() );
 	patrolPoints.push_back( pathRoomD.mVertexList.back() );
 
-	mEnemy = make_shared<Enemy>( "data/models/ripper/ripper.scene", allPaths, patrolPoints );
+	mEnemy = make_shared<Enemy>( allPaths, patrolPoints );
 	mEnemy->SetPosition( mEnemySpawnPosition.GetPosition() );
 }
 
@@ -302,6 +302,10 @@ void LevelResearchFacility::DoScenario() {
 				}
 			}
 		}
+	}
+
+	if( pPlayer->IsInsideZone( mRadioHurtZone )) {
+		pPlayer->Damage( 0.05, false );
 	}
 
 	mKeypad1->Update();
@@ -520,7 +524,7 @@ void LevelResearchFacility::OnPlayerEnterNeedCrowbarZone()
 void LevelResearchFacility::OnPlayerEnterRemovePathBlockingMeshZone()
 {
 	if( !mStages[ "PassedThroughBlockingMesh" ] ) {
-		mPathBlockingMesh.SetPosition( ruVector3( 1000, 1000, 1000 ));
+		mLockedDoor->SetLocked( false );
 		mStages[ "PassedThroughBlockingMesh" ] = true;			
 	}
 }

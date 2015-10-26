@@ -83,27 +83,11 @@ ruVector3 ruSceneNode::GetLocalPosition() {
 }
 
 void ruSceneNode::SetLocalPosition( ruVector3 pos ) {
-	if( SceneNode::CastHandle( *this ) == nullptr ) {
-		return;
-	}
-	SceneNode * s = SceneNode::CastHandle( *this );
-	s->mLocalTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
-	if( s->mBody ) {
-		s->mBody->getWorldTransform().setOrigin( btVector3( pos.x, pos.y, pos.z ) );
-	}
-	SceneNode::CastHandle( *this )->CalculateGlobalTransform( );
+	 SceneNode::CastHandle( *this )->SetLocalPosition( pos );
 }
 
 void ruSceneNode::SetLocalRotation( ruQuaternion rot ) {
-	if( SceneNode::CastHandle( *this ) == nullptr ) {
-		return;
-	}
-	SceneNode * s = SceneNode::CastHandle( *this );
-	s->mLocalTransform.setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ));
-	if( s->mBody ) {
-		s->mBody->getWorldTransform().setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ) );
-	}
-	SceneNode::CastHandle( *this )->CalculateGlobalTransform( );
+	 SceneNode::CastHandle( *this )->SetLocalRotation( rot );
 }
 
 void ruSceneNode::SetName( const string & name ) {

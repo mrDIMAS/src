@@ -59,6 +59,8 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
     mKeyLookLeft = KEY_Q;
     mKeyLookRight = KEY_E;
 
+	mLastHealth = mHealth;
+
     // GUI vars
     mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
     mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
@@ -70,7 +72,6 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
     CreateFlashLight();
     LoadSounds();
     CompleteObjective();
-    SetDirtFootsteps();
 
     mBody.SetName( "Player" );
 
@@ -96,6 +97,22 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	pMainMenu->SyncPlayerControls();
 
 	mAutoSaveTimer = ruCreateTimer();
+
+	mPainSound.push_back( ruSound::Load2D( "data/sounds/player/grunt1.ogg" ));
+	mPainSound.push_back( ruSound::Load2D( "data/sounds/player/grunt2.ogg" ));
+	mPainSound.push_back( ruSound::Load2D( "data/sounds/player/grunt3.ogg" ));
+
+	for( auto & ps : mPainSound ) {
+		ps.SetVolume( 0.7 ); 
+	}
+
+
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/stone.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/metal.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/wood.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/gravel.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/muddyrock.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/rock.smat", mpCamera->mNode ));
 }
 
 void Player::DrawStatusBar() {
@@ -154,11 +171,17 @@ bool Player::UseStamina( float required ) {
     return true;
 }
 
-void Player::Damage( float dmg ) {
+void Player::Damage( float dmg, bool headJitter ) {
     Actor::Damage( dmg );
 	mDamageBackgroundAlpha = 60;
-	mPitch.SetTarget( mPitch.GetTarget() + frandom( 20, 40 ) );
-	mYaw.SetTarget( mYaw.GetTarget() + frandom( -40, 40 ) );
+	if( headJitter ) {
+		mPitch.SetTarget( mPitch.GetTarget() + frandom( 20, 40 ) );
+		mYaw.SetTarget( mYaw.GetTarget() + frandom( -40, 40 ) );
+	}
+	if( mLastHealth - mHealth > 5 ) {
+		mPainSound[ rand() % mPainSound.size() ].Play();
+		mLastHealth = mHealth;
+	}
     if( mHealth <= 0.0f ) {
         if( !mDead ) {
             mBody.SetAngularFactor( ruVector3( 1.0f, 1.0f, 1.0f ));
@@ -173,6 +196,7 @@ void Player::Damage( float dmg ) {
         mpCamera->FadePercent( 5 );
         mpCamera->SetFadeColor( ruVector3( 70.0f, 0.0f, 0.0f ) );
     }
+	
 }
 
 Weapon * Player::AddWeapon( Weapon::Type type ) {
@@ -377,6 +401,12 @@ void Player::UpdateMoving() {
                 StopInstant();
             }
         }
+		if( ruIsKeyHit( mKeyJump )) {
+			mpCurrentWay->LeaveInstantly();
+			mpCurrentWay = nullptr;
+			Unfreeze();
+			mBody.SetVelocity( ruVector3( -mBody.GetLookVector() ));
+		}
     } else {
         ruVector3 look = mBody.GetLookVector();
         ruVector3 right = mBody.GetRightVector();
@@ -483,14 +513,6 @@ void Player::ComputeStealth() {
         mStealthFactor += mStealthMode ? 0.0f : 0.25f;
         mStealthFactor += mMoved ? 0.1f : 0.0f;
         mStealthFactor += mRunning ? 0.25f : 0.0f;
-    }
-	
-    for( auto snd : mFootstepList ) {
-        if( mStealthMode ) {
-            snd.SetVolume( 0.15f );
-        } else {
-            snd.SetVolume( 0.4f );
-        }
     }
 
     int alpha = ( 255 * ( ( mStealthFactor > 1.05f ) ? 1.0f : ( mStealthFactor + 0.05f ) ) );
@@ -614,54 +636,6 @@ void Player::CreateCamera() {
 	ruSetLightColor( mFakeLight, ruVector3( 5, 5, 5 ));
 }
 
-void Player::SetRockFootsteps() {
-    for( auto s : mFootstepList ) {
-        s.Free();
-    }
-
-    mFootstepList.clear();
-
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep1.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep2.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep3.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep4.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep5.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep6.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep7.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep8.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep9.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep10.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep11.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/stonestep12.ogg" ) );
-
-    for( auto s : mFootstepList ) {
-        s.Attach( mBody );
-        s.SetVolume( 0.45f );
-    }
-
-    mFootstepsType = FootstepsType::Rock;
-}
-
-void Player::SetDirtFootsteps() {
-    for( auto s : mFootstepList ) {
-        s.Free();
-    }
-
-    mFootstepList.clear();
-
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/dirt1.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/dirt2.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/dirt3.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/dirt4.ogg" ) );
-
-    for( auto s : mFootstepList ) {
-        s.Attach( mBody );
-        s.SetVolume( 0.45f );
-    }
-
-    mFootstepsType = FootstepsType::Dirt;
-}
-
 void Player::LoadSounds() {
     mLighterCloseSound = ruSound::Load3D( "data/sounds/lighter_close.ogg" );
     mLighterOpenSound = ruSound::Load3D( "data/sounds/lighter_open.ogg" );
@@ -712,11 +686,16 @@ void Player::UpdateCameraShake() {
 		float yOffset = 0.045f * sinf( mCameraBobCoeff ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff );
         float xOffset = 0.045f * cosf( mCameraBobCoeff / 2 ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff );        
 
-        if( mStepLength > (mBodyWidth / 2.0f) && !mFootstepList[ stepPlayed ].IsPlaying() ) {
-            stepPlayed = rand() % mFootstepList.size();
-
-            mFootstepList[ stepPlayed ].Play();
-
+        if( mStepLength > mBodyWidth / 2.0f ) {
+			ruRayCastResultEx result = ruCastRayEx( mBody.GetPosition() + ruVector3( 0, 0.1, 0 ), mBody.GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
+			if( result.valid ) {
+				for( auto sMat : mSoundMaterialList ) {
+					ruSound snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
+					if( snd.IsValid() ) {
+						snd.Play( true );
+					}
+				}
+			}
 			mStepLength = 0.0f;
         }
 
@@ -923,46 +902,15 @@ Player::~Player() {
 	if( mDeadSound.IsValid() ) {
 		mDeadSound.Free();
 	}
-	for( auto snd : mFootstepList ) {
-		snd.Free();
+
+	for( auto sndMat : mSoundMaterialList ) {
+		delete sndMat;
 	}
 
 	ruFreeGUINode( mGUICursorPickUp );
 	ruFreeGUINode( mGUICursorPut );
 	ruFreeGUINode( mGUICrosshair );
 	ruFreeGUINode( mGUIYouDied );
-}
-
-void Player::SetMetalFootsteps() {
-    for( auto s : mFootstepList ) {
-        s.Free();
-    }
-
-    mFootstepList.clear();
-
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/footsteps/FootStep_shoe_metal_step1.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/footsteps/FootStep_shoe_metal_step2.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/footsteps/FootStep_shoe_metal_step3.ogg" ) );
-    mFootstepList.push_back( ruSound::Load3D( "data/sounds/footsteps/FootStep_shoe_metal_step4.ogg" ) );
-
-    for( auto s : mFootstepList ) {
-        s.Attach( mBody );
-        s.SetVolume( 0.55f );
-    }
-
-    mFootstepsType = FootstepsType::Metal;
-}
-
-void Player::SetFootsteps( FootstepsType ft ) {
-    if( ft == FootstepsType::Dirt ) {
-        SetDirtFootsteps();
-    }
-    if( ft == FootstepsType::Rock ) {
-        SetRockFootsteps();
-    }
-    if( ft == FootstepsType::Metal ) {
-        SetMetalFootsteps();
-    }
 }
 
 bool Player::IsUseButtonHit() {
@@ -987,8 +935,6 @@ void Player::Deserialize( SaveFile & in ) {
 
     in.ReadBoolean( mSmoothCamera );
     in.ReadFloat( mRunCameraShakeCoeff );
-
-    mFootstepsType = (FootstepsType)in.ReadInteger();
 
     mPitch.Deserialize( in );
     mYaw.Deserialize( in );
@@ -1046,6 +992,7 @@ void Player::Deserialize( SaveFile & in ) {
     in.ReadInteger( mKeyInventory );
     in.ReadInteger( mKeyUse );
 
+
 	int weaponCount = in.ReadInteger();
 	for( int i = 0; i < weaponCount; i++ ) {
 		Weapon * pWeapon = AddWeapon( Weapon::Type::Pistol ); // TODO
@@ -1063,6 +1010,8 @@ void Player::Deserialize( SaveFile & in ) {
     mBody.SetFriction( 0 );
 
 	in.ReadBoolean( mFlashlightLocked );
+
+	in.ReadFloat( mLastHealth );
 }
 
 void Player::Serialize( SaveFile & out ) {
@@ -1072,7 +1021,6 @@ void Player::Serialize( SaveFile & out ) {
 
     out.WriteBoolean( mSmoothCamera );
     out.WriteFloat( mRunCameraShakeCoeff );
-    out.WriteInteger((int)mFootstepsType );
     mPitch.Serialize( out );
     mYaw.Serialize( out );
     out.WriteVector3( mSpeed );
@@ -1138,6 +1086,8 @@ void Player::Serialize( SaveFile & out ) {
     mTip.Serialize( out );
 
 	out.WriteBoolean( mFlashlightLocked );
+
+	out.WriteFloat( mLastHealth );
 }
 
 void Player::CloseCurrentSheet() {

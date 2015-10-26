@@ -1,14 +1,5 @@
 #pragma once
 
-
-
-
-enum class FootstepsType {
-    Rock,
-    Metal,
-    Dirt
-};
-
 enum LevelName {
     LUndefined = -1,
 	LCSIntro = 0,
@@ -20,7 +11,6 @@ enum LevelName {
     // For testing
     LXTestingChamber,
 };
-
 
 void RaiseError( const string & text );
 

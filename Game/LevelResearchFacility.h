@@ -24,7 +24,6 @@ private:
     ruSound mSteamHissSound;
 
     ruSceneNode mSteamPS;
-    ruSceneNode mLockedDoor;
     ruSceneNode mExtremeSteamBlock;
     ruSceneNode mZoneExtremeSteamHurt;
     ruSceneNode fuseModel[3];
@@ -40,7 +39,6 @@ private:
 	
 	ruSceneNode mDoorUnderFloor;
 	ruSceneNode mZoneNewLevelLoad;
-	ruSceneNode mPathBlockingMesh;
 
 	shared_ptr<Zone> mZoneObjectiveNeedPassThroughMesh;
 	shared_ptr<Zone> mZoneEnemySpawn;
@@ -65,6 +63,8 @@ private:
 	Keypad * mColliderKeypad;
 	shared_ptr<Door> mColliderDoorToUnlock;
 
+	shared_ptr<Door> mLockedDoor;
+
     Item * fuse[3];
 	Item * mCrowbarItem;
     shared_ptr<ItemPlace> mFusePlaceList[3];
@@ -77,6 +77,7 @@ private:
 	ruSceneNode mThermitePlace;
 	ruSceneNode mMeshToSewers;
 	ruSceneNode mEnemySpawnPosition;
+	ruSceneNode mRadioHurtZone;
 	ItemPlace * mThermiteItemPlace;
 
 	shared_ptr<Enemy> mEnemy;

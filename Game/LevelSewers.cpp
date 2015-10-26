@@ -33,8 +33,7 @@ LevelSewers::LevelSewers( ) {
 	mKnocksSound.SetRoomRolloffFactor( 0.2f );
 
 	ruSetAudioReverb( 10 );
- 
-	pPlayer->SetRockFootsteps();
+
 	DoneInitialization();
 
 	mStages[ "KnocksDone" ] = false;

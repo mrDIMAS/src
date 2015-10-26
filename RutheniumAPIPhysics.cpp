@@ -32,6 +32,47 @@ ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint 
 	return SceneNode::HandleFromPointer( 0 );
 }
 
+ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end ) {
+	ruRayCastResultEx result;
+	result.valid = false;
+
+	btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
+	btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
+
+	btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
+	Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
+
+	if ( rayCallback.hasHit() ) {
+		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
+		if ( pBody ) {
+			SceneNode * node = (SceneNode*)pBody->getUserPointer();
+			if ( node ) {
+				result.valid = true;
+				result.node = SceneNode::HandleFromPointer( node );
+				result.position.x = rayCallback.m_hitPointWorld.x();
+				result.position.y = rayCallback.m_hitPointWorld.y();
+				result.position.z = rayCallback.m_hitPointWorld.z();
+				result.normal.x = rayCallback.m_hitNormalWorld.x();
+				result.normal.y = rayCallback.m_hitNormalWorld.y();
+				result.normal.z = rayCallback.m_hitNormalWorld.z();
+				if( node->mMeshList.size() ) {
+					int index = rayCallback.m_collisionObject->getUserIndex();
+					result.index = index;
+					if( index >= 0 ) {
+						try {
+							result.textureName = node->mMeshList.at( index )->mDiffuseTexture->GetName();
+						} catch( ... ) {
+							// do nothing
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
 ruSceneNode ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
 	D3DVIEWPORT9 vp;
 	Engine::Instance().GetDevice()->GetViewport( &vp );

@@ -62,10 +62,8 @@ SceneNode::SceneNode( ) {
 	AutoName();    
     mInFrustum = false;
     mParent = nullptr;
-    mBody = nullptr;
     mTotalFrameCount = 0;
     mSkinned = false;
-    trimesh = nullptr;
     mVisible = true;
     mScene = nullptr;
     mLocalTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
@@ -86,10 +84,8 @@ SceneNode::SceneNode( const SceneNode & source ) {
 	mParent = nullptr;
 	mTotalFrameCount = 0;
 	mSkinned = false;
-	trimesh = nullptr;
 	mVisible = true;
 	mScene = nullptr;
-	mBody = nullptr;
 	mLocalTransform = source.mLocalTransform;
 	mGlobalTransform = mLocalTransform;
 	mContactCount = source.mContactCount;
@@ -158,22 +154,22 @@ SceneNode::~SceneNode() {
 		delete keyframe;
 	}
 
-	if( trimesh ) {
+	for( auto trimesh : mTrimeshList ) {
 		delete trimesh;
 	}
 
-	if( mBody ) {
-		if( mBody->getCollisionShape() ) {
-			delete mBody->getCollisionShape();
+	for( auto body : mBodyList ) {
+		if( body->getCollisionShape() ) {
+			delete body->getCollisionShape();
 		}
 
-		if( mBody->getMotionState() ) {
-			delete mBody->getMotionState();
+		if( body->getMotionState() ) {
+			delete body->getMotionState();
 		}
 
-		Physics::mpDynamicsWorld->removeRigidBody( mBody );
+		Physics::mpDynamicsWorld->removeRigidBody( body );
 
-		delete mBody;
+		delete body;
 	}
 
 	if( particleEmitter ) {
@@ -235,32 +231,44 @@ void SceneNode::SetSphereBody( ) {
 }
 
 void SceneNode::SetAngularFactor( ruVector3 fact ) {
-    if( mBody ) {
-        mBody->setAngularFactor( btVector3( fact.x, fact.y, fact.z ) );
+    for( auto body : mBodyList ) {
+        body->setAngularFactor( btVector3( fact.x, fact.y, fact.z ) );
     }
 }
 
 void SceneNode::SetTrimeshBody() {
-    if( mMeshList.size() == 0 ) {
-        return;
-    }
-
-    btVector3 inertia ( 0.0f, 0.0f, 0.0f );
-    trimesh = new btTriangleMesh();
-
-    for ( auto mesh : mMeshList ) {
-        for( auto triangle : mesh->mTriangles ) {
-            ruVector3 & a = mesh->mVertices[ triangle.mA ].mPosition;
-            ruVector3 & b = mesh->mVertices[ triangle.mB ].mPosition;
-            ruVector3 & c = mesh->mVertices[ triangle.mC ].mPosition;
-
-            trimesh->addTriangle ( btVector3( a.x, a.y, a.z ), btVector3( b.x, b.y, b.z ), btVector3( c.x, c.y, c.z ), false );
-        };
-    }
-
-    SetBody(new btRigidBody(0, (btMotionState*)(new btDefaultMotionState()), (btCollisionShape*) (new btBvhTriangleMeshShape(trimesh, true, true)), inertia));
-	mBody->setLinearFactor( btVector3( 0,0,0 ));
-	mBody->setAngularFactor( btVector3( 0,0,0 ));
+    if( mMeshList.size() ) {
+		int meshNum = 0;
+		for ( auto mesh : mMeshList ) {
+			if( mesh->mTriangles.size() ) {
+				btTriangleMesh * trimesh = new btTriangleMesh();
+				for( auto triangle : mesh->mTriangles ) {
+					ruVector3 & a = mesh->mVertices[ triangle.mA ].mPosition;
+					ruVector3 & b = mesh->mVertices[ triangle.mB ].mPosition;
+					ruVector3 & c = mesh->mVertices[ triangle.mC ].mPosition;
+					trimesh->addTriangle ( btVector3( a.x, a.y, a.z ), btVector3( b.x, b.y, b.z ), btVector3( c.x, c.y, c.z ), false );
+				};			
+				btMotionState * motionState = new btDefaultMotionState();
+				btCollisionShape * shape = new btBvhTriangleMeshShape( trimesh, true, true );
+				btRigidBody * body = new btRigidBody( 0.0f, motionState, shape );
+				body->setWorldTransform ( mGlobalTransform );
+				body->setFriction(1.0f);
+				body->setUserPointer( this );
+				body->setUserIndex( meshNum );
+				body->setRestitution( 0.0f );
+				body->setDeactivationTime( 0.1f );
+				body->setCcdMotionThreshold( 0.75f );
+				body->setCcdSweptSphereRadius( 0.2f );
+				body->setSleepingThresholds( 1.0f, 1.0f );
+				body->getCollisionShape()->setMargin(0.02);
+				body->setLinearFactor( btVector3( 0,0,0 ));
+				body->setAngularFactor( btVector3( 0,0,0 ));
+				mBodyList.push_back( body );
+				Physics::mpDynamicsWorld->addRigidBody ( body );
+			}
+			meshNum++;
+		}
+	}
 }
 
 void SceneNode::EraseChild( const SceneNode * child ) {
@@ -281,18 +289,18 @@ void SceneNode::AttachTo( SceneNode * newParent ) {
 }
 
 btTransform & SceneNode::CalculateGlobalTransform() {
-    if( mBody ) {
+    if( mBodyList.size() ) {
         if( mParent ) {
             if( mFrozen ) { // only frozen bodies can be parented
                 mGlobalTransform = mParent->CalculateGlobalTransform() * mLocalTransform;
-                mBody->setWorldTransform( mGlobalTransform );
-                mBody->setLinearVelocity( btVector3( 0, 0, 0 ));
-                mBody->setAngularVelocity( btVector3( 0, 0, 0 ));
+                mBodyList[0]->setWorldTransform( mGlobalTransform );
+                mBodyList[0]->setLinearVelocity( btVector3( 0, 0, 0 ));
+                mBodyList[0]->setAngularVelocity( btVector3( 0, 0, 0 ));
             } else {
-                mGlobalTransform = mBody->getWorldTransform();
+                mGlobalTransform = mBodyList[0]->getWorldTransform();
             }
         } else { // dont has parent
-            mGlobalTransform = mBody->getWorldTransform();
+            mGlobalTransform = mBodyList[0]->getWorldTransform();
         }
     } else { // dont has body
         if( mParent ) {
@@ -564,39 +572,37 @@ void SceneNode::PerformAnimation() {
         }
     } else {
         if( mCurrentAnimation ) {
-            if( mCurrentAnimation->enabled ) {
+            //if( mCurrentAnimation->enabled ) {
                 if ( mKeyframeList.size() ) {
                     btTransform * currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ];
                     btTransform * nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ];
                     mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->interpolator ));
                     mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->interpolator ));
                 }
-            }
+            //}
         }
     }
 }
 
 void SceneNode::Freeze() {
     mFrozen = true;
-    if( !mBody ) {
-        return;
-    }
-    mBody->setAngularFactor( 0 );
-    mBody->setLinearFactor( btVector3( 0, 0, 0 ));
-    mBody->setAngularVelocity( btVector3( 0, 0, 0 ));
-    mBody->setLinearVelocity( btVector3( 0, 0, 0 ));
-    mBody->setGravity( btVector3( 0, 0, 0 ));
+	for( auto body : mBodyList ) {
+		body->setAngularFactor( 0 );
+		body->setLinearFactor( btVector3( 0, 0, 0 ));
+		body->setAngularVelocity( btVector3( 0, 0, 0 ));
+		body->setLinearVelocity( btVector3( 0, 0, 0 ));
+		body->setGravity( btVector3( 0, 0, 0 ));
+	}
 }
 
 void SceneNode::Unfreeze() {
     mFrozen = false;
-    if( !mBody ) {
-        return;
-    }
-	mBody->activate(true);
-    mBody->setAngularFactor( 1 );
-    mBody->setLinearFactor( btVector3( 1, 1, 1 ));
-    mBody->setGravity( Physics::mpDynamicsWorld->getGravity() );
+	for( auto body : mBodyList ) {
+		body->activate(true);
+		body->setAngularFactor( 1 );
+		body->setLinearFactor( btVector3( 1, 1, 1 ));
+		body->setGravity( Physics::mpDynamicsWorld->getGravity() );
+	}
 }
 
 void SceneNode::Hide() {
@@ -632,10 +638,11 @@ void SceneNode::UpdateSounds() {
 void SceneNode::UpdateContacts() {
     int numManifolds = Physics::mpDynamicsWorld->getDispatcher()->getNumManifolds();
 
-    for( auto node : SceneNode::msNodeList )
-        if( node->mBody ) {
+    for( auto node : SceneNode::msNodeList ) {
+        if( node->mBodyList.size() ) {
             node->mContactCount = 0;
         }
+	}
 
     for (int i=0; i < numManifolds; i++) {
         btPersistentManifold* contactManifold = Physics::mpDynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
@@ -651,10 +658,6 @@ void SceneNode::UpdateContacts() {
 
         int numContacts = contactManifold->getNumContacts();
 
-        /*
-        nodeA->numContacts += numContacts;
-        nodeB->numContacts += numContacts;*/
-
         if( numContacts > BODY_MAX_CONTACTS ) {
             numContacts = BODY_MAX_CONTACTS;
         }
@@ -662,20 +665,31 @@ void SceneNode::UpdateContacts() {
         for (int j = 0 ; j < numContacts; j++ ) {
             btManifoldPoint& pt = contactManifold->getContactPoint(j);
 
-            if (pt.getDistance() < 0.f ) {
+            if( pt.getDistance() < 0.0f ) {
                 nodeA->mContactCount++;
                 nodeB->mContactCount++;
 
+				int obAIndex = obA->getUserIndex();
                 nodeA->mContactList[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
-                nodeB->mContactList[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
-                nodeA->mContactList[ j ].position = ruVector3( pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
-                nodeB->mContactList[ j ].position = ruVector3( pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());
-
-                nodeA->mContactList[ j ].impulse = pt.m_appliedImpulse;
-                nodeB->mContactList[ j ].impulse = pt.m_appliedImpulse;
-
+				nodeA->mContactList[ j ].position = ruVector3( pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
+				nodeA->mContactList[ j ].impulse = pt.m_appliedImpulse;
 				nodeA->mContactList[ j ].body.pointer = nodeB;
+				if( obAIndex >= 0 ) {
+					if( nodeA->mMeshList[obAIndex]->mDiffuseTexture ) {
+						nodeA->mContactList[ j ].textureName = nodeA->mMeshList[obAIndex]->mDiffuseTexture->GetName();
+					}
+				}
+
+				int obBIndex = obB->getUserIndex();
+                nodeB->mContactList[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());                
+                nodeB->mContactList[ j ].position = ruVector3( pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());                
+                nodeB->mContactList[ j ].impulse = pt.m_appliedImpulse;				
 				nodeB->mContactList[ j ].body.pointer = nodeA;
+				if( obBIndex >= 0 ) {
+					if( nodeB->mMeshList[obBIndex]->mDiffuseTexture ) {
+						nodeB->mContactList[ j ].textureName = nodeB->mMeshList[obBIndex]->mDiffuseTexture->GetName();
+					}
+				}
 
                 if( pt.m_appliedImpulse > 10.0f ) {
                     if( !nodeA->mFrozen ) {
@@ -721,8 +735,8 @@ void SceneNode::UpdateContacts() {
 }
 
 void SceneNode::SetLinearFactor( ruVector3 lin ) {
-    if( mBody ) {
-        mBody->setLinearFactor( btVector3( lin.x, lin.y, lin.z ) );
+    for( auto body : mBodyList ) {
+        body->setLinearFactor( btVector3( lin.x, lin.y, lin.z ) );
     }
 }
 
@@ -789,14 +803,12 @@ void SceneNode::ApplyProperties() {
         }
 
         if ( pname == "mass" ) {
-            if( mBody ) {
-                SetMass( atof( value.c_str()) );
-            }
+            SetMass( atof( value.c_str()) );            
 		}
 
         if ( pname == "friction" ) {
-            if( mBody ) {
-                mBody->setFriction ( atof( value.c_str()) );
+            for( auto body : mBodyList ) {
+                body->setFriction ( atof( value.c_str()) );
             }
 		}
 
@@ -873,8 +885,8 @@ SceneNode * SceneNode::FindByName( const string & name ) {
 
 
 void SceneNode::SetFriction( float friction ) {
-    if( mBody ) {
-        mBody->setFriction( friction );
+    for( auto body : mBodyList ) {
+        body->setFriction( friction );
     }
 }
 
@@ -886,38 +898,38 @@ void SceneNode::SetDepthHack( float depthHack ) {
 }
 
 void SceneNode::SetAnisotropicFriction( ruVector3 aniso ) {
-    if( mBody ) {
-        mBody->setAnisotropicFriction( btVector3( aniso.x, aniso.y, aniso.z ));
+    for( auto body : mBodyList ) {
+        body->setAnisotropicFriction( btVector3( aniso.x, aniso.y, aniso.z ));
     }
 }
 
 void SceneNode::Move( ruVector3 speed ) {
-    if( mBody ) {
-		mBody->activate( true );
-        mBody->setLinearVelocity(  btVector3( speed.x, speed.y, speed.z ) );
+    for( auto body : mBodyList ) {
+		body->activate( true );
+        body->setLinearVelocity(  btVector3( speed.x, speed.y, speed.z ) );
     };
 	mLocalTransform.setOrigin( mLocalTransform.getOrigin() + btVector3( speed.x, speed.y, speed.z ) );
 }
 
 void SceneNode::SetVelocity( ruVector3 velocity ) {
-    if( mBody ) {
-		mBody->activate( true );
-        mBody->setLinearVelocity( btVector3( velocity.x, velocity.y, velocity.z ) );
+    for( auto body : mBodyList ) {
+		body->activate( true );
+        body->setLinearVelocity( btVector3( velocity.x, velocity.y, velocity.z ) );
     }
 }
 
 void SceneNode::SetPosition( ruVector3 position ) {
 	mLocalTransform.setOrigin( btVector3( position.x, position.y, position.z ) );
-    if( mBody ) {
-		mBody->activate(true);
-        mBody->getWorldTransform().setOrigin( btVector3( position.x, position.y, position.z ) );
+    for( auto body : mBodyList ) {
+		body->activate(true);
+        body->getWorldTransform().setOrigin( btVector3( position.x, position.y, position.z ) );
     };
 	CalculateGlobalTransform();
 }
 
 float SceneNode::GetMass() {
-    if( mBody ) {
-        return 1.0f / mBody->getInvMass();
+    if( mBodyList.size() ) {
+        return 1.0f / mBodyList[0]->getInvMass();
     }
 
     return 0.0f;
@@ -928,16 +940,16 @@ bool SceneNode::IsFrozen() {
 }
 
 void SceneNode::SetRotation( ruQuaternion rotation ) {
-    if( mBody ) {
-		mBody->activate( true );
-        mBody->getWorldTransform().getBasis().setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ) );
+    for( auto body : mBodyList ) {
+		body->activate( true );
+        body->getWorldTransform().getBasis().setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ) );
     }
 	mLocalTransform.setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ));
 }
 
 void SceneNode::SetBodyLocalScaling( ruVector3 scale ) {
-	if( mBody ) {
-		mBody->getCollisionShape()->setLocalScaling( btVector3( scale.x, scale.y, scale.z ));
+	for( auto body : mBodyList ) {
+		body->getCollisionShape()->setLocalScaling( btVector3( scale.x, scale.y, scale.z ));
 	}
 }
 
@@ -972,8 +984,8 @@ btTransform & SceneNode::GetGlobalTransform() {
 ruVector3 SceneNode::GetLocalPosition() {
     btTransform transform = mLocalTransform;
 
-    if( mBody && !mFrozen ) {
-        transform = mBody->getWorldTransform();
+    if( mBodyList.size() && !mFrozen ) {
+        transform = mBodyList[0]->getWorldTransform();
     }
 
     ruVector3 lp;
@@ -1005,8 +1017,8 @@ SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const string & name
 }
 
 void SceneNode::SetAngularVelocity( ruVector3 velocity ) {
-    if( mBody ) {
-        mBody->setAngularVelocity( btVector3( velocity.x, velocity.y, velocity.z ));
+    for( auto body : mBodyList ) {
+        body->setAngularVelocity( btVector3( velocity.x, velocity.y, velocity.z ));
     }
 }
 
@@ -1024,46 +1036,48 @@ ruVector3 SceneNode::GetEulerAngles() {
 
 ruQuaternion SceneNode::GetLocalRotation() {
     btTransform transform = mLocalTransform;
-    if( mBody ) {
-        transform = mBody->getWorldTransform();
+    if( mBodyList.size() ) {
+        transform = mBodyList[0]->getWorldTransform();
     }
     return ruQuaternion( transform.getRotation().x(), transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w() );
 }
 
 void SceneNode::SetDamping( float linearDamping, float angularDamping ) {
-    if( mBody ) {
-        mBody->setDamping( linearDamping, angularDamping );
+    for( auto body : mBodyList ) {
+        body->setDamping( linearDamping, angularDamping );
     }
 }
 
 void SceneNode::SetGravity( const ruVector3 & gravity ) {
     btVector3 g( gravity.x, gravity.y, gravity.z );
 
-    if(mBody) {
-        mBody->setGravity( g );
+    for( auto body : mBodyList ) {
+        body->setGravity( g );
     }
 }
 
 void SceneNode::SetMass( float mass ) {
-    if( mBody ) {
+    for( auto body : mBodyList ) {
         btVector3 inertia;
-        mBody->getCollisionShape()->calculateLocalInertia( mass, inertia );
-        mBody->setMassProps( mass, inertia );
+        body->getCollisionShape()->calculateLocalInertia( mass, inertia );
+        body->setMassProps( mass, inertia );
     }
 }
 
 void SceneNode::SetBody( btRigidBody * theBody ) {
-    mBody = theBody;
-    mBody->setWorldTransform ( mGlobalTransform );
-    mBody->setFriction(1.0f);
-    mBody->setUserPointer( this );
-    mBody->setRestitution( 0.0f );
-	mBody->setDeactivationTime( 0.1f );
-	mBody->setCcdMotionThreshold( 0.75f );
-	mBody->setCcdSweptSphereRadius( 0.2f );
-	mBody->setSleepingThresholds( 1.0f, 1.0f );
-	mBody->getCollisionShape()->setMargin(0.02);
-    Physics::mpDynamicsWorld->addRigidBody ( mBody );
+    theBody = theBody;
+    theBody->setWorldTransform ( mGlobalTransform );
+    theBody->setFriction(1.0f);
+    theBody->setUserPointer( this );
+	theBody->setUserIndex( mMeshList.size() > 0 ? 0 : -1 );
+    theBody->setRestitution( 0.0f );
+	theBody->setDeactivationTime( 0.1f );
+	theBody->setCcdMotionThreshold( 0.75f );
+	theBody->setCcdSweptSphereRadius( 0.2f );
+	theBody->setSleepingThresholds( 1.0f, 1.0f );
+	theBody->getCollisionShape()->setMargin(0.02);
+    Physics::mpDynamicsWorld->addRigidBody ( theBody );
+	mBodyList.push_back( theBody );
 }
 
 void SceneNode::SetAnimation( ruAnimation * newAnim, bool dontAffectChilds ) {
@@ -1075,11 +1089,10 @@ void SceneNode::SetAnimation( ruAnimation * newAnim, bool dontAffectChilds ) {
     }
 }
 
-BodyType SceneNode::GetBodyType() const
-{
+BodyType SceneNode::GetBodyType() const {
 	BodyType bodyType = BodyType::None;
-	if( mBody ) {
-		btCollisionShape * shape = mBody->getCollisionShape();
+	if( mBodyList.size() ) {
+		btCollisionShape * shape = mBodyList[0]->getCollisionShape();
 		if( dynamic_cast<btSphereShape*>( shape )) {
 			bodyType = BodyType::Sphere;
 		}
@@ -1096,9 +1109,12 @@ BodyType SceneNode::GetBodyType() const
 	return bodyType;
 }
 
-ruVector3 SceneNode::GetTotalForce()
-{
-	return ruVector3(mBody->getTotalForce().x(), mBody->getTotalForce().y(), mBody->getTotalForce().z());
+ruVector3 SceneNode::GetTotalForce() {
+	if( mBodyList.size() ) {
+		return ruVector3( mBodyList[0]->getTotalForce().x(), mBodyList[0]->getTotalForce().y(), mBodyList[0]->getTotalForce().z());
+	} else {
+		return ruVector3( 0.0f, 0.0f, 0.0f );
+	}
 }
 
 ruAnimation * SceneNode::GetCurrentAnimation() {
@@ -1107,10 +1123,10 @@ ruAnimation * SceneNode::GetCurrentAnimation() {
 
 ruVector3 SceneNode::GetLinearVelocity() {
 	ruVector3 vel;
-	if( mBody ) {
-		vel.x = mBody->getLinearVelocity().x();
-		vel.y = mBody->getLinearVelocity().y();
-		vel.z = mBody->getLinearVelocity().z();
+	if( mBodyList.size() ) {
+		vel.x = mBodyList[0]->getLinearVelocity().x();
+		vel.y = mBodyList[0]->getLinearVelocity().y();
+		vel.z = mBodyList[0]->getLinearVelocity().z();
 	}
 	return vel;
 }
@@ -1125,20 +1141,20 @@ ruVector3 SceneNode::GetRotationAxis() {
 }
 
 void SceneNode::AddTorque( ruVector3 torque ) {
-	if( mBody ) {
-		mBody->applyTorque( btVector3( torque.x, torque.y, torque.z ));
+	for( auto body : mBodyList ) {
+		body->applyTorque( btVector3( torque.x, torque.y, torque.z ));
 	}
 }
 
 void SceneNode::AddForceAtPoint( ruVector3 force, ruVector3 point ) {
-	if( mBody ) {
-		mBody->applyForce( btVector3( force.x, force.y, force.z ), btVector3( point.x, point.y, point.z ) );
+	for( auto body : mBodyList ) {
+		body->applyForce( btVector3( force.x, force.y, force.z ), btVector3( point.x, point.y, point.z ) );
 	}
 }
 
 void SceneNode::AddForce( ruVector3 force ) {
-	if( mBody ) {
-		mBody->applyCentralForce( btVector3( force.x, force.y, force.z ));
+	for( auto body : mBodyList ) {
+		body->applyCentralForce( btVector3( force.x, force.y, force.z ));
 	}
 }
 
@@ -1148,6 +1164,22 @@ void SceneNode::OnResetDevice() {
 
 void SceneNode::OnLostDevice() {
 
+}
+
+void SceneNode::SetLocalPosition( ruVector3 pos ) {
+	mLocalTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
+	for( auto body : mBodyList ) {
+		body->getWorldTransform().setOrigin( btVector3( pos.x, pos.y, pos.z ) );
+	}
+	CalculateGlobalTransform();
+}
+
+void  SceneNode::SetLocalRotation( ruQuaternion rot ) {
+	mLocalTransform.setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ));
+	for( auto body : mBodyList ) {
+		body->getWorldTransform().setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ) );
+	}
+	CalculateGlobalTransform( );
 }
 
 ////////////////////////////////////////////////////
@@ -1525,7 +1557,7 @@ bool ruIsNodeHasBody( ruSceneNode node ) {
 	if( SceneNode::CastHandle( node ) == nullptr ) {
 		return false;
 	}
-    return SceneNode::CastHandle( node )->mBody != nullptr;
+    return SceneNode::CastHandle( node )->mBodyList.size() > 0;
 }
 
 void ruMoveNode( ruSceneNode node, ruVector3 speed ) {
@@ -1627,35 +1659,11 @@ ruVector3 ruGetNodeAbsoluteLookVector( ruSceneNode node ) {
     return SceneNode::CastHandle( node )->GetAbsoluteLookVector();
 }
 
-void ruSetNodeLocalPosition( ruSceneNode node, ruVector3 pos ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode * s = SceneNode::CastHandle( node );
-    s->mLocalTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
-    if( s->mBody ) {
-        s->mBody->getWorldTransform().setOrigin( btVector3( pos.x, pos.y, pos.z ) );
-    }
-    SceneNode::CastHandle( node )->CalculateGlobalTransform( );
-}
-
 BodyType ruGetNodeBodyType( ruSceneNode node ) {
 	if( SceneNode::CastHandle( node ) == nullptr ) {
 		return BodyType::None;
 	}
 	return SceneNode::CastHandle( node )->GetBodyType();	
-}
-
-void ruSetNodeLocalRotation( ruSceneNode node, ruQuaternion rot ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode * s = SceneNode::CastHandle( node );
-    s->mLocalTransform.setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ));
-    if( s->mBody ) {
-        s->mBody->getWorldTransform().setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ) );
-    }
-    SceneNode::CastHandle( node )->CalculateGlobalTransform( );
 }
 
 void ruSetNodeName( ruSceneNode node, const string & name ) {

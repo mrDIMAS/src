@@ -3,6 +3,8 @@
 
 #include "SceneNode.h"
 
+vector<ruAnimation*> ruAnimation::msAnimationList;
+
 ruAnimation::ruAnimation() {
     looped = false;
     beginFrame = 0;
@@ -12,6 +14,7 @@ ruAnimation::ruAnimation() {
     interpolator = 0.0f;
     nextFrame = 0;
 	enabled = false;
+	msAnimationList.push_back( this );
 }
 
 ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped ) {
@@ -23,6 +26,14 @@ ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theDuration,
     looped = theLooped;
 	enabled = false;
     interpolator = 0.0f;
+	msAnimationList.push_back( this );
+}
+
+ruAnimation::~ruAnimation() {
+	auto iter = find( msAnimationList.begin(), msAnimationList.end(), this );
+	if( iter != msAnimationList.end() ) {
+		msAnimationList.erase( iter );
+	}
 }
 
 void ruAnimation::AddFrameListener( int frameNum, const ruDelegate & action ) {

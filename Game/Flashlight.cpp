@@ -153,6 +153,21 @@ void Flashlight::Deserialize( SaveFile & in ) {
     } else {
         SwitchOff();
     }
+
+	DeserializeAnimation( in, mCloseAnim );
+	DeserializeAnimation( in, mIdleAnim );
+	DeserializeAnimation( in, mOpenAnim );
+
+	int currentAnim = in.ReadInteger();
+	if( currentAnim == 0 ) {
+		mModel.SetAnimation( &mCloseAnim );
+	}
+	if( currentAnim == 1 ) {
+		mModel.SetAnimation( &mIdleAnim );
+	}
+	if( currentAnim == 2 ) {
+		mModel.SetAnimation( &mOpenAnim );
+	}
 }
 
 void Flashlight::Serialize( SaveFile & out ) {
@@ -162,6 +177,20 @@ void Flashlight::Serialize( SaveFile & out ) {
     out.WriteFloat( mRealRange );
     out.WriteFloat( mRangeDest );
     out.WriteBoolean( mOn );
+
+	SerializeAnimation( out, mCloseAnim );
+	SerializeAnimation( out, mIdleAnim );
+	SerializeAnimation( out, mOpenAnim );
+
+	if( mModel.GetCurrentAnimation() == &mCloseAnim ) {
+		out.WriteInteger( 0 );
+	}
+	if( mModel.GetCurrentAnimation() == &mIdleAnim ) {
+		out.WriteInteger( 1 );
+	}
+	if( mModel.GetCurrentAnimation() == &mOpenAnim ) {
+		out.WriteInteger( 2 );
+	}
 }
 
 Flashlight::~Flashlight() {
@@ -182,4 +211,51 @@ float Flashlight::GetCharge() {
 
 bool Flashlight::IsOn() const {
     return mOn;
+}
+
+ruSceneNode Flashlight::GetLight()
+{
+	return mLight;
+}
+
+void Flashlight::Open()
+{
+	mOnSound.Play();
+}
+
+void Flashlight::Show()
+{
+	mModel.Show();
+}
+
+void Flashlight::Hide()
+{
+	mModel.Hide();
+	OnSwitchOff.DoActions();
+}
+
+void Flashlight::Fire()
+{
+	mFireSound.Play();
+	mFire.Show();
+	mOn = true;
+}
+
+void Flashlight::Close()
+{
+	mFire.Hide();
+	mOn = false;
+	mOffSound.Play();
+}
+
+void Flashlight::DeserializeAnimation( SaveFile & in, ruAnimation & anim )
+{
+	anim.SetCurrentFrame( in.ReadInteger());
+	in.ReadBoolean( anim.enabled );
+}
+
+void Flashlight::SerializeAnimation( SaveFile & out, ruAnimation & anim )
+{
+	out.WriteInteger( anim.GetCurrentFrame() );
+	out.WriteBoolean( anim.enabled );
 }

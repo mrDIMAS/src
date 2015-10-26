@@ -12,6 +12,9 @@ private:
 public:
 	int GetHeight();
 	int GetWidth();
+	string GetName() {
+		return mName;
+	}
     
     static unordered_map< string, Texture* > msTextureList;
     virtual ~Texture( );

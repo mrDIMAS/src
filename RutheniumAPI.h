@@ -275,7 +275,7 @@ private:
 	int currentFrame;
 	int nextFrame;
 	float interpolator;
-
+	string mName;
 	class AnimationEvent {
 	public:
 		bool mState;
@@ -284,15 +284,18 @@ private:
 
 		}
 	};
-
+	
 	// list of actions, which must be done on n-th frame 
 	unordered_map<int,AnimationEvent> mFrameListenerList;
 public:
+	// list of all animations
+	static vector<ruAnimation*> msAnimationList;
 	float duration;
 	bool looped;
 	bool enabled;
 	explicit ruAnimation();
 	explicit ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped = false );
+	virtual ~ruAnimation();
 	void SetFrameInterval( int begin, int end );
 	void SetCurrentFrame( int frame );
 	int GetCurrentFrame() {
@@ -306,6 +309,12 @@ public:
 	}
 	int GetNextFrame() {
 		return nextFrame;
+	}
+	void SetName( const string & newName ) {
+		mName = newName;
+	}
+	string GetName( ) {
+		return mName;
 	}
 	void AddFrameListener( int frameNum, const ruDelegate & action );
 	void Rewind();
@@ -376,6 +385,7 @@ public:
 	void SetVelocity( ruVector3 velocity );
 	void SetAngularVelocity( ruVector3 velocity );
 	void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
+
 	int GetTotalAnimationFrameCount();
 	ruAnimation * GetCurrentAnimation();
 	ruVector3 GetEulerAngles();
@@ -388,16 +398,6 @@ public:
 	void AddTorque( ruVector3 torque );
 };
 
-struct ruContact {
-	ruVector3 normal;
-	ruVector3 position;
-	float impulse;
-	ruSceneNode body;
-
-	ruContact() {
-		impulse = 0;
-	}
-};
 
 class ruFontHandle : public ruRutheniumHandle {
 public:
@@ -414,6 +414,17 @@ class ruCubeTextureHandle : public ruRutheniumHandle {
 public:
     static ruCubeTextureHandle Empty();
     bool operator == ( const ruCubeTextureHandle & node );
+};
+
+struct ruContact {
+	ruVector3 normal;
+	ruVector3 position;
+	float impulse;
+	ruSceneNode body;
+	string textureName;
+	ruContact() {
+		impulse = 0;
+	}
 };
 
 class ruSound : public ruRutheniumHandle {
@@ -568,6 +579,17 @@ void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep );
 
 ruSceneNode ruRayPick( int x, int y, ruVector3 * outPickPoint = 0 );
 ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
+
+struct ruRayCastResultEx {
+	bool valid;
+	int index;
+	ruSceneNode node;
+	ruVector3 position;
+	ruVector3 normal;
+	string textureName;
+};
+
+ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Scene node functions

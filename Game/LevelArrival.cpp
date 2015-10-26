@@ -82,8 +82,6 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/forest/forestambient5.ogg" ));
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/forest/forestambient6.ogg" ));
 
-    pPlayer->SetFootsteps( FootstepsType::Dirt );
-
     ruSetCameraSkybox( pPlayer->mpCamera->mNode,
 		ruGetTexture( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
 		ruGetTexture( "data/textures/skyboxes/night3/nightsky_l.jpg" ),

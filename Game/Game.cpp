@@ -10,6 +10,7 @@
 #include "SaveWriter.h"
 #include "SaveLoader.h"
 #include "Utils.h"
+#include "SoundMaterial.h"
 
 float g_resW;
 float g_resH;
@@ -23,6 +24,8 @@ float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 double gFixedTick = 1.0 / 60.0; // 0.016(6) sec
 void main( ) {
+	
+
 	//ruEnableDebugMode( true );
 
     Parser config;
@@ -41,7 +44,6 @@ void main( ) {
 #else
     ruEngine::Create( g_resW, g_resH, fullscreen, vSync );
 #endif
-
 	// get actual resolution settings
 	g_resW = ruEngine::GetResolutionWidth();
 	g_resH = ruEngine::GetResolutionHeight();

@@ -21,9 +21,6 @@ private:
     bool mDoPatrol;
     int mCurrentPatrolPoint;
 
-	ruTimerHandle mStunTimer;
-	bool mStun;
-
     Pathfinder mPathfinder;
 
     ruSceneNode mModel;
@@ -32,15 +29,12 @@ private:
     ruVector3 mDestination;
 	ruVector3 mDeathPosition;
 
-    ruSceneNode mRightLeg;
-    ruSceneNode mLeftLeg;
-
-    ruSceneNode mRightLegDown;
-    ruSceneNode mLeftLegDown;
-
-    ruSceneNode mTorsoBone;
-    ruSceneNode mAttackHand;
-    ruSceneNode mHead;
+	vector<ruSceneNode> mRightLegParts;
+	vector<ruSceneNode> mLeftLegParts;
+	vector<ruSceneNode> mRightArmParts;
+	vector<ruSceneNode> mLeftArmParts;
+	vector<ruSceneNode> mTorsoParts;
+	ruSceneNode mHead;
 
     ruSound mHitFleshWithAxeSound;
     ruSound mBreathSound;
@@ -61,6 +55,7 @@ private:
     float mAngle;
 
     float mRunSpeed;
+	float mHitDistance;
 
     ruSound mFootstepsSounds[ 4 ];
 
@@ -70,6 +65,7 @@ private:
     ruAnimation mRunAnimation;
     ruAnimation mAttackAnimation;
     ruAnimation mWalkAnimation;
+
 	ruTimerHandle mResurrectTimer;
 
 	ruTimerHandle mPathCheckTimer;
@@ -80,6 +76,23 @@ private:
 	ruSceneNode mBloodSpray;
 	ruSound mFadeAwaySound;
 	bool mDead;
+
+
+	void Proxy_HitPlayer() {
+		// shit, but works :D
+		float distanceToPlayer = ( pPlayer->GetCurrentPosition() - mBody.GetPosition() ).Length();
+		if( distanceToPlayer < mHitDistance ) {
+			pPlayer->Damage( 20 );
+			mHitFleshWithAxeSound.Play( true );
+		}		
+	}
+
+	// called from animation frames
+	void Proxy_RandomStepSound() {
+		mFootstepsSounds[ rand() % 4 ].Play();
+	}
+
+	void FillByNamePattern( vector< ruSceneNode > & container, const string & pattern );
 public:
 	static vector<Enemy*> msEnemyList;
 
@@ -96,13 +109,12 @@ public:
     virtual void SetWalkAnimation();
     virtual void SetRunAndAttackAnimation();
     virtual void SetStayAndAttackAnimation();
-    explicit Enemy( const string & file, vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
+    explicit Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol );
     virtual ~Enemy();
     void FindBodyparts();
     void CreateSounds();
     void CreateAnimations();
     void Think();
-	void Stun( bool state );
     void Serialize( SaveFile & out );
     void Deserialize( SaveFile & in );
 	virtual void Damage( float dmg ) final;

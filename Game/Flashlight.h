@@ -36,29 +36,17 @@ private:
 	ruAnimation mIdleAnim;
 
 	
+	static void SerializeAnimation( SaveFile & out, ruAnimation & anim );
+	static void DeserializeAnimation( SaveFile & in, ruAnimation & anim );
+
 
     bool mOn;
 
-	void Close() {
-		mFire.Hide();
-		mOn = false;
-		mOffSound.Play();
-	}
-	void Fire() {
-		mFireSound.Play();
-		mFire.Show();
-		mOn = true;
-	}
-	void Hide() {		
-		mModel.Hide();
-		OnSwitchOff.DoActions();
-	}
-	void Show() {
-		mModel.Show();
-	}
-	void Open() {		
-		mOnSound.Play();
-	}
+	void Close();
+	void Fire();
+	void Hide();
+	void Show();
+	void Open();
 public:
 	ruEvent OnSwitchOff;
     explicit Flashlight( );
@@ -72,9 +60,7 @@ public:
     void Update();
     bool IsOn() const;
     float GetCharge();
-	ruSceneNode GetLight() {
-		return mLight;
-	}
+	ruSceneNode GetLight();
     bool IsBeamContainsPoint( ruVector3 point ) const;
     Item * CreateAppropriateItem();
     virtual void Serialize( SaveFile & out ) final;

@@ -15,6 +15,7 @@
 #include "Tip.h"
 #include "Actor.h"
 #include "Weapon.h"
+#include "SoundMaterial.h"
 
 class Player : public Actor {
 public:
@@ -30,14 +31,9 @@ public:
     void UpdateCursor();
     void DrawSheetInHands();
     void CloseCurrentSheet();
-    void SetRockFootsteps();
-    void SetDirtFootsteps();
-    void SetMetalFootsteps();
     void UpdateFright();
     Parser mLocalization;
     Item * mpFlashLightItem;
-
-    FootstepsType mFootstepsType;
 
     GameCamera * mpCamera;
 
@@ -75,6 +71,7 @@ public:
     float mRunCameraShakeCoeff;
     float mStealthFactor;
 	float mStepLength;
+	float mLastHealth;
 
     ruVector3 mSpeed;
     ruVector3 mSpeedTo;
@@ -95,7 +92,7 @@ public:
     ruSound mHeartBeatSound;
     ruSound mBreathSound;
 
-    vector< ruSound > mFootstepList;
+	vector< ruSound > mPainSound;
 
 	Weapon * mCurrentWeapon;
 	vector<Weapon*> mWeaponList;
@@ -110,8 +107,7 @@ public:
     bool mRunning;
 	bool mInAir;
 	bool mFlashlightLocked;
-
-
+	
     Inventory mInventory;
 
 	void SwitchToWeapon() {
@@ -155,6 +151,8 @@ public:
 	ruVector3 mAirPosition;
 
 	ruTimerHandle mAutoSaveTimer;
+
+	vector<SoundMaterial*> mSoundMaterialList;
 public:
     explicit Player();
     virtual ~Player();
@@ -171,7 +169,7 @@ public:
 	void TrembleCamera( float time );
     bool IsCanJump( );
     bool UseStamina( float st );
-    virtual void Damage( float dmg );
+    virtual void Damage( float dmg, bool headJitter = true );
     void AddItem( Item * itm );
     void UpdateInventory();
     void Update( );
@@ -182,7 +180,6 @@ public:
     void DrawStatusBar();
     void SetObjective( string text );
     void CompleteObjective();
-    void SetFootsteps( FootstepsType ft );
     void ChargeFlashLight( );
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( ruSceneNode node );
@@ -201,4 +198,6 @@ public:
     void SetActionText( const string & text );
     void SetHUDVisible( bool state );
 	virtual void ManageEnvironmentDamaging() final;
+
+
 };

@@ -46,7 +46,6 @@ void Ladder::DoLeave() {
     if( distance < 0.25f ) {
         mLeave = false;
         mInside = false;
-        pPlayer->SetFootsteps( mFootsteps );
         pPlayer->Unfreeze();
         pPlayer->StopInstant();
     }
@@ -72,6 +71,4 @@ void Ladder::SetDirection( Direction direction ) {
 
 void Ladder::Enter() {
     Way::Enter();
-    mFootsteps = pPlayer->mFootstepsType;
-    pPlayer->SetFootsteps( FootstepsType::Metal );
 }

@@ -6,6 +6,8 @@ class Mesh;
 
 class ParticleEmitter;
 
+
+
 class SceneNode : public RendererComponent {
 public:
     friend class DeferredRenderer;
@@ -16,10 +18,8 @@ public:
     vector<ruSound> mSoundList;
 	vector<btTransform*> mKeyframeList;
     map<string,string> mProperties;
-    btTransform mInvBoneBindTransform;
-    btRigidBody * mBody;
+    btTransform mInvBoneBindTransform;    
     string mName;
-    btTriangleMesh * trimesh;
     ruSound mHitSound;
     ruSound mIdleSound;
     float mAlbedo;
@@ -34,8 +34,10 @@ public:
     int mContactCount;
     int mTotalFrameCount;
 	void AutoName();
-
 	static vector< SceneNode* > msNodeList;
+
+	vector<btRigidBody*> mBodyList;
+	vector<btTriangleMesh*> mTrimeshList;
 public:
     // Components
     ParticleEmitter * particleEmitter;
@@ -122,4 +124,6 @@ public:
     static SceneNode * CastHandle( ruSceneNode handle );
     static ruSceneNode HandleFromPointer( SceneNode * ptr );
     static void EraseUnusedNodes();
+	void SetLocalPosition( ruVector3 pos );
+	void SetLocalRotation( ruQuaternion rot );
 };
