@@ -288,7 +288,6 @@ private:
 
 		}
 	};
-	
 	// list of actions, which must be done on n-th frame 
 	unordered_map<int,AnimationEvent> mFrameListenerList;
 public:
@@ -297,6 +296,7 @@ public:
 	float duration;
 	bool looped;
 	bool enabled;
+	
 	explicit ruAnimation();
 	explicit ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped = false );
 	virtual ~ruAnimation();

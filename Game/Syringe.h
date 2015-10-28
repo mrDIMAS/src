@@ -5,13 +5,21 @@
 class Syringe : public UsableObject {
 private:
 	ruAnimation mUseAnim;
+	ruAnimation mShowAnim;
+	ruAnimation mHideAnim;
 	ruAnimation mIdleAnim;
+	ruAnimation mIdleDepletedAnim;
+	ruAnimation mShowDepletedAnim;
+	ruAnimation mHideDepletedAnim;
 	void Proxy_HealPlayer();
-	bool mDepleted;
+	void Proxy_Hide();
+	void Proxy_Use();
+	int mDozeCount;
 	virtual void OnSerialize( SaveFile & out ) final;
 	virtual void OnDeserialize( SaveFile & in ) final;
 public:
 	explicit Syringe( );
 	virtual void Update() final;
 	virtual Item* CreateItem( );
+	void AddDoze();;
 };

@@ -6,6 +6,10 @@
 
 class Weapon : public UsableObject {
 protected:
+	ruAnimation mShowAnim;
+	ruAnimation mHideAnim;
+	ruAnimation mIdleAnim;
+	void Proxy_Hide();
 	ruSceneNode mShootPoint;
 	ruSceneNode mProjectileModel;
 	ruSound mShotSound;

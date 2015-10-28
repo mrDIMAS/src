@@ -1,27 +1,26 @@
 #include "Precompiled.h"
 #include "BareHands.h"
 
-void BareHands::Update()
-{
+void BareHands::Update() {
+	if( mAppear ) {
+		mModel.Show();
+		mAppear = false;
+	}
 	SwitchIfAble();
 }
 
-Item* BareHands::CreateItem()
-{
+Item* BareHands::CreateItem() {
 	return nullptr;
 }
 
-BareHands::BareHands()
-{
+BareHands::BareHands() {
 	mModel = ruCreateSceneNode();
 }
 
-void BareHands::OnDeserialize( SaveFile & in )
-{
+void BareHands::OnDeserialize( SaveFile & in ) {
 
 }
 
-void BareHands::OnSerialize( SaveFile & out )
-{
+void BareHands::OnSerialize( SaveFile & out ) {
 
 }

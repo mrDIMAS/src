@@ -28,7 +28,7 @@ Flashlight::Flashlight() {
 
 	mChargeWorkTimeSeconds = 240.0f;
 	mShakeCoeff = 0.0f;
-	mOn = true;
+	
 
 	mCloseAnim = ruAnimation( 20, 34, 0.9 );
 	mCloseAnim.AddFrameListener( 26, ruDelegate::Bind( this, &Flashlight::Proxy_Close ));
@@ -55,7 +55,9 @@ Flashlight::Flashlight() {
 	mFire = ruCreateParticleSystem( 60, psProps );
 	mFire.Attach( ruFindInObjectByName( mModel, "FirePlace" ));
 
-
+	mOn = false;
+	mFire.Hide();
+	mModel.Hide();
 }
 
 void Flashlight::SwitchOn() {

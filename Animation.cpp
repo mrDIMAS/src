@@ -60,22 +60,23 @@ void ruAnimation::Update( float dt ) {
 			if( currentFrame > endFrame ) {
 				currentFrame = beginFrame;
 				nextFrame = currentFrame + 1;
-			} else if( currentFrame == endFrame ) { //
+			} else if( currentFrame == endFrame ) { 
 				if ( !looped ) {
 					enabled = false;
 				}
 				nextFrame = beginFrame;
-
 				for( auto & frameActionPair : mFrameListenerList ) {
 					frameActionPair.second.mState = false;
 				}
 			} else {
 				nextFrame = currentFrame + 1;
-			}
+			}	
 			interpolator = 0.0f;
 		}
 
-		interpolator += dt * ( ( endFrame - beginFrame ) / duration );
+		if( enabled ) {
+			interpolator += dt * ( ( endFrame - beginFrame ) / duration );
+		}
 
 		for( auto & frameActionPair : mFrameListenerList ) {
 			if( !frameActionPair.second.mState ) {

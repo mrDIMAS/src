@@ -7,7 +7,7 @@
 #include "Item.h"
 
 Weapon::Weapon() {
-	mModel = ruLoadScene( "data/models/hands_pistol/handspistol.scene" );
+	mModel = ruLoadScene( "data/models/hands_pistol/hands_pistol.scene" );
 	mShootPoint = ruFindInObjectByName( mModel, "ShootPoint" );
 	mShotSound = ruSound::Load3D( "data/sounds/shot3.ogg" );
 	mShotSound.Attach( mShootPoint );
@@ -20,6 +20,11 @@ Weapon::Weapon() {
 	mShotFlashIntensity = 0.01f;
 	mInitialPosition = mModel.GetLocalPosition();
 	mShakeCoeff = 0.0f;
+
+	mHideAnim = ruAnimation( 0, 6, 0.7, false );
+	mHideAnim.AddFrameListener( 6, ruDelegate::Bind( this, &Weapon::Proxy_Hide ));
+	mShowAnim = ruAnimation( 6, 12, 0.7, false );
+	mIdleAnim = ruAnimation( 18, 24, 4.0, true );
 }
 
 bool Weapon::LoadBullet() {
@@ -53,7 +58,24 @@ void Weapon::OnSerialize( SaveFile & out ) {
 }
 
 void Weapon::Update() {
-	SwitchIfAble();
+	if( mAppear ) {
+		mShowAnim.Rewind();
+		mModel.SetAnimation( &mShowAnim );
+		mShowAnim.enabled = true;
+		mAppear = false;
+	}
+
+	if( mToPrev || mToNext ) {
+		if( !mHideAnim.enabled ) {
+			mHideAnim.Rewind();
+		}
+		mModel.SetAnimation( &mHideAnim );
+		mHideAnim.enabled = true;		
+	}
+
+	mHideAnim.Update();
+	mShowAnim.Update();
+	mIdleAnim.Update();
 
 	if( ruIsMouseHit( MB_Left )) {
 		if( mProjectileCount > 0 ) {
@@ -100,6 +122,12 @@ void Weapon::Update() {
 		}
 		mOffset = ruVector3( cosf( mShakeCoeff * 0.5f ) * 0.005f, sinf( mShakeCoeff ) * 0.01f, 0.0f );
 	}
+
+
+	if( !mShowAnim.enabled && !mHideAnim.enabled ) {
+		mModel.SetAnimation( &mIdleAnim );
+		mIdleAnim.enabled = true;
+	}
 }
 
 int Weapon::GetProjectileCount() {
@@ -109,4 +137,9 @@ int Weapon::GetProjectileCount() {
 Item* Weapon::CreateItem()
 {
 	return new Item( mModel, Item::Type::Pistol );
+}
+
+void Weapon::Proxy_Hide()
+{
+	SwitchIfAble();
 }

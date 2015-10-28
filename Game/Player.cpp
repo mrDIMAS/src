@@ -116,11 +116,9 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/soil.smat", mpCamera->mNode ));
 
 	AddUsableObject( new BareHands );
-	//mpFlashlight = new Flashlight();
-	//AddUsableObject( mpFlashlight );
-
-	//AddUsableObject( new Syringe );
-	//AddUsableObject( new Weapon );
+	AddUsableObject( new Flashlight );
+	AddUsableObject( new Syringe );
+	AddUsableObject( new Weapon );
 }
 
 Player::~Player() {
@@ -1202,8 +1200,11 @@ bool Player::AddUsableObject( UsableObject * usObj ) {
 	}
 	if( alreadyGotObjectOfThisType ) {
 		if( dynamic_cast<Weapon*>( existingUsableObject )) {
-			Weapon * weapon = dynamic_cast<Weapon*>( existingUsableObject );
-			weapon->LoadBullet();
+			 dynamic_cast<Weapon*>( existingUsableObject )->LoadBullet();
+		}
+
+		if( dynamic_cast<Syringe*>( existingUsableObject )) {
+			dynamic_cast<Syringe*>( existingUsableObject )->AddDoze();
 		}
 
 		delete usObj;
