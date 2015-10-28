@@ -40,15 +40,7 @@ void SceneNode::EraseUnusedNodes() {
 	}
 }
 
-bool SceneNode::IsVisible() {
-    bool trulyVisible = mBone ? true : mVisible;
 
-    if( mParent ) {
-        trulyVisible &= mParent->IsVisible();
-    }
-
-    return trulyVisible;
-}
 
 bool SceneNode::IsRenderable() {
     return IsVisible();
@@ -63,14 +55,14 @@ SceneNode::SceneNode( ) {
     mInFrustum = false;
     mParent = nullptr;
     mTotalFrameCount = 0;
-    mSkinned = false;
+    mIsSkinned = false;
     mVisible = true;
     mScene = nullptr;
     mLocalTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
     mGlobalTransform = mLocalTransform;
     mContactCount = 0;
     mFrozen = false;
-	mBone = false;
+	mIsBone = false;
     mDepthHack = 0;
     particleEmitter = nullptr;
     mAlbedo = 0.0f;
@@ -83,7 +75,7 @@ SceneNode::SceneNode( const SceneNode & source ) {
 	mInFrustum = source.mInFrustum;
 	mParent = nullptr;
 	mTotalFrameCount = 0;
-	mSkinned = false;
+	mIsSkinned = false;
 	mVisible = true;
 	mScene = nullptr;
 	mLocalTransform = source.mLocalTransform;
@@ -280,12 +272,17 @@ void SceneNode::EraseChild( const SceneNode * child ) {
 }
 
 void SceneNode::AttachTo( SceneNode * newParent ) {
-    if( !newParent ) {
-        return;
-    }
-
-    mParent = newParent;
-    newParent->mChildList.push_back( this );
+    if( newParent ) {
+		if( mParent != newParent ) {
+			mParent = newParent;
+			newParent->mChildList.push_back( this );
+		} 
+    } else { // Detach
+		if( mParent ) {
+			mParent->mChildList.erase( find( mParent->mChildList.begin(), mParent->mChildList.end(), this ));
+			mParent = nullptr;
+		}
+	}
 }
 
 btTransform & SceneNode::CalculateGlobalTransform() {
@@ -387,7 +384,7 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
         int isSkinned = reader.GetInteger();
         int meshCount = reader.GetInteger();
         int keyframeCount = reader.GetInteger();
-        node->mSkinned = isSkinned;
+        node->mIsSkinned = isSkinned;
         ParseString( reader.GetString(), node->mProperties );
         node->mName = reader.GetString();
         for( int i = 0; i < keyframeCount; i++ ) {
@@ -451,7 +448,7 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 
             node->mMeshList.push_back( mesh );
 
-            if( node->mSkinned ) {
+            if( node->mIsSkinned ) {
                 for( int k = 0; k < vertexCount; k++ ) {
                     Mesh::Weight w;
 
@@ -508,34 +505,34 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 
         if( parent ) {
             parent->mChildList.push_back( object );
-            object->mParent = parent;
+            object->mParent = parent;			
         }
     }
 
+	/*
+	for( auto childIt = scene->mChildList.begin(); childIt != scene->mChildList.end();  ) {
+		if( (*childIt)->mParent != scene ) {
+			childIt = scene->mChildList.erase( childIt );
+		} else {
+			childIt++;
+		}
+	}*/
+	
+
     for( auto node : scene->mChildList ) {
         node->mInvBoneBindTransform = node->CalculateGlobalTransform().inverse();
-		/*
-		if( node->mSkinned ) {
-			for( auto & mesh : node->mMeshList ) {
-				for( auto & weight : mesh->mWeightTable ) {
-					for( int i = 0; i < weight.mBoneCount; i++ ) {
-						SceneNode * bone = scene->mChildList[ weight.mBone[ i ].mID ];
-						if( find( mesh->mBoneList.begin(), mesh->mBoneList.end(), bone ) != mesh->mBoneList.end() ) {
-							mesh->mBoneList.push_back( bone );
-						}
-					}
-				}
-			}
-		}*/
     }
 
     return scene;
 }
 
 void SceneNode::PerformAnimation() {
-    if ( mSkinned ) {
+    if ( mIsSkinned ) {
         int vertexNumber = 0;
-        mParent = nullptr;
+				
+		SceneNode * parent = mParent; // HAX!
+        mParent = nullptr; // HAX!
+
         for( auto mesh : mMeshList ) {
             mesh->mSkinVertices = mesh->mVertices;
             for( auto & vertex : mesh->mVertices ) {
@@ -551,11 +548,10 @@ void SceneNode::PerformAnimation() {
                 for( int j = 0; j < weight.mBoneCount; j++ ) {
                     Mesh::Bone & bone = weight.mBone[ j ];
                     SceneNode * boneNode = mScene->mChildList[ bone.mID ];
+										
+					boneNode->mIsBone = true; // HAX!
 
-					// HAX!
-					boneNode->mBone = true;
-
-                    btTransform transform = ( boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform ) * mGlobalTransform;
+                    btTransform transform = ( boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform ) * CalculateGlobalTransform();
                     newPosition += transform * initialPosition * bone.mWeight;
                     newNormal += transform.getBasis() * initialNormal * bone.mWeight;
                     newTangent += transform.getBasis() * initialTangent * bone.mWeight;
@@ -569,17 +565,16 @@ void SceneNode::PerformAnimation() {
             }
             mesh->UpdateBuffers();
             mesh->mVertices = mesh->mSkinVertices;
-        }
+        } 
+		mParent = parent; // HAX!
     } else {
         if( mCurrentAnimation ) {
-            //if( mCurrentAnimation->enabled ) {
-                if ( mKeyframeList.size() ) {
-                    btTransform * currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ];
-                    btTransform * nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ];
-                    mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->interpolator ));
-                    mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->interpolator ));
-                }
-            //}
+			if ( mKeyframeList.size() ) {
+				btTransform * currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ];
+				btTransform * nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ];
+				mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->interpolator ));
+				mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->interpolator ));
+			}            
         }
     }
 }
@@ -603,6 +598,16 @@ void SceneNode::Unfreeze() {
 		body->setLinearFactor( btVector3( 1, 1, 1 ));
 		body->setGravity( Physics::mpDynamicsWorld->getGravity() );
 	}
+}
+
+bool SceneNode::IsVisible() {
+    bool trulyVisible = mVisible;
+
+    if( mParent ) {
+        trulyVisible &= mParent->IsVisible();
+    }
+
+    return trulyVisible;
 }
 
 void SceneNode::Hide() {
@@ -1235,47 +1240,6 @@ void ruCreateOctree( ruSceneNode node, int splitCriteria ) {
     }
 }
 
-void ruNodeAddForce( ruSceneNode node, ruVector3 force ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-	SceneNode::CastHandle( node )->AddForce( force );
-}
-
-void ruNodeAddForceAtPoint( ruSceneNode node, ruVector3 force, ruVector3 point ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-	SceneNode::CastHandle( node )->AddForceAtPoint( force, point );
-}
-
-void ruNodeAddTorque( ruSceneNode node, ruVector3 torque ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-	SceneNode::CastHandle( node )->AddTorque( torque );
-}
-
-void ruSetNodeGravity( ruSceneNode node, ruVector3 gravity ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->SetGravity( gravity );
-}
-
-void ruSetNodeDamping( ruSceneNode node, float linearDamping, float angularDamping ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->SetDamping( linearDamping, angularDamping );
-}
-
-void ruSetNodeMass( ruSceneNode node, float mass ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->SetMass( mass );
-}
 
 void ruDeleteOctree( ruSceneNode node ) {
 	if( SceneNode::CastHandle( node ) == nullptr ) {
@@ -1304,22 +1268,6 @@ void ruDetachNode( ruSceneNode node ) {
 
     n->mParent = 0;
 }
-
-bool ruIsNodeVisible( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return false;
-	}
-    return SceneNode::CastHandle( node )->mVisible;
-}
-
-bool ruIsNodeInFrustum( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return false;
-	}
-    return SceneNode::CastHandle( node )->mInFrustum;
-}
-
-
 
 ruSceneNode ruCreateSceneNode( ) {
     return SceneNode::HandleFromPointer( new SceneNode );
@@ -1421,34 +1369,6 @@ ruVector3 ruGetNodeAABBMax( ruSceneNode node ) {
 
 ruSceneNode ruLoadScene( const string & file ) {
     return SceneNode::HandleFromPointer( SceneNode::LoadScene( file ));
-}
-
-void ruFreeze( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->Freeze();
-}
-
-void ruUnfreeze( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->Unfreeze();
-}
-
-void ruHideNode( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->Hide();
-}
-
-void ruShowNode( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode::CastHandle( node )->Show();
 }
 
 string ruGetProperty( ruSceneNode node, string propName ) {

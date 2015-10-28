@@ -111,12 +111,15 @@ void Enemy::Think() {
 
 	bool enemyDetectPlayer = false;
 	if( playerInView ) {
-		if( pPlayer->mpFlashlight->IsOn() ) {
-			// if we light up enemy, he detects player
-			if( pPlayer->mpFlashlight->IsBeamContainsPoint( mBody.GetPosition() )) {
-				if( !mPlayerDetected ) {
-					ruRestartTimer( mPlayerInSightTimer );
-					mPlayerDetected = true;
+		Flashlight * flashLight = pPlayer->GetFlashLight();
+		if( flashLight ) {
+			if( flashLight->IsOn() ) {
+				// if we light up enemy, he detects player
+				if( flashLight->IsBeamContainsPoint( mBody.GetPosition() )) {
+					if( !mPlayerDetected ) {
+						ruRestartTimer( mPlayerInSightTimer );
+						mPlayerDetected = true;
+					}
 				}
 			}
 		}

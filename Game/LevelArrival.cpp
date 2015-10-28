@@ -138,7 +138,7 @@ void LevelArrival::DoScenario() {
 	}
 
 	if( !mStages[ "LiftCrashed" ] ) {
-		ruEngine::SetAmbientColor( ruVector3( 0.11, 0.11, 0.11 ));
+		ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
 		PlayAmbientSounds();
 		if( pPlayer->IsInsideZone( mLiftStopZone )) {
 			mLift->SetPaused( true );
@@ -148,6 +148,7 @@ void LevelArrival::DoScenario() {
 		}
 	} else {
 		// fully dark
+		pPlayer->TurnOffFakeLight();
 		ruEngine::SetAmbientColor( ruVector3( 0.0, 0.0, 0.0 ));
 	}    
 		
@@ -182,7 +183,9 @@ void LevelArrival::ActLiftCrash_AfterPowerDown() {
 	mLift->SetSpeedMultiplier( 0.24f );
 }
 void LevelArrival::ActLiftCrash_AfterFirstStressSound() {
-	pPlayer->GetFlashLight()->SwitchOff();
+	if( pPlayer->GetFlashLight() ) {
+		pPlayer->GetFlashLight()->SwitchOff();
+	}
 	mLiftFallSound.Play();
 	pPlayer->TrembleCamera( 2.0f );
 	pPlayer->LockFlashlight( true );

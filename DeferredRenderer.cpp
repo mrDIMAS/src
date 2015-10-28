@@ -412,31 +412,33 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	mFullscreenQuad->vertexShader->Bind();	
 
     for( auto pLight : Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList ) {
-		if( pLight->inFrustum  ) {
-			if( pLight->pointTexture ) {
-				mPointLightShader->pixelShaderTexProj->Bind();
-			} else {
-				mPointLightShader->pixelShader->Bind();
-			}
+		if( pLight->IsVisible() ) {
+			if( pLight->inFrustum  ) {
+				if( pLight->pointTexture ) {
+					mPointLightShader->pixelShaderTexProj->Bind();
+				} else {
+					mPointLightShader->pixelShader->Bind();
+				}
 
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
 
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
 
-			RenderSphere( pLight );
+				RenderSphere( pLight );
 
-			mPointLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
+				mPointLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
 
-			mFullscreenQuad->BindNoShader();
+				mFullscreenQuad->BindNoShader();
 
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
+				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
 
-			mFullscreenQuad->Render();			
-		}		
+				mFullscreenQuad->Render();			
+			}		
+		}
     }
 	
     // Render spot lights

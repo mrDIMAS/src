@@ -433,8 +433,17 @@ void Inventory::Serialize( SaveFile & out ) {
 }
 
 void Inventory::AddItem( Item * pItem ) {
-	pItem->OnPickup.DoActions();
-    mItemList.push_back( pItem );
+	if( pItem ) {
+		for( auto item : mItemList ) {
+			if( item->GetType() == pItem->GetType() ) {
+				if( pItem->mSingleInstance ) {
+					return;
+				}
+			}
+		}
+		pItem->OnPickup.DoActions();
+		mItemList.push_back( pItem );
+	}
 }
 
 bool Inventory::Contains( Item * pItem ) {

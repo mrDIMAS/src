@@ -17,14 +17,16 @@ void ForwardRenderer::RenderMeshes() {
 
 			// draw instances
 			for( auto pOwner : pMesh->GetOwners() ) {
-				GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-				D3DXMatrixMultiplyTranspose( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
+				if( pOwner->IsVisible() ) {
+					GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+					D3DXMatrixMultiplyTranspose( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
 
-				Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-				 Engine::Instance().GetDevice()->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 );
+					Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+					Engine::Instance().GetDevice()->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 );
 
-				pMesh->BindBuffers();
-				pMesh->Render();
+					pMesh->BindBuffers();
+					pMesh->Render();
+				}
 			}
         }
     }

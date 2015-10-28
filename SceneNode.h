@@ -25,11 +25,11 @@ public:
     float mAlbedo;
     float mDepthHack;
     ruAnimation * mCurrentAnimation;
-    bool mSkinned;
+    bool mIsSkinned;
     bool mInFrustum;
     bool mFrozen;
     bool mVisible;
-	bool mBone;
+	bool mIsBone;
     ruContact mContactList[ BODY_MAX_CONTACTS ];
     int mContactCount;
     int mTotalFrameCount;
@@ -126,4 +126,7 @@ public:
     static void EraseUnusedNodes();
 	void SetLocalPosition( ruVector3 pos );
 	void SetLocalRotation( ruQuaternion rot );
+	SceneNode * GetParent() {
+		return mParent;
+	}
 };

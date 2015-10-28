@@ -6,12 +6,13 @@
 #include "utils.h"
 #include "Enemy.h"
 #include "SaveWriter.h"
+#include "BareHands.h"
 
 Player * pPlayer = 0;
 
 extern double gFixedTick;
 
-Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime( 0.0f ), mFlashlightLocked( false ) {
+Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime( 0.0f ), mFlashlightLocked( false ), mCurrentUsableObject( nullptr ) {
     mLocalization.ParseFile( localizationPath + "player.loc" );
 
     // Stamina vars
@@ -69,7 +70,6 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 
     LoadGUIElements();
     CreateCamera();
-    CreateFlashLight();
     LoadSounds();
     CompleteObjective();
 
@@ -91,7 +91,6 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	ruSetGUINodeVisible( mGUIYouDied, false );
 
 	mInAir = false;
-	mCurrentWeapon = nullptr;
 
 	// hack
 	pMainMenu->SyncPlayerControls();
@@ -113,6 +112,49 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/gravel.smat", mpCamera->mNode ));
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/muddyrock.smat", mpCamera->mNode ));
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/rock.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/grass.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/soil.smat", mpCamera->mNode ));
+
+	AddUsableObject( new BareHands );
+	//mpFlashlight = new Flashlight();
+	//AddUsableObject( mpFlashlight );
+
+	//AddUsableObject( new Syringe );
+	//AddUsableObject( new Weapon );
+}
+
+Player::~Player() {
+	for( auto uo : mUsableObjectList ) {
+		delete uo;
+	}
+
+	delete mpCamera;
+
+	ruFreeGUINode( mGUIActionText );
+	for( int i = 0; i < mGUISegmentCount; i++ ) {
+		ruFreeGUINode( mGUIHealthBarSegment[i] );
+		ruFreeGUINode( mGUIStaminaBarSegment[i] );
+	}
+	ruFreeGUINode( mGUIBackground );
+	ruFreeGUINode( mGUIStealthSign );
+
+	mLighterCloseSound.Free();
+	mLighterOpenSound.Free();
+	mItemPickupSound.Free();
+	mHeartBeatSound.Free();
+	mBreathSound.Free();
+	if( mDeadSound.IsValid() ) {
+		mDeadSound.Free();
+	}
+
+	for( auto sndMat : mSoundMaterialList ) {
+		delete sndMat;
+	}
+
+	ruFreeGUINode( mGUICursorPickUp );
+	ruFreeGUINode( mGUICursorPut );
+	ruFreeGUINode( mGUICrosshair );
+	ruFreeGUINode( mGUIYouDied );
 }
 
 void Player::DrawStatusBar() {
@@ -192,37 +234,27 @@ void Player::Damage( float dmg, bool headJitter ) {
 		mDeadSound = ruSound::Load2D( "data/sounds/dead.ogg" );
 		mDeadSound.Play();
         mDead = true;
-        mpFlashlight->SwitchOff();
-        mpCamera->FadePercent( 5 );
+        mpCamera->FadePercent( 0 );
         mpCamera->SetFadeColor( ruVector3( 70.0f, 0.0f, 0.0f ) );
-    }
-	
+    }	
 }
 
-Weapon * Player::AddWeapon( Weapon::Type type ) {
-	for( auto pWeapon : mWeaponList ) {
-		if( pWeapon->GetType() == type ) {
-			return pWeapon;
-		}
+/*
+Weapon * Player::AddWeapon() {
+	if( mCurrentWeapon ) {
+		return mCurrentWeapon;
 	}
 
-	switch ( type )	{
-	case Weapon::Type::Pistol:
-		mCurrentWeapon = new Weapon( mpCamera->mNode );
-	default:
-		break;
-	}
-
+	mCurrentWeapon = new Weapon( mpCamera->mNode );
+	
 	if( !mInventory.GotAnyItemOfType( Item::Type::Pistol )) {
 		mInventory.AddItem( new Item( mCurrentWeapon->GetModel(), Item::Type::Pistol ));
 	}
 
-	//mpFlashlight->SwitchOff();
-
-	mWeaponList.push_back( mCurrentWeapon );
+	mUsableObjectList.push_back( mCurrentWeapon );
 
 	return mCurrentWeapon;
-}
+}*/
 
 void Player::AddItem( Item * pItem ) {
     if( !pItem ) {
@@ -499,9 +531,11 @@ void Player::ComputeStealth() {
         }
     }
 
-    if( mpFlashlight->IsOn() ) {
-        inLight = true;
-    }
+	if( pPlayer->GetFlashLight() ) {
+		if( pPlayer->GetFlashLight()->IsOn() ) {
+			inLight = true;
+		}
+	}
 
     mStealthFactor = 0.0f;
 
@@ -532,13 +566,17 @@ void Player::Update( ) {
 	if( mDamageBackgroundAlpha < 0 ) {
 		mDamageBackgroundAlpha = 0;
 	}
-	if( mpFlashlight ) {
-		if( mpFlashlight->IsOn() ) {
+
+	if( pPlayer->GetFlashLight() ) {
+		if( pPlayer->GetFlashLight()->IsOn() ) {
 			mFakeLight.Hide();
 		} else {
 			mFakeLight.Show();
 		}
+	} else {
+		mFakeLight.Show();
 	}
+
 	ruSetGUINodeAlpha( mGUIDamageBackground, mDamageBackgroundAlpha );
     if( !pMainMenu->IsVisible() ) {
 		mGoal.AnimateAndRender();
@@ -547,7 +585,6 @@ void Player::Update( ) {
 			ruSetGUINodeVisible( mGUIYouDied, false );
 			ruSetGUINodeVisible( mGUIStealthSign, mStealthMode );
 			UpdateFright();
-			UpdateFlashLight();
 			mTip.AnimateAndDraw();
 			UpdateMouseLook();
 			UpdateMoving();
@@ -558,7 +595,7 @@ void Player::Update( ) {
 			UpdateInventory();
 			DrawSheetInHands();
 			UpdateCursor();
-			UpdateWeapons();
+			UpdateUsableObjects();
 
 			if( !mpCurrentWay ) { // prevent damaging from ladders
 				if( !IsCanJump() && !mInAir ) { // in air
@@ -861,57 +898,11 @@ void Player::UpdatePicking() {
     }
 }
 
-
-void Player::CreateFlashLight() {
-    mpFlashlight = new Flashlight();
-    mpFlashlight->Attach( mpCamera->mNode );
-    mpFlashLightItem = mpFlashlight->CreateAppropriateItem();
-    mInventory.AddItem( mpFlashLightItem );
-}
-
-
-
 void Player::FreeHands() {
     mNodeInHands.Invalidate();
 }
 
-void Player::ChargeFlashLight() {
-    mpFlashlight->Fuel();
-}
 
-Player::~Player() {
-    delete mpFlashlight;
-    delete mpCamera;
-	for( auto pWeapon : mWeaponList ) {
-		delete pWeapon;
-	}
-
-	ruFreeGUINode( mGUIActionText );
-	for( int i = 0; i < mGUISegmentCount; i++ ) {
-		ruFreeGUINode( mGUIHealthBarSegment[i] );
-		ruFreeGUINode( mGUIStaminaBarSegment[i] );
-	}
-	ruFreeGUINode( mGUIBackground );
-	ruFreeGUINode( mGUIStealthSign );
-
-	mLighterCloseSound.Free();
-	mLighterOpenSound.Free();
-	mItemPickupSound.Free();
-	mHeartBeatSound.Free();
-	mBreathSound.Free();
-	if( mDeadSound.IsValid() ) {
-		mDeadSound.Free();
-	}
-
-	for( auto sndMat : mSoundMaterialList ) {
-		delete sndMat;
-	}
-
-	ruFreeGUINode( mGUICursorPickUp );
-	ruFreeGUINode( mGUICursorPut );
-	ruFreeGUINode( mGUICrosshair );
-	ruFreeGUINode( mGUIYouDied );
-}
 
 bool Player::IsUseButtonHit() {
     return ruIsKeyHit( mKeyUse );
@@ -930,7 +921,13 @@ void Player::Resurrect() {
 	mBody.SetRotation( ruQuaternion( 0, 0, 0 ));
 }
 
-void Player::Deserialize( SaveFile & in ) {
+void Player::Deserialize( SaveFile & in ) {	
+	int count = in.ReadInteger( );
+	cout << count << endl;
+	for( int i = 0; i < count; i++ ) {
+		AddUsableObject( UsableObject::Deserialize( in ) );
+	}
+	
     mBody.SetLocalPosition( in.ReadVector3() );
 
     in.ReadBoolean( mSmoothCamera );
@@ -992,29 +989,27 @@ void Player::Deserialize( SaveFile & in ) {
     in.ReadInteger( mKeyInventory );
     in.ReadInteger( mKeyUse );
 
-
-	int weaponCount = in.ReadInteger();
-	for( int i = 0; i < weaponCount; i++ ) {
-		Weapon * pWeapon = AddWeapon( Weapon::Type::Pistol ); // TODO
-		pWeapon->Deserialize( in );
-	}
-
     mStealthMode = in.ReadBoolean();
 
-    mpFlashlight->Deserialize( in );
-
     mTip.Deserialize( in );
-
-    mpCamera->FadePercent( 100 );
-    mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ) );
-    mBody.SetFriction( 0 );
-
+	
 	in.ReadBoolean( mFlashlightLocked );
 
 	in.ReadFloat( mLastHealth );
+
+
+	mpCamera->FadePercent( 100 );
+	mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ) );
+	mBody.SetFriction( 0 );
 }
 
 void Player::Serialize( SaveFile & out ) {
+	
+	out.WriteInteger( (int)mUsableObjectList.size() );
+	for( auto uo : mUsableObjectList ) {
+		uo->Serialize( out );
+	}
+
     mBody.Unfreeze();
     out.WriteVector3( mBody.GetLocalPosition() );
     mBody.SetAngularFactor( ruVector3( 0, 0, 0 ));
@@ -1074,14 +1069,7 @@ void Player::Serialize( SaveFile & out ) {
     out.WriteInteger( mKeyInventory );
     out.WriteInteger( mKeyUse );
 
-	out.WriteInteger( mWeaponList.size() );
-	for( auto pWeapon : mWeaponList ) {
-		pWeapon->Serialize( out );
-	}
-
     out.WriteBoolean( mStealthMode );
-
-    mpFlashlight->Serialize( out );
 
     mTip.Serialize( out );
 
@@ -1106,7 +1094,12 @@ Parser * Player::GetLocalization() {
 }
 
 Flashlight * Player::GetFlashLight() {
-    return mpFlashlight;
+	for( auto uo : mUsableObjectList ) {
+		if( typeid( *uo ) == typeid( Flashlight )) {
+			return dynamic_cast<Flashlight*>( uo );
+		}
+	}
+    return nullptr;
 }
 
 Inventory * Player::GetInventory() {
@@ -1153,62 +1146,92 @@ void Player::ManageEnvironmentDamaging() {
 	}*/
 }
 
-void Player::UpdateFlashLight() {
-	mpFlashlight->Update();
-
-	mpFlashLightItem->SetContent( mpFlashlight->GetCharge() );
-
-	if( ruIsKeyHit( mKeyFlashLight ) && !mNodeInHands.IsValid() ) {
-
-		if( !mFlashlightLocked ) {
-			if( mCurrentWeapon ) {
-				if( mCurrentWeapon->IsVisible() ) {
-					mCurrentWeapon->SetVisible( false );
-				} else {
-					mpFlashlight->Switch();
-					mpFlashlight->OnSwitchOff.RemoveAllListeners();
-					mpFlashlight->OnSwitchOff.AddListener( ruDelegate::Bind( this, &Player::SwitchToWeapon ));
-				}
-			} else {
-				mpFlashlight->Switch();
-			}
+void Player::UpdateUsableObjects() {
+	if( mCurrentUsableObject ) {
+		for( auto & usableObject : mUsableObjectList ) {
+			usableObject->GetModel().Hide();
 		}
+		mCurrentUsableObject->GetModel().Show();	
+		if( ruGetMouseWheelSpeed() < 0 ) {
+			mCurrentUsableObject->Prev();
+		} else if( ruGetMouseWheelSpeed() > 0 ) {
+			mCurrentUsableObject->Next();	
+		}
+		mCurrentUsableObject->Update();
 	}
 }
 
-void Player::UpdateWeapons() {
-	if( !mInventory.IsOpened() ) {
-		if( !mpFlashlight->IsOn() ) {
-			if( !mNodeInHands.IsValid() ) {
-				if( mCurrentWeapon ) {
-					if( mCurrentWeapon->IsVisible() ) {
-						if( ruIsMouseHit( MB_Left )) {
-							mCurrentWeapon->Shoot();
-						}
-					}
-					mCurrentWeapon->Update();
-				}
-			}
-		} else {
-			if( mCurrentWeapon ) {
-				mCurrentWeapon->SetVisible( false );
-			}
-		}
-	}
-}
-
-bool Player::IsDead()
-{
+bool Player::IsDead() {
 	return mHealth <= 0.0f;
 }
 
-void Player::SetPosition( ruVector3 position )
-{
+void Player::SetPosition( ruVector3 position ) {
 	Actor::SetPosition( position );
 	mAirPosition = mBody.GetPosition(); // prevent death from 'accidental' landing :)
 }
 
-void Player::TrembleCamera( float time )
-{
+void Player::TrembleCamera( float time ) {
 	mCameraTrembleTime = time;
 }
+
+void Player::TurnOffFakeLight() {
+	ruSetLightRange( mFakeLight, 0.001f );
+}
+
+float Player::GetHealth() {
+	return mHealth;
+}
+
+void Player::SetHealth( float health ) {
+	mHealth = health;
+}
+
+void Player::LockFlashlight( bool state ) {
+	mFlashlightLocked = state;
+}
+
+bool Player::AddUsableObject( UsableObject * usObj ) {
+	bool alreadyGotObjectOfThisType = false;
+	UsableObject * existingUsableObject = nullptr;
+	for( auto uo : mUsableObjectList ) {
+		if( typeid( *uo ) == typeid( *usObj ) ) {
+			alreadyGotObjectOfThisType = true;
+			existingUsableObject = uo;
+			break;
+		}
+	}
+	if( alreadyGotObjectOfThisType ) {
+		if( dynamic_cast<Weapon*>( existingUsableObject )) {
+			Weapon * weapon = dynamic_cast<Weapon*>( existingUsableObject );
+			weapon->LoadBullet();
+		}
+
+		delete usObj;
+
+		// object is not added
+		return false;
+	} else {
+		if( mCurrentUsableObject == nullptr ) {
+			mCurrentUsableObject = usObj;
+		}
+		 
+		// attach to camera
+		usObj->GetModel().Attach( mpCamera->mNode );
+		
+
+		// register in inventory
+		mInventory.AddItem( usObj->CreateItem() );
+
+		// link last object with new to correct switching
+		if( mUsableObjectList.size() > 0 ) {
+			mUsableObjectList.at( mUsableObjectList.size() - 1 )->Link( usObj );
+		}
+
+		// add it to list
+		mUsableObjectList.push_back( usObj );
+
+		// object added
+		return true;
+	}
+}
+

@@ -2,6 +2,7 @@
 
 #include "Item.h"
 #include "Player.h"
+#include "Weapon.h"
 
 vector<Item*> Item::msItemList;
 Parser Item::msLocalization;
@@ -17,6 +18,7 @@ Item * Item::GetItemPointerByNode( ruSceneNode obj ) {
 void Item::SetType( Type type ) {
     mType = type;
     mThrowable = true;
+	mSingleInstance = false;
     mContent = 1.0f;
     mMass = 1.0f;
     mVolume = 1.0f;
@@ -28,8 +30,7 @@ void Item::SetType( Type type ) {
         mCombinePair = Type::Unknown;
         mMorphType = Type::Unknown;
         mContentTypeDesc = msLocalization.GetString( "detonatorContentType" );
-    }
-    if( mType == Type::FuelCanister ) {
+    } else if( mType == Type::FuelCanister ) {
         mDesc = msLocalization.GetString( "fuelDesc" );
         mName = msLocalization.GetString( "fuelName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuel.png" );
@@ -38,8 +39,7 @@ void Item::SetType( Type type ) {
 		mModelFile = "data/models/fuel/fuel.scene";
         mVolume = mContent;
         mContentTypeDesc = msLocalization.GetString( "fuelContentType" );
-    }
-    if( mType == Type::Wires ) {
+    } else if( mType == Type::Wires ) {
         mDesc = msLocalization.GetString( "wiresDesc" );
         mName = msLocalization.GetString( "wiresName" );
         mPic = ruGetTexture( "data/gui/inventory/items/wires.png" );
@@ -47,9 +47,7 @@ void Item::SetType( Type type ) {
         mCombinePair = Type::Unknown;
         mMorphType = Type::Unknown;
         mContentTypeDesc = msLocalization.GetString( "wiresContentType" );
-    }
-
-    if( mType == Type::Explosives ) {
+    } else if( mType == Type::Explosives ) {
         mDesc = msLocalization.GetString( "explosivesDesc" );
         mName = msLocalization.GetString( "explosivesName" );
         mPic = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
@@ -57,9 +55,7 @@ void Item::SetType( Type type ) {
         mCombinePair = Type::Unknown;
         mMass = 0.3f;
         mContentTypeDesc = msLocalization.GetString( "explosivesContentType" );
-    }
-
-	if( mType == Type::Crowbar ) {
+    } else if( mType == Type::Crowbar ) {
 		mDesc = msLocalization.GetString( "crowbarDesc" );
 		mName = msLocalization.GetString( "crowbarName" );
 		mPic = ruGetTexture( "data/gui/inventory/items/crowbarpic.png" );
@@ -67,41 +63,35 @@ void Item::SetType( Type type ) {
 		mCombinePair = Type::Unknown;
 		mMass = 4.0f;
 		mContentTypeDesc = msLocalization.GetString( "crowbarContentType" );
-	}
-
-	if( mType == Type::Pistol ) {
+	} else if( mType == Type::Pistol ) {
 		mDesc = msLocalization.GetString( "pistolDesc" );
 		mName = msLocalization.GetString( "pistolName" );
 		mPic = ruGetTexture( "data/gui/inventory/items/pistol.png" );
 		mModelFile = "data/models/pistol/pistol.scene";
 		mCombinePair = Type::Bullet;
+		mSingleInstance = true;
 		mThrowable = false;
 		mMass = 4.0f;
-	}
-
-	if( mType == Type::Bullet ) {
+	} else if( mType == Type::Bullet ) {
 		mDesc = msLocalization.GetString( "bulletDesc" );
 		mName = msLocalization.GetString( "bulletName" );
 		mPic = ruGetTexture( "data/gui/inventory/items/bullet.png" );
 		mModelFile = "data/models/bullet/bullet.scene";
 		mCombinePair = Type::Pistol;
-		mThrowable = true;
 		mMass = 0.12f;
-	}
-
-    if( mType == Type::Lighter ) {
+	} else if( mType == Type::Lighter ) {
         mDesc = msLocalization.GetString( "flashlightDesc" );
         mName = msLocalization.GetString( "flashlightName" );
         mPic = ruGetTexture( "data/gui/inventory/items/lighter.png" );
 		mModelFile = "data/models/lighter/lighter.scene";
         mCombinePair = Type::FuelCanister;
+		mSingleInstance = true;
         mMorphType = Type::Lighter;
         mThrowable = false;
         mMass = 1.3f;
         mVolume = 0.6;
         mContentTypeDesc = msLocalization.GetString( "flashlightContentType" );
-    }
-    if( mType == Type::Fuse ) {
+    } else if( mType == Type::Fuse ) {
         mDesc = msLocalization.GetString( "fuseDesc" );
         mName = msLocalization.GetString( "fuseName" );
         mPic = ruGetTexture( "data/gui/inventory/items/fuse.png" );
@@ -109,34 +99,29 @@ void Item::SetType( Type type ) {
         mCombinePair = Type::Unknown;
         mMass = 5.0f;
         mContentTypeDesc = msLocalization.GetString( "fuseContentType" );
-    }
-    if( mType == Type::Medkit ) {
-        mDesc = msLocalization.GetString( "medkitDesc" );
-        mName = msLocalization.GetString( "medkitName" );
-        mPic = ruGetTexture( "data/gui/inventory/items/medkit.png" );
+    } else if( mType == Type::Syringe ) {
+        mDesc = msLocalization.GetString( "syringeDesc" );
+        mName = msLocalization.GetString( "syringeName" );
+        mPic = ruGetTexture( "data/gui/inventory/items/syringe.png" );
+		mSingleInstance = true;
         mCombinePair = Type::Unknown;
+		mThrowable = false;
         mMass = 1.5f;
-        mContentTypeDesc = msLocalization.GetString( "medkitContentType" );
-    }
-
-	if( mType == Type::Beaker ) {
+        mContentTypeDesc = msLocalization.GetString( "syringeContentType" );
+    } else if( mType == Type::Beaker ) {
 		mDesc = msLocalization.GetString( "beakerDesc" );
 		mName = msLocalization.GetString( "beakerName" );
 		mPic = ruGetTexture( "data/gui/inventory/items/beaker.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 0.25f;
-	}
-
-	if( mType == Type::FerrumOxide ) {
+	} else if( mType == Type::FerrumOxide ) {
 		mDesc = msLocalization.GetString( "fe2o3Desc" );
 		mName = msLocalization.GetString( "fe2o3Name" );
 		mPic = ruGetTexture( "data/gui/inventory/items/jar.png" );
 		mCombinePair = Type::Unknown;
 		mModelFile = "data/models/jar/jar.scene";
 		mMass = 0.25f;
-	}
-
-	if( mType == Type::AluminumPowder ) {
+	} else if( mType == Type::AluminumPowder ) {
 		mDesc = msLocalization.GetString( "aluminumDesc" );
 		mName = msLocalization.GetString( "aluminumName" );
 		mPic = ruGetTexture( "data/gui/inventory/items/jar.png" );
@@ -152,12 +137,10 @@ void Item::SetType( Type type ) {
 }
 
 void Item::PickUp() {
-	switch ( mType ) {
-	case Type::Pistol:
-		pPlayer->AddWeapon( Weapon::Type::Pistol );
-		break;
-	default:
-		break;
+	if( mType == Type::Pistol ) {
+		pPlayer->AddUsableObject( new Weapon );
+	} else if( mType == Type::Syringe ) {
+		pPlayer->AddUsableObject( new Syringe );
 	}
 }
 
@@ -212,6 +195,7 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
     if( pItem->GetCombineType() == mType  ) {
         if( mCombinePair == pItem->GetType() ) {
             // player flashlight charge
+			/*
             Item * pCanister = nullptr;
             Item * pFlashlight = nullptr;
             if( mType == Type::FuelCanister && pItem->GetType() == Type::Lighter ) {
@@ -228,7 +212,7 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
                 }
                 pUsedItem = pCanister;
                 return true;
-            }
+            }*/
 
 			// pistol reloading
 			Item * pPistol = nullptr;
@@ -241,17 +225,15 @@ bool Item::Combine( Item * pItem, Item* & pUsedItem ) {
 				pBullet = this;
 			}
 			if( pPistol && pBullet ) {
+				/*
 				if( pPlayer->mCurrentWeapon ) {
-					if( pPlayer->mCurrentWeapon->GetType() == Weapon::Type::Pistol ) {
-						bool bulletLoaded = pPlayer->mCurrentWeapon->LoadBullet();
-						if( bulletLoaded ) {
-							pPlayer->GetInventory()->RemoveItem( pBullet );
-							pBullet->mCanBeDeleted = true;
-							//delete pBullet;
-							return true;
-						}
-					}
-				}
+					bool bulletLoaded = pPlayer->mCurrentWeapon->LoadBullet();
+					if( bulletLoaded ) {
+						pPlayer->GetInventory()->RemoveItem( pBullet );
+						pBullet->mCanBeDeleted = true;
+						return true;
+					}					
+				}*/
 			}
         }
     }

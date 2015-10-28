@@ -14,7 +14,7 @@ public:
         Explosives		= 4,
         Lighter			= 5,
         Fuse			= 6,
-        Medkit			= 7,
+        Syringe			= 7,
 		Crowbar			= 8,
 		Pistol			= 9,
 		Bullet			= 10,
@@ -34,6 +34,7 @@ private:
     bool mThrowable;
     bool mInInventory;
 	bool mCanBeDeleted;
+	
     float mVolume;
     float mMass;
     float mContent;
@@ -42,6 +43,7 @@ private:
 	void Initialize( Type type );
 public:
 	ruEvent OnPickup;
+	bool mSingleInstance;
     explicit Item( ruSceneNode obj, Type type );
 	explicit Item( Type type );
     virtual ~Item();

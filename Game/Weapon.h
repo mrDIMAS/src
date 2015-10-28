@@ -2,48 +2,15 @@
 
 #include "Game.h"
 #include "SaveFile.h"
+#include "UsableObject.h"
 
-class Projectile {
-private:
-	ruSceneNode mModel;
-	ruVector3 mSpeedVector;
-	int mLifeTime;
-public:
-	explicit Projectile( ruSceneNode model, ruVector3 direction ) {
-		mModel = ruCreateNodeInstance( model );
-		mSpeedVector = direction.Normalize() * 0.2f;
-		mLifeTime = 200;
-		mModel.Freeze();
-	}
-
-	void Update() {
-		mModel.Move( mSpeedVector );
-
-		if( mModel.GetContactCount() > 0 ) {
-			mLifeTime = 0;
-		}
-		if( mLifeTime <= 0 ) {
-			mModel.Free();
-		}
-
-		mLifeTime--;
-	}
-};
-
-class Weapon {
-public:
-	enum class Type {
-		Pistol
-	};
+class Weapon : public UsableObject {
 protected:
-	ruSceneNode mModel;
 	ruSceneNode mShootPoint;
 	ruSceneNode mProjectileModel;
 	ruSound mShotSound;
-	vector<Projectile*> mProjectileList;
 	int mShotInterval;
 	int mProjectileCount;
-	Type mType;
 	ruSceneNode mShotFlash;
 	ruSound mEmptySound;
 	ruVector3 mShotOffsetTo;
@@ -52,21 +19,15 @@ protected:
 	ruVector3 mInitialPosition;
 	float mShotFlashIntensity;
 	float mShakeCoeff;
-	virtual void OnShoot();
 	bool mVisible;
+	virtual void OnSerialize( SaveFile & out ) final;
+	virtual void OnDeserialize( SaveFile & in ) final;
 public:
 	bool IsVisible();
-	ruSceneNode GetModel();
-	explicit Weapon( ruSceneNode owner );
-	void SetVisible( bool state );
-	Type GetType();
-	void Shoot();
-	void Update();
+	explicit Weapon();
 	bool LoadBullet( );
-	void Serialize( SaveFile & out );
-	void Deserialize( SaveFile & in );
 	void SetProjectileCount( int projCount );
-	int GetProjectileCount() {
-		return mProjectileCount;
-	}
+	int GetProjectileCount();
+	virtual void Update() final;
+	virtual Item* CreateItem( );
 };

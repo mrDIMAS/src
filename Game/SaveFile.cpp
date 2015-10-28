@@ -33,7 +33,10 @@ void SaveFile::WriteQuaternion( ruQuaternion q ) {
 
 string SaveFile::ReadString() {
     string str;
-    mStream >> str;
+	if( mStream.peek() == '\n' ) {
+		mStream.ignore( 1 );
+	}
+    getline( mStream, str );
     return str;
 }
 

@@ -404,6 +404,8 @@ void LevelMine::CleanUpExplodeArea() {
 void LevelMine::CreateItems() {
     AddItem( mFuel[0] = new Item( GetUniqueObject( "Fuel1" ), Item::Type::FuelCanister ));
     AddItem( mFuel[1] = new Item( GetUniqueObject( "Fuel2" ), Item::Type::FuelCanister ));
+
+	AddItem( new Item( GetUniqueObject( "Syringe" ), Item::Type::Syringe ));
 }
 
 void LevelMine::OnDeserialize( SaveFile & in ) {

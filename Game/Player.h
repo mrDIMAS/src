@@ -16,16 +16,15 @@
 #include "Actor.h"
 #include "Weapon.h"
 #include "SoundMaterial.h"
+#include "Syringe.h"
 
 class Player : public Actor {
 public:
     void LoadSounds();
     void CreateCamera();
-    void CreateFlashLight();
     void LoadGUIElements();
     void UpdateJumping();
     void UpdateCameraShake();
-    void UpdateFlashLight();
     void UpdatePicking();
     void UpdateItemsHandling();
     void UpdateCursor();
@@ -94,8 +93,7 @@ public:
 
 	vector< ruSound > mPainSound;
 
-	Weapon * mCurrentWeapon;
-	vector<Weapon*> mWeaponList;
+	
 
     bool mObjectThrown;
     bool mLanded;
@@ -110,9 +108,7 @@ public:
 	
     Inventory mInventory;
 
-	void SwitchToWeapon() {
-		mCurrentWeapon->SetVisible( true );
-	};
+	
 
     int mKeyMoveForward;
     int mKeyMoveBackward;
@@ -133,8 +129,6 @@ public:
 
     Sheet * mpSheetInHands;
 
-    Flashlight * mpFlashlight;
-
     ruTextHandle mGUIActionText;
 
     static const int mGUISegmentCount = 20;
@@ -151,36 +145,32 @@ public:
 	ruVector3 mAirPosition;
 
 	ruTimerHandle mAutoSaveTimer;
-
 	vector<SoundMaterial*> mSoundMaterialList;
+
+	vector<UsableObject*> mUsableObjectList;
+	UsableObject * mCurrentUsableObject;
 public:
     explicit Player();
     virtual ~Player();
     void FreeHands();
-	void LockFlashlight( bool state ) {
-		mFlashlightLocked = state;
-	}
-	void SetHealth( float health ) {
-		mHealth = health;
-	}
-	float GetHealth() {
-		return mHealth;
-	}
+	void LockFlashlight( bool state );
+	void SetHealth( float health );
+	float GetHealth();
+	void TurnOffFakeLight( );
 	void TrembleCamera( float time );
     bool IsCanJump( );
     bool UseStamina( float st );
+	bool AddUsableObject( UsableObject * usObj );
     virtual void Damage( float dmg, bool headJitter = true );
     void AddItem( Item * itm );
     void UpdateInventory();
     void Update( );
     void UpdateMouseLook();
     void UpdateMoving();
-	Weapon * AddWeapon( Weapon::Type type );
-	void UpdateWeapons();
+	void UpdateUsableObjects();
     void DrawStatusBar();
     void SetObjective( string text );
     void CompleteObjective();
-    void ChargeFlashLight( );
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( ruSceneNode node );
 	bool IsDead();
@@ -198,6 +188,12 @@ public:
     void SetActionText( const string & text );
     void SetHUDVisible( bool state );
 	virtual void ManageEnvironmentDamaging() final;
-
-
+	void DumpUsableObjects( vector<UsableObject*> & otherPlace ) {
+		// this method is useful to transfer usable objects between levels
+		for( auto uo : mUsableObjectList ) {
+			uo->GetModel().Detach();
+		}
+		otherPlace = mUsableObjectList;
+		mUsableObjectList.clear();
+	}
 };

@@ -3,11 +3,11 @@
 #include "Game.h"
 #include "SaveFile.h"
 #include "Item.h"
+#include "UsableObject.h"
 
-class Flashlight {
+class Flashlight : public UsableObject {
 private:
     ruSceneNode mLight;
-    ruSceneNode mModel;
 
     float mMaxCharge;
     float mCharge;
@@ -34,35 +34,34 @@ private:
 	ruAnimation mOpenAnim;
 	ruAnimation mCloseAnim;
 	ruAnimation mIdleAnim;
-
-	
+		
 	static void SerializeAnimation( SaveFile & out, ruAnimation & anim );
 	static void DeserializeAnimation( SaveFile & in, ruAnimation & anim );
-
-
+	
     bool mOn;
 
-	void Close();
-	void Fire();
-	void Hide();
-	void Show();
-	void Open();
+	void Proxy_Close();
+	void Proxy_Fire();
+	void Proxy_Hide();
+	void Proxy_Show();
+	void Proxy_Open();
+
+	virtual void OnSerialize( SaveFile & out ) final;
+	virtual void OnDeserialize( SaveFile & in ) final;
 public:
-	ruEvent OnSwitchOff;
     explicit Flashlight( );
-    virtual ~Flashlight();;
+    virtual ~Flashlight();
     bool GotCharge();
     void Fuel();
     void Attach( ruSceneNode node );
     void SwitchOff();
     void SwitchOn();
-    void Switch();
-    void Update();
     bool IsOn() const;
     float GetCharge();
 	ruSceneNode GetLight();
     bool IsBeamContainsPoint( ruVector3 point ) const;
-    Item * CreateAppropriateItem();
-    virtual void Serialize( SaveFile & out ) final;
-    virtual void Deserialize( SaveFile & in ) final;
+	virtual void Update() final;
+	virtual Item* CreateItem( ) {
+		return new Item( mModel, Item::Type::Lighter );
+	}
 };

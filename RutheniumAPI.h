@@ -80,6 +80,10 @@ public:
 		mListenerList.clear();
 	}
 
+	int GetActionCount() {
+		return mListenerList.size();
+	}
+
 	void DoActions() {
 		for( auto iter = mListenerList.begin(); iter != mListenerList.end(); iter++ ) {
 			iter->Call();
@@ -396,6 +400,7 @@ public:
 	void AddForce( ruVector3 force );
 	void AddForceAtPoint( ruVector3 force, ruVector3 point );
 	void AddTorque( ruVector3 torque );
+	ruSceneNode GetParent();
 };
 
 

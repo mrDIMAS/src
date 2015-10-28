@@ -78,15 +78,6 @@ void Level::Show() {
 	}
 }
 
-struct WeaponTransfer {
-	Weapon::Type mType;
-	int projCount;
-	WeaponTransfer( Weapon::Type type, int prc ) {
-		mType = type;
-		projCount = prc;
-	}
-};
-
 void Level::Change( int levelId, bool continueFromSave ) {
 	static int lastLevel = 0;
 
@@ -110,15 +101,14 @@ void Level::Change( int levelId, bool continueFromSave ) {
 
 	// items can be transfered through levels, so store it
 	vector<Item::Type> items;
-	// weapons
-	vector<WeaponTransfer> weapons;
+
 	float playerHealth = 100.0f;
 
+	vector<UsableObject*> playerUsableObjects;
+	
 	if( pPlayer ) {
+		pPlayer->DumpUsableObjects( playerUsableObjects );
 		pPlayer->GetInventory()->GetItemList( items );
-		for( auto pWeapon : pPlayer->mWeaponList ) {
-			weapons.push_back( WeaponTransfer( pWeapon->GetType(), pWeapon->GetProjectileCount()));
-		}
 		playerHealth = pPlayer->GetHealth();
 		delete pPlayer;
 		pPlayer = nullptr;
@@ -206,18 +196,13 @@ void Level::Change( int levelId, bool continueFromSave ) {
         SaveLoader( "lastGame.save" ).RestoreWorldState();
     }
 
+	for( auto uo : playerUsableObjects ) {
+		pPlayer->AddUsableObject( uo );
+	}
 	// only if level is changed to another
 	if( lastLevel != levelId ) {
-		// after loading, give old items to the player
 		for( auto itemType : items ) {
-			if( itemType != Item::Type::Lighter ) { // lighter automatically added to player
-				pPlayer->AddItem( new Item( itemType ));
-			}
-		}
-		// weapons
-		for( auto wpnTransfer : weapons ) {
-			Weapon * pWpn = pPlayer->AddWeapon( wpnTransfer.mType );
-			pWpn->SetProjectileCount( wpnTransfer.projCount );
+			pPlayer->AddItem( new Item( itemType ));
 		}
 	}
 	

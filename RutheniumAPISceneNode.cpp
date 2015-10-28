@@ -224,3 +224,9 @@ void ruSceneNode::AddForceAtPoint( ruVector3 force, ruVector3 point ) {
 void ruSceneNode::AddTorque( ruVector3 torque ) {
 	SceneNode::CastHandle( *this )->AddTorque( torque );
 }
+
+ruSceneNode ruSceneNode::GetParent() {
+	ruSceneNode parent;
+	parent.pointer = SceneNode::CastHandle( *this )->GetParent();
+	return parent;
+}

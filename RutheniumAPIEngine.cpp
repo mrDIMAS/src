@@ -73,14 +73,14 @@ void ruEngine::UpdateWorld() {
 		node->CalculateGlobalTransform();
 		// update all sounds attached to node, and physical interaction sounds( roll, hit )
 		node->UpdateSounds();
-		if( !node->mSkinned ) {
+		if( !node->mIsSkinned ) {
 			node->PerformAnimation();
 		}
 	}
 
 	// skinned animation is based on transforms of other nodes, so skin meshes in the end of all
 	for( auto node : SceneNode::msNodeList ) {
-		if( node->mSkinned ) {
+		if( node->mIsSkinned ) {
 			node->PerformAnimation();
 		}
 	}
