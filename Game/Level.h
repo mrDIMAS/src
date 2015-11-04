@@ -21,7 +21,9 @@
 
 class Level {
 private:
-    vector<Item*> mItemList;
+	void Proxy_GiveBullet() {
+		pPlayer->AddItem( new Item( Item::Type::Bullet ));
+	}
     vector<Sheet*> mSheetList;
     vector<shared_ptr<Door>> mDoorList;
     vector<shared_ptr<Ladder>> mLadderList;
@@ -32,6 +34,7 @@ private:
 	vector<shared_ptr<Zone>> mZoneList;
     vector<ruSound> mSounds;
 	vector<Button*> mButtonList;
+	vector<shared_ptr<InteractiveObject>> mInteractiveObjectList;
     virtual void OnSerialize( SaveFile & out ) = 0;
     virtual void OnDeserialize( SaveFile & in ) = 0;
     AmbientSoundSet mAmbSoundSet;
@@ -43,7 +46,7 @@ public:
     int mTypeNum;
     ruSound mMusic;
     unordered_map<string, bool > mStages;
-    void AddItem( Item * item );
+	void AddInteractiveObject( const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction );
     void AddItemPlace( const shared_ptr<ItemPlace> & ipc );
     void AddSheet( Sheet * sheet );
     void AddDoor( const shared_ptr<Door> & door );

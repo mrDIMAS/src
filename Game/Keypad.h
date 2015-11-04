@@ -23,6 +23,9 @@ public:
 	explicit Keypad( ruSceneNode keypad, ruSceneNode key0, ruSceneNode key1, ruSceneNode key2, ruSceneNode key3, 
 		ruSceneNode key4, ruSceneNode key5, ruSceneNode key6, ruSceneNode key7, ruSceneNode key8, ruSceneNode key9,
 		ruSceneNode keyCancel, Door * doorToUnlock, string codeToUnlock );
-
+	~Keypad() {
+		mButtonPushSound.Free();
+		mButtonPopSound.Free();
+	}
 	void Update();
 };

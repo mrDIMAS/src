@@ -1,5 +1,11 @@
 #include "Precompiled.h"
 #include "SceneNode.h"
+#include "Engine.h"
+
+
+SoundData GetSoundData( const string & fn, bool streamed ) {
+	return pfDataLoad( fn.c_str(), streamed );
+}
 
 ruSound::ruSound() {
 	pfHandle = -1;
@@ -10,7 +16,7 @@ ruSound::~ruSound() {
 }
 
 bool ruSound::IsValid() {
-	return pfHandle >= 0;
+	return pfIsSound( pfHandle );
 }
 
 void ruSound::Invalidate() {
@@ -23,19 +29,19 @@ bool ruSound::operator == ( const ruSound & node ) {
 
 ruSound ruSound::Load2D( const string & file ) {
 	ruSound handle;
-	handle.pfHandle = pfCreateSound( pfDataLoad( file.c_str() ), false, false );
+	handle.pfHandle = pfCreateSound( GetSoundData( file, false ), false );
 	return handle;
 }
 
 ruSound ruSound::Load3D( const string & file ) {
 	ruSound handle;
-	handle.pfHandle = pfCreateSound( pfDataLoad( file.c_str() ), true, false );
+	handle.pfHandle = pfCreateSound( GetSoundData( file, false ), true );
 	return handle;
 }
 
 ruSound ruSound::LoadMusic( const string & file ) {
 	ruSound handle;
-	handle.pfHandle = pfCreateSound( pfDataLoad( file.c_str(), true ), false, false );
+	handle.pfHandle = pfCreateSound( GetSoundData( file, true ), false );
 	return handle;
 }
 
@@ -99,7 +105,7 @@ void ruSound::SetPitch( float pitch ) {
 }
 
 bool ruSound::IsPaused() {
-	return pfIsSoundPlayingUntilPaused( pfHandle );
+	return pfIsSoundPaused( pfHandle );
 }
 
 void ruSetAudioReverb( int reverb ) {

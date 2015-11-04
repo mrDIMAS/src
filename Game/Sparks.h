@@ -10,5 +10,8 @@ public:
 public:
 
     Sparks( ruSceneNode at, ruSound emits );
+	~Sparks() {
+		es.Free();
+	}
     void Update();
 };

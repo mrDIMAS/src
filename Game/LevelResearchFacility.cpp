@@ -6,6 +6,8 @@
 #include "Utils.h"
 
 LevelResearchFacility::LevelResearchFacility() {
+	mpPowerSparks = nullptr;
+
     mTypeNum = 4;
 
 	mEnemy = nullptr;
@@ -150,11 +152,12 @@ LevelResearchFacility::LevelResearchFacility() {
 
 	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
-	AddItem( mCrowbarItem = new Item( GetUniqueObject( "Crowbar" ), Item::Type::Crowbar ));
-	mCrowbarItem->OnPickup.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnCrowbarPickup ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Crowbar ), make_shared<InteractiveObject>( GetUniqueObject( "Crowbar" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveCrowbar ));
 
-	AddItem( new Item( GetUniqueObject( "FerrumOxide" ), Item::Type::FerrumOxide ));
-	AddItem( new Item( GetUniqueObject( "AluminumPowder" ), Item::Type::AluminumPowder ));
+	// mCrowbarItem->OnPickup.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnCrowbarPickup ));
+
+	AddInteractiveObject( Item::GetNameByType( Item::Type::FerrumOxide ), make_shared<InteractiveObject>( GetUniqueObject( "FerrumOxide" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveFe2O3 ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::AluminumPowder ), make_shared<InteractiveObject>( GetUniqueObject( "AluminumPowder" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveAl ));
 
 	mKeypad1 = new Keypad( GetUniqueObject( "Keypad1"), GetUniqueObject( "Keypad1Key0" ), GetUniqueObject( "Keypad1Key1"),
 						   GetUniqueObject( "Keypad1Key2"), GetUniqueObject( "Keypad1Key3"), GetUniqueObject( "Keypad1Key4"),
@@ -251,6 +254,9 @@ void LevelResearchFacility::CreateEnemy() {
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
+	if( mpPowerSparks ) {
+		delete mpPowerSparks;
+	}
     delete mpExtemeSteam;
 }
 
@@ -272,6 +278,8 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
+	mMusic.Play();
+
 	mMeshAnimation.Update();
 	mMeshLockAnimation.Update();
 	
@@ -292,12 +300,14 @@ void LevelResearchFacility::DoScenario() {
 	if( !mStages[ "DoorUnderFloorOpen" ] ) {
 		if( pPlayer->mNearestPickedNode.IsValid()) {
 			if( pPlayer->mNearestPickedNode == mDoorUnderFloor ) {			
-				if( pPlayer->GetInventory()->GetItemSelectedForUse() == mCrowbarItem ) {		
-					pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
-					if( ruIsKeyHit( pPlayer->mKeyUse )) {
-						pPlayer->mInventory.ResetSelectedForUse();
-						mDoorUnderFloor.SetRotation( ruQuaternion( 0, 0, -110 ));
-						mStages[ "DoorUnderFloorOpen" ] = true;
+				if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {	
+					if( pPlayer->GetInventory()->GetItemSelectedForUse()->GetType() == Item::Type::Crowbar ) {
+						pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
+						if( ruIsKeyHit( pPlayer->mKeyUse )) {
+							pPlayer->mInventory.ResetSelectedForUse();
+							mDoorUnderFloor.SetRotation( ruQuaternion( 0, 0, -110 ));
+							mStages[ "DoorUnderFloorOpen" ] = true;
+						}
 					}
 				}
 			}
@@ -371,9 +381,6 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						mThermiteBig.Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::Lighter );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter ) {
-						//mMeshLock.Hide();
-						//mMeshToSewers.SetRotation( ruQuaternion( ruVector3( 0, 0, 1 ), 90 ));
-
 						mMeshLockAnimation.enabled = true;
 						mMeshAnimation.enabled = true;
 
@@ -466,9 +473,9 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 }
 
 void LevelResearchFacility::CreatePowerUpSequence() {
-    AddItem( fuse[0] = new Item( GetUniqueObject( "Fuse1" ), Item::Type::Fuse ));
-    AddItem( fuse[1] = new Item( GetUniqueObject( "Fuse2" ), Item::Type::Fuse ));
-    AddItem( fuse[2] = new Item( GetUniqueObject( "Fuse3" ), Item::Type::Fuse ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Fuse ), make_shared<InteractiveObject>( GetUniqueObject( "Fuse1" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveFuse ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Fuse ), make_shared<InteractiveObject>( GetUniqueObject( "Fuse2" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveFuse ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Fuse ), make_shared<InteractiveObject>( GetUniqueObject( "Fuse3" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveFuse ));
 
     AddItemPlace( mFusePlaceList[0] = make_shared<ItemPlace>( GetUniqueObject( "FusePlace1" ), Item::Type::Fuse ));
     AddItemPlace( mFusePlaceList[1] = make_shared<ItemPlace>( GetUniqueObject( "FusePlace2" ), Item::Type::Fuse ));

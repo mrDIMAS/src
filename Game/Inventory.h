@@ -30,7 +30,6 @@ private:
     ruRectHandle mGUIActions;
     ruButtonHandle mGUIButtonUse;
     ruButtonHandle mGUIButtonCombine;
-    ruButtonHandle mGUIButtonThrow;
     ruRectHandle mGUIFirstCombineItem;
     ruRectHandle mGUISecondCombineItem;
     ruRectHandle mGUIFirstCombineItemCell;
@@ -47,14 +46,12 @@ public:
     bool IsOpened() const;
     void Open(bool val);
 	bool GotAnyItemOfType( Item::Type type );
-	void Repair();
     explicit Inventory();
     virtual ~Inventory();
     void Update();
     bool IsMouseInside( int x, int y, int w, int h );
     void DoCombine();
     void RemoveItem( Item * item );
-    void ThrowItem( Item * item );
     int GetItemCount();
     Item * GetItemSelectedForUse( );
     void ResetSelectedForUse();

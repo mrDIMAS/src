@@ -13,6 +13,7 @@ BitmapFont::BitmapFont( const string & file, int size ) {
 }
 
 BitmapFont::~BitmapFont() {
+	BitmapFont::fonts.erase( find( BitmapFont::fonts.begin(), BitmapFont::fonts.end(), this ));
 	if( atlas ) {
 		atlas->Release();
 	}

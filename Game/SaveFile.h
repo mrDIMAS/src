@@ -5,6 +5,9 @@
 class SaveFile {
 private:
     fstream mStream;
+	void IgnoreNext() {
+		mStream.ignore( 1 );
+	}
 public:
     SaveFile( const string & fileName, bool save );
     ~SaveFile();

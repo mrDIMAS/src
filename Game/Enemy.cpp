@@ -43,7 +43,7 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mDead = false;
 
 	mFadeAwaySound = ruSound::Load2D( "data/sounds/fadeaway.ogg" );
-	mFadeAwaySound.SetVolume( 1.5f );
+	mFadeAwaySound.SetVolume( 1.0f );
 	mResurrectTimer = ruCreateTimer();
 
 	mPathCheckTimer = ruCreateTimer();
@@ -230,11 +230,6 @@ void Enemy::Think() {
 
 	if( move && !reachPoint ) {
 		mStepLength += 0.1f;
-		/*
-		if( abs( mStepLength - mLastStepLength ) > 3 ) {
-			mLastStepLength = mStepLength;
-			mFootstepsSounds[ rand() % 4 ].Play();
-		}*/
 		ruVector3 gravity;
 		if( direction.y > 0.1 ) {
 			gravity = ruVector3( 0,0,0 );
@@ -243,11 +238,6 @@ void Enemy::Think() {
 		}
 		ruVector3 speedVector = direction * mRunSpeed + gravity;
 		mBody.Move( speedVector );
-
-		// adjust animation speed according to real speed of moving
-		float realSpeed = ( mModel.GetPosition() - mLastPosition).Length();
-		//mWalkAnimation.animSpeed = 7 * realSpeed;
-		//mRunAnimation.animSpeed = 7 * realSpeed;
 	}
 
 	if( !move ) {
@@ -269,10 +259,6 @@ void Enemy::Think() {
 	mIdleAnimation.Update();
 	mRunAnimation.Update();
 	mWalkAnimation.Update();
-
-	ManageEnvironmentDamaging();
-
-	mLastPosition = mModel.GetPosition();
 }
 
 void Enemy::Resurrect() {
@@ -364,7 +350,7 @@ void Enemy::CreateSounds() {
     mBreathSound.SetReferenceDistance( 2.8 );
 
     mScreamSound = ruSound::Load3D( "data/sounds/scream_creepy_1.ogg" );
-    mScreamSound.SetVolume( 1.2f );
+    mScreamSound.SetVolume( 1.0f );
     mScreamSound.Attach( mBody );
     mScreamSound.SetRolloffFactor( 20 );
     mScreamSound.SetReferenceDistance( 4 );
@@ -414,18 +400,21 @@ void Enemy::FindBodyparts() {
 }
 
 void Enemy::Serialize( SaveFile & out ) {
+	out.WriteVector3( mDeathPosition );
     out.WriteVector3( mBody.GetPosition() );
 	out.WriteBoolean( mDead );
 	out.WriteFloat( mHealth );
 }
 
 void Enemy::Deserialize( SaveFile & in ) {
+	mDeathPosition = in.ReadVector3();
     mBody.SetPosition( in.ReadVector3( ));
 	mDead = in.ReadBoolean();
 	mHealth = in.ReadFloat();
 }
 
 Enemy::~Enemy() {
+	mFadeAwaySound.Free();
 	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
 	if( iter != msEnemyList.end() ) {
 		msEnemyList.erase( iter );

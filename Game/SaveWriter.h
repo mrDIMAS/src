@@ -6,7 +6,6 @@
 
 class SaveWriter : public SaveFile {
 private:
-    void SavePlayerInventory();
     void SaveItemPlaces();
 public:
     SaveWriter( string fn );

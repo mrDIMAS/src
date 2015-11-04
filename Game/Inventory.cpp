@@ -60,7 +60,6 @@ Inventory::Inventory() {
     int buttonH = 30;
     int buttonW = actionsW - 2 * buttonSpace;
     mGUIButtonUse = ruCreateGUIButton( buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "use" ), mFont, whiteColor, 1, 255 );
-    mGUIButtonThrow = ruCreateGUIButton( buttonsX, buttonY + 1.2f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "throw" ), mFont, whiteColor, 1, 255 );
     mGUIButtonCombine = ruCreateGUIButton( buttonsX, buttonY + 2.4f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "combine" ), mFont, whiteColor, 1, 255 );
     // combine items
     int combineBoxY = buttonY + 3.6f * buttonH;
@@ -108,7 +107,6 @@ void Inventory::SetVisible( bool state ) {
     ruSetGUINodeVisible( mGUIActions, state );
     ruSetGUINodeVisible( mGUIButtonUse, state );
     ruSetGUINodeVisible( mGUIButtonCombine, state );
-    ruSetGUINodeVisible( mGUIButtonThrow, state );
     ruSetGUINodeVisible( mGUIFirstCombineItem, state );
     ruSetGUINodeVisible( mGUISecondCombineItem, state );
     ruSetGUINodeVisible( mGUIFirstCombineItemCell, state );
@@ -139,9 +137,6 @@ void Inventory::DoCombine() {
         mpCombineItemFirst = nullptr;
         mpCombineItemSecond = nullptr;
         mpSelectedItem = nullptr;
-        if( pUsedItem ) {
-            ThrowItem( pUsedItem );
-        }
     }
 }
 
@@ -201,19 +196,11 @@ void Inventory::Update() {
     int buttonY = backgroundY + 2 * buttonSpace;
     int buttonH = 30;
 
-
     bool canCombine = ( mpCombineItemFirst != 0 && mpCombineItemSecond != 0 );
     int useAlpha = mpSelectedItem ? 255 : 60;
-	int throwAlpha = 255;
-	if( mpSelectedItem ) {
-		if( mpSelectedItem->IsThrowable() ) {
-			throwAlpha = 60;
-		}
-	}
+
     ruSetGUINodeAlpha( mGUIButtonUse, useAlpha );
     ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonUse ), useAlpha );
-    ruSetGUINodeAlpha( mGUIButtonThrow, throwAlpha );
-    ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonThrow ), useAlpha );
     int combineAlpha = canCombine ? 255 : 60;
     ruSetGUINodeAlpha( mGUIButtonCombine, combineAlpha );
     ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonCombine ), combineAlpha );
@@ -269,15 +256,6 @@ void Inventory::Update() {
         if( mpSelectedItem ) {
             mpItemForUse = mpSelectedItem;
             mOpen = false;
-        }
-    }
-
-    // throw item
-    if( ruIsButtonHit( mGUIButtonThrow )) {
-        if( mpSelectedItem ) {
-            if( mpSelectedItem->IsThrowable() ) {
-                ThrowItem( mpSelectedItem );
-            }
         }
     }
 
@@ -370,21 +348,12 @@ void Inventory::RemoveItem( Item * pItem ) {
 	}
 }
 
-void Inventory::ThrowItem( Item * pItem ) {	
-    pItem->MarkAsFree();
-	ruVector3 pickPoint, playerPos = pPlayer->GetCurrentPosition();
-	ruSceneNode handle = ruCastRay( playerPos - ruVector3( 0,0.1,0), playerPos - ruVector3(0,100,0), &pickPoint );
-	if( handle.IsValid()) {
-		pItem->mObject.SetPosition( pickPoint );
-	} else {
-		pItem->mObject.SetPosition( playerPos );
-	}
-    RemoveItem( pItem );
-    pItem->SetContent( 0.0f );
-    mpSelectedItem = nullptr;
-}
-
 Inventory::~Inventory() {
+	mPickSound.Free();
+	for( auto pItem : mItemList ) {
+		delete pItem;
+	}
+	
 	ruFreeGUINode( mGUIRectItemForUse );
 	ruFreeGUINode( mGUICanvas );
 	ruFreeGUINode( mGUIRightPanel );
@@ -392,7 +361,6 @@ Inventory::~Inventory() {
 	ruFreeGUINode( mGUIActions );
 	ruFreeGUINode( mGUIButtonUse );
 	ruFreeGUINode( mGUIButtonCombine );
-	ruFreeGUINode( mGUIButtonThrow );
 	ruFreeGUINode( mGUIFirstCombineItem );
 	ruFreeGUINode( mGUISecondCombineItem );
 	ruFreeGUINode( mGUIFirstCombineItemCell );
@@ -409,6 +377,7 @@ Inventory::~Inventory() {
 	ruFreeGUINode( mGUIItemContent );
 	ruFreeGUINode( mGUIItemContentType );
 	ruFreeGUINode( mGUIItemVolume );
+	mFont.Free();
 }
 
 void Inventory::Open( bool val ) {
@@ -421,15 +390,17 @@ bool Inventory::IsOpened() const {
 }
 
 void Inventory::Deserialize( SaveFile & in ) {
-
+	int count = in.ReadInteger();
+	for( int i = 0; i < count; i++ ) {
+		AddItem( new Item( static_cast<Item::Type>( in.ReadInteger())));
+	}
 }
 
 void Inventory::Serialize( SaveFile & out ) {
-    out.WriteInteger( GetItemCount() );
-    for( auto pItem : pPlayer->mInventory.mItemList ) {
-        // write object name for further identification
-        out.WriteString( pItem->mObject.GetName() );
-    }
+	out.WriteInteger( mItemList.size() );
+	for( auto & pItem : mItemList ) {
+		out.WriteInteger( static_cast<int>( pItem->GetType() ));
+	}
 }
 
 void Inventory::AddItem( Item * pItem ) {
@@ -474,12 +445,6 @@ int Inventory::GetItemCount( Item::Type type ) {
             count++;
         }
     return count;
-}
-
-void Inventory::Repair() {
-	for( auto pItem : mItemList ) {
-		pItem->Repair();
-	}
 }
 
 bool Inventory::GotAnyItemOfType( Item::Type type ) {

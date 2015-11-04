@@ -13,7 +13,6 @@ void SaveWriter::SaveWorldState() {
         pCurrentLevel->Serialize( *this );
     }
 
-    SavePlayerInventory();
     SaveItemPlaces();
 
     WriteInteger( Way::msWayList.size() );
@@ -25,11 +24,13 @@ void SaveWriter::SaveWorldState() {
     pPlayer->Serialize( *this );
 
 	// save sound playback positions
+	// buggy at this moment
+	/*
 	WriteInteger( ruSound::GetCount() );
 	for( int i = 0; i < ruSound::GetCount(); i++ ) {
 		WriteInteger( ruSound::GetSound( i ).pfHandle );
 		WriteFloat( ruSound::GetSound( i ).GetPlaybackPosition() );
-	}
+	}*/
 }
 
 SaveWriter::~SaveWriter() {
@@ -44,19 +45,7 @@ void SaveWriter::SaveItemPlaces() {
     WriteInteger( ItemPlace::sItemPlaceList.size() );
     for( auto pItemPlace : ItemPlace::sItemPlaceList ) {
         WriteString( pItemPlace->mObject.GetName() );
-        WriteBoolean( pItemPlace->pPlacedItem != 0 );
-        if( pItemPlace->pPlacedItem ) {
-            WriteString( pItemPlace->pPlacedItem->mObject.GetName() );
-        }
-        WriteInteger( (int)pItemPlace->GetPlaceType() );
+        WriteInteger( static_cast<int>( pItemPlace->mItemPlaced ));
+        WriteInteger( static_cast<int>( pItemPlace->GetPlaceType()));
     }
-}
-
-
-void SaveWriter::SavePlayerInventory() {
-    if( !pPlayer ) {
-        return;
-    }
-
-    pPlayer->mInventory.Serialize( *this );
 }

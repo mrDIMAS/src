@@ -32,7 +32,6 @@ public:
     void CloseCurrentSheet();
     void UpdateFright();
     Parser mLocalization;
-    Item * mpFlashLightItem;
 
     GameCamera * mpCamera;
 
@@ -177,10 +176,10 @@ public:
 	void Resurrect();
     void DoFright();
     void ComputeStealth();
-	void RepairInventory();
 	virtual void SetPosition( ruVector3 position );
     Inventory * GetInventory();
     Flashlight * GetFlashLight();
+	Weapon * GetWeapon();
     Parser * GetLocalization();
     void SetTip( const string & text );
     virtual void Serialize( SaveFile & out ) final;

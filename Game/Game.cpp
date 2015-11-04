@@ -24,10 +24,6 @@ float mouseSens = 0.5f;
 float g_musicVolume = 1.0f;
 double gFixedTick = 1.0 / 60.0; // 0.016(6) sec
 void main( ) {
-	
-
-	//ruEnableDebugMode( true );
-
     Parser config;
     config.ParseFile( "mine.cfg" );
 

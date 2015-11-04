@@ -50,7 +50,7 @@ private:
 	virtual void OnDeserialize( SaveFile & in ) final;
 public:
     explicit Flashlight( );
-    virtual ~Flashlight();
+    ~Flashlight();
     bool GotCharge();
     void Fuel();
     void Attach( ruSceneNode node );
@@ -61,7 +61,5 @@ public:
 	ruSceneNode GetLight();
     bool IsBeamContainsPoint( ruVector3 point ) const;
 	virtual void Update() final;
-	virtual Item* CreateItem( ) {
-		return new Item( mModel, Item::Type::Lighter );
-	}
+	virtual Item* CreateItem( );
 };

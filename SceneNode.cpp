@@ -124,6 +124,13 @@ SceneNode::SceneNode( const SceneNode & source ) {
 }
 
 SceneNode::~SceneNode() {
+	mHitSound.Free();
+	mIdleSound.Free();
+
+	for( auto sound : mSoundList ) {
+		sound.Free();
+	}
+
 	for( auto pMesh : mMeshList ) {
 		pMesh->Unlink( this );
 	}
@@ -257,6 +264,7 @@ void SceneNode::SetTrimeshBody() {
 				body->setAngularFactor( btVector3( 0,0,0 ));
 				mBodyList.push_back( body );
 				Physics::mpDynamicsWorld->addRigidBody ( body );
+				mTrimeshList.push_back( trimesh );
 			}
 			meshNum++;
 		}

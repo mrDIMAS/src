@@ -33,5 +33,4 @@ public:
 	virtual void Damage( float dmg );
 	virtual void Heal( float howMuch );
     ruVector3 GetLookDirection();
-	virtual void ManageEnvironmentDamaging();
 };

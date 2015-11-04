@@ -10,6 +10,8 @@ bool Door::IsPickedByPlayer() {
 }
 
 Door::~Door() {
+	mOpenSound.Free();
+	mCloseSound.Free();
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 

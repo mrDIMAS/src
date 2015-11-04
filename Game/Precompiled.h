@@ -28,6 +28,8 @@
 #include <math.h>
 #include <memory>
 
+#include <vld.h>
+
 
 
 using namespace std;

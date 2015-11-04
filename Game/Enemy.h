@@ -71,8 +71,6 @@ private:
 	ruTimerHandle mPathCheckTimer;
 	ruVector3 mLastCheckPosition;
 
-	ruVector3 mLastPosition;
-
 	ruSceneNode mBloodSpray;
 	ruSound mFadeAwaySound;
 	bool mDead;

@@ -137,14 +137,3 @@ void Actor::Heal( float howMuch ) {
 		mHealth = mMaxHealth;
 	}
 }
-
-void Actor::ManageEnvironmentDamaging() {
-	for( int i = 0; i < mBody.GetContactCount(); i++ ) {
-		ruContact contact = mBody.GetContact( i );
-		if( contact.body.IsValid()) {
-			if( contact.body.GetLinearVelocity().Length2() >= 2.0f ) {
-				Damage( contact.impulse / 2.5f );
-			}
-		}
-	}
-}

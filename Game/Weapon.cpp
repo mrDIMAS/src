@@ -77,10 +77,10 @@ void Weapon::Update() {
 	mShowAnim.Update();
 	mIdleAnim.Update();
 
-	if( ruIsMouseHit( MB_Left )) {
+	if( ruIsMouseHit( MB_Left ) && !pPlayer->mNodeInHands.IsValid() ) {
 		if( mProjectileCount > 0 ) {
 			if( mShotInterval <= 0 ) {			
-				mShotInterval = 20;
+				mShotInterval = 35;
 				mShotFlashIntensity = 5.0f;
 				mProjectileCount--;
 				mShotSound.Play();
@@ -134,9 +134,8 @@ int Weapon::GetProjectileCount() {
 	return mProjectileCount;
 }
 
-Item* Weapon::CreateItem()
-{
-	return new Item( mModel, Item::Type::Pistol );
+Item* Weapon::CreateItem() {
+	return new Item( Item::Type::Pistol );
 }
 
 void Weapon::Proxy_Hide()

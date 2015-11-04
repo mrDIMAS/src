@@ -113,7 +113,7 @@ void Lift::SetControlPanel( ruSceneNode panel ) {
 }
 
 Lift::~Lift() {
-
+	mMotorSound.Free();
 }
 
 bool Lift::IsArrived() {

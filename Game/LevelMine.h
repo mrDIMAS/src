@@ -8,6 +8,24 @@
 
 class LevelMine : public Level {
 private:
+	void Proxy_GiveExplosives() {
+		pPlayer->AddItem( new Item( Item::Type::Explosives ));
+	}
+	void Proxy_GiveDetonator( ) {
+		pPlayer->AddItem( new Item( Item::Type::Detonator ));
+	}
+	void Proxy_GiveWires( ) {
+		pPlayer->AddItem( new Item( Item::Type::Wires ));
+	}
+	void Proxy_GivePistol( ) {
+		pPlayer->AddUsableObject( new Weapon );
+	}
+	void Proxy_GiveFuel( ) {
+		pPlayer->AddItem( new Item( Item::Type::FuelCanister ));
+	}
+	void Proxy_GiveSyringe( ) {
+		pPlayer->AddUsableObject( new Syringe );
+	}
     void UpdateExplodeSequence();
     void CleanUpExplodeArea();
     void CreateItems();
@@ -29,11 +47,6 @@ private:
     ruSceneNode mExplosionFlashLight;
     ruSceneNode mExplosionDustParticleSystem;
     ruVector3 mRockPosition[3];
-
-    Item * mExplosives[4];
-    Item * mDetonators[4];
-    Item * mWires[4];
-    Item * mFuel[2];
 
     shared_ptr<ItemPlace> mDetonatorPlace[4];
 

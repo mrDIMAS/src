@@ -99,7 +99,10 @@ bool Flashlight::GotCharge() {
 }
 
 Flashlight::~Flashlight() {
-
+	mOnSound.Free();
+	mOffSound.Free();
+	mFireSound.Free();
+	mOutOfChargeSound.Free();
 }
 
 bool Flashlight::IsBeamContainsPoint( ruVector3 point ) const {
@@ -192,15 +195,15 @@ void Flashlight::OnSerialize( SaveFile & out ) {
 	SerializeAnimation( out, mCloseAnim );
 	SerializeAnimation( out, mIdleAnim );
 	SerializeAnimation( out, mOpenAnim );
-
+	
 	if( mModel.GetCurrentAnimation() == &mCloseAnim ) {
 		out.WriteInteger( 0 );
-	}
-	if( mModel.GetCurrentAnimation() == &mIdleAnim ) {
+	} else if( mModel.GetCurrentAnimation() == &mIdleAnim ) {
 		out.WriteInteger( 1 );
-	}
-	if( mModel.GetCurrentAnimation() == &mOpenAnim ) {
+	} else if( mModel.GetCurrentAnimation() == &mOpenAnim ) {
 		out.WriteInteger( 2 );
+	} else {
+		out.WriteInteger( -1 );
 	}
 }
 
@@ -248,4 +251,8 @@ void Flashlight::Update() {
 		mModel.SetAnimation( &mIdleAnim );
 		mIdleAnim.enabled = true;
 	}
+}
+
+Item* Flashlight::CreateItem() {
+	return new Item( Item::Type::Lighter );
 }

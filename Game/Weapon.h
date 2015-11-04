@@ -29,6 +29,9 @@ protected:
 public:
 	bool IsVisible();
 	explicit Weapon();
+	~Weapon() {
+
+	}
 	bool LoadBullet( );
 	void SetProjectileCount( int projCount );
 	int GetProjectileCount();

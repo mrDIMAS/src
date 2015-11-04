@@ -15,46 +15,19 @@ void SaveLoader::RestoreWorldState() {
         pCurrentLevel->Deserialize( *this );
     }
 
-    // deserialize items
-    int itemCount = ReadInteger();
-
-    for( int i = 0; i < itemCount; i++ ) {
-        string itemName = ReadString();
-
-        ruSceneNode itemObject = ruFindByName( itemName);
-
-        if( itemObject.IsValid() ) {
-            Item * item = Item::GetItemPointerByNode( itemObject );
-
-            pPlayer->AddItem( item );
-        }
-    }
-
     // deserialize item places
     int countItemPlaces = ReadInteger();
 
     for( int i = 0; i < countItemPlaces; i++ ) {
         string ipName = ReadString();
-        bool gotPlacedItem = ReadBoolean();
-        string itemName;
-        if( gotPlacedItem ) {
-            itemName = ReadString();
-        }
-        int placedType = ReadInteger();
+        Item::Type placedItem = static_cast<Item::Type>( ReadInteger());
+        Item::Type placeType = static_cast<Item::Type>( ReadInteger());
 
         ItemPlace * pItemPlace = ItemPlace::FindByObject( ruFindByName( ipName) );
 
-        if( pItemPlace ) {
-            Item * pItem = 0;
-            if( gotPlacedItem ) {
-                pItem = Item::GetItemPointerByNode( ruFindByName( itemName ));
-            }
-
-            if( pItem ) {
-                pItemPlace->pPlacedItem = pItem;
-            }
-
-            pItemPlace->mItemTypeCanBePlaced = (Item::Type)placedType;
+        if( pItemPlace ) {           
+            pItemPlace->mItemPlaced = placedItem;
+            pItemPlace->mItemTypeCanBePlaced = placeType;
         }
     }
 
@@ -68,10 +41,12 @@ void SaveLoader::RestoreWorldState() {
     pPlayer->Deserialize( *this );
 
 	// restore sound playback positions
+	// buggy
+	/*
 	int count = ReadInteger();
 	for( int i = 0; i < count; i++ ) {
 		ruSound::GetSound( i ).SetPlaybackPosition( ReadFloat() );
-	}
+	}*/
 }
 
 SaveLoader::~SaveLoader() {

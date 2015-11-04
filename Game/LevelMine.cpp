@@ -50,7 +50,8 @@ LevelMine::LevelMine() {
 
     mExplosionFlashAnimator = 0;
 
-	AddItem( new Item( GetUniqueObject( "Pistol" ), Item::Type::Pistol ));
+	//AddItem( new Item( GetUniqueObject( "Pistol" ), Item::Type::Pistol ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Pistol ), make_shared<InteractiveObject>( GetUniqueObject( "Pistol" )), ruDelegate::Bind( this, &LevelMine::Proxy_GivePistol ));
 
 	AutoCreateBulletsByNamePattern( "Bullet?([[:digit:]]+)" );
 
@@ -60,23 +61,7 @@ LevelMine::LevelMine() {
     AddItemPlace( mDetonatorPlace[2] = make_shared<ItemPlace>( GetUniqueObject( "DetonatorPlace3" ), Item::Type::Explosives ));
     AddItemPlace( mDetonatorPlace[3] = make_shared<ItemPlace>( GetUniqueObject( "DetonatorPlace4" ), Item::Type::Explosives ));
 
-    // Create explosives
-    AddItem( mExplosives[ 0 ] = new Item( GetUniqueObject( "Explosives1" ), Item::Type::Explosives ));
-    AddItem( mExplosives[ 1 ] = new Item( GetUniqueObject( "Explosives2" ), Item::Type::Explosives ));
-    AddItem( mExplosives[ 2 ] = new Item( GetUniqueObject( "Explosives3" ), Item::Type::Explosives ));
-    AddItem( mExplosives[ 3 ] = new Item( GetUniqueObject( "Explosives4" ), Item::Type::Explosives ));
-
-    // Create detonators
-    AddItem( mDetonators[ 0 ] = new Item( GetUniqueObject( "Detonator1" ), Item::Type::Detonator ));
-    AddItem( mDetonators[ 1 ] = new Item( GetUniqueObject( "Detonator2" ), Item::Type::Detonator ));
-    AddItem( mDetonators[ 2 ] = new Item( GetUniqueObject( "Detonator3" ), Item::Type::Detonator ));
-    AddItem( mDetonators[ 3 ] = new Item( GetUniqueObject( "Detonator4" ), Item::Type::Detonator ));
-
-    // Create wires
-    AddItem( mWires[ 0 ] = new Item( GetUniqueObject( "Wire1" ), Item::Type::Wires ));
-    AddItem( mWires[ 1 ] = new Item( GetUniqueObject( "Wire2" ), Item::Type::Wires ));
-    AddItem( mWires[ 2 ] = new Item( GetUniqueObject( "Wire3" ), Item::Type::Wires ));
-    AddItem( mWires[ 3 ] = new Item( GetUniqueObject( "Wire4" ), Item::Type::Wires ));
+    
 
     mWireModels[0] = GetUniqueObject( "WireModel1" );
     mWireModels[1] = GetUniqueObject( "WireModel2" );
@@ -402,10 +387,28 @@ void LevelMine::CleanUpExplodeArea() {
 }
 
 void LevelMine::CreateItems() {
-    AddItem( mFuel[0] = new Item( GetUniqueObject( "Fuel1" ), Item::Type::FuelCanister ));
-    AddItem( mFuel[1] = new Item( GetUniqueObject( "Fuel2" ), Item::Type::FuelCanister ));
+	// Create explosives
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Explosives ), make_shared<InteractiveObject>( GetUniqueObject( "Explosives1" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveExplosives ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Explosives ), make_shared<InteractiveObject>( GetUniqueObject( "Explosives2" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveExplosives ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Explosives ), make_shared<InteractiveObject>( GetUniqueObject( "Explosives3" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveExplosives ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Explosives ), make_shared<InteractiveObject>( GetUniqueObject( "Explosives4" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveExplosives ));
 
-	AddItem( new Item( GetUniqueObject( "Syringe" ), Item::Type::Syringe ));
+    // Create detonators
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Detonator ), make_shared<InteractiveObject>( GetUniqueObject( "Detonator1" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveDetonator ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Detonator ), make_shared<InteractiveObject>( GetUniqueObject( "Detonator2" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveDetonator ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Detonator ), make_shared<InteractiveObject>( GetUniqueObject( "Detonator3" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveDetonator ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Detonator ), make_shared<InteractiveObject>( GetUniqueObject( "Detonator4" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveDetonator ));
+
+    // Create wires
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Wires ), make_shared<InteractiveObject>( GetUniqueObject( "Wire1" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveWires ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Wires ), make_shared<InteractiveObject>( GetUniqueObject( "Wire2" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveWires ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Wires ), make_shared<InteractiveObject>( GetUniqueObject( "Wire3" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveWires ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Wires ), make_shared<InteractiveObject>( GetUniqueObject( "Wire4" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveWires ));
+
+	AddInteractiveObject( Item::GetNameByType( Item::Type::FuelCanister ), make_shared<InteractiveObject>( GetUniqueObject( "Fuel1" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveFuel ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::FuelCanister ), make_shared<InteractiveObject>( GetUniqueObject( "Fuel2" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveFuel ));
+
+	AddInteractiveObject( Item::GetNameByType( Item::Type::Syringe ), make_shared<InteractiveObject>( GetUniqueObject( "Syringe" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveSyringe ));
 }
 
 void LevelMine::OnDeserialize( SaveFile & in ) {

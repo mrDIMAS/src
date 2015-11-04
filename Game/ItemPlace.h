@@ -8,14 +8,14 @@ class ItemPlace {
 public:
     ruSceneNode mObject;
     Item::Type mItemTypeCanBePlaced;
-    Item * pPlacedItem;
+	Item::Type mItemPlaced;
 public:
     static vector<ItemPlace*> sItemPlaceList;
     explicit ItemPlace( ruSceneNode obj, Item::Type itemTypeCanBePlaced );
     virtual ~ItemPlace();
     static ItemPlace * FindByObject( ruSceneNode handle );
     bool PlaceItem( Item * item );
-    Item * GetPlacedItem( );
+    Item::Type GetPlacedItem( );
     bool IsPickedByPlayer() const;
     void SetPlaceType( Item::Type _itemTypeCanBePlaced );
     Item::Type GetPlaceType() const;

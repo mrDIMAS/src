@@ -11,10 +11,6 @@ TestingChamber::TestingChamber( ) {
 
     pPlayer->SetPosition( ruFindByName("PlayerPosition").GetPosition() + ruVector3( 0, 1, 0 ) );
 
-    Item * fuelCanister = new Item( ruFindByName( "FuelCanister" ), Item::Type::FuelCanister );
-    Item * detonator = new Item( ruFindByName( "Detonator" ), Item::Type::Detonator );
-    Item * wires = new Item( ruFindByName( "Wires" ), Item::Type::Wires );
-
     Ladder * testLadder = new Ladder( GetUniqueObject( "LadderBegin"), GetUniqueObject( "LadderEnd"), GetUniqueObject( "LadderEnter"),
                                       GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint"));
 

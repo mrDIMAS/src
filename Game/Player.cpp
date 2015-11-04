@@ -117,14 +117,20 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 
 	AddUsableObject( new BareHands );
 	AddUsableObject( new Flashlight );
-	AddUsableObject( new Syringe );
-	AddUsableObject( new Weapon );
+	//AddUsableObject( new Syringe );
+	//AddUsableObject( new Weapon );
 }
 
 Player::~Player() {
+	for( auto & ps : mPainSound ) {
+		ps.Free();
+	}
+
 	for( auto uo : mUsableObjectList ) {
 		delete uo;
 	}
+
+	mUsableObjectList.clear();
 
 	delete mpCamera;
 
@@ -153,6 +159,8 @@ Player::~Player() {
 	ruFreeGUINode( mGUICursorPut );
 	ruFreeGUINode( mGUICrosshair );
 	ruFreeGUINode( mGUIYouDied );
+
+	mGUIYouDiedFont.Free();
 }
 
 void Player::DrawStatusBar() {
@@ -237,23 +245,6 @@ void Player::Damage( float dmg, bool headJitter ) {
     }	
 }
 
-/*
-Weapon * Player::AddWeapon() {
-	if( mCurrentWeapon ) {
-		return mCurrentWeapon;
-	}
-
-	mCurrentWeapon = new Weapon( mpCamera->mNode );
-	
-	if( !mInventory.GotAnyItemOfType( Item::Type::Pistol )) {
-		mInventory.AddItem( new Item( mCurrentWeapon->GetModel(), Item::Type::Pistol ));
-	}
-
-	mUsableObjectList.push_back( mCurrentWeapon );
-
-	return mCurrentWeapon;
-}*/
-
 void Player::AddItem( Item * pItem ) {
     if( !pItem ) {
         return;
@@ -261,11 +252,9 @@ void Player::AddItem( Item * pItem ) {
     if( mInventory.Contains( pItem )) {
         return;
     }
-    pItem->mObject.Freeze();
     pItem->MarkAsGrabbed();
-    pItem->mObject.SetPosition( ruVector3( 10000, 10000, 10000 )); // far far away
     mInventory.AddItem( pItem );
-	pItem->PickUp(); // do item logic
+	//pItem->PickUp(); // do item logic
 }
 
 void Player::UpdateInventory() {
@@ -792,14 +781,6 @@ void Player::UpdateItemsHandling() {
 	if( !mInventory.IsOpened() ) {
 		if( mNearestPickedNode.IsValid() ) {
 			if( IsUseButtonHit() ) {
-				Item * pItem = Item::GetItemPointerByNode( mNearestPickedNode );
-
-				if( pItem ) {
-					AddItem( pItem );
-
-					mItemPickupSound.Play();
-				}
-
 				Sheet * pSheet = Sheet::GetSheetPointerByNode( mNearestPickedNode );
 
 				if( mpSheetInHands ) {
@@ -844,10 +825,6 @@ void Player::UpdateItemsHandling() {
     }
 }
 
-void Player::RepairInventory() {
-	mInventory.Repair();
-}
-
 void Player::UpdatePicking() {
     ruVector3 pickPosition;
 
@@ -867,14 +844,14 @@ void Player::UpdatePicking() {
         ruVector3 ppPos = mPickPoint.GetPosition();
         ruVector3 dir = ppPos - pickPosition;
 
-        Item * pItem = Item::GetItemPointerByNode( mPickedNode );
+        InteractiveObject * pIO = InteractiveObject::FindByObject( mPickedNode );
         Sheet * pSheet = Sheet::GetSheetPointerByNode( mPickedNode );
 
         if( dir.Length2() < 1.5f ) {
             mNearestPickedNode = mPickedNode;
 			string pickedObjectDesc;
-            if( pItem ) {
-                pickedObjectDesc = StringBuilder() << pItem->GetName() << "- [" << GetKeyName( mKeyUse).c_str() << "] " << mLocalization.GetString( "itemPick" );
+            if( pIO ) {
+                pickedObjectDesc = StringBuilder() << pIO->GetPickDescription() << "- [" << GetKeyName( mKeyUse).c_str() << "] " << mLocalization.GetString( "itemPick" );
                 SetActionText( pickedObjectDesc );
             } else if( pSheet ) {
                 pickedObjectDesc = StringBuilder() << pSheet->GetDescription() << "- [" << GetKeyName( mKeyUse ) << "] " << mLocalization.GetString( "sheetPick" );
@@ -925,6 +902,9 @@ void Player::Deserialize( SaveFile & in ) {
 	for( int i = 0; i < count; i++ ) {
 		AddUsableObject( UsableObject::Deserialize( in ) );
 	}
+	int currentUO = in.ReadInteger();
+	mCurrentUsableObject = mUsableObjectList[ currentUO ];
+	mCurrentUsableObject->Appear();
 	
     mBody.SetLocalPosition( in.ReadVector3() );
 
@@ -999,14 +979,24 @@ void Player::Deserialize( SaveFile & in ) {
 	mpCamera->FadePercent( 100 );
 	mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ) );
 	mBody.SetFriction( 0 );
+
+	mInventory.Deserialize( in );
 }
 
-void Player::Serialize( SaveFile & out ) {
-	
-	out.WriteInteger( (int)mUsableObjectList.size() );
+void Player::Serialize( SaveFile & out ) {	
+	out.WriteInteger( static_cast<int>( mUsableObjectList.size()));
 	for( auto uo : mUsableObjectList ) {
 		uo->Serialize( out );
 	}
+	int currentUO_N = -1;
+	int i = 0;
+	for( auto uo : mUsableObjectList ) {
+		if( uo == mCurrentUsableObject ) {
+			currentUO_N = i;
+		}
+		i++;
+	}
+	out.WriteInteger( currentUO_N );
 
     mBody.Unfreeze();
     out.WriteVector3( mBody.GetLocalPosition() );
@@ -1074,6 +1064,8 @@ void Player::Serialize( SaveFile & out ) {
 	out.WriteBoolean( mFlashlightLocked );
 
 	out.WriteFloat( mLastHealth );
+
+	mInventory.Serialize( out );
 }
 
 void Player::CloseCurrentSheet() {
@@ -1099,6 +1091,16 @@ Flashlight * Player::GetFlashLight() {
 	}
     return nullptr;
 }
+
+Weapon * Player::GetWeapon() {
+	for( auto uo : mUsableObjectList ) {
+		if( typeid( *uo ) == typeid( Weapon )) {
+			return dynamic_cast<Weapon*>( uo );
+		}
+	}
+	return nullptr;
+}
+
 
 Inventory * Player::GetInventory() {
     return &mInventory;

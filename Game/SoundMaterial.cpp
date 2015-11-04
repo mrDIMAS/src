@@ -49,11 +49,11 @@ ruSound SoundMaterial::GetRandomSoundAssociatedWith( const string & texName ) {
 	if( mSoundList.size() ) {
 		for( auto & str : mTextureList ) {
 			if( str == texName ) {
-				try {
+				//try {
 					snd = mSoundList.at( rand() % mSoundList.size() );
-				} catch ( ... ) {
+				//} catch ( ... ) {
 					// do nothing
-				}
+				//}
 				break;
 			}
 		}

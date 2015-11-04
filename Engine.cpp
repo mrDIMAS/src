@@ -15,8 +15,8 @@
 #include "TextRenderer.h"
 
 Engine::~Engine() {	
-    for( auto fnt : BitmapFont::fonts ) {
-        delete fnt;
+    while( BitmapFont::fonts.size() ) {
+        delete BitmapFont::fonts.front();
     }
     for( auto tmr : Timer::timers ) {
         delete tmr;
@@ -160,6 +160,12 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     SetDefaults();
 
     CreatePhysics( );
+
+	pfSystemCreateLogFile( "ProjectF.log" ); 
+
+	pfSystemEnableMessagesOutputToConsole(); 
+	pfSystemEnableMessagesOutputToLogFile(); 
+
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 

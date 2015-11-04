@@ -336,7 +336,7 @@ void Menu::StartContinueGameFromLast() {
 }
 
 void Menu::DoContinueGameFromLast() {
-	SaveLoader( "lastGame.save" ).RestoreWorldState();
+	SaveLoader( "quickSave.save" ).RestoreWorldState();
 	Hide();
 }
 

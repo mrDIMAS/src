@@ -18,5 +18,5 @@ Fan::Fan( ruSceneNode obj, float ts, ruVector3 axis, ruSound snd ) {
 }
 
 Fan::~Fan() {
-
+	mEngineSound.Free();
 }

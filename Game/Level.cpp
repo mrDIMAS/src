@@ -31,12 +31,6 @@ Level::Level() {
 Level::~Level() {
     mScene.Free();
 
-    for( auto pItem : mItemList ) {
-        if( pItem->IsFree() ) {
-            delete pItem;
-        }
-	}
-
     for( auto pSheet : mSheetList ) {
         delete pSheet;
     }
@@ -107,7 +101,9 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	vector<UsableObject*> playerUsableObjects;
 	
 	if( pPlayer ) {
-		pPlayer->DumpUsableObjects( playerUsableObjects );
+		if( lastLevel != levelId ) {
+			pPlayer->DumpUsableObjects( playerUsableObjects );
+		}
 		pPlayer->GetInventory()->GetItemList( items );
 		playerHealth = pPlayer->GetHealth();
 		delete pPlayer;
@@ -196,11 +192,12 @@ void Level::Change( int levelId, bool continueFromSave ) {
         SaveLoader( "lastGame.save" ).RestoreWorldState();
     }
 
-	for( auto uo : playerUsableObjects ) {
-		pPlayer->AddUsableObject( uo );
-	}
-	// only if level is changed to another
+
+	// only if level is changed to another	
 	if( lastLevel != levelId ) {
+		for( auto uo : playerUsableObjects ) {
+			pPlayer->AddUsableObject( uo );
+		}
 		for( auto itemType : items ) {
 			pPlayer->AddItem( new Item( itemType ));
 		}
@@ -232,10 +229,6 @@ void Level::AddDoor( const shared_ptr<Door> & door ) {
 
 void Level::AddSheet( Sheet * pSheet ) {
     mSheetList.push_back( pSheet );
-}
-
-void Level::AddItem( Item * item ) {
-    mItemList.push_back( item );
 }
 
 void Level::AddItemPlace( const shared_ptr<ItemPlace> & pItemPlace ) {
@@ -426,7 +419,7 @@ void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
 		ruSceneNode child = mScene.GetChild( i );
 		if( regex_match( child.GetName(), rx )) {
-			AddItem( new Item( child, Item::Type::Bullet ));
+			AddInteractiveObject( Item::GetNameByType( Item::Type::Bullet ), make_shared<InteractiveObject>( child ), ruDelegate::Bind( this, &Level::Proxy_GiveBullet ));
 		}
 	}
 }
@@ -458,4 +451,11 @@ void Level::AddZone( const shared_ptr<Zone> & zone ) {
 void Level::AddButton( Button * button )
 {
 	mButtonList.push_back( button );
+}
+
+void Level::AddInteractiveObject( const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction )
+{
+	io->OnInteract.AddListener( interactAction );
+	io->SetPickDescription( desc );
+	mInteractiveObjectList.push_back( io );
 }

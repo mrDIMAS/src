@@ -407,6 +407,8 @@ public:
 class ruFontHandle : public ruRutheniumHandle {
 public:
     bool operator == ( const ruFontHandle & node );
+
+	void Free();
 };
 
 class ruTextureHandle : public ruRutheniumHandle {

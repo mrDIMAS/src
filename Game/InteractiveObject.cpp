@@ -40,7 +40,7 @@ void InteractiveObject::UpdateFlashing() {
     }
 }
 
-InteractiveObject::InteractiveObject( ruSceneNode object ) {
+InteractiveObject::InteractiveObject( ruSceneNode object ) : mInteractCountLeft( 1 ) {
     msObjectList.push_back( this );
     this->mObject = object;
     object.Freeze();
@@ -62,7 +62,17 @@ InteractiveObject::~InteractiveObject() {
     msObjectList.erase( find( msObjectList.begin(), msObjectList.end(), this ));
 }
 
-void InteractiveObject::Update()
-{
-
+void InteractiveObject::Update() {
+	if( mInteractCountLeft > 0 ) {
+		if( pPlayer->mNearestPickedNode == mObject ) {
+			if( ruIsKeyHit( pPlayer->mKeyUse )) {
+				mInteractCountLeft--;
+				OnInteract.DoActions();
+				OnInteract.RemoveAllListeners();
+			}
+		}
+	} else {
+		mObject.Hide();
+		mObject.SetPosition( ruVector3( -666.666, -666.666, -666.666 ));
+	}
 }

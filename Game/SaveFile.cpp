@@ -33,9 +33,6 @@ void SaveFile::WriteQuaternion( ruQuaternion q ) {
 
 string SaveFile::ReadString() {
     string str;
-	if( mStream.peek() == '\n' ) {
-		mStream.ignore( 1 );
-	}
     getline( mStream, str );
     return str;
 }
@@ -47,31 +44,37 @@ void SaveFile::ReadString( string & str ) {
 float SaveFile::ReadFloat() {
     float fl;
     mStream >> fl;
+	IgnoreNext();
     return fl;
 }
 
 void SaveFile::ReadFloat( float & f ) {
     mStream >> f;
+	IgnoreNext();
 }
 
 int SaveFile::ReadInteger() {
     int i = 0;
     mStream >> i;
+	IgnoreNext();
     return i;
 }
 
 void SaveFile::ReadInteger( int & i ) {
     mStream >> i;
+	IgnoreNext();
 }
 
 bool SaveFile::ReadBoolean() {
     bool b;
     mStream >> b;
+	IgnoreNext();
     return b;
 }
 
 void SaveFile::ReadBoolean( bool & b ) {
     mStream >> b;
+	IgnoreNext();
 }
 
 ruVector3 SaveFile::ReadVector3() {
@@ -79,6 +82,7 @@ ruVector3 SaveFile::ReadVector3() {
     mStream >> v.x;
     mStream >> v.y;
     mStream >> v.z;
+	IgnoreNext();
     return v;
 }
 
@@ -86,6 +90,7 @@ void SaveFile::ReadVector3( ruVector3 & v ) {
     mStream >> v.x;
     mStream >> v.y;
     mStream >> v.z;
+	IgnoreNext();
 }
 
 ruQuaternion SaveFile::ReadQuaternion() {
@@ -94,6 +99,7 @@ ruQuaternion SaveFile::ReadQuaternion() {
     mStream >> q.y;
     mStream >> q.z;
     mStream >> q.w;
+	IgnoreNext();
     return q;
 }
 
@@ -102,6 +108,7 @@ void SaveFile::ReadQuaternion( ruQuaternion & q ) {
     mStream >> q.y;
     mStream >> q.z;
     mStream >> q.w;
+	IgnoreNext();
 }
 
 SaveFile::~SaveFile() {

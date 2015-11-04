@@ -3,7 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define DIRECTINPUT_VERSION 0x0800
-
+#include <vld.h>
 #include <iostream>
 #include <string>
 #include <unordered_map>

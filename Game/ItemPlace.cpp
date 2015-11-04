@@ -4,19 +4,15 @@
 
 vector<ItemPlace*> ItemPlace::sItemPlaceList;
 
-Item * ItemPlace::GetPlacedItem() {
-    return pPlacedItem;
+Item::Type ItemPlace::GetPlacedItem() {
+    return mItemPlaced;
 }
 
 bool ItemPlace::PlaceItem( Item * pItem ) {
     if( pItem->GetType() == mItemTypeCanBePlaced ) {
-        pPlacedItem = pItem;
-
-		pPlayer->mInventory.ResetSelectedForUse();
-		if( pItem->IsThrowable() ) {			
-			pPlayer->mInventory.RemoveItem( pItem );
-		}
-
+        mItemPlaced = pItem->GetType();
+		pPlayer->mInventory.ResetSelectedForUse();			
+		pPlayer->mInventory.RemoveItem( pItem );		
         return true;
     }
 
@@ -25,7 +21,6 @@ bool ItemPlace::PlaceItem( Item * pItem ) {
 
 ItemPlace::ItemPlace( ruSceneNode obj, Item::Type itemTypeCanBePlaced ) {
     mObject = obj;
-    pPlacedItem = nullptr;
     mItemTypeCanBePlaced = itemTypeCanBePlaced;
     sItemPlaceList.push_back( this );
 }

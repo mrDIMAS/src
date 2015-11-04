@@ -12,6 +12,22 @@
 
 class LevelResearchFacility : public Level {
 private:
+	void Proxy_GiveCrowbar() {
+		pPlayer->AddItem( new Item( Item::Type::Crowbar ));
+	}
+
+	void Proxy_GiveFe2O3() {
+		pPlayer->AddItem( new Item( Item::Type::FerrumOxide ));
+	}
+
+	void Proxy_GiveAl() {
+		pPlayer->AddItem( new Item( Item::Type::AluminumPowder ));
+	}
+
+	void Proxy_GiveFuse() {
+		pPlayer->AddItem( new Item( Item::Type::Fuse ));
+	}
+
     shared_ptr<Lift> mLift1;
 	shared_ptr<Lift> mLift2;
     Sparks * mpPowerSparks;
@@ -19,7 +35,7 @@ private:
     SteamStream * mpExtemeSteam;
     shared_ptr<Fan> mpFan1;
     shared_ptr<Fan> mpFan2;
-    ruSound mFanSound;
+
     ruSound mLeverSound;
     ruSound mSteamHissSound;
 
@@ -65,8 +81,6 @@ private:
 
 	shared_ptr<Door> mLockedDoor;
 
-    Item * fuse[3];
-	Item * mCrowbarItem;
     shared_ptr<ItemPlace> mFusePlaceList[3];
     int fuseInsertedCount;
     bool mPowerOn;

@@ -102,7 +102,7 @@ void Syringe::OnSerialize( SaveFile & out ) {
 }
 
 Item* Syringe::CreateItem() {
-	return new Item( mModel, Item::Type::Syringe );
+	return new Item( Item::Type::Syringe );
 }
 
 void Syringe::AddDoze() {

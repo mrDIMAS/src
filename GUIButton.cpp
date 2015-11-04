@@ -103,6 +103,7 @@ GUIText * GUIButton::GetText() {
 }
 
 GUIButton::~GUIButton() {
+	delete mpText;
     msButtonList.erase( find( msButtonList.begin(), msButtonList.end(), this ));
 }
 

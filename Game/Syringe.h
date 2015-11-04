@@ -19,7 +19,10 @@ private:
 	virtual void OnDeserialize( SaveFile & in ) final;
 public:
 	explicit Syringe( );
+	~Syringe( ) {
+
+	}
 	virtual void Update() final;
 	virtual Item* CreateItem( );
-	void AddDoze();;
+	void AddDoze();
 };
