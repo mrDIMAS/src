@@ -12,9 +12,7 @@ bool AABB::IsPointInside( const ruVector3 & v ) {
             v.z >= mMin.z && v.z <= mMax.z ;
 }
 
-AABB::AABB( const ruVector3 & min, const ruVector3 & max ) : mMin( min ),
-															 mMax( max )
-{
+AABB::AABB( const ruVector3 & min, const ruVector3 & max ) : mMin( min ), mMax( max ) {
     mCenter = ( mMin + mMax ) / 2;
 }
 

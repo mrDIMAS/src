@@ -6,20 +6,18 @@ void Actor::Move( ruVector3 direction, float speed ) {
 	mBody.Move( direction * speed  );
 }
 
-void Actor::Step( ruVector3 direction, float speed )
-{
-	
+void Actor::Step( ruVector3 direction, float speed ) {
 	// spring based step
 	ruVector3 currentPosition = mBody.GetPosition();
 	ruVector3 rayBegin = currentPosition;
 	ruVector3 rayEnd = rayBegin - ruVector3( 0, 5, 0 );
 	ruVector3 intPoint;
 	ruSceneNode rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
-	ruVector3 pushpullVelocity;
+	ruVector3 pushpullVelocity = ruVector3( 0,0,0 );
 	if( rayResult.IsValid() && !(rayResult == mBody) ) {
-		if( rayResult.GetContactCount() > 0 ) {
+		//if( rayResult.GetContactCount() > 0 ) {
 			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4.4f;
-		}		
+		//}		
 	}
 	mBody.Move( direction * speed + pushpullVelocity );
 }
@@ -32,7 +30,7 @@ Actor::Actor( float height, float width ) :	mBodyHeight( height ),
 											mVerticalSpeed( 0.0f ),
 											mLastVerticalPosition( 0.0f )
 {
-    mBody = ruCreateSceneNode();
+    mBody = ruSceneNode::Create();
     mBody.SetCapsuleBody( mBodyHeight, mBodyWidth );
     mBody.SetAngularFactor( ruVector3( 0, 0, 0 ));
     mBody.SetFriction( 0 );

@@ -326,14 +326,14 @@ void Engine::RenderWorld() {
     // finalize
     GetDevice()->EndScene();
     GetDevice()->Present( 0, 0, 0, 0 );
-    // grab info about node's physic contacts
-    SceneNode::UpdateContacts( );
     // update sound subsystem
     pfSystemUpdate();
 }
 
 void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep ) {
     Physics::mpDynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
+	// grab info about node's physic contacts
+	SceneNode::UpdateContacts( );
 }
 
 void Engine::RenderMeshesIntoGBuffer() {

@@ -9,7 +9,7 @@
 TestingChamber::TestingChamber( ) {
     LoadSceneFromFile( "data/maps/candidates/testingChamber/testingChamber.scene" );
 
-    pPlayer->SetPosition( ruFindByName("PlayerPosition").GetPosition() + ruVector3( 0, 1, 0 ) );
+    pPlayer->SetPosition( ruSceneNode::FindByName("PlayerPosition").GetPosition() + ruVector3( 0, 1, 0 ) );
 
     Ladder * testLadder = new Ladder( GetUniqueObject( "LadderBegin"), GetUniqueObject( "LadderEnd"), GetUniqueObject( "LadderEnter"),
                                       GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint"));

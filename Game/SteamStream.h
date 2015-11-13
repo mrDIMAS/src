@@ -10,4 +10,8 @@ public:
 
     SteamStream( ruSceneNode obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound );
     void Update();
+	~SteamStream() {
+		ps.Free();
+		snd.Free();
+	}
 };

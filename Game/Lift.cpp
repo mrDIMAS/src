@@ -12,6 +12,7 @@ void Lift::Update() {
     if( mBaseNode.IsValid() && mDoorBackLeftNode.IsValid() && mDoorBackRightNode.IsValid() &&
             mDoorFrontLeftNode.IsValid() && mDoorFrontRightNode.IsValid() && mSourceNode.IsValid() &&
             mDestNode.IsValid() && mControlPanel.IsValid() && mTargetNode.IsValid() ) {
+
         ruVector3 directionVector = mTargetNode.GetPosition() - mBaseNode.GetPosition();
         ruVector3 speedVector = directionVector.Normalized() * 1.2 * g_dt;
         float distSqr = directionVector.Length2();
@@ -51,7 +52,6 @@ void Lift::Update() {
 				mMotorSound.Pause();
 			}
         }
-
         // player interaction( TODO: must be moved to player class )
         if( pPlayer->mNearestPickedNode == mControlPanel ) {
             pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "liftUpDown" ) );
@@ -79,9 +79,9 @@ void Lift::Update() {
 void Lift::SetBackDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
     mDoorBackLeftNode = leftDoor;
     mDoorBackRightNode = rightDoor;
-	mDoorBackLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackLeftNode, 90, 0 ));
+	mDoorBackLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackLeftNode, -90, 0 ));
 	mDoorBackLeft->SetTurnDirection( Door::TurnDirection::Clockwise );
-	mDoorBackRight = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackRightNode, 90, 0 ));
+	mDoorBackRight = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackRightNode, -90, 0 ));
 	mDoorBackRight->SetTurnDirection( Door::TurnDirection::Counterclockwise );
 }
 

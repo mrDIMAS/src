@@ -12,7 +12,8 @@ Player * pPlayer = 0;
 
 extern double gFixedTick;
 
-Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime( 0.0f ), mFlashlightLocked( false ), mCurrentUsableObject( nullptr ) {
+Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime( 0.0f ), mFlashlightLocked( false ), mCurrentUsableObject( nullptr ), 
+	mLandedSoundEmitted( true ) {
     mLocalization.ParseFile( localizationPath + "player.loc" );
 
     // Stamina vars
@@ -114,11 +115,10 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/rock.smat", mpCamera->mNode ));
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/grass.smat", mpCamera->mNode ));
 	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/soil.smat", mpCamera->mNode ));
+	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/chain.smat", mpCamera->mNode ));
 
 	AddUsableObject( new BareHands );
 	AddUsableObject( new Flashlight );
-	//AddUsableObject( new Syringe );
-	//AddUsableObject( new Weapon );
 }
 
 Player::~Player() {
@@ -245,16 +245,8 @@ void Player::Damage( float dmg, bool headJitter ) {
     }	
 }
 
-void Player::AddItem( Item * pItem ) {
-    if( !pItem ) {
-        return;
-    }
-    if( mInventory.Contains( pItem )) {
-        return;
-    }
-    pItem->MarkAsGrabbed();
-    mInventory.AddItem( pItem );
-	//pItem->PickUp(); // do item logic
+void Player::AddItem( Item::Type type ) {
+	mInventory.AddItem( type );	
 }
 
 void Player::UpdateInventory() {
@@ -357,17 +349,29 @@ void Player::UpdateJumping() {
         if( IsCanJump() ) {
             mJumpTo = ruVector3( 0.0f, 350.0f, 0.0f );
             mLanded = false;
+			mLandedSoundEmitted = false;
         }
     }
 
-    mGravity = mGravity.Lerp( mJumpTo, 40.0f * g_dt );
+    mGravity = mGravity.Lerp( mJumpTo, 39.0f * g_dt );
 
     if( mGravity.y >= mJumpTo.y ) {
         mLanded = true;
     }
 
+	if( !mLandedSoundEmitted ) {
+		if( IsCanJump() && mLanded ) {
+			// two foot
+			EmitStepSound();
+			EmitStepSound();
+			mLandedSoundEmitted = true;
+		}
+	}
+
+
+
     if( mLanded || headBumpObject.IsValid() ) {
-        mJumpTo = ruVector3( 0, -450.0f, 0.0f );
+        mJumpTo = ruVector3( 0, -400.0f, 0.0f );
         if( IsCanJump() ) {
             mJumpTo = ruVector3( 0.0f, 0.0f, 0.0f );
         }
@@ -394,6 +398,8 @@ void Player::UpdateMoving() {
 				if( IsUseButtonHit() ) {
 					pDoor->SwitchState();
 				}
+			} else {
+				SetActionText( mLocalization.GetString( "doorLocked" ));
 			}
         }
     }
@@ -401,6 +407,9 @@ void Player::UpdateMoving() {
     if( mpCurrentWay ) {
         mStealthMode = false;
         mpCurrentWay->DoEntering();
+		mAirPosition = mBody.GetPosition();
+		Crouch( false );
+		mRunning = false;
         if( mpCurrentWay->IsPlayerInside() ) {
             mMoved = false;
             if( ruIsKeyDown( mKeyMoveForward )) {
@@ -460,7 +469,7 @@ void Player::UpdateMoving() {
         mFov.SetTarget( mFov.GetMin() );
 
         mRunning = false;
-        if( ruIsKeyDown( mKeyRun ) && mMoved && !mNodeInHands.IsValid()) {
+        if( !IsCrouch() && ruIsKeyDown( mKeyRun ) && mMoved && !mNodeInHands.IsValid()) {
             if( mStamina > 0 ) {
                 mSpeedTo = mSpeedTo * mRunSpeedMult;
                 mStamina -= 8.0f * g_dt ;
@@ -637,7 +646,7 @@ void Player::LoadGUIElements() {
 void Player::CreateCamera() {
     mHeadHeight = 2.1;
 
-    mHead = ruCreateSceneNode();
+    mHead = ruSceneNode::Create();
     mHead.Attach( mBody );
     mHead.SetPosition( ruVector3( 0, -2.0f, 0.0f ));
     mpCamera = new GameCamera( mFov );
@@ -646,18 +655,18 @@ void Player::CreateCamera() {
     mCameraShakeOffset = ruVector3( 0, mHeadHeight, 0 );
 
     // Pick
-    mPickPoint = ruCreateSceneNode();
+    mPickPoint = ruSceneNode::Create();
     mPickPoint.Attach( mpCamera->mNode );
     mPickPoint.SetPosition( ruVector3( 0, 0, 0.1 ));
 
-    mItemPoint = ruCreateSceneNode();
+    mItemPoint = ruSceneNode::Create();
     mItemPoint.Attach( mpCamera->mNode );
     mItemPoint.SetPosition( ruVector3( 0, 0, 1.0f ));
 
 	mFakeLight = ruCreateLight();
 	mFakeLight.Attach( mpCamera->mNode );
-	ruSetLightRange( mFakeLight, 25 );
-	ruSetLightColor( mFakeLight, ruVector3( 5, 5, 5 ));
+	ruSetLightRange( mFakeLight, 2 );
+	ruSetLightColor( mFakeLight, ruVector3( 25, 25, 25 ));
 }
 
 void Player::LoadSounds() {
@@ -711,14 +720,17 @@ void Player::UpdateCameraShake() {
         float xOffset = 0.045f * cosf( mCameraBobCoeff / 2 ) * ( mRunCameraShakeCoeff * mRunCameraShakeCoeff );        
 
         if( mStepLength > mBodyWidth / 2.0f ) {
-			ruRayCastResultEx result = ruCastRayEx( mBody.GetPosition() + ruVector3( 0, 0.1, 0 ), mBody.GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
-			if( result.valid ) {
-				for( auto sMat : mSoundMaterialList ) {
-					ruSound snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
-					if( snd.IsValid() ) {
-						snd.Play( true );
+			if( mpCurrentWay ) {
+				if( mpCurrentWay->GetEnterZone().GetTextureCount() > 0 ) {
+					for( auto sMat : mSoundMaterialList ) {
+						ruSound snd = sMat->GetRandomSoundAssociatedWith( mpCurrentWay->GetEnterZone().GetTexture( 0 ).GetName() );
+						if( snd.IsValid() ) {
+							snd.Play( true );
+						}
 					}
 				}
+			} else {
+				EmitStepSound();
 			}
 			mStepLength = 0.0f;
         }
@@ -918,7 +930,7 @@ void Player::Deserialize( SaveFile & in ) {
     in.ReadVector3( mGravity );
     in.ReadVector3( mJumpTo );
 
-    mpCurrentWay = Way::GetByObject( ruFindByName( in.ReadString() ));
+    mpCurrentWay = Way::GetByObject( ruSceneNode::FindByName( in.ReadString() ));
     if( mpCurrentWay ) {
         pPlayer->mBody.Freeze();
     }
@@ -955,7 +967,7 @@ void Player::Deserialize( SaveFile & in ) {
     mHeartBeatPitch.Deserialize( in );
     mBreathPitch.Deserialize( in );
 
-    mpSheetInHands = Sheet::GetSheetPointerByNode( ruFindByName( in.ReadString() ));
+    mpSheetInHands = Sheet::GetSheetPointerByNode( ruSceneNode::FindByName( in.ReadString() ));
 
     in.ReadInteger( mKeyMoveForward );
     in.ReadInteger( mKeyMoveBackward );
@@ -1223,7 +1235,7 @@ bool Player::AddUsableObject( UsableObject * usObj ) {
 		
 
 		// register in inventory
-		mInventory.AddItem( usObj->CreateItem() );
+		mInventory.AddItem( usObj->GetItemType() );
 
 		// link last object with new to correct switching
 		if( mUsableObjectList.size() > 0 ) {

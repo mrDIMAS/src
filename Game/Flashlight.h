@@ -61,5 +61,7 @@ public:
 	ruSceneNode GetLight();
     bool IsBeamContainsPoint( ruVector3 point ) const;
 	virtual void Update() final;
-	virtual Item* CreateItem( );
+	virtual Item::Type GetItemType( ) final {
+		return Item::Type::Lighter;
+	}
 };

@@ -1,12 +1,7 @@
 #pragma once
 
-
-
 class Mesh;
-
 class ParticleEmitter;
-
-
 
 class SceneNode : public RendererComponent {
 public:
@@ -27,6 +22,7 @@ public:
     ruAnimation * mCurrentAnimation;
     bool mIsSkinned;
     bool mInFrustum;
+	bool mStatic;
     bool mFrozen;
     bool mVisible;
 	bool mIsBone;
@@ -35,19 +31,15 @@ public:
     int mTotalFrameCount;
 	void AutoName();
 	static vector< SceneNode* > msNodeList;
-
 	vector<btRigidBody*> mBodyList;
 	vector<btTriangleMesh*> mTrimeshList;
 public:
     // Components
     ParticleEmitter * particleEmitter;
-
     btTransform mGlobalTransform;
     btTransform mLocalTransform;
-
 	ruVector3 GetRotationAxis( );
 	float GetRotationAngle( );
-
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
     // Methods
@@ -73,12 +65,16 @@ public:
     ruVector3 GetAABBMax( );
     static SceneNode * Find( SceneNode * parent, string childName );
     void PerformAnimation( );
+	int GetTextureCount();
+	ruTextureHandle GetTexture( int n );
     void Freeze( );
+	bool IsStatic();
     void Unfreeze();
 	ruVector3 GetTotalForce();
 	BodyType GetBodyType() const;
     void Hide( );
     void Show( );
+	bool IsDynamic();
     string GetProperty( string propName );
     void UpdateSounds( );
     void SetLinearFactor( ruVector3 lin );
@@ -126,7 +122,5 @@ public:
     static void EraseUnusedNodes();
 	void SetLocalPosition( ruVector3 pos );
 	void SetLocalRotation( ruQuaternion rot );
-	SceneNode * GetParent() {
-		return mParent;
-	}
+	SceneNode * GetParent();
 };

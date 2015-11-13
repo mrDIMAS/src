@@ -206,7 +206,7 @@ static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaterni
                           q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
 }
 
-#define BODY_MAX_CONTACTS ( 4 )
+#define BODY_MAX_CONTACTS ( 16 )
 
 
 
@@ -328,10 +328,21 @@ public:
 enum class BodyType {
 	None,
 	Sphere,
+	Cylinder,
 	Box,
 	Trimesh,
 	Convex
 };
+
+class ruTextureHandle : public ruRutheniumHandle {
+public:
+	static ruTextureHandle Empty();
+	bool operator == ( const ruTextureHandle & node );
+	string GetName();
+	int GetWidth();
+	int GetHeight();
+};
+
 
 class ruSceneNode : public ruRutheniumHandle {
 public:
@@ -389,7 +400,6 @@ public:
 	void SetVelocity( ruVector3 velocity );
 	void SetAngularVelocity( ruVector3 velocity );
 	void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
-
 	int GetTotalAnimationFrameCount();
 	ruAnimation * GetCurrentAnimation();
 	ruVector3 GetEulerAngles();
@@ -401,6 +411,13 @@ public:
 	void AddForceAtPoint( ruVector3 force, ruVector3 point );
 	void AddTorque( ruVector3 torque );
 	ruSceneNode GetParent();
+	int GetTextureCount();
+	ruTextureHandle GetTexture( int n );
+	ruSceneNode FindChild( const string & name );
+	static ruSceneNode Create( );
+	static ruSceneNode LoadFromFile( const string & file );
+	static ruSceneNode FindByName( const string & name );	
+	static ruSceneNode Duplicate( ruSceneNode source );
 };
 
 
@@ -411,11 +428,6 @@ public:
 	void Free();
 };
 
-class ruTextureHandle : public ruRutheniumHandle {
-public:
-    static ruTextureHandle Empty();
-    bool operator == ( const ruTextureHandle & node );
-};
 
 class ruCubeTextureHandle : public ruRutheniumHandle {
 public:
@@ -538,8 +550,6 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////
 ruTextureHandle ruGetTexture( const string & file );
 ruCubeTextureHandle ruGetCubeTexture( const string & file );
-int ruGetTextureWidth( ruTextureHandle texture );
-int ruGetTextureHeight( ruTextureHandle texture );
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Camera functions
@@ -602,11 +612,7 @@ ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end );
 // Scene node functions
 ////////////////////////////////////////////////////////////////////////////////////
 // Creation
-ruSceneNode ruCreateSceneNode( );
-ruSceneNode ruLoadScene( const string & file );
-ruSceneNode ruFindByName( const string & name );
-ruSceneNode ruFindInObjectByName( ruSceneNode node, const string & name );
-ruSceneNode ruCreateNodeInstance( ruSceneNode source );
+
 int ruGetWorldObjectsCount();
 ruSceneNode ruGetWorldObject( int i );
 // Common

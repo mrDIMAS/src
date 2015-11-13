@@ -94,7 +94,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	// before load new level, we must clean up everything
 
 	// items can be transfered through levels, so store it
-	vector<Item::Type> items;
+	map<Item,int> items;
 
 	float playerHealth = 100.0f;
 
@@ -104,7 +104,7 @@ void Level::Change( int levelId, bool continueFromSave ) {
 		if( lastLevel != levelId ) {
 			pPlayer->DumpUsableObjects( playerUsableObjects );
 		}
-		pPlayer->GetInventory()->GetItemList( items );
+		pPlayer->GetInventory()->GetItems( items );
 		playerHealth = pPlayer->GetHealth();
 		delete pPlayer;
 		pPlayer = nullptr;
@@ -198,8 +198,8 @@ void Level::Change( int levelId, bool continueFromSave ) {
 		for( auto uo : playerUsableObjects ) {
 			pPlayer->AddUsableObject( uo );
 		}
-		for( auto itemType : items ) {
-			pPlayer->AddItem( new Item( itemType ));
+		if( items.size() ) {
+			pPlayer->GetInventory()->SetItems( items );		
 		}
 	}
 	
@@ -239,7 +239,7 @@ void Level::Deserialize( SaveFile & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.ReadString();
-        ruSceneNode node = ruFindInObjectByName( mScene, name );
+        ruSceneNode node = mScene.FindChild( name );
 		ruVector3 pos = in.ReadVector3();
 		ruQuaternion quat = in.ReadQuaternion();
 		bool visible = in.ReadBoolean();
@@ -347,7 +347,7 @@ ruSceneNode Level::GetUniqueObject( const string & name ) {
     if( !mScene.IsValid() ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
     }
-    ruSceneNode object = ruFindInObjectByName( mScene, name );
+    ruSceneNode object = mScene.FindChild( name );
     // each unique object must be presented in the scene, otherwise error will be generated
     if( !object.IsValid() ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
@@ -356,14 +356,14 @@ ruSceneNode Level::GetUniqueObject( const string & name ) {
 }
 
 void Level::LoadSceneFromFile( const string & file ) {
-    mScene = ruLoadScene( file );
+    mScene = ruSceneNode::LoadFromFile( file );
     if( !mScene.IsValid() ) {
         RaiseError( StringBuilder( "Unable to load scene from " ) << file << "! Game will be closed." );
     }
 }
 
 void Level::CreateBlankScene() {
-    mScene = ruCreateSceneNode();
+    mScene = ruSceneNode::Create();
 }
 
 void Level::BuildPath( Path & path, const string & nodeBaseName ) {
@@ -392,6 +392,8 @@ void Level::AddLamp( const shared_ptr<Lamp> & lamp ) {
 }
 
 void Level::UpdateGenericObjectsIdle() {
+	mMusic.SetVolume( pMainMenu->GetMusicVolume() );
+
 	for( auto pLamp : mLampList ) {
 		pLamp->Update();
 	}
@@ -403,8 +405,7 @@ void Level::UpdateGenericObjectsIdle() {
 	}
 }
 
-void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound )
-{
+void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound ) {
 	std::regex rx( namePattern );
 	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
 		ruSceneNode child = mScene.GetChild( i );

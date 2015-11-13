@@ -15,11 +15,7 @@ Door::~Door() {
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
-Door::Door( ruSceneNode hDoor, float fMaxAngle ) : mDoorNode( hDoor ),
-													mMaxAngle( fMaxAngle ),
-													mLocked( false ),
-													mCurrentAngle( 0.0f ),
-													mState( State::Closed )
+Door::Door( ruSceneNode hDoor, float fMaxAngle ) : mDoorNode( hDoor ), mMaxAngle( fMaxAngle ), mLocked( false ), mCurrentAngle( 0.0f ), mState( State::Closed )
 {
     mOffsetAngle = hDoor.GetEulerAngles().y;
 	SetTurnDirection( TurnDirection::Clockwise );
@@ -32,6 +28,25 @@ Door::Door( ruSceneNode hDoor, float fMaxAngle ) : mDoorNode( hDoor ),
 
 void Door::DoInteraction() {
 	float turnSpeed = 60.0f * g_dt;
+
+	if( mDoorNode.GetContactCount() > 0 ) {
+		turnSpeed = 0.0f;
+
+		if( mState == State::Closing ) {
+			mCloseSound.Pause();
+		} 
+		if( mState == State::Opening ) {
+			mOpenSound.Pause();
+		}
+	} else {
+		if( mState == State::Closing ) {
+			mCloseSound.Play();
+		} 
+		if( mState == State::Opening ) {
+			mOpenSound.Play();
+		}
+	}
+
     if( mState == State::Closing ) {
 		if( mTurnDirection == TurnDirection::Clockwise ) {
 			mCurrentAngle -= turnSpeed;

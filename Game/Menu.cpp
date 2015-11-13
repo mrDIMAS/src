@@ -16,7 +16,7 @@ bool g_continueGame = false;
 Menu::Menu( ) {
     mLocalization.ParseFile( localizationPath + "menu.loc" );
 
-    mScene = ruLoadScene( "data/maps/menu/menu.scene" );
+    mScene = ruSceneNode::LoadFromFile( "data/maps/menu/menu.scene" );
 
     mDistBetweenButtons = 72;
     mVisible = true;
@@ -229,6 +229,10 @@ Menu::Menu( ) {
     LoadConfig();
 }
 
+float Menu::GetMusicVolume() {
+	return mpMusicVolume->GetValue() / 100.0f;
+}
+
 void Menu::Show() {
     mpCamera->MakeCurrent();
     mpCamera->FadeIn();
@@ -402,7 +406,7 @@ void Menu::CameraStartFadeOut( const ruDelegate & onFadeDoneAction ) {
 }
 
 void Menu::Update( ) {
-    ruEngine::SetAmbientColor( ruVector3( 25 / 255.0f, 25 / 255.0f, 25  / 255.0f));
+    ruEngine::SetAmbientColor( ruVector3( 14 / 255.0f, 14 / 255.0f, 14 / 255.0f));
 
 	WaitKeyButton::UpdateAll();
     UpdateCamera();
@@ -589,7 +593,7 @@ void Menu::LoadTextures() {
 void Menu::CreateCamera() {
     mpCamera = new GameCamera;
 	mCameraFadeActionDone = false;
-    mCameraInitialPosition = ruFindByName( "Camera").GetPosition();
+    mCameraInitialPosition = mScene.FindChild( "Camera" ).GetPosition();
     mCameraAnimationNewOffset = ruVector3( 0.5, 0.5, 0.5 );
 }
 

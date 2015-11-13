@@ -15,7 +15,7 @@ ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint 
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = ( SceneNode * ) pBody->getUserPointer();
+			SceneNode * node = (SceneNode*)rayCallback.m_collisionObject->getUserPointer();
 
 			if ( node ) {
 				if( outPickPoint ) {
@@ -45,7 +45,7 @@ ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end ) {
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = (SceneNode*)pBody->getUserPointer();
+			SceneNode * node = (SceneNode*)rayCallback.m_collisionObject->getUserPointer();
 			if ( node ) {
 				result.valid = true;
 				result.node = SceneNode::HandleFromPointer( node );

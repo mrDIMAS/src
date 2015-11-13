@@ -130,10 +130,14 @@ ruTextureHandle ruGetTexture( const string & file ) {
     return handle;
 }
 
-int ruGetTextureWidth( ruTextureHandle texture ) {
-	return ((Texture*)texture.pointer)->GetWidth();
+string ruTextureHandle::GetName() {
+	return ((Texture*)pointer)->GetName();
 }
 
-int ruGetTextureHeight( ruTextureHandle texture ) {
-	return ((Texture*)texture.pointer)->GetHeight();
+int ruTextureHandle::GetWidth() {
+	return ((Texture*)pointer)->GetWidth();
+}
+
+int ruTextureHandle::GetHeight() {
+	return ((Texture*)pointer)->GetHeight();
 }

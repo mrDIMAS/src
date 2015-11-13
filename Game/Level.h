@@ -22,7 +22,7 @@
 class Level {
 private:
 	void Proxy_GiveBullet() {
-		pPlayer->AddItem( new Item( Item::Type::Bullet ));
+		pPlayer->AddItem( Item::Type::Bullet );
 	}
     vector<Sheet*> mSheetList;
     vector<shared_ptr<Door>> mDoorList;

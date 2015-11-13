@@ -104,7 +104,8 @@ public:
     bool mRunning;
 	bool mInAir;
 	bool mFlashlightLocked;
-	
+	bool mLandedSoundEmitted;
+
     Inventory mInventory;
 
 	
@@ -148,6 +149,18 @@ public:
 
 	vector<UsableObject*> mUsableObjectList;
 	UsableObject * mCurrentUsableObject;
+
+	void EmitStepSound() {
+		ruRayCastResultEx result = ruCastRayEx( mBody.GetPosition() + ruVector3( 0, 0.1, 0 ), mBody.GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
+		if( result.valid ) {
+			for( auto sMat : mSoundMaterialList ) {
+				ruSound snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
+				if( snd.IsValid() ) {
+					snd.Play( true );
+				}
+			}
+		}
+	}
 public:
     explicit Player();
     virtual ~Player();
@@ -161,7 +174,7 @@ public:
     bool UseStamina( float st );
 	bool AddUsableObject( UsableObject * usObj );
     virtual void Damage( float dmg, bool headJitter = true );
-    void AddItem( Item * itm );
+    void AddItem( Item::Type type );
     void UpdateInventory();
     void Update( );
     void UpdateMouseLook();

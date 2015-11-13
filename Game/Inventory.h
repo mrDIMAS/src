@@ -7,7 +7,8 @@
 
 class Inventory {
 private:
-    vector<Item *> mItemList;
+	// item-count map
+	map<Item,int> mItemMap;
     ruTextureHandle mBackgroundTexture;
     ruTextureHandle mCellTexture;
     ruTextureHandle mButtonTexture;
@@ -37,29 +38,28 @@ private:
     ruTextHandle mGUICharacteristics;
     ruRectHandle mGUIItem[mCellCountWidth][mCellCountHeight];
     ruRectHandle mGUIItemCell[mCellCountWidth][mCellCountHeight];
+	ruTextHandle mGUIItemCountText[mCellCountWidth][mCellCountHeight];
     ruTextHandle mGUIItemDescription;
     ruTextHandle mGUIItemMass;
     ruTextHandle mGUIItemContent;
     ruTextHandle mGUIItemContentType;
     ruTextHandle mGUIItemVolume;
 public:
+	void SetItems( map<Item,int> & items );
     bool IsOpened() const;
     void Open(bool val);
-	bool GotAnyItemOfType( Item::Type type );
     explicit Inventory();
     virtual ~Inventory();
     void Update();
     bool IsMouseInside( int x, int y, int w, int h );
     void DoCombine();
-    void RemoveItem( Item * item );
-    int GetItemCount();
+    void RemoveItem( Item::Type type, int count );
     Item * GetItemSelectedForUse( );
     void ResetSelectedForUse();
-    bool Contains( Item * pItem );
-    void AddItem( Item * pItem );
+    void AddItem( Item::Type type );
     int GetItemCount( Item::Type type );
     void Serialize( SaveFile & out );
     void Deserialize( SaveFile & in );
     void SetVisible( bool state );
-	void GetItemList( vector<Item::Type> & itemList );
+	void GetItems( map<Item,int> & itemMap );
 };

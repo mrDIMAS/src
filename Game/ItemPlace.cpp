@@ -8,11 +8,11 @@ Item::Type ItemPlace::GetPlacedItem() {
     return mItemPlaced;
 }
 
-bool ItemPlace::PlaceItem( Item * pItem ) {
-    if( pItem->GetType() == mItemTypeCanBePlaced ) {
-        mItemPlaced = pItem->GetType();
+bool ItemPlace::PlaceItem( Item::Type type ) {
+    if( type == mItemTypeCanBePlaced ) {
+        mItemPlaced = type;
 		pPlayer->mInventory.ResetSelectedForUse();			
-		pPlayer->mInventory.RemoveItem( pItem );		
+		pPlayer->mInventory.RemoveItem( type, 1 );		
         return true;
     }
 

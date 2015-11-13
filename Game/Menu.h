@@ -151,7 +151,7 @@ public:
     void Update( );
 	void SyncPlayerControls();
     void CameraFloating();
-
+	float GetMusicVolume();
     bool IsVisible();
     Parser * GetLocalization();
 

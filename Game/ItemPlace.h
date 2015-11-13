@@ -14,7 +14,7 @@ public:
     explicit ItemPlace( ruSceneNode obj, Item::Type itemTypeCanBePlaced );
     virtual ~ItemPlace();
     static ItemPlace * FindByObject( ruSceneNode handle );
-    bool PlaceItem( Item * item );
+    bool PlaceItem( Item::Type type );
     Item::Type GetPlacedItem( );
     bool IsPickedByPlayer() const;
     void SetPlaceType( Item::Type _itemTypeCanBePlaced );

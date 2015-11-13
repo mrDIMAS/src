@@ -201,14 +201,13 @@ void LevelMine::DoScenario() {
 
     mEnemy->Think();
 
-    //ruEngine::SetAmbientColor( ruVector3( 0.08, 0.08, 0.08 ));
-	ruEngine::SetAmbientColor( ruVector3( 0.0, 0.0, 0.0 ));
+	ruEngine::SetAmbientColor( ruVector3( 6.0f / 255.0f, 6.0f / 255.0f, 6.0f / 255.0f ));
 
     PlayAmbientSounds();
 
     if( !mStages[ "EnterRockFallZoneWallExp" ] ) {
         if( pPlayer->IsInsideZone( mStoneFallZone )) {
-            ruFindByName( "StoneFall" ).Unfreeze();
+            ruSceneNode::FindByName( "StoneFall" ).Unfreeze();
 
             mStages[ "EnterRockFallZoneWallExp" ] = true;
         }
@@ -271,9 +270,9 @@ void LevelMine::DoScenario() {
                 ruParticleSystemProperties dustProps;
                 dustProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
                 dustProps.type = PS_BOX;
-                dustProps.useLighting = false;
+                dustProps.useLighting = true;
                 dustProps.autoResurrectDeadParticles = false;
-                dustProps.pointSize = 0.1f;
+                dustProps.pointSize = 1.1f;
                 dustProps.speedDeviationMin = ruVector3( -0.0005, 0.0, -0.0005 );
                 dustProps.speedDeviationMax = ruVector3(  0.0005, 0.005,  0.0005 );
                 dustProps.boundingBoxMin = ruVector3( -2, 0, -4 );
@@ -352,7 +351,7 @@ void LevelMine::UpdateExplodeSequence() {
                 shared_ptr<ItemPlace> dp = mDetonatorPlace[i];
 
                 if( dp->IsPickedByPlayer() ) {
-                    bool placed = dp->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
+                    bool placed = dp->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse()->GetType() );
 
                     if( placed ) {
                         // 1st: Explosives

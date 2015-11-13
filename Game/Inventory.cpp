@@ -82,6 +82,7 @@ Inventory::Inventory() {
             int cellY = coordY + distMult * mCellHeight * ch;
             mGUIItem[cw][ch] = ruCreateGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, ruTextureHandle::Empty(), ruVector3( 255, 255, 255 ), 255 );
             mGUIItemCell[cw][ch] = ruCreateGUIRect( cellX, cellY, mCellWidth, mCellHeight, mCellTexture, whiteColor, 255 );
+			mGUIItemCountText[cw][ch] = ruCreateGUIText( "0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, whiteColor, 1 );
         }
     }
 
@@ -123,6 +124,7 @@ void Inventory::SetVisible( bool state ) {
         for( int ch = 0; ch < mCellCountHeight; ch++ ) {
             ruSetGUINodeVisible( mGUIItemCell[cw][ch], state );
             ruSetGUINodeVisible( mGUIItem[cw][ch], state );
+			ruSetGUINodeVisible( mGUIItemCountText[cw][ch], state );
         }
     }
 }
@@ -132,8 +134,7 @@ bool Inventory::IsMouseInside( int x, int y, int w, int h ) {
 }
 
 void Inventory::DoCombine() {
-    Item * pUsedItem = nullptr;
-    if( mpCombineItemFirst->Combine( mpCombineItemSecond, pUsedItem )) { // combine successfull
+    if( mpCombineItemFirst->Combine( mpCombineItemSecond->GetType() )) { // combine successfull
         mpCombineItemFirst = nullptr;
         mpCombineItemSecond = nullptr;
         mpSelectedItem = nullptr;
@@ -141,12 +142,6 @@ void Inventory::DoCombine() {
 }
 
 void Inventory::Update() {
-	for( int i = 0; i < mItemList.size(); i++ ) {
-		if( mItemList[i]->mCanBeDeleted ) {
-			delete mItemList[i];
-		}
-	}
-
     ruVector3 whiteColor = ruVector3( 255, 255, 255 );
     int screenCenterX = ruEngine::GetResolutionWidth() / 2;
     int screenCenterY = ruEngine::GetResolutionHeight() / 2;
@@ -275,14 +270,32 @@ void Inventory::Update() {
             // get item for draw
             int itemNum = cw * mCellCountHeight + ch;
             Item * pItem = nullptr;
-            if( itemNum < mItemList.size() ) {
-                pItem = mItemList[ itemNum ];
-            }
-            if( pItem )
+			int i = 0;
+			//cout << mItemMap.size() << endl;
+			int curItemCount = 0;
+			for( auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++ ) {
+				if( i == itemNum ) {
+					pItem = const_cast<Item*>( &itemCountPair->first );
+					curItemCount  = itemCountPair->second;
+					break;
+				}
+				i++;
+			}
+            if( pItem ) {
                 if( mpSelectedItem == pItem ) {
                     color = ruVector3( 0, 200, 0 );
                     alpha = 255;
                 }
+				ruSetGUINodeText( mGUIItemCountText[cw][ch], StringBuilder() << curItemCount );
+				if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {
+					ruSetGUINodeVisible( mGUIItemCountText[cw][ch], true );
+				} else {
+					ruSetGUINodeVisible( mGUIItemCountText[cw][ch], false );
+				}
+			} else {
+				ruSetGUINodeVisible( mGUIItemCountText[cw][ch], false );
+			}
+
             bool pressed = false;
             int cellX = coordX + distMult * mCellWidth * cw;
             int cellY = coordY + distMult * mCellHeight * ch;
@@ -313,8 +326,7 @@ void Inventory::Update() {
                     combinePick = false;
                     mpSelectedItem = 0;
                 }
-            }
-			
+            }			
             if( pItem ) {				
                 if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {
 					ruSetGUINodeVisible( mGUIItem[cw][ch], true );
@@ -341,19 +353,20 @@ void Inventory::Update() {
     }
 }
 
-void Inventory::RemoveItem( Item * pItem ) {
-	auto iter = find( mItemList.begin(), mItemList.end(), pItem );
-	if( iter != mItemList.end() ) {
-		mItemList.erase( iter );
+void Inventory::RemoveItem( Item::Type type, int count ) {
+	for( auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++ ) {
+		if( itemCountPair->first.GetType() == type ) {
+			itemCountPair->second -= count;
+			if( itemCountPair->second <= 0 ) {
+				mItemMap.erase( itemCountPair );
+				break;
+			}
+		}
 	}
 }
 
 Inventory::~Inventory() {
 	mPickSound.Free();
-	for( auto pItem : mItemList ) {
-		delete pItem;
-	}
-	
 	ruFreeGUINode( mGUIRectItemForUse );
 	ruFreeGUINode( mGUICanvas );
 	ruFreeGUINode( mGUIRightPanel );
@@ -370,6 +383,7 @@ Inventory::~Inventory() {
 		for( int j = 0; j < mCellCountHeight; j++ ) {
 			ruFreeGUINode( mGUIItem[i][j] );
 			ruFreeGUINode( mGUIItemCell[i][j] );
+			ruFreeGUINode( mGUIItemCountText[i][j] );
 		}
 	}
 	ruFreeGUINode( mGUIItemDescription );
@@ -392,38 +406,37 @@ bool Inventory::IsOpened() const {
 void Inventory::Deserialize( SaveFile & in ) {
 	int count = in.ReadInteger();
 	for( int i = 0; i < count; i++ ) {
-		AddItem( new Item( static_cast<Item::Type>( in.ReadInteger())));
+		Item::Type type = static_cast<Item::Type>( in.ReadInteger());
+		mItemMap[ Item( type ) ] = in.ReadInteger();	
 	}
 }
 
 void Inventory::Serialize( SaveFile & out ) {
-	out.WriteInteger( mItemList.size() );
-	for( auto & pItem : mItemList ) {
-		out.WriteInteger( static_cast<int>( pItem->GetType() ));
+	out.WriteInteger( mItemMap.size() );
+	for( auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++ ) {
+		// write item type
+		out.WriteInteger( static_cast<int>( itemCountPair->first.GetType() ));
+		// write count of this items
+		out.WriteInteger( static_cast<int>( itemCountPair->second )); 
 	}
 }
 
-void Inventory::AddItem( Item * pItem ) {
-	if( pItem ) {
-		for( auto item : mItemList ) {
-			if( item->GetType() == pItem->GetType() ) {
-				if( pItem->mSingleInstance ) {
-					return;
-				}
+void Inventory::AddItem( Item::Type type ) {
+	if( type != Item::Type::Unknown ) {
+		bool found = false;
+		for( auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++ ) {
+			if( itemCountPair->first.GetType() == type ) {
+				found = true;
+				if( !itemCountPair->first.mSingleInstance ) {
+					itemCountPair->second++;
+				} 
 			}
 		}
-		pItem->OnPickup.DoActions();
-		mItemList.push_back( pItem );
+		if( !found ) {			
+			mItemMap[ Item( type ) ] = 1;
+			cout << "Added item!" << mItemMap.size() << endl;
+		}	
 	}
-}
-
-bool Inventory::Contains( Item * pItem ) {
-    for( auto npItem : mItemList ) {
-        if( npItem == pItem ) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void Inventory::ResetSelectedForUse() {
@@ -434,32 +447,21 @@ Item * Inventory::GetItemSelectedForUse() {
     return mpItemForUse;
 }
 
-int Inventory::GetItemCount() {
-    return mItemList.size();
-}
-
 int Inventory::GetItemCount( Item::Type type ) {
-    int count = 0;
-    for( auto pItem : mItemList )
-        if( pItem->GetType() == type ) {
-            count++;
+    for( auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++ ) {
+        if( itemCountPair->first.GetType() == type ) {
+            return itemCountPair->second;
         }
-    return count;
-}
-
-bool Inventory::GotAnyItemOfType( Item::Type type ) {
-	for( auto pItem : mItemList ) {
-		if( pItem->GetType() == type ) {
-			return true;
-		}
 	}
-	return false;
+    return 0;
 }
 
-void Inventory::GetItemList( vector<Item::Type> & itemList )
+void Inventory::GetItems( map<Item,int> & itemMap ) {
+	itemMap = mItemMap;
+}
+
+void Inventory::SetItems( map<Item,int> & items )
 {
-	for( auto pItem : mItemList ) {
-		itemList.push_back( pItem->GetType() );
-	}
+	mItemMap = items;
 }
 

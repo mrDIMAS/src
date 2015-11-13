@@ -3,9 +3,7 @@
 class RendererComponent {
 public:
 	enum class ResetPriority {
-		Low,
-		Medium,
-		High
+		Low, Medium, High
 	};
 	ResetPriority mResetPriority;
 	static vector<RendererComponent*> msComponentList;

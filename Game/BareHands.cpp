@@ -9,12 +9,8 @@ void BareHands::Update() {
 	SwitchIfAble();
 }
 
-Item* BareHands::CreateItem() {
-	return nullptr;
-}
-
 BareHands::BareHands() {
-	mModel = ruCreateSceneNode();
+	mModel = ruSceneNode::Create();
 }
 
 void BareHands::OnDeserialize( SaveFile & in ) {

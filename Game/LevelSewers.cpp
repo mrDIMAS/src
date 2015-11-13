@@ -44,7 +44,7 @@ LevelSewers::~LevelSewers( ) {
 }
 
 void LevelSewers::DoScenario() {
-	ruEngine::SetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
+	ruEngine::SetAmbientColor( ruVector3( 9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f ));
 	mGate1->Update();
 	mGate2->Update();
 

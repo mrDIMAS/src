@@ -7,8 +7,8 @@
 #include "Item.h"
 
 Weapon::Weapon() {
-	mModel = ruLoadScene( "data/models/hands_pistol/hands_pistol.scene" );
-	mShootPoint = ruFindInObjectByName( mModel, "ShootPoint" );
+	mModel = ruSceneNode::LoadFromFile( "data/models/hands_pistol/hands_pistol.scene" );
+	mShootPoint = mModel.FindChild( "ShootPoint" );
 	mShotSound = ruSound::Load3D( "data/sounds/shot3.ogg" );
 	mShotSound.Attach( mShootPoint );
 	mEmptySound = ruSound::Load3D( "data/sounds/pistol_empty.ogg" );
@@ -77,7 +77,7 @@ void Weapon::Update() {
 	mShowAnim.Update();
 	mIdleAnim.Update();
 
-	if( ruIsMouseHit( MB_Left ) && !pPlayer->mNodeInHands.IsValid() ) {
+	if( ruIsMouseHit( MB_Left ) && !pPlayer->mNodeInHands.IsValid() && !pPlayer->GetInventory()->IsOpened() ) {
 		if( mProjectileCount > 0 ) {
 			if( mShotInterval <= 0 ) {			
 				mShotInterval = 35;
@@ -134,9 +134,6 @@ int Weapon::GetProjectileCount() {
 	return mProjectileCount;
 }
 
-Item* Weapon::CreateItem() {
-	return new Item( Item::Type::Pistol );
-}
 
 void Weapon::Proxy_Hide()
 {

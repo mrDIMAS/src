@@ -4,10 +4,10 @@
 #include "Player.h"
 
 Flashlight::Flashlight() {
-	mModel = ruLoadScene( "data/models/hands/arm.scene" );
+	mModel = ruSceneNode::LoadFromFile( "data/models/hands/arm.scene" );
 	mModel.SetDepthHack( 0.155f );
 
-	mLight = ruFindInObjectByName( mModel, "PlayerLight" );
+	mLight = mModel.FindChild( "PlayerLight" );
 	ruSetLightSpotTexture( mLight, ruGetTexture( "data/textures/generic/spotlight.jpg"));
 
 	mOnSound = ruSound::Load2D( "data/sounds/lighter/open.ogg" );
@@ -15,7 +15,7 @@ Flashlight::Flashlight() {
 	mFireSound = ruSound::Load2D( "data/sounds/lighter/fire.ogg" );
 	mOutOfChargeSound = ruSound::Load2D( "data/sounds/flashlight/outofcharge.ogg" );
 
-	mOnRange = ruGetLightRange( mLight );
+	mOnRange = ruGetLightRange( mLight ) * 2; // HAAAAAAAAAAAAAAAX!
 
 	const float lim = 0.02;
 	ruSetLightFloatingLimits( mLight, ruVector3( -lim, -lim, -lim ), ruVector3( lim, lim, lim ));
@@ -53,7 +53,7 @@ Flashlight::Flashlight() {
 	psProps.depthHack = 0.1551f;
 	psProps.scaleFactor = -0.00008f;
 	mFire = ruCreateParticleSystem( 60, psProps );
-	mFire.Attach( ruFindInObjectByName( mModel, "FirePlace" ));
+	mFire.Attach( mModel.FindChild( "FirePlace" ));
 
 	mOn = false;
 	mFire.Hide();
@@ -220,10 +220,13 @@ void Flashlight::Update() {
 	if( mOn ) {
 		mRangeDest = mOnRange;
 
-		//mCharge -= g_dt / mChargeWorkTimeSeconds;
+		mCharge -= g_dt / mChargeWorkTimeSeconds;
 
-		if( mCharge < 0.1f ) {
-			mCharge = 0.1f;
+		if( mCharge < 0.05f ) {
+			mFire.Hide();
+			mCharge = 0.05f;
+		} else {
+			mFire.Show();
 		}
 	} else {
 		mRangeDest = 0.0f;
@@ -251,8 +254,4 @@ void Flashlight::Update() {
 		mModel.SetAnimation( &mIdleAnim );
 		mIdleAnim.enabled = true;
 	}
-}
-
-Item* Flashlight::CreateItem() {
-	return new Item( Item::Type::Lighter );
 }

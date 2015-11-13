@@ -36,5 +36,7 @@ public:
 	void SetProjectileCount( int projCount );
 	int GetProjectileCount();
 	virtual void Update() final;
-	virtual Item* CreateItem( );
+	virtual Item::Type GetItemType( ) final {
+		return Item::Type::Pistol;
+	}
 };

@@ -9,19 +9,19 @@
 class LevelMine : public Level {
 private:
 	void Proxy_GiveExplosives() {
-		pPlayer->AddItem( new Item( Item::Type::Explosives ));
+		pPlayer->AddItem( Item::Type::Explosives );
 	}
 	void Proxy_GiveDetonator( ) {
-		pPlayer->AddItem( new Item( Item::Type::Detonator ));
+		pPlayer->AddItem( Item::Type::Detonator );
 	}
 	void Proxy_GiveWires( ) {
-		pPlayer->AddItem( new Item( Item::Type::Wires ));
+		pPlayer->AddItem( Item::Type::Wires );
 	}
 	void Proxy_GivePistol( ) {
 		pPlayer->AddUsableObject( new Weapon );
 	}
 	void Proxy_GiveFuel( ) {
-		pPlayer->AddItem( new Item( Item::Type::FuelCanister ));
+		pPlayer->AddItem( Item::Type::FuelCanister );
 	}
 	void Proxy_GiveSyringe( ) {
 		pPlayer->AddUsableObject( new Syringe );

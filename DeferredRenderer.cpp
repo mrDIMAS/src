@@ -238,7 +238,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::OnResetDevice()
 
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
     ruVector3 realPosition = pLight->GetRealPosition();
-    float scl = 4.0f * pLight->radius * scale;
+    float scl = 1.5f * pLight->radius * scale;
     D3DXMATRIX world;
     world._11 = scl;
     world._12 = 0.0f;
@@ -268,7 +268,7 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
 
 void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 	ruVector3 realPosition = pLight->GetRealPosition();
-	float scl = 2.75f * pLight->radius * scale;
+	float scl = 1.25f * pLight->radius * scale;
 	D3DXMATRIX world;
 	world._11 = scl;
 	world._12 = 0.0f;
@@ -389,7 +389,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
 	
 	for( auto pLight : Light::msPointLightList ) {
-		if( pLight->IsVisible() ) {
+		bool inFrustum = Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() );
+		if( pLight->IsVisible() && inFrustum ) {
 			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );			
 			DWORD pixelsVisible = 0;
 			if( pLight->inFrustum  && !pLight->mQueryDone ) {

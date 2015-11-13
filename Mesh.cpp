@@ -169,6 +169,13 @@ void Mesh::Render() {
     Engine::Instance().RegisterDIP();
 }
 
+void Mesh::RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount ) {
+	Engine::Instance().GetDevice()->SetIndices( ib );
+	Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, faceCount );
+	// each mesh renders in one DIP
+	Engine::Instance().RegisterDIP();
+}
+
 void Mesh::OnLostDevice()
 {
 	bool removed = false;

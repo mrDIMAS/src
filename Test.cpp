@@ -24,7 +24,7 @@ void main( ) {
     ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
     ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
 
-    ruSceneNode cameraPivot = ruCreateSceneNode();
+    ruSceneNode cameraPivot = ruSceneNode::Create();
 	cameraPivot.SetCapsuleBody( 6, 2 );
 	cameraPivot.SetAngularFactor( ruVector3( 0, 0, 0 ));
     cameraPivot.SetPosition( ruVector3( 0, 5, 0 ));
@@ -46,7 +46,7 @@ void main( ) {
 
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
     //ruNodeHandle node = ruLoadScene( "data/maps/release/arrival/arrival.scene");//ruLoadScene( "data/newFormat.scene" );
-	ruSceneNode node = ruLoadScene( "data/newFormat.scene" );
+	ruSceneNode node = ruSceneNode::LoadFromFile( "data/newFormat.scene" );
 	//ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
     //int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
@@ -97,7 +97,7 @@ void main( ) {
 	ruEngine::SetHDREnabled( false );
 	ruEngine::DisableFXAA();
 
-	ruSceneNode cube = ruLoadScene( "data/cube.scene" );
+	ruSceneNode cube = ruSceneNode::LoadFromFile( "data/cube.scene" );
 	
 	ruSound snd = ruSound::LoadMusic( "data/music/rf.ogg" );
 	snd.SetVolume( 0.1 );
@@ -150,7 +150,7 @@ void main( ) {
 		}
 
 		if( ruIsMouseHit( MB_Left )) {
-			ruSceneNode newCube = ruCreateNodeInstance( cube );
+			ruSceneNode newCube = ruSceneNode::Duplicate( cube );
 			newCube.Attach( camera );
 			newCube.SetPosition( ruVector3( 0, 0, 1 ));
 		}

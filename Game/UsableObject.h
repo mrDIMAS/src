@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SaveFile.h"
+#include "Item.h"
 
 class UsableObject {
 protected:
@@ -22,7 +23,7 @@ public:
 	void Prev( );
 	void Appear( );
 	// interface
-	virtual Item* CreateItem( ) = 0;
+	virtual Item::Type GetItemType( ) = 0;
 	virtual void Update() = 0;
 	void Serialize( SaveFile & out );
 	static UsableObject * Deserialize( SaveFile & in );

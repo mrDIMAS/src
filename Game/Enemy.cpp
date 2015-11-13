@@ -14,7 +14,7 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mStepLength = 0.0f;
 	mLastStepLength = 0.0f;
 
-	mModel = ruLoadScene( "data/models/ripper/ripper0.scene" );
+	mModel = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
 	mModel.Attach( mBody );
 	mModel.SetPosition( ruVector3( 0, -0.7f, 0 ));
 
@@ -158,7 +158,7 @@ void Enemy::Think() {
 
 
 	// DEBUG
-	// enemyDetectPlayer = false;
+	 enemyDetectPlayer = false;
 
 	if( enemyDetectPlayer ) {
 		mMoveType = MoveType::ChasePlayer;
@@ -220,15 +220,19 @@ void Enemy::Think() {
 	}
 
 	// check doors
+	bool allDoorsAreOpen = true;
 	for( auto pDoor : Door::msDoorList ) {
 		if( ( pDoor->mDoorNode.GetPosition() - mBody.GetPosition()).Length2() < 2.2f ) {
+			if( pDoor->GetState() != Door::State::Opened && !pDoor->IsLocked() ) {
+				allDoorsAreOpen = false;
+			}
 			if( pDoor->GetState() == Door::State::Closed && !pDoor->IsLocked() ) {
 				pDoor->Open();
 			}
 		}
 	}
 
-	if( move && !reachPoint ) {
+	if( move && !reachPoint && allDoorsAreOpen ) {
 		mStepLength += 0.1f;
 		ruVector3 gravity;
 		if( direction.y > 0.1 ) {
@@ -341,7 +345,7 @@ void Enemy::CreateAnimations() {
 
 void Enemy::CreateSounds() {
     mHitFleshWithAxeSound = ruSound::Load3D( "data/sounds/armor_axe_flesh.ogg" );
-    mHitFleshWithAxeSound.Attach( ruFindInObjectByName( mModel, "Weapon" ));
+    mHitFleshWithAxeSound.Attach( mModel.FindChild( "Weapon" ));
 
     mBreathSound = ruSound::Load3D( "data/sounds/breath1.ogg" );
     mBreathSound.Attach( mBody );
@@ -396,7 +400,7 @@ void Enemy::FindBodyparts() {
 	FillByNamePattern( mRightArmParts, "RightArmP?([[:digit:]]+)" );
 	FillByNamePattern( mLeftArmParts, "LeftArmP?([[:digit:]]+)" );
 	FillByNamePattern( mTorsoParts, "TorsoBoneP?([[:digit:]]+)" );
-	mHead = ruFindInObjectByName( mModel, "Head" );
+	mHead = mModel.FindChild( "Head" );
 }
 
 void Enemy::Serialize( SaveFile & out ) {
@@ -414,6 +418,9 @@ void Enemy::Deserialize( SaveFile & in ) {
 }
 
 Enemy::~Enemy() {
+	if( mBloodSpray.IsValid() ) {
+		mBloodSpray.Free();
+	}
 	mFadeAwaySound.Free();
 	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
 	if( iter != msEnemyList.end() ) {

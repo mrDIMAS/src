@@ -4,7 +4,7 @@
 #include "Item.h"
 
 Syringe::Syringe( ) : mDozeCount( 2 ) {
-	mModel = ruLoadScene( "data/models/hands_syringe/hands_syringe.scene" );
+	mModel = ruSceneNode::LoadFromFile( "data/models/hands_syringe/hands_syringe.scene" );
 	
 	mUseAnim = ruAnimation( 6, 18, 2.5, false );
 	mUseAnim.AddFrameListener( 12, ruDelegate::Bind( this, &Syringe::Proxy_HealPlayer ));
@@ -99,10 +99,6 @@ void Syringe::OnDeserialize( SaveFile & in ) {
 
 void Syringe::OnSerialize( SaveFile & out ) {
 	out.WriteInteger( mDozeCount );
-}
-
-Item* Syringe::CreateItem() {
-	return new Item( Item::Type::Syringe );
 }
 
 void Syringe::AddDoze() {

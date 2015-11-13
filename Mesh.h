@@ -1,10 +1,8 @@
 #pragma once
 
-
 #include "AABB.h"
 
 class Octree;
-
 class Texture;
 
 class Mesh : public RendererComponent {
@@ -40,7 +38,6 @@ public:
     IDirect3DIndexBuffer9 * mIndexBuffer;
     Texture * mDiffuseTexture;
     Texture * mNormalTexture;
-	//vector<SceneNode*> mBoneList;
     vector<Vertex> mVertices;
     vector<Triangle> mTriangles;
     vector<Weight> mWeightTable;
@@ -50,7 +47,6 @@ public:
     AABB mAABB;
     Octree * mOctree;
     float mOpacity;
-
 	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
 public:
 	void OnResetDevice();
@@ -71,4 +67,5 @@ public:
     Texture * GetNormalTexture();
     void BindBuffers();
     void Render();
+	void RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount );
 };

@@ -14,15 +14,15 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
     float constantRegister[4];
     D3DXMATRIX world, vwp, worldView;
 	for( auto pOwner : mesh->GetOwners() ) {
-		//bool visible = pOwner->mIsBone ? false : (pOwner->mIsSkinned && pOwner->IsVisible());
 		bool visible = true;
 		if( pOwner->mIsBone ) {
 			visible = false;
 		} else {
 			visible = pOwner->IsVisible();
 		}
-		pOwner->mInFrustum = Camera::msCurrentCamera->mFrustum.IsAABBInside( mesh->mAABB, ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
-		if( visible ) {
+		pOwner->mInFrustum |= Camera::msCurrentCamera->mFrustum.IsAABBInside( mesh->mAABB, ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
+		if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
+		//if( visible ) {
 			if( fabs( pOwner->mDepthHack ) > 0.001 ) {
 				Camera::msCurrentCamera->EnterDepthHack( fabs( pOwner->mDepthHack ) );
 			}

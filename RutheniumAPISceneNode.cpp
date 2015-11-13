@@ -2,6 +2,32 @@
 #include "RutheniumAPI.h"
 #include "SceneNode.h"
 
+ruSceneNode ruSceneNode::FindChild( const string & name ) {
+	return SceneNode::HandleFromPointer( SceneNode::FindInObjectByName( SceneNode::CastHandle( *this ), name ));
+}
+
+ruSceneNode ruSceneNode::Create( ) {
+	return SceneNode::HandleFromPointer( new SceneNode );
+}
+
+ruSceneNode ruSceneNode::LoadFromFile( const string & file ) {
+	return SceneNode::HandleFromPointer( SceneNode::LoadScene( file ));
+}
+
+ruSceneNode ruSceneNode::FindByName( const string & name ) {
+	return SceneNode::HandleFromPointer( SceneNode::FindByName( name ));
+}
+
+ruSceneNode ruSceneNode::Duplicate( ruSceneNode source ) {
+	if( SceneNode::CastHandle( source ) == nullptr ) {
+		ruSceneNode null;
+		null.pointer = nullptr;
+		return null;
+	}
+	SceneNode * pNode = SceneNode::CastHandle( source );
+	return SceneNode::HandleFromPointer( new SceneNode( *pNode ));
+}
+
 string ruSceneNode::GetProperty( string propName ) {
 	return SceneNode::CastHandle( *this )->GetProperty( propName );
 }
@@ -52,6 +78,14 @@ void ruSceneNode::SetRotation( ruQuaternion rotation ) {
 
 void ruSceneNode::SetGravity( ruVector3 gravity ) {
 	SceneNode::CastHandle( *this )->SetGravity( gravity );
+}
+
+int ruSceneNode::GetTextureCount() {
+	return SceneNode::CastHandle( *this )->GetTextureCount();
+}
+
+ruTextureHandle ruSceneNode::GetTexture( int n ) {
+	return SceneNode::CastHandle( *this )->GetTexture( n );
 }
 
 ruVector3 ruSceneNode::GetLookVector() {

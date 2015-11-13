@@ -23,7 +23,7 @@ void SaveLoader::RestoreWorldState() {
         Item::Type placedItem = static_cast<Item::Type>( ReadInteger());
         Item::Type placeType = static_cast<Item::Type>( ReadInteger());
 
-        ItemPlace * pItemPlace = ItemPlace::FindByObject( ruFindByName( ipName) );
+        ItemPlace * pItemPlace = ItemPlace::FindByObject( ruSceneNode::FindByName( ipName) );
 
         if( pItemPlace ) {           
             pItemPlace->mItemPlaced = placedItem;
@@ -34,7 +34,7 @@ void SaveLoader::RestoreWorldState() {
     // deserialize ways
     int wayCount = ReadInteger();
     for( int i = 0; i < wayCount; i++ ) {
-        Way * way = Way::GetByObject( ruFindByName( ReadString() ));
+        Way * way = Way::GetByObject( ruSceneNode::FindByName( ReadString() ));
         way->Deserialize( *this );
     }
 

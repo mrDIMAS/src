@@ -27,8 +27,8 @@ LevelResearchFacility::LevelResearchFacility() {
     mLift1->SetDestinationPoint( GetUniqueObject( "Lift1Dest" ));
     mLift1->SetSourcePoint( GetUniqueObject( "Lift1Source" ));
     mLift1->SetMotorSound( ruSound::Load3D( "data/sounds/motor_idle.ogg"));
-    mLift1->SetBackDoors( GetUniqueObject( "Lift1BackDoorLeft"), GetUniqueObject( "Lift1BackDoorRight" ));
-    mLift1->SetFrontDoors( GetUniqueObject( "Lift1FrontDoorLeft"), GetUniqueObject( "Lift1FrontDoorRight" ));
+    mLift1->SetBackDoors( GetUniqueObject( "Lift1BackDoor1"), GetUniqueObject( "Lift1BackDoor2" ));
+    mLift1->SetFrontDoors( GetUniqueObject( "Lift1FrontDoor1"), GetUniqueObject( "Lift1FrontDoor2" ));
     AddLift( mLift1 );
 	
 	mLift2 = make_shared<Lift>( GetUniqueObject( "Lift2" ) );
@@ -36,8 +36,8 @@ LevelResearchFacility::LevelResearchFacility() {
 	mLift2->SetDestinationPoint( GetUniqueObject( "Lift2Dest" ));
 	mLift2->SetSourcePoint( GetUniqueObject( "Lift2Source" ));
 	mLift2->SetMotorSound( ruSound::Load3D( "data/sounds/motor_idle.ogg"));
-	mLift2->SetBackDoors( GetUniqueObject( "Lift2BackDoorLeft"), GetUniqueObject( "Lift2BackDoorRight" ));
-	mLift2->SetFrontDoors( GetUniqueObject( "Lift2FrontDoorLeft"), GetUniqueObject( "Lift2FrontDoorRight" ));
+	mLift2->SetBackDoors( GetUniqueObject( "Lift2BackDoor1"), GetUniqueObject( "Lift2BackDoor2" ));
+	mLift2->SetFrontDoors( GetUniqueObject( "Lift2FrontDoor1"), GetUniqueObject( "Lift2FrontDoor2" ));
 	AddLift( mLift2 );
 
     mpFan1 = make_shared<Fan>( GetUniqueObject( "Fan" ), 15, ruVector3( 0, 1, 0 ), ruSound::Load3D( "data/sounds/fan.ogg" ));
@@ -111,21 +111,32 @@ LevelResearchFacility::LevelResearchFacility() {
 	
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
 		GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
-	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder2Begin" ), GetUniqueObject( "Ladder2End" ), GetUniqueObject( "Ladder2Enter" ),
-		GetUniqueObject( "Ladder2BeginLeavePoint"), GetUniqueObject( "Ladder2EndLeavePoint")));
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder3Begin" ), GetUniqueObject( "Ladder3End" ), GetUniqueObject( "Ladder3Enter" ),
 		GetUniqueObject( "Ladder3BeginLeavePoint"), GetUniqueObject( "Ladder3EndLeavePoint")));
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder4Begin" ), GetUniqueObject( "Ladder4End" ), GetUniqueObject( "Ladder4Enter" ),
 		GetUniqueObject( "Ladder4BeginLeavePoint"), GetUniqueObject( "Ladder4EndLeavePoint")));
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder5Begin" ), GetUniqueObject( "Ladder5End" ), GetUniqueObject( "Ladder5Enter" ),
 		GetUniqueObject( "Ladder5BeginLeavePoint"), GetUniqueObject( "Ladder5EndLeavePoint")));
-	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder6Begin" ), GetUniqueObject( "Ladder6End" ), GetUniqueObject( "Ladder6Enter" ),
-		GetUniqueObject( "Ladder6BeginLeavePoint"), GetUniqueObject( "Ladder6EndLeavePoint")));
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder7Begin" ), GetUniqueObject( "Ladder7End" ), GetUniqueObject( "Ladder7Enter" ),
 		GetUniqueObject( "Ladder7BeginLeavePoint"), GetUniqueObject( "Ladder7EndLeavePoint")));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door9" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door10" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door11" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door12" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door13" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door14" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door15" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door16" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door17" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door18" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door19" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door20" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door21" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door22" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "EasterEggDoor" ), 90.0f ));
     AddDoor( mKeypad3DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door4" ), 90.0f ));
     AddDoor( mKeypad1DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door5" ), 90.0f ));
-    AddDoor( mKeypad2DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door8" ), 90.0f ));
+    AddDoor( mKeypad2DoorToUnlock = make_shared<Door>( GetUniqueObject( "Door8" ), 90.0f ));	
 	AddDoor( mLabDoorToUnlock = make_shared<Door>( GetUniqueObject( "LabDoor" ), 90 ));
 	AddDoor( mColliderDoorToUnlock = make_shared<Door>( GetUniqueObject( "DoorToCollider" ), 90 ));
 	AddDoor( mLockedDoor = make_shared<Door>( GetUniqueObject( "LockedDoor" ), 90 ));
@@ -254,10 +265,14 @@ void LevelResearchFacility::CreateEnemy() {
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
+	if( mSteamPS.IsValid() ) {
+		mSteamPS.Free();
+	}
 	if( mpPowerSparks ) {
 		delete mpPowerSparks;
 	}
     delete mpExtemeSteam;
+	mBurnSound.Free();
 }
 
 
@@ -283,10 +298,11 @@ void LevelResearchFacility::DoScenario() {
 	mMeshAnimation.Update();
 	mMeshLockAnimation.Update();
 	
-   // ruEngine::SetAmbientColor( ruVector3( 12.5f / 255.0f, 12.5f / 255.0f, 12.5f / 255.0f ));
-	ruEngine::SetAmbientColor( ruVector3( 0,0,0 ));
+    ruEngine::SetAmbientColor( ruVector3( 10.0f / 255.0f, 10.0f / 255.0f, 10.0f / 255.0f ));
+	//ruEngine::SetAmbientColor( ruVector3( 0,0,0 ));
+	mLift1->Update();
     if( mPowerOn ) {
-        mLift1->Update();
+        
         mpFan1->DoTurn();
         mpFan2->DoTurn();
     }
@@ -372,7 +388,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 	if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {
 		if( mThermiteItemPlace->IsPickedByPlayer() ) {
 			if( ruIsKeyHit( pPlayer->mKeyUse )) {			
-				bool placed = mThermiteItemPlace->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
+				bool placed = mThermiteItemPlace->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse()->GetType() );
 				if( placed ) {
 					if( mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder ) {
 						mThermiteSmall.Show();
@@ -387,9 +403,9 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						mThermiteSmall.Hide();
 						mThermiteBig.Hide();
 
-						ruSound burn = ruSound::Load3D( "data/sounds/burn.ogg" );
-						burn.SetPosition( mThermiteSmall.GetPosition() );
-						burn.Play();
+						mBurnSound = ruSound::Load3D( "data/sounds/burn.ogg" );
+						mBurnSound.SetPosition( mThermiteSmall.GetPosition() );
+						mBurnSound.Play();
 
 						mThermiteItemPlace->SetPlaceType( Item::Type::Unknown );
 						
@@ -441,7 +457,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
                 shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFusePlace];
 
                 if( pFuse->IsPickedByPlayer() ) {
-                    bool placed = pFuse->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse() );
+                    bool placed = pFuse->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse()->GetType() );
 
                     if( placed ) {
                         fuseModel[iFusePlace].Show();

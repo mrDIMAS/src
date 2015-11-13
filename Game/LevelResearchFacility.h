@@ -13,19 +13,19 @@
 class LevelResearchFacility : public Level {
 private:
 	void Proxy_GiveCrowbar() {
-		pPlayer->AddItem( new Item( Item::Type::Crowbar ));
+		pPlayer->AddItem( Item::Type::Crowbar );
 	}
 
 	void Proxy_GiveFe2O3() {
-		pPlayer->AddItem( new Item( Item::Type::FerrumOxide ));
+		pPlayer->AddItem( Item::Type::FerrumOxide );
 	}
 
 	void Proxy_GiveAl() {
-		pPlayer->AddItem( new Item( Item::Type::AluminumPowder ));
+		pPlayer->AddItem( Item::Type::AluminumPowder );
 	}
 
 	void Proxy_GiveFuse() {
-		pPlayer->AddItem( new Item( Item::Type::Fuse ));
+		pPlayer->AddItem( Item::Type::Fuse );
 	}
 
     shared_ptr<Lift> mLift1;
@@ -37,6 +37,7 @@ private:
     shared_ptr<Fan> mpFan2;
 
     ruSound mLeverSound;
+	ruSound mBurnSound;
     ruSound mSteamHissSound;
 
     ruSceneNode mSteamPS;

@@ -8,6 +8,8 @@ protected:
 	virtual void OnDeserialize( SaveFile & in ) final;
 public:
 	explicit BareHands();
-	virtual Item* CreateItem( ) final;
+	virtual Item::Type GetItemType( ) final {
+		return Item::Type::Unknown;
+	}
 	virtual void Update() final;
 };
