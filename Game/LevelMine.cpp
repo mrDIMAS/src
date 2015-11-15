@@ -201,7 +201,7 @@ void LevelMine::DoScenario() {
 
     mEnemy->Think();
 
-	ruEngine::SetAmbientColor( ruVector3( 6.0f / 255.0f, 6.0f / 255.0f, 6.0f / 255.0f ));
+	ruEngine::SetAmbientColor( ruVector3( 8.0f / 255.0f, 8.0f / 255.0f, 8.0f / 255.0f ));
 
     PlayAmbientSounds();
 

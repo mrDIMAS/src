@@ -38,6 +38,7 @@ public:
     IDirect3DIndexBuffer9 * mIndexBuffer;
     Texture * mDiffuseTexture;
     Texture * mNormalTexture;
+	Texture * mHeightTexture; // for parallax mapping
     vector<Vertex> mVertices;
     vector<Triangle> mTriangles;
     vector<Weight> mWeightTable;
@@ -48,6 +49,7 @@ public:
     Octree * mOctree;
     float mOpacity;
 	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
+	static IDirect3DVertexDeclaration9 * msVertexDeclarationSkin;
 public:
 	void OnResetDevice();
 	void OnLostDevice();
@@ -65,7 +67,6 @@ public:
     void UpdateBuffers();
     Texture * GetDiffuseTexture();
     Texture * GetNormalTexture();
-    void BindBuffers();
     void Render();
 	void RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount );
 };

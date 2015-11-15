@@ -38,7 +38,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
 						D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
 						Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-						mesh->BindBuffers();
+
 						mesh->Render();
 						//}
 					}

@@ -169,7 +169,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 
-    mpDeferredRenderer = new MultipleRTDeferredRenderer();	
+    mpDeferredRenderer = new MultipleRTDeferredRenderer( true );	
     mpForwardRenderer = new ForwardRenderer();	
     mpParticleSystemRenderer = new ParticleSystemRenderer();
     mpTextRenderer = new TextRenderer();
@@ -346,10 +346,23 @@ void Engine::RenderMeshesIntoGBuffer() {
             continue;
         }
         // bind diffuse texture
-        Engine::Instance().GetDevice()->SetTexture( 0, pDiffuseTexture );
+        mpDevice->SetTexture( 0, pDiffuseTexture );
         // each group has same texture
         mTextureChangeCount++;
         for( auto pMesh : meshes ) {
+			if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
+				continue;
+			}
+			if( pMesh->mVertices.size() == 0 ) {
+				continue;
+			}
+			// bind height texture for parallax mapping
+			if( pMesh->mHeightTexture ) {
+				pMesh->mHeightTexture->Bind( 2 );
+				mpDeferredRenderer->BindParallaxShaders();
+			} else {
+				mpDeferredRenderer->BindGenericShaders();
+			}
             // prevent overhead with normal texture
             if( pMesh->GetNormalTexture() ) {
                 IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
@@ -358,9 +371,6 @@ void Engine::RenderMeshesIntoGBuffer() {
                     pMesh->GetNormalTexture()->Bind( 1 );
                     pNormalTexture = meshNormalTexture;
                 }
-            }
-            if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
-                continue;
             }
             mpDeferredRenderer->RenderMesh( pMesh );            
         }
@@ -661,28 +671,37 @@ void Engine::SetDiffuseNormalSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bo
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 	} else if( filter == D3DTEXF_LINEAR ) {
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 	} else if( filter == D3DTEXF_ANISOTROPIC ) {
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
 	}
 
 	// mip filters
 	if( filter == D3DTEXF_NONE || disableMips ) {
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
 	} else if( filter == D3DTEXF_POINT ) {
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
 	} else if( filter == D3DTEXF_LINEAR || filter == D3DTEXF_ANISOTROPIC ) {
 		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+		GetDevice()->SetSamplerState ( 2, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 	}
 }
 
@@ -761,6 +780,18 @@ void Engine::SetDefaults()
 	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 
 	SetAnisotropicTextureFiltration( true );
+}
+
+void Engine::DrawIndexedTriangleList( int vertexCount, int faceCount )
+{
+	mpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertexCount, 0, faceCount );
+	++mDIPCount;
+}
+
+void Engine::SetVertexShaderVector3( UINT startRegister, ruVector3 v )
+{
+	float buffer[ 4 ] = { v.x, v.y, v.z, 0.0f };
+	GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
 

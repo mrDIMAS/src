@@ -130,32 +130,137 @@ public:
     };
 
 
-    ruVector3( );
-    ruVector3( float x, float y, float z );
-    ruVector3( const ruVector3 & v );
-    ruVector3( float * v );
-    ruVector3 operator + ( const ruVector3 & v ) const;
-    ruVector3 operator - ( const ruVector3 & v ) const;
-    ruVector3 operator * ( const ruVector3 & v ) const;
-    ruVector3 operator * ( const float & f ) const;
-    ruVector3 operator / ( const ruVector3 & v ) const;
-    ruVector3 operator / ( const float & f ) const;
-    void operator *= ( const ruVector3 & v );
-    void operator /= ( const ruVector3 & v );
-    void operator += ( const ruVector3 & v );
-    void operator -= ( const ruVector3 & v );
-    void operator = ( const ruVector3 & v );
-    bool operator == ( const ruVector3 & v );
-    float Length( ) const;
-    float Length2( ) const;
-    ruVector3 Normalize( );
-    ruVector3 Normalized() const;
-    ruVector3 Cross( const ruVector3 & v ) const;
-    float Dot( const ruVector3 & v ) const;
-    float Angle( const ruVector3 & v );
-    ruVector3 Rotate( const ruVector3 & axis, float angle );
-    ruVector3 Lerp( const ruVector3 & v, float t ) const;
-	ruVector3 Abs( ) const;
+	ruVector3( ) : x( 0.0f ), y( 0.0f ), z( 0.0f ) { };
+	ruVector3( float x, float y, float z ) : x( x ), y( y ), z( z ) { };
+
+	ruVector3( const ruVector3 & v ) {
+		x = v.x;
+		y = v.y;
+		z = v.z;
+	};
+
+	ruVector3( float * v ) {
+		x = v[ 0 ];
+		y = v[ 1 ];
+		z = v[ 2 ];
+	}
+
+	ruVector3 operator + ( const ruVector3 & v ) const {
+		return ruVector3( x + v.x, y + v.y, z + v.z );
+	}
+
+	ruVector3 operator - ( const ruVector3 & v ) const {
+		return ruVector3( x - v.x, y - v.y, z - v.z );
+	}
+
+	ruVector3 operator * ( const ruVector3 & v ) const {
+		return ruVector3( x * v.x, y * v.y, z * v.z );
+	}
+
+	ruVector3 operator * ( const float & f ) const {
+		return ruVector3( x * f, y * f, z * f );
+	}
+
+	ruVector3 operator / ( const ruVector3 & v ) const {
+		return ruVector3( x / v.x, y / v.y, z / v.z );
+	}
+
+	ruVector3 operator / ( const float & f ) const {
+		return ruVector3( x / f, y / f, z / f );
+	}
+
+	void operator *= ( const ruVector3 & v ) {
+		x *= v.x;
+		y *= v.y;
+		z *= v.z;
+	}
+
+	float Angle( const ruVector3 & v ) {
+		return acosf( Dot(v) / sqrtf( Length2() * v.Length2()) );
+	}
+
+	ruVector3 Abs( ) const {
+		return ruVector3( abs( x ), abs( y ), abs( z ));
+	}
+
+	void operator /= ( const ruVector3 & v ) {
+		x /= v.x;
+		y /= v.y;
+		z /= v.z;
+	}
+
+	void operator += ( const ruVector3 & v ) {
+		x += v.x;
+		y += v.y;
+		z += v.z;
+	}
+
+	void operator -= ( const ruVector3 & v ) {
+		x -= v.x;
+		y -= v.y;
+		z -= v.z;
+	}
+
+	void operator = ( const ruVector3 & v ) {
+		x = v.x;
+		y = v.y;
+		z = v.z;
+	}
+
+	bool operator == ( const ruVector3 & v ) {
+		float dx = abs( x - v.x );
+		float dy = abs( y - v.y );
+		float dz = abs( z - v.z );
+
+		return dx > 0.0001f && dy > 0.0001f && dz > 0.0001f;
+	}
+
+	float Length( ) const {
+		return sqrt( x * x + y * y + z * z );
+	}
+
+	float Length2( ) const {
+		return x * x + y * y + z * z;
+	}
+
+	ruVector3 Normalize( ) {
+		float l = 1.0f / Length();
+
+		x *= l;
+		y *= l;
+		z *= l;
+
+		return *this;
+	}
+
+	ruVector3 Normalized() const {
+		float l = 1.0f / Length();
+		return ruVector3( x * l, y * l, z * l );
+	}
+
+	ruVector3 Cross( const ruVector3 & v ) const {
+		return ruVector3( y * v.z - z * v.x, z * v.x - x * v.z, x * v.y - y * v.x );
+	}
+
+	float Dot( const ruVector3 & v ) const {
+		return x * v.x + y * v.y + z * v.z;
+	}
+
+	ruVector3 Rotate( const ruVector3 & axis, float angle ) {
+		angle *= 3.14159f / 180.0f;
+
+		ruVector3 o = axis * axis.Dot( *this );
+		ruVector3 x = *this - o;
+		ruVector3 y;
+
+		y = axis.Cross( *this );
+
+		return ( o + x * cosf( angle ) + y * sinf( angle ) );
+	}
+
+	ruVector3 Lerp( const ruVector3 & v, float t ) const {
+		return ruVector3( x + ( v.x - x ) * t, y + ( v.y - y ) * t, z + ( v.z - z ) * t );
+	}
 };
 
 static inline ruVector3 operator * ( const float & f, const ruVector3 & v ) {
@@ -170,20 +275,24 @@ static inline float Lerp( const float & from, const float & to, const float & t 
     return from + ( to - from ) * t;
 }
 
-struct ruVector2 {
+class ruVector2 {
 public:
-    float x;
-    float y;
+    float x, y;
 
     ruVector2( ) {
         x = 0;
         y = 0;
     };
 
-    ruVector2( float x, float y ) {
-        this->x = x;
-        this->y = y;
-    };
+    ruVector2( float _x, float _y ) : x( _x ), y( _y ) { };
+};
+
+class ruVector4 {
+public:
+	float x, y, z, w;
+
+	ruVector4( float _x, float _y, float _z, float _w ) : x( _x ), y( _y ), z( _z ), w( _w ) { };
+	ruVector4( ) : x( 0.0f ), y( 0.0f ), z( 0.0f ), w( 0.0f ) { };
 };
 
 class ruQuaternion {
@@ -207,8 +316,6 @@ static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaterni
 }
 
 #define BODY_MAX_CONTACTS ( 16 )
-
-
 
 class ruGUIState {
 public:

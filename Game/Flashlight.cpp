@@ -4,18 +4,21 @@
 #include "Player.h"
 
 Flashlight::Flashlight() {
-	mModel = ruSceneNode::LoadFromFile( "data/models/hands/arm.scene" );
+	mModel = ruSceneNode::LoadFromFile( "data/models/hands/arm_anim.scene" );
 	mModel.SetDepthHack( 0.155f );
 
 	mLight = mModel.FindChild( "PlayerLight" );
 	ruSetLightSpotTexture( mLight, ruGetTexture( "data/textures/generic/spotlight.jpg"));
 
 	mOnSound = ruSound::Load2D( "data/sounds/lighter/open.ogg" );
-	mOffSound = ruSound::Load2D( "data/sounds/lighter/close.ogg" );
-	mFireSound = ruSound::Load2D( "data/sounds/lighter/fire.ogg" );
-	mOutOfChargeSound = ruSound::Load2D( "data/sounds/flashlight/outofcharge.ogg" );
+	mOnSound.SetVolume( 0.3f );
 
-	mOnRange = ruGetLightRange( mLight ) * 2; // HAAAAAAAAAAAAAAAX!
+	mOffSound = ruSound::Load2D( "data/sounds/lighter/close.ogg" );
+	mOffSound.SetVolume( 0.3f );
+
+	mFireSound = ruSound::Load2D( "data/sounds/lighter/fire.ogg" );
+
+	mOnRange = ruGetLightRange( mLight ) * 1; // HAAAAAAAAAAAAAAAX!
 
 	const float lim = 0.02;
 	ruSetLightFloatingLimits( mLight, ruVector3( -lim, -lim, -lim ), ruVector3( lim, lim, lim ));
@@ -102,7 +105,6 @@ Flashlight::~Flashlight() {
 	mOnSound.Free();
 	mOffSound.Free();
 	mFireSound.Free();
-	mOutOfChargeSound.Free();
 }
 
 bool Flashlight::IsBeamContainsPoint( ruVector3 point ) const {

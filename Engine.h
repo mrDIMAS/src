@@ -80,6 +80,7 @@ public:
     void SetPixelShaderFloat3( UINT startRegister, float * v );
     void SetPixelShaderFloat( UINT startRegister, float v );
     void SetPixelShaderInt( UINT startRegister, int v );
+	void SetVertexShaderVector3( UINT startRegister, ruVector3 v );
 	void Reset();
 	int GetDeviceRefCount();
 	void Pause();
@@ -114,4 +115,5 @@ public:
 	string GetTextureStoragePath();
 	IDirect3DSurface9 * GetBackBuffer();
 	void SetTextureStoragePath( const string & path );
+	void DrawIndexedTriangleList( int vertexCount, int faceCount );
 };

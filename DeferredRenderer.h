@@ -106,7 +106,8 @@ public:
     virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;
-
+	virtual void BindParallaxShaders() = 0;
+	virtual void BindGenericShaders() = 0;
     void SetSpotLightShadowMapSize( int size );
     void EndFirstPassAndDoSecondPass();
 

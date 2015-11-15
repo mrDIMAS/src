@@ -438,9 +438,12 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
             }
 
             mesh->mDiffuseTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + diffuse );
-			if( mesh->mOpacity > 0.95f )
+			if( mesh->mOpacity > 0.95f ) {
 				mesh->mNormalTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + normal );
 
+				string height = diffuse.substr( 0, diffuse.find_first_of( '.' )) + "_height" + diffuse.substr( diffuse.find_first_of( '.' ));
+				mesh->mHeightTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + height );
+			}
             node->mMeshList.push_back( mesh );
 
             if( node->mIsSkinned ) {
@@ -538,12 +541,12 @@ void SceneNode::PerformAnimation() {
 
                     btTransform transform = ( boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform ) * CalculateGlobalTransform();
                     newPosition += transform * initialPosition * bone.mWeight;
-                    //newNormal += transform.getBasis().inverse().transpose() * initialNormal * bone.mWeight;
-                    //newTangent += transform.getBasis() * initialTangent * bone.mWeight;
+                    newNormal += transform.getBasis() * ( initialNormal * bone.mWeight );
+                    newTangent += transform.getBasis() * ( initialTangent * bone.mWeight );
 					
                 }
-				newNormal = initialNormal;
-				newTangent = initialTangent;
+				//newNormal = initialNormal;
+				//newTangent = initialTangent;
 
                 vertex.mPosition = ruVector3( newPosition.m_floats );
                 vertex.mNormal = ruVector3( newNormal.m_floats );
@@ -1196,9 +1199,8 @@ bool SceneNode::IsDynamic() {
 		if( dynamic_cast<btBvhTriangleMeshShape*>( mBodyList[0]->getCollisionShape()) == nullptr ) {
 			return true;
 		}
-	} else {
-		return false;
 	}
+	return false;	
 }
 
 ruTextureHandle SceneNode::GetTexture( int n )

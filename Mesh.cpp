@@ -6,10 +6,13 @@
 #include "Vertex.h"
 #include "ForwardRenderer.h"
 
-IDirect3DVertexDeclaration9 * Mesh::msVertexDeclaration = 0;
+IDirect3DVertexDeclaration9 * Mesh::msVertexDeclaration;
+IDirect3DVertexDeclaration9 * Mesh::msVertexDeclarationSkin;
+
 unordered_map< IDirect3DTexture9*, vector< Mesh*>> Mesh::msMeshList;
 
-Mesh::Mesh() {
+Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ), mIndexBuffer( nullptr ), mVertexBuffer( nullptr ),
+			   mNormalTexture( nullptr ), mOctree( nullptr ), mOpacity( 1.0f ) {
 	if( !msVertexDeclaration ) {
 		D3DVERTEXELEMENT9 vd[ ] = {
 			{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -21,12 +24,19 @@ Mesh::Mesh() {
 
 		Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration );
 	}
-    mDiffuseTexture = nullptr;
-    mIndexBuffer = nullptr;
-    mVertexBuffer = nullptr;
-    mNormalTexture = nullptr;
-    mOctree = nullptr;
-    mOpacity = 1.0f;
+	if( !msVertexDeclarationSkin ) {
+		D3DVERTEXELEMENT9 vd[ ] = {
+			{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+			{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+			{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+			{ 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
+			{ 0, 44, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 }, // bone indices
+			{ 0, 60, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 }, // bone weights
+			D3DDECL_END()
+		};
+
+		Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclarationSkin );
+	}
 }
 
 void Mesh::LinkTo( SceneNode * owner ) {
@@ -140,33 +150,27 @@ Texture * Mesh::GetNormalTexture() {
     return mNormalTexture;
 }
 
-void Mesh::BindBuffers() {
-    Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
-    Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
-    if( mOctree ) {
-        vector< Triangle > & id = mOctree->GetTrianglesToRender();
-        if( id.size() ) {
-            UpdateIndexBuffer( id );
-        }
-    }
-    Engine::Instance().GetDevice()->SetIndices( mIndexBuffer );
-}
-
 void Mesh::Render() {
+	Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
+	Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
+	if( mOctree ) {
+		vector< Triangle > & id = mOctree->GetTrianglesToRender();
+		if( id.size() ) {
+			UpdateIndexBuffer( id );
+		}
+	}
+	Engine::Instance().GetDevice()->SetIndices( mIndexBuffer );
     if( mOctree ) {
 #ifdef _OCTREE_DEBUG
         mOctree->VisualizeHierarchy();
         ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", mOctree->mVisibleNodeCount, mOctree->mVisibleTriangleCount ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( mOctree->mVisibleTriangleList.size() ) {
-            Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mOctree->mVisibleTriangleList.size() );
+			Engine::Instance().DrawIndexedTriangleList( mVertices.size(), mOctree->mVisibleTriangleList.size() );
         }
     } else {
-        Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, mTriangles.size() );
+		Engine::Instance().DrawIndexedTriangleList( mVertices.size(), mTriangles.size() );
     }
-
-    // each mesh renders in one DIP
-    Engine::Instance().RegisterDIP();
 }
 
 void Mesh::RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount ) {

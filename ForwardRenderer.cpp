@@ -24,7 +24,6 @@ void ForwardRenderer::RenderMeshes() {
 					Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
 					Engine::Instance().GetDevice()->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 );
 
-					pMesh->BindBuffers();
 					pMesh->Render();
 				}
 			}

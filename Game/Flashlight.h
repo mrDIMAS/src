@@ -23,7 +23,6 @@ private:
     ruSound mOnSound;
     ruSound mOffSound;
 	ruSound mFireSound;
-    ruSound mOutOfChargeSound;
 
 	ruSceneNode mFire;
     ruVector3 mInitialPosition;
