@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 #include "Engine.h"
 #include "Light.h"
@@ -6,10 +27,9 @@
 
 vector< Light* > Light::msPointLightList;
 vector< Light* > Light::msSpotLightList;
-vector<Light*> Light::lights;
-IDirect3DVertexBuffer9 * Light::flareBuffer = nullptr;
-Texture * Light::defaultSpotTexture = nullptr;
-CubeTexture * Light::defaultPointCubeTexture = nullptr;
+vector<Light*> Light::msLightList;
+Texture * Light::msDefaultSpotTexture = nullptr;
+CubeTexture * Light::msDefaultPointCubeTexture = nullptr;
 
 Light * Light::GetLightByHandle( ruSceneNode handle ) {
     SceneNode * n = SceneNode::CastHandle( handle );
@@ -33,74 +53,70 @@ bool ruIsLightHandeValid( ruSceneNode handle ) {
 	return false;
 }
 
-Light::Light( int type ) {
-    color = ruVector3( 1.0f, 1.0f, 1.0f );
-    radius = 1.0f;
-    flareTexture = nullptr;
-    pointTexture = nullptr;
-    spotTexture = nullptr;
-    floating = false;
+Light::Light( ruLight::Type type ) : mGreyScaleFactor( 0.0f ) {
+    mColor = ruVector3( 1.0f, 1.0f, 1.0f );
+    mRadius = 1.0f;
+    mPointTexture = nullptr;
+    mSpotTexture = nullptr;
 	mQueryDone = true;
-    brightness = 1.0f;
-    this->type = type;
-    if( type == LT_POINT ) {
+    this->mType = type;
+    if( type == ruLight::Type::Point ) {
         Light::msPointLightList.push_back( this );
-        if( defaultPointCubeTexture ) {
-            pointTexture = defaultPointCubeTexture;
+        if( msDefaultPointCubeTexture ) {
+            mPointTexture = msDefaultPointCubeTexture;
         }
     }
-    if( type == LT_SPOT ) {
+    if( type == ruLight::Type::Spot ) {
         Light::msSpotLightList.push_back( this );
-        if( defaultSpotTexture ) {
-            spotTexture = defaultSpotTexture;
+        if( msDefaultSpotTexture ) {
+            mSpotTexture = msDefaultSpotTexture;
         }
     }
     SetConeAngles( 45.0f, 80.0f );
 	OnResetDevice();
-	trulyVisible = true;
-	inFrustum = false;
+	mInFrustum = false;
 }
 
 void Light::SetColor( const ruVector3 & theColor ) {
-    color.x = theColor.x / 255.0f;
-    color.y = theColor.y / 255.0f;
-    color.z = theColor.z / 255.0f;
+    mColor.x = theColor.x / 255.0f;
+    mColor.y = theColor.y / 255.0f;
+    mColor.z = theColor.z / 255.0f;
 }
 
 ruVector3 Light::GetColor() const {
-    return color;
+    return mColor;
 }
 
-void Light::SetRadius( const float & theRadius ) {
-    radius = theRadius;
+void Light::SetRange( const float & theRadius ) {
+    mRadius = theRadius;
 }
 
-float Light::GetRadius() const {
-    return radius;
+float Light::GetRange() const {
+    return mRadius;
 }
 
 float Light::GetInnerAngle() const {
-    return innerAngle;
+    return mInnerAngle;
 }
 
 float Light::GetOuterAngle() const {
-    return outerAngle;
+    return mOuterAngle;
 }
 
 void Light::SetConeAngles( float theInner, float theOuter ) {
-    innerAngle = theInner;
-    outerAngle = theOuter;
+    mInnerAngle = theInner;
+    mOuterAngle = theOuter;
 
-    cosHalfInnerAngle = cosf( ( innerAngle / 2 ) * SIMD_PI / 180.0f );
-    cosHalfOuterAngle = cosf( ( outerAngle / 2 ) * SIMD_PI / 180.0f );
+    mCosHalfInnerAngle = cosf( ( mInnerAngle / 2 ) * SIMD_PI / 180.0f );
+    mCosHalfOuterAngle = cosf( ( mOuterAngle / 2 ) * SIMD_PI / 180.0f );
 }
 
 float Light::GetCosHalfInnerAngle( ) {
-    return cosHalfInnerAngle;
+    return mCosHalfInnerAngle;
 }
 
 float Light::GetCosHalfOuterAngle( ) {
-    return cosHalfOuterAngle;
+    return mCosHalfOuterAngle;
 }
 
 Light::~Light() {
@@ -127,7 +143,8 @@ Light::~Light() {
 }
 
 void Light::BuildSpotProjectionMatrixAndFrustum() {
-    btVector3 bEye = btVector3( GetRealPosition().x, GetRealPosition().y, GetRealPosition().z );
+	ruVector3 position = GetPosition();
+    btVector3 bEye = btVector3( position.x, position.y, position.z );
     btVector3 bLookAt = bEye + mGlobalTransform.getBasis() * btVector3( 0, -1, 0 );
     btVector3 bUp = mGlobalTransform.getBasis() * btVector3( 1, 0, 0 );
 
@@ -137,86 +154,20 @@ void Light::BuildSpotProjectionMatrixAndFrustum() {
 
     D3DXMATRIX mView, mProj;
     D3DXMatrixLookAtRH( &mView, &dxEye, &dxLookAt, &dxUp );
-    D3DXMatrixPerspectiveFovRH( &mProj, outerAngle * SIMD_PI / 180.0f, 1.0f, 0.1f, 1000.0f );
-    D3DXMatrixMultiply( &spotViewProjectionMatrix, &mView, &mProj );
-    frustum.Build( spotViewProjectionMatrix );
+    D3DXMatrixPerspectiveFovRH( &mProj, mOuterAngle * SIMD_PI / 180.0f, 1.0f, 0.1f, 1000.0f );
+    D3DXMatrixMultiply( &mSpotViewProjectionMatrix, &mView, &mProj );
+    mFrustum.Build( mSpotViewProjectionMatrix );
 }
 
 void Light::SetSpotTexture( Texture * tex ) {
-    spotTexture = tex;
-}
-
-void Light::RenderLightFlares() {
-    if( !flareBuffer ) {
-        return;
-    }
-    Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, false );
-    Engine::Instance().GetDevice()->SetTransform( D3DTS_VIEW, &Camera::msCurrentCamera->mView );
-    Engine::Instance().GetDevice()->SetTransform( D3DTS_PROJECTION, &Camera::msCurrentCamera->mProjection );
-    Engine::Instance().GetDevice()->SetFVF( D3DFVF_XYZ | D3DFVF_TEX1 );
-    Engine::Instance().GetDevice()->SetStreamSource( 0, flareBuffer, 0, sizeof( flareVertex_t ));
-    D3DXMATRIX world, scale;
-    for( auto light : lights ) {
-        if( !light->flareTexture ) {
-            continue;
-        }
-        btVector3 btOrigin = light->mGlobalTransform.getOrigin();
-        float flareScale = (btOrigin - Camera::msCurrentCamera->mGlobalTransform.getOrigin()).length();
-        if( flareScale > 1.2f ) {
-            flareScale = 1.2f;
-        }
-        D3DXMatrixTranslation( &world, btOrigin.x(), btOrigin.y(), btOrigin.z() );
-        D3DXMatrixScaling( &scale, flareScale, flareScale, flareScale );
-        D3DXMatrixMultiply( &world, &world, &scale );
-        light->flareTexture->Bind( 0 );
-        Engine::Instance().GetDevice()->SetTransform( D3DTS_WORLD, &world );
-        Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
-    }
-}
-
-void Light::SetFlare( Texture * texture ) {
-    if( !texture ) {
-        return;
-    }
-    if( !flareBuffer ) {
-        flareVertex_t fv[] = {
-            { -0.5f,  0.5f, 0.0f, 0.0f, 0.0f },
-            {  0.5f,  0.5f, 1.0f, 0.0f, 0.0f },
-            { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f },
-            {  0.5f,  0.5f, 1.0f, 0.0f, 0.0f },
-            {  0.5f, -0.5f, 1.0f, 1.0f, 0.0f },
-            { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f }
-        };
-        Engine::Instance().GetDevice()->CreateVertexBuffer( sizeof( fv ) / sizeof( fv[0] ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &flareBuffer, 0 );
-    }
-    flareTexture = texture;
+    mSpotTexture = tex;
 }
 
 void Light::SetPointTexture( CubeTexture * ctex ) {
-    pointTexture = ctex;
+    mPointTexture = ctex;
 }
 
-void Light::DoFloating() {
-    if( floating ) {
-        // 'chase' floatTo
-        floatOffset = floatOffset.Lerp( floatTo, 0.015 );
-        // if close enough to floatTo
-        if( (floatOffset - floatTo).Length2() < 0.005f ) {
-            // get new random value
-            floatTo.x = frandom( floatMin.x, floatMax.x );
-            floatTo.y = frandom( floatMin.y, floatMax.y );
-            floatTo.z = frandom( floatMin.z, floatMax.z );
-        }
-    }
-}
 
-ruVector3 Light::GetRealPosition() {
-    if( floating ) {
-        return GetPosition() + floatOffset;
-    } else {
-        return GetPosition();
-    }
-}
 
 void Light::OnResetDevice()
 {
@@ -229,153 +180,25 @@ void Light::OnLostDevice()
 	pQuery->Release();
 }
 
-// API Functions
-int ruGetWorldSpotLightCount() {
-    return Light::msSpotLightList.size();
+void Light::SetGreyScaleFactor( float greyScaleFactor )
+{
+	mGreyScaleFactor = greyScaleFactor;
 }
 
-ruSceneNode ruGetWorldSpotLight( int n ) {
-    ruSceneNode handle;
-    if( n >= Light::msSpotLightList.size() || n < 0 ) {
-        return handle;
-    } else {
-        handle.pointer = Light::msSpotLightList[n];
-        return handle;
-    }
+float Light::GetGreyScaleFactor()
+{
+	return mGreyScaleFactor;
 }
 
-int ruGetWorldPointLightCount() {
-    return Light::msPointLightList.size();
-}
-
-ruSceneNode ruGetWorldPointLight( int n ) {
-    ruSceneNode handle;
-    if( n >= Light::msPointLightList.size() || n < 0 ) {
-        return handle;
-    } else {
-        handle.pointer = Light::msPointLightList[n];
-        return handle;
-    }
-}
-
-void ruSetLightFlare( ruSceneNode node, ruTextureHandle flareTexture ) {
-    Light::GetLightByHandle( node )->flareTexture = (Texture *)flareTexture.pointer;
-}
-
-void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture ) {
-    // FIX
-}
-
-bool ruIsLight( ruSceneNode node ) {
-    Light * pLight = dynamic_cast< Light* >( (SceneNode*)node.pointer );
-    return pLight != nullptr;
-}
-
-void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture ) {
-    Light::defaultSpotTexture = (Texture *)defaultSpotTexture.pointer;
-    for( auto spot : Light::msSpotLightList ) {
-        if( !spot->spotTexture ) {
-            spot->spotTexture = Light::defaultSpotTexture;
-        }
-    }
-}
-
-void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture ) {
-    Light::defaultPointCubeTexture = (CubeTexture *)defaultPointTexture.pointer;
-    for( auto point : Light::msPointLightList ) {
-        if( !point->pointTexture ) {
-            point->pointTexture = Light::defaultPointCubeTexture;
-        }
-    }
-}
-
-void ruSetLightPointTexture( ruSceneNode node, ruCubeTextureHandle cubeTexture ) {
-    Light::GetLightByHandle( node )->SetPointTexture( (CubeTexture*)cubeTexture.pointer );
-}
-
-ruSceneNode ruCreateLight( int type  ) {
-    return SceneNode::HandleFromPointer( new Light( type ) );
-}
-
-void ruSetConeAngles( ruSceneNode node, float innerAngle, float outerAngle ) {
-    Light::GetLightByHandle( node )->SetConeAngles( innerAngle, outerAngle );
-}
-
-void ruSetLightRange( ruSceneNode node, float rad ) {
-    Light * l = Light::GetLightByHandle( node );
-    if( l ) {
-        for( int i = 0; i < node.GetCountChildren(); i++ ) {
-            ruSetLightRange( node.GetChild( i ), rad );
-        }
-        l->SetRadius( rad );
-    }
-}
-
-void ruSetLightFloatingLimits( ruSceneNode node, ruVector3 floatMin, ruVector3 floatMax ) {
-    Light * l = Light::GetLightByHandle( node );
-    if( l ) {
-        l->floatMax = floatMax;
-        l->floatMin = floatMin;
-    }
-}
-
-void ruSetLightFloatingEnabled( ruSceneNode node, bool state ) {
-    Light::GetLightByHandle( node )->floating = state;
-}
-
-bool ruIsLightFloatingEnabled( ruSceneNode node ) {
-    return Light::GetLightByHandle( node )->floating;
-}
-
-void ruSetLightColor( ruSceneNode node, ruVector3 clr ) {
-    Light * l = Light::GetLightByHandle( node );
-
-    if( !l ) {
-        return;
-    }
-
-    for( int i = 0; i < node.GetCountChildren(); i++ ) {
-        ruSetLightColor( node.GetChild( i ), clr );
-    }
-
-    l->SetColor( clr );
-}
-
-float ruGetLightRange( ruSceneNode node ) {
-    Light * l = Light::GetLightByHandle( node );
-
-    if( !l ) {
-        return 0;
-    }
-
-    return l->radius;
-}
-
-void ruSetLightSpotTexture( ruSceneNode node, ruTextureHandle texture ) {
-    Light * l = Light::GetLightByHandle( node );
-
-    if( !l ) {
-        return;
-    }
-
-    l->SetSpotTexture( (Texture*)texture.pointer );
-}
-
-bool ruIsLightSeePoint( ruSceneNode node, ruVector3 point ) {
-    Light * l = Light::GetLightByHandle( node );
-
-    if( !l ) {
-        return false;
-    }
-
-    if( l->type == LT_SPOT ) {
-        bool inFrustum = l->frustum.IsPointInside( point );
-
-        if( inFrustum ) {
-            return ( ruVector3( l->mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
-        }
-    } else {
-        return (ruVector3( l->mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < l->radius * l->radius * 4;
-    }
-    return false;
+bool Light::IsSeePoint( const ruVector3 & point )
+{
+	if( mType == ruLight::Type::Spot ) {
+		bool inFrustum = mFrustum.IsPointInside( point );
+		if( inFrustum ) {
+			return ( ruVector3( mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < mRadius * mRadius * 4;
+		}
+	} else {
+		return (ruVector3( mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < mRadius * mRadius * 4;
+	}
+	return false;
 }

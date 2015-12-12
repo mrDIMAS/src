@@ -43,7 +43,7 @@ Tip::Tip() : mAlpha( 255.0f, 0.0f, 255.0f ) {
     mWidth = 256;
     mHeight = 32;
     mX = ruEngine::GetResolutionWidth() / 2 - mWidth / 2;
-    mGUIText = ruCreateGUIText( " ", 0, 0, mWidth, mHeight, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 , mAlpha );
+    mGUIText = ruCreateGUIText( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, ruVector3( 255, 0, 0 ), 1 , mAlpha );
 	SetNewText( " " );
 }
 

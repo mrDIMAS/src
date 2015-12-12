@@ -6,7 +6,7 @@ private:
 	ruButtonHandle mYesButton;
 	ruButtonHandle mNoButton;
 	ruTextHandle mText;
-	void Close();
+	
 public:
 	explicit ModalWindow( int x, int y, int w, int h, ruTextureHandle texture,  ruTextureHandle buttonTexture, ruVector3 color );
 	void SetYesAction( const ruDelegate & yesAction );
@@ -14,5 +14,6 @@ public:
 	void AttachTo( ruGUINodeHandle node );
 	void Ask( const string & text );
 	void Update();
+	void Close();
 	void CloseNoAction();
 };

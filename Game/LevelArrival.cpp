@@ -142,7 +142,7 @@ void LevelArrival::DoScenario() {
 		PlayAmbientSounds();
 		if( pPlayer->IsInsideZone( mLiftStopZone )) {
 			mLift->SetPaused( true );
-			ruSetLightRange( mLiftLamp, 0.01f );
+			mLiftLamp.SetRange( 0.01f );
 			mStages[ "LiftCrashed" ] = true;
 			mLiftCrashSeries.SetEnabled( true );			
 		}

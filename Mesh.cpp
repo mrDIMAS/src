@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 #include "Engine.h"
 #include "Mesh.h"
@@ -12,7 +33,7 @@ IDirect3DVertexDeclaration9 * Mesh::msVertexDeclarationSkin;
 unordered_map< IDirect3DTexture9*, vector< Mesh*>> Mesh::msMeshList;
 
 Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ), mIndexBuffer( nullptr ), mVertexBuffer( nullptr ),
-			   mNormalTexture( nullptr ), mOctree( nullptr ), mOpacity( 1.0f ) {
+			   mNormalTexture( nullptr ), mOctree( nullptr ), mOpacity( 1.0f ), mSkinned( false ) {
 	if( !msVertexDeclaration ) {
 		D3DVERTEXELEMENT9 vd[ ] = {
 			{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -40,6 +61,7 @@ Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ), mIndexBuff
 }
 
 void Mesh::LinkTo( SceneNode * owner ) {
+	mSkinned = owner->mIsSkinned;
 	mOwnerList.push_back( owner );
 }
 
@@ -67,33 +89,71 @@ void Mesh::Register( Mesh * mesh ) {
 Mesh::~Mesh() {
     OnLostDevice();
     
+	for( auto pBone : mBones ) {
+		delete pBone;
+	}
+
     if( mOctree ) {
         delete mOctree;
     }
 }
 
-void Mesh::UpdateVertexBuffer() {
-	if( mVertices.size() ) {
-		int sizeBytes = mVertices.size() * sizeof( Vertex );
-		if( !mVertexBuffer ) {
-			Engine::Instance().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+void Mesh::CreateVertexBuffer() {
+	int sizeBytes;
+	void * data;
+	vector<VertexSkin> skinVertices;
+
+	if( mVertices.size() ) {		
+		if( mSkinned ) {
+			sizeBytes = mVertices.size() * sizeof( VertexSkin );
+			for( int i = 0; i < mVertices.size(); i++ ) {
+				Mesh::BoneGroup w = mWeightTable[i];
+				ruVector4 boneIndices = ruVector4( -1, -1, -1, -1 );	
+				ruVector4 boneWeights = ruVector4( 0.0f, 0.0f, 0.0f, 0.0f );
+				for( int k = 0; k < w.mBoneCount; k++ ) {
+					boneIndices.c[ k ] = w.mBone[k].mRealBone->mMatrixID;
+					boneWeights.c[ k ] = w.mBone[k].mWeight;
+				}
+				skinVertices.push_back( VertexSkin( mVertices[i], boneIndices, boneWeights ));
+			}
+			data = &skinVertices[0];
+		} else {
+			sizeBytes = mVertices.size() * sizeof( Vertex );
+			data = &mVertices[0];
 		}
-		if( mVertices.size() == 0 ) {
-			return;
-		}
+		
+
+		// dont care about FVF, set it to simple D3DFVF_XYZ
+		Engine::Instance().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+		
 		void * vertexData = 0;
 		mVertexBuffer->Lock( 0, 0, &vertexData, 0 );
-		memcpy( vertexData, &mVertices[ 0 ], sizeBytes );
+		memcpy( vertexData, data, sizeBytes );
 		mVertexBuffer->Unlock();
 	}
 }
 
-void Mesh::UpdateIndexBuffer( vector< Triangle > & triangles ) {
+
+Mesh::Bone * Mesh::AddBone( SceneNode * node ) {
+	Mesh::Bone * bone = nullptr;
+	for( auto & pBone : mBones ) {
+		if( pBone->mNode == node ) {
+			bone = pBone;
+			break;
+		}
+	}
+	if( !bone ) {
+		bone = new Bone( node, mBones.size() );
+		mBones.push_back( bone );
+	}
+	return bone;		
+}
+
+
+void Mesh::CreateIndexBuffer( vector< Triangle > & triangles ) {
 	if( triangles.size() ) {
 		int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
-		if( !mIndexBuffer ) {
-			Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
-		}
+		Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );		
 		void * indexData = 0;
 		mIndexBuffer->Lock( 0, 0, &indexData, 0 );
 		memcpy( indexData, &triangles[ 0 ], sizeBytes );
@@ -105,9 +165,9 @@ vector<SceneNode*> & Mesh::GetOwners() {
     return mOwnerList;
 }
 
-void Mesh::UpdateBuffers() {
-    UpdateVertexBuffer();
-    UpdateIndexBuffer( mTriangles );
+void Mesh::CreateHardwareBuffers() {
+    CreateVertexBuffer();
+    CreateIndexBuffer( mTriangles );
 }
 
 void Mesh::EraseOrphanMeshes() {
@@ -140,6 +200,7 @@ void Mesh::CleanUp() {
 		delete pMesh;
 	}
 	msVertexDeclaration->Release();
+	msVertexDeclarationSkin->Release();
 }
 
 Texture * Mesh::GetDiffuseTexture() {
@@ -151,12 +212,18 @@ Texture * Mesh::GetNormalTexture() {
 }
 
 void Mesh::Render() {
-	Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
-	Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
+	if( mSkinned ) {
+		Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( VertexSkin ));
+		Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclarationSkin );
+	} else {
+		Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
+		Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
+	}
+	
 	if( mOctree ) {
 		vector< Triangle > & id = mOctree->GetTrianglesToRender();
 		if( id.size() ) {
-			UpdateIndexBuffer( id );
+			CreateIndexBuffer( id );
 		}
 	}
 	Engine::Instance().GetDevice()->SetIndices( mIndexBuffer );
@@ -180,8 +247,7 @@ void Mesh::RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount ) {
 	Engine::Instance().RegisterDIP();
 }
 
-void Mesh::OnLostDevice()
-{
+void Mesh::OnLostDevice() {
 	bool removed = false;
 	auto group = Mesh::msMeshList.find( mDiffuseTexture->GetInterface() );
 	if( group != Mesh::msMeshList.end()) {
@@ -211,15 +277,27 @@ void Mesh::OnLostDevice()
 
 }
 
-void Mesh::OnResetDevice()
-{
-	UpdateBuffers();
+void Mesh::OnResetDevice() {
+	CreateHardwareBuffers();
 	Mesh::Register( this );
 }
 
-Mesh::Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short vC )
-{
+vector<Mesh::Bone*> & Mesh::GetBones() {
+	return mBones;
+}
+
+Mesh::Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
 	mA = vA;
 	mB = vB;
 	mC = vC;
+}
+
+Mesh::Bone::Bone() : mNode( nullptr )
+{
+	D3DXMatrixIdentity( &mMatrix );
+}
+
+Mesh::Bone::Bone( SceneNode * node, int matrixID ) : mNode( node ), mMatrixID( matrixID )
+{
+	D3DXMatrixIdentity( &mMatrix );
 }

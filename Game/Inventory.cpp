@@ -1,16 +1,16 @@
 #include "Precompiled.h"
 
 #include "Inventory.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 #include "Player.h"
 
 
 Inventory::Inventory() {
     mLocalization.ParseFile( localizationPath + "inventory.loc" );
 
-    mBackgroundTexture = ruGetTexture( "data/gui/inventory/inventoryBackground.png");
-    mCellTexture = ruGetTexture( "data/gui/inventory/inventoryCell.png" );
-    mButtonTexture = ruGetTexture( "data/gui/inventory/inventoryButton.png" );
+    mBackgroundTexture = ruGetTexture( "data/gui/inventory/back.tga");
+    mCellTexture = ruGetTexture( "data/gui/inventory/item.tga" );
+    mButtonTexture = ruGetTexture( "data/gui/inventory/button.tga" );
 
     mOpen = false;
     mpSelectedItem = nullptr;
@@ -24,76 +24,70 @@ Inventory::Inventory() {
 
     mPickSound = ruSound::Load2D( "data/sounds/menupick.ogg" );
 
-    ruVector3 whiteColor = ruVector3( 255, 255, 255 );
     int screenCenterX = ruEngine::GetResolutionWidth() / 2;
     int screenCenterY = ruEngine::GetResolutionHeight() / 2;
 
-    mGUIRectItemForUse = ruCreateGUIRect( screenCenterX, screenCenterY, 64, 64, ruTextureHandle::Empty(), whiteColor, 255 );
+    mGUIRectItemForUse = ruCreateGUIRect( screenCenterX, screenCenterY, 64, 64, ruTextureHandle::Empty(), pGUIProp->mForeColor, 255 );
 
     float distMult = 1.1f;
     int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
     int cellSpaceY = distMult * mCellHeight / (float)mCellCountHeight;
-    int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX;
-    int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY;
+    int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX - 64;
+    int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY - 64;
     // background
     int backGroundSpace = 20;
     int backgroundX = coordX - backGroundSpace;
     int backgroundY = coordY - backGroundSpace;
-    int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX;
-    int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY;
-    mGUICanvas = ruCreateGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture );
+    int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX + 128;
+    int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY + 128;
+    mGUICanvas = ruCreateGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture, pGUIProp->mBackColor );
     int combineH = 128;
-    int combineY = backgroundY + backgroundH;
+    int combineY = backgroundY + backgroundH - 128;
     int descriptionY = combineY + 10;
-    mGUIRightPanel = ruCreateGUIRect( backgroundX, combineY, backgroundW, combineH, mBackgroundTexture );
-	//ruAttachGUINode( mGUIRightPanel, mGUICanvas );
-    mGUIDescription = ruCreateGUIText( mLocalization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW, combineH, mFont, whiteColor, 0 );
-	//ruAttachGUINode( mGUIDescription, mGUICanvas );
+    mGUIDescription = ruCreateGUIText( mLocalization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW - 128, combineH, mFont, pGUIProp->mForeColor, 0 );
     // item actions
     int actionsW = 128;
-    int actionsX = backgroundX + backgroundW;
-    mGUIActions = ruCreateGUIRect( actionsX, backgroundY, actionsW, backgroundH + combineH, mBackgroundTexture );
+    int actionsX = backgroundX + backgroundW - 128;
+    //mGUIActions = ruCreateGUIRect( actionsX, backgroundY, actionsW, backgroundH + combineH, mBackgroundTexture );
     //  actions buttons
     int buttonSpace = 10;
     int buttonsX = actionsX + buttonSpace;
     int buttonY = backgroundY + 2 * buttonSpace;
     int buttonH = 30;
     int buttonW = actionsW - 2 * buttonSpace;
-    mGUIButtonUse = ruCreateGUIButton( buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "use" ), mFont, whiteColor, 1, 255 );
-    mGUIButtonCombine = ruCreateGUIButton( buttonsX, buttonY + 2.4f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "combine" ), mFont, whiteColor, 1, 255 );
+    mGUIButtonUse = ruCreateGUIButton( buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "use" ), mFont, pGUIProp->mForeColor, 1, 255 );
+    mGUIButtonCombine = ruCreateGUIButton( buttonsX, buttonY + 1.5f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "combine" ), mFont, pGUIProp->mForeColor, 1, 255 );
     // combine items
     int combineBoxY = buttonY + 3.6f * buttonH;
-    ruVector3 combineColor1 = whiteColor;
-    ruVector3 combineColor2 = whiteColor;
+    ruVector3 combineColor1 = pGUIProp->mForeColor;
+    ruVector3 combineColor2 = pGUIProp->mForeColor;
     int combineBoxSpacing = 5;
     buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
     mGUIFirstCombineItem = ruCreateGUIRect( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, ruTextureHandle::Empty() );
     mGUISecondCombineItem = ruCreateGUIRect( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * mCellHeight + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, ruTextureHandle::Empty() );
     mGUIFirstCombineItemCell = ruCreateGUIRect( buttonsX, combineBoxY, mCellWidth, mCellHeight, mCellTexture, combineColor1, 255 );
     mGUISecondCombineItemCell = ruCreateGUIRect( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight, mCellTexture, combineColor2, 255 );
-    mGUICharacteristics = ruCreateGUIText( mLocalization.GetString( "characteristics" ), actionsX + buttonSpace, combineBoxY + 2.2f * mCellHeight, backgroundW, combineH, mFont, whiteColor, 0 );
+    mGUICharacteristics = ruCreateGUIText( mLocalization.GetString( "characteristics" ), actionsX, combineBoxY + 1.5f * mCellHeight, 128, combineH, mFont, pGUIProp->mForeColor, 1 );
 
     int itemSpacing = 5;
-    // cells and item image
     for( int cw = 0; cw < mCellCountWidth; cw++ ) {
         for( int ch = 0; ch < mCellCountHeight; ch++ ) {
-            // get item for draw
             int cellX = coordX + distMult * mCellWidth * cw;
-            int cellY = coordY + distMult * mCellHeight * ch;
-            mGUIItem[cw][ch] = ruCreateGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, ruTextureHandle::Empty(), ruVector3( 255, 255, 255 ), 255 );
-            mGUIItemCell[cw][ch] = ruCreateGUIRect( cellX, cellY, mCellWidth, mCellHeight, mCellTexture, whiteColor, 255 );
-			mGUIItemCountText[cw][ch] = ruCreateGUIText( "0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, whiteColor, 1 );
+            int cellY = coordY + distMult * mCellHeight * ch;           
+            mGUIItemCell[cw][ch] = ruCreateGUIRect( cellX, cellY, mCellWidth, mCellHeight, mCellTexture, pGUIProp->mForeColor, 255 );
+			mGUIItem[cw][ch] = ruCreateGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, ruTextureHandle::Empty(), ruVector3( 255, 255, 255 ), 255 );
+			mGUIItemCountText[cw][ch] = ruCreateGUIText( "0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, pGUIProp->mForeColor, 1 );
         }
     }
 
     int offset = combineBoxY + 2.2f * mCellHeight;
-    mGUIItemDescription = ruCreateGUIText( "Desc", backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing , combineH - 2 * itemSpacing, pGUI->mFont, ruVector3( 200, 200, 200 ), 0, 255 );
+    mGUIItemDescription = ruCreateGUIText( "Desc", backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing - 128 , combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3( 200, 200, 200 ), 0, 255 );
     // characteristics of item
     int charSpace = 28;
-    mGUIItemContentType = ruCreateGUIText( "ContentType", actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
-    mGUIItemContent = ruCreateGUIText( "Content", actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
-    mGUIItemVolume = ruCreateGUIText( "Volume", actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
-    mGUIItemMass = ruCreateGUIText( "Mass", actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, whiteColor, 0 );
+	mGUIItemContentType = ruCreateGUIText( "ContentType", actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
+	mGUIItemContent = ruCreateGUIText( "Content", actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
+    mGUIItemVolume = ruCreateGUIText( "Volume", actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
+    mGUIItemMass = ruCreateGUIText( "Mass", actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
 
     SetVisible( false );
 }
@@ -103,9 +97,7 @@ void Inventory::SetVisible( bool state ) {
     ruSetGUINodeVisible( mGUICanvas, state );
     ruSetGUINodeVisible( mGUIRectItemForUse, state );
     ruSetGUINodeVisible( mGUICanvas, state );
-    ruSetGUINodeVisible( mGUIRightPanel, state );
     ruSetGUINodeVisible( mGUIDescription, state );
-    ruSetGUINodeVisible( mGUIActions, state );
     ruSetGUINodeVisible( mGUIButtonUse, state );
     ruSetGUINodeVisible( mGUIButtonCombine, state );
     ruSetGUINodeVisible( mGUIFirstCombineItem, state );
@@ -175,8 +167,8 @@ void Inventory::Update() {
     float distMult = 1.1f;
     int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
     int cellSpaceY = distMult * mCellHeight / (float)mCellCountHeight;
-    int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX;
-    int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY;
+    int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX - 64;
+    int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY - 64;
     // draw background
     int backGroundSpace = 20;
     int backgroundX = coordX - backGroundSpace;
@@ -202,8 +194,8 @@ void Inventory::Update() {
 
     // draw combine items
     int combineBoxY = buttonY + 3.6f * buttonH;
-    ruVector3 combineColor1 = whiteColor;
-    ruVector3 combineColor2 = whiteColor;
+    ruVector3 combineColor1 = pGUIProp->mForeColor;
+    ruVector3 combineColor2 = pGUIProp->mForeColor;
     int combineBoxSpacing = 5;
     buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
 
@@ -265,7 +257,7 @@ void Inventory::Update() {
     for( int cw = 0; cw < mCellCountWidth; cw++ ) {
         for( int ch = 0; ch < mCellCountHeight; ch++ ) {
             Item * pPicked = 0;
-            ruVector3 color = whiteColor;
+            ruVector3 color = pGUIProp->mForeColor;
             int alpha = 180;
             // get item for draw
             int itemNum = cw * mCellCountHeight + ch;
@@ -369,9 +361,7 @@ Inventory::~Inventory() {
 	mPickSound.Free();
 	ruFreeGUINode( mGUIRectItemForUse );
 	ruFreeGUINode( mGUICanvas );
-	ruFreeGUINode( mGUIRightPanel );
 	ruFreeGUINode( mGUIDescription );
-	ruFreeGUINode( mGUIActions );
 	ruFreeGUINode( mGUIButtonUse );
 	ruFreeGUINode( mGUIButtonCombine );
 	ruFreeGUINode( mGUIFirstCombineItem );

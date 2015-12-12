@@ -15,7 +15,7 @@ protected:
 	ruSound mShotSound;
 	int mShotInterval;
 	int mProjectileCount;
-	ruSceneNode mShotFlash;
+	ruLight mShotFlash;
 	ruSound mEmptySound;
 	ruVector3 mShotOffsetTo;
 	ruVector3 mShotOffset;

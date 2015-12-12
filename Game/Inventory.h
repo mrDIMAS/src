@@ -26,9 +26,9 @@ private:
     Parser mLocalization;
     ruRectHandle mGUIRectItemForUse;
     ruRectHandle mGUICanvas;
-    ruRectHandle mGUIRightPanel;
+    //ruRectHandle mGUIRightPanel;
     ruTextHandle mGUIDescription;
-    ruRectHandle mGUIActions;
+    //ruRectHandle mGUIActions;
     ruButtonHandle mGUIButtonUse;
     ruButtonHandle mGUIButtonCombine;
     ruRectHandle mGUIFirstCombineItem;

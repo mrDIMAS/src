@@ -26,8 +26,6 @@ LevelMine::LevelMine() {
     AddSheet( new Sheet( GetUniqueObject( "Note5" ), mLocalization.GetString( "note5Desc" ), mLocalization.GetString( "note5" ) ) );
     AddSheet( new Sheet( GetUniqueObject( "Note6" ), mLocalization.GetString( "note6Desc" ), mLocalization.GetString( "note6" ) ) );
 
-    mScreamerZone = GetUniqueObject( "Screamer1" );
-    mScreamerZone2 = GetUniqueObject( "Screamer2" );
     mStoneFallZone = GetUniqueObject( "StoneFallZone" );
 
     mNewLevelZone = GetUniqueObject( "NewLevel" );
@@ -260,9 +258,9 @@ void LevelMine::DoScenario() {
                     mRock[iRock].SetPosition( mRockPosition[iRock] );
                 }
 
-                mExplosionFlashLight = ruCreateLight();
+                mExplosionFlashLight = ruLight::Create( ruLight::Type::Point );
                 mExplosionFlashLight.Attach( mExplosionFlashPosition );
-                ruSetLightColor( mExplosionFlashLight, ruVector3( 255, 200, 160 ));
+                mExplosionFlashLight.SetColor( ruVector3( 255, 200, 160 ));
                 mExplosionFlashAnimator = new LightAnimator( mExplosionFlashLight, 0.25, 30, 1.1 );
                 mExplosionFlashAnimator->SetAnimationType( LightAnimator::AnimationType::Off );
 
@@ -406,6 +404,7 @@ void LevelMine::CreateItems() {
 
 	AddInteractiveObject( Item::GetNameByType( Item::Type::FuelCanister ), make_shared<InteractiveObject>( GetUniqueObject( "Fuel1" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveFuel ));
 	AddInteractiveObject( Item::GetNameByType( Item::Type::FuelCanister ), make_shared<InteractiveObject>( GetUniqueObject( "Fuel2" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveFuel ));
+	AddInteractiveObject( Item::GetNameByType( Item::Type::FuelCanister ), make_shared<InteractiveObject>( GetUniqueObject( "Fuel3" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveFuel ));
 
 	AddInteractiveObject( Item::GetNameByType( Item::Type::Syringe ), make_shared<InteractiveObject>( GetUniqueObject( "Syringe" )), ruDelegate::Bind( this, &LevelMine::Proxy_GiveSyringe ));
 }

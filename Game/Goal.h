@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Game.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 
 // Performs animation of goal text and it's rendering
 

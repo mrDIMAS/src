@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 
 #include "ParticleSystemRenderer.h"
@@ -60,16 +81,16 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 			Engine::Instance().SetVertexShaderFloat3( 61, Engine::Instance().GetAmbientColor().elements );
 			lightList.clear();
 			for( auto pLight : Light::msPointLightList ) {
-				if( (pLight->GetRealPosition() - particleEmitter->GetOwner()->GetPosition()).Length() < ( 1.25f * pLight->GetRadius() + particleEmitter->props.boundingRadius )) {
+				if( (pLight->GetPosition() - particleEmitter->GetOwner()->GetPosition()).Length() < ( 1.25f * pLight->GetRange() + particleEmitter->props.boundingRadius )) {
 					lightList.push_back( pLight );
 				}
 			}
 			Engine::Instance().SetVertexShaderFloat( 62, lightList.size() );
 			int lightNumber = 0;
 			for( auto pLight : lightList ) {
-				Engine::Instance().SetVertexShaderFloat3( 10 + lightNumber, pLight->GetRealPosition().elements );
+				Engine::Instance().SetVertexShaderFloat3( 10 + lightNumber, pLight->GetPosition().elements );
 				Engine::Instance().SetVertexShaderFloat3( 27 + lightNumber, pLight->GetColor().elements );
-				Engine::Instance().SetVertexShaderFloat( 44 + lightNumber, pLight->GetRadius() );
+				Engine::Instance().SetVertexShaderFloat( 44 + lightNumber, pLight->GetRange() );
 				lightNumber++;
 				if( lightNumber >= 16 ) {
 					break;

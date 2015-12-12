@@ -60,8 +60,8 @@ WaitKeyButton::WaitKeyButton( float x, float y, ruTextureHandle buttonImage, con
     mDesc = " ";
 	mAnimCounter = 0;
     mGrabKey = false;
-    mGUIButton = ruCreateGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
-    mGUIText = ruCreateGUIText( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUI->mFont, ruVector3( 255, 255, 255 ), 0 );
+    mGUIButton = ruCreateGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
+    mGUIText = ruCreateGUIText( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, 0 );
 	WaitKeyButton::msWaitKeyList.push_back( this );
 }
 

@@ -5,7 +5,8 @@
 
 Syringe::Syringe( ) : mDozeCount( 2 ) {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands_syringe/hands_syringe.scene" );
-	
+	mModel.SetDepthHack( 0.155f );
+
 	mUseAnim = ruAnimation( 6, 18, 2.5, false );
 	mUseAnim.AddFrameListener( 12, ruDelegate::Bind( this, &Syringe::Proxy_HealPlayer ));
 	mUseAnim.AddFrameListener( 18, ruDelegate::Bind( this, &Syringe::Proxy_Use ));

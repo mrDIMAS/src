@@ -15,7 +15,7 @@ Weapon::Weapon() {
 	mEmptySound.Attach( mShootPoint );
 	mShotInterval = 0;
 	mProjectileCount = 6;
-	mShotFlash = ruCreateLight( LT_POINT );
+	mShotFlash = ruLight::Create( ruLight::Type::Point );
 	mShotFlash.Attach( mModel );
 	mShotFlashIntensity = 0.01f;
 	mInitialPosition = mModel.GetLocalPosition();
@@ -108,7 +108,7 @@ void Weapon::Update() {
 		mShotOffsetTo = ruVector3( 0, 0, 0 );
 	}
 	mShotOffset = mShotOffset.Lerp( mShotOffsetTo, 0.2 );
-	ruSetLightRange( mShotFlash, mShotFlashIntensity );
+	mShotFlash.SetRange( mShotFlashIntensity );
 	mShotFlashIntensity -= 1.05f;
 	if( mShotFlashIntensity < 0 ) {
 		mShotFlashIntensity = 0;

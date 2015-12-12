@@ -38,7 +38,7 @@ Goal::Goal() {
 
     mAlpha = 255.0f;
 
-    mGoalText = ruCreateGUIText( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUI->mFont, ruVector3( 255, 0, 0 ), 1, mAlpha );
+    mGoalText = ruCreateGUIText( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUIProp->mFont, pGUIProp->mForeColor, 1, mAlpha );
 }
 
 Goal::~Goal() {

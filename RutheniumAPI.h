@@ -1,4 +1,25 @@
-// C++11 API Header for Ruthenium Engine
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
+// C++11 Bridge API Header for the Ruthenium Engine
 
 #ifndef _ENGINE_
 #define _ENGINE_
@@ -289,7 +310,12 @@ public:
 
 class ruVector4 {
 public:
-	float x, y, z, w;
+	union {
+		struct {
+			float x, y, z, w;
+		};
+		float c[4];
+	};
 
 	ruVector4( float _x, float _y, float _z, float _w ) : x( _x ), y( _y ), z( _z ), w( _w ) { };
 	ruVector4( ) : x( 0.0f ), y( 0.0f ), z( 0.0f ), w( 0.0f ) { };
@@ -317,50 +343,6 @@ static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaterni
 
 #define BODY_MAX_CONTACTS ( 16 )
 
-class ruGUIState {
-public:
-    bool mouseInside;
-    bool mouseLeftClicked;
-    bool mouseRightClicked;
-
-    ruGUIState() {
-        mouseInside = false;
-        mouseLeftClicked = false;
-        mouseRightClicked = false;
-    }
-};
-
-struct ruLinePoint {
-    ruVector3 position;
-    int color;
-
-    ruLinePoint( ) {
-        position = ruVector3( 0, 0, 0 );
-        color = 0xFFFFFFFF;
-    }
-
-    ruLinePoint( ruVector3 pos, int clr ) {
-        position = pos;
-        color = clr;
-    };
-
-    ruLinePoint( ruVector3 pos, ruVector3 clr ) {
-        position = pos;
-
-        int r = (int)clr.x;
-        int g = (int)clr.y;
-        int b = (int)clr.z;
-
-        color = ((((255)&0xFF)<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF));
-    };
-};
-
-enum {
-    LT_POINT,
-    LT_SPOT,
-};
-
-
 class ruRutheniumHandle {
 protected:
 	
@@ -370,7 +352,7 @@ public:
 	explicit ruRutheniumHandle();
     virtual ~ruRutheniumHandle();
 
-    virtual bool IsValid();
+    virtual bool IsValid() const;
     virtual void Invalidate();
 };
 
@@ -391,9 +373,7 @@ private:
 	public:
 		bool mState;
 		ruEvent Event;
-		AnimationEvent( ) : mState( false ) {
-
-		}
+		AnimationEvent( ) : mState( false ) { }
 	};
 	// list of actions, which must be done on n-th frame 
 	unordered_map<int,AnimationEvent> mFrameListenerList;
@@ -432,13 +412,8 @@ public:
 	void Update( float dt = 1.0f / 60.0f );
 };
 
-enum class BodyType {
-	None,
-	Sphere,
-	Cylinder,
-	Box,
-	Trimesh,
-	Convex
+enum class BodyType : int {
+	None, Sphere, Cylinder,	Box, Trimesh, Convex
 };
 
 class ruTextureHandle : public ruRutheniumHandle {
@@ -455,7 +430,7 @@ class ruSceneNode : public ruRutheniumHandle {
 public:
     bool operator == ( const ruSceneNode & node );
 
-	virtual bool IsValid();
+	virtual bool IsValid() const;
 
 	string GetProperty( string propName );
 	void Hide();
@@ -519,14 +494,14 @@ public:
 	void AddTorque( ruVector3 torque );
 	ruSceneNode GetParent();
 	int GetTextureCount();
+	bool IsLight();
 	ruTextureHandle GetTexture( int n );
 	ruSceneNode FindChild( const string & name );
 	static ruSceneNode Create( );
 	static ruSceneNode LoadFromFile( const string & file );
-	static ruSceneNode FindByName( const string & name );	
+	static ruSceneNode FindByName( const string & name );
 	static ruSceneNode Duplicate( ruSceneNode source );
 };
-
 
 class ruFontHandle : public ruRutheniumHandle {
 public:
@@ -560,7 +535,7 @@ public:
     virtual ~ruSound();
 
     bool operator == ( const ruSound & node );
-    virtual bool IsValid();
+    virtual bool IsValid() const;
     virtual void Invalidate();
 
 	static ruSound Load2D( const string & file );
@@ -609,16 +584,6 @@ public:
     bool operator == ( const ruTextHandle & node );
 };
 
-class ruLineHandle : public ruGUINodeHandle {
-public:
-    bool operator == ( const ruLineHandle & node );
-};
-
-
-////////////////////////////////////////////////////////////////////////////////////
-// Renderer functions
-////////////////////////////////////////////////////////////////////////////////////
-
 class ruEngine {
 public:
 	static void Create( int width, int height, int fullscreen, char vSync );
@@ -636,19 +601,53 @@ public:
 	static void EnableShadows( bool state );
 	static void UpdateWorld();
 	static void SetAnisotropicTextureFiltration( bool state );
-	// FXAA
-	static void EnableFXAA( );
-	static void DisableFXAA( );
-	static bool IsFXAAEnabled();
 	static void ChangeVideomode( int width, int height, int fullscreen, char vSync );
+	// FXAA
+	static void SetFXAAEnabled( bool state );
+	static bool IsFXAAEnabled();	
 	// HDR
 	static void SetHDREnabled( bool state );
 	static bool IsHDREnabled( );
+
+	// Parallax Occlusion Mapping
+	static void SetParallaxEnabled( bool state );
+	static bool IsParallaxEnabled();
+
 	// Shadow functions
 	static void SetSpotLightShadowMapSize( int size );
 	static void EnableSpotLightShadows( bool state );
 	static bool IsSpotLightShadowsEnabled();
 	static int GetMaxAnisotropy();
+};
+
+class ruLight : public ruSceneNode {
+public:
+	enum class Type : int {
+		Point, Spot
+	};
+
+	ruLight();
+	ruLight( const ruSceneNode & node );
+
+	void SetRange( float range );
+	float GetRange();
+	void SetColor( ruVector3 clr );
+	void SetConeAngles( float innerAngle, float outerAngle );
+	void SetSpotTexture( ruTextureHandle texture );	
+	void SetPointTexture( ruCubeTextureHandle cubeTexture );
+	void SetGreyscaleFactor( float factor );
+	bool IsSeePoint( const ruVector3 & point );
+
+	static ruLight Create( Type type );
+	static int GetWorldSpotLightCount();
+	static ruLight GetWorldSpotLight( int n );
+	static int GetWorldPointLightCount();
+	static ruLight GetWorldPointLight( int n );
+	static void SetSpotDefaultTexture( ruTextureHandle defaultSpotTexture );
+	static void SetPointDefaultTexture( ruCubeTextureHandle defaultPointTexture );
+
+	bool operator == ( const ruLight & node );
+	void operator = ( const ruSceneNode & node );
 };
 
 
@@ -673,28 +672,8 @@ void ruSetCameraFOV( ruSceneNode camera, float fov );
 void ruSetAudioReverb( int reverb );
 void ruSetMasterVolume( float volume );
 float ruGetMasterVolume();
-////////////////////////////////////////////////////////////////////////////////////
-// Light functions
-////////////////////////////////////////////////////////////////////////////////////
-ruSceneNode ruCreateLight( int type = LT_POINT );
-void ruSetLightRange( ruSceneNode node, float rad );
-float ruGetLightRange( ruSceneNode node );
-void ruSetLightColor( ruSceneNode node, ruVector3 clr );
-void ruSetConeAngles( ruSceneNode node, float innerAngle, float outerAngle );
-void ruSetLightSpotTexture( ruSceneNode node, ruTextureHandle texture );
-int ruGetWorldSpotLightCount();
-ruSceneNode ruGetWorldSpotLight( int n );
-int ruGetWorldPointLightCount();
-ruSceneNode ruGetWorldPointLight( int n );
-void ruSetLightFlare( ruSceneNode node, ruTextureHandle flareTexture );
-void ruSetLightDefaultFlare( ruTextureHandle defaultFlareTexture );
-void ruSetLightSpotDefaultTexture( ruTextureHandle defaultSpotTexture );
-void ruSetLightPointTexture( ruSceneNode node, ruCubeTextureHandle cubeTexture );
-void ruSetLightPointDefaultTexture( ruCubeTextureHandle defaultPointTexture );
-void ruSetLightFloatingLimits( ruSceneNode node, ruVector3 floatMin, ruVector3 floatMax );
-void ruSetLightFloatingEnabled( ruSceneNode node, bool state );
-bool ruIsLightFloatingEnabled( ruSceneNode node );
-bool ruIsLight( ruSceneNode node );
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Physics functions
 ////////////////////////////////////////////////////////////////////////////////////
@@ -723,7 +702,7 @@ ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end );
 int ruGetWorldObjectsCount();
 ruSceneNode ruGetWorldObject( int i );
 // Common
-bool ruIsLightSeePoint( ruSceneNode node, ruVector3 point );
+
 bool ruIsNodeHandleValid( ruSceneNode handle );
 bool ruIsLightHandeValid( ruSceneNode handle );
 bool ruIsNodeHasBody( ruSceneNode node );

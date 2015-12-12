@@ -473,7 +473,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
             pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString("powerUp") );
 
             if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
-                ruSetLightColor( mPowerLamp, ruVector3( 0, 255, 0 ) );
+                mPowerLamp.SetColor( ruVector3( 0, 255, 0 ) );
 
                 mLeverSound.Play();
 

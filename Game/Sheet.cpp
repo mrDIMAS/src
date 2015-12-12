@@ -1,13 +1,13 @@
 #include "Precompiled.h"
 #include "Sheet.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 
 vector<Sheet*> Sheet::msSheetList;
 ruSound Sheet::msPaperFlipSound;
 ruFontHandle Sheet::msSheetFont;
 
 Sheet::Sheet( ruSceneNode object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
-    mBackgroundTexture = ruGetTexture( "data/textures/generic/note.jpg" );
+    mBackgroundTexture = ruGetTexture( "data/gui/sheet.tga" );
     msSheetList.push_back( this );
     if( !msPaperFlipSound.IsValid() ) {
         msPaperFlipSound = ruSound::Load2D( "data/sounds/paperflip.ogg" );
@@ -23,8 +23,8 @@ Sheet::Sheet( ruSceneNode object, string desc, string text ) : InteractiveObject
     int w = 400;
     int h = 600;
 
-    mGUIBackground = ruCreateGUIRect( cx - w / 2, cy - h / 2, w, h, mBackgroundTexture );
-    mGUIText = ruCreateGUIText( mText, cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, ruVector3( 0, 0, 0 ), 0, 255 );
+    mGUIBackground = ruCreateGUIRect( cx - w / 2, cy - h / 2, w, h, mBackgroundTexture, pGUIProp->mBackColor );
+    mGUIText = ruCreateGUIText( mText, cx - w / 2 + 20, cy - h / 2 + 20, w - 40, h - 40, msSheetFont, pGUIProp->mForeColor, 0, 255 );
     SetVisible( false );
 }
 

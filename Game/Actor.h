@@ -19,7 +19,7 @@ public:
     virtual ~Actor();
     virtual void SetPosition( ruVector3 position );
     void Move( ruVector3 direction, float speed );
-	void Step( ruVector3 direction, float speed );
+	
     ruVector3 GetCurrentPosition( );
     char IsInsideZone( ruSceneNode zone );
     void StopInstant();

@@ -3,7 +3,7 @@
 #include "Level.h"
 #include "LevelArrival.h"
 #include "LevelMine.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 #include "Player.h"
 #include "Menu.h"
 #include "LevelResearchFacility.h"
@@ -257,10 +257,7 @@ void Level::Deserialize( SaveFile & in ) {
                 node.Hide();
             }
 			if( isLight ) {
-				ruSetLightRange( node, litRange );
-				ruSetLightFloatingEnabled( node, true );
-				float d = 0.1f;
-				ruSetLightFloatingLimits( node, ruVector3( -d, -d, -d ), ruVector3( d, d, d ) );
+				((ruLight)node).SetRange( litRange );
 			}
         }
     }
@@ -294,9 +291,9 @@ void Level::Serialize( SaveFile & out ) {
         out.WriteVector3( node.GetLocalPosition() );
         out.WriteQuaternion( node.GetLocalRotation());
         out.WriteBoolean( node.IsVisible() );
-		out.WriteBoolean( ruIsLight( node ) );
-		if( ruIsLight( node )) {
-			out.WriteFloat( ruGetLightRange( node ));
+		out.WriteBoolean( node.IsLight() );
+		if( node.IsLight() ) {
+			out.WriteFloat( ((ruLight)node).GetRange() );
 		}
     }
     out.WriteInteger( mStages.size());
@@ -383,7 +380,7 @@ void Level::CreateLoadingScreen()
 	int y = ( ruEngine::GetResolutionHeight() - h ) / 2;
 	msGUILoadingText = ruCreateGUIText( "Загрузка...", x, y, w, h, msGUIFont, ruVector3( 0, 0, 0 ), 1 );
 	ruSetGUINodeVisible( msGUILoadingText, false );
-	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
+	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruGetTexture( "data/gui/loadingscreen.tga" ), pGUIProp->mBackColor );
 	ruSetGUINodeVisible( msGUILoadingBackground, false );
 }
 

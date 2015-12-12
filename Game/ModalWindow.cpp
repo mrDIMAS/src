@@ -1,15 +1,15 @@
 #include "Precompiled.h"
 #include "ModalWindow.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 
 ModalWindow::ModalWindow( int x, int y, int w, int h, ruTextureHandle texture, ruTextureHandle buttonTexture, ruVector3 color ) {
 	int buttonWidth = 128;
 	int buttonHeight = 32;
 
 	mCanvas = ruCreateGUIRect( x, y, w, h, texture, color );
-	mYesButton = ruCreateGUIButton( 10, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "Yes", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
-	mNoButton = ruCreateGUIButton( w - buttonWidth - 10, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "No", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
-	mText = ruCreateGUIText( "Text", 20, 20, w - 40, h - 40, pGUI->mFont, ruVector3( 255, 255, 255 ), 0 );
+	mYesButton = ruCreateGUIButton( 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "Yes", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
+	mNoButton = ruCreateGUIButton( w - buttonWidth - 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "No", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
+	mText = ruCreateGUIText( "Text", 20, 20, w - 40, h - 40, pGUIProp->mFont, ruVector3( 255, 255, 255 ), 0 );
 
 	ruAttachGUINode( mYesButton, mCanvas );
 	ruAttachGUINode( mNoButton, mCanvas );

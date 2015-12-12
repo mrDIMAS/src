@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #pragma once
 
 
@@ -41,6 +62,7 @@ private:
 	bool mUsePointLightShadows;
 	bool mUseSpotLightShadows;
 	bool mHDREnabled;
+	bool mParallaxEnabled;
 	bool mRunning;
 	bool mFXAAEnabled;
 	bool mAnisotropicFiltering;
@@ -78,11 +100,11 @@ public:
     void SetVertexShaderInt( UINT startRegister, int v );
     void SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix );
     void SetPixelShaderFloat3( UINT startRegister, float * v );
+	void SetPixelShaderFloat3( UINT startRegister, float x, float y, float z );
     void SetPixelShaderFloat( UINT startRegister, float v );
     void SetPixelShaderInt( UINT startRegister, int v );
 	void SetVertexShaderVector3( UINT startRegister, ruVector3 v );
 	void Reset();
-	int GetDeviceRefCount();
 	void Pause();
 	void Continue();
 	IDirect3DDevice9 * GetDevice();
@@ -94,7 +116,7 @@ public:
 	void ChangeVideomode( int width, int height, bool fullscreen, bool vsync );
 	bool IsAnisotropicFilteringEnabled();
 	void SetAnisotropicTextureFiltration( bool state );
-	void SetDiffuseNormalSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
+	void SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
 	void SetSpotLightShadowMapSize( int size );
 	DeferredRenderer * GetDeferredRenderer();
 	ForwardRenderer * GetForwardRenderer();
@@ -103,17 +125,32 @@ public:
 	void SetSpotLightShadowsEnabled( bool state );
 	bool IsPointLightShadowsEnabled();
 	bool IsSpotLightShadowsEnabled();
+	void SetAlphaBlendEnabled( bool state );
+	void SetZWriteEnabled( bool state );
+	void SetStencilEnabled( bool state );
 	ruVector3 GetAmbientColor();
 	void SetAmbientColor( ruVector3 ambColor );
-	bool IsHDREnabled();
-	void SetHDREnabled( bool state );
+
 	bool IsNonPowerOfTwoTexturesSupport();
 	void Shutdown();
-	bool IsFXAAEnabled();
-	void SetFXAAEnabled( bool state );
+
 	int GetTextureChangeCount();
 	string GetTextureStoragePath();
 	IDirect3DSurface9 * GetBackBuffer();
 	void SetTextureStoragePath( const string & path );
 	void DrawIndexedTriangleList( int vertexCount, int faceCount );
+	
+	// Effects control methods
+	bool IsFXAAEnabled();
+	void SetFXAAEnabled( bool state );
+
+	bool IsHDREnabled();
+	void SetHDREnabled( bool state );
+
+	bool IsParallaxEnabled() {
+		return mParallaxEnabled;
+	}
+	void SetParallaxEnabled( bool state ) {
+		mParallaxEnabled = state;
+	}
 };

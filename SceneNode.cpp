@@ -1,3 +1,23 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
 #include "Precompiled.h"
 #include "Physics.h"
 
@@ -448,13 +468,15 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 
             if( node->mIsSkinned ) {
                 for( int k = 0; k < vertexCount; k++ ) {
-                    Mesh::Weight w;
+                    Mesh::BoneGroup w;
 
                     w.mBoneCount = reader.GetInteger();
 
                     for( int j = 0; j < w.mBoneCount; j++ ) {
+						// number of scene node represents bone in the scene
                         w.mBone[ j ].mID = reader.GetInteger();
                         w.mBone[ j ].mWeight = reader.GetFloat();
+						w.mBone[ j ].mRealBone = nullptr;
                     }
 
                     mesh->mWeightTable.push_back( w );
@@ -462,7 +484,9 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
             }
 
             if( vertexCount != 0 ) {
-                mesh->UpdateBuffers();
+				if( !mesh->mSkinned ) {
+					mesh->CreateHardwareBuffers();
+				}
                 Mesh::Register( mesh );
             }
         }
@@ -474,19 +498,33 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
         node->ApplyProperties();
     }
 
+	// remap bone id's to real scene nodes 
+	for( auto child : scene->mChildList ) {
+		if( child->mIsSkinned ) {
+			for( auto pMesh : child->mMeshList ) {
+				for( auto & w : pMesh->mWeightTable ) {
+					for( int i = 0; i < w.mBoneCount; ++i ) {
+						w.mBone[ i ].mRealBone = pMesh->AddBone( scene->mChildList[ w.mBone[ i ].mID ] );		
+					}
+				}
+				pMesh->CreateHardwareBuffers();
+			}
+		}
+	}
+
     for( int lightObjectNum = 0; lightObjectNum < numLights; lightObjectNum++ ) {
         string name = reader.GetString();
-        int type = reader.GetInteger();
+        ruLight::Type type = static_cast<ruLight::Type>( reader.GetInteger() );
         Light * light = new Light( type );
         light->mName = name;
         light->SetColor( reader.GetBareVector());
-        light->SetRadius( reader.GetFloat());
-        light->brightness = reader.GetFloat();
+        light->SetRange( reader.GetFloat());
+        float brightness = reader.GetFloat();
         light->mLocalTransform.setOrigin( reader.GetVector());
         light->mScene = scene;
         light->mParent = scene;
         scene->mChildList.push_back( light );
-        if( type == LT_SPOT ) {
+        if( type == ruLight::Type::Spot ) {
             float in = reader.GetFloat();
             float out = reader.GetFloat();
             light->SetConeAngles( in, out );
@@ -515,59 +553,16 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 }
 
 void SceneNode::PerformAnimation() {
-    if ( mIsSkinned ) {
-        int vertexNumber = 0;
-				
-		SceneNode * parent = mParent; // HAX!
-        mParent = nullptr; // HAX!
-
-        for( auto mesh : mMeshList ) {
-            mesh->mSkinVertices = mesh->mVertices;
-            for( auto & vertex : mesh->mVertices ) {
-                Mesh::Weight & weight = mesh->mWeightTable[ vertexNumber ];
-
-                btVector3 initialPosition( vertex.mPosition.x, vertex.mPosition.y, vertex.mPosition.z );
-                btVector3 initialNormal( vertex.mNormal.x, vertex.mNormal.y, vertex.mNormal.z );
-                btVector3 initialTangent( vertex.mTangent.x, vertex.mTangent.y, vertex.mTangent.z );
-                btVector3 newPosition( 0, 0, 0 );
-                btVector3 newNormal( 0, 0, 0 );
-                btVector3 newTangent( 0, 0, 0 );
-
-                for( int j = 0; j < weight.mBoneCount; j++ ) {
-                    Mesh::Bone & bone = weight.mBone[ j ];
-                    SceneNode * boneNode = mScene->mChildList[ bone.mID ];
-										
-					boneNode->mIsBone = true; // HAX!
-
-                    btTransform transform = ( boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform ) * CalculateGlobalTransform();
-                    newPosition += transform * initialPosition * bone.mWeight;
-                    newNormal += transform.getBasis() * ( initialNormal * bone.mWeight );
-                    newTangent += transform.getBasis() * ( initialTangent * bone.mWeight );
-					
-                }
-				//newNormal = initialNormal;
-				//newTangent = initialTangent;
-
-                vertex.mPosition = ruVector3( newPosition.m_floats );
-                vertex.mNormal = ruVector3( newNormal.m_floats );
-                vertex.mTangent = ruVector3( newTangent.m_floats );
-
-                vertexNumber++;
-            }
-            mesh->UpdateBuffers();
-            mesh->mVertices = mesh->mSkinVertices;
-        } 
-		mParent = parent; // HAX!
-    } else {
-        if( mCurrentAnimation ) {
+    if( !mIsSkinned ) {
+		if( mCurrentAnimation ) {
 			if ( mKeyframeList.size() ) {
 				btTransform * currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ];
 				btTransform * nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ];
 				mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->interpolator ));
 				mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->interpolator ));
 			}            
-        }
-    }
+		}
+    };
 }
 
 void SceneNode::Freeze() {
@@ -1230,7 +1225,7 @@ ruRutheniumHandle::~ruRutheniumHandle() {
 
 }
 
-bool ruRutheniumHandle::IsValid() {
+bool ruRutheniumHandle::IsValid() const {
     return pointer != nullptr;
 }
 
@@ -1242,7 +1237,7 @@ bool ruSceneNode::operator == ( const ruSceneNode & node ) {
     return pointer == node.pointer;
 }
 
-bool ruSceneNode::IsValid() {
+bool ruSceneNode::IsValid() const {
 	return ruIsNodeHandleValid( *this ) && ruRutheniumHandle::IsValid();
 }
 

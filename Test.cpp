@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 
 #ifdef _TEST
@@ -21,8 +42,8 @@ void main( ) {
 
     ruEngine::Create( 0, 0, 0, 0 );
 
-    ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
-    ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
+    ruLight::SetPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
+    ruLight::SetSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
 
     ruSceneNode cameraPivot = ruSceneNode::Create();
 	cameraPivot.SetCapsuleBody( 6, 2 );
@@ -47,6 +68,7 @@ void main( ) {
     //int node = LoadScene( "data/maps/release/arrival/arrival.scene" );
     //ruNodeHandle node = ruLoadScene( "data/maps/release/arrival/arrival.scene");//ruLoadScene( "data/newFormat.scene" );
 	ruSceneNode node = ruSceneNode::LoadFromFile( "data/newFormat.scene" );
+	ruLight lit = ruSceneNode::FindByName( "Omni002" );
 	//ruSetNodePosition( cameraPivot, ruGetNodePosition( ruFindInObjectByName( node, "PlayerPosition")));
     //int node = LoadScene( "data/maps/testingChamber/testingChamber.scene" );
 
@@ -74,7 +96,7 @@ void main( ) {
 	streamParticleEmitterProps.useLighting = true;
 
     ruSceneNode streamParticleEmitter = ruCreateParticleSystem( 256, streamParticleEmitterProps );
-
+	streamParticleEmitter.SetPosition( ruVector3( 10, 0, 10 ));
     ruTimerHandle timer = ruCreateTimer();
 
     ruTimerHandle perfTimer = ruCreateTimer();
@@ -95,18 +117,24 @@ void main( ) {
 	//ruNodeHandle testScene = ruLoadScene( "data/maps/release/mine/mine.scene" );
 	ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
 	ruEngine::SetHDREnabled( false );
-	ruEngine::DisableFXAA();
+	ruEngine::SetFXAAEnabled( false );
 
 	ruSceneNode cube = ruSceneNode::LoadFromFile( "data/cube.scene" );
 	
 	ruSound snd = ruSound::LoadMusic( "data/music/rf.ogg" );
 	snd.SetVolume( 0.1 );
 
+	ruSceneNode ripper = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
+	ruAnimation anim = ruAnimation( 0, 85, 8, true );
+	anim.enabled = true;
+	ripper.SetAnimation( &anim );
+
     while( !ruIsKeyDown( KEY_Esc )) {
         //idleAnim.Update();
         ruInputUpdate();
 
-        if( ruIsMouseHit( MB_Right )) {
+		anim.Update();
+		if( ruIsMouseHit( MB_Right )) {
             ruEngine::SetHDREnabled( !ruEngine::IsHDREnabled() );
         }
 		
@@ -139,11 +167,11 @@ void main( ) {
 
 		if( ruIsKeyHit( KEY_1 )) {
 			ruSetGUINodeVisible( testrect, false );
-			ruEngine::EnableFXAA();
+			ruEngine::SetFXAAEnabled( true );
 		}
 		if( ruIsKeyHit( KEY_2 )) {
 			ruSetGUINodeVisible( testrect, true );
-			ruEngine::DisableFXAA();
+			ruEngine::SetFXAAEnabled( false );
 		}
 		if( ruIsKeyHit( KEY_3 )) {
 			node.Free();
@@ -181,6 +209,8 @@ void main( ) {
         cameraPivot.Move( speed * ruVector3( 100, 1, 100 ));
         camera.SetRotation( pitchRotation );
         cameraPivot.SetRotation( yawRotation );
+
+		ripper.SetPosition( cameraPivot.GetPosition() );
 
         counter++;
 

@@ -158,7 +158,7 @@ void Enemy::Think() {
 
 
 	// DEBUG
-	 enemyDetectPlayer = false;
+	enemyDetectPlayer = false;
 
 	if( enemyDetectPlayer ) {
 		mMoveType = MoveType::ChasePlayer;
@@ -169,7 +169,7 @@ void Enemy::Think() {
 	} else {
 		mMoveType = MoveType::GoToDestination;
 		mDoPatrol = true;
-		mRunSpeed = 0.6f;
+		mRunSpeed = 2.5f;
 		mBreathSound.Play( true );
 		mScreamSound.Pause();
 	}
@@ -216,7 +216,8 @@ void Enemy::Think() {
 				
 			mLastDestinationIndex = mCurrentDestinationIndex;
 		}
-		SetWalkAnimation();
+		//SetWalkAnimation();
+		SetRunAnimation();
 	}
 
 	// check doors

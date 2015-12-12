@@ -5,11 +5,9 @@
 class RadioButton {
 private:
     bool mOn;
-    ruTextHandle mGUIText;
+	ruRectHandle mCheck;
     ruButtonHandle mGUIButton;
-	void OnChange() {
-		mOn = !mOn;
-	}
+	void OnChange();
 public:
     explicit RadioButton( float x, float y, ruTextureHandle buttonImage, const string & text );
     void Update(  );

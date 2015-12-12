@@ -2,10 +2,7 @@
 
 #include "LightAnimator.h"
 
-LightAnimator::LightAnimator( ruSceneNode lit, float as, float onRange, float peakRangeMult ) {
-    if( !ruIsLight( lit )) {
-        RaiseError( "Node is not a light!" );
-    }
+LightAnimator::LightAnimator( ruLight lit, float as, float onRange, float peakRangeMult ) {
     mLight = lit;
     mAnimSpeed = as;
     mOnRange = onRange;
@@ -13,13 +10,13 @@ LightAnimator::LightAnimator( ruSceneNode lit, float as, float onRange, float pe
     mAnimType = AnimationType::On;
     mRange = onRange;
     mRangeDest = mRange;
-    ruSetLightRange( mLight, mRange );
+    mLight.SetRange( mRange );
 }
 
 void LightAnimator::Update() {
     mRange = mRange + ( mRangeDest - mRange ) * mAnimSpeed;
 
-    ruSetLightRange( mLight, mRange );
+    mLight.SetRange( mRange );
 
     if( mAnimType == AnimationType::On ) {
         mRangeDest = mOnRange;

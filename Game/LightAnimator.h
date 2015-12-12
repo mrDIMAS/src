@@ -15,11 +15,11 @@ private:
     float mRange;
     float mPeakRangeMult;
     float mOnRange;
-    ruSceneNode mLight;
+    ruLight mLight;
     AnimationType mAnimType;
     float mAnimSpeed;
 public:
-    explicit LightAnimator( ruSceneNode lit, float as, float onRange, float peakRangeMult );
+    explicit LightAnimator( ruLight lit, float as, float onRange, float peakRangeMult );
     void Update();
     void SetAnimationType( AnimationType lat );
     AnimationType GetAnimationType();

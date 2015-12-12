@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Level.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 
 class LevelIntroduction : public Level {
 private:

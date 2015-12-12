@@ -21,4 +21,6 @@ public:
     ~Slider();
     void AttachTo( ruGUINodeHandle node );
 	void SetChangeAction( const ruDelegate & action );
+	int GetWidth();
+	int GetHeight();
 };

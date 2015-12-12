@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 #include "DeferredRenderer.h"
 #include "Light.h"
@@ -41,7 +62,6 @@ struct XYZNormalVertex {
 };
 
 void DeferredRenderer::CreateBoundingVolumes() {
-	ID3DXMesh * temp = nullptr;
     int quality = 6;
 
 	D3DVERTEXELEMENT9 vd[ ] = {
@@ -112,8 +132,8 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
 		}
 	}
 
-	if( light->pointTexture ) {
-		Engine::Instance().GetDevice()->SetTexture( 3, light->pointTexture->cubeTexture );
+	if( light->mPointTexture ) {
+		Engine::Instance().GetDevice()->SetTexture( 3, light->mPointTexture->cubeTexture );
 	} else {
 		Log::Write( "Environment light cube texture is not set! ");
 	}
@@ -122,13 +142,13 @@ void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, Lig
 	Engine::Instance().SetPixelShaderMatrix( 0, &invViewProj );
 	
 	// position
-    Engine::Instance().SetPixelShaderFloat3( 5, light->GetRealPosition().elements ); 
+    Engine::Instance().SetPixelShaderFloat3( 5, light->GetPosition().elements ); 
 	// color
     Engine::Instance().SetPixelShaderFloat3( 6, light->GetColor().elements ); 
 	 // range
-	Engine::Instance().SetPixelShaderFloat( 7, light->GetRadius() );
-	// brightness
-    Engine::Instance().SetPixelShaderFloat( 9, Engine::Instance().IsHDREnabled() ? light->brightness : 1.0f ); 
+	Engine::Instance().SetPixelShaderFloat( 7, light->GetRange() );
+	// grey scale factor
+    Engine::Instance().SetPixelShaderFloat3( 9, light->GetGreyScaleFactor(), 1.0f - light->GetGreyScaleFactor(), 0.0f ); 
 }
 
 DeferredRenderer::PointLightShader::~PointLightShader() {
@@ -169,17 +189,17 @@ void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Ligh
 		pixelShader->Bind();
 	}
 
-	lit->spotTexture->Bind(3);
+	lit->mSpotTexture->Bind(3);
 	lit->BuildSpotProjectionMatrixAndFrustum();
-	Engine::Instance().SetPixelShaderMatrix( 5, &lit->spotViewProjectionMatrix );
+	Engine::Instance().SetPixelShaderMatrix( 5, &lit->mSpotViewProjectionMatrix );
 	Engine::Instance().SetPixelShaderFloat3( 13, Camera::msCurrentCamera->mGlobalTransform.getOrigin().m_floats );
 	Engine::Instance().SetPixelShaderMatrix( 0, &invViewProj );
 
     btVector3 direction = ( lit->mGlobalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
     // position
-    Engine::Instance().SetPixelShaderFloat3( 10, lit->GetRealPosition().elements );
+    Engine::Instance().SetPixelShaderFloat3( 10, lit->GetPosition().elements );
     // range
-    Engine::Instance().SetPixelShaderFloat( 14, lit->GetRadius() );
+    Engine::Instance().SetPixelShaderFloat( 14, lit->GetRange() );
     // color
     Engine::Instance().SetPixelShaderFloat3( 11, lit->GetColor().elements );
     // inner angle
@@ -230,32 +250,20 @@ void DeferredRenderer::BoundingVolumeRenderingShader::OnResetDevice()
 	D3DVERTEXELEMENT9 vd[ ] = {
 		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
 		{ 0,  0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-		//{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
 		D3DDECL_END()
 	};
 	Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &vertexDeclaration ) ;
 }
 
+D3DXMATRIX SetUniformScaleTranslationMatrix( float s, const ruVector3 & p ) {
+	return D3DXMATRIX ( s, 0.0f, 0.0f, 0.0f,
+					    0.0f, s, 0.0f, 0.0f,
+					    0.0f, 0.0f, s, 0.0f,
+					    p.x, p.y, p.z, 1.0f );
+}
+
 void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
-    ruVector3 realPosition = pLight->GetRealPosition();
-    float scl = 1.5f * pLight->radius * scale;
-    D3DXMATRIX world;
-    world._11 = scl;
-    world._12 = 0.0f;
-    world._13 = 0.0f;
-    world._14 = 0.0f;
-    world._21 = 0.0f;
-    world._22 = scl;
-    world._23 = 0.0f;
-    world._24 = 0.0f;
-    world._31 = 0.0f;
-    world._32 = 0.0f;
-    world._33 = scl;
-    world._34 = 0.0f;
-    world._41 = realPosition.x;
-    world._42 = realPosition.y;
-    world._43 = realPosition.z;
-    world._44 = 1.0f;
+    D3DXMATRIX world = SetUniformScaleTranslationMatrix( 1.5f * pLight->mRadius * scale, pLight->GetPosition() );
 
     bvRenderer->Bind();
 
@@ -267,25 +275,7 @@ void DeferredRenderer::RenderSphere( Light * pLight, float scale ) {
 }
 
 void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
-	ruVector3 realPosition = pLight->GetRealPosition();
-	float scl = 1.25f * pLight->radius * scale;
-	D3DXMATRIX world;
-	world._11 = scl;
-	world._12 = 0.0f;
-	world._13 = 0.0f;
-	world._14 = 0.0f;
-	world._21 = 0.0f;
-	world._22 = scl;
-	world._23 = 0.0f;
-	world._24 = 0.0f;
-	world._31 = 0.0f;
-	world._32 = 0.0f;
-	world._33 = scl;
-	world._34 = 0.0f;
-	world._41 = realPosition.x;
-	world._42 = realPosition.y;
-	world._43 = realPosition.z;
-	world._44 = 1.0f;
+	D3DXMATRIX world = SetUniformScaleTranslationMatrix( 1.25f * pLight->mRadius * scale,  pLight->GetPosition() );
 
 	bvRenderer->Bind();
 
@@ -297,7 +287,7 @@ void DeferredRenderer::RenderStar( Light * pLight, float scale ) {
 }
 
 void DeferredRenderer::RenderConeIntoStencilBuffer( Light * lit ) {
-    float height = lit->GetRadius() * 2.5;
+    float height = lit->GetRange() * 2.5;
     float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
     D3DXMATRIX scale;
     D3DXMatrixScaling( &scale, radius, height, radius );
@@ -342,10 +332,10 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 				Engine::Instance().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 				Engine::Instance().GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
 			}
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+			Engine::Instance().SetZWriteEnabled( false );
 			Engine::Instance().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-			Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+			Engine::Instance().SetAlphaBlendEnabled( false );
+			Engine::Instance().SetStencilEnabled( false );
 			mSkyboxShader->Bind( Camera::msCurrentCamera->mGlobalTransform.getOrigin() );
 			Camera::msCurrentCamera->mSkybox->Render( );		
 			if( Engine::Instance().IsHDREnabled() ) {
@@ -357,49 +347,48 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 		mFullscreenQuad->Bind();
 	}
 	
-	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+	Engine::Instance().SetZWriteEnabled( false );
 
 	// begin occlusion queries
-	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-	Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+	Engine::Instance().SetAlphaBlendEnabled( false );
+	Engine::Instance().SetStencilEnabled( false );
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );	
 
 	int countInFrustum = 0;
 	for( auto pLight : Light::msPointLightList ) {
 		if( pLight->mQueryDone ) {
-			if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible() ) {
+			if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible() ) {
 				auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );
 				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end() ) {
 					pLight->pQuery->Issue( D3DISSUE_BEGIN );
 					RenderStar( pLight );
 					pLight->pQuery->Issue( D3DISSUE_END );
 				}
-				pLight->inFrustum = true;
+				pLight->mInFrustum = true;
 				countInFrustum++;
 				pLight->mQueryDone = false;
 			} else {
-				pLight->inFrustum = false;
+				pLight->mInFrustum = false;
 			}
 		}
 	}
 
 	Engine::Instance().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-	Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	Engine::Instance().SetStencilEnabled( true );
+	Engine::Instance().SetAlphaBlendEnabled( true );
 	
 	for( auto pLight : Light::msPointLightList ) {
-		bool inFrustum = Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() );
+		bool inFrustum = Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() );
 		if( pLight->IsVisible() && inFrustum ) {
 			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );			
 			DWORD pixelsVisible = 0;
-			if( pLight->inFrustum  && !pLight->mQueryDone ) {
+			if( pLight->mInFrustum  && !pLight->mQueryDone ) {
 				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end() ) {
 					HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
 					if( result == S_OK ) {
 						pLight->mQueryDone = true;
 						if( pixelsVisible > 0 ) {				
-							pLight->trulyVisible = true;
 							// add light to light list of nearest path point of camera									
 							Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.push_back( pLight );								
 						}
@@ -414,8 +403,8 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 
     for( auto pLight : Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList ) {
 		if( pLight->IsVisible() ) {
-			if( pLight->inFrustum  ) {
-				if( pLight->pointTexture ) {
+			if( pLight->mInFrustum  ) {
+				if( pLight->mPointTexture ) {
 					mPointLightShader->pixelShaderTexProj->Bind();
 				} else {
 					mPointLightShader->pixelShader->Bind();
@@ -426,10 +415,10 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
 
 				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
+						
+				mPointLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
 
 				RenderSphere( pLight );
-
-				mPointLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
 
 				mFullscreenQuad->BindNoShader();
 
@@ -444,7 +433,7 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	
     // Render spot lights
     for( auto pLight : Light::msSpotLightList ) {
-		if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetRealPosition(), pLight->GetRadius() ) && pLight->IsVisible()  ) {
+		if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible()  ) {
 			if( Engine::Instance().IsSpotLightShadowsEnabled() ) {
 				IDirect3DSurface9 * prevSurface = nullptr;
 				if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
@@ -456,15 +445,15 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 				}
 				mSpotLightShadowMap->UnbindSpotShadowMap( 4 );
 
-				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
-				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+				Engine::Instance().SetStencilEnabled( false );
+				Engine::Instance().SetAlphaBlendEnabled( false );
+				Engine::Instance().SetZWriteEnabled( true );
 
 				mSpotLightShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
 
-				Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
-				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-				Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+				Engine::Instance().SetStencilEnabled( true );
+				Engine::Instance().SetAlphaBlendEnabled( true );
+				Engine::Instance().SetZWriteEnabled( false );
 
 				mSpotLightShadowMap->BindSpotShadowMap( 4 );
 			}
@@ -489,11 +478,11 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
 	
     if( mHDRShader && Engine::Instance().IsHDREnabled() ) {
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-		Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+		Engine::Instance().SetStencilEnabled( false );
 		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
-		Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+		Engine::Instance().SetAlphaBlendEnabled( false );
 
-		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_POINT, true );
+		Engine::Instance().SetGenericSamplersFiltration( D3DTEXF_POINT, true );
 
         mHDRShader->CalculateFrameLuminance( );
         if( Engine::Instance().IsFXAAEnabled() ) {
@@ -504,22 +493,22 @@ void DeferredRenderer::EndFirstPassAndDoSecondPass() {
         }
     } else {
         if( Engine::Instance().IsFXAAEnabled() ) {
-            Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+            Engine::Instance().SetStencilEnabled( false );
             Engine::Instance().GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
 
-			Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_POINT, true );
+			Engine::Instance().SetGenericSamplersFiltration( D3DTEXF_POINT, true );
 
             mFXAA->DoAntialiasing( mFXAA->texture );
         }
     }
 	
 	if( Engine::Instance().IsAnisotropicFilteringEnabled() ) {
-		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_ANISOTROPIC, false );
+		Engine::Instance().SetGenericSamplersFiltration( D3DTEXF_ANISOTROPIC, false );
 	} else {
-		Engine::Instance().SetDiffuseNormalSamplersFiltration( D3DTEXF_LINEAR, false );
+		Engine::Instance().SetGenericSamplersFiltration( D3DTEXF_LINEAR, false );
 	}
 
-	Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	Engine::Instance().SetAlphaBlendEnabled( true );
 }
 
 
@@ -528,7 +517,7 @@ void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
         if( mSpotLightShadowMap ) {
             mSpotLightShadowMap.reset();
         }
-        mSpotLightShadowMap = make_shared<SpotlightShadowMap>( size );
+        mSpotLightShadowMap = make_shared<SpotlightShadowMap>( (float)size );
     }
 }
 

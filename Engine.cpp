@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 #include "ParticleSystemRenderer.h"
 #include "GUIRenderer.h"
@@ -14,6 +35,15 @@
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 
+
+Engine::Engine() : mpDevice( nullptr ), mpDirect3D( nullptr ), mpDeferredRenderer( nullptr ), 
+	mpForwardRenderer( nullptr ), mpParticleSystemRenderer( nullptr ), mpTextRenderer( nullptr ),
+	mpGUIRenderer( nullptr ), mAmbientColor( 0.05, 0.05, 0.05 ), mUsePointLightShadows( false ),
+	mUseSpotLightShadows( false ), mHDREnabled( false ), mRunning( true ), mFXAAEnabled( false ),
+	mTextureStoragePath( "data/textures/generic/" ), mParallaxEnabled( true ) {
+
+}
+
 Engine::~Engine() {	
     while( BitmapFont::fonts.size() ) {
         delete BitmapFont::fonts.front();
@@ -24,8 +54,8 @@ Engine::~Engine() {
     for( auto & kv : CubeTexture::all ) {
         delete kv.second;
     }
-   
-    delete mpTextRenderer;
+
+    //delete mpTextRenderer;
     delete mpParticleSystemRenderer;
     delete mpDeferredRenderer;
     delete mpGUIRenderer;
@@ -81,11 +111,8 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     D3DCAPS9 dCaps;
     mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps );
 
-    unsigned char psVerHi = D3DSHADER_VERSION_MAJOR( dCaps.PixelShaderVersion );
-    unsigned char psVerLo = D3DSHADER_VERSION_MINOR( dCaps.PixelShaderVersion );
-
-    // epic fail
-    if( psVerHi < 2 ) {
+	// epic fail
+    if( D3DSHADER_VERSION_MAJOR( dCaps.PixelShaderVersion ) < 2 ) {
 		mpDirect3D->Release();
         Log::Error( "Your graphics card doesn't support Pixel Shader 2.0. Engine initialization failed! Buy a modern video card!" );        
     }
@@ -145,8 +172,8 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 
     // no multisampling, because of deferred shading
     mPresentParameters.MultiSampleQuality = 0;
-
 	mPresentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
+
     // create device
     if( FAILED( mpDirect3D->CreateDevice ( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, mWindowHandle, D3DCREATE_HARDWARE_VERTEXPROCESSING, &mPresentParameters, &mpDevice ))) {
 		mpDirect3D->Release();
@@ -169,7 +196,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 
-    mpDeferredRenderer = new MultipleRTDeferredRenderer( true );	
+    mpDeferredRenderer = new MultipleRTDeferredRenderer();	
     mpForwardRenderer = new ForwardRenderer();	
     mpParticleSystemRenderer = new ParticleSystemRenderer();
     mpTextRenderer = new TextRenderer();
@@ -267,26 +294,16 @@ void Engine::RenderWorld() {
 
     // precalculations
     for( auto node : SceneNode::msNodeList ) {
-        //node->CalculateGlobalTransform();
-
-        // skip frustum flag, it will be set to true, if one of node's mesh
-        // are in frustum
+        // skip frustum flag, it will be set to true, if one of node's mesh are in frustum
         node->mInFrustum = false;
-    }
-    // update lights
-    for( auto light : Light::msSpotLightList ) {
-        light->DoFloating();
-    }
-    for( auto light : Light::msPointLightList ) {
-        light->DoFloating();
     }
     // begin dx scene
     GetDevice()->BeginScene();
     // begin rendering into G-Buffer
     GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
-    GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+    SetZWriteEnabled( true );
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-    GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+    SetAlphaBlendEnabled( false );
     mpDeferredRenderer->BeginFirstPass();
     // render from current camera
     RenderMeshesIntoGBuffer();
@@ -298,31 +315,29 @@ void Engine::RenderWorld() {
         GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
         GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
     }
-	GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+	SetAlphaBlendEnabled( false );
 	GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
     GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
     GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
-    GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+    SetZWriteEnabled( false );
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    SetStencilEnabled( false );
     mpDeferredRenderer->EndFirstPassAndDoSecondPass();
     // render all opacity meshes with forward renderer
     GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
-	GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+	SetZWriteEnabled( true );
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
 	GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
 	GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
     mpForwardRenderer->RenderMeshes();
-	GetDevice()->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+	SetZWriteEnabled( false );
     // render particles after all, because deferred shading doesnt support transparency
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+    SetStencilEnabled( false );
     mpParticleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
     GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
     mpGUIRenderer->RenderAllGUIElements();
-    // render light flares without writing to z-buffer
-    //Light::RenderLightFlares();
     // finalize
     GetDevice()->EndScene();
     GetDevice()->Present( 0, 0, 0, 0 );
@@ -357,11 +372,19 @@ void Engine::RenderMeshesIntoGBuffer() {
 				continue;
 			}
 			// bind height texture for parallax mapping
-			if( pMesh->mHeightTexture ) {
-				pMesh->mHeightTexture->Bind( 2 );
-				mpDeferredRenderer->BindParallaxShaders();
+			if( pMesh->mHeightTexture && !pMesh->mSkinned ) {
+				if( mParallaxEnabled ) {
+					pMesh->mHeightTexture->Bind( 2 );
+					mpDeferredRenderer->BindParallaxShaders();
+				} else {
+					mpDeferredRenderer->BindGenericShaders();
+				}
 			} else {
-				mpDeferredRenderer->BindGenericShaders();
+				if( pMesh->mSkinned ) {
+					mpDeferredRenderer->BindGenericSkinShaders();
+				} else {
+					mpDeferredRenderer->BindGenericShaders();
+				}
 			}
             // prevent overhead with normal texture
             if( pMesh->GetNormalTexture() ) {
@@ -393,17 +416,9 @@ LRESULT CALLBACK Engine::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARA
         ruEngine::Free();
         PostQuitMessage ( 0 );
         break;
-
     case WM_ERASEBKGND:
         return 0;
-	case WM_KILLFOCUS:
-		//Engine::Instance().Pause();
-		break;
-	case WM_SETFOCUS:
-		//Engine::Instance().Continue();
-		break;
-    }
-	
+    }	
     return DefWindowProc ( wnd, msg, wParam, lParam );
 }
 
@@ -420,6 +435,11 @@ void Engine::SetPixelShaderFloat( UINT startRegister, float v ) {
 void Engine::SetPixelShaderFloat3( UINT startRegister, float * v ) {
     float buffer[ 4 ] = { v[0], v[1], v[2], 0.0f };
     GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
+}
+
+void Engine::SetPixelShaderFloat3( UINT startRegister, float x, float y, float z ) {
+	float buffer[ 4 ] = { x, y, z, 0.0f };
+	GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
 void Engine::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
@@ -538,22 +558,7 @@ void Engine::OnResetDevice() {
 	}	
 }
 
-Engine::Engine() {
-	mpDevice = nullptr;
-	mpDirect3D = nullptr;
-	mpDeferredRenderer = nullptr;
-	mpForwardRenderer = nullptr;
-	mpParticleSystemRenderer = nullptr;
-	mpTextRenderer = nullptr;
-	mpGUIRenderer = nullptr;
-	mAmbientColor = ruVector3( 0.05, 0.05, 0.05 );
-	mUsePointLightShadows = false;
-	mUseSpotLightShadows = false;
-	mHDREnabled = false;
-	mRunning = true;
-	mFXAAEnabled = false;
-	mTextureStoragePath = "data/textures/generic/";
-}
+
 
 Engine & Engine::Instance() {
 	static Engine instance;
@@ -664,44 +669,43 @@ std::string Engine::GetTextureStoragePath() {
 	return mTextureStoragePath;
 }
 
-void Engine::SetDiffuseNormalSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips )
-{
+void Engine::SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips ) {
+	// number of generic samplers (i.e. for diffuse, normal and height textures )
+	const int genericSamplersCount = 3;
+
 	if( filter == D3DTEXF_NONE ) { // invalid argument to min and mag filters
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		for( int i = 0; i < genericSamplersCount; i++ ) {
+			GetDevice()->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			GetDevice()->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		}
 	} else if( filter == D3DTEXF_LINEAR ) {
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		for( int i = 0; i < genericSamplersCount; i++ ) {
+			GetDevice()->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			GetDevice()->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		}
 	} else if( filter == D3DTEXF_ANISOTROPIC ) {
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+		GetDevice()->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+		GetDevice()->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		// it's too expensive to set anisotropic filtration to normal and height maps, so set linear
+		for( int i = 1; i < genericSamplersCount; i++ ) {
+			GetDevice()->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			GetDevice()->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		}
 	}
 
 	// mip filters
 	if( filter == D3DTEXF_NONE || disableMips ) {
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+		for( int i = 0; i < genericSamplersCount; i++ ) {
+			GetDevice()->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+		}
 	} else if( filter == D3DTEXF_POINT ) {
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
+		for( int i = 0; i < genericSamplersCount; i++ ) {
+			GetDevice()->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
+		}
 	} else if( filter == D3DTEXF_LINEAR || filter == D3DTEXF_ANISOTROPIC ) {
-		GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-		GetDevice()->SetSamplerState ( 2, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+		for( int i = 0; i < genericSamplersCount; i++ ) {
+			GetDevice()->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+		}
 	}
 }
 
@@ -714,30 +718,19 @@ bool Engine::IsAnisotropicFilteringEnabled() {
 }
 
 
-IDirect3DSurface9 * Engine::GetBackBuffer()
-{
+IDirect3DSurface9 * Engine::GetBackBuffer() {
 	return mpBackBuffer;
 }
 
-void Engine::Continue()
-{
+void Engine::Continue() {
 	mPaused = false;
 }
 
-void Engine::Pause()
-{
+void Engine::Pause() {
 	mPaused = true;
 }
 
-int Engine::GetDeviceRefCount()
-{
-	int refCnt = GetDevice()->AddRef() - 1; 
-	GetDevice()->Release();
-	return refCnt;
-}
-
-void Engine::SetDefaults()
-{
+void Engine::SetDefaults() {
 	GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
 	GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
 	GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
@@ -757,13 +750,13 @@ void Engine::SetDefaults()
 
 	// setup samplers
 	GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
+	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 
 	GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );    
+	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );    
 
 	GetDevice()->SetSamplerState ( 3, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );   
+	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );   
 
 	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 	GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
@@ -777,25 +770,32 @@ void Engine::SetDefaults()
 
 	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	GetDevice()->SetSamplerState ( 2, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 
 	SetAnisotropicTextureFiltration( true );
+
+	SetParallaxEnabled( true );
 }
 
-void Engine::DrawIndexedTriangleList( int vertexCount, int faceCount )
-{
+void Engine::DrawIndexedTriangleList( int vertexCount, int faceCount ) {
 	mpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertexCount, 0, faceCount );
 	++mDIPCount;
 }
 
-void Engine::SetVertexShaderVector3( UINT startRegister, ruVector3 v )
-{
+void Engine::SetVertexShaderVector3( UINT startRegister, ruVector3 v ) {
 	float buffer[ 4 ] = { v.x, v.y, v.z, 0.0f };
 	GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
 }
 
+void Engine::SetAlphaBlendEnabled( bool state ) {
+	mpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, state );
+}
 
-//////////////////////////////////////////////////////////
-// API
-//////////////////////////////////////////////////////////
+void Engine::SetZWriteEnabled( bool state ) {
+	mpDevice->SetRenderState( D3DRS_ZWRITEENABLE, state );
+}
 
+void Engine::SetStencilEnabled( bool state ) {
+	mpDevice->SetRenderState( D3DRS_STENCILENABLE, state );
+}

@@ -2,7 +2,7 @@
 
 #include "Game.h"
 #include "Inventory.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 #include "LightAnimator.h"
 #include "Sheet.h"
 #include "GameCamera.h"
@@ -41,7 +41,7 @@ public:
     ruSceneNode mNodeInHands;
     ruSceneNode mNearestPickedNode;
     ruSceneNode mPickedNode;
-	ruSceneNode mFakeLight;
+	ruLight mFakeLight;
 
     ruTextureHandle mStatusBar;
 
@@ -51,8 +51,8 @@ public:
 
     SmoothFloat mPitch;
     SmoothFloat mYaw;
-    SmoothFloat mStaminaAlpha;
-    SmoothFloat mHealthAlpha;
+   // SmoothFloat mStaminaAlpha;
+    //SmoothFloat mHealthAlpha;
     SmoothFloat mBreathVolume;
     SmoothFloat mHeartBeatVolume;
     SmoothFloat mHeartBeatPitch;
@@ -78,6 +78,7 @@ public:
     ruVector3 mCameraOffset;
     ruVector3 mCameraShakeOffset;
     ruVector3 mFrameColor;
+	ruVector3 mPickCenterOffset;
 
 	float mCameraTrembleTime;
 	ruVector3 mCameraTrembleOffset;
@@ -161,9 +162,23 @@ public:
 			}
 		}
 	}
+
 public:
     explicit Player();
     virtual ~Player();
+	void Player::Step( ruVector3 direction, float speed ) {
+		// spring based step
+		ruVector3 currentPosition = mBody.GetPosition();
+		ruVector3 rayBegin = currentPosition;
+		ruVector3 rayEnd = rayBegin - ruVector3( 0, 5, 0 );
+		ruVector3 intPoint;
+		ruSceneNode rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
+		ruVector3 pushpullVelocity = ruVector3( 0,0,0 );
+		if( rayResult.IsValid() && !(rayResult == mBody)  ) {
+			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4.4f;
+		}
+		mBody.Move( direction * speed + pushpullVelocity );
+	}
     void FreeHands();
 	void LockFlashlight( bool state );
 	void SetHealth( float health );

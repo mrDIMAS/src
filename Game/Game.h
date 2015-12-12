@@ -20,12 +20,12 @@ class Item;
 class Level;
 class Player;
 class Menu;
-class GUI;
+class GUIProperties;
 
 extern Player * pPlayer;
 extern Menu * pMainMenu;
 extern Level * pCurrentLevel;
-extern GUI * pGUI;
+extern GUIProperties * pGUIProp;
 extern bool g_running;
 extern string localizationPath;
 extern bool g_showFPS;

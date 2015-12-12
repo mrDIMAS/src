@@ -64,8 +64,8 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	mLastHealth = mHealth;
 
     // GUI vars
-    mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
-    mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
+    //mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
+    //mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
 
     mpCurrentWay = nullptr;
 
@@ -76,15 +76,15 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 
     mBody.SetName( "Player" );
 
-    mGUIActionText = ruCreateGUIText( "Action text", ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUI->mFont, ruVector3( 255, 0, 0 ), 1 );
+    mGUIActionText = ruCreateGUIText( "Action text", ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUIProp->mFont, pGUIProp->mForeColor, 1 );
 
     float scale = 2;
     int w = 512.0f / scale;
     int h = 256.0f / scale;
-    mGUIBackground = ruCreateGUIRect( 0, ruEngine::GetResolutionHeight() - h, w, h, mStatusBar, ruVector3( 255, 255, 255 ), mStaminaAlpha );
+    mGUIBackground = ruCreateGUIRect( 0, ruEngine::GetResolutionHeight() - h, w, h, mStatusBar, pGUIProp->mBackColor );
     for( int i = 0; i < mGUISegmentCount; i++ ) {
-        mGUIStaminaBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruEngine::GetResolutionHeight() - 3 * 15, 8, 16, pGUI->staminaBarImg, ruVector3( 255, 255, 255 ), mStaminaAlpha );
-        mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruEngine::GetResolutionHeight() - 4 * 26, 8, 16, pGUI->lifeBarImg, ruVector3( 255, 255, 255 ), mHealthAlpha );
+        mGUIStaminaBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruEngine::GetResolutionHeight() - 3 * 15, 8, 16, ruGetTexture( "data/gui/fatigue.png" ), pGUIProp->mForeColor );
+        mGUIHealthBarSegment[i] = ruCreateGUIRect( 44 + i * ( 8 + 2 ), ruEngine::GetResolutionHeight() - 4 * 26, 8, 16, ruGetTexture( "data/gui/life.png" ), pGUIProp->mForeColor );
     }
 
 	mGUIYouDiedFont = ruCreateGUIFont( 40, "data/fonts/font1.otf" );
@@ -164,23 +164,23 @@ Player::~Player() {
 }
 
 void Player::DrawStatusBar() {
-    if( mMoved ) {
-        mStaminaAlpha.SetTarget( 255 );
-        mHealthAlpha.SetTarget( 255 );
-    } else {
-        mStaminaAlpha.SetTarget( 50 );
-        mHealthAlpha.SetTarget( 50 );
-    }
+    //if( mMoved ) {
+    //    mStaminaAlpha.SetTarget( 255 );
+    //    mHealthAlpha.SetTarget( 255 );
+    //} else {
+    //    mStaminaAlpha.SetTarget( 50 );
+    //    mHealthAlpha.SetTarget( 50 );
+    //}
 
-    mStaminaAlpha.ChaseTarget( 8.0f * g_dt );
-    mHealthAlpha.ChaseTarget( 8.0f * g_dt );
+   // mStaminaAlpha.ChaseTarget( 8.0f * g_dt );
+   // mHealthAlpha.ChaseTarget( 8.0f * g_dt );
 
-    ruSetGUINodeAlpha( mGUIBackground, mStaminaAlpha );
+    //ruSetGUINodeAlpha( mGUIBackground, mStaminaAlpha );
     int segCount = mStamina / 5;
     for( int i = 0; i < mGUISegmentCount; i++ ) {
         if( i < segCount ) {
             ruSetGUINodeVisible( mGUIStaminaBarSegment[i], true );
-            ruSetGUINodeAlpha( mGUIStaminaBarSegment[i], mStaminaAlpha );
+            //ruSetGUINodeAlpha( mGUIStaminaBarSegment[i], mStaminaAlpha );
         } else {
             ruSetGUINodeVisible( mGUIStaminaBarSegment[i], false );
         }
@@ -189,7 +189,7 @@ void Player::DrawStatusBar() {
     for( int i = 0; i < mGUISegmentCount; i++ ) {
         if( i < segCount ) {
             ruSetGUINodeVisible( mGUIHealthBarSegment[i], true );
-            ruSetGUINodeAlpha( mGUIHealthBarSegment[i], mHealthAlpha );
+            //ruSetGUINodeAlpha( mGUIHealthBarSegment[i], mHealthAlpha );
         } else {
             ruSetGUINodeVisible( mGUIHealthBarSegment[i], false );
         }
@@ -509,9 +509,9 @@ void Player::UpdateMoving() {
 void Player::ComputeStealth() {
     bool inLight = false;
  
-    for( int i = 0; i < ruGetWorldPointLightCount(); i++ ) {
-		if( !(ruGetWorldPointLight( i ) == mFakeLight)) {
-			if( ruIsLightSeePoint( ruGetWorldPointLight( i ), mBody.GetPosition() )) {
+    for( int i = 0; i < ruLight::GetWorldPointLightCount(); i++ ) {
+		if( !(ruLight::GetWorldPointLight( i ) == mFakeLight)) {
+			if( ruLight::GetWorldPointLight( i ).IsSeePoint( mBody.GetPosition() )) {
 				inLight = true;
 				break;
 			}
@@ -519,8 +519,8 @@ void Player::ComputeStealth() {
     }
 
     if( !inLight ) {
-        for( int i = 0; i < ruGetWorldSpotLightCount(); i++ ) {
-            if( ruIsLightSeePoint( ruGetWorldSpotLight( i ), mBody.GetPosition() )) {
+        for( int i = 0; i < ruLight::GetWorldSpotLightCount(); i++ ) {
+            if( ruLight::GetWorldSpotLight( i ).IsSeePoint( mBody.GetPosition() )) {
                 inLight = true;
                 break;
             }
@@ -632,11 +632,11 @@ void Player::Update( ) {
 
 void Player::LoadGUIElements() {
     mItemPickupSound = ruSound::Load2D( "data/sounds/menuhit.ogg" );
-    mStatusBar = ruGetTexture( "data/gui/statusbar.png" );
+    mStatusBar = ruGetTexture( "data/gui/statusbar.tga" );
 
-	mGUICursorPickUp = ruCreateGUIRect( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/up.png" ) );
-	mGUICursorPut = ruCreateGUIRect( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/down.png" ) );
-	mGUICrosshair = ruCreateGUIRect( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/crosshair.png" ) );
+	mGUICursorPickUp = ruCreateGUIRect( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/up.tga" ) );
+	mGUICursorPut = ruCreateGUIRect( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/down.tga" ) );
+	mGUICrosshair = ruCreateGUIRect( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruGetTexture( "data/gui/crosshair.tga" ) );
 	mGUIStealthSign = ruCreateGUIRect( ruEngine::GetResolutionWidth() / 2 - 32, 200, 64, 32, ruGetTexture( "data/textures/effects/eye.png" ));
 
 	mDamageBackgroundAlpha = 0;
@@ -663,10 +663,10 @@ void Player::CreateCamera() {
     mItemPoint.Attach( mpCamera->mNode );
     mItemPoint.SetPosition( ruVector3( 0, 0, 1.0f ));
 
-	mFakeLight = ruCreateLight();
+	mFakeLight = ruLight::Create( ruLight::Type::Point );
 	mFakeLight.Attach( mpCamera->mNode );
-	ruSetLightRange( mFakeLight, 2 );
-	ruSetLightColor( mFakeLight, ruVector3( 25, 25, 25 ));
+	mFakeLight.SetRange( 2 );
+	mFakeLight.SetColor( ruVector3( 25, 25, 25 ));
 }
 
 void Player::LoadSounds() {
@@ -808,29 +808,33 @@ void Player::UpdateItemsHandling() {
 		}
 	}
 
-    if( mNodeInHands.IsValid() ) {
-        ruVector3 ppPos = mItemPoint.GetPosition();
-        ruVector3 objectPos = mNodeInHands.GetPosition();
-        ruVector3 dir = ppPos - objectPos;
-        if( ruIsMouseDown( MB_Left ) ) {
-            mNodeInHands.Move( dir * 6 );
+	if( mNodeInHands.IsValid()  ) {
+		if( mPitch < 70 ) {
+			ruVector3 ppPos = mItemPoint.GetPosition();
+			ruVector3 objectPos = mNodeInHands.GetPosition() + mPickCenterOffset ;
+			ruVector3 dir = ppPos - objectPos;
+			if( ruIsMouseDown( MB_Left ) ) {
+				mNodeInHands.Move( dir * 6 );
 
-            mNodeInHands.SetAngularVelocity( ruVector3( 0, 0, 0 ));
+				mNodeInHands.SetAngularVelocity( ruVector3( 0, 0, 0 ));
 
-            if( ruIsMouseDown( MB_Right ) ) {
-                if( UseStamina( mNodeInHands.GetMass() )) {
-                    mNodeInHands.Move(( ppPos - mpCamera->mNode.GetPosition() ).Normalize() * 6 );
-                }
+				if( ruIsMouseDown( MB_Right ) ) {
+					if( UseStamina( mNodeInHands.GetMass() )) {
+						mNodeInHands.Move(( ppPos - mpCamera->mNode.GetPosition() ).Normalize() * 6 );
+					}
 
-                mObjectThrown = true;
-                mNodeInHands.Invalidate();
-            }
-        } else {
-            mNodeInHands.SetAngularVelocity( ruVector3( 1, 1, 1 ));
-
-            mNodeInHands.Invalidate();
-        }
+					mObjectThrown = true;
+					mNodeInHands.Invalidate();
+				}
+			} else {
+				mNodeInHands.SetAngularVelocity( ruVector3( 1, 1, 1 ));
+				mNodeInHands.Invalidate();
+			}
+		} else {
+			mNodeInHands.Invalidate();
+		}
     }
+
 
     if( !ruIsMouseDown( MB_Left )) {
         mObjectThrown = false;
@@ -878,6 +882,7 @@ void Player::UpdatePicking() {
                 if( IsObjectHasNormalMass( mPickedNode )) {
                     if( !mPickedNode.IsFrozen() && !mObjectThrown ) {
                         mNodeInHands = mPickedNode;
+						mPickCenterOffset = pickPosition -  mPickedNode.GetPosition();
                     }
                 }
             }
@@ -956,8 +961,8 @@ void Player::Deserialize( SaveFile & in ) {
 
     in.ReadBoolean( mMoved );
 
-    mStaminaAlpha.Deserialize( in );
-    mHealthAlpha.Deserialize( in );
+   // mStaminaAlpha.Deserialize( in );
+//    mHealthAlpha.Deserialize( in );
 
     in.ReadBoolean( mMoved );
     in.ReadBoolean( mObjectiveDone );
@@ -1046,8 +1051,8 @@ void Player::Serialize( SaveFile & out ) {
 
     out.WriteBoolean( mMoved );
 
-    mStaminaAlpha.Serialize( out );
-    mHealthAlpha.Serialize( out );
+   // mStaminaAlpha.Serialize( out );
+//    mHealthAlpha.Serialize( out );
 
     out.WriteBoolean( mMoved );
     out.WriteBoolean( mObjectiveDone );
@@ -1187,7 +1192,7 @@ void Player::TrembleCamera( float time ) {
 }
 
 void Player::TurnOffFakeLight() {
-	ruSetLightRange( mFakeLight, 0.001f );
+	mFakeLight.SetRange( 0.001f );
 }
 
 float Player::GetHealth() {

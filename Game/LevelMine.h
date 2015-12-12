@@ -44,7 +44,7 @@ private:
     ruSceneNode mExplosivesDummy[4];
     ruSceneNode mRock[3];
     ruSceneNode mExplosionFlashPosition;
-    ruSceneNode mExplosionFlashLight;
+    ruLight mExplosionFlashLight;
     ruSceneNode mExplosionDustParticleSystem;
     ruVector3 mRockPosition[3];
 

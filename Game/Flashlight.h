@@ -7,7 +7,7 @@
 
 class Flashlight : public UsableObject {
 private:
-    ruSceneNode mLight;
+    ruLight mLight;
 
     float mMaxCharge;
     float mCharge;
@@ -58,7 +58,7 @@ public:
     bool IsOn() const;
     float GetCharge();
 	ruSceneNode GetLight();
-    bool IsBeamContainsPoint( ruVector3 point ) const;
+    bool IsBeamContainsPoint( ruVector3 point );
 	virtual void Update() final;
 	virtual Item::Type GetItemType( ) final {
 		return Item::Type::Lighter;

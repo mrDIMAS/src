@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #pragma once
 
 #include "SceneNode.h"
@@ -13,57 +34,44 @@ class Light : public SceneNode {
 public:
 	IDirect3DQuery9 * pQuery;
 	bool mQueryDone;
-	bool trulyVisible;
-	bool inFrustum;
-    typedef struct {
-        float x,y,z;
-        float tx,ty;
-    } flareVertex_t;
-    Frustum frustum;
-    float radius;
-    ruVector3 color;
-    float innerAngle;
-    float outerAngle;
-    float cosHalfInnerAngle;
-    float cosHalfOuterAngle;
-    bool floating;
-    float brightness;
-    int type;
-    ruVector3 floatMin;
-    ruVector3 floatMax;
-    ruVector3 floatTo;
-    ruVector3 floatOffset;
-    D3DXMATRIX spotViewProjectionMatrix;
-    Texture * spotTexture;
-    CubeTexture * pointTexture;
-    static IDirect3DVertexBuffer9 * flareBuffer;
-    Texture * flareTexture;
+	bool mInFrustum;
+    Frustum mFrustum;
+    float mRadius;
+    ruVector3 mColor;
+    float mInnerAngle;
+    float mOuterAngle;
+    float mCosHalfInnerAngle;
+    float mCosHalfOuterAngle;
+    ruLight::Type mType;
+	float mGreyScaleFactor;
+    D3DXMATRIX mSpotViewProjectionMatrix;
+    Texture * mSpotTexture;
+    CubeTexture * mPointTexture;
 
-    static vector<Light*> lights;
-    static Texture * defaultSpotTexture;
-    static CubeTexture * defaultPointCubeTexture;
+    static vector<Light*> msLightList;
+    static Texture * msDefaultSpotTexture;
+    static CubeTexture * msDefaultPointCubeTexture;
 	static vector< Light* > msPointLightList;
 	static vector< Light* > msSpotLightList; 
 public:
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-    explicit Light( int type );
+    explicit Light( ruLight::Type type );
     virtual ~Light();
     void SetColor( const ruVector3 & theColor );
     ruVector3 GetColor() const;
-    void SetRadius( const float & theRadius );
-    float GetRadius() const;
+    void SetRange( const float & theRadius );
+    float GetRange() const;
     void SetConeAngles( float theInner, float theOuter );
     float GetInnerAngle() const;
-    float GetOuterAngle() const;
-    void SetFlare( Texture * texture );
-    static void RenderLightFlares();
+	float GetOuterAngle() const;
     float GetCosHalfInnerAngle( );
     float GetCosHalfOuterAngle( );
     void SetSpotTexture( Texture * tex );
     void SetPointTexture( CubeTexture * ctex );
     void BuildSpotProjectionMatrixAndFrustum();
     static Light * GetLightByHandle( ruSceneNode handle );
-    ruVector3 GetRealPosition( );
-    void DoFloating();
+	float GetGreyScaleFactor();
+	bool IsSeePoint( const ruVector3 & point );
+	void SetGreyScaleFactor( float greyScaleFactor );
 };

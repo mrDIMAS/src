@@ -47,7 +47,7 @@ private:
     ruSceneNode powerLever;
     ruSceneNode mPowerLeverOffModel;
     ruSceneNode mPowerLeverOnModel;
-    ruSceneNode mPowerLamp;
+    ruLight mPowerLamp;
     ruSceneNode mPowerLeverSnd;
     ruSceneNode mSmallSteamPosition;
 	

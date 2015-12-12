@@ -3,7 +3,7 @@
 #include "Game.h"
 #include "Menu.h"
 #include "Player.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 #include "Level.h"
 #include "LightAnimator.h"
 #include "FPSCounter.h"
@@ -44,12 +44,12 @@ void main( ) {
 	g_resW = ruEngine::GetResolutionWidth();
 	g_resH = ruEngine::GetResolutionHeight();
 
-    ruSetLightPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
-    ruSetLightSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
+    ruLight::SetPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
+    ruLight::SetSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
 	
-    pGUI = new GUI;
+    pGUIProp = new GUIProperties;
     pMainMenu = new Menu;
-    ruEngine::SetCursorSettings( ruGetTexture( "data/gui/cursor.png" ), 32, 32 );
+    ruEngine::SetCursorSettings( ruGetTexture( "data/gui/cursor.tga" ), 32, 32 );
     FPSCounter fpsCounter;
 
     ruTimerHandle dtTimer = ruCreateTimer();
@@ -58,7 +58,7 @@ void main( ) {
     
     double gameClock = ruGetTimeInSeconds( dtTimer );
 
-    ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUI->mFont, ruVector3( 255, 0, 255 ), 0, 100 );
+    ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, 0, 100 );
     ruEngine::ShowCursor();
 
     while( g_running ) {
@@ -115,9 +115,8 @@ void main( ) {
         delete pPlayer;
     }
     delete pMainMenu;
-    delete pGUI;
+    delete pGUIProp;
     ruEngine::Free();
-	std::locale::global(std::locale::classic()); 
 }
 
 void RaiseError( const string & text ) {

@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 
 #include "SpotlightShadowMap.h"
@@ -31,12 +52,12 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 				// if owner of mesh is visible
 				if( pOwner->IsVisible()) {
 					// if light "sees" mesh, it can cast shadow
-					if( spotLight->frustum.IsAABBInside( mesh->mAABB, pOwner->GetPosition())) {
+					if( spotLight->mFrustum.IsAABBInside( mesh->mAABB, pOwner->GetPosition())) {
 						// if mesh in light range, it can cast shadow
 						//if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
 						D3DXMATRIX world, wvp;
 						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-						D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->spotViewProjectionMatrix );
+						D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->mSpotViewProjectionMatrix );
 						Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
 
 						mesh->Render();
@@ -62,7 +83,7 @@ SpotlightShadowMap::~SpotlightShadowMap() {
 }
 
 SpotlightShadowMap::SpotlightShadowMap( float size ) {
-    iSize = size;
+    iSize = static_cast<int>( size );
 	Initialize();
 	vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso" );
 	pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso" );

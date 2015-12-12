@@ -1,3 +1,24 @@
+/*******************************************************************************
+*                               Ruthenium Engine                               *
+*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*                                                                              *
+* This file is part of Ruthenium Engine.                                      *
+*                                                                              *
+* Ruthenium Engine is free software: you can redistribute it and/or modify    *
+* it under the terms of the GNU Lesser General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or            *
+* (at your option) any later version.                                          *
+*                                                                              *
+* Ruthenium Engine is distributed in the hope that it will be useful,         *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+* GNU Lesser General Public License for more details.                          *
+*                                                                              *
+* You should have received a copy of the GNU Lesser General Public License     *
+* along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                              *
+*******************************************************************************/
+
 #include "Precompiled.h"
 #include "EffectsQuad.h"
 #include "Engine.h"
@@ -8,16 +29,16 @@ void EffectsQuad::Render() {
     Engine::Instance().GetDevice()->SetVertexDeclaration( vertexDeclaration );
     Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
     if( debug ) {
-        Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-        Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+        Engine::Instance().SetAlphaBlendEnabled( true );
+        Engine::Instance().SetStencilEnabled( true );
     }
 }
 
 void EffectsQuad::Bind( bool bindInternalVertexShader ) {
     if( debug ) {
         debugPixelShader->Bind();
-        Engine::Instance().GetDevice()->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-        Engine::Instance().GetDevice()->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+        Engine::Instance().SetAlphaBlendEnabled( false );
+        Engine::Instance().SetStencilEnabled( false );
     }
 	if( bindInternalVertexShader ) {
 		vertexShader->Bind();

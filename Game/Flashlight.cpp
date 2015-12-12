@@ -8,7 +8,8 @@ Flashlight::Flashlight() {
 	mModel.SetDepthHack( 0.155f );
 
 	mLight = mModel.FindChild( "PlayerLight" );
-	ruSetLightSpotTexture( mLight, ruGetTexture( "data/textures/generic/spotlight.jpg"));
+	mLight.SetSpotTexture( ruGetTexture( "data/textures/generic/spotlight.jpg"));
+	mLight.SetGreyscaleFactor( 1.0f );
 
 	mOnSound = ruSound::Load2D( "data/sounds/lighter/open.ogg" );
 	mOnSound.SetVolume( 0.3f );
@@ -18,10 +19,7 @@ Flashlight::Flashlight() {
 
 	mFireSound = ruSound::Load2D( "data/sounds/lighter/fire.ogg" );
 
-	mOnRange = ruGetLightRange( mLight ) * 1; // HAAAAAAAAAAAAAAAX!
-
-	const float lim = 0.02;
-	ruSetLightFloatingLimits( mLight, ruVector3( -lim, -lim, -lim ), ruVector3( lim, lim, lim ));
+	mOnRange = mLight.GetRange() * 1.25f; // HAAAAAAAAAAAAAAAX!
 
 	mRealRange = mOnRange;
 	mRangeDest = mOnRange;
@@ -107,8 +105,8 @@ Flashlight::~Flashlight() {
 	mFireSound.Free();
 }
 
-bool Flashlight::IsBeamContainsPoint( ruVector3 point ) const {
-    return ruIsLightSeePoint( mLight, point );
+bool Flashlight::IsBeamContainsPoint( ruVector3 point ){
+    return mLight.IsSeePoint( point );
 }
 
 float Flashlight::GetCharge() {
@@ -224,9 +222,10 @@ void Flashlight::Update() {
 
 		mCharge -= g_dt / mChargeWorkTimeSeconds;
 
-		if( mCharge < 0.05f ) {
+
+		if( mCharge < 0.01f ) {
 			mFire.Hide();
-			mCharge = 0.05f;
+			mCharge = 0.01f;
 		} else {
 			mFire.Show();
 		}
@@ -234,8 +233,12 @@ void Flashlight::Update() {
 		mRangeDest = 0.0f;
 	}
 
-	mRealRange += ( mRangeDest - mRealRange ) * 0.15f;
-	ruSetLightRange( mLight, mRealRange * mCharge );
+	if( mCharge > 0.025f ) {
+		mRealRange = mRangeDest;
+	} else {
+		mRealRange += ( mRangeDest * mCharge - mRealRange ) * 0.025f;
+	}
+	mLight.SetRange( mRealRange );
 	mPosition = mPosition.Lerp( mDestPosition, 0.15f );
 	mModel.SetPosition( mPosition + mOffset );
 

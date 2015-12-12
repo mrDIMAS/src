@@ -1,12 +1,11 @@
 #include "Precompiled.h"
 
 #include "RadioButton.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 #include "Menu.h"
 
 void RadioButton::Update(  ) {
-    ruSetGUINodeText( mGUIText, mOn ? pMainMenu->GetLocalization()->GetString( "toggleEnabled" ) : pMainMenu->GetLocalization()->GetString( "toggleDisabled" ) );
-    ruSetGUINodeColor( mGUIText,  mOn ? ruVector3( 0, 255, 0 ) : ruVector3( 255, 0, 0 ) );
+
 }
 
 RadioButton::RadioButton( float x, float y, ruTextureHandle buttonImage, const string & text  ) {
@@ -14,9 +13,9 @@ RadioButton::RadioButton( float x, float y, ruTextureHandle buttonImage, const s
     int textHeight = 16;
     float buttonWidth = 110;
     float buttonHeight = 32;
-    mGUIText = ruCreateGUIText( "text", x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUI->mFont, ruVector3( 255, 0, 0 ), 0 );
-    mGUIButton = ruCreateGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
-
+    mGUIButton = ruCreateGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, 1 );
+	mCheck = ruCreateGUIRect( buttonWidth + 10, 6, 20, 20, ruGetTexture( "data/gui/menu/checkbox_checked.tga" ), pGUIProp->mForeColor );
+	ruAttachGUINode( mCheck, mGUIButton );
 	ruAddGUINodeAction( mGUIButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
 }
 
@@ -35,6 +34,14 @@ void RadioButton::SetChangeAction( const ruDelegate & delegat ) {
 }
 
 void RadioButton::AttachTo( ruGUINodeHandle node ) {
-	ruAttachGUINode( mGUIText, node );
 	ruAttachGUINode( mGUIButton, node );
+}
+
+void RadioButton::OnChange() {
+	mOn = !mOn;
+	if( mOn ) {
+		ruSetGUINodeTexture( mCheck, ruGetTexture( "data/gui/menu/checkbox_checked.tga" ) );
+	} else {
+		ruSetGUINodeTexture( mCheck, ruGetTexture( "data/gui/menu/checkbox.tga" ) );
+	}
 }

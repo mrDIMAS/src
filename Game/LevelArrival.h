@@ -34,7 +34,7 @@ public:
     ruSceneNode mLamp1;
     ruSceneNode mLamp2;
 
-	ruSceneNode mLiftLamp;
+	ruLight mLiftLamp;
 
 	ActionSeries mLiftCrashSeries;
 	ActionSeries mGeneratorStartSeries;

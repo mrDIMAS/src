@@ -2,7 +2,7 @@
 #define _MENU_
 
 #include "GameCamera.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 #include "NumericSlider.h"
 #include "RadioButton.h"
 #include "WaitKeyButton.h"
@@ -43,6 +43,7 @@ private:
     Slider * mpMusicVolume;
     Slider * mpMouseSensivity;
     RadioButton * mpFXAAButton;
+	RadioButton * mpParallaxButton;
     RadioButton * mpFPSButton;
     RadioButton * mpSpotShadowsButton;
     RadioButton * mpHDRButton;
@@ -93,6 +94,9 @@ private:
     ruTextHandle mGUIAuthorsText;
     ruRectHandle mGUIAuthorsBackground;
 
+	ruTextHandle mGUIWindowText;
+	ruTextHandle mGUICaption;
+
 	ModalWindow * mpModalWindow;
 
     static const int mSaveLoadSlotCount = 7;
@@ -122,6 +126,9 @@ private:
 	void OnOptionsCommonClick();
 	void OnOptionsControlsClick();
 	void OnHDRButtonClick();
+	void OnParallaxButtonClick() {
+		ruEngine::SetParallaxEnabled( mpParallaxButton->IsEnabled() );
+	}
 	void OnLoadSaveClick();
 	void OnSaveClick();
 	void OnMouseSensivityChange();

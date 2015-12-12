@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 
 #include "NumericSlider.h"
-#include "GUI.h"
+#include "GUIProperties.h"
 
 Slider::Slider( float x, float y, float minimum, float maximum, float step, ruTextureHandle buttonImage, const string & text ) {
     float buttonWidth = 32;
@@ -17,14 +17,22 @@ Slider::Slider( float x, float y, float minimum, float maximum, float step, ruTe
 
     mfStep = step;
 
-    mGUIText = ruCreateGUIText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUI->mFont, ruVector3( 255, 255, 255 ), 0 );
-    mGUIValueText = ruCreateGUIText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+    mGUIText = ruCreateGUIText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, 0 );
+    mGUIValueText = ruCreateGUIText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, 1 );
 
-    mGUIIncreaseButton = ruCreateGUIButton( x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+    mGUIIncreaseButton = ruCreateGUIButton( x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
 	ruAddGUINodeAction( mGUIIncreaseButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnIncreaseClick ));
 
-    mGUIDecreaseButton = ruCreateGUIButton( x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUI->mFont, ruVector3( 255, 255, 255 ), 1 );
+    mGUIDecreaseButton = ruCreateGUIButton( x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
 	ruAddGUINodeAction( mGUIDecreaseButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnDecreaseClick ));
+}
+
+int Slider::GetWidth() {
+	return 4 * 32 + 100 + 32; // HARD code :)
+}
+
+int Slider::GetHeight() {
+	return 32;
 }
 
 void Slider::SetValue( float value ) {
