@@ -49,11 +49,11 @@ RECT windowRect;
 void ruInputUpdate( ) {
 
 
-    if( pKeyboard->GetDeviceState( sizeof( g_keys ),( void * )&g_keys ) == DIERR_INPUTLOST ) {
+    if( pKeyboard->GetDeviceState( sizeof( g_keys ), reinterpret_cast<void*>( &g_keys )) == DIERR_INPUTLOST ) {
         pKeyboard->Acquire();
     }
 
-    if( pMouse->GetDeviceState( sizeof( DIMOUSESTATE ),( void * )&mouseData ) == DIERR_INPUTLOST ) {
+    if( pMouse->GetDeviceState( sizeof( DIMOUSESTATE ), reinterpret_cast<void*>( &mouseData )) == DIERR_INPUTLOST ) {
         pMouse->Acquire();
     }
 
@@ -96,10 +96,10 @@ void ruInputUpdate( ) {
     }
 };
 
-void ruInputInit( void * window ) {
+void ruInputInit( HWND window ) {
     HINSTANCE hInstance = GetModuleHandle( 0 );
-    hwnd = (HWND)(*(HWND*)window);
-    DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&pInput,NULL);
+    hwnd = window;
+    DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>( &pInput ),NULL);
     pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL );
     pKeyboard->SetDataFormat( &c_dfDIKeyboard );
     pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE );

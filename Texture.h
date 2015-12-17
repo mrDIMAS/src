@@ -21,9 +21,8 @@
 
 #pragma once
 
-class Texture : public RendererComponent {
-private:
-    explicit Texture( );
+class Texture : public ruTexture, public RendererComponent {
+private:    
     IDirect3DTexture9 * mTexture;
     int mHeight;
     int mWidth;
@@ -33,16 +32,13 @@ private:
 public:
 	int GetHeight();
 	int GetWidth();
-	string GetName() {
-		return mName;
-	}
-    
-    static unordered_map< string, Texture* > msTextureList;
+	string GetName();    
+    static unordered_map< string, weak_ptr<Texture>> msTextureList;
+	explicit Texture( );
     virtual ~Texture( );
     void Bind( int level );
     IDirect3DTexture9 * GetInterface();
-    static Texture * Require( string file );
-    static void DeleteAll();
+    static shared_ptr<Texture> Request( string file );
 	void OnResetDevice();
 	void OnLostDevice();
 };

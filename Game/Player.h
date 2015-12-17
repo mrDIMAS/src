@@ -35,19 +35,19 @@ public:
 
     GameCamera * mpCamera;
 
-    ruSceneNode mHead;
-    ruSceneNode mPickPoint;
-    ruSceneNode mItemPoint;
-    ruSceneNode mNodeInHands;
-    ruSceneNode mNearestPickedNode;
-    ruSceneNode mPickedNode;
-	ruLight mFakeLight;
+    ruSceneNode * mHead;
+    ruSceneNode * mPickPoint;
+    ruSceneNode * mItemPoint;
+    ruSceneNode * mNodeInHands;
+    ruSceneNode * mNearestPickedNode;
+    ruSceneNode * mPickedNode;
+	ruPointLight * mFakeLight;
 
-    ruTextureHandle mStatusBar;
+    shared_ptr<ruTexture> mStatusBar;
 
-	ruRectHandle mGUICursorPickUp;
-	ruRectHandle mGUICursorPut;
-	ruRectHandle mGUICrosshair;
+	ruRect * mGUICursorPickUp;
+	ruRect * mGUICursorPut;
+	ruRect * mGUICrosshair;
 
     SmoothFloat mPitch;
     SmoothFloat mYaw;
@@ -70,6 +70,7 @@ public:
     float mStealthFactor;
 	float mStepLength;
 	float mLastHealth;
+	
 
     ruVector3 mSpeed;
     ruVector3 mSpeedTo;
@@ -91,10 +92,14 @@ public:
     ruSound mHeartBeatSound;
     ruSound mBreathSound;
 
+	float mWhispersSoundVolume;
+	float mWhispersSoundVolumeTo;
+	ruSound mWhispersSound;
+
 	vector< ruSound > mPainSound;
 
 	
-
+	bool mInLight;
     bool mObjectThrown;
     bool mLanded;
     bool mDead;
@@ -130,55 +135,33 @@ public:
 
     Sheet * mpSheetInHands;
 
-    ruTextHandle mGUIActionText;
+    ruText * mGUIActionText;
 
     static const int mGUISegmentCount = 20;
-    ruRectHandle mGUIHealthBarSegment[mGUISegmentCount];
-    ruRectHandle mGUIStaminaBarSegment[mGUISegmentCount];
-    ruRectHandle mGUIBackground;
-	ruRectHandle mGUIStealthSign;
-	ruTextHandle mGUIYouDied;
-	ruFontHandle mGUIYouDiedFont;
-	ruRectHandle mGUIDamageBackground;
+    ruRect * mGUIHealthBarSegment[mGUISegmentCount];
+    ruRect * mGUIStaminaBarSegment[mGUISegmentCount];
+    ruRect * mGUIBackground;
+	ruRect * mGUIStealthSign;
+	ruText * mGUIYouDied;
+	ruFont * mGUIYouDiedFont;
+	ruRect * mGUIDamageBackground;
 	int mDamageBackgroundAlpha;
 
 	ruSound mDeadSound;
 	ruVector3 mAirPosition;
 
-	ruTimerHandle mAutoSaveTimer;
+	ruTimer * mAutoSaveTimer;
 	vector<SoundMaterial*> mSoundMaterialList;
 
 	vector<UsableObject*> mUsableObjectList;
 	UsableObject * mCurrentUsableObject;
 
-	void EmitStepSound() {
-		ruRayCastResultEx result = ruCastRayEx( mBody.GetPosition() + ruVector3( 0, 0.1, 0 ), mBody.GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
-		if( result.valid ) {
-			for( auto sMat : mSoundMaterialList ) {
-				ruSound snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
-				if( snd.IsValid() ) {
-					snd.Play( true );
-				}
-			}
-		}
-	}
+	void EmitStepSound();
 
 public:
     explicit Player();
     virtual ~Player();
-	void Player::Step( ruVector3 direction, float speed ) {
-		// spring based step
-		ruVector3 currentPosition = mBody.GetPosition();
-		ruVector3 rayBegin = currentPosition;
-		ruVector3 rayEnd = rayBegin - ruVector3( 0, 5, 0 );
-		ruVector3 intPoint;
-		ruSceneNode rayResult = ruCastRay( rayBegin, rayEnd, &intPoint );
-		ruVector3 pushpullVelocity = ruVector3( 0,0,0 );
-		if( rayResult.IsValid() && !(rayResult == mBody)  ) {
-			pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4.4f;
-		}
-		mBody.Move( direction * speed + pushpullVelocity );
-	}
+	void Step( ruVector3 direction, float speed );
     void FreeHands();
 	void LockFlashlight( bool state );
 	void SetHealth( float health );
@@ -199,7 +182,7 @@ public:
     void SetObjective( string text );
     void CompleteObjective();
     bool IsUseButtonHit();
-    bool IsObjectHasNormalMass( ruSceneNode node );
+    bool IsObjectHasNormalMass( ruSceneNode * node );
 	bool IsDead();
 	void Resurrect();
     void DoFright();
@@ -215,12 +198,5 @@ public:
     void SetActionText( const string & text );
     void SetHUDVisible( bool state );
 	virtual void ManageEnvironmentDamaging() final;
-	void DumpUsableObjects( vector<UsableObject*> & otherPlace ) {
-		// this method is useful to transfer usable objects between levels
-		for( auto uo : mUsableObjectList ) {
-			uo->GetModel().Detach();
-		}
-		otherPlace = mUsableObjectList;
-		mUsableObjectList.clear();
-	}
+	void DumpUsableObjects( vector<UsableObject*> & otherPlace );
 };

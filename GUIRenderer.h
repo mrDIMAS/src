@@ -62,6 +62,6 @@ public:
     ~GUIRenderer();
 	void OnResetDevice();
 	void OnLostDevice();
-    ruFontHandle CreateFont( int size, const string & name );
+    //ruFontHandle CreateFont( int size, const string & name );
     void RenderAllGUIElements();
 };

@@ -31,40 +31,40 @@ Menu::Menu( ) {
     const float buttonWidth = 128;
 	const float buttonXOffset = 10;
 
-	ruTextureHandle tabTexture = ruGetTexture( "data/gui/menu/tab.tga" );
+	shared_ptr<ruTexture> tabTexture = ruTexture::Request( "data/gui/menu/tab.tga" );
 
 	// Setup
-	mGUICanvas = ruCreateGUIRect( 0, 0, 0, 0, ruTextureHandle::Empty() );
-	ruSetGUINodeChildAlphaControl( mGUICanvas, true );
+	mGUICanvas = ruRect::Create( 0, 0, 0, 0, nullptr );
+	mGUICanvas->SetChildAlphaControl( true );
 	{
-		mGUIMainButtonsCanvas = ruCreateGUIRect( 20, g_resH - 4.0 * mDistBetweenButtons, buttonWidth + 2 * buttonXOffset, buttonHeight * 8, tabTexture, pGUIProp->mBackColor );    
-		ruSetGUINodeChildAlphaControl( mGUIMainButtonsCanvas, true );
-		ruAttachGUINode( mGUIMainButtonsCanvas, mGUICanvas );
+		mGUIMainButtonsCanvas = ruRect::Create( 20, g_resH - 4.0 * mDistBetweenButtons, buttonWidth + 2 * buttonXOffset, buttonHeight * 8, tabTexture, pGUIProp->mBackColor );    
+		mGUIMainButtonsCanvas->SetChildAlphaControl( true );
+		mGUIMainButtonsCanvas->Attach( mGUICanvas );
 		{
-			mGUIContinueGameButton = ruCreateGUIButton( buttonXOffset, 5, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "continueButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIContinueGameButton, mGUIMainButtonsCanvas );
-			ruAddGUINodeAction( mGUIContinueGameButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnContinueGameClick ));
+			mGUIContinueGameButton = ruButton::Create( buttonXOffset, 5, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "continueButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIContinueGameButton->Attach( mGUIMainButtonsCanvas );
+			mGUIContinueGameButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnContinueGameClick ));
 
-			mGUIStartButton = ruCreateGUIButton( buttonXOffset, 5 + 0.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "startButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIStartButton, mGUIMainButtonsCanvas );
-			ruAddGUINodeAction( mGUIStartButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnStartNewGameClick ));
+			mGUIStartButton = ruButton::Create( buttonXOffset, 5 + 0.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "startButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIStartButton->Attach( mGUIMainButtonsCanvas );
+			mGUIStartButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnStartNewGameClick ));
 
-			mGUISaveGameButton = ruCreateGUIButton( buttonXOffset, 5 + 1.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "saveButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUISaveGameButton, mGUIMainButtonsCanvas );
+			mGUISaveGameButton = ruButton::Create( buttonXOffset, 5 + 1.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "saveButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUISaveGameButton->Attach( mGUIMainButtonsCanvas );
 
-			mGUILoadGameButton = ruCreateGUIButton( buttonXOffset, 5 + 1.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "loadButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUILoadGameButton, mGUIMainButtonsCanvas );
+			mGUILoadGameButton = ruButton::Create( buttonXOffset, 5 + 1.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "loadButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUILoadGameButton->Attach( mGUIMainButtonsCanvas );
 
-			mGUIOptionsButton = ruCreateGUIButton( buttonXOffset, 5 + 2.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIOptionsButton, mGUIMainButtonsCanvas );
-			ruAddGUINodeAction( mGUIOptionsButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsClick ));
+			mGUIOptionsButton = ruButton::Create( buttonXOffset, 5 + 2.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "optionsButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIOptionsButton->Attach( mGUIMainButtonsCanvas );
+			mGUIOptionsButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsClick ));
 
-			mGUIAuthorsButton = ruCreateGUIButton( buttonXOffset, 5 + 2.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIAuthorsButton, mGUIMainButtonsCanvas );
+			mGUIAuthorsButton = ruButton::Create( buttonXOffset, 5 + 2.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "authorsButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIAuthorsButton->Attach( mGUIMainButtonsCanvas );
 
-			mGUIExitButton = ruCreateGUIButton( buttonXOffset, 5 + 3.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "exitButton" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIExitButton, mGUIMainButtonsCanvas );
-			ruAddGUINodeAction( mGUIExitButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnExitGameClick ));
+			mGUIExitButton = ruButton::Create( buttonXOffset, 5 + 3.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "exitButton" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIExitButton->Attach( mGUIMainButtonsCanvas );
+			mGUIExitButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnExitGameClick ));
 		}
 
 		int aTabX = 200;
@@ -72,36 +72,36 @@ Menu::Menu( ) {
 		int aTabWidth = buttonWidth * 3;
 		int aTabHeight = buttonHeight * 8;
 
-		mpModalWindow = new ModalWindow( aTabX, aTabY, aTabWidth, aTabHeight, ruGetTexture( "data/gui/menu/tab.tga" ), mButtonImage, pGUIProp->mBackColor );
+		mpModalWindow = new ModalWindow( aTabX, aTabY, aTabWidth, aTabHeight, ruTexture::Request( "data/gui/menu/tab.tga" ), mButtonImage, pGUIProp->mBackColor );
 		mpModalWindow->AttachTo( mGUICanvas );
 
-		mGUIWindowText = ruCreateGUIText( " ", aTabX, aTabY - 17, aTabWidth, 32, pGUIProp->mFont, ruVector3( 255, 255, 255 ), 0 );
-		ruAttachGUINode( mGUIWindowText, mGUICanvas );
+		mGUIWindowText = ruText::Create( " ", aTabX, aTabY - 17, aTabWidth, 32, pGUIProp->mFont, ruVector3( 255, 255, 255 ), ruTextAlignment::Left );
+		mGUIWindowText->Attach( mGUICanvas );
 
-		mGUICaption = ruCreateGUIText( "THE MINE", 20, aTabY - 17, aTabWidth, 32, pGUIProp->mFont, ruVector3( 255, 255, 255 ), 0 );
-		ruAttachGUINode( mGUICaption, mGUICanvas );
+		mGUICaption = ruText::Create( "THE MINE", 20, aTabY - 17, aTabWidth, 32, pGUIProp->mFont, ruVector3( 255, 255, 255 ), ruTextAlignment::Left );
+		mGUICaption->Attach( mGUICanvas );
 
-		mGUIOptionsCanvas = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
-		ruAttachGUINode( mGUIOptionsCanvas, mGUICanvas );
+		mGUIOptionsCanvas = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
+		mGUIOptionsCanvas->Attach( mGUICanvas );
 		{
 			int yOffset = (aTabHeight - 2 * mDistBetweenButtons ) / 2;
 
-			mGUIOptionsCommonButton = ruCreateGUIButton(  ( aTabWidth - buttonWidth ) / 2, yOffset, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "commonSettings" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIOptionsCommonButton, mGUIOptionsCanvas );
-			ruAddGUINodeAction( mGUIOptionsCommonButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsCommonClick ));
+			mGUIOptionsCommonButton = ruButton::Create(  ( aTabWidth - buttonWidth ) / 2, yOffset, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "commonSettings" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIOptionsCommonButton->Attach( mGUIOptionsCanvas );
+			mGUIOptionsCommonButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsCommonClick ));
 
-			mGUIOptionsControlsButton = ruCreateGUIButton(  ( aTabWidth - buttonWidth ) / 2, yOffset + 0.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "controls" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIOptionsControlsButton, mGUIOptionsCanvas );
-			ruAddGUINodeAction( mGUIOptionsControlsButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsControlsClick ));
+			mGUIOptionsControlsButton = ruButton::Create( ( aTabWidth - buttonWidth ) / 2, yOffset + 0.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "controls" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIOptionsControlsButton->Attach( mGUIOptionsCanvas );
+			mGUIOptionsControlsButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsControlsClick ));
 
-			mGUIOptionsGraphicsButton = ruCreateGUIButton(  ( aTabWidth - buttonWidth ) / 2, yOffset + mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "graphics" ), pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-			ruAttachGUINode( mGUIOptionsGraphicsButton, mGUIOptionsCanvas );
-			ruAddGUINodeAction( mGUIOptionsGraphicsButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsGraphicsClick ));
+			mGUIOptionsGraphicsButton = ruButton::Create(  ( aTabWidth - buttonWidth ) / 2, yOffset + mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString( "graphics" ), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+			mGUIOptionsGraphicsButton->Attach( mGUIOptionsCanvas );
+			mGUIOptionsGraphicsButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnOptionsGraphicsClick ));
 		}
 
-		mGUIOptionsKeysCanvas = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );    
-		ruAttachGUINode( mGUIOptionsCanvas, mGUICanvas );
-		ruSetGUINodeVisible( mGUIOptionsKeysCanvas, false );
+		mGUIOptionsKeysCanvas = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );    
+		mGUIOptionsCanvas->Attach( mGUICanvas );
+		mGUIOptionsKeysCanvas->SetVisible( false );
 		{
 			float x = 40, y = 10;
 			mpMoveForwardKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "forward" ));
@@ -149,9 +149,9 @@ Menu::Menu( ) {
 			mpLookRightKey->AttachTo( mGUIOptionsKeysCanvas );
 		}
 
-		mGUIOptionsGraphicsCanvas = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );    
-		ruAttachGUINode( mGUIOptionsGraphicsCanvas, mGUICanvas );
-		ruSetGUINodeVisible( mGUIOptionsGraphicsCanvas, false );
+		mGUIOptionsGraphicsCanvas = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );    
+		mGUIOptionsGraphicsCanvas->Attach( mGUICanvas );
+		mGUIOptionsGraphicsCanvas->SetVisible( false );
 		{
 			float x = 30, y = 10;
 			mpFXAAButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "fxaa" ) );
@@ -177,53 +177,53 @@ Menu::Menu( ) {
 			mpTextureFiltering->AddValue( mLocalization.GetString( "anisotropic" ));   
 		}
 
-		mGUIAuthorsBackground = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
-		ruAttachGUINode( mGUIAuthorsBackground, mGUICanvas );
+		mGUIAuthorsBackground = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
+		mGUIAuthorsBackground->Attach( mGUICanvas );
 		{
-			mGUIAuthorsText = ruCreateGUIText( mLocalization.GetString( "authorsText" ), 15, 15, aTabWidth - 30, aTabHeight - 30, pGUIProp->mFont, ruVector3( 255, 255, 255 ), 0 );
-			ruAttachGUINode( mGUIAuthorsText, mGUIAuthorsBackground );
+			mGUIAuthorsText = ruText::Create( mLocalization.GetString( "authorsText" ), 15, 15, aTabWidth - 30, aTabHeight - 30, pGUIProp->mFont, ruVector3( 255, 255, 255 ), ruTextAlignment::Left );
+			mGUIAuthorsText->Attach( mGUIAuthorsBackground );
 		}
 
-		mGUISaveGameCanvas = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );      
-		ruAttachGUINode( mGUISaveGameCanvas, mGUICanvas );
+		mGUISaveGameCanvas = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );      
+		mGUISaveGameCanvas->Attach( mGUICanvas );
 		{
 			float y = 10;
 			for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
-				mGUISaveGameSlot[i] = ruCreateGUIButton( ( aTabWidth - buttonWidth ) / 2, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-				ruAttachGUINode( mGUISaveGameSlot[i], mGUISaveGameCanvas );
-				ruAddGUINodeAction( mGUISaveGameSlot[i], ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnSaveClick ));
+				mGUISaveGameSlot[i] = ruButton::Create( ( aTabWidth - buttonWidth ) / 2, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+				mGUISaveGameSlot[i]->Attach( mGUISaveGameCanvas );
+				mGUISaveGameSlot[i]->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnSaveClick ));
 				y += 1.1f * buttonHeight;
 			}
 		}
 
-		mGUILoadGameCanvas = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
-		ruAttachGUINode( mGUILoadGameCanvas, mGUICanvas );
+		mGUILoadGameCanvas = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
+		mGUILoadGameCanvas->Attach( mGUICanvas );
 		{
 			float y = 10;
 			for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
-				mGUILoadGameSlot[i] = ruCreateGUIButton( ( aTabWidth - buttonWidth ) / 2, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-				ruAttachGUINode( mGUILoadGameSlot[i], mGUILoadGameCanvas );
-				ruAddGUINodeAction( mGUILoadGameSlot[i], ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnLoadSaveClick ));
+				mGUILoadGameSlot[i] = ruButton::Create( ( aTabWidth - buttonWidth ) / 2, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+				mGUILoadGameSlot[i]->Attach( mGUILoadGameCanvas );
+				mGUILoadGameSlot[i]->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Menu::OnLoadSaveClick ));
 				y += 1.1f * buttonHeight;
 			}
 		}
 
-		mGUIOptionsCommonCanvas = ruCreateGUIRect( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
-		ruAttachGUINode( mGUIOptionsCommonCanvas, mGUICanvas );
-		ruSetGUINodeVisible( mGUIOptionsCommonCanvas, false );
+		mGUIOptionsCommonCanvas = ruRect::Create( aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor );  
+		mGUIOptionsCommonCanvas->Attach( mGUICanvas );
+		mGUIOptionsCommonCanvas->SetVisible( false );
 		{
 			int yOffset = (aTabHeight - 1.5 * mDistBetweenButtons ) / 2;
 			int xOffset = aTabWidth / 6.5;
 
-			mpMasterVolume = new Slider( xOffset, yOffset, 0, 100, 2.5f, ruGetTexture( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "masterVolume" ) );
+			mpMasterVolume = new Slider( xOffset, yOffset, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "masterVolume" ) );
 			mpMasterVolume->AttachTo( mGUIOptionsCommonCanvas );
 			mpMasterVolume->SetChangeAction( ruDelegate::Bind( this, &Menu::OnSoundVolumeChange ));
 
-			mpMusicVolume = new Slider( xOffset, yOffset + 0.5f * mDistBetweenButtons, 0, 100, 2.5f, ruGetTexture( "data/gui/menu/smallbutton.tga"), mLocalization.GetString(  "musicVolume" ) );
+			mpMusicVolume = new Slider( xOffset, yOffset + 0.5f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga"), mLocalization.GetString(  "musicVolume" ) );
 			mpMusicVolume->AttachTo( mGUIOptionsCommonCanvas );
 			mpMusicVolume->SetChangeAction( ruDelegate::Bind( this, &Menu::OnMusicVolumeChange ));
 
-			mpMouseSensivity = new Slider( xOffset, yOffset + 1.0f * mDistBetweenButtons, 0, 100, 2.5f, ruGetTexture( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "mouseSens" ) );
+			mpMouseSensivity = new Slider( xOffset, yOffset + 1.0f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "mouseSens" ) );
 			mpMouseSensivity->AttachTo( mGUIOptionsCommonCanvas );
 			mpMouseSensivity->SetChangeAction( ruDelegate::Bind( this, &Menu::OnMouseSensivityChange ));
 		}
@@ -245,7 +245,7 @@ float Menu::GetMusicVolume() {
 void Menu::Show() {
     mpCamera->MakeCurrent();
     mpCamera->FadeIn();
-    mScene.Show();
+    mScene->Show();
     if( pCurrentLevel ) {
         pCurrentLevel->Hide();
     }
@@ -255,8 +255,8 @@ void Menu::Show() {
     }
     mVisible = true;
     ruEngine::ShowCursor();
-    ruSetGUINodeVisible( mGUICanvas, true );
-	ruSetGUINodeVisible( mGUICaption, true );
+    mGUICanvas->SetVisible( true );
+	mGUICaption->SetVisible( true );
 	mMainButtonsAlpha = 255.0f;
 }
 
@@ -269,7 +269,7 @@ void Menu::Hide( ) {
         pPlayer->SetHUDVisible( true );
     }
     
-    mScene.Hide();
+    mScene->Hide();
     if( pCurrentLevel ) {
         pCurrentLevel->Show();
     }
@@ -277,8 +277,8 @@ void Menu::Hide( ) {
     mPage = Page::Main;
     ruEngine::HideCursor();
     mMusic.Pause();
-    ruSetGUINodeVisible( mGUICanvas, false );
-	ruSetGUINodeVisible( mGUICaption, false );
+    mGUICanvas->SetVisible( false );
+	mGUICaption->SetVisible( false );
 }
 
 void Menu::OnStartNewGameClick() {
@@ -403,7 +403,7 @@ void Menu::OnMusicVolumeChange() {
 	}
 }
 void Menu::OnSoundVolumeChange() {
-	ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
+	ruSound::SetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
 }
 
 void Menu::DoSaveCurrentGame() {
@@ -437,17 +437,17 @@ void Menu::Update( ) {
 
 		if( pPlayer ) {
 			if( pPlayer->IsDead() ) {
-				ruSetGUIButtonActive( mGUIContinueGameButton, false );
-				ruSetGUIButtonActive( mGUISaveGameButton, false );
+				mGUIContinueGameButton->SetActive( false );
+				mGUISaveGameButton->SetActive( false );
 			} else {
-				ruSetGUIButtonActive( mGUIContinueGameButton, true );
-				ruSetGUIButtonActive( mGUISaveGameButton, true );
+				mGUIContinueGameButton->SetActive( true );
+				mGUISaveGameButton->SetActive( true );
 			}
 		} else {
-			ruSetGUIButtonActive( mGUISaveGameButton, false );
+			mGUISaveGameButton->SetActive( false );
 		}       
 
-		ruSetGUINodeAlpha( mGUIMainButtonsCanvas, mMainButtonsAlpha );
+		mGUIMainButtonsCanvas->SetAlpha( mMainButtonsAlpha );
 
         if( mPage == Page::Authors ) {
 			mpModalWindow->CloseNoAction();
@@ -463,14 +463,13 @@ void Menu::Update( ) {
         }
 
         if( mPage == Page::OptionsCommon ) {
-            ruSetGUINodeVisible( mGUIOptionsCommonCanvas, true );			
+            mGUIOptionsCommonCanvas->SetVisible( true );			
         } else {
-            ruSetGUINodeVisible( mGUIOptionsCommonCanvas, false );
+            mGUIOptionsCommonCanvas->SetVisible( false );
         }
-
-
+		
         if( mPage == Page::LoadGame ) {
-            ruSetGUINodeVisible( mGUILoadGameCanvas, true );
+            mGUILoadGameCanvas->SetVisible( true );
             vector< string > nameList;
             GetFilesWithExtension( "*.save", nameList );
             int count = nameList.size();
@@ -479,23 +478,23 @@ void Menu::Update( ) {
             }
 			// inactivate all buttons
 			for( int i = 0; i < mSaveLoadSlotCount; i++ ) {
-				ruSetGUIButtonActive( mGUILoadGameSlot[i], false );
+				mGUILoadGameSlot[i]->SetActive( false );
 			}
             for( int i = 0; i < count; i++ ) {
 				// activate button associated with file
-				ruSetGUIButtonActive( mGUILoadGameSlot[i], true );
-                ruSetGUINodeText( ruGetButtonText( mGUILoadGameSlot[i] ), nameList[i] );
-                if( ruIsButtonHit( mGUILoadGameSlot[i] ) ) {
+				mGUILoadGameSlot[i]->SetActive( true );
+                mGUILoadGameSlot[i]->GetText()->SetText( nameList[i] );
+                if( mGUILoadGameSlot[i]->IsHit() ) {
                     mLoadSaveGameName = nameList[i];
                     SetPage( Page::Main );
                 }
             }
         } else {
-            ruSetGUINodeVisible( mGUILoadGameCanvas, false );
+            mGUILoadGameCanvas->SetVisible( false );
         }
 
         if( mPage == Page::SaveGame ) {
-            ruSetGUINodeVisible( mGUISaveGameCanvas, true );
+            mGUISaveGameCanvas->SetVisible( true );
 
             vector< string > nameList;
             GetFilesWithExtension( "*.save", nameList );
@@ -510,17 +509,17 @@ void Menu::Update( ) {
                 count = mSaveLoadSlotCount;
             }
             for( int iName = 0; iName < count; iName++ ) {
-                ruSetGUINodeText( ruGetButtonText( mGUISaveGameSlot[iName] ), nameList[iName] );
-                if( ruIsButtonHit( mGUISaveGameSlot[iName] ) ) {
+                mGUISaveGameSlot[iName]->GetText()->SetText( nameList[iName] );
+                if( mGUISaveGameSlot[iName]->IsHit() ) {
                     mSaveGameSlotName = nameList[iName];
                 }
             }
         } else {
-            ruSetGUINodeVisible( mGUISaveGameCanvas, false );
+            mGUISaveGameCanvas->SetVisible( false );
         }
 
         if( mPage == Page::OptionsGraphics ) {
-            ruSetGUINodeVisible( mGUIOptionsGraphicsCanvas, true );
+            mGUIOptionsGraphicsCanvas->SetVisible( true );
 
             // FXAA Options
             mpFXAAButton->Update();
@@ -546,24 +545,24 @@ void Menu::Update( ) {
 			mpParallaxButton->Update();
             
         } else {
-            ruSetGUINodeVisible( mGUIOptionsGraphicsCanvas, false );
+            mGUIOptionsGraphicsCanvas->SetVisible( false );
         }
 
         if( mPage == Page::OptionsKeys ) {
-            ruSetGUINodeVisible( mGUIOptionsKeysCanvas, true );
+            mGUIOptionsKeysCanvas->SetVisible( true );
         } else {
-            ruSetGUINodeVisible( mGUIOptionsKeysCanvas, false );
+            mGUIOptionsKeysCanvas->SetVisible( false );
         }
 
 		mMusic.Play();
 
-		if( ruIsButtonHit( mGUILoadGameButton ) ) {
+		if( mGUILoadGameButton->IsHit() ) {
 			SetPage( Page::LoadGame );
 		}
-		if( ruIsButtonHit( mGUISaveGameButton ) ) {
+		if( mGUISaveGameButton->IsHit() ) {
 			SetPage( Page::SaveGame );
 		}
-		if( ruIsButtonHit( mGUIAuthorsButton ) ) {
+		if( mGUIAuthorsButton->IsHit() ) {
 			SetPage( Page::Authors );
 		}
         
@@ -581,39 +580,39 @@ void Menu::SetPage( Page page ) {
     } else {
         mPage = page;
     }
-	ruSetGUINodeText( mGUIWindowText, " " );
+	mGUIWindowText->SetText( " " );
 	if( mPage == Page::Options ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionOptions" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionOptions" ));
 	} 
 	if( mPage == Page::OptionsGraphics ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionOptionsGraphics" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionOptionsGraphics" ));
 	}
 	if( mPage == Page::OptionsKeys ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionOptionsControls" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionOptionsControls" ));
 	}
 	if( mPage == Page::OptionsCommon ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionOptionsCommon" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionOptionsCommon" ));
 	}
 	if( mPage == Page::SaveGame ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionSaveGame" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionSaveGame" ));
 	}
 	if( mPage == Page::LoadGame ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionLoadGame" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionLoadGame" ));
 	}
 	if( mPage == Page::Authors ) {
-		ruSetGUINodeText( mGUIWindowText, mLocalization.GetString( "captionAuthors" ));
+		mGUIWindowText->SetText( mLocalization.GetString( "captionAuthors" ));
 	}
 }
 
 void Menu::LoadTextures() {
-    mButtonImage = ruGetTexture( "data/gui/menu/button.tga" );
-    mSmallButtonImage = ruGetTexture( "data/gui/menu/button.tga" );
+    mButtonImage = ruTexture::Request( "data/gui/menu/button.tga" );
+    mSmallButtonImage = ruTexture::Request( "data/gui/menu/button.tga" );
 }
 
 void Menu::CreateCamera() {
     mpCamera = new GameCamera;
 	mCameraFadeActionDone = false;
-    mCameraInitialPosition = mScene.FindChild( "Camera" ).GetPosition();
+    mCameraInitialPosition = mScene->FindChild( "Camera" )->GetPosition();
     mCameraAnimationNewOffset = ruVector3( 0.5, 0.5, 0.5 );
 }
 
@@ -657,7 +656,7 @@ void Menu::LoadConfig() {
         mpSpotShadowsButton->SetEnabled( config.GetNumber( "spotShadowsEnabled" ) != 0 );
         ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
-        ruSetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
+        ruSound::SetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
         mMusic.SetVolume( mpMusicVolume->GetValue() / 100.0f );
 
         mpHDRButton->SetEnabled( config.GetNumber( "hdrEnabled" ) != 0 );
@@ -763,15 +762,15 @@ Menu::~Menu() {
 }
 
 void Menu::SetMainPageVisible( bool state ) {
-	ruSetGUINodeVisible( mGUIMainButtonsCanvas, state );
+	mGUIMainButtonsCanvas->SetVisible( state );
 }
 
 void Menu::SetAuthorsPageVisible( bool state ) {
-    ruSetGUINodeVisible( mGUIAuthorsBackground, state );
+    mGUIAuthorsBackground->SetVisible( state );
 }
 
 void Menu::SetOptionsPageVisible( bool state ) {
-    ruSetGUINodeVisible( mGUIOptionsCanvas, state );
+    mGUIOptionsCanvas->SetVisible( state );
 }
 
 Parser * Menu::GetLocalization() {
@@ -789,7 +788,7 @@ void Menu::CameraFloating() {
         mCameraAnimationNewOffset = ruVector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
     }
 
-    mpCamera->mNode.SetPosition( mCameraInitialPosition + mCameraAnimationOffset );
+    mpCamera->mCamera->SetPosition( mCameraInitialPosition + mCameraAnimationOffset );
 }
 
 void Menu::OnHDRButtonClick()

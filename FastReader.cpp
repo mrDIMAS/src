@@ -74,7 +74,7 @@ std::string FastReader::GetString() {
 }
 
 float FastReader::GetFloat() {
-    float value = * ( float * ) ( data + cursor );
+    float value = *reinterpret_cast<float*>( data + cursor );
 
     cursor += sizeof(float);
 
@@ -90,7 +90,7 @@ unsigned char FastReader::GetByte() {
 }
 
 unsigned short FastReader::GetShort() {
-    unsigned short value = * ( unsigned short * ) ( data + cursor );
+    unsigned short value = *reinterpret_cast<unsigned short*>( data + cursor );
 
     cursor += sizeof(short);
 
@@ -98,7 +98,7 @@ unsigned short FastReader::GetShort() {
 }
 
 int FastReader::GetInteger() {
-    int value = * ( int * ) ( data + cursor );
+    int value = *reinterpret_cast<int *>( data + cursor );
 
     cursor += sizeof(int);
 

@@ -33,20 +33,14 @@ void SaveLoader::RestoreWorldState() {
 
     // deserialize ways
     int wayCount = ReadInteger();
+	cout << "way count" <<  wayCount << endl;
     for( int i = 0; i < wayCount; i++ ) {
-        Way * way = Way::GetByObject( ruSceneNode::FindByName( ReadString() ));
-        way->Deserialize( *this );
+		string name = ReadString();
+		cout << name << endl;
+        Way * way = Way::GetByObject( ruSceneNode::FindByName( name ));
+		way->Deserialize( *this );	
     }
-
     pPlayer->Deserialize( *this );
-
-	// restore sound playback positions
-	// buggy
-	/*
-	int count = ReadInteger();
-	for( int i = 0; i < count; i++ ) {
-		ruSound::GetSound( i ).SetPlaybackPosition( ReadFloat() );
-	}*/
 }
 
 SaveLoader::~SaveLoader() {

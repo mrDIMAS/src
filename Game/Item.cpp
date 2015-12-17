@@ -22,14 +22,14 @@ Item::Item( Type type ) {
 	if( mType == Type::Detonator ) {
 		mDesc = msLocalization.GetString( "detonatorDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/detonator.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/detonator.png" );
 		mCombinePair = Type::Unknown;
 		mMorphType = Type::Unknown;
 		mContentTypeDesc = msLocalization.GetString( "detonatorContentType" );
 	} else if( mType == Type::FuelCanister ) {
 		mDesc = msLocalization.GetString( "fuelDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/fuel.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/fuel.png" );
 		mCombinePair = Type::Lighter;
 		mMorphType = Type::Lighter;
 		mVolume = mContent;
@@ -37,41 +37,41 @@ Item::Item( Type type ) {
 	} else if( mType == Type::Wires ) {
 		mDesc = msLocalization.GetString( "wiresDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/wires.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/wires.png" );
 		mCombinePair = Type::Unknown;
 		mMorphType = Type::Unknown;
 		mContentTypeDesc = msLocalization.GetString( "wiresContentType" );
 	} else if( mType == Type::Explosives ) {
 		mDesc = msLocalization.GetString( "explosivesDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/ammonit.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/ammonit.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 0.6f;
 		mContentTypeDesc = msLocalization.GetString( "explosivesContentType" );
 	} else if( mType == Type::Crowbar ) {
 		mDesc = msLocalization.GetString( "crowbarDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/crowbarpic.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/crowbarpic.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 6.0f;
 		mContentTypeDesc = msLocalization.GetString( "crowbarContentType" );
 	} else if( mType == Type::Pistol ) {
 		mDesc = msLocalization.GetString( "pistolDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/pistol.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/pistol.png" );
 		mCombinePair = Type::Bullet;
 		mSingleInstance = true;
 		mMass = 4.0f;
 	} else if( mType == Type::Bullet ) {
 		mDesc = msLocalization.GetString( "bulletDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/bullet.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/bullet.png" );
 		mCombinePair = Type::Pistol;
 		mMass = 0.12f;
 	} else if( mType == Type::Lighter ) {
 		mDesc = msLocalization.GetString( "flashlightDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/lighter.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/lighter.png" );
 		mCombinePair = Type::FuelCanister;
 		mSingleInstance = true;
 		mMorphType = Type::Lighter;
@@ -81,14 +81,14 @@ Item::Item( Type type ) {
 	} else if( mType == Type::Fuse ) {
 		mDesc = msLocalization.GetString( "fuseDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/fuse.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/fuse.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 5.0f;
 		mContentTypeDesc = msLocalization.GetString( "fuseContentType" );
 	} else if( mType == Type::Syringe ) {
 		mDesc = msLocalization.GetString( "syringeDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/item_syringe.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/item_syringe.png" );
 		mSingleInstance = true;
 		mCombinePair = Type::Unknown;
 		mMass = 0.12f;
@@ -96,19 +96,19 @@ Item::Item( Type type ) {
 	} else if( mType == Type::Beaker ) {
 		mDesc = msLocalization.GetString( "beakerDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/beaker.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/beaker.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 0.25f;
 	} else if( mType == Type::FerrumOxide ) {
 		mDesc = msLocalization.GetString( "fe2o3Desc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/jar.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/jar.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 0.25f;
 	} else if( mType == Type::AluminumPowder ) {
 		mDesc = msLocalization.GetString( "aluminumDesc" );
 		mName = GetNameByType( mType );
-		mPic = ruGetTexture( "data/gui/inventory/items/jar.png" );
+		mPic = ruTexture::Request( "data/gui/inventory/items/jar.png" );
 		mCombinePair = Type::Unknown;
 		mMass = 0.25f;
 	}
@@ -137,7 +137,7 @@ float Item::GetContent() const {
     return mContent;
 }
 
-ruTextureHandle Item::GetPictogram() const {
+shared_ptr<ruTexture> Item::GetPictogram() const {
     return mPic;
 }
 

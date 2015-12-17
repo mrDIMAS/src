@@ -24,42 +24,27 @@
 
 #include "EffectsQuad.h"
 
+#define DOWNSAMPLE_COUNT 6
+
 class HDRShader : public RendererComponent {
+private:
+    unique_ptr<EffectsQuad> mScreenQuad;
+    unique_ptr<PixelShader> mToneMapShader;
+    unique_ptr<PixelShader> mDownScalePixelShader;
+    unique_ptr<PixelShader> mAdaptationPixelShader;
+    unique_ptr<PixelShader> mScaleScenePixelShader;
+
+    IDirect3DTexture9 * mScaledScene;
+    IDirect3DSurface9 * mScaledSceneSurf;
+    IDirect3DTexture9 * mDownSampTex[ DOWNSAMPLE_COUNT ];
+    IDirect3DSurface9 * mDownSampSurf[ DOWNSAMPLE_COUNT ];
+    IDirect3DTexture9 * mAdaptedLuminanceLast;
+    IDirect3DTexture9 * mAdaptedLuminanceCurrent;
 public:
-    IDirect3DTexture9 * hdrTexture;
-    IDirect3DSurface9 * hdrSurface;
-
-    EffectsQuad * screenQuad;
-    PixelShader * toneMapShader;
-
-    enum {
-        DOWNSAMPLE_256X256,
-        DOWNSAMPLE_128X128,
-        DOWNSAMPLE_64X64,
-        DOWNSAMPLE_32X32,
-        DOWNSAMPLE_16X16,
-        DOWNSAMPLE_8X8,
-        DOWNSAMPLE_4X4,
-        DOWNSAMPLE_2X2,
-        DOWNSAMPLE_1X1, // frame luminance
-        DOWNSAMPLE_COUNT,
-    };
-    PixelShader * downScalePixelShader;
-    PixelShader * adaptationPixelShader;
-    PixelShader * scaleScenePixelShader;
-    IDirect3DTexture9 * scaledScene;
-    IDirect3DSurface9 * scaledSceneSurf;
-    IDirect3DTexture9 * downSampTex[ DOWNSAMPLE_COUNT ];
-    IDirect3DSurface9 * downSampSurf[ DOWNSAMPLE_COUNT ];
-    IDirect3DTexture9 * adaptedLuminanceLast;
-    IDirect3DTexture9 * adaptedLuminanceCurrent;
-
-public:
-    explicit HDRShader();
-    virtual ~HDRShader();
-    void SetAsRenderTarget( );
-    void CalculateFrameLuminance( );
-    void DoToneMapping( IDirect3DSurface9 * targetSurface );
+    HDRShader();
+    ~HDRShader();
+    void CalculateFrameLuminance( IDirect3DTexture9 * hdrFrame );
+    void DoToneMapping( IDirect3DSurface9 * renderTarget, IDirect3DTexture9 * hdrFrame );
 	void OnResetDevice();
 	void OnLostDevice();
 };

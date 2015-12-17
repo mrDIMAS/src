@@ -10,5 +10,5 @@ GUIProperties::GUIProperties() {
 	mBackColor = ruVector3( 120, 120, 120 ) * brightness;
 	mForeColor = ruVector3( 255, 255, 255 ) * brightness;
 
-    mFont = ruCreateGUIFont( 12, "data/fonts/font1.otf" );
+    mFont = ruFont::LoadFromFile( 12, "data/fonts/font1.otf" );
 }

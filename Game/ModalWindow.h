@@ -2,16 +2,16 @@
 
 class ModalWindow {
 private:
-	ruGUINodeHandle mCanvas;
-	ruButtonHandle mYesButton;
-	ruButtonHandle mNoButton;
-	ruTextHandle mText;
+	ruGUINode * mCanvas;
+	ruButton * mYesButton;
+	ruButton * mNoButton;
+	ruText * mText;
 	
 public:
-	explicit ModalWindow( int x, int y, int w, int h, ruTextureHandle texture,  ruTextureHandle buttonTexture, ruVector3 color );
+	explicit ModalWindow( int x, int y, int w, int h, shared_ptr<ruTexture> texture,  shared_ptr<ruTexture> buttonTexture, ruVector3 color );
 	void SetYesAction( const ruDelegate & yesAction );
 	void SetNoAction( const ruDelegate & noAction );
-	void AttachTo( ruGUINodeHandle node );
+	void AttachTo( ruGUINode * node );
 	void Ask( const string & text );
 	void Update();
 	void Close();

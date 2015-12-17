@@ -14,9 +14,9 @@
 #include "LevelSewers.h"
 #include "LevelCutsceneIntro.h"
 
-ruTextHandle Level::msGUILoadingText;
-ruRectHandle Level::msGUILoadingBackground;
-ruFontHandle Level::msGUIFont;
+ruText * Level::msGUILoadingText;
+ruRect * Level::msGUILoadingBackground;
+ruFont * Level::msGUIFont;
 
 int g_initialLevel;
 Level * pCurrentLevel = 0;
@@ -29,7 +29,7 @@ Level::Level() {
 }
 
 Level::~Level() {
-    mScene.Free();
+    mScene->Free();
 
     for( auto pSheet : mSheetList ) {
         delete pSheet;
@@ -51,7 +51,7 @@ void Level::LoadLocalization( string fn ) {
 }
 
 void Level::Hide() {
-    mScene.Hide();
+    mScene->Hide();
     for( auto & sound : mSounds ) {
         sound.Pause();
     }
@@ -61,7 +61,7 @@ void Level::Hide() {
 }
 
 void Level::Show() {
-    mScene.Show();
+    mScene->Show();
     for( auto & sound : mSounds ) {
         if( sound.IsPaused() ) {
             sound.Play();
@@ -79,16 +79,16 @@ void Level::Change( int levelId, bool continueFromSave ) {
 		
 	/////////////////////////////////////////////////////
 	// draw 'loading' string
-	ruSetGUINodeVisible( msGUILoadingText, true );
-	ruSetGUINodeVisible( msGUILoadingBackground, true );
+	msGUILoadingText->SetVisible( true );
+	msGUILoadingBackground->SetVisible( true );
 	if( pPlayer ) {
 		pPlayer->SetHUDVisible( false );
 	}
     
     ruEngine::RenderWorld();
 
-	ruSetGUINodeVisible( msGUILoadingText, false );
-	ruSetGUINodeVisible( msGUILoadingBackground, false );
+	msGUILoadingText->SetVisible( false );
+	msGUILoadingBackground->SetVisible( false );
 
 	/////////////////////////////////////////////////////
 	// before load new level, we must clean up everything
@@ -239,7 +239,7 @@ void Level::Deserialize( SaveFile & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.ReadString();
-        ruSceneNode node = mScene.FindChild( name );
+        ruSceneNode * node = mScene->FindChild( name );
 		ruVector3 pos = in.ReadVector3();
 		ruQuaternion quat = in.ReadQuaternion();
 		bool visible = in.ReadBoolean();
@@ -248,16 +248,16 @@ void Level::Deserialize( SaveFile & in ) {
 		if( isLight ) {
 			litRange = in.ReadFloat();
 		}
-        if( node.IsValid() ) {
-            node.SetLocalPosition( pos );
-            node.SetLocalRotation( quat );           
+        if( node ) {
+            node->SetLocalPosition( pos );
+            node->SetLocalRotation( quat );           
             if( visible ) {
-                node.Show();
+                node->Show();
             } else {
-                node.Hide();
+                node->Hide();
             }
 			if( isLight ) {
-				((ruLight)node).SetRange( litRange );
+				dynamic_cast<ruLight*>( node )->SetRange( litRange );
 			}
         }
     }
@@ -283,17 +283,18 @@ void Level::Deserialize( SaveFile & in ) {
 }
 
 void Level::Serialize( SaveFile & out ) {
-    int childCount = mScene.GetCountChildren();
+    int childCount = mScene->GetCountChildren();
     out.WriteInteger( childCount );
     for( int i = 0; i < childCount; i++ ) {
-        ruSceneNode node = mScene.GetChild( i );
-        out.WriteString( node.GetName() );
-        out.WriteVector3( node.GetLocalPosition() );
-        out.WriteQuaternion( node.GetLocalRotation());
-        out.WriteBoolean( node.IsVisible() );
-		out.WriteBoolean( node.IsLight() );
-		if( node.IsLight() ) {
-			out.WriteFloat( ((ruLight)node).GetRange() );
+        ruSceneNode * node = mScene->GetChild( i );
+        out.WriteString( node->GetName() );
+        out.WriteVector3( node->GetLocalPosition() );
+        out.WriteQuaternion( node->GetLocalRotation());
+        out.WriteBoolean( node->IsVisible() );
+		ruLight * light = dynamic_cast<ruLight*>( node );
+		out.WriteBoolean( light != nullptr );
+		if( light ) {
+			out.WriteFloat( light->GetRange() );
 		}
     }
     out.WriteInteger( mStages.size());
@@ -304,7 +305,7 @@ void Level::Serialize( SaveFile & out ) {
 
 	out.WriteInteger( Door::msDoorList.size() );
 	for( auto pDoor : Door::msDoorList ) {
-		out.WriteString( pDoor->mDoorNode.GetName() );
+		out.WriteString( pDoor->mDoorNode->GetName() );
 		pDoor->Serialize( out );
 	}
 
@@ -334,19 +335,19 @@ void Level::AddAmbientSound( ruSound sound ) {
     mAmbSoundSet.AddSound( sound );
 }
 
-ruSceneNode Level::GetUniqueObject( const string & name ) {
+ruSceneNode * Level::GetUniqueObject( const string & name ) {
     // the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
     // game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
     // also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
     if( mInitializationComplete ) {
         RaiseError( StringBuilder( "You must get object in game level intialization! Get object in game logic loop is strictly forbidden! Object name: " ) << name );
     }
-    if( !mScene.IsValid() ) {
+    if( !mScene ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
     }
-    ruSceneNode object = mScene.FindChild( name );
+    ruSceneNode * object = mScene->FindChild( name );
     // each unique object must be presented in the scene, otherwise error will be generated
-    if( !object.IsValid() ) {
+    if( !object ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
     }
     return object;
@@ -354,7 +355,7 @@ ruSceneNode Level::GetUniqueObject( const string & name ) {
 
 void Level::LoadSceneFromFile( const string & file ) {
     mScene = ruSceneNode::LoadFromFile( file );
-    if( !mScene.IsValid() ) {
+    if( !mScene ) {
         RaiseError( StringBuilder( "Unable to load scene from " ) << file << "! Game will be closed." );
     }
 }
@@ -373,15 +374,15 @@ void Level::DoneInitialization() {
 
 void Level::CreateLoadingScreen()
 {
-	msGUIFont = ruCreateGUIFont( 32, "data/fonts/font1.otf" );
+	msGUIFont = ruFont::LoadFromFile( 32, "data/fonts/font1.otf" );
 	int w = 200;
 	int h = 32;
 	int x = ( ruEngine::GetResolutionWidth() - w ) / 2;
 	int y = ( ruEngine::GetResolutionHeight() - h ) / 2;
-	msGUILoadingText = ruCreateGUIText( "Загрузка...", x, y, w, h, msGUIFont, ruVector3( 0, 0, 0 ), 1 );
-	ruSetGUINodeVisible( msGUILoadingText, false );
-	msGUILoadingBackground = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruGetTexture( "data/gui/loadingscreen.tga" ), pGUIProp->mBackColor );
-	ruSetGUINodeVisible( msGUILoadingBackground, false );
+	msGUILoadingText = ruText::Create( "Загрузка...", x, y, w, h, msGUIFont, ruVector3( 0, 0, 0 ), ruTextAlignment::Center );
+	msGUILoadingText->SetVisible( false );
+	msGUILoadingBackground = ruRect::Create( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruTexture::Request( "data/gui/loadingscreen.tga" ), pGUIProp->mBackColor );
+	msGUILoadingBackground->SetVisible( false );
 }
 
 void Level::AddLamp( const shared_ptr<Lamp> & lamp ) {
@@ -404,9 +405,9 @@ void Level::UpdateGenericObjectsIdle() {
 
 void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound ) {
 	std::regex rx( namePattern );
-	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
-		ruSceneNode child = mScene.GetChild( i );
-		if( regex_match( child.GetName(), rx )) {
+	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
+		ruSceneNode * child = mScene->GetChild( i );
+		if( regex_match( child->GetName(), rx )) {
 			AddLamp( make_shared<Lamp>( child, ruSound::Load3D( buzzSound )));
 		}
 	}
@@ -414,9 +415,9 @@ void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buz
 
 void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
-	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
-		ruSceneNode child = mScene.GetChild( i );
-		if( regex_match( child.GetName(), rx )) {
+	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
+		ruSceneNode * child = mScene->GetChild( i );
+		if( regex_match( child->GetName(), rx )) {
 			AddInteractiveObject( Item::GetNameByType( Item::Type::Bullet ), make_shared<InteractiveObject>( child ), ruDelegate::Bind( this, &Level::Proxy_GiveBullet ));
 		}
 	}
@@ -425,8 +426,8 @@ void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 
 void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
-	for( int i = 0; i < mScene.GetCountChildren(); i++ ) {
-		ruSceneNode child = mScene.GetChild( i );
+	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
+		ruSceneNode * child = mScene->GetChild( i );
 		bool ignore = false;
 		for( auto pDoor : mDoorList ) {
 			if( pDoor->mDoorNode == child ) {
@@ -435,7 +436,7 @@ void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 			}
 		}
 		if( !ignore ) {
-			if( regex_match( child.GetName(), rx )) {
+			if( regex_match( child->GetName(), rx )) {
 				AddDoor( make_shared<Door>( child, 90 ));
 			}
 		}

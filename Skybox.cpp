@@ -29,7 +29,7 @@ Skybox::~Skybox() {
     OnLostDevice();
 }
 
-Skybox::Skybox( Texture * up, Texture * left, Texture * right, Texture * forward, Texture * back ) {
+Skybox::Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back ) {
 	mTextures[0] = forward;
 	mTextures[1] = back;
 	mTextures[2] = right;
@@ -39,13 +39,13 @@ Skybox::Skybox( Texture * up, Texture * left, Texture * right, Texture * forward
 }
 
 void Skybox::Render( ) {
-	Engine::Instance().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
-    Engine::Instance().GetDevice()->SetIndices( mIndexBuffer );
-	Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( SkyVertex ));
+	Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    Engine::I().GetDevice()->SetIndices( mIndexBuffer );
+	Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( SkyVertex ));
 	for( int i = 0; i < 5; i++ ) {
 		mTextures[i]->Bind( 3 );
-		Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2 );
-		Engine::Instance().RegisterDIP();
+		Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2 );
+		Engine::I().RegisterDIP();
 	}
 }
 
@@ -61,7 +61,7 @@ void Skybox::OnResetDevice() {
 		{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 		D3DDECL_END()
 	};
-	Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &mVertexDeclaration );
+	Engine::I().GetDevice()->CreateVertexDeclaration( vd, &mVertexDeclaration );
 
 	float size = 1024.0f;
 	SkyVertex fv[ ] = { 
@@ -85,14 +85,14 @@ void Skybox::OnResetDevice() {
 		{  size,  size,  size, 1.0f, 0.0f },
 		{  size,  size, -size, 1.0f, 1.0f },
 		{ -size,  size, -size, 0.0f, 1.0f } };
-	Engine::Instance().GetDevice()->CreateVertexBuffer( sizeof( fv ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+	Engine::I().GetDevice()->CreateVertexBuffer( sizeof( fv ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 	void * data = nullptr;
 	mVertexBuffer->Lock( 0, 0, &data, 0 );
 	memcpy( data, fv, sizeof( fv ));
 	mVertexBuffer->Unlock();
 
 	unsigned short indices [] = { 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19 };
-	Engine::Instance().GetDevice()->CreateIndexBuffer( sizeof( indices ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
+	Engine::I().GetDevice()->CreateIndexBuffer( sizeof( indices ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
 	mIndexBuffer->Lock( 0, 0, &data, 0 );
 	memcpy( data, indices, sizeof( indices ) );
 	mIndexBuffer->Unlock();

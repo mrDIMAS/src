@@ -51,10 +51,10 @@ Room::Room( SceneNode * scene, const ruVector3 & theMin, const ruVector3 & theMa
 				// do not process meshes with dynamic owners (i.e. scene node with non-static physical body)
 				// but process static geometry, like level geometry with static physical body
 				if( mainOwner->IsStatic() || !mainOwner->IsDynamic() ) {
-					for( auto & triangle : pMesh->mTriangles ) {					
-						ruVector3 a = pMesh->mVertices[ triangle.mA ].mPosition + mainOwner->GetPosition();
-						ruVector3 b = pMesh->mVertices[ triangle.mB ].mPosition + mainOwner->GetPosition();
-						ruVector3 c = pMesh->mVertices[ triangle.mC ].mPosition + mainOwner->GetPosition();
+					for( auto & triangle : pMesh->GetTriangles() ) {					
+						ruVector3 a = pMesh->GetVertices()[ triangle.mA ].mPosition + mainOwner->GetPosition();
+						ruVector3 b = pMesh->GetVertices()[ triangle.mB ].mPosition + mainOwner->GetPosition();
+						ruVector3 c = pMesh->GetVertices()[ triangle.mC ].mPosition + mainOwner->GetPosition();
 						if( Contains( a ) || Contains( b ) || Contains( c )) {
 							triangleList.push_back( triangle );
 						}
@@ -63,7 +63,7 @@ Room::Room( SceneNode * scene, const ruVector3 & theMin, const ruVector3 & theMa
 						// create index buffer for mesh
 						int sizeBytes = triangleList.size() * sizeof( Mesh::Triangle );
 						IDirect3DIndexBuffer9 * ib = nullptr;
-						Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &ib, 0 );
+						Engine::I().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &ib, 0 );
 						void * indexData = 0;
 						ib->Lock( 0, 0, &indexData, 0 );
 						memcpy( indexData, &triangleList[ 0 ], sizeBytes );

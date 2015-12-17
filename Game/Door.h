@@ -16,7 +16,7 @@ public:
 		Counterclockwise,
 	};
 public:
-    ruSceneNode mDoorNode;
+    ruSceneNode * mDoorNode;
     float mMaxAngle;
     float mOffsetAngle;
     float mCurrentAngle;
@@ -27,7 +27,7 @@ public:
     ruSound mCloseSound;
 public:
     static vector< Door* > msDoorList;
-    explicit Door( ruSceneNode hDoor, float fMaxAngle );
+    explicit Door( ruSceneNode * hDoor, float fMaxAngle );
     virtual ~Door();
     bool IsPickedByPlayer();
     void SwitchState();

@@ -7,9 +7,9 @@ private:
 	void PlaySounds();
 public:
 	ruSound mBuzzSound;
-	ruSceneNode mLamp;
+	ruSceneNode * mLamp;
 
-	explicit Lamp( ruSceneNode lamp, ruSound buzz );
+	explicit Lamp( ruSceneNode * lamp, ruSound buzz );
 
 	void Hide();
 

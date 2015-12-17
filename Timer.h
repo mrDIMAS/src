@@ -21,21 +21,20 @@
 
 #pragma once
 
-
-
-class Timer {
+class Timer : public ruTimer {
+private:
+	LARGE_INTEGER mFreq;
+	double mLastTime;
 public:
-    LARGE_INTEGER freq;
-    double lastTime;
-
     Timer();
-    void RestartTimer( );
-    double GetTimeInSeconds( );
-    double GetTimeInMilliSeconds( );
-    double GetTimeInMicroSeconds( );
-    double GetElapsedTimeInSeconds( );
-    double GetElapsedTimeInMilliSeconds( );
-    double GetElapsedTimeInMicroSeconds( );
+	~Timer();
+    virtual void Restart( );
+    virtual double GetTimeInSeconds( );
+    virtual double GetTimeInMilliSeconds( );
+    virtual double GetTimeInMicroSeconds( );
+    virtual double GetElapsedTimeInSeconds( );
+    virtual double GetElapsedTimeInMilliSeconds( );
+    virtual double GetElapsedTimeInMicroSeconds( );
 
-    static vector<Timer*> timers;
+    static vector<Timer*> msTimerList;
 };

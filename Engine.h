@@ -90,7 +90,7 @@ private:
 public:
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-	static Engine & Instance();	
+	static Engine & I();	
 	void Initialize( int width, int height, int fullscreen, char vSync );
 	virtual ~Engine();
     void RenderWorld( );
@@ -147,10 +147,7 @@ public:
 	bool IsHDREnabled();
 	void SetHDREnabled( bool state );
 
-	bool IsParallaxEnabled() {
-		return mParallaxEnabled;
-	}
-	void SetParallaxEnabled( bool state ) {
-		mParallaxEnabled = state;
-	}
+	bool IsParallaxEnabled();
+	void SetParallaxEnabled( bool state );
+	void SetZEnabled( bool state );
 };

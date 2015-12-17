@@ -25,7 +25,7 @@
 #include "Camera.h"
 #include "Engine.h"
 
-ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
+ruSceneNode * ruPhysics::CastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
 	btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
 	btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
 
@@ -35,7 +35,7 @@ ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint 
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = (SceneNode*)rayCallback.m_collisionObject->getUserPointer();
+			SceneNode * node = reinterpret_cast<SceneNode*>( rayCallback.m_collisionObject->getUserPointer());
 
 			if ( node ) {
 				if( outPickPoint ) {
@@ -44,15 +44,15 @@ ruSceneNode ruCastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint 
 					outPickPoint->z = rayCallback.m_hitPointWorld.z();
 				};
 
-				return SceneNode::HandleFromPointer( node );
+				return node;
 			}
 		}
 	}
 
-	return SceneNode::HandleFromPointer( 0 );
+	return nullptr;
 }
 
-ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end ) {
+ruRayCastResultEx ruPhysics::CastRayEx( ruVector3 begin, ruVector3 end ) {
 	ruRayCastResultEx result;
 	result.valid = false;
 
@@ -65,10 +65,10 @@ ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end ) {
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = (SceneNode*)rayCallback.m_collisionObject->getUserPointer();
+			SceneNode * node = reinterpret_cast<SceneNode*>( rayCallback.m_collisionObject->getUserPointer());
 			if ( node ) {
 				result.valid = true;
-				result.node = SceneNode::HandleFromPointer( node );
+				result.node = node;
 				result.position.x = rayCallback.m_hitPointWorld.x();
 				result.position.y = rayCallback.m_hitPointWorld.y();
 				result.position.z = rayCallback.m_hitPointWorld.z();
@@ -80,7 +80,7 @@ ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end ) {
 					result.index = index;
 					if( index >= 0 ) {
 						try {
-							result.textureName = node->mMeshList.at( index )->mDiffuseTexture->GetName();
+							result.textureName = node->mMeshList.at( index )->GetDiffuseTexture()->GetName();
 						} catch( ... ) {
 							// do nothing
 						}
@@ -93,9 +93,15 @@ ruRayCastResultEx ruCastRayEx( ruVector3 begin, ruVector3 end ) {
 	return result;
 }
 
-ruSceneNode ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
+void ruPhysics::Update( float timeStep, int subSteps, float fixedTimeStep ) {
+	Physics::mpDynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
+	// grab info about node's physic contacts
+	SceneNode::UpdateContacts( );
+}
+
+ruSceneNode * ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoint ) {
 	D3DVIEWPORT9 vp;
-	Engine::Instance().GetDevice()->GetViewport( &vp );
+	Engine::I().GetDevice()->GetViewport( &vp );
 	// Find screen coordinates normalized to -1,1
 	D3DXVECTOR3 coord;
 	coord.x = ( ( ( 2.0f * x ) / (float)vp.Width ) - 1 );
@@ -121,7 +127,7 @@ ruSceneNode ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = ( SceneNode * ) pBody->getUserPointer();
+			SceneNode * node = static_cast<SceneNode*>( pBody->getUserPointer());
 
 			if ( node ) {
 				if( outPickPoint ) {
@@ -130,10 +136,10 @@ ruSceneNode ruRayPick( int x, int y, ruVector3 * outPickPoint ) {
 					outPickPoint->z = rayCallback.m_hitPointWorld.z();
 				};
 
-				return SceneNode::HandleFromPointer( node );
+				return node;
 			}
 		}
 	}
 
-	return SceneNode::HandleFromPointer( 0 );
+	return nullptr;
 }

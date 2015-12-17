@@ -15,9 +15,9 @@ Door::~Door() {
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
-Door::Door( ruSceneNode hDoor, float fMaxAngle ) : mDoorNode( hDoor ), mMaxAngle( fMaxAngle ), mLocked( false ), mCurrentAngle( 0.0f ), mState( State::Closed )
+Door::Door( ruSceneNode * hDoor, float fMaxAngle ) : mDoorNode( hDoor ), mMaxAngle( fMaxAngle ), mLocked( false ), mCurrentAngle( 0.0f ), mState( State::Closed )
 {
-    mOffsetAngle = hDoor.GetEulerAngles().y;
+    mOffsetAngle = hDoor->GetEulerAngles().y;
 	SetTurnDirection( TurnDirection::Clockwise );
     mOpenSound = ruSound::Load3D( "data/sounds/door/dooropen.ogg" );
     mOpenSound.Attach( mDoorNode );
@@ -29,7 +29,7 @@ Door::Door( ruSceneNode hDoor, float fMaxAngle ) : mDoorNode( hDoor ), mMaxAngle
 void Door::DoInteraction() {
 	float turnSpeed = 60.0f * g_dt;
 
-	if( mDoorNode.GetContactCount() > 0 ) {
+	if( mDoorNode->GetContactCount() > 0 ) {
 		turnSpeed = 0.0f;
 
 		if( mState == State::Closing ) {
@@ -81,7 +81,7 @@ void Door::DoInteraction() {
 
     }
 
-    mDoorNode.SetRotation( ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
+    mDoorNode->SetRotation( ruQuaternion( ruVector3( 0, 1, 0 ), mCurrentAngle + mOffsetAngle ));
 }
 
 Door::State Door::GetState() {
@@ -115,7 +115,7 @@ void Door::Open() {
 
 Door * Door::GetByName( const string & name ) {
 	for( auto pDoor : msDoorList ) {
-		if( pDoor->mDoorNode.GetName() == name ) {
+		if( pDoor->mDoorNode->GetName() == name ) {
 			return pDoor;
 		}
 	}

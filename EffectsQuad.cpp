@@ -25,35 +25,35 @@
 #include "Camera.h"
 
 void EffectsQuad::Render() {
-    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
-    Engine::Instance().GetDevice()->SetVertexDeclaration( vertexDeclaration );
-    Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+    Engine::I().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
+    Engine::I().GetDevice()->SetVertexDeclaration( vertexDeclaration );
+    Engine::I().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
     if( debug ) {
-        Engine::Instance().SetAlphaBlendEnabled( true );
-        Engine::Instance().SetStencilEnabled( true );
+        Engine::I().SetAlphaBlendEnabled( true );
+        Engine::I().SetStencilEnabled( true );
     }
 }
 
 void EffectsQuad::Bind( bool bindInternalVertexShader ) {
     if( debug ) {
         debugPixelShader->Bind();
-        Engine::Instance().SetAlphaBlendEnabled( false );
-        Engine::Instance().SetStencilEnabled( false );
+        Engine::I().SetAlphaBlendEnabled( false );
+        Engine::I().SetStencilEnabled( false );
     }
 	if( bindInternalVertexShader ) {
 		vertexShader->Bind();
-		Engine::Instance().SetVertexShaderMatrix( 0, &orthoProjection );
-		Engine::Instance().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
+		Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
+		Engine::I().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
 		ruVector3 camPos = ruVector3( Camera::msCurrentCamera->mView._41, Camera::msCurrentCamera->mView._42, Camera::msCurrentCamera->mView._43 );
-		Engine::Instance().SetVertexShaderFloat3( 10, camPos.elements );
+		Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
 	}
 }
 
 void EffectsQuad::BindNoShader() {
-	Engine::Instance().SetVertexShaderMatrix( 0, &orthoProjection );
-	Engine::Instance().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
+	Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
+	Engine::I().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
 	ruVector3 camPos = ruVector3( Camera::msCurrentCamera->mView._41, Camera::msCurrentCamera->mView._42, Camera::msCurrentCamera->mView._43 );
-	Engine::Instance().SetVertexShaderFloat3( 10, camPos.elements );
+	Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
 }
 
 EffectsQuad::~EffectsQuad() {
@@ -94,12 +94,12 @@ void EffectsQuad::Free()
 
 void EffectsQuad::Initialize()
 {
-	Engine::Instance().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+	Engine::I().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
 
 	if( !debug ) {
 		QuadVertex vertices[ ] = {
-			{           -0.5, -0.5, 0, 0, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 },
-			{  Engine::Instance().GetResolutionWidth() - 0.5, -0.5, 0, 1, 0 }, { Engine::Instance().GetResolutionWidth() - 0.5,  Engine::Instance().GetResolutionHeight() - 0.5, 0, 1, 1 }, { -0.5, Engine::Instance().GetResolutionHeight() - 0.5, 0, 0, 1 }
+			{           -0.5, -0.5, 0, 0, 0 }, { Engine::I().GetResolutionWidth() - 0.5,           - 0.5, 0, 1, 0 }, { -0.5, Engine::I().GetResolutionHeight() - 0.5, 0, 0, 1 },
+			{  Engine::I().GetResolutionWidth() - 0.5, -0.5, 0, 1, 0 }, { Engine::I().GetResolutionWidth() - 0.5,  Engine::I().GetResolutionHeight() - 0.5, 0, 1, 1 }, { -0.5, Engine::I().GetResolutionHeight() - 0.5, 0, 0, 1 }
 		};
 
 		void * data = 0;
@@ -135,8 +135,8 @@ void EffectsQuad::Initialize()
 		D3DDECL_END()
 	};
 
-	Engine::Instance().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
+	Engine::I().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
 
 	
-	D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::Instance().GetResolutionWidth(), Engine::Instance().GetResolutionHeight(), 0, 0, 1024 );
+	D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::I().GetResolutionWidth(), Engine::I().GetResolutionHeight(), 0, 0, 1024 );
 }

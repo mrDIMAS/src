@@ -11,19 +11,21 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mPatrolPointList = patrol;
 	mCurrentPatrolPoint = 0;
 
+	mHead = nullptr;
+	mBloodSpray = nullptr;
+
 	mStepLength = 0.0f;
 	mLastStepLength = 0.0f;
 
 	mModel = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
-	mModel.Attach( mBody );
-	mModel.SetPosition( ruVector3( 0, -0.7f, 0 ));
+	mModel->Attach( mBody );
+	mModel->SetPosition( ruVector3( 0, -0.7f, 0 ));
+	mModel->SetBlurAmount( 1.0f );
 
 	FindBodyparts();
 
 	mAngleTo = 0.0f;
 	mAngle = 0.0f;
-
-	mDamageTimer = ruCreateTimer();
 
 	CreateSounds();
 
@@ -36,7 +38,7 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mDestinationWaypointNum = 0;
 	mLastDestinationIndex = -1;
 	mPlayerDetected = false;
-	mPlayerInSightTimer = ruCreateTimer();
+	mPlayerInSightTimer = ruTimer::Create();
 
 	msEnemyList.push_back( this );
 
@@ -44,9 +46,9 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 
 	mFadeAwaySound = ruSound::Load2D( "data/sounds/fadeaway.ogg" );
 	mFadeAwaySound.SetVolume( 1.0f );
-	mResurrectTimer = ruCreateTimer();
+	mResurrectTimer = ruTimer::Create();
 
-	mPathCheckTimer = ruCreateTimer();
+	mPathCheckTimer = ruTimer::Create();
 }
 
 
@@ -57,7 +59,7 @@ void Enemy::Think() {
 		mHitFleshWithAxeSound.Pause();
 
 		if( mDead ) {
-			if( ruGetElapsedTimeInSeconds( mResurrectTimer ) >= 10 ) {
+			if( mResurrectTimer->GetElapsedTimeInSeconds() >= 10 ) {
 				Resurrect();
 			}
 		}
@@ -70,7 +72,7 @@ void Enemy::Think() {
 	} else if( mMoveType == MoveType::GoToDestination ) {
 		if( mCurrentPath.size() ) {
 			mTarget = mCurrentPath[mCurrentWaypointNum]->mPosition;
-			if( ( mTarget - mBody.GetPosition() ).Length2() < 0.5f ) {
+			if( ( mTarget - mBody->GetPosition() ).Length2() < 0.5f ) {
 				mCurrentWaypointNum += mDestinationWaypointNum - mCurrentWaypointNum > 0 ? 1 : 0;
 			}
 		}
@@ -90,9 +92,9 @@ void Enemy::Think() {
 		mTargetIsPlayer = true;
 	}
 
-	ruVector3 direction = mTarget - mBody.GetPosition();
+	ruVector3 direction = mTarget - mBody->GetPosition();
 
-	float distanceToPlayer = ( pPlayer->GetCurrentPosition() - mBody.GetPosition() ).Length();
+	float distanceToPlayer = ( pPlayer->GetCurrentPosition() - mBody->GetPosition() ).Length();
 	float distanceToTarget = direction.Length();
 	direction.Normalize();
 
@@ -101,12 +103,12 @@ void Enemy::Think() {
 
 
 
-	mBody.SetRotation( ruQuaternion( 0, mAngle, 0 ));
+	mBody->SetRotation( ruQuaternion( 0, mAngle, 0 ));
 
 	bool move = true;
 	bool playerTooFar = mTargetIsPlayer && distanceToTarget > 10.0f;
-	ruVector3 toPlayer = pPlayer->mpCamera->mNode.GetPosition() - ( mHead.GetPosition() + mBody.GetLookVector().Normalize() * 0.4f);
-	bool playerInView = pPlayer->IsVisibleFromPoint( mHead.GetPosition() + mBody.GetLookVector().Normalize() * 0.4f );
+	ruVector3 toPlayer = pPlayer->mpCamera->mCamera->GetPosition() - ( mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f);
+	bool playerInView = pPlayer->IsVisibleFromPoint( mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f );
 	float angleToPlayer = abs( toPlayer.Angle( direction ) * 180.0f / M_PI );
 
 	bool enemyDetectPlayer = false;
@@ -115,9 +117,9 @@ void Enemy::Think() {
 		if( flashLight ) {
 			if( flashLight->IsOn() ) {
 				// if we light up enemy, he detects player
-				if( flashLight->IsBeamContainsPoint( mBody.GetPosition() )) {
+				if( flashLight->IsBeamContainsPoint( mBody->GetPosition() )) {
 					if( !mPlayerDetected ) {
-						ruRestartTimer( mPlayerInSightTimer );
+						mPlayerInSightTimer->Restart();
 						mPlayerDetected = true;
 					}
 				}
@@ -127,14 +129,14 @@ void Enemy::Think() {
 		// player right in front of enemy
 		if( ( distanceToPlayer < detectDistance ) && ( angleToPlayer < 45 ) ) {
 			if( !mPlayerDetected ) {
-				ruRestartTimer( mPlayerInSightTimer );
+				mPlayerInSightTimer->Restart();
 				mPlayerDetected = true;
 			}
 		}
 		// enemy doesn't see player, but can hear he, if he moved
 		if(( pPlayer->mStealthFactor >= 0.3f && pPlayer->mMoved && ( distanceToPlayer < 5.0f ))) {
 			if( !mPlayerDetected ) {
-				ruRestartTimer( mPlayerInSightTimer );
+				mPlayerInSightTimer->Restart();
 				mPlayerDetected = true;
 			}
 		}
@@ -143,14 +145,14 @@ void Enemy::Think() {
 	// if player too close to the enemy, he detects player
 	if( angleToPlayer < 45 && distanceToPlayer < 2.0f ) {
 		if( !mPlayerDetected ) {
-			ruRestartTimer( mPlayerInSightTimer );
+			mPlayerInSightTimer->Restart();
 			mPlayerDetected = true;
 		}
 	}
 
 	if( mPlayerDetected ) {
 		enemyDetectPlayer = true;
-		if( ruGetElapsedTimeInSeconds( mPlayerInSightTimer ) > 2.5f ) {
+		if( mPlayerInSightTimer->GetElapsedTimeInSeconds() > 2.5f ) {
 			mPlayerDetected = false;
 		}
 	}
@@ -202,7 +204,7 @@ void Enemy::Think() {
 		}
 	} else if( mMoveType == MoveType::GoToDestination ) {
 		GraphVertex * destNearestVertex = mPathfinder.GetVertexNearestTo( mDestination, &mCurrentDestinationIndex);
-		GraphVertex * enemyNearestVertex = mPathfinder.GetVertexNearestTo( mBody.GetPosition() );
+		GraphVertex * enemyNearestVertex = mPathfinder.GetVertexNearestTo( mBody->GetPosition() );
 		if( mCurrentDestinationIndex != mLastDestinationIndex ) { // means player has moved to another waypoint
 			mPathfinder.BuildPath( enemyNearestVertex, destNearestVertex, mCurrentPath );
 			mDestinationWaypointNum = GetVertexIndexNearestTo( mCurrentPath.back()->mPosition );
@@ -223,7 +225,7 @@ void Enemy::Think() {
 	// check doors
 	bool allDoorsAreOpen = true;
 	for( auto pDoor : Door::msDoorList ) {
-		if( ( pDoor->mDoorNode.GetPosition() - mBody.GetPosition()).Length2() < 2.2f ) {
+		if( ( pDoor->mDoorNode->GetPosition() - mBody->GetPosition()).Length2() < 2.2f ) {
 			if( pDoor->GetState() != Door::State::Opened && !pDoor->IsLocked() ) {
 				allDoorsAreOpen = false;
 			}
@@ -242,20 +244,20 @@ void Enemy::Think() {
 			gravity = ruVector3( 0, -0.1, 0);
 		}
 		ruVector3 speedVector = direction * mRunSpeed + gravity;
-		mBody.Move( speedVector );
+		mBody->Move( speedVector );
 	}
 
 	if( !move ) {
 		StopInstant();
 	}
-	if( ruGetElapsedTimeInSeconds( mPathCheckTimer ) > 2.5f ) {
+	if( mPathCheckTimer->GetElapsedTimeInSeconds() > 2.5f ) {
 		// got obstacle (door), can't get throuh it, try next patrol point
-		if( ( mModel.GetPosition() - mLastCheckPosition).Length2() < 0.055 ) {
+		if( ( mModel->GetPosition() - mLastCheckPosition).Length2() < 0.055 ) {
 			SetNextPatrolPoint( );
 		}
-		mLastCheckPosition = mModel.GetPosition();
+		mLastCheckPosition = mModel->GetPosition();
 
-		ruRestartTimer( mPathCheckTimer );
+		mPathCheckTimer->Restart();
 	}
 
 	mIdleAnimation.enabled = true;
@@ -268,9 +270,9 @@ void Enemy::Think() {
 
 void Enemy::Resurrect() {
 	mDead = false;
-	mBody.SetPosition( mDeathPosition );
-	mBody.Unfreeze();
-	mBody.Show();
+	mBody->SetPosition( mDeathPosition );
+	mBody->Unfreeze();
+	mBody->Show();
 	
 	DoBloodSpray();
 	mHealth = 100;
@@ -311,21 +313,21 @@ void Enemy::SetIdleAnimation() {
 }
 
 void Enemy::SetCommonAnimation( ruAnimation * anim ) {
-    mModel.SetAnimation( anim );
+    mModel->SetAnimation( anim );
 }
 
 void Enemy::SetTorsoAnimation( ruAnimation * anim ) {
 	for( auto & torsoPart : mTorsoParts ) {
-		torsoPart.SetAnimation( anim );
+		torsoPart->SetAnimation( anim );
 	}
 }
 
 void Enemy::SetLegsAnimation( ruAnimation *pAnim ) {
 	for( auto & rightLegPart : mRightLegParts ) {
-		rightLegPart.SetAnimation( pAnim );
+		rightLegPart->SetAnimation( pAnim );
 	}
 	for( auto & leftLegPart : mLeftLegParts ) {
-		leftLegPart.SetAnimation( pAnim );
+		leftLegPart->SetAnimation( pAnim );
 	}
 }
 
@@ -346,18 +348,20 @@ void Enemy::CreateAnimations() {
 
 void Enemy::CreateSounds() {
     mHitFleshWithAxeSound = ruSound::Load3D( "data/sounds/armor_axe_flesh.ogg" );
-    mHitFleshWithAxeSound.Attach( mModel.FindChild( "Weapon" ));
+    mHitFleshWithAxeSound.Attach( mModel->FindChild( "Weapon" ));
 
     mBreathSound = ruSound::Load3D( "data/sounds/breath1.ogg" );
     mBreathSound.Attach( mBody );
     mBreathSound.SetVolume( 0.25f );
-    mBreathSound.SetRolloffFactor( 20 );
+    mBreathSound.SetRolloffFactor( 35 );
+	mBreathSound.SetRoomRolloffFactor( 35 );
     mBreathSound.SetReferenceDistance( 2.8 );
 
     mScreamSound = ruSound::Load3D( "data/sounds/scream_creepy_1.ogg" );
     mScreamSound.SetVolume( 1.0f );
     mScreamSound.Attach( mBody );
     mScreamSound.SetRolloffFactor( 20 );
+	mScreamSound.SetRoomRolloffFactor( 20 );
     mScreamSound.SetReferenceDistance( 4 );
 
     mFootstepsSounds[ 0 ] = ruSound::Load3D( "data/sounds/step1.ogg" );
@@ -367,7 +371,8 @@ void Enemy::CreateSounds() {
     for( int i = 0; i < 4; i++ ) {
         mFootstepsSounds[i].Attach( mBody );
         mFootstepsSounds[i].SetVolume( 0.75f );
-        mFootstepsSounds[i].SetRolloffFactor( 10 );
+        mFootstepsSounds[i].SetRolloffFactor( 35 );
+		mFootstepsSounds[i].SetRoomRolloffFactor( 35 );
         mFootstepsSounds[i].SetReferenceDistance( 5 );
     }
 }
@@ -385,11 +390,11 @@ int Enemy::GetVertexIndexNearestTo( ruVector3 position ) {
     return nearestIndex;
 }
 
-void Enemy::FillByNamePattern( vector< ruSceneNode > & container, const string & pattern ) {
+void Enemy::FillByNamePattern( vector< ruSceneNode * > & container, const string & pattern ) {
 	std::regex rx( pattern );
-	for( int i = 0; i < mModel.GetCountChildren(); i++ ) {
-		ruSceneNode child = mModel.GetChild( i );
-		if( regex_match( child.GetName(), rx )) {
+	for( int i = 0; i < mModel->GetCountChildren(); i++ ) {
+		ruSceneNode * child = mModel->GetChild( i );
+		if( regex_match( child->GetName(), rx )) {
 			container.push_back( child );
 		}
 	}
@@ -401,26 +406,29 @@ void Enemy::FindBodyparts() {
 	FillByNamePattern( mRightArmParts, "RightArmP?([[:digit:]]+)" );
 	FillByNamePattern( mLeftArmParts, "LeftArmP?([[:digit:]]+)" );
 	FillByNamePattern( mTorsoParts, "TorsoBoneP?([[:digit:]]+)" );
-	mHead = mModel.FindChild( "Head" );
+	mHead = mModel->FindChild( "Head" );
 }
 
 void Enemy::Serialize( SaveFile & out ) {
 	out.WriteVector3( mDeathPosition );
-    out.WriteVector3( mBody.GetPosition() );
+    out.WriteVector3( mBody->GetPosition() );
 	out.WriteBoolean( mDead );
 	out.WriteFloat( mHealth );
 }
 
 void Enemy::Deserialize( SaveFile & in ) {
 	mDeathPosition = in.ReadVector3();
-    mBody.SetPosition( in.ReadVector3( ));
+    mBody->SetPosition( in.ReadVector3( ));
 	mDead = in.ReadBoolean();
 	mHealth = in.ReadFloat();
 }
 
 Enemy::~Enemy() {
-	if( mBloodSpray.IsValid() ) {
-		mBloodSpray.Free();
+	mResurrectTimer->Free();
+	mPathCheckTimer->Free();
+
+	if( mBloodSpray ) {
+		mBloodSpray->Free();
 	}
 	mFadeAwaySound.Free();
 	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
@@ -430,40 +438,35 @@ Enemy::~Enemy() {
 }
 
 void Enemy::DoBloodSpray() {
-	if( mBloodSpray.IsValid() ) {
-		mBloodSpray.Free();
+	if( mBloodSpray ) {
+		mBloodSpray->Free();
 	} 
-
-	ruParticleSystemProperties psProps;
-	psProps.texture = ruGetTexture( "data/textures/particles/spray.png");
-	psProps.type = PS_BOX;
-	psProps.speedDeviationMin = ruVector3( -0.0015, 0.02, -0.0015 );
-	psProps.speedDeviationMax = ruVector3( 0.0015, -0.09, 0.0015 );
-	psProps.colorBegin = ruVector3( 200, 0, 0 );
-	psProps.colorEnd = ruVector3( 200, 0, 0 );
-	psProps.pointSize = 0.455f;
-	psProps.boundingBoxMin = ruVector3( -mBodyWidth, 0.0, -mBodyWidth );
-	psProps.boundingBoxMax = ruVector3(  mBodyWidth, mBodyHeight, mBodyWidth );
-	psProps.particleThickness = 20.5f;
-	psProps.autoResurrectDeadParticles = false;
-	psProps.useLighting = true;
-	mBloodSpray = ruCreateParticleSystem( 50, psProps );
-	mBloodSpray.SetPosition( mBody.GetPosition() );	
+	mBloodSpray = ruParticleSystem::Create( 50 );
+	mBloodSpray->SetTexture( ruTexture::Request( "data/textures/particles/spray.png" ));
+	mBloodSpray->SetType( ruParticleSystem::Type::Box );
+	mBloodSpray->SetSpeedDeviation( ruVector3( -0.0015, 0.02, -0.0015 ), ruVector3( 0.0015, -0.09, 0.0015 ) );
+	mBloodSpray->SetColorRange( ruVector3( 200, 0, 0 ), ruVector3( 200, 0, 0 ) );
+    mBloodSpray->SetPointSize( 0.455f );
+	mBloodSpray->SetBoundingBox( ruVector3( -mBodyWidth, 0.0, -mBodyWidth ), ruVector3(  mBodyWidth, mBodyHeight, mBodyWidth ));
+	mBloodSpray->SetParticleThickness( 20.5f );
+	mBloodSpray->SetAutoResurrection( false );
+	mBloodSpray->SetLightingEnabled( true );	
+	mBloodSpray->SetPosition( mBody->GetPosition() );	
 }
 
 void Enemy::Damage( float dmg ) {
 	Actor::Damage( dmg );
 	if( mHealth <= 0.0f ) {
-		ruRestartTimer( mResurrectTimer );
+		mResurrectTimer->Restart();
 		if( !mDead ) {
 			DoBloodSpray();
 			mFadeAwaySound.Play();
 			mDead = true;
 		}
-		mDeathPosition = mBody.GetPosition();
-		mBody.SetPosition( ruVector3( 1000, 1000, 1000 ));
-		mBody.Hide();
-		mBody.Freeze();
+		mDeathPosition = mBody->GetPosition();
+		mBody->SetPosition( ruVector3( 1000, 1000, 1000 ));
+		mBody->Hide();
+		mBody->Freeze();
 	}
 }
 
@@ -474,6 +477,6 @@ void Enemy::SetNextPatrolPoint() {
 	}
 }
 
-ruSceneNode Enemy::GetBody() {
+ruSceneNode * Enemy::GetBody() {
 	return mBody;
 }

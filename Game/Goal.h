@@ -7,14 +7,14 @@
 
 class Goal {
 private:
-    ruTimerHandle mWaitTimer;
+    ruTimer * mWaitTimer;
     float mCurrentY;
     float mDestY;
     float mInitialY;
     float mWaitSec;
     float mAlpha;
     string mText;
-    ruTextHandle mGoalText;
+    ruText * mGoalText;
 public:
     explicit Goal();
     virtual ~Goal();

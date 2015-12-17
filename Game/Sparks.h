@@ -3,15 +3,13 @@
 #include "Game.h"
 
 class Sparks {
+private:
+    ruParticleSystem * mParticleSystem;
+    bool mAlive;
+    ruSound mSound;
 public:
-    ruSceneNode ps;
-    int alive;
-    ruSound es;
-public:
-
-    Sparks( ruSceneNode at, ruSound emits );
-	~Sparks() {
-		es.Free();
-	}
+    Sparks( ruSceneNode * at, ruSound emits );
+	~Sparks();
     void Update();
+	bool IsAlive();
 };

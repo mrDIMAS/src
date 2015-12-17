@@ -42,7 +42,7 @@ BitmapFont::~BitmapFont() {
 
 void BitmapFont::BindAtlasToLevel( int level )
 {
-	Engine::Instance().GetDevice()->SetTexture( level, atlas );
+	Engine::I().GetDevice()->SetTexture( level, atlas );
 }
 
 int BitmapFont::GetGlyphSize()
@@ -92,7 +92,7 @@ void BitmapFont::Create()
 		Log::Error( StringBuilder( "Failed to FT_Select_Charmap!" ));
 	}
 	// create atlas texture
-	Engine::Instance().GetDevice()->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &atlas, nullptr );
+	Engine::I().GetDevice()->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &atlas, nullptr );
 	IDirect3DSurface9 * atlasSurface = nullptr;
 	atlas->GetSurfaceLevel( 0, &atlasSurface );
 	D3DLOCKED_RECT lockedRect;
@@ -118,7 +118,7 @@ void BitmapFont::Create()
 			Log::Error( StringBuilder( "Failed to FT_Load_Glyph!" ));
 		}
 		int memOffsetBytes = subRectRow * lockedRect.Pitch * pow2Size + subRectCol * pow2Size * sizeof( BGRA8Pixel );
-		BGRA8Pixel * subRectPixel = (BGRA8Pixel *)( (char*)lockedRect.pBits + memOffsetBytes );
+		BGRA8Pixel * subRectPixel = reinterpret_cast<BGRA8Pixel*>( reinterpret_cast<char*>(lockedRect.pBits) + memOffsetBytes );
 		FT_Bitmap * bitmap = &( face->glyph->bitmap );
 		// grab char metrics for rendering
 		CharMetrics cm;
@@ -155,4 +155,16 @@ void BitmapFont::Create()
 	FT_Done_Face( face );
 	atlasSurface->Release();
 	FT_Done_FreeType( ftLibrary );
+}
+
+void ruFont::Free() {
+	delete this;
+}
+
+ruFont * ruFont::LoadFromFile( int size, const string & name ) {
+	return new BitmapFont( name, size );
+}
+
+ruFont::~ruFont() {
+
 }

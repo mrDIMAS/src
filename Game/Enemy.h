@@ -23,25 +23,25 @@ private:
 
     Pathfinder mPathfinder;
 
-    ruSceneNode mModel;
+    ruSceneNode * mModel;
 
     ruVector3 mTarget;
     ruVector3 mDestination;
 	ruVector3 mDeathPosition;
 
-	vector<ruSceneNode> mRightLegParts;
-	vector<ruSceneNode> mLeftLegParts;
-	vector<ruSceneNode> mRightArmParts;
-	vector<ruSceneNode> mLeftArmParts;
-	vector<ruSceneNode> mTorsoParts;
-	ruSceneNode mHead;
+	vector<ruSceneNode *> mRightLegParts;
+	vector<ruSceneNode *> mLeftLegParts;
+	vector<ruSceneNode *> mRightArmParts;
+	vector<ruSceneNode *> mLeftArmParts;
+	vector<ruSceneNode *> mTorsoParts;
+	ruSceneNode * mHead;
 
     ruSound mHitFleshWithAxeSound;
     ruSound mBreathSound;
     ruSound mScreamSound;
 
     bool mPlayerDetected;
-    ruTimerHandle mPlayerInSightTimer;
+    ruTimer * mPlayerInSightTimer;
 
     float mLastStepLength;
     float mStepLength;
@@ -59,26 +59,24 @@ private:
 
     ruSound mFootstepsSounds[ 4 ];
 
-    ruTimerHandle mDamageTimer;
-
     ruAnimation mIdleAnimation;
     ruAnimation mRunAnimation;
     ruAnimation mAttackAnimation;
     ruAnimation mWalkAnimation;
 
-	ruTimerHandle mResurrectTimer;
+	ruTimer * mResurrectTimer;
 
-	ruTimerHandle mPathCheckTimer;
+	ruTimer * mPathCheckTimer;
 	ruVector3 mLastCheckPosition;
 
-	ruSceneNode mBloodSpray;
+	ruParticleSystem * mBloodSpray;
 	ruSound mFadeAwaySound;
 	bool mDead;
 
 
 	void Proxy_HitPlayer() {
 		// shit, but works :D
-		float distanceToPlayer = ( pPlayer->GetCurrentPosition() - mBody.GetPosition() ).Length();
+		float distanceToPlayer = ( pPlayer->GetCurrentPosition() - mBody->GetPosition() ).Length();
 		if( distanceToPlayer < mHitDistance ) {
 			pPlayer->Damage( 20 );
 			mHitFleshWithAxeSound.Play( true );
@@ -90,12 +88,12 @@ private:
 		mFootstepsSounds[ rand() % 4 ].Play();
 	}
 
-	void FillByNamePattern( vector< ruSceneNode > & container, const string & pattern );
+	void FillByNamePattern( vector< ruSceneNode * > & container, const string & pattern );
 public:
 	static vector<Enemy*> msEnemyList;
 
     int GetVertexIndexNearestTo( ruVector3 position );
-	ruSceneNode GetBody();
+	ruSceneNode * GetBody();
 	void SetNextPatrolPoint();
 	void DoBloodSpray();
 	void Resurrect();

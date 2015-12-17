@@ -26,7 +26,7 @@
 vector<GUIText*> GUIText::msTextList;
 
 GUIText::GUIText( const string & theText, float theX, float theY, float theWidth,
-                  float theHeight, ruVector3 theColor, int theAlpha, int theTextAlign, BitmapFont * theFont ) {
+                  float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, BitmapFont * theFont ) {
     mX = theX;
     mY = theY;
     mWidth = theWidth;
@@ -61,11 +61,14 @@ std::string & GUIText::GetText() {
     return mText;
 }
 
-int GUIText::GetTextAlignment() {
+ruTextAlignment GUIText::GetTextAlignment() {
     return mTextAlign;
 }
 
-void GUIText::SetText( const string & text )
-{
+void GUIText::SetText( const string & text ) {
 	mText = text;
+}
+
+ruText * ruText::Create( const string & text, int x, int y, int w, int h, ruFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha ) {
+	return new GUIText( text, x, y, w, h, color, alpha, textAlign, dynamic_cast<BitmapFont*>( font ));
 }

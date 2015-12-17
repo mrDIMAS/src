@@ -43,7 +43,7 @@ Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ), mIndexBuff
 			D3DDECL_END()
 		};
 
-		Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration );
+		Engine::I().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration );
 	}
 	if( !msVertexDeclarationSkin ) {
 		D3DVERTEXELEMENT9 vd[ ] = {
@@ -56,7 +56,7 @@ Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ), mIndexBuff
 			D3DDECL_END()
 		};
 
-		Engine::Instance().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclarationSkin );
+		Engine::I().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclarationSkin );
 	}
 }
 
@@ -73,6 +73,7 @@ void Mesh::Unlink( SceneNode * owner ) {
 }
 
 void Mesh::Register( Mesh * mesh ) {
+	mesh->mAABB = AABB( mesh->mVertices );
     if( mesh->mOpacity > 0.99f ) { // pass it to deferred renderer
         auto textureGroup = Mesh::msMeshList.find( mesh->mDiffuseTexture->GetInterface() );
 
@@ -82,7 +83,7 @@ void Mesh::Register( Mesh * mesh ) {
 
         Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
     } else { // pass it to forward renderer
-        Engine::Instance().GetForwardRenderer()->AddMesh( mesh );
+        Engine::I().GetForwardRenderer()->AddMesh( mesh );
     }
 }
 
@@ -107,7 +108,7 @@ void Mesh::CreateVertexBuffer() {
 		if( mSkinned ) {
 			sizeBytes = mVertices.size() * sizeof( VertexSkin );
 			for( int i = 0; i < mVertices.size(); i++ ) {
-				Mesh::BoneGroup w = mWeightTable[i];
+				Mesh::BoneGroup w = mBoneTable[i];
 				ruVector4 boneIndices = ruVector4( -1, -1, -1, -1 );	
 				ruVector4 boneWeights = ruVector4( 0.0f, 0.0f, 0.0f, 0.0f );
 				for( int k = 0; k < w.mBoneCount; k++ ) {
@@ -124,7 +125,7 @@ void Mesh::CreateVertexBuffer() {
 		
 
 		// dont care about FVF, set it to simple D3DFVF_XYZ
-		Engine::Instance().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+		Engine::I().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 		
 		void * vertexData = 0;
 		mVertexBuffer->Lock( 0, 0, &vertexData, 0 );
@@ -132,7 +133,6 @@ void Mesh::CreateVertexBuffer() {
 		mVertexBuffer->Unlock();
 	}
 }
-
 
 Mesh::Bone * Mesh::AddBone( SceneNode * node ) {
 	Mesh::Bone * bone = nullptr;
@@ -149,11 +149,10 @@ Mesh::Bone * Mesh::AddBone( SceneNode * node ) {
 	return bone;		
 }
 
-
 void Mesh::CreateIndexBuffer( vector< Triangle > & triangles ) {
 	if( triangles.size() ) {
 		int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
-		Engine::Instance().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );		
+		Engine::I().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );		
 		void * indexData = 0;
 		mIndexBuffer->Lock( 0, 0, &indexData, 0 );
 		memcpy( indexData, &triangles[ 0 ], sizeBytes );
@@ -203,21 +202,21 @@ void Mesh::CleanUp() {
 	msVertexDeclarationSkin->Release();
 }
 
-Texture * Mesh::GetDiffuseTexture() {
+shared_ptr<Texture> Mesh::GetDiffuseTexture() {
     return mDiffuseTexture;
 }
 
-Texture * Mesh::GetNormalTexture() {
+shared_ptr<Texture> Mesh::GetNormalTexture() {
     return mNormalTexture;
 }
 
 void Mesh::Render() {
 	if( mSkinned ) {
-		Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( VertexSkin ));
-		Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclarationSkin );
+		Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( VertexSkin ));
+		Engine::I().GetDevice()->SetVertexDeclaration( msVertexDeclarationSkin );
 	} else {
-		Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
-		Engine::Instance().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
+		Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
+		Engine::I().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
 	}
 	
 	if( mOctree ) {
@@ -226,25 +225,25 @@ void Mesh::Render() {
 			CreateIndexBuffer( id );
 		}
 	}
-	Engine::Instance().GetDevice()->SetIndices( mIndexBuffer );
+	Engine::I().GetDevice()->SetIndices( mIndexBuffer );
     if( mOctree ) {
 #ifdef _OCTREE_DEBUG
         mOctree->VisualizeHierarchy();
         ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", mOctree->mVisibleNodeCount, mOctree->mVisibleTriangleCount ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( mOctree->mVisibleTriangleList.size() ) {
-			Engine::Instance().DrawIndexedTriangleList( mVertices.size(), mOctree->mVisibleTriangleList.size() );
+			Engine::I().DrawIndexedTriangleList( mVertices.size(), mOctree->mVisibleTriangleList.size() );
         }
     } else {
-		Engine::Instance().DrawIndexedTriangleList( mVertices.size(), mTriangles.size() );
+		Engine::I().DrawIndexedTriangleList( mVertices.size(), mTriangles.size() );
     }
 }
 
 void Mesh::RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount ) {
-	Engine::Instance().GetDevice()->SetIndices( ib );
-	Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, faceCount );
+	Engine::I().GetDevice()->SetIndices( ib );
+	Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, faceCount );
 	// each mesh renders in one DIP
-	Engine::Instance().RegisterDIP();
+	Engine::I().RegisterDIP();
 }
 
 void Mesh::OnLostDevice() {
@@ -264,7 +263,7 @@ void Mesh::OnLostDevice() {
 	}
 
 	if( !removed ) {
-		Engine::Instance().GetForwardRenderer()->RemoveMesh( this );
+		Engine::I().GetForwardRenderer()->RemoveMesh( this );
 	}
 	if( mVertexBuffer ) {
 		mVertexBuffer->Release();
@@ -286,18 +285,76 @@ vector<Mesh::Bone*> & Mesh::GetBones() {
 	return mBones;
 }
 
+void Mesh::AddBoneGroup( const BoneGroup & bg ) {
+	mBoneTable.push_back( bg );
+}
+
+bool Mesh::IsSkinned() const {
+	return mSkinned;
+}
+
+vector<Mesh::Triangle> & Mesh::GetTriangles(){
+	return mTriangles;
+}
+
+vector<Vertex> & Mesh::GetVertices() {
+	return mVertices;
+}
+
+AABB Mesh::GetBoundingBox() {
+	return mAABB;
+}
+
+bool Mesh::IsHardwareBuffersGood() {
+	return mIndexBuffer && mVertexBuffer;
+}
+
+vector<BoneGroup> & Mesh::GetBoneTable() {
+	return mBoneTable;
+}
+
+void Mesh::AddVertex( const Vertex & vertex ) {
+	mVertices.push_back( vertex );
+}
+
+float Mesh::GetOpacity() const {
+	return mOpacity;
+}
+
+void Mesh::SetOpacity( float opacity ) {
+	mOpacity = opacity;
+}
+
+void Mesh::AddTriangle( const Triangle & triangle ) {
+	mTriangles.push_back( triangle );
+}
+
+void Mesh::SetHeightTexture( shared_ptr<Texture> heightTexture ) {
+	mHeightTexture = heightTexture;
+}
+
+void Mesh::SetNormalTexture( shared_ptr<Texture> normalTexture ) {
+	mNormalTexture = normalTexture;
+}
+
+void Mesh::SetDiffuseTexture( shared_ptr<Texture> diffuseTexture ) {
+	mDiffuseTexture = diffuseTexture;
+}
+
+shared_ptr<Texture> Mesh::GetHeightTexture(){
+	return mHeightTexture;
+}
+
 Mesh::Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
 	mA = vA;
 	mB = vB;
 	mC = vC;
 }
 
-Mesh::Bone::Bone() : mNode( nullptr )
-{
+Mesh::Bone::Bone() : mNode( nullptr ) {
 	D3DXMatrixIdentity( &mMatrix );
 }
 
-Mesh::Bone::Bone( SceneNode * node, int matrixID ) : mNode( node ), mMatrixID( matrixID )
-{
+Mesh::Bone::Bone( SceneNode * node, int matrixID ) : mNode( node ), mMatrixID( matrixID ) {
 	D3DXMatrixIdentity( &mMatrix );
 }

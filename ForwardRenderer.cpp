@@ -31,7 +31,7 @@ void ForwardRenderer::RenderMeshes() {
         IDirect3DTexture9 * diffuseTexture = group.first;
         vector< Mesh* > & meshes = group.second;
 
-        Engine::Instance().GetDevice()->SetTexture( 0, diffuseTexture );
+        Engine::I().GetDevice()->SetTexture( 0, diffuseTexture );
 
         for( auto pMesh : meshes ) {
             D3DXMATRIX world, wvp;
@@ -42,8 +42,8 @@ void ForwardRenderer::RenderMeshes() {
 					GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
 					D3DXMatrixMultiplyTranspose( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
 
-					Engine::Instance().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-					Engine::Instance().GetDevice()->SetPixelShaderConstantF( 0, &pMesh->mOpacity, 1 );
+					Engine::I().SetVertexShaderMatrix( 0, &wvp );
+					Engine::I().SetPixelShaderFloat( 0, pMesh->GetOpacity() );
 
 					pMesh->Render();
 				}
@@ -53,7 +53,7 @@ void ForwardRenderer::RenderMeshes() {
 }
 
 void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
-    auto groupIter = mRenderList.find( mesh->mDiffuseTexture->GetInterface() );
+    auto groupIter = mRenderList.find( mesh->GetDiffuseTexture()->GetInterface() );
     if( groupIter != mRenderList.end() ) {
         auto & group = groupIter->second;
         group.erase( find( group.begin(), group.end(), mesh ));
@@ -64,7 +64,7 @@ void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
 }
 
 void ForwardRenderer::AddMesh( Mesh * mesh ) {
-    mRenderList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
+    mRenderList[ mesh->GetDiffuseTexture()->GetInterface() ].push_back( mesh );
 }
 
 ForwardRenderer::~ForwardRenderer() {

@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-
+#include "Texture.h"
 #include "GUINode.h"
 
 vector<GUINode*> GUINode::msNodeList;
@@ -69,11 +69,12 @@ GUINode::~GUINode() {
     msNodeList.erase( find( msNodeList.begin(), msNodeList.end(), this ));
 }
 
-void GUINode::SetTexture( Texture * pTexture ) {
-    mpTexture = pTexture;
+void GUINode::SetTexture( shared_ptr<ruTexture> pTexture ) {
+    mpTexture = std::dynamic_pointer_cast<Texture>( pTexture );
 }
 
-Texture * GUINode::GetTexture() {
+shared_ptr<ruTexture> GUINode::GetTexture()
+{
     return mpTexture;
 }
 
@@ -135,9 +136,10 @@ int GUINode::GetPackedColor() {
     return mColorPacked;
 }
 
-void GUINode::AttachTo( GUINode * parent ) {
-	parent->mChildList.push_back( this );
-	mParent = parent;
+void GUINode::Attach( ruGUINode * parent ) {
+	GUINode * parentNode = dynamic_cast<GUINode*>( parent );
+	parentNode->mChildList.push_back( this );
+	mParent = parentNode;
 }
 
 void GUINode::CalculateTransform() {
@@ -202,17 +204,18 @@ void GUINode::OnClick() {
 	}
 }
 
-void GUINode::RemoveAllActions()
-{
+void GUINode::RemoveAllActions() {
 	mEventList.clear();
 }
 
-void GUINode::RemoveAction( ruGUIAction act )
-{
+void GUINode::RemoveAction( ruGUIAction act ) {
 	mEventList.erase( act );
 }
 
-void GUINode::SetControlChildAlpha( bool control )
-{
+void GUINode::SetChildAlphaControl( bool control ) {
 	mControlChildAlpha = control;
+}
+
+ruGUINode::~ruGUINode() {
+
 }

@@ -25,19 +25,13 @@
 #include "EffectsQuad.h"
 
 class FXAA : public RendererComponent {
+private:
+    unique_ptr<PixelShader> mPixelShader;
+    unique_ptr<EffectsQuad> mEffectsQuad;
 public:
-    PixelShader * pixelShader;
-    EffectsQuad * effectsQuad;
-    IDirect3DSurface9 * renderTarget;
-    IDirect3DSurface9 * backBufferRT;
-    IDirect3DTexture9 * texture;
-    D3DXHANDLE screenWidth;
-    D3DXHANDLE screenHeight;
-
     FXAA();
-    virtual ~FXAA();
-    void BeginDrawIntoTexture( );
-    void DoAntialiasing( IDirect3DTexture9 * outTexture );
+    ~FXAA();
+    void DoAntialiasing( IDirect3DSurface9 * renderTarget, IDirect3DTexture9 * frame );
 	void OnResetDevice();
 	void OnLostDevice();
 };

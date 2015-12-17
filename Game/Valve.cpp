@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "Utils.h"
 
-Valve::Valve( ruSceneNode obj, ruVector3 axis, int turnCount ) {
+Valve::Valve( ruSceneNode * obj, ruVector3 axis, int turnCount ) {
     mObject = obj;
     mTurnAxis = axis;
     mAngle = 0.0f;
@@ -12,7 +12,7 @@ Valve::Valve( ruSceneNode obj, ruVector3 axis, int turnCount ) {
     mTurnCount = turnCount;
     mValue = 0.0f;
 	mTurnSound = ruSound::Load3D( "data/sounds/valve_squeaky.ogg" );
-	mTurnSound.SetPosition( mObject.GetPosition() );
+	mTurnSound.SetPosition( mObject->GetPosition() );
 }
 
 void Valve::Reset() {
@@ -33,7 +33,7 @@ void Valve::Update() {
 					mDone = true;
 					OnTurnDone.DoActions();
 				}
-				mObject.SetRotation( ruQuaternion( mTurnAxis, mAngle ));
+				mObject->SetRotation( ruQuaternion( mTurnAxis, mAngle ));
 			} 
 		}
 		mValue = mAngle / (float)( 360 * mTurnCount );

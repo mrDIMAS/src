@@ -3,7 +3,7 @@
 #include "NumericSlider.h"
 #include "GUIProperties.h"
 
-Slider::Slider( float x, float y, float minimum, float maximum, float step, ruTextureHandle buttonImage, const string & text ) {
+Slider::Slider( float x, float y, float minimum, float maximum, float step, shared_ptr<ruTexture> buttonImage, const string & text ) {
     float buttonWidth = 32;
     float buttonHeight = 32;
 
@@ -17,14 +17,14 @@ Slider::Slider( float x, float y, float minimum, float maximum, float step, ruTe
 
     mfStep = step;
 
-    mGUIText = ruCreateGUIText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, 0 );
-    mGUIValueText = ruCreateGUIText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, 1 );
+    mGUIText = ruText::Create( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIValueText = ruText::Create( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 
-    mGUIIncreaseButton = ruCreateGUIButton( x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-	ruAddGUINodeAction( mGUIIncreaseButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnIncreaseClick ));
+    mGUIIncreaseButton = ruButton::Create( x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+	mGUIIncreaseButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnIncreaseClick ));
 
-    mGUIDecreaseButton = ruCreateGUIButton( x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-	ruAddGUINodeAction( mGUIDecreaseButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnDecreaseClick ));
+    mGUIDecreaseButton = ruButton::Create( x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+	mGUIDecreaseButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnDecreaseClick ));
 }
 
 int Slider::GetWidth() {
@@ -45,27 +45,27 @@ float Slider::GetValue() {
 }
 
 Slider::~Slider() {
-    ruFreeGUINode( mGUIValueText );
-    ruFreeGUINode( mGUIText );
-    ruFreeGUINode( mGUIIncreaseButton );
-    ruFreeGUINode( mGUIDecreaseButton );
+    mGUIValueText->Free( );
+    mGUIText->Free( );
+    mGUIIncreaseButton->Free( );
+    mGUIDecreaseButton->Free( );
 }
 
 void Slider::SetChangeAction( const ruDelegate & action ) {
-	ruRemoveAllGUINodeActions( mGUIIncreaseButton );
-	ruAddGUINodeAction( mGUIIncreaseButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnIncreaseClick ));
-	ruAddGUINodeAction( mGUIIncreaseButton, ruGUIAction::OnClick, action );
+	mGUIIncreaseButton->RemoveAllActions();
+	mGUIIncreaseButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnIncreaseClick ));
+	mGUIIncreaseButton->AddAction( ruGUIAction::OnClick, action );
 
-	ruRemoveAllGUINodeActions( mGUIDecreaseButton );
-	ruAddGUINodeAction( mGUIDecreaseButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnDecreaseClick ));
-	ruAddGUINodeAction( mGUIDecreaseButton, ruGUIAction::OnClick, action );
+	mGUIDecreaseButton->RemoveAllActions();
+	mGUIDecreaseButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnDecreaseClick ));
+	mGUIDecreaseButton->AddAction( ruGUIAction::OnClick, action );
 }
 
-void Slider::AttachTo( ruGUINodeHandle node ) {
-	ruAttachGUINode( mGUIIncreaseButton, node );
-	ruAttachGUINode( mGUIDecreaseButton, node );
-	ruAttachGUINode( mGUIText, node );
-	ruAttachGUINode( mGUIValueText, node );
+void Slider::AttachTo( ruGUINode * node ) {
+	mGUIIncreaseButton->Attach( node );
+	mGUIDecreaseButton->Attach( node );
+	mGUIText->Attach( node );
+	mGUIValueText->Attach( node );
 }
 
 void Slider::OnDecreaseClick() {
@@ -83,5 +83,5 @@ void Slider::OnIncreaseClick() {
 }
 
 void Slider::UpdateText() {
-	ruSetGUINodeText( mGUIValueText, StringBuilder() << fixed << setprecision( 1 ) << mValue );
+	mGUIValueText->SetText( StringBuilder() << fixed << setprecision( 1 ) << mValue );
 }

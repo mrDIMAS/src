@@ -5,11 +5,9 @@
 
 Flashlight::Flashlight() {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands/arm_anim.scene" );
-	mModel.SetDepthHack( 0.155f );
+	mModel->SetDepthHack( 0.155f );
 
-	mLight = mModel.FindChild( "PlayerLight" );
-	mLight.SetSpotTexture( ruGetTexture( "data/textures/generic/spotlight.jpg"));
-	mLight.SetGreyscaleFactor( 1.0f );
+	mLight = dynamic_cast<ruPointLight*>( mModel->FindChild( "PlayerLight" ) );
 
 	mOnSound = ruSound::Load2D( "data/sounds/lighter/open.ogg" );
 	mOnSound.SetVolume( 0.3f );
@@ -19,7 +17,7 @@ Flashlight::Flashlight() {
 
 	mFireSound = ruSound::Load2D( "data/sounds/lighter/fire.ogg" );
 
-	mOnRange = mLight.GetRange() * 1.25f; // HAAAAAAAAAAAAAAAX!
+	mOnRange = mLight->GetRange() * 1.25f; // HAAAAAAAAAAAAAAAX!
 
 	mRealRange = mOnRange;
 	mRangeDest = mOnRange;
@@ -30,7 +28,6 @@ Flashlight::Flashlight() {
 	mChargeWorkTimeSeconds = 240.0f;
 	mShakeCoeff = 0.0f;
 	
-
 	mCloseAnim = ruAnimation( 20, 34, 0.9 );
 	mCloseAnim.AddFrameListener( 26, ruDelegate::Bind( this, &Flashlight::Proxy_Close ));
 	mCloseAnim.AddFrameListener( 34, ruDelegate::Bind( this, &Flashlight::Proxy_Hide ));
@@ -40,32 +37,31 @@ Flashlight::Flashlight() {
 	mOpenAnim.AddFrameListener( 35, ruDelegate::Bind( this, &Flashlight::Proxy_Show ));
 	mIdleAnim = ruAnimation( 0, 19, 5 );
 
-	ruParticleSystemProperties psProps;
-	psProps.type = PS_STREAM;
-	psProps.speedDeviationMin = ruVector3( -0.00001f, 0.001f, -0.00001f );
-	psProps.speedDeviationMax = ruVector3( 0.000012f, 0.0015f, 0.000012f );
-	psProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
-	psProps.colorBegin = ruVector3( 0, 55, 244 );
-	psProps.colorEnd = ruVector3( 255, 127, 39 );
-	psProps.pointSize = 0.0095f;
-	psProps.particleThickness = 1.5f;
-	psProps.boundingRadius = 0.004f;
-	psProps.useLighting = false;
-	psProps.depthHack = 0.1551f;
-	psProps.scaleFactor = -0.00008f;
-	mFire = ruCreateParticleSystem( 60, psProps );
-	mFire.Attach( mModel.FindChild( "FirePlace" ));
+	mFire = ruParticleSystem::Create( 60 );
+	mFire->Attach( mModel->FindChild( "FirePlace" ));
+	mFire->SetType( ruParticleSystem::Type::Stream );
+	mFire->SetSpeedDeviation( ruVector3( -0.00001f, 0.001f, -0.00001f ), ruVector3( 0.000012f, 0.0015f, 0.000012f ));
+	mFire->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));
+	mFire->SetColorRange( ruVector3( 255, 127, 39 ), ruVector3( 0, 55, 244 ));
+	mFire->SetPointSize( 0.0095f );
+	mFire->SetParticleThickness( 1.5f );
+	mFire->SetBoundingRadius( 0.004f );
+	mFire->SetLightingEnabled( false );
+	mFire->SetDepthHack( 0.1551f );
+	mFire->SetScaleFactor( -0.00008f );
 
 	mOn = false;
-	mFire.Hide();
-	mModel.Hide();
+	mLight->SetRange( 0.001f );
+
+	mFire->Hide();
+	mModel->Hide();
 }
 
 void Flashlight::SwitchOn() {
 	if( !mCloseAnim.enabled && !mOpenAnim.enabled ) {
 		if( !mOn ) {
 			mOpenAnim.Rewind();
-			mModel.SetAnimation( &mOpenAnim );
+			mModel->SetAnimation( &mOpenAnim );
 			mOpenAnim.enabled = true;
 			mIdleAnim.enabled = false;
 		}
@@ -76,17 +72,17 @@ void Flashlight::SwitchOff() {
 	if( !mOpenAnim.enabled && !mCloseAnim.enabled ) {
 		if( mOn ) {		
 			mCloseAnim.Rewind();
-			mModel.SetAnimation( &mCloseAnim );
+			mModel->SetAnimation( &mCloseAnim );
 			mCloseAnim.enabled = true;
 			mIdleAnim.enabled = false;
 		}
 	}
 }
 
-void Flashlight::Attach( ruSceneNode node ) {
-    mModel.Attach( node );
+void Flashlight::Attach( ruSceneNode * node ) {
+    mModel->Attach( node );
 
-    mInitialPosition = mModel.GetPosition();
+    mInitialPosition = mModel->GetPosition();
     mDestPosition = mInitialPosition;
     mPosition = mInitialPosition;
 }
@@ -106,7 +102,7 @@ Flashlight::~Flashlight() {
 }
 
 bool Flashlight::IsBeamContainsPoint( ruVector3 point ){
-    return mLight.IsSeePoint( point );
+    return mLight->IsSeePoint( point );
 }
 
 float Flashlight::GetCharge() {
@@ -117,7 +113,7 @@ bool Flashlight::IsOn() const {
     return mOn;
 }
 
-ruSceneNode Flashlight::GetLight() {
+ruSceneNode * Flashlight::GetLight() {
 	return mLight;
 }
 
@@ -126,7 +122,7 @@ void Flashlight::Proxy_Open() {
 }
 
 void Flashlight::Proxy_Show() {
-	mModel.Show();
+	mModel->Show();
 }
 
 void Flashlight::Proxy_Hide() {
@@ -135,12 +131,12 @@ void Flashlight::Proxy_Hide() {
 
 void Flashlight::Proxy_Fire() {
 	mFireSound.Play();
-	mFire.Show();
+	mFire->Show();
 	mOn = true;
 }
 
 void Flashlight::Proxy_Close() {
-	mFire.Hide();
+	mFire->Hide();
 	mOn = false;
 	mOffSound.Play();
 }
@@ -174,13 +170,13 @@ void Flashlight::OnDeserialize( SaveFile & in ) {
 
 	int currentAnim = in.ReadInteger();
 	if( currentAnim == 0 ) {
-		mModel.SetAnimation( &mCloseAnim );
+		mModel->SetAnimation( &mCloseAnim );
 	}
 	if( currentAnim == 1 ) {
-		mModel.SetAnimation( &mIdleAnim );
+		mModel->SetAnimation( &mIdleAnim );
 	}
 	if( currentAnim == 2 ) {
-		mModel.SetAnimation( &mOpenAnim );
+		mModel->SetAnimation( &mOpenAnim );
 	}
 }
 
@@ -196,11 +192,11 @@ void Flashlight::OnSerialize( SaveFile & out ) {
 	SerializeAnimation( out, mIdleAnim );
 	SerializeAnimation( out, mOpenAnim );
 	
-	if( mModel.GetCurrentAnimation() == &mCloseAnim ) {
+	if( mModel->GetCurrentAnimation() == &mCloseAnim ) {
 		out.WriteInteger( 0 );
-	} else if( mModel.GetCurrentAnimation() == &mIdleAnim ) {
+	} else if( mModel->GetCurrentAnimation() == &mIdleAnim ) {
 		out.WriteInteger( 1 );
-	} else if( mModel.GetCurrentAnimation() == &mOpenAnim ) {
+	} else if( mModel->GetCurrentAnimation() == &mOpenAnim ) {
 		out.WriteInteger( 2 );
 	} else {
 		out.WriteInteger( -1 );
@@ -208,6 +204,8 @@ void Flashlight::OnSerialize( SaveFile & out ) {
 }
 
 void Flashlight::Update() {
+	mLight->SetGreyscaleFactor( 0.0f );
+
 	if( mAppear ) {
 		SwitchOn();
 		mAppear = false;
@@ -224,10 +222,10 @@ void Flashlight::Update() {
 
 
 		if( mCharge < 0.01f ) {
-			mFire.Hide();
+			mFire->Hide();
 			mCharge = 0.01f;
 		} else {
-			mFire.Show();
+			mFire->Show();
 		}
 	} else {
 		mRangeDest = 0.0f;
@@ -238,9 +236,9 @@ void Flashlight::Update() {
 	} else {
 		mRealRange += ( mRangeDest * mCharge - mRealRange ) * 0.025f;
 	}
-	mLight.SetRange( mRealRange );
+	mLight->SetRange( mRealRange );
 	mPosition = mPosition.Lerp( mDestPosition, 0.15f );
-	mModel.SetPosition( mPosition + mOffset );
+	mModel->SetPosition( mPosition + mOffset );
 
 	if( pPlayer->mMoved ) {
 		if( pPlayer->mRunning ) {
@@ -256,7 +254,7 @@ void Flashlight::Update() {
 	mIdleAnim.Update();
 
 	if( mOn && !mCloseAnim.enabled && !mOpenAnim.enabled ) {
-		mModel.SetAnimation( &mIdleAnim );
+		mModel->SetAnimation( &mIdleAnim );
 		mIdleAnim.enabled = true;
 	}
 }

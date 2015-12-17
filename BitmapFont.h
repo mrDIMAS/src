@@ -40,7 +40,7 @@ struct BGRA8Pixel {
 	unsigned char a;
 };
 
-class BitmapFont : public RendererComponent {
+class BitmapFont : public RendererComponent, public ruFont {
 private:
 	IDirect3DTexture9 * atlas;
 	vector< CharMetrics > charsMetrics;

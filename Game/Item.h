@@ -25,7 +25,7 @@ public:
 private:
 	friend class Inventory;
     static Parser msLocalization;
-    ruTextureHandle mPic;
+    shared_ptr<ruTexture> mPic;
     string mDesc;
     string mName;
     Type mType;
@@ -42,7 +42,7 @@ public:
     bool Combine( Item::Type combinerType );
     Type GetType() const;
     Type GetCombineType() const;
-    ruTextureHandle GetPictogram() const;
+    shared_ptr<ruTexture> GetPictogram() const;
     float GetContent() const;
     void SetContent( float content );
     const string & GetContentType() const;

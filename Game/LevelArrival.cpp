@@ -27,20 +27,20 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
     mGenerator = GetUniqueObject( "Generator" );
 
     mLamp1 = GetUniqueObject( "Projector1" );
-	mLamp1.Hide();
+	mLamp1->Hide();
 
     mLamp2 = GetUniqueObject( "Projector2" );
-	mLamp2.Hide();
+	mLamp2->Hide();
 
-	mLiftLamp = GetUniqueObject( "LiftLamp" );
-	mLiftLamp.Hide();
+	mLiftLamp = dynamic_cast<ruLight*>( GetUniqueObject( "LiftLamp" ));
+	mLiftLamp->Hide();
 
 
     //////////////////////////////////////////////////////////////////////////
     // Player noticements
     pPlayer->SetObjective( mLocalization.GetString( "objective1" ));
 
-    pPlayer->SetPosition( GetUniqueObject("PlayerPosition").GetPosition() + ruVector3( 0, 1, 0 ));
+    pPlayer->SetPosition( GetUniqueObject("PlayerPosition")->GetPosition() + ruVector3( 0, 1, 0 ));
 
     //////////////////////////////////////////////////////////////////////////
     // Load sounds
@@ -73,7 +73,7 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
 	mLift->SetFrontDoors( GetUniqueObject( "Lift1FrontDoorLeft"), GetUniqueObject( "Lift1FrontDoorRight" ));
 	AddLift( mLift );
 
-    ruSetAudioReverb( 15 );
+    ruSound::SetAudioReverb( 15 );
 
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/forest/forestambient1.ogg" ));
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/forest/forestambient2.ogg" ));
@@ -82,12 +82,13 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/forest/forestambient5.ogg" ));
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/forest/forestambient6.ogg" ));
 
-    ruSetCameraSkybox( pPlayer->mpCamera->mNode,
-		ruGetTexture( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
-		ruGetTexture( "data/textures/skyboxes/night3/nightsky_l.jpg" ),
-		ruGetTexture( "data/textures/skyboxes/night3/nightsky_r.jpg" ),
-		ruGetTexture( "data/textures/skyboxes/night3/nightsky_f.jpg" ), 
-		ruGetTexture( "data/textures/skyboxes/night3/nightsky_b.jpg" ));
+    pPlayer->mpCamera->mCamera->SetSkybox(
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_l.jpg" ),
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_r.jpg" ),
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_f.jpg" ), 
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_b.jpg" )
+	);
 
 	mStages[ "LiftCrashed" ] = false;
 
@@ -107,7 +108,7 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
 	mGeneratorStartSeries.AddAction( 0.0f, ruDelegate::Bind( this, &LevelArrival::ActGenerator_Start ) );
 	mGeneratorStartSeries.AddAction( mGeneratorStartSound.GetLength(), ruDelegate::Bind( this, &LevelArrival::ActGenerator_OnLine ) );
 
-	mGeneratorSmokePosition = GetUniqueObject( "GeneratorSmoke" ).GetPosition();
+	mGeneratorSmokePosition = GetUniqueObject( "GeneratorSmoke" )->GetPosition();
 
 
     DoneInitialization();
@@ -142,7 +143,7 @@ void LevelArrival::DoScenario() {
 		PlayAmbientSounds();
 		if( pPlayer->IsInsideZone( mLiftStopZone )) {
 			mLift->SetPaused( true );
-			mLiftLamp.SetRange( 0.01f );
+			mLiftLamp->SetRange( 0.01f );
 			mStages[ "LiftCrashed" ] = true;
 			mLiftCrashSeries.SetEnabled( true );			
 		}
@@ -201,26 +202,23 @@ void LevelArrival::GeneratorEnableAction( ) {
 }
 void LevelArrival::ActGenerator_Start() {
 	mGeneratorStartSound.Play();
-	ruParticleSystemProperties psProps;
-	psProps.type = PS_STREAM;
-	psProps.speedDeviationMin = ruVector3( -0.0025, 0.014, 0.0015 );
-	psProps.speedDeviationMax = ruVector3( -0.0025, 0.024, 0.0015 );;
-	psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
-	psProps.colorBegin = ruVector3( 150, 150, 150 );
-	psProps.colorEnd = ruVector3( 150, 150, 150 );
-	psProps.pointSize = 0.05f;
-	psProps.particleThickness = 1.5f;
-	psProps.boundingRadius = 0.8f;
-	psProps.useLighting = true;
-	psProps.scaleFactor = 0.005f;
-	psProps.alphaOffset = 0.8f;
-	mGeneratorSmoke = ruCreateParticleSystem( 30, psProps );
-	mGeneratorSmoke.SetPosition( mGeneratorSmokePosition );
+	mGeneratorSmoke = ruParticleSystem::Create( 30 );
+	mGeneratorSmoke->SetPosition( mGeneratorSmokePosition );
+	mGeneratorSmoke->SetType( ruParticleSystem::Type::Stream );
+	mGeneratorSmoke->SetSpeedDeviation( ruVector3( -0.0025, 0.014, 0.0015 ), ruVector3( -0.0025, 0.024, 0.0015 ));
+	mGeneratorSmoke->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));
+	mGeneratorSmoke->SetColorRange( ruVector3( 150, 150, 150 ), ruVector3( 150, 150, 150 ));
+	mGeneratorSmoke->SetPointSize( 0.05f );
+	mGeneratorSmoke->SetParticleThickness( 1.5f );
+	mGeneratorSmoke->SetBoundingRadius( 0.8f );
+	mGeneratorSmoke->SetLightingEnabled( true );
+	mGeneratorSmoke->SetScaleFactor( 0.005f );
+	mGeneratorSmoke->SetAlphaOffset( 0.8f );
 } 
 void LevelArrival::ActGenerator_OnLine() {
-	mLamp1.Show();
-	mLamp2.Show();
-	mLiftLamp.Show();		
+	mLamp1->Show();
+	mLamp2->Show();
+	mLiftLamp->Show();		
 	mPowerRestored = true;
 	mGeneratorSound.Play();
 }

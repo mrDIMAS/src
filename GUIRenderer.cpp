@@ -43,22 +43,23 @@ GUIRenderer::~GUIRenderer() {
     OnLostDevice();
 }
 
+/*
 ruFontHandle GUIRenderer::CreateFont( int size, const string & name ) {
     BitmapFont * font = new BitmapFont( name, size );
     ruFontHandle handle;
     handle.pointer = font;
     return handle;
 }
-
+*/
 void GUIRenderer::RenderAllGUIElements() {
     mPixelShader->Bind();
     mVertexShader->Bind();
 
-    Engine::Instance().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
 
-    Engine::Instance().SetVertexShaderMatrix( 0, &mOrthoMatrix );
-    Engine::Instance().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
-    Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
+    Engine::I().SetVertexShaderMatrix( 0, &mOrthoMatrix );
+    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
 
 	for( auto pNode : GUINode::msNodeList ) {
 		pNode->DoActions();
@@ -72,12 +73,12 @@ void GUIRenderer::RenderAllGUIElements() {
 
     for( auto pText : GUIText::msTextList ) {
         if( pText->IsVisible() ) {
-            Engine::Instance().GetTextRenderer()->RenderText( pText );
+            Engine::I().GetTextRenderer()->RenderText( pText );
         }
     }
 
     if( Cursor::msCurrentCursor ) {
-        Engine::Instance().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
+        Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
         if( Cursor::msCurrentCursor->IsVisible() ) {
             Cursor::msCurrentCursor->SetPosition( ruGetMouseX(), ruGetMouseY());
             RenderRect( Cursor::msCurrentCursor );
@@ -97,9 +98,9 @@ void GUIRenderer::RenderRect( GUIRect * rect ) {
     mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD );
     memcpy( data, vertices, mSizeOfRectBytes );
     mVertexBuffer->Unlock( );
-    rect->GetTexture()->Bind( 0 );
-    Engine::Instance().RegisterDIP();
-    Engine::Instance().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+    std::dynamic_pointer_cast<Texture>(rect->GetTexture())->Bind( 0 );
+    Engine::I().RegisterDIP();
+    Engine::I().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 }
 
 void GUIRenderer::OnLostDevice() {
@@ -113,7 +114,7 @@ void GUIRenderer::OnResetDevice() {
 
 void GUIRenderer::Initialize() {
 	mSizeOfRectBytes = 6 * sizeof( Vertex2D  );
-	Engine::Instance().GetDevice()->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+	Engine::I().GetDevice()->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 
 	D3DVERTEXELEMENT9 guivd[ ] = {
 		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -122,10 +123,10 @@ void GUIRenderer::Initialize() {
 		D3DDECL_END()
 	};
 
-	Engine::Instance().GetDevice()->CreateVertexDeclaration( guivd, &mVertexDeclaration );
+	Engine::I().GetDevice()->CreateVertexDeclaration( guivd, &mVertexDeclaration );
 
 	D3DVIEWPORT9 vp;
-	Engine::Instance().GetDevice()->GetViewport( &vp );
+	Engine::I().GetDevice()->GetViewport( &vp );
 	D3DXMatrixOrthoOffCenterLH ( &mOrthoMatrix, 0, vp.Width, vp.Height, 0, 0.0f, 1024.0f );
 }
 

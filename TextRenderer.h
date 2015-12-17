@@ -28,10 +28,11 @@
 class GUIText;
 
 class TextRenderer : public RendererComponent {
+private:
+    int mMaxChars;
+    IDirect3DVertexBuffer9 * mVertexBuffer;
+    IDirect3DIndexBuffer9 * mIndexBuffer;
 public:
-    int maxChars;
-    IDirect3DVertexBuffer9 * vertexBuffer;
-    IDirect3DIndexBuffer9 * indexBuffer;
     explicit TextRenderer( );
     virtual ~TextRenderer( );
     void ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );

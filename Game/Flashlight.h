@@ -7,7 +7,7 @@
 
 class Flashlight : public UsableObject {
 private:
-    ruLight mLight;
+    ruPointLight * mLight;
 
     float mMaxCharge;
     float mCharge;
@@ -24,7 +24,7 @@ private:
     ruSound mOffSound;
 	ruSound mFireSound;
 
-	ruSceneNode mFire;
+	ruParticleSystem * mFire;
     ruVector3 mInitialPosition;
 
     ruVector3 mPosition;
@@ -52,12 +52,12 @@ public:
     ~Flashlight();
     bool GotCharge();
     void Fuel();
-    void Attach( ruSceneNode node );
+    void Attach( ruSceneNode * node );
     void SwitchOff();
     void SwitchOn();
     bool IsOn() const;
     float GetCharge();
-	ruSceneNode GetLight();
+	ruSceneNode * GetLight();
     bool IsBeamContainsPoint( ruVector3 point );
 	virtual void Update() final;
 	virtual Item::Type GetItemType( ) final {

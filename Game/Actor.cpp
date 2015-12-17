@@ -3,7 +3,7 @@
 #include "Actor.h"
 
 void Actor::Move( ruVector3 direction, float speed ) {
-	mBody.Move( direction * speed  );
+	mBody->Move( direction * speed  );
 }
 
 
@@ -17,60 +17,60 @@ Actor::Actor( float height, float width ) :	mBodyHeight( height ),
 											mLastVerticalPosition( 0.0f )
 {
     mBody = ruSceneNode::Create();
-    mBody.SetCapsuleBody( mBodyHeight, mBodyWidth );
-    mBody.SetAngularFactor( ruVector3( 0, 0, 0 ));
-    mBody.SetFriction( 0 );
-    mBody.SetAnisotropicFriction( ruVector3( 1, 1, 1 ));
-    mBody.SetDamping( 0, 0 );
-    mBody.SetMass( 2 );
-    mBody.SetGravity( ruVector3( 0, 0, 0 ));
+    mBody->SetCapsuleBody( mBodyHeight, mBodyWidth );
+    mBody->SetAngularFactor( ruVector3( 0, 0, 0 ));
+    mBody->SetFriction( 0 );
+    mBody->SetAnisotropicFriction( ruVector3( 1, 1, 1 ));
+    mBody->SetDamping( 0, 0 );
+    mBody->SetMass( 2 );
+    mBody->SetGravity( ruVector3( 0, 0, 0 ));
 
 	mMaxHealth = 100;
 	mHealth = mMaxHealth;
 }
 
 void Actor::SetPosition( ruVector3 position ) {
-    mBody.SetPosition( position );
+    mBody->SetPosition( position );
 }
 
 Actor::~Actor() {
-	mBody.Free();
+	mBody->Free();
 }
 
-char Actor::IsInsideZone( ruSceneNode zone ) {
-    return mBody.IsInsideNode( zone );
+char Actor::IsInsideZone( ruSceneNode * zone ) {
+    return mBody->IsInsideNode( zone );
 }
 
 ruVector3 Actor::GetCurrentPosition() {
-    return mBody.GetPosition();
+    return mBody->GetPosition();
 }
 
 void Actor::StopInstant() {
-    mBody.Move( ruVector3( 0.0f, 0.0f, 0.0f ));
+    mBody->Move( ruVector3( 0.0f, 0.0f, 0.0f ));
 }
 
 void Actor::Unfreeze() {
-    mBody.Unfreeze();
+    mBody->Unfreeze();
 }
 
 void Actor::Freeze() {
-    mBody.Freeze();
+    mBody->Freeze();
 }
 
 ruVector3 Actor::GetLookDirection() {
-    return mBody.GetLookVector();
+    return mBody->GetLookVector();
 }
 
 void Actor::SetBodyVisible( bool state ) {
 	if( state ) {
-		mBody.Show();
+		mBody->Show();
 	} else {
-		mBody.Hide();
+		mBody->Hide();
 	}
 }
 
 bool Actor::IsVisibleFromPoint( ruVector3 begin ) {
-	return ruCastRay( begin, GetCurrentPosition(), nullptr ).pointer == mBody.pointer;
+	return ruPhysics::CastRay( begin, GetCurrentPosition(), nullptr ) == mBody;
 }
 
 void Actor::Crouch( bool state ) {
@@ -78,10 +78,10 @@ void Actor::Crouch( bool state ) {
 
 	// stand up only if we can
 	ruVector3 pickPoint;
-	ruVector3 rayBegin = mBody.GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
-	ruVector3 rayEnd = mBody.GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
-	ruSceneNode upCast = ruCastRay( rayBegin, rayEnd, &pickPoint);
-	if( upCast.IsValid() ) {
+	ruVector3 rayBegin = mBody->GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
+	ruVector3 rayEnd = mBody->GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
+	ruSceneNode * upCast = ruPhysics::CastRay( rayBegin, rayEnd, &pickPoint);
+	if( upCast ) {
 		if( !mCrouch ) {
 			mCrouch = true;
 		}
@@ -101,7 +101,7 @@ void Actor::UpdateCrouch() {
 		}
 	}
 
-	mBody.SetLocalScale( ruVector3( 1.0f, mCrouchMultiplier, 1.0f ));
+	mBody->SetLocalScale( ruVector3( 1.0f, mCrouchMultiplier, 1.0f ));
 }
 
 bool Actor::IsCrouch() {

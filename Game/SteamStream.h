@@ -3,15 +3,15 @@
 #include "Game.h"
 
 class SteamStream {
+private:
+	ruParticleSystem * mSteam;
+	ruSound mSound;
+	float mPower;
 public:
-    ruSceneNode ps;
-    ruSound snd;
-    float power;
-
-    SteamStream( ruSceneNode obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound );
+    SteamStream( ruSceneNode * obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound );
     void Update();
-	~SteamStream() {
-		ps.Free();
-		snd.Free();
+	~SteamStream();
+	void SetPower( float power ) {
+		mPower = power;
 	}
 };

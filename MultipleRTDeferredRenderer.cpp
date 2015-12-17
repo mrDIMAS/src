@@ -40,27 +40,27 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
 		} else {
 			visible = pOwner->IsVisible();
 		}
-		pOwner->mInFrustum |= Camera::msCurrentCamera->mFrustum.IsAABBInside( mesh->mAABB, ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
+		pOwner->mInFrustum |= Camera::msCurrentCamera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
 		if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
 			if( fabs( pOwner->mDepthHack ) > 0.001 ) {
 				Camera::msCurrentCamera->EnterDepthHack( fabs( pOwner->mDepthHack ) );
 			}			
-			if( mesh->mSkinned ) {
+			if( mesh->IsSkinned() ) {
 				D3DXMatrixIdentity( &world );
 			} else {
 				GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
 			}
 			D3DXMatrixMultiply( &vwp, &world, &Camera::msCurrentCamera->mViewProjection );
 			// pass albedo
-			Engine::Instance().SetPixelShaderFloat( 0, pOwner->mAlbedo );
+			Engine::I().SetPixelShaderFloat( 0, pOwner->mAlbedo );
 			// pass far z plane
-			Engine::Instance().SetPixelShaderFloat( 1, Camera::msCurrentCamera->mFarZ );
+			Engine::I().SetPixelShaderFloat( 1, Camera::msCurrentCamera->mFarZ );
 			// pass vertex shader matrices
-			Engine::Instance().SetVertexShaderMatrix( 0, &world );
-			Engine::Instance().SetVertexShaderMatrix( 5, &vwp );
+			Engine::I().SetVertexShaderMatrix( 0, &world );
+			Engine::I().SetVertexShaderMatrix( 5, &vwp );
 		
 			// for parallax
-			Engine::Instance().SetVertexShaderVector3( 10, Camera::msCurrentCamera->GetPosition() );
+			Engine::I().SetVertexShaderVector3( 10, Camera::msCurrentCamera->GetPosition() );
 			
 			SceneNode * parent = pOwner->mParent; // HAX!
 			pOwner->mParent = nullptr; // HAX!
@@ -71,7 +71,7 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
 				bone->mNode->mIsBone = true;
 				btTransform transform = (bone->mNode->mGlobalTransform * bone->mNode->mInvBoneBindTransform) * pOwner->CalculateGlobalTransform();
 				GetD3DMatrixFromBulletTransform( transform, bones[i]->mMatrix );
-				Engine::Instance().SetVertexShaderMatrix( 11 + i * 4, &bones[i]->mMatrix );
+				Engine::I().SetVertexShaderMatrix( 11 + i * 4, &bones[i]->mMatrix );
 			}
 
 			pOwner->mParent = parent;
@@ -86,7 +86,7 @@ void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
 
 void MultipleRTDeferredRenderer::BeginFirstPass() {
     mGBuffer->BindRenderTargets();
-    Engine::Instance().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+    Engine::I().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 }
 
 MultipleRTDeferredRenderer::MultipleRTDeferredRenderer( ) {

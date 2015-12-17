@@ -26,41 +26,40 @@
 #include "Texture.h"
 #include "Utility.h"
 
-vector<ParticleEmitter*> ParticleEmitter::msParticleEmitters;
+vector<ParticleSystem*> ParticleSystem::msParticleEmitters;
 
-ParticleEmitter::~ParticleEmitter() {
+ParticleSystem::~ParticleSystem() {
 	OnLostDevice();
 
-    delete vertices;
-    delete faces;
+    delete mVertices;
+    delete mFaces;
 
-    ParticleEmitter::msParticleEmitters.erase( find( ParticleEmitter::msParticleEmitters.begin(), ParticleEmitter::msParticleEmitters.end(), this ));
+    ParticleSystem::msParticleEmitters.erase( find( ParticleSystem::msParticleEmitters.begin(), ParticleSystem::msParticleEmitters.end(), this ));
 }
 
-void ParticleEmitter::Render() {
-    Engine::Instance().RegisterDIP();
-    Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 );
+void ParticleSystem::Render() {
+    Engine::I().RegisterDIP();
+    Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 );
 }
 
-void ParticleEmitter::Bind() {
-    Texture * texPtr = (Texture *)props.texture.pointer;
-    if( texPtr ) {
-        texPtr->Bind( 0 );
+void ParticleSystem::Bind() {
+    if( mTexture ) {
+        mTexture->Bind( 0 );
     }
-    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( ParticleVertex ));
-    Engine::Instance().GetDevice()->SetIndices( indexBuffer );
+    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( ParticleVertex ));
+    Engine::I().GetDevice()->SetIndices( mIndexBuffer );
 }
 
-void ParticleEmitter::Update() {
-    if( !firstTimeUpdate ) {
+void ParticleSystem::Update() {
+    if( !mFirstTimeUpdate ) {
         ResurrectParticles();
-        firstTimeUpdate = true;
+        mFirstTimeUpdate = true;
     }
 
     mAliveParticleCount = 0;
 
-    mOwner->mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
-    GetD3DMatrixFromBulletTransform( mOwner->mGlobalTransform, mWorldTransform );
+    mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
+    GetD3DMatrixFromBulletTransform( mGlobalTransform, mWorldTransform );
 
     D3DXMATRIX view = Camera::msCurrentCamera->mView;
 
@@ -74,65 +73,65 @@ void ParticleEmitter::Update() {
 
     int vertexNum = 0, faceNum = 0;
 
-    for( auto & p : particles ) {
-        p.position += p.speed;
+    for( auto & p : mParticles ) {
+        p.mPosition += p.mSpeed;
 
         float insideCoeff = 1.0f;
-        if( props.type == PS_BOX ) {
-            insideCoeff = ( p.position ).Length2() / ( props.boundingBoxMax - props.boundingBoxMin ).Length2();
+        if( mType == ruParticleSystem::Type::Box ) {
+            insideCoeff = ( p.mPosition ).Length2() / ( mBoundingBoxMax - mBoundingBoxMin ).Length2();
         } else {
-            insideCoeff = ( p.position ).Length2() / props.boundingRadius;
+            insideCoeff = ( p.mPosition ).Length2() / mBoundingRadius;
         }
         if( insideCoeff > 1.0f ) {
             insideCoeff = 1.0f;
         }
-        p.color = props.colorBegin.Lerp( props.colorEnd, insideCoeff );
+        p.mColor = mColorBegin.Lerp( mColorEnd, insideCoeff );
 		float fakeOpacity = 255.0f * ( 1.0f - insideCoeff );
-        p.mOpacity = fakeOpacity + props.alphaOffset;
-        p.size += props.scaleFactor;
+        p.mOpacity = fakeOpacity + mAlphaOffset;
+        p.mSize += mScaleFactor;
 
 		
         if( p.mOpacity <= 1.0f  ) {
-            if( props.autoResurrectDeadParticles ) {
+            if( mAutoResurrectDeadParticles ) {
                 ResurrectParticle( p );
             }
         } else {
-			int color = RGBAToInt( p.color, p.mOpacity );
+			int color = RGBAToInt( p.mColor, p.mOpacity );
 
 			short v1 = vertexNum + 1;
 			short v2 = vertexNum + 2;
 			short v3 = vertexNum + 3;
 
-            vertices[ vertexNum ].pos = p.position + leftTop * p.size;
-			vertices[ vertexNum ].tex.x = 0.0f;
-			vertices[ vertexNum ].tex.y = 0.0f; 
-			vertices[ vertexNum ].color = color;
+            mVertices[ vertexNum ].mPosition = p.mPosition + leftTop * p.mSize;
+			mVertices[ vertexNum ].mTexCoord.x = 0.0f;
+			mVertices[ vertexNum ].mTexCoord.y = 0.0f; 
+			mVertices[ vertexNum ].mColor = color;
 
-            vertices[ v1 ].pos = p.position + rightTop * p.size;
-			vertices[ v1 ].tex.x = 1.0f;
-			vertices[ v1 ].tex.y = 0.0f;
-			vertices[ v1 ].color = color;
+            mVertices[ v1 ].mPosition = p.mPosition + rightTop * p.mSize;
+			mVertices[ v1 ].mTexCoord.x = 1.0f;
+			mVertices[ v1 ].mTexCoord.y = 0.0f;
+			mVertices[ v1 ].mColor = color;
 
-            vertices[ v2 ].pos = p.position + rightBottom * p.size;
-			vertices[ v2 ].tex.x = 1.0f;
-			vertices[ v2 ].tex.y = 1.0f;
-			vertices[ v2 ].color = color;
+            mVertices[ v2 ].mPosition = p.mPosition + rightBottom * p.mSize;
+			mVertices[ v2 ].mTexCoord.x = 1.0f;
+			mVertices[ v2 ].mTexCoord.y = 1.0f;
+			mVertices[ v2 ].mColor = color;
 
-            vertices[ v3 ].pos = p.position + leftBottom * p.size;
-			vertices[ v3 ].tex.x = 0.0f;
-			vertices[ v3 ].tex.y = 1.0f;
-			vertices[ v3 ].color = color;
+            mVertices[ v3 ].mPosition = p.mPosition + leftBottom * p.mSize;
+			mVertices[ v3 ].mTexCoord.x = 0.0f;
+			mVertices[ v3 ].mTexCoord.y = 1.0f;
+			mVertices[ v3 ].mColor = color;
 
             // indices
-            faces[ faceNum ].v1 = vertexNum;
-			faces[ faceNum ].v2 = v1;
-			faces[ faceNum ].v3 = v3;
+            mFaces[ faceNum ].v1 = vertexNum;
+			mFaces[ faceNum ].v2 = v1;
+			mFaces[ faceNum ].v3 = v3;
 
 			int f1 = faceNum + 1;
 
-            faces[ f1 ].v1 = v1;
-			faces[ f1 ].v2 = v2;
-			faces[ f1 ].v3 = v3;
+            mFaces[ f1 ].v1 = v1;
+			mFaces[ f1 ].v2 = v2;
+			mFaces[ f1 ].v3 = v3;
 
             ++mAliveParticleCount;
             vertexNum += 4;
@@ -141,160 +140,270 @@ void ParticleEmitter::Update() {
     }
 
     void * data = 0;
-    vertexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
-    memcpy( data, vertices, mAliveParticleCount * 4 * sizeof( ParticleVertex ));
-    vertexBuffer->Unlock();
+    mVertexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
+    memcpy( data, mVertices, mAliveParticleCount * 4 * sizeof( ParticleVertex ));
+    mVertexBuffer->Unlock();
 
-    indexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
-    memcpy( data, faces, mAliveParticleCount * 2 * sizeof( ParticleFace ));
-    indexBuffer->Unlock();
+    mIndexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
+    memcpy( data, mFaces, mAliveParticleCount * 2 * sizeof( ParticleFace ));
+    mIndexBuffer->Unlock();
 }
 
-SceneNode * ParticleEmitter::GetOwner() {
-    return mOwner;
+bool ParticleSystem::IsLightAffects() {
+    return mUseLighting;
 }
 
-bool ParticleEmitter::IsLightAffects() {
-    return props.useLighting;
-}
-
-int ParticleEmitter::RGBAToInt( ruVector3 color, int alpha ) {
+int ParticleSystem::RGBAToInt( ruVector3 color, int alpha ) {
     return D3DCOLOR_ARGB( alpha, (int)color.x, (int)color.y, (int)color.z );
 }
 
-void ParticleEmitter::ResurrectParticle( Particle & p ) {
-    if( props.type == PS_BOX ) {
-        p.position = RandomVector3( props.boundingBoxMin, props.boundingBoxMax );
-        p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
-    } else if( props.type == PS_STREAM ) {
-        p.position = ruVector3( 0, 0, 0 );
-        p.speed = RandomVector3( props.speedDeviationMin, props.speedDeviationMax );
+void ParticleSystem::ResurrectParticle( Particle & p ) {
+    if( mType ==  ruParticleSystem::Type::Box ) {
+        p.mPosition = RandomVector3( mBoundingBoxMin, mBoundingBoxMax );
+        p.mSpeed = RandomVector3( mSpeedDeviationMin, mSpeedDeviationMax );
+    } else if( mType ==  ruParticleSystem::Type::Stream ) {
+        p.mPosition = ruVector3( 0, 0, 0 );
+        p.mSpeed = RandomVector3( mSpeedDeviationMin, mSpeedDeviationMax );
     }
 
-    p.size = props.pointSize;
+    p.mSize = mPointSize;
     p.mOpacity = 255;
 }
 
-ruVector3 ParticleEmitter::RandomVector3( ruVector3 & min, ruVector3 & max ) {
+ruVector3 ParticleSystem::RandomVector3( ruVector3 & min, ruVector3 & max ) {
     return ruVector3( frandom( min.x, max.x ), frandom( min.y, max.y ), frandom( min.z, max.z ) );
 }
 
-bool ParticleEmitter::HasAliveParticles() {
+bool ParticleSystem::HasAliveParticles() {
     return mAliveParticleCount > 0;
 }
 
-bool ParticleEmitter::IsEnabled() {
-    return props.enabled;
+bool ParticleSystem::IsEnabled() {
+    return mEnabled;
 }
 
-float ParticleEmitter::GetThickness() {
-    return props.particleThickness;
+float ParticleSystem::GetThickness() {
+    return mParticleThickness;
 }
 
-void ParticleEmitter::ResurrectParticles() {
-    for( auto & particle : particles ) {
+void ParticleSystem::ResurrectParticles() {
+    for( auto & particle : mParticles ) {
         ResurrectParticle( particle );
     }
 }
 
-ParticleEmitter::ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps ) {
-    mOwner = theParent;
+ParticleSystem::ParticleSystem( int theParticleCount ) {
     mAliveParticleCount = theParticleCount;
 	mMaxParticleCount = theParticleCount;
 	OnResetDevice();
-    faces = new ParticleFace[ theParticleCount * 2 ];
-    vertices = new ParticleVertex[ theParticleCount * 4 ];
+    mFaces = new ParticleFace[ theParticleCount * 2 ];
+    mVertices = new ParticleVertex[ theParticleCount * 4 ];
     for( int i = 0; i < theParticleCount; i++ ) {
-        particles.push_back( Particle());
+        mParticles.push_back( Particle());
     }
-    props = creationProps;
-    firstTimeUpdate = false;
-    ParticleEmitter::msParticleEmitters.push_back( this );
+	mType =  ruParticleSystem::Type::Box;
+
+	mColorBegin = ruVector3( 0, 0, 0 );
+	mColorEnd = ruVector3( 255, 255, 255 );
+
+	mSpeedDeviationMin = ruVector3( -1, -1, -1 );
+	mSpeedDeviationMax = ruVector3( 1, 1, 1 );
+
+	mBoundingBoxMin = ruVector3( 100, 100, 100 );
+	mBoundingBoxMax = ruVector3( -100, -100, -100 );
+
+	mParticleThickness = 1.0f;
+	mBoundingRadius = 1.0f;
+	mPointSize = 1.0f;
+	mScaleFactor = 0.0f;
+
+	mDepthHack = 0.0f;
+	mAlphaOffset = 0.0f;
+
+	mAutoResurrectDeadParticles = true;
+	mUseLighting = false;
+
+	mEnabled = true;
+
+	mTexture = nullptr;
+    mFirstTimeUpdate = false;
+    ParticleSystem::msParticleEmitters.push_back( this );
     ResurrectParticles();
 }
 
-void ParticleEmitter::OnLostDevice()
+void ParticleSystem::OnLostDevice()
 {
-	vertexBuffer->Release();
-	indexBuffer->Release();
+	mVertexBuffer->Release();
+	mIndexBuffer->Release();
 }
 
-void ParticleEmitter::OnResetDevice()
+void ParticleSystem::OnResetDevice()
 {
-	Engine::Instance().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
-	Engine::Instance().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, 0 );
+	Engine::I().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+	Engine::I().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
 }
 
-ParticleEmitter::Particle::Particle() {
-    position = ruVector3( 0, 0, 0 );
-    speed = ruVector3( 0, 0, 0 );
-    color = ruVector3( 255, 255, 255 );
+ruVector3 ParticleSystem::GetSpeedDeviationMin()
+{
+	return mSpeedDeviationMin;
+}
+
+ruVector3 ParticleSystem::GetSpeedDeviationMax()
+{
+	return mSpeedDeviationMax;
+}
+
+void ParticleSystem::SetSpeedDeviation( const ruVector3 & dMin, const ruVector3 & dMax )
+{
+	mSpeedDeviationMax = dMax;
+	mSpeedDeviationMin = dMin;
+}
+
+ruVector3 ParticleSystem::GetBoundingBoxMin()
+{
+	return mBoundingBoxMin;
+}
+
+ruVector3 ParticleSystem::GetBoundingBoxMax()
+{
+	return mBoundingBoxMax;
+}
+
+void ParticleSystem::SetBoundingBox( const ruVector3 & bbMin, const ruVector3 & bbMax )
+{
+	mBoundingBoxMax = bbMax;
+	mBoundingBoxMin = bbMin;
+}
+
+bool ParticleSystem::IsLightingEnabled()
+{
+	return mUseLighting ;
+}
+
+void ParticleSystem::SetLightingEnabled( bool state )
+{
+	mUseLighting = state;
+}
+
+bool ParticleSystem::IsAutoResurrectionEnabled()
+{
+	return mAutoResurrectDeadParticles;
+}
+
+void ParticleSystem::SetAutoResurrection( bool state )
+{
+	mAutoResurrectDeadParticles = state;
+}
+
+float ParticleSystem::GetParticleThickness()
+{
+	return mParticleThickness;
+}
+
+void ParticleSystem::SetParticleThickness( float thickness )
+{
+	mParticleThickness = thickness;
+}
+
+float ParticleSystem::GetScaleFactor()
+{
+	return mScaleFactor;
+}
+
+void ParticleSystem::SetScaleFactor( float scaleFactor )
+{
+	mScaleFactor = scaleFactor;
+}
+
+float ParticleSystem::GetPointSize()
+{
+	return mPointSize;
+}
+
+void ParticleSystem::SetPointSize( float size )
+{
+	mPointSize = size;
+}
+
+void ParticleSystem::SetEnabled( bool state ){
+	mEnabled = state;
+}
+
+int ParticleSystem::GetAliveParticles()
+{
+	return mAliveParticleCount;
+}
+
+shared_ptr<ruTexture> ParticleSystem::GetTexture() {
+	return mTexture;
+}
+
+void ParticleSystem::SetTexture( shared_ptr<ruTexture> texture ) {
+	mTexture = std::dynamic_pointer_cast<Texture>( texture );
+}
+
+float ParticleSystem::GetBoundingRadius()
+{
+	return mBoundingRadius;
+}
+
+void ParticleSystem::SetBoundingRadius( float radius )
+{
+	mBoundingRadius = radius;
+}
+
+ruParticleSystem::Type ParticleSystem::GetType()
+{
+	return mType;
+}
+
+void ParticleSystem::SetType( ruParticleSystem::Type type )
+{
+	mType = type;
+}
+
+ruVector3 ParticleSystem::GetColorMax()
+{
+	return mColorBegin;
+}
+
+ruVector3 ParticleSystem::GetColorMin()
+{
+	return mColorEnd;
+}
+
+void ParticleSystem::SetColorRange( const ruVector3 & cMin, const ruVector3 & cMax )
+{
+	mColorEnd = cMin;
+	mColorBegin = cMax;
+}
+
+void ParticleSystem::SetAlphaOffset( float alphaOffset )
+{
+	mAlphaOffset = alphaOffset;
+}
+
+float ParticleSystem::GetAlphaOffset()
+{
+	return mAlphaOffset;
+}
+
+Particle::Particle() {
+    mPosition = ruVector3( 0, 0, 0 );
+    mSpeed = ruVector3( 0, 0, 0 );
+    mColor = ruVector3( 255, 255, 255 );
     mOpacity = 255;
-    size = 1.0f;
+    mSize = 1.0f;
 }
 
-ParticleEmitter::Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) {
-    position = thePosition;
-    speed = theSpeed;
-    color = theColor;
+Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) {
+    mPosition = thePosition;
+    mSpeed = theSpeed;
+    mColor = theColor;
     mOpacity = theTranslucency;
-    size = theSize;
+    mSize = theSize;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-// API
-////////////////////////////////////////////////////////////////////////////////////
-
-/*
-===============
-CreateParticleSystem
-===============
-*/
-ruSceneNode ruCreateParticleSystem( int particleNum, ruParticleSystemProperties creationProps ) {
-    SceneNode * node = new SceneNode;
-    node->particleEmitter = new ParticleEmitter( node, particleNum, creationProps );
-    return SceneNode::HandleFromPointer( node );
-}
-
-/*
- ===============
- GetParticleSystemAliveParticles
- ===============
-*/
-int ruGetParticleSystemAliveParticles( ruSceneNode ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        return n->particleEmitter->mAliveParticleCount;
-    }
-
-    return 0;
-}
-
-/*
-===============
-ResurrectDeadParticles
-===============
-*/
-void ruResurrectDeadParticles( ruSceneNode ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        return n->particleEmitter->ResurrectParticles();
-    }
-};
-
-/*
-===============
-GetParticleSystemProperties
-===============
-*/
-ruParticleSystemProperties * ruGetParticleSystemProperties( ruSceneNode ps ) {
-    SceneNode * n = SceneNode::CastHandle( ps );
-
-    if( n->particleEmitter ) {
-        return &n->particleEmitter->props;
-    }
-
-    return 0;
+ruParticleSystem * ruParticleSystem::Create( int particleNum ) {
+	return new ParticleSystem( particleNum );
 }

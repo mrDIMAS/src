@@ -12,9 +12,9 @@ LevelMine::LevelMine() {
 
     LoadSceneFromFile( "data/maps/release/mine/mine.scene");
 
-    pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" ).GetPosition() );
+    pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" )->GetPosition() );
 
-    ruVector3 placePos = GetUniqueObject( "PlayerPosition" ).GetPosition();
+    ruVector3 placePos = GetUniqueObject( "PlayerPosition" )->GetPosition();
     ruVector3 playerPos = pPlayer->GetCurrentPosition();
 
     pPlayer->SetObjective( mLocalization.GetString( "objective1" ));
@@ -30,7 +30,7 @@ LevelMine::LevelMine() {
 
     mNewLevelZone = GetUniqueObject( "NewLevel" );
 
-    ruSetAudioReverb( 10 );
+    ruSound::SetAudioReverb( 10 );
 
     AddSound( mMusic = ruSound::LoadMusic( "data/music/chapter2.ogg" ));
 
@@ -84,9 +84,8 @@ LevelMine::LevelMine() {
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/mine/ambientmine4.ogg" ));
     AddAmbientSound( ruSound::Load3D( "data/sounds/ambient/mine/ambientmine5.ogg" ));
 
-    mExplosionTimer = ruCreateTimer();
-
-    mBeepSoundTimer = ruCreateTimer();
+    mExplosionTimer = ruTimer::Create();
+    mBeepSoundTimer = ruTimer::Create();
     mBeepSoundTiming = 1.0f;
 
     CreateItems();
@@ -156,7 +155,7 @@ LevelMine::LevelMine() {
     patrolPoints.push_back( pathToRoom.mVertexList.back() );
 
     mEnemy = new Enemy( allPaths, patrolPoints );
-    mEnemy->SetPosition( GetUniqueObject( "EnemyPosition" ).GetPosition());
+    mEnemy->SetPosition( GetUniqueObject( "EnemyPosition" )->GetPosition());
 
     mRock[0] = GetUniqueObject( "Rock1" );
     mRock[1] = GetUniqueObject( "Rock2" );
@@ -167,9 +166,9 @@ LevelMine::LevelMine() {
     mExplosivesDummy[2] = GetUniqueObject( "ExplosivesModel7" );
     mExplosivesDummy[3] = GetUniqueObject( "ExplosivesModel8" );
 
-    mRockPosition[0] = GetUniqueObject( "Rock1Pos" ).GetPosition();
-    mRockPosition[1] = GetUniqueObject( "Rock2Pos" ).GetPosition();
-    mRockPosition[2] = GetUniqueObject( "Rock3Pos" ).GetPosition();
+    mRockPosition[0] = GetUniqueObject( "Rock1Pos" )->GetPosition();
+    mRockPosition[1] = GetUniqueObject( "Rock2Pos" )->GetPosition();
+    mRockPosition[2] = GetUniqueObject( "Rock3Pos" )->GetPosition();
 
     mExplosionFlashPosition = GetUniqueObject( "ExplosionFlash" );
 
@@ -177,7 +176,8 @@ LevelMine::LevelMine() {
 }
 
 LevelMine::~LevelMine() {
-
+	mExplosionTimer->Free();
+	mBeepSoundTimer->Free();
 }
 
 void LevelMine::Show() {
@@ -205,7 +205,7 @@ void LevelMine::DoScenario() {
 
     if( !mStages[ "EnterRockFallZoneWallExp" ] ) {
         if( pPlayer->IsInsideZone( mStoneFallZone )) {
-            ruSceneNode::FindByName( "StoneFall" ).Unfreeze();
+            ruSceneNode::FindByName( "StoneFall" )->Unfreeze();
 
             mStages[ "EnterRockFallZoneWallExp" ] = true;
         }
@@ -234,52 +234,47 @@ void LevelMine::DoScenario() {
             if( ruIsKeyHit( pPlayer->mKeyUse ) && mReadyExplosivesCount >= 4 && !mDetonatorActivated ) {
                 mDetonatorActivated = 1;
 
-                ruRestartTimer( mExplosionTimer );
+                mExplosionTimer->Restart();;
             }
         }
 
         if( mDetonatorActivated ) {
-            if( ruGetElapsedTimeInSeconds( mExplosionTimer ) >= 10.0f ) {
+            if( mExplosionTimer->GetElapsedTimeInSeconds() >= 10.0f ) {
                 mDetonatorActivated = 0;
 
                 mExplosionSound.Play();
 
-                mExplosionSound.SetPosition( mConcreteWall.GetPosition() );
+                mExplosionSound.SetPosition( mConcreteWall->GetPosition() );
 
                 mStages[ "ConcreteWallExp" ] = true;
 
-                mConcreteWall.SetPosition( ruVector3( 10000, 10000, 10000 ));
+                mConcreteWall->SetPosition( ruVector3( 10000, 10000, 10000 ));
 
                 CleanUpExplodeArea();
 
-                ruVector3 vec = ( mConcreteWall.GetPosition() - pPlayer->GetCurrentPosition() ).Normalize() * 20;
+                ruVector3 vec = ( mConcreteWall->GetPosition() - pPlayer->GetCurrentPosition() ).Normalize() * 20;
 
                 for( int iRock = 0; iRock < 3; iRock++ ) {
-                    mRock[iRock].SetPosition( mRockPosition[iRock] );
+                    mRock[iRock]->SetPosition( mRockPosition[iRock] );
                 }
 
-                mExplosionFlashLight = ruLight::Create( ruLight::Type::Point );
-                mExplosionFlashLight.Attach( mExplosionFlashPosition );
-                mExplosionFlashLight.SetColor( ruVector3( 255, 200, 160 ));
+                mExplosionFlashLight = ruPointLight::Create();
+                mExplosionFlashLight->Attach( mExplosionFlashPosition );
+                mExplosionFlashLight->SetColor( ruVector3( 255, 200, 160 ));
                 mExplosionFlashAnimator = new LightAnimator( mExplosionFlashLight, 0.25, 30, 1.1 );
                 mExplosionFlashAnimator->SetAnimationType( LightAnimator::AnimationType::Off );
 
                 // dust
-                ruParticleSystemProperties dustProps;
-                dustProps.texture = ruGetTexture( "data/textures/particles/p1.png" );
-                dustProps.type = PS_BOX;
-                dustProps.useLighting = true;
-                dustProps.autoResurrectDeadParticles = false;
-                dustProps.pointSize = 1.1f;
-                dustProps.speedDeviationMin = ruVector3( -0.0005, 0.0, -0.0005 );
-                dustProps.speedDeviationMax = ruVector3(  0.0005, 0.005,  0.0005 );
-                dustProps.boundingBoxMin = ruVector3( -2, 0, -4 );
-                dustProps.boundingBoxMax = ruVector3( 2, 4, 4 );
-                dustProps.colorBegin = ruVector3( 20, 20, 20 );
-                dustProps.colorEnd = ruVector3( 40, 40, 40 );
-
-                mExplosionDustParticleSystem = ruCreateParticleSystem( 400, dustProps );
-                mExplosionDustParticleSystem.SetPosition( mExplosivesDummy[0].GetPosition() - ruVector3( 0, 2.5, 0 ));
+				mExplosionDustParticleSystem = ruParticleSystem::Create( 400 );
+				mExplosionDustParticleSystem->SetPosition( mExplosivesDummy[0]->GetPosition() - ruVector3( 0, 2.5, 0 ));
+				mExplosionDustParticleSystem->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));
+				mExplosionDustParticleSystem->SetType( ruParticleSystem::Type::Box );
+                mExplosionDustParticleSystem->SetLightingEnabled( true );
+				mExplosionDustParticleSystem->SetAutoResurrection( false );
+				mExplosionDustParticleSystem->SetPointSize( 1.1f );
+				mExplosionDustParticleSystem->SetSpeedDeviation( ruVector3( -0.0005, 0.0, -0.0005 ), ruVector3(  0.0005, 0.005,  0.0005 ));
+				mExplosionDustParticleSystem->SetBoundingBox( ruVector3( -2, 0, -4 ), ruVector3( 2, 4, 4 ));
+				mExplosionDustParticleSystem->SetColorRange( ruVector3( 20, 20, 20 ), ruVector3( 40, 40, 40 ));
 
                 if( pPlayer->IsInsideZone( mDeathZone )) {
                     pPlayer->Damage( 1000 );
@@ -287,11 +282,9 @@ void LevelMine::DoScenario() {
                 }
             }
 
-            if( ruGetElapsedTimeInSeconds( mBeepSoundTimer ) > mBeepSoundTiming ) { // every 1 sec
+            if( mBeepSoundTimer->GetElapsedTimeInSeconds() > mBeepSoundTiming ) { // every 1 sec
                 mBeepSoundTiming -= 0.05f;
-
-                ruRestartTimer( mBeepSoundTimer );
-
+                mBeepSoundTimer->Restart();
                 mAlertSound.Play( false );
             }
         }
@@ -357,13 +350,13 @@ void LevelMine::UpdateExplodeSequence() {
                         // 3rd: Wires
                         // 4th: Ready to explode
                         if( dp->GetPlaceType() == Item::Type::Explosives ) {
-                            mExplosivesModels[i].Show();
+                            mExplosivesModels[i]->Show();
                             dp->SetPlaceType( Item::Type::Detonator );
                         } else if( dp->GetPlaceType() == Item::Type::Detonator ) {
-                            mDetonatorModels[i].Show();
+                            mDetonatorModels[i]->Show();
                             dp->SetPlaceType( Item::Type::Wires );
                         } else if( dp->GetPlaceType() == Item::Type::Wires ) {
-                            mWireModels[i].Show();
+                            mWireModels[i]->Show();
                             dp->SetPlaceType( Item::Type::Unknown );
                         }
                     }
@@ -375,11 +368,11 @@ void LevelMine::UpdateExplodeSequence() {
 
 void LevelMine::CleanUpExplodeArea() {
     for( int i = 0; i < 4; i++ ) {
-        mDetonatorPlace[i]->mObject.SetPosition( ruVector3( 1000, 1000, 1000 ));
-        mWireModels[i].Hide();
-        mExplosivesModels[i].Hide();
-        mDetonatorModels[i].Hide();
-        mExplosivesDummy[i].Hide();
+        mDetonatorPlace[i]->mObject->SetPosition( ruVector3( 1000, 1000, 1000 ));
+        mWireModels[i]->Hide();
+        mExplosivesModels[i]->Hide();
+        mDetonatorModels[i]->Hide();
+        mExplosivesDummy[i]->Hide();
     }
 }
 

@@ -38,7 +38,7 @@ private:
     virtual void OnSerialize( SaveFile & out ) = 0;
     virtual void OnDeserialize( SaveFile & in ) = 0;
     AmbientSoundSet mAmbSoundSet;
-    ruSceneNode mScene;
+    ruSceneNode * mScene;
     bool mInitializationComplete;
 protected:
     Parser mLocalization;
@@ -73,12 +73,12 @@ public:
     void DoneInitialization( );
     void BuildPath( Path & path, const string & nodeBaseName );
     void CreateBlankScene();
-    ruSceneNode GetUniqueObject( const string & name );
+    ruSceneNode * GetUniqueObject( const string & name );
     static int msCurLevelID;
     static void Change( int levelId, bool continueFromSave = false );
-	static ruTextHandle msGUILoadingText;
-	static ruRectHandle msGUILoadingBackground;
-	static ruFontHandle msGUIFont;
+	static ruText * msGUILoadingText;
+	static ruRect * msGUILoadingBackground;
+	static ruFont * msGUIFont;
 	static void CreateLoadingScreen();
     virtual void Serialize( SaveFile & out ) final;
     virtual void Deserialize( SaveFile & in ) final;

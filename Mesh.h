@@ -58,23 +58,20 @@ public:
 		BoneProxy mBone[ 4 ];
 		int mBoneCount;
 	};
-
-public:
+private:
     IDirect3DVertexBuffer9 * mVertexBuffer;
     IDirect3DIndexBuffer9 * mIndexBuffer;
-    Texture * mDiffuseTexture;
-    Texture * mNormalTexture;
-	Texture * mHeightTexture; // for parallax mapping
-
+    shared_ptr<Texture> mDiffuseTexture;
+    shared_ptr<Texture> mNormalTexture;
+	shared_ptr<Texture> mHeightTexture; // for parallax mapping
     vector<Vertex> mVertices;
     vector<Triangle> mTriangles;
-    vector<BoneGroup> mWeightTable;
-
+    vector<BoneGroup> mBoneTable;
 	vector<Bone*> mBones;
     // mesh can be shared between multiple nodes
 	vector<SceneNode*> mOwnerList;
     AABB mAABB;
-    Octree * mOctree;
+	Octree * mOctree;
 	bool mSkinned;
     float mOpacity;
 	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
@@ -96,8 +93,23 @@ public:
     void CreateVertexBuffer();
     void CreateIndexBuffer( vector< Triangle > & idc );
     void CreateHardwareBuffers();
-    Texture * GetDiffuseTexture();
-    Texture * GetNormalTexture();
+    shared_ptr<Texture> GetDiffuseTexture();
+    shared_ptr<Texture> GetNormalTexture();
+	shared_ptr<Texture> GetHeightTexture();
     void Render();
 	void RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount );
+	AABB GetBoundingBox( );
+	vector<Vertex> & GetVertices();
+	vector<Triangle> & GetTriangles();
+	bool IsSkinned() const;
+	void AddBoneGroup( const BoneGroup & bg );
+	void SetDiffuseTexture( shared_ptr<Texture> diffuseTexture );
+	void SetNormalTexture( shared_ptr<Texture> normalTexture );
+	void SetHeightTexture( shared_ptr<Texture> heightTexture );
+	void AddTriangle( const Triangle & triangle );
+	void SetOpacity( float opacity );
+	float GetOpacity( ) const;
+	void AddVertex( const Vertex & vertex );
+	vector<BoneGroup> & GetBoneTable();
+	bool IsHardwareBuffersGood();
 };

@@ -4,11 +4,11 @@
 
 class GameCamera {
 public:
-    ruSceneNode mNode;
+    ruCamera * mCamera;
     float quadAlpha;
     float quadAlphaTo;
     ruVector3 fadeColor;
-    ruRectHandle mFullscreenQuad;
+    ruRect * mFullscreenQuad;
 public:
     explicit GameCamera( float fov = 65 );
 	virtual ~GameCamera();

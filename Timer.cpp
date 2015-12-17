@@ -23,81 +23,57 @@
 
 #include "Timer.h"
 
-vector<Timer*> Timer::timers;
+vector<Timer*> Timer::msTimerList;
 
 double Timer::GetElapsedTimeInMicroSeconds() {
-    return GetTimeInMicroSeconds() - lastTime;
+    return GetTimeInMicroSeconds() - mLastTime;
 }
 
 double Timer::GetElapsedTimeInMilliSeconds() {
-    return GetTimeInMilliSeconds() - lastTime / 1000.0;
+    return GetTimeInMilliSeconds() - mLastTime / 1000.0;
 }
 
 double Timer::GetElapsedTimeInSeconds() {
-    return GetTimeInSeconds() - lastTime / 1000000.0;
+    return GetTimeInSeconds() - mLastTime / 1000000.0;
 }
 
 double Timer::GetTimeInMicroSeconds() {
     LARGE_INTEGER time;
     QueryPerformanceCounter ( &time );
-    return ( double ) ( time.QuadPart * 1000000.0 ) / ( double ) ( freq.QuadPart );
+    return ( double ) ( time.QuadPart * 1000000.0 ) / ( double ) ( mFreq.QuadPart );
 }
 
 double Timer::GetTimeInMilliSeconds() {
     LARGE_INTEGER time;
     QueryPerformanceCounter ( &time );
-    return ( double ) ( time.QuadPart * 1000.0 ) / ( double ) ( freq.QuadPart );
+    return ( double ) ( time.QuadPart * 1000.0 ) / ( double ) ( mFreq.QuadPart );
 }
 
 double Timer::GetTimeInSeconds() {
     LARGE_INTEGER time;
     QueryPerformanceCounter ( &time );
-    return ( double ) ( time.QuadPart ) / ( double ) ( freq.QuadPart );
+    return ( double ) ( time.QuadPart ) / ( double ) ( mFreq.QuadPart );
 }
 
-void Timer::RestartTimer() {
-    lastTime = GetTimeInMicroSeconds();
+void Timer::Restart() {
+    mLastTime = GetTimeInMicroSeconds();
 }
 
 Timer::Timer() {
-    timers.push_back( this );
-    QueryPerformanceFrequency ( &freq );
-    RestartTimer();
+    msTimerList.push_back( this );
+    QueryPerformanceFrequency ( &mFreq );
+    Restart();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// API
-//////////////////////////////////////////////////////////////////////////
-
-
-ruTimerHandle ruCreateTimer( ) {
-    return reinterpret_cast< ruTimerHandle >( new Timer );
+Timer::~Timer()
+{
+	msTimerList.erase( find( msTimerList.begin(), msTimerList.end(), this ));
 }
 
-void ruRestartTimer( ruTimerHandle timer ) {
-    (reinterpret_cast< Timer* >( timer ))->RestartTimer();
+ruTimer * ruTimer::Create( ) {
+	return new Timer;
 }
 
-double ruGetElapsedTimeInSeconds( ruTimerHandle timer ) {
-    return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInSeconds();
-}
+ruTimer::~ruTimer() {
 
-double ruGetElapsedTimeInMilliSeconds( ruTimerHandle timer ) {
-    return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMilliSeconds();
-}
-
-double ruGetElapsedTimeInMicroSeconds( ruTimerHandle timer ) {
-    return (reinterpret_cast< Timer* >( timer ))->GetElapsedTimeInMicroSeconds();
-}
-
-double ruGetTimeInSeconds( ruTimerHandle timer ) {
-    return (reinterpret_cast< Timer* >( timer ))->GetTimeInSeconds();
-}
-
-double ruGetTimeInMilliSeconds( ruTimerHandle timer ) {
-    return (reinterpret_cast< Timer* >( timer ))->GetTimeInMilliSeconds();
-}
-
-double ruGetTimeInMicroSeconds( ruTimerHandle timer ) {
-    return (reinterpret_cast< Timer* >( timer ))->GetTimeInMicroSeconds();
 }

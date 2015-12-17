@@ -22,7 +22,7 @@
 #pragma once
 
 
-#include "Light.h"
+#include "SpotLight.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "Utility.h"
@@ -42,7 +42,7 @@ public:
     int iSize;
     explicit SpotlightShadowMap( float size = 1024.0f );
     virtual ~SpotlightShadowMap();
-    void RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, Light * spotLight );
+    void RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, SpotLight * spotLight );
     void BindSpotShadowMap( int index );
     void UnbindSpotShadowMap( int index );
 };

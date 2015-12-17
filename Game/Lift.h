@@ -6,15 +6,15 @@
 
 class Lift {
 private:
-    ruSceneNode mBaseNode;
-    ruSceneNode mControlPanel;
-    ruSceneNode mSourceNode;
-    ruSceneNode mDestNode;
-    ruSceneNode mTargetNode;
-    ruSceneNode mDoorFrontLeftNode;
-    ruSceneNode mDoorFrontRightNode;
-    ruSceneNode mDoorBackLeftNode;
-    ruSceneNode mDoorBackRightNode;
+    ruSceneNode * mBaseNode;
+    ruSceneNode * mControlPanel;
+    ruSceneNode * mSourceNode;
+    ruSceneNode * mDestNode;
+    ruSceneNode * mTargetNode;
+    ruSceneNode * mDoorFrontLeftNode;
+    ruSceneNode * mDoorFrontRightNode;
+    ruSceneNode * mDoorBackLeftNode;
+    ruSceneNode * mDoorBackRightNode;
     bool mArrived;
 	bool mPaused;
 	bool mEngineSoundEnabled;
@@ -25,14 +25,14 @@ private:
 	unique_ptr<LiftDoor> mDoorBackLeft;
 	unique_ptr<LiftDoor> mDoorBackRight;
 public:
-    explicit Lift( ruSceneNode base );
+    explicit Lift( ruSceneNode * base );
     virtual ~Lift( );
-    void SetControlPanel( ruSceneNode panel );
-    void SetDestinationPoint( ruSceneNode destNode );
-    void SetSourcePoint( ruSceneNode sourceNode );
+    void SetControlPanel( ruSceneNode * panel );
+    void SetDestinationPoint( ruSceneNode * destNode );
+    void SetSourcePoint( ruSceneNode * sourceNode );
     void SetMotorSound( ruSound motorSound );
-    void SetFrontDoors( ruSceneNode leftDoor, ruSceneNode rightDoor );
-    void SetBackDoors( ruSceneNode leftDoor, ruSceneNode rightDoor );
+    void SetFrontDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor );
+    void SetBackDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor );
     bool IsArrived( );
     void Update();
 	void SetDoorsLocked( bool state );

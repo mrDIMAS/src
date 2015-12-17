@@ -22,94 +22,65 @@
 #include "Engine.h"
 #include "Texture.h"
 #include "Utility.h"
-#include <sys/stat.h>
 
-unordered_map< string, Texture* > Texture::msTextureList;
+unordered_map<string, weak_ptr<Texture>> Texture::msTextureList;
 
-bool DirExists(const std::string& dirName_in)
-{
+bool DirExists(const std::string& dirName_in) {
 	return GetFileAttributesA(dirName_in.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
 }
 
-
-Texture * Texture::Require( string file ) {
-	if( !DirExists( "./cache/" )) {
-		Log::Error( "You must rebuild texture cache!" );
-	}
-
-    Texture * pTexture = 0;
-
+shared_ptr<Texture> Texture::Request( string file ) {
+    shared_ptr<Texture> pTexture;
     auto existing = msTextureList.find( file );
-
-    if( existing == msTextureList.end() ) {
-        // texture not found in the storage, so create new one
-        pTexture = new Texture;
-
-        pTexture->mTexture = 0;
-        pTexture->mName = file;
-
+	if( existing != msTextureList.end() ) {
+		pTexture = existing->second.lock();
+	} 
+	if( pTexture ) {
+		return pTexture;
+	} else {
+		pTexture = make_shared<Texture>();
+		pTexture->mName = file;
 		pTexture->LoadFromFile( file );
-
-        msTextureList[ file ] = pTexture;
-    } else {
-        pTexture = existing->second;
-    }
-
-    return pTexture;
+		msTextureList[ file ] = pTexture;
+	}
+    return std::move( pTexture );
 }
 
-Texture::Texture() {
-    mHeight = 0;
-    mWidth = 0;
-    mColorDepth = 0;
+Texture::Texture() :  mHeight( 0 ), mWidth( 0 ), mColorDepth( 0 ), mTexture( nullptr ) {
 	mResetPriority = RendererComponent::ResetPriority::High;
 }
 
 Texture::~Texture( ) {
-
+	//OnLostDevice();
 }
 
 void Texture::Bind( int level ) {
-    Engine::Instance().GetDevice()->SetTexture( level, mTexture );
+    Engine::I().GetDevice()->SetTexture( level, mTexture );
 }
 
 IDirect3DTexture9 * Texture::GetInterface() {
     return mTexture;
 }
 
-void Texture::DeleteAll() {
-    for( auto tex : msTextureList ) {
-        if( tex.second->mTexture ) {
-            tex.second->mTexture->Release();
-        }
-        delete tex.second;
-    }
-}
-
-int Texture::GetWidth()
-{
+int Texture::GetWidth() {
 	return mWidth;
 }
 
-int Texture::GetHeight()
-{
+int Texture::GetHeight() {
 	return mHeight;
 }
 
-void Texture::OnLostDevice()
-{
+void Texture::OnLostDevice() {
 	if( mTexture ) {
 		mTexture->Release();
 	}
 }
 
-void Texture::OnResetDevice()
-{
+void Texture::OnResetDevice() {
 	LoadFromFile( mName );
 }
 
-void Texture::LoadFromFile( const string & file )
-{
+void Texture::LoadFromFile( const string & file ) {
 	D3DXIMAGE_INFO imgInfo;
 
 	int slashPos = file.find_last_of( '/' );
@@ -122,11 +93,11 @@ void Texture::LoadFromFile( const string & file )
 	FILE * pFile = fopen( cacheFileName.c_str(), "r" );
 	if(pFile) {       
 		fclose(pFile);
-		if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture ))) {
+		if( FAILED( D3DXCreateTextureFromFileExA( Engine::I().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture ))) {
 			Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
 		}
 	} else {
-		if( FAILED( D3DXCreateTextureFromFileExA( Engine::Instance().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture ))) {
+		if( FAILED( D3DXCreateTextureFromFileExA( Engine::I().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture ))) {
 			Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
 		}
 	}
@@ -135,29 +106,14 @@ void Texture::LoadFromFile( const string & file )
 	mColorDepth = 32;
 }
 
-/////////////////////////////////////////////////////////////////
-// API
-ruTextureHandle ruTextureHandle::Empty() {
-    ruTextureHandle handle;
-    handle.pointer = 0;
-
-    return handle;
+std::string Texture::GetName() {
+	return mName;
 }
 
-ruTextureHandle ruGetTexture( const string & file ) {
-    ruTextureHandle handle;
-    handle.pointer = Texture::Require( file );
-    return handle;
+shared_ptr<ruTexture> ruTexture::Request( const string & file ) {
+	return Texture::Request( file );
 }
 
-string ruTextureHandle::GetName() {
-	return ((Texture*)pointer)->GetName();
-}
+ruTexture::~ruTexture() {
 
-int ruTextureHandle::GetWidth() {
-	return ((Texture*)pointer)->GetWidth();
-}
-
-int ruTextureHandle::GetHeight() {
-	return ((Texture*)pointer)->GetHeight();
 }

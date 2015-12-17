@@ -4,33 +4,35 @@
 #include "Player.h"
 
 void AmbientSoundSet::DoRandomPlaying() {
-    if( ruGetElapsedTimeInSeconds( timer ) >= timeToNextSoundSec ) {
-        timeToNextSoundSec = frandom( timeMinSec, timeMaxSec );
-
-        int randomSound = rand() % sounds.size();
-
-        sounds[ randomSound ].SetPosition( pPlayer->mpCamera->mNode.GetPosition() + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
-
-        sounds[ randomSound ].Play();
-
-        ruRestartTimer( timer );
+    if( mTimer->GetElapsedTimeInSeconds() >= mTimeToNextSoundSec ) {
+        mTimeToNextSoundSec = frandom( mTimeMinSec, mTimeMaxSec );
+        int randomSound = rand() % mSoundList.size();
+        mSoundList[ randomSound ].SetPosition( pPlayer->mpCamera->mCamera->GetPosition() + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
+        mSoundList[ randomSound ].Play();
+        mTimer->Restart();
     }
 }
 
 void AmbientSoundSet::AddSound( ruSound sound ) {
-    sounds.push_back( sound );
+    mSoundList.push_back( sound );
 }
 
 void AmbientSoundSet::SetMinMax( float tMin, float tMax ) {
-    timeMinSec = tMin;
-    timeMaxSec = tMax;
+    mTimeMinSec = tMin;
+    mTimeMaxSec = tMax;
 }
 
 AmbientSoundSet::AmbientSoundSet() {
-    timeMinSec = 5.0f;
-    timeMaxSec = 15.0f;
+    mTimeMinSec = 5.0f;
+    mTimeMaxSec = 15.0f;
+    mTimeToNextSoundSec = mTimeMinSec;
+    mTimer = ruTimer::Create();
+}
 
-    timeToNextSoundSec = timeMinSec;
-
-    timer = ruCreateTimer();
+AmbientSoundSet::~AmbientSoundSet()
+{
+	mTimer->Free();
+	for( auto & snd : mSoundList ) {
+		snd.Free();
+	}
 }

@@ -25,7 +25,7 @@
 
 map< string, CubeTexture*> CubeTexture::all;
 
-CubeTexture * CubeTexture::Require( string fn ) {
+CubeTexture * CubeTexture::Request( string fn ) {
     auto existing = all.find( fn );
     if( existing != all.end() ) {
         return existing->second;
@@ -57,11 +57,13 @@ void CubeTexture::OnResetDevice()
 
 void CubeTexture::Load()
 {
-	D3DXCreateCubeTextureFromFileA( Engine::Instance().GetDevice(), mSourceName.c_str(), &cubeTexture );
+	D3DXCreateCubeTextureFromFileA( Engine::I().GetDevice(), mSourceName.c_str(), &cubeTexture );
 }
 
-ruCubeTextureHandle ruGetCubeTexture( const string & file ) {
-    ruCubeTextureHandle handle;
-    handle.pointer = CubeTexture::Require( file );
-    return handle;
+ruCubeTexture * ruCubeTexture::Request( const string & file ) {
+	return CubeTexture::Request( file );
+}
+
+ruCubeTexture::~ruCubeTexture() {
+
 }

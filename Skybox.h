@@ -29,12 +29,12 @@ private:
 		float x, y, z;
 		float tx, ty;
 	};
-	Texture * mTextures[5];
+	shared_ptr<Texture> mTextures[5];
 	IDirect3DVertexBuffer9 * mVertexBuffer;
 	IDirect3DIndexBuffer9 * mIndexBuffer;
 	IDirect3DVertexDeclaration9 * mVertexDeclaration;
 public:
-    explicit Skybox( Texture * up, Texture * left, Texture * right, Texture * forward, Texture * back );
+    explicit Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back );
     virtual ~Skybox();
     void Render( );
 	void OnResetDevice();

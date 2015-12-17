@@ -29,8 +29,8 @@ void LevelIntroduction::DoScenario() {
         mShowIntro = false;
     }
 
-    ruSetGUINodeAlpha( mGUIText, mTextAlpha );
-    ruSetGUINodeVisible( mGUISkipText, mShowIntro );
+    mGUIText->SetAlpha( mTextAlpha );
+    mGUISkipText->SetVisible( mShowIntro );
 
     if( mShowIntro == false ) {
         if( mTextAlpha < 5.0f ) {
@@ -42,10 +42,10 @@ void LevelIntroduction::DoScenario() {
 }
 
 LevelIntroduction::~LevelIntroduction() {
-    ruFreeGUINode( mGUIText );
-	ruFreeGUINode( mGUISkipText );
-	ruSetGUINodeVisible( mGUIBackground, false );
-	ruFreeGUINode( mGUIBackground );
+    mGUIText->Free();
+	mGUISkipText->Free();
+	mGUIBackground->SetVisible( false );
+	mGUIBackground->Free();
 }
 
 LevelIntroduction::LevelIntroduction() {
@@ -59,9 +59,9 @@ LevelIntroduction::LevelIntroduction() {
     int scy = ruEngine::GetResolutionHeight() / 2;
     int w = 600;
     int h = 400;
-    mGUIText = ruCreateGUIText( mLocalization.GetString( "intro" ), scx - w / 2, scy - h / 2, w, h, pGUIProp->mFont, ruVector3( 0, 0, 0 ), 0, mTextAlpha );
-    mGUISkipText = ruCreateGUIText( mLocalization.GetString( "skip" ), ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUIProp->mFont, ruVector3( 255, 0, 0 ), 1 );
-	mGUIBackground = ruCreateGUIRect( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(),  ruGetTexture( "data/textures/generic/loadingScreen.jpg" ));
+    mGUIText = ruText::Create( mLocalization.GetString( "intro" ), scx - w / 2, scy - h / 2, w, h, pGUIProp->mFont, ruVector3( 0, 0, 0 ), ruTextAlignment::Left, mTextAlpha );
+    mGUISkipText = ruText::Create( mLocalization.GetString( "skip" ), ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center );
+	mGUIBackground = ruRect::Create( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(),  ruTexture::Request( "data/textures/generic/loadingScreen.jpg" ));
 }
 
 void LevelIntroduction::OnDeserialize( SaveFile & in ) {

@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-
+#include "Texture.h"
 #include "GUIRect.h"
 #include "GUIRenderer.h"
 
@@ -37,7 +37,7 @@ GUIRect::GUIRect() {
 
 }
 
-GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, ruVector3 theColor, int theAlpha, bool selfRegister ) {
+GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha, bool selfRegister ) {
     mX = theX;
     mY = theY;
     mWidth = theWidth;
@@ -59,4 +59,8 @@ void GUIRect::GetSixVertices( Vertex2D * vertices )
 	vertices[ 3 ] = Vertex2D( mGlobalX + mWidth, mGlobalY, 0, 1, 0, mColorPacked );
 	vertices[ 4 ] = Vertex2D( mGlobalX + mWidth, mGlobalY + mHeight, 0, 1, 1, mColorPacked );
 	vertices[ 5 ] = Vertex2D( mGlobalX, mGlobalY + mHeight, 0, 0, 1, mColorPacked );
+}
+
+ruRect * ruRect::Create( float x, float y, float w, float h, shared_ptr<ruTexture> texture, ruVector3 color, int alpha ) {
+	return new GUIRect( x, y, w, h, std::dynamic_pointer_cast<Texture>( texture ), color, alpha, true );
 }

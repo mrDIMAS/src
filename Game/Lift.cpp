@@ -4,16 +4,14 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift( ruSceneNode base ) : mPaused( false ), mBaseNode( base ), mArrived( true ), mEngineSoundEnabled( true ), mSpeedMultiplier( 1.0f ) {
+Lift::Lift( ruSceneNode * base ) : mPaused( false ), mBaseNode( base ), mArrived( true ), mEngineSoundEnabled( true ), mSpeedMultiplier( 1.0f ) {
 
 }
 
 void Lift::Update() {
-    if( mBaseNode.IsValid() && mDoorBackLeftNode.IsValid() && mDoorBackRightNode.IsValid() &&
-            mDoorFrontLeftNode.IsValid() && mDoorFrontRightNode.IsValid() && mSourceNode.IsValid() &&
-            mDestNode.IsValid() && mControlPanel.IsValid() && mTargetNode.IsValid() ) {
+    if( mBaseNode && mDoorBackLeftNode && mDoorBackRightNode && mDoorFrontLeftNode && mDoorFrontRightNode && mSourceNode && mDestNode && mControlPanel && mTargetNode ) {
 
-        ruVector3 directionVector = mTargetNode.GetPosition() - mBaseNode.GetPosition();
+        ruVector3 directionVector = mTargetNode->GetPosition() - mBaseNode->GetPosition();
         ruVector3 speedVector = directionVector.Normalized() * 1.2 * g_dt;
         float distSqr = directionVector.Length2();
 
@@ -47,7 +45,7 @@ void Lift::Update() {
 			speed *= mSpeedMultiplier;
 
 			if( !mPaused ) {
-				mBaseNode.Move( speedVector * speed );
+				mBaseNode->Move( speedVector * speed );
 			} else {
 				mMotorSound.Pause();
 			}
@@ -76,7 +74,7 @@ void Lift::Update() {
     }
 }
 
-void Lift::SetBackDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
+void Lift::SetBackDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor ) {
     mDoorBackLeftNode = leftDoor;
     mDoorBackRightNode = rightDoor;
 	mDoorBackLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackLeftNode, -90, 0 ));
@@ -85,7 +83,7 @@ void Lift::SetBackDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
 	mDoorBackRight->SetTurnDirection( Door::TurnDirection::Counterclockwise );
 }
 
-void Lift::SetFrontDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
+void Lift::SetFrontDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor ) {
     mDoorFrontLeftNode = leftDoor;
     mDoorFrontRightNode = rightDoor;
 	mDoorFrontLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorFrontLeftNode, 90, 0 ));
@@ -97,18 +95,20 @@ void Lift::SetFrontDoors( ruSceneNode leftDoor, ruSceneNode rightDoor ) {
 void Lift::SetMotorSound( ruSound motorSound ) {
     mMotorSound = motorSound;
     mMotorSound.Attach( mBaseNode );
+	mMotorSound.SetRolloffFactor( 30 );
+	mMotorSound.SetRoomRolloffFactor( 30 );
 }
 
-void Lift::SetSourcePoint( ruSceneNode sourceNode ) {
+void Lift::SetSourcePoint( ruSceneNode * sourceNode ) {
     mSourceNode = sourceNode;
     mTargetNode = mSourceNode;
 }
 
-void Lift::SetDestinationPoint( ruSceneNode destNode ) {
+void Lift::SetDestinationPoint( ruSceneNode * destNode ) {
     mDestNode = destNode;
 }
 
-void Lift::SetControlPanel( ruSceneNode panel ) {
+void Lift::SetControlPanel( ruSceneNode * panel ) {
     mControlPanel = panel;
 }
 

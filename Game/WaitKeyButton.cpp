@@ -6,7 +6,7 @@
 vector<WaitKeyButton*> WaitKeyButton::msWaitKeyList;
 
 void WaitKeyButton::Update( ) {
-	if( ruIsButtonHit( mGUIButton ) ) {
+	if( mGUIButton->IsHit() ) {
 		// skip "grab key" mode from other buttons
 		for( auto pWaitKey : WaitKeyButton::msWaitKeyList ) {
 			pWaitKey->mGrabKey = false;
@@ -26,16 +26,16 @@ void WaitKeyButton::Update( ) {
 		}
 
 		if( mAnimCounter < 10 ) {
-			ruSetGUINodeText( ruGetButtonText( mGUIButton ), "[ Key ]" );
+			mGUIButton->GetText()->SetText( "[ Key ]" );
 		} else {
-			ruSetGUINodeText( ruGetButtonText( mGUIButton ), "[Key]" );
+			mGUIButton->GetText()->SetText( "[Key]" );
 		}
 		if( mAnimCounter > 20 ) {
 			mAnimCounter = 0;
 		}
 		mAnimCounter++;
 	} else {
-		ruSetGUINodeText( ruGetButtonText( mGUIButton ), GetKeyName( mSelectedKey ) );
+		mGUIButton->GetText()->SetText( GetKeyName( mSelectedKey ));
 	}
 }
 
@@ -53,15 +53,15 @@ void WaitKeyButton::SetSelected( int i ) {
 	}
 }
 
-WaitKeyButton::WaitKeyButton( float x, float y, ruTextureHandle buttonImage, const string & text ) {
+WaitKeyButton::WaitKeyButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text ) {
     int textHeight = 16;
     float buttonWidth = 60;
     float buttonHeight = 32;
     mDesc = " ";
 	mAnimCounter = 0;
     mGrabKey = false;
-    mGUIButton = ruCreateGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-    mGUIText = ruCreateGUIText( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, 0 );
+    mGUIButton = ruButton::Create( x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIText = ruText::Create( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
 	WaitKeyButton::msWaitKeyList.push_back( this );
 }
 
@@ -70,13 +70,13 @@ int WaitKeyButton::GetSelectedKey() {
 }
 
 void WaitKeyButton::SetVisible( bool state ) {
-    ruSetGUINodeVisible( mGUIText, state );
-    ruSetGUINodeVisible( mGUIButton, state );
+    mGUIText->SetVisible( state );
+    mGUIButton->SetVisible( state );
 }
 
-void WaitKeyButton::AttachTo( ruGUINodeHandle node ) {
-	ruAttachGUINode( mGUIText, node );
-	ruAttachGUINode( mGUIButton, node );
+void WaitKeyButton::AttachTo( ruGUINode * node ) {
+	mGUIText->Attach( node );
+	mGUIButton->Attach( node );
 }
 
 WaitKeyButton::~WaitKeyButton() {

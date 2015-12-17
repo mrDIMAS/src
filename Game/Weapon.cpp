@@ -8,17 +8,18 @@
 
 Weapon::Weapon() {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands_pistol/hands_pistol.scene" );
-	mShootPoint = mModel.FindChild( "ShootPoint" );
+	mShootPoint = mModel->FindChild( "ShootPoint" );
 	mShotSound = ruSound::Load3D( "data/sounds/shot3.ogg" );
 	mShotSound.Attach( mShootPoint );
 	mEmptySound = ruSound::Load3D( "data/sounds/pistol_empty.ogg" );
 	mEmptySound.Attach( mShootPoint );
 	mShotInterval = 0;
 	mProjectileCount = 6;
-	mShotFlash = ruLight::Create( ruLight::Type::Point );
-	mShotFlash.Attach( mModel );
+	mShotFlash = ruPointLight::Create();
+	mShotFlash->Attach( mModel );
+	mShotFlash->SetRange( 0.01f );
 	mShotFlashIntensity = 0.01f;
-	mInitialPosition = mModel.GetLocalPosition();
+	mInitialPosition = mModel->GetLocalPosition();
 	mShakeCoeff = 0.0f;
 
 	mHideAnim = ruAnimation( 0, 6, 0.7, false );
@@ -60,7 +61,7 @@ void Weapon::OnSerialize( SaveFile & out ) {
 void Weapon::Update() {
 	if( mAppear ) {
 		mShowAnim.Rewind();
-		mModel.SetAnimation( &mShowAnim );
+		mModel->SetAnimation( &mShowAnim );
 		mShowAnim.enabled = true;
 		mAppear = false;
 	}
@@ -69,7 +70,7 @@ void Weapon::Update() {
 		if( !mHideAnim.enabled ) {
 			mHideAnim.Rewind();
 		}
-		mModel.SetAnimation( &mHideAnim );
+		mModel->SetAnimation( &mHideAnim );
 		mHideAnim.enabled = true;		
 	}
 
@@ -77,7 +78,7 @@ void Weapon::Update() {
 	mShowAnim.Update();
 	mIdleAnim.Update();
 
-	if( ruIsMouseHit( MB_Left ) && !pPlayer->mNodeInHands.IsValid() && !pPlayer->GetInventory()->IsOpened() ) {
+	if( ruIsMouseHit( MB_Left ) && !pPlayer->mNodeInHands && !pPlayer->GetInventory()->IsOpened() ) {
 		if( mProjectileCount > 0 ) {
 			if( mShotInterval <= 0 ) {			
 				mShotInterval = 35;
@@ -86,15 +87,15 @@ void Weapon::Update() {
 				mShotSound.Play();
 				mShotOffsetTo = ruVector3( 0, 0.065, -0.18 );
 
-				ruVector3 look = mModel.GetAbsoluteLookVector();
-				ruSceneNode node = ruCastRay( mShootPoint.GetPosition() + look * 0.1, mShootPoint.GetPosition() + look * 1000 );
-				if( node.IsValid() ) {
+				ruVector3 look = mModel->GetAbsoluteLookVector();
+				ruSceneNode * node = ruPhysics::CastRay( mShootPoint->GetPosition() + look * 0.1, mShootPoint->GetPosition() + look * 1000 );
+				if( node ) {
 					for( auto pEnemy : Enemy::msEnemyList ) {
 						if( node == pEnemy->GetBody() ) {
 							pEnemy->Damage( 1000 );
 						}
 					}
-					node.AddForce( look.Normalize() * 200 );
+					node->AddForce( look.Normalize() * 200 );
 				}
 
 			}
@@ -103,12 +104,12 @@ void Weapon::Update() {
 		}
 	}
 
-	mModel.SetLocalPosition( mInitialPosition + mShotOffset + mOffset * 0.25f );
+	mModel->SetLocalPosition( mInitialPosition + mShotOffset + mOffset * 0.25f );
 	if( (mShotOffset - mShotOffsetTo).Length2() < 0.025 ) {
 		mShotOffsetTo = ruVector3( 0, 0, 0 );
 	}
 	mShotOffset = mShotOffset.Lerp( mShotOffsetTo, 0.2 );
-	mShotFlash.SetRange( mShotFlashIntensity );
+	mShotFlash->SetRange( mShotFlashIntensity );
 	mShotFlashIntensity -= 1.05f;
 	if( mShotFlashIntensity < 0 ) {
 		mShotFlashIntensity = 0;
@@ -125,7 +126,7 @@ void Weapon::Update() {
 
 
 	if( !mShowAnim.enabled && !mHideAnim.enabled ) {
-		mModel.SetAnimation( &mIdleAnim );
+		mModel->SetAnimation( &mIdleAnim );
 		mIdleAnim.enabled = true;
 	}
 }

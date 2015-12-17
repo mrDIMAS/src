@@ -8,9 +8,9 @@ private:
     float mTextAlpha;
     float mTextAlphaTo;
     bool mShowIntro;
-    ruTextHandle mGUIText;
-    ruTextHandle mGUISkipText;
-	ruRectHandle mGUIBackground;
+    ruText * mGUIText;
+    ruText * mGUISkipText;
+	ruRect * mGUIBackground;
 public:
     explicit LevelIntroduction();
     virtual ~LevelIntroduction();

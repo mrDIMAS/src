@@ -4,7 +4,7 @@
 
 class FPSCounter {
 public:
-    ruTimerHandle timer;
+    ruTimer * timer;
     int frameCounter;
     int fps;
 

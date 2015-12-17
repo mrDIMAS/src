@@ -3,7 +3,7 @@
 #include "Goal.h"
 
 void Goal::AnimateAndRender() {
-    if( ruGetElapsedTimeInSeconds( mWaitTimer ) >= mWaitSec ) {
+    if( mWaitTimer->GetElapsedTimeInSeconds() >= mWaitSec ) {
         mCurrentY += ( mDestY - mCurrentY ) * 0.05f;
     }
 
@@ -12,39 +12,33 @@ void Goal::AnimateAndRender() {
     if( mAlpha <= 101 ) {
         mAlpha = 255.0f;
     }
-	ruSetGUINodeAlpha( mGoalText, mAlpha );
-    ruSetGUINodePosition( mGoalText, 40, mCurrentY );
+	mGoalText->SetAlpha( mAlpha );
+    mGoalText->SetPosition( 40, mCurrentY );
 }
 
 void Goal::SetText( string t ) {
-    ruRestartTimer( mWaitTimer );
-
+    mWaitTimer->Restart();
     mDestY = mInitialY;
-
     mText = t;
-
-    ruSetGUINodeText( mGoalText, mText );
-
+    mGoalText->SetText( mText );
     mCurrentY = g_resH * 0.45f;
 }
 
 Goal::Goal() {
-    mWaitTimer = ruCreateTimer();
-
+    mWaitTimer = ruTimer::Create();
     mInitialY = 20;
     mCurrentY = mInitialY;
     mDestY = 20;
     mWaitSec = 2.0f;
-
     mAlpha = 255.0f;
-
-    mGoalText = ruCreateGUIText( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUIProp->mFont, pGUIProp->mForeColor, 1, mAlpha );
+    mGoalText = ruText::Create( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center, mAlpha );
 }
 
 Goal::~Goal() {
-	ruFreeGUINode( mGoalText );
+	mGoalText->Free();
+	mWaitTimer->Free();
 }
 
 void Goal::SetVisible( bool state ) {
-    ruSetGUINodeVisible( mGoalText, state );
+    mGoalText->SetVisible( state );
 }

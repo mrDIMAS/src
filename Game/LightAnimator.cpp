@@ -2,7 +2,7 @@
 
 #include "LightAnimator.h"
 
-LightAnimator::LightAnimator( ruLight lit, float as, float onRange, float peakRangeMult ) {
+LightAnimator::LightAnimator( ruLight * lit, float as, float onRange, float peakRangeMult ) {
     mLight = lit;
     mAnimSpeed = as;
     mOnRange = onRange;
@@ -10,13 +10,13 @@ LightAnimator::LightAnimator( ruLight lit, float as, float onRange, float peakRa
     mAnimType = AnimationType::On;
     mRange = onRange;
     mRangeDest = mRange;
-    mLight.SetRange( mRange );
+    mLight->SetRange( mRange );
 }
 
 void LightAnimator::Update() {
     mRange = mRange + ( mRangeDest - mRange ) * mAnimSpeed;
 
-    mLight.SetRange( mRange );
+    mLight->SetRange( mRange );
 
     if( mAnimType == AnimationType::On ) {
         mRangeDest = mOnRange;

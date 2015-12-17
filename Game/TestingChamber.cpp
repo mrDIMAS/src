@@ -9,7 +9,7 @@
 TestingChamber::TestingChamber( ) {
     LoadSceneFromFile( "data/maps/candidates/testingChamber/testingChamber.scene" );
 
-    pPlayer->SetPosition( ruSceneNode::FindByName("PlayerPosition").GetPosition() + ruVector3( 0, 1, 0 ) );
+    pPlayer->SetPosition( ruSceneNode::FindByName("PlayerPosition")->GetPosition() + ruVector3( 0, 1, 0 ) );
 
     Ladder * testLadder = new Ladder( GetUniqueObject( "LadderBegin"), GetUniqueObject( "LadderEnd"), GetUniqueObject( "LadderEnter"),
                                       GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint"));
@@ -19,24 +19,24 @@ TestingChamber::TestingChamber( ) {
     ruEngine::SetAmbientColor( ruVector3( 200, 200, 200 ));
 
     // create path, bruteforce!!11
-    path.push_back( new GraphVertex( GetUniqueObject( "Path00" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path01" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path02" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path03" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path04" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path05" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path06" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path07" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path08" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path09" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path10" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "Path11" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder00" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder01" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder02" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder03" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder04" ).GetPosition()) );
-    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder05" ).GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path00" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path01" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path02" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path03" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path04" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path05" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path06" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path07" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path08" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path09" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path10" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "Path11" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder00" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder01" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder02" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder03" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder04" )->GetPosition()) );
+    path.push_back( new GraphVertex( GetUniqueObject( "PathToLadder05" )->GetPosition()) );
 
     path[0]->AddEdge( path[1] );
     path[1]->AddEdge( path[2] );

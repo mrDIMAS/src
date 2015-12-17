@@ -25,10 +25,10 @@ private:
         LoadGame,
     };
 
-    ruSceneNode mScene;
+    ruSceneNode * mScene;
     bool mVisible;
-    ruTextureHandle mButtonImage;
-    ruTextureHandle mSmallButtonImage;
+    shared_ptr<ruTexture> mButtonImage;
+    shared_ptr<ruTexture> mSmallButtonImage;
     int mDistBetweenButtons;
 	int mMainButtonsAlpha;
     string mLoadSaveGameName;
@@ -70,38 +70,38 @@ private:
 
     GameCamera * mpCamera;
 
-	ruGUINodeHandle mGUICanvas;
-	ruGUINodeHandle mGUIMainButtonsCanvas;
-	ruGUINodeHandle mGUIOptionsCanvas;
-	ruGUINodeHandle mGUIOptionsKeysCanvas;
-	ruGUINodeHandle mGUIOptionsGraphicsCanvas;
-	ruGUINodeHandle mGUISaveGameCanvas;
-	ruGUINodeHandle mGUILoadGameCanvas;
-	ruGUINodeHandle mGUIOptionsCommonCanvas;
+	ruGUINode * mGUICanvas;
+	ruGUINode * mGUIMainButtonsCanvas;
+	ruGUINode * mGUIOptionsCanvas;
+	ruGUINode * mGUIOptionsKeysCanvas;
+	ruGUINode * mGUIOptionsGraphicsCanvas;
+	ruGUINode * mGUISaveGameCanvas;
+	ruGUINode * mGUILoadGameCanvas;
+	ruGUINode * mGUIOptionsCommonCanvas;
 
-    ruButtonHandle mGUIContinueGameButton;
-    ruButtonHandle mGUIStartButton;
-    ruButtonHandle mGUISaveGameButton;
-    ruButtonHandle mGUILoadGameButton;
-    ruButtonHandle mGUIOptionsButton;
-    ruButtonHandle mGUIAuthorsButton;
-    ruButtonHandle mGUIExitButton;
+    ruButton * mGUIContinueGameButton;
+    ruButton * mGUIStartButton;
+    ruButton * mGUISaveGameButton;
+    ruButton * mGUILoadGameButton;
+    ruButton * mGUIOptionsButton;
+    ruButton * mGUIAuthorsButton;
+    ruButton * mGUIExitButton;
 
-    ruButtonHandle mGUIOptionsCommonButton;
-    ruButtonHandle mGUIOptionsControlsButton;
-    ruButtonHandle mGUIOptionsGraphicsButton;
+    ruButton * mGUIOptionsCommonButton;
+    ruButton * mGUIOptionsControlsButton;
+    ruButton * mGUIOptionsGraphicsButton;
 
-    ruTextHandle mGUIAuthorsText;
-    ruRectHandle mGUIAuthorsBackground;
+    ruText * mGUIAuthorsText;
+    ruRect * mGUIAuthorsBackground;
 
-	ruTextHandle mGUIWindowText;
-	ruTextHandle mGUICaption;
+	ruText * mGUIWindowText;
+	ruText * mGUICaption;
 
 	ModalWindow * mpModalWindow;
 
     static const int mSaveLoadSlotCount = 7;
-    ruButtonHandle mGUISaveGameSlot[mSaveLoadSlotCount];
-    ruButtonHandle mGUILoadGameSlot[mSaveLoadSlotCount];
+    ruButton * mGUISaveGameSlot[mSaveLoadSlotCount];
+    ruButton * mGUILoadGameSlot[mSaveLoadSlotCount];
 
     void SetPage( Page page );
     void SetOptionsPageVisible( bool state );

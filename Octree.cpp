@@ -133,13 +133,13 @@ Octree::Octree( Mesh * m, int _nodeSplitCriteria ) {
     mRoot = new Node;
 
     vector< ruVector3 > vertices;
-    for( auto & vertex : mMesh->mVertices ) {
+    for( auto & vertex : mMesh->GetVertices() ) {
         vertices.push_back( vertex.mPosition );
     }
 
     mRoot->mAABB = AABB( GetAABBMin( vertices ), GetAABBMax( vertices ) );
 
-    for( auto & triangle : mMesh->mTriangles ) {
+    for( auto & triangle : mMesh->GetTriangles() ) {
         mTriangleList.push_back( new Triangle( triangle.mA, triangle.mB, triangle.mC ) );
     }
 

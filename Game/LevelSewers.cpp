@@ -6,7 +6,7 @@ LevelSewers::LevelSewers( ) {
 	mTypeNum = 5;
 	LoadSceneFromFile( "data/maps/release/sewers/sewers.scene" );
 
-	pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" ).GetPosition() );
+	pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" )->GetPosition() );
 
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "Ladder1Begin" ), GetUniqueObject( "Ladder1End" ), GetUniqueObject( "Ladder1Enter" ),
 		GetUniqueObject( "Ladder1BeginLeavePoint"), GetUniqueObject( "Ladder1EndLeavePoint")));
@@ -28,11 +28,11 @@ LevelSewers::LevelSewers( ) {
 	mZoneKnocks = GetUniqueObject( "ZoneKnocks" );
 
 	mKnocksSound = ruSound::Load3D( "data/sounds/knocks.ogg" );
-	mKnocksSound.SetPosition( mZoneKnocks.GetPosition() );
+	mKnocksSound.SetPosition( mZoneKnocks->GetPosition() );
 	mKnocksSound.SetRolloffFactor( 0.2f );
 	mKnocksSound.SetRoomRolloffFactor( 0.2f );
 
-	ruSetAudioReverb( 10 );
+	ruSound::SetAudioReverb( 10 );
 
 	DoneInitialization();
 

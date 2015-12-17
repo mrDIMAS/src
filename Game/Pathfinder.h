@@ -49,7 +49,7 @@ public:
     void AddPointAndLinkWithPrevious( GraphVertex * vertex );
     class NodeSorter {
     public:
-        bool operator() ( const ruSceneNode & node1, const ruSceneNode & node2 );
+        bool operator() ( const ruSceneNode * node1, const ruSceneNode * node2 );
     };
-    void BuildPath( ruSceneNode scene, string pathBaseName );
+    void BuildPath( ruSceneNode * scene, string pathBaseName );
 };

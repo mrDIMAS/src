@@ -35,15 +35,15 @@ void InteractiveObject::UpdateFlashing() {
         }
     }
 
-    if( mObject.IsValid() ) {
-        mObject.SetAlbedo( mFlashAlbedo );
+    if( mObject ) {
+        mObject->SetAlbedo( mFlashAlbedo );
     }
 }
 
-InteractiveObject::InteractiveObject( ruSceneNode object ) : mInteractCountLeft( 1 ) {
+InteractiveObject::InteractiveObject( ruSceneNode * object ) : mInteractCountLeft( 1 ) {
     msObjectList.push_back( this );
     this->mObject = object;
-    object.Freeze();
+    object->Freeze();
     mFlashAlbedo = 0.2f;
     mFlashAlbedoTo = 1.0f;
     mFlashSpeed = 0.075f;
@@ -72,7 +72,27 @@ void InteractiveObject::Update() {
 			}
 		}
 	} else {
-		mObject.Hide();
-		mObject.SetPosition( ruVector3( -666.666, -666.666, -666.666 ));
+		mObject->Hide();
+		mObject->SetPosition( ruVector3( -666.666, -666.666, -666.666 ));
 	}
+}
+
+InteractiveObject * InteractiveObject::FindByObject( ruSceneNode * node )
+{
+	for( auto & pIO : msObjectList ) {
+		if( pIO->mObject == node ) {
+			return pIO;
+		}
+	}
+	return nullptr;
+}
+
+std::string InteractiveObject::GetPickDescription() const
+{
+	return mPickDesc;
+}
+
+void InteractiveObject::SetPickDescription( const string & pd )
+{
+	mPickDesc = pd;
 }

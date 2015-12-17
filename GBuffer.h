@@ -21,20 +21,16 @@
 
 #pragma once
 
-
-
-#define USE_R32F_DEPTH
-
 class GBuffer : public RendererComponent {
-public:
-    IDirect3DTexture9 * depthMap;
-    IDirect3DTexture9 * normalMap;
-    IDirect3DTexture9 * diffuseMap;
+private:
+    IDirect3DTexture9 * mDepthMap;
+    IDirect3DTexture9 * mNormalMap;
+    IDirect3DTexture9 * mDiffuseMap;
 
-    IDirect3DSurface9 * depthSurface;
-    IDirect3DSurface9 * normalSurface;
-    IDirect3DSurface9 * diffuseSurface;
-    IDirect3DSurface9 * backSurface;
+    IDirect3DSurface9 * mDepthSurface;
+    IDirect3DSurface9 * mNormalSurface;
+    IDirect3DSurface9 * mDiffuseSurface;
+    IDirect3DSurface9 * mBackSurface;
 
 	void CreateRenderTargets();
 	void FreeRenderTargets();
@@ -52,6 +48,5 @@ public:
     void BindNormalMapAsRT();
     void BindDiffuseMapAsRT();
     void BindDepthMapAsRT();
-    void BindBackSurfaceAsRT();
     void UnbindTextures();
 };

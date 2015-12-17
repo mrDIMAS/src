@@ -19,7 +19,7 @@ void Keypad::Update()
 						} 
 						Reset();						
 					} else {
-						mKeys[i].SetPosition( mKeysInitialPosition[i] + mKeysPressedOffsets[i] );
+						mKeys[i]->SetPosition( mKeysInitialPosition[i] + mKeysPressedOffsets[i] );
 					}
 				}
 			}
@@ -34,7 +34,7 @@ void Keypad::Update()
 	}
 }
 
-Keypad::Keypad( ruSceneNode keypad, ruSceneNode key0, ruSceneNode key1, ruSceneNode key2, ruSceneNode key3, ruSceneNode key4, ruSceneNode key5, ruSceneNode key6, ruSceneNode key7, ruSceneNode key8, ruSceneNode key9, ruSceneNode keyCancel, Door * doorToUnlock, string codeToUnlock )
+Keypad::Keypad( ruSceneNode * keypad, ruSceneNode * key0, ruSceneNode * key1, ruSceneNode * key2, ruSceneNode * key3, ruSceneNode * key4, ruSceneNode * key5, ruSceneNode * key6, ruSceneNode * key7, ruSceneNode * key8, ruSceneNode * key9, ruSceneNode * keyCancel, Door * doorToUnlock, string codeToUnlock )
 {
 	mKeypad = keypad;
 	mKeys[0] = key0;
@@ -53,11 +53,11 @@ Keypad::Keypad( ruSceneNode keypad, ruSceneNode key0, ruSceneNode key1, ruSceneN
 	mCodeToUnlock = codeToUnlock;
 
 	for( int i = 0; i < 10; i++ ) {
-		mKeysInitialPosition[i] = mKeys[i].GetPosition();
-		ruVector3 min = mKeys[i].GetAABBMin();
-		ruVector3 max = mKeys[i].GetAABBMax();
+		mKeysInitialPosition[i] = mKeys[i]->GetPosition();
+		ruVector3 min = mKeys[i]->GetAABBMin();
+		ruVector3 max = mKeys[i]->GetAABBMax();
 		ruVector3 size = (max - min) / 2;
-		ruVector3 right = mKeys[i].GetRightVector();
+		ruVector3 right = mKeys[i]->GetRightVector();
 		mKeysPressedOffsets[i] = right * (size / 2);
 	}
 
@@ -68,8 +68,8 @@ Keypad::Keypad( ruSceneNode keypad, ruSceneNode key0, ruSceneNode key1, ruSceneN
 	mButtonPushSound = ruSound::Load3D( "data/sounds/button_push.ogg" );
 	mButtonPopSound = ruSound::Load3D( "data/sounds/button_pop.ogg" );
 
-	mButtonPushSound.SetPosition( mKeypad.GetPosition() );
-	mButtonPopSound.SetPosition( mKeypad.GetPosition() );
+	mButtonPushSound.SetPosition( mKeypad->GetPosition() );
+	mButtonPopSound.SetPosition( mKeypad->GetPosition() );
 }
 
 void Keypad::Reset()
@@ -77,7 +77,7 @@ void Keypad::Reset()
 	for( int i = 0; i < 10; i++ ) {
 		mKeyState[i] = false;
 		mCurrentCode.clear();
-		mKeys[i].SetPosition( mKeysInitialPosition[i] );
+		mKeys[i]->SetPosition( mKeysInitialPosition[i] );
 	}
 	mButtonPopSound.Play();
 }

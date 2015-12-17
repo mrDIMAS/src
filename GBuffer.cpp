@@ -29,83 +29,79 @@ GBuffer::GBuffer() {
 }
 
 GBuffer::~GBuffer() {
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, backSurface );
-    Engine::Instance().GetDevice()->SetRenderTarget( 1, 0 );
-    Engine::Instance().GetDevice()->SetRenderTarget( 2, 0 );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mBackSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 1, 0 );
+    Engine::I().GetDevice()->SetRenderTarget( 2, 0 );
     FreeRenderTargets();
 }
 
 void GBuffer::BindRenderTargets() {
     UnbindTextures();
 
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, depthSurface );
-    Engine::Instance().GetDevice()->SetRenderTarget( 1, normalSurface );
-    Engine::Instance().GetDevice()->SetRenderTarget( 2, diffuseSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mDepthSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 1, mNormalSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 2, mDiffuseSurface );
 }
 
 void GBuffer::BindNormalMapAsRT() {
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, normalSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mNormalSurface );
 };
 
 void GBuffer::BindDiffuseMapAsRT() {
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, diffuseSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mDiffuseSurface );
 };
 
 void GBuffer::BindDepthMapAsRT() {
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, depthSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mDepthSurface );
 };
 
 void GBuffer::UnbindTextures() {
-    Engine::Instance().GetDevice()->SetTexture( 0, 0 );
-    Engine::Instance().GetDevice()->SetTexture( 1, 0 );
-    Engine::Instance().GetDevice()->SetTexture( 2, 0 );
+    Engine::I().GetDevice()->SetTexture( 0, 0 );
+    Engine::I().GetDevice()->SetTexture( 1, 0 );
+    Engine::I().GetDevice()->SetTexture( 2, 0 );
 };
 
 void GBuffer::UnbindRenderTargets() {
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, backSurface );
-    Engine::Instance().GetDevice()->SetRenderTarget( 1, 0 );
-    Engine::Instance().GetDevice()->SetRenderTarget( 2, 0 );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mBackSurface );
+    Engine::I().GetDevice()->SetRenderTarget( 1, 0 );
+    Engine::I().GetDevice()->SetRenderTarget( 2, 0 );
 }
 
-void GBuffer::BindBackSurfaceAsRT() {
-    Engine::Instance().GetDevice()->SetRenderTarget( 0, backSurface );
-};
-
 void GBuffer::BindTextures() {
-    Engine::Instance().GetDevice()->SetTexture( 0, depthMap );
-    Engine::Instance().GetDevice()->SetTexture( 1, normalMap );
-    Engine::Instance().GetDevice()->SetTexture( 2, diffuseMap );
+    Engine::I().GetDevice()->SetTexture( 0, mDepthMap );
+    Engine::I().GetDevice()->SetTexture( 1, mNormalMap );
+    Engine::I().GetDevice()->SetTexture( 2, mDiffuseMap );
 }
 
 void GBuffer::BindDepthMap( int layer ) {
-    Engine::Instance().GetDevice()->SetTexture( layer, depthMap );
+    Engine::I().GetDevice()->SetTexture( layer, mDepthMap );
 }
 
 
 void GBuffer::FreeRenderTargets() {
-	depthSurface->Release();
-	normalSurface->Release();
-	diffuseSurface->Release();
-	while( depthMap->Release());
-	while( normalMap->Release());
-	while( diffuseMap->Release());
+	mDepthSurface->Release();
+	mNormalSurface->Release();
+	mDiffuseSurface->Release();
+	while( mDepthMap->Release());
+	while( mNormalMap->Release());
+	while( mDiffuseMap->Release());
 }
 
 void GBuffer::CreateRenderTargets() {
-	int width = Engine::Instance().GetResolutionWidth();
-	int height = Engine::Instance().GetResolutionHeight();
-	if( !Engine::Instance().IsNonPowerOfTwoTexturesSupport()) {
-		width = FloorPow2( Engine::Instance().GetResolutionWidth() );
-		height = FloorPow2( Engine::Instance().GetResolutionHeight() );
+	int width = Engine::I().GetResolutionWidth();
+	int height = Engine::I().GetResolutionHeight();
+	if( !Engine::I().IsNonPowerOfTwoTexturesSupport()) {
+		width = FloorPow2( Engine::I().GetResolutionWidth() );
+		height = FloorPow2( Engine::I().GetResolutionHeight() );
 	}
 
-	Engine::Instance().GetDevice()->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &depthMap, nullptr );
-	Engine::Instance().GetDevice()->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &normalMap, nullptr );
-	Engine::Instance().GetDevice()->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &diffuseMap, nullptr );
-	depthMap->GetSurfaceLevel( 0, &depthSurface );
-	normalMap->GetSurfaceLevel( 0, &normalSurface );
-	diffuseMap->GetSurfaceLevel( 0, &diffuseSurface );
-	backSurface = Engine::Instance().GetBackBuffer();
+	Engine::I().GetDevice()->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDepthMap, nullptr );
+	Engine::I().GetDevice()->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mNormalMap, nullptr );
+	Engine::I().GetDevice()->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mDiffuseMap, nullptr );
+	mDepthMap->GetSurfaceLevel( 0, &mDepthSurface );
+	mNormalMap->GetSurfaceLevel( 0, &mNormalSurface );
+	mDiffuseMap->GetSurfaceLevel( 0, &mDiffuseSurface );
+	mBackSurface = Engine::I().GetBackBuffer();
 }
 
 void GBuffer::OnLostDevice()

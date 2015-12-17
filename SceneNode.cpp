@@ -23,7 +23,8 @@
 
 #include "FastReader.h"
 #include "ParticleEmitter.h"
-#include "Light.h"
+#include "PointLight.h"
+#include "SpotLight.h"
 #include "SceneNode.h"
 #include "Mesh.h"
 #include "Octree.h"
@@ -32,19 +33,6 @@
 #include "Engine.h"
 
 vector< SceneNode* > SceneNode::msNodeList;
-
-SceneNode * SceneNode::CastHandle( ruSceneNode handle ) {
-	if( !ruIsNodeHandleValid( handle )) {
-		throw std::runtime_error( "Invalid handle passed!" );
-	}	
-    return reinterpret_cast< SceneNode *>( handle.pointer );
-}
-
-ruSceneNode SceneNode::HandleFromPointer( SceneNode * ptr ) {
-    ruSceneNode handle;
-    handle.pointer = ptr;
-    return handle;
-}
 
 void SceneNode::EraseUnusedNodes() {
     for( auto node : SceneNode::msNodeList ) {
@@ -60,8 +48,6 @@ void SceneNode::EraseUnusedNodes() {
 	}
 }
 
-
-
 bool SceneNode::IsRenderable() {
     return IsVisible();
 }
@@ -72,8 +58,8 @@ void SceneNode::AutoName() {
 
 SceneNode::SceneNode( ) : mStatic( false ),  mInFrustum( false ), mParent( nullptr ),mTotalFrameCount( 0 ),
 						  mIsSkinned( false ), mVisible( true ), mScene( nullptr ), mContactCount( 0 ),
-						  mFrozen( false ), mIsBone( false ), mDepthHack( 0.0f ), particleEmitter( nullptr ),
-						  mAlbedo( 0.0f ), mCurrentAnimation( nullptr )  {
+						  mFrozen( false ), mIsBone( false ), mDepthHack( 0.0f ),
+						  mAlbedo( 0.0f ), mCurrentAnimation( nullptr ), mBlurAmount( 0.0f )  {
 	AutoName();    
     mLocalTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
     mGlobalTransform = mLocalTransform;
@@ -93,7 +79,6 @@ SceneNode::SceneNode( const SceneNode & source ) {
 	mContactCount = source.mContactCount;
 	mFrozen = source.mFrozen;
 	mDepthHack = source.mDepthHack;
-	particleEmitter = nullptr;
 	mAlbedo = source.mAlbedo;
 	mCurrentAnimation = nullptr;
 
@@ -181,10 +166,6 @@ SceneNode::~SceneNode() {
 		delete body;
 	}
 
-	if( particleEmitter ) {
-		delete particleEmitter;
-	}
-
 	SceneNode::msNodeList.erase( find( SceneNode::msNodeList.begin(), SceneNode::msNodeList.end(), this ));
 }
 
@@ -196,14 +177,14 @@ void SceneNode::SetConvexBody() {
     btConvexHullShape * convex = new btConvexHullShape();
 
     for( auto mesh : mMeshList ) {
-        for( auto & vertex : mesh->mVertices ) {
+        for( auto & vertex : mesh->GetVertices() ) {
             convex->addPoint ( btVector3( vertex.mPosition.x, vertex.mPosition.y, vertex.mPosition.z ));
         }
     }
 
     btVector3 inertia ( 0.0f, 0.0f, 0.0f );
     convex->calculateLocalInertia ( 1, inertia );
-    SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), ( btCollisionShape * ) ( convex ), inertia ));
+    SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), static_cast<btCollisionShape*>( convex ), inertia ));
 }
 
 
@@ -212,7 +193,7 @@ void SceneNode::SetCapsuleBody( float height, float radius ) {
     btCollisionShape * shape = new btCapsuleShape ( radius, height );
     btVector3 inertia;
     shape->calculateLocalInertia ( 1, inertia );
-    SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), shape, inertia ));
+    SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), shape, inertia ));
 }
 
 void SceneNode::SetBoxBody( ) {
@@ -220,7 +201,7 @@ void SceneNode::SetBoxBody( ) {
     btCollisionShape * shape = new btBoxShape( btVector3( halfExtents.x, halfExtents.y, halfExtents.z ));
     btVector3 inertia;
     shape->calculateLocalInertia ( 1, inertia );
-    SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), shape, inertia ));
+    SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), shape, inertia ));
 }
 
 void SceneNode::SetCylinderBody( ) {
@@ -228,7 +209,7 @@ void SceneNode::SetCylinderBody( ) {
     btCollisionShape * shape = new btCylinderShape( btVector3( halfExtents.x, halfExtents.y, halfExtents.z ) );
     btVector3 inertia;
     shape->calculateLocalInertia ( 1, inertia );
-    SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), shape, inertia ));
+    SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), shape, inertia ));
 }
 
 void SceneNode::SetSphereBody( ) {
@@ -236,7 +217,7 @@ void SceneNode::SetSphereBody( ) {
     btCollisionShape * shape = new btSphereShape( radius );
     btVector3 inertia;
     shape->calculateLocalInertia ( 1, inertia );
-    SetBody( new btRigidBody ( 1, ( btMotionState * ) ( new btDefaultMotionState() ), shape, inertia ));
+    SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), shape, inertia ));
 }
 
 void SceneNode::SetAngularFactor( ruVector3 fact ) {
@@ -250,12 +231,12 @@ void SceneNode::SetTrimeshBody() {
 		int meshNum = 0;
 		mStatic = true;
 		for ( auto mesh : mMeshList ) {
-			if( mesh->mTriangles.size() ) {
+			if( mesh->GetTriangles().size() ) {
 				btTriangleMesh * trimesh = new btTriangleMesh();
-				for( auto triangle : mesh->mTriangles ) {
-					ruVector3 & a = mesh->mVertices[ triangle.mA ].mPosition;
-					ruVector3 & b = mesh->mVertices[ triangle.mB ].mPosition;
-					ruVector3 & c = mesh->mVertices[ triangle.mC ].mPosition;
+				for( auto triangle : mesh->GetTriangles() ) {
+					ruVector3 & a = mesh->GetVertices()[ triangle.mA ].mPosition;
+					ruVector3 & b = mesh->GetVertices()[ triangle.mB ].mPosition;
+					ruVector3 & c = mesh->GetVertices()[ triangle.mC ].mPosition;
 					trimesh->addTriangle ( btVector3( a.x, a.y, a.z ), btVector3( b.x, b.y, b.z ), btVector3( c.x, c.y, c.z ), false );
 				};			
 				btMotionState * motionState = new btDefaultMotionState();
@@ -286,18 +267,22 @@ void SceneNode::EraseChild( const SceneNode * child ) {
     }
 }
 
-void SceneNode::AttachTo( SceneNode * newParent ) {
-    if( newParent ) {
-		if( mParent != newParent ) {
-			mParent = newParent;
-			newParent->mChildList.push_back( this );
+void SceneNode::Attach( ruSceneNode * newParent ) {
+	SceneNode * parent = dynamic_cast<SceneNode*>( newParent );
+
+    if( parent ) {
+		if( mParent != parent ) {
+			mParent = parent;
+			parent->mChildList.push_back( this );
 		} 
-    } else { // Detach
-		if( mParent ) {
-			mParent->mChildList.erase( find( mParent->mChildList.begin(), mParent->mChildList.end(), this ));
-			mParent = nullptr;
-		}
-	}
+    } 
+}
+
+void SceneNode::Detach() {
+	if( mParent ) {
+		mParent->mChildList.erase( find( mParent->mChildList.begin(), mParent->mChildList.end(), this ));
+		mParent = nullptr;
+	}	
 }
 
 btTransform & SceneNode::CalculateGlobalTransform() {
@@ -329,7 +314,7 @@ ruVector3 SceneNode::GetAABBMin() {
     ruVector3 min = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 
     for( auto mesh : mMeshList ) {
-        AABB aabb = mesh->mAABB;
+        AABB aabb = mesh->GetBoundingBox();
         if( aabb.mMin.x < min.x ) {
             min.x = aabb.mMin.x;
         }
@@ -347,7 +332,7 @@ ruVector3 SceneNode::GetAABBMax() {
     ruVector3 max = ruVector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 
     for( auto mesh : mMeshList ) {
-        AABB aabb = mesh->mAABB;
+        AABB aabb = mesh->GetBoundingBox();
 
         if( aabb.mMax.x > max.x ) {
             max.x = aabb.mMax.x;
@@ -430,9 +415,8 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 
             string diffuse = reader.GetString();
             string normal = reader.GetString();
-            mesh->mOpacity = reader.GetFloat() / 100.0f;
+            mesh->SetOpacity( reader.GetFloat() / 100.0f );
 
-            mesh->mVertices.reserve( vertexCount );
             for( int vertexNum = 0; vertexNum < vertexCount; vertexNum++ ) {
                 Vertex v;
 
@@ -442,49 +426,42 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
                 ruVector2 tc2 = reader.GetBareVector2(); // just read secondary texcoords, but don't add it to the mesh. need to compatibility
                 v.mTangent = reader.GetBareVector();
 
-                mesh->mVertices.push_back( v );
+                mesh->AddVertex( v );
             }
-
-            mesh->mAABB = AABB( mesh->mVertices );
-
-            mesh->mTriangles.reserve( indexCount );
 
             for( int indexNum = 0; indexNum < indexCount; indexNum += 3 ) {
                 unsigned short a = reader.GetShort();
                 unsigned short b = reader.GetShort();
                 unsigned short c = reader.GetShort();
 
-                mesh->mTriangles.push_back( Mesh::Triangle( a, b, c ));
+                mesh->AddTriangle( Mesh::Triangle( a, b, c ));
             }
 
-            mesh->mDiffuseTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + diffuse );
-			if( mesh->mOpacity > 0.95f ) {
-				mesh->mNormalTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + normal );
+            mesh->SetDiffuseTexture( Texture::Request( Engine::I().GetTextureStoragePath() + diffuse ));
+			if( mesh->GetOpacity() > 0.95f ) {
+				mesh->SetNormalTexture( Texture::Request( Engine::I().GetTextureStoragePath() + normal ));
 
 				string height = diffuse.substr( 0, diffuse.find_first_of( '.' )) + "_height" + diffuse.substr( diffuse.find_first_of( '.' ));
-				mesh->mHeightTexture = Texture::Require( Engine::Instance().GetTextureStoragePath() + height );
+				mesh->SetHeightTexture( Texture::Request( Engine::I().GetTextureStoragePath() + height ));
 			}
             node->mMeshList.push_back( mesh );
 
             if( node->mIsSkinned ) {
                 for( int k = 0; k < vertexCount; k++ ) {
-                    Mesh::BoneGroup w;
-
-                    w.mBoneCount = reader.GetInteger();
-
-                    for( int j = 0; j < w.mBoneCount; j++ ) {
+                    Mesh::BoneGroup boneGroup;
+                    boneGroup.mBoneCount = reader.GetInteger();
+                    for( int j = 0; j < boneGroup.mBoneCount; j++ ) {
 						// number of scene node represents bone in the scene
-                        w.mBone[ j ].mID = reader.GetInteger();
-                        w.mBone[ j ].mWeight = reader.GetFloat();
-						w.mBone[ j ].mRealBone = nullptr;
+                        boneGroup.mBone[ j ].mID = reader.GetInteger();
+                        boneGroup.mBone[ j ].mWeight = reader.GetFloat();
+						boneGroup.mBone[ j ].mRealBone = nullptr;
                     }
-
-                    mesh->mWeightTable.push_back( w );
+                    mesh->AddBoneGroup( boneGroup );
                 }
             }
 
             if( vertexCount != 0 ) {
-				if( !mesh->mSkinned ) {
+				if( !mesh->IsSkinned() ) {
 					mesh->CreateHardwareBuffers();
 				}
                 Mesh::Register( mesh );
@@ -502,7 +479,7 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 	for( auto child : scene->mChildList ) {
 		if( child->mIsSkinned ) {
 			for( auto pMesh : child->mMeshList ) {
-				for( auto & w : pMesh->mWeightTable ) {
+				for( auto & w : pMesh->GetBoneTable() ) {
 					for( int i = 0; i < w.mBoneCount; ++i ) {
 						w.mBone[ i ].mRealBone = pMesh->AddBone( scene->mChildList[ w.mBone[ i ].mID ] );		
 					}
@@ -513,9 +490,14 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
 	}
 
     for( int lightObjectNum = 0; lightObjectNum < numLights; lightObjectNum++ ) {
+		Light * light = nullptr;
         string name = reader.GetString();
-        ruLight::Type type = static_cast<ruLight::Type>( reader.GetInteger() );
-        Light * light = new Light( type );
+        int type = reader.GetInteger();
+		if( type == 0 ) {
+			light = new PointLight;
+		} else {
+			light = new SpotLight;
+		}
         light->mName = name;
         light->SetColor( reader.GetBareVector());
         light->SetRange( reader.GetFloat());
@@ -524,10 +506,11 @@ SceneNode * SceneNode::LoadScene( const string & file ) {
         light->mScene = scene;
         light->mParent = scene;
         scene->mChildList.push_back( light );
-        if( type == ruLight::Type::Spot ) {
+        if( type > 0 ) {
+			SpotLight * spot = dynamic_cast<SpotLight*>( light );
             float in = reader.GetFloat();
             float out = reader.GetFloat();
-            light->SetConeAngles( in, out );
+            spot->SetConeAngles( in, out );
             light->mLocalTransform.setRotation( reader.GetQuaternion());
         }
     }
@@ -668,10 +651,10 @@ void SceneNode::UpdateContacts() {
                 nodeA->mContactList[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
 				nodeA->mContactList[ j ].position = ruVector3( pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
 				nodeA->mContactList[ j ].impulse = pt.m_appliedImpulse;
-				nodeA->mContactList[ j ].body.pointer = nodeB;
+				nodeA->mContactList[ j ].body = nodeB;
 				if( obAIndex >= 0 ) {
-					if( nodeA->mMeshList[obAIndex]->mDiffuseTexture ) {
-						nodeA->mContactList[ j ].textureName = nodeA->mMeshList[obAIndex]->mDiffuseTexture->GetName();
+					if( nodeA->mMeshList[obAIndex]->GetDiffuseTexture() ) {
+						nodeA->mContactList[ j ].textureName = nodeA->mMeshList[obAIndex]->GetDiffuseTexture()->GetName();
 					}
 				}
 
@@ -679,10 +662,10 @@ void SceneNode::UpdateContacts() {
                 nodeB->mContactList[ j ].normal = ruVector3( pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());                
                 nodeB->mContactList[ j ].position = ruVector3( pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());                
                 nodeB->mContactList[ j ].impulse = pt.m_appliedImpulse;				
-				nodeB->mContactList[ j ].body.pointer = nodeA;
+				nodeB->mContactList[ j ].body = nodeA;
 				if( obBIndex >= 0 ) {
-					if( nodeB->mMeshList[obBIndex]->mDiffuseTexture ) {
-						nodeB->mContactList[ j ].textureName = nodeB->mMeshList[obBIndex]->mDiffuseTexture->GetName();
+					if( nodeB->mMeshList[obBIndex]->GetDiffuseTexture() ) {
+						nodeB->mContactList[ j ].textureName = nodeB->mMeshList[obBIndex]->GetDiffuseTexture()->GetName();
 					}
 				}
 
@@ -775,6 +758,7 @@ void SceneNode::ApplyProperties() {
             mAlbedo = atof( value.c_str() );
         }
 
+		/*
         if ( pname == "octree" ) {
             if ( value == "1" ) {
                 for( auto mesh : mMeshList ) {
@@ -784,7 +768,7 @@ void SceneNode::ApplyProperties() {
                 }
             }
         }
-
+		*/
         if ( pname == "visible" ) {
             mVisible = atoi( value.c_str());
         }
@@ -826,7 +810,9 @@ void SceneNode::AttachSound( ruSound sound ) {
     mSoundList.push_back( sound );
 }
 
-bool SceneNode::IsNodeInside( SceneNode * node ) {
+bool SceneNode::IsInsideNode( ruSceneNode * n ) {
+	SceneNode * node = dynamic_cast<SceneNode*>( n );
+
     if( !node ) {
         return 0;
     }
@@ -839,7 +825,7 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
 
     btVector3 n2Pos = node->mGlobalTransform.getOrigin();
     for( auto mesh : node->mMeshList ) {
-        AABB aabb = mesh->mAABB;
+        AABB aabb = mesh->GetBoundingBox();
 
         aabb.mMax.x += n2Pos.x();
         aabb.mMax.y += n2Pos.y();
@@ -857,7 +843,7 @@ bool SceneNode::IsNodeInside( SceneNode * node ) {
     }
 
     for( auto childNode : node->mChildList ) {
-        result += childNode->IsNodeInside( this );
+        result += childNode->IsInsideNode( this );
     }
 
     return result;
@@ -872,10 +858,11 @@ int SceneNode::GetCountChildren() {
 }
 
 SceneNode * SceneNode::FindByName( const string & name ) {
-    for( auto node : SceneNode::msNodeList )
+    for( auto node : SceneNode::msNodeList ) {
         if( node->mName == name ) {
             return node;
         }
+	}
     return nullptr;
 }
 
@@ -944,7 +931,7 @@ void SceneNode::SetRotation( ruQuaternion rotation ) {
 	mLocalTransform.setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ));
 }
 
-void SceneNode::SetBodyLocalScaling( ruVector3 scale ) {
+void SceneNode::SetLocalScale( ruVector3 scale ) {
 	for( auto body : mBodyList ) {
 		body->getCollisionShape()->setLocalScaling( btVector3( scale.x, scale.y, scale.z ));
 	}
@@ -994,23 +981,22 @@ ruVector3 SceneNode::GetLocalPosition() {
     return lp;
 }
 
-SceneNode * SceneNode::FindInObjectByName( SceneNode * node, const string & name ) {
-    if( node->mName == name ) {
-        return node;
-    }
+SceneNode * FindChildInNode( SceneNode * node, const string & name ) {
+	if( node->mName == name ) {
+		return node;
+	}	
+	for( int i = 0; i < node->mChildList.size(); i++ ) {
+		SceneNode * child = node->mChildList[ i ];
+		SceneNode * lookup = FindChildInNode( child, name );
+		if( lookup ) {
+			return lookup;
+		}
+	}
+	return nullptr;
+}
 
-
-    for( int i = 0; i < node->mChildList.size(); i++ ) {
-        SceneNode * child = node->mChildList[ i ];
-
-        SceneNode * lookup = FindInObjectByName( child, name );
-
-        if( lookup ) {
-            return lookup;
-        }
-    }
-
-    return 0;
+SceneNode * SceneNode::FindChild( const string & name ) {
+    return FindChildInNode( this, name );
 }
 
 void SceneNode::SetAngularVelocity( ruVector3 velocity ) {
@@ -1198,13 +1184,11 @@ bool SceneNode::IsDynamic() {
 	return false;	
 }
 
-ruTextureHandle SceneNode::GetTexture( int n )
-{
+shared_ptr<ruTexture> SceneNode::GetTexture( int n ) {
 	if( n < 0 || n >= mMeshList.size() ) {
-		return ruTextureHandle::Empty();
+		return nullptr;
 	} else {
-		ruTextureHandle h; h.pointer = mMeshList[n]->GetDiffuseTexture();
-		return h;
+		return mMeshList[n]->GetDiffuseTexture();
 	}
 }
 
@@ -1213,96 +1197,65 @@ int SceneNode::GetTextureCount()
 	return mMeshList.size();
 }
 
-////////////////////////////////////////////////////
-// API Functions
-////////////////////////////////////////////////////
-
-ruRutheniumHandle::ruRutheniumHandle() {
-    pointer = nullptr;
+float SceneNode::GetBlurAmount() {
+	return mBlurAmount;
 }
 
-ruRutheniumHandle::~ruRutheniumHandle() {
-
-}
-
-bool ruRutheniumHandle::IsValid() const {
-    return pointer != nullptr;
-}
-
-void ruRutheniumHandle::Invalidate() {
-    pointer = nullptr;
-}
-
-bool ruSceneNode::operator == ( const ruSceneNode & node ) {
-    return pointer == node.pointer;
-}
-
-bool ruSceneNode::IsValid() const {
-	return ruIsNodeHandleValid( *this ) && ruRutheniumHandle::IsValid();
-}
-
-void ruCreateOctree( ruSceneNode node, int splitCriteria ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
+void SceneNode::SetBlurAmount( float blurAmount ) {
+	mBlurAmount = blurAmount;
+	for( auto pChild : mChildList ) {
+		pChild->SetBlurAmount( blurAmount );
 	}
-    SceneNode * n = SceneNode::CastHandle( node );
-
-    for( int i = 0; i < n->mMeshList.size(); i++ ) {
-        Mesh * mesh = n->mMeshList[ i ];
-
-        if( mesh->mOctree ) {
-            delete mesh->mOctree;
-        }
-
-        mesh->mOctree = new Octree( mesh, splitCriteria );
-    }
 }
 
-
-void ruDeleteOctree( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
-	}
-    SceneNode * n = SceneNode::CastHandle( node );
-
-    for( int i = 0; i < n->mMeshList.size(); i++ ) {
-        Mesh * mesh = n->mMeshList[ i ];
-
-        if( mesh->mOctree ) {
-            delete mesh->mOctree;
-        }
-    }
+void SceneNode::SetAlbedo( float albedo )
+{
+	mAlbedo = albedo;
 }
 
-bool ruIsNodeHandleValid( ruSceneNode handle ) {
-	for( auto pNode : SceneNode::msNodeList ) {
-		if( pNode == handle.pointer ) {
-			return true;
-		}
-	}
-	return false;
+bool SceneNode::IsInFrustum()
+{
+	return mInFrustum;
 }
 
-int ruGetNodeCountChildren( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return 0;
-	}
-    return SceneNode::CastHandle( node )->GetCountChildren();
+void SceneNode::SetName( const string & name )
+{
+	mName = name;
 }
 
-bool ruIsNodeHasBody( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return false;
-	}
-    return SceneNode::CastHandle( node )->mBodyList.size() > 0;
+int SceneNode::GetTotalAnimationFrameCount()
+{
+	return mTotalFrameCount;
 }
 
-int ruGetWorldObjectsCount() {
-    return SceneNode::msNodeList.size();
+ruSceneNode * ruSceneNode::Create( ) {
+	return new SceneNode;
 }
 
-ruSceneNode ruGetWorldObject( int i ) {
-    ruSceneNode handle;
-    handle.pointer = SceneNode::msNodeList[ i ];
-    return handle;
+ruSceneNode * ruSceneNode::LoadFromFile( const string & file ) {
+	return SceneNode::LoadScene( file );
+}
+
+ruSceneNode * ruSceneNode::FindByName( const string & name ) {
+	return SceneNode::FindByName( name );
+}
+
+ruSceneNode * ruSceneNode::Duplicate( ruSceneNode * source ) {
+	return new SceneNode( *dynamic_cast<SceneNode*>( source ));
+}
+
+int ruSceneNode::GetWorldObjectsCount() {
+	return SceneNode::msNodeList.size();
+}
+
+ruSceneNode * ruSceneNode::GetWorldObject( int i ) {
+	return SceneNode::msNodeList[i];
+}
+
+ruSceneNode::~ruSceneNode( ) {
+
+}
+
+void ruObject::Free() {
+	delete this;
 }

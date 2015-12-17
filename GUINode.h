@@ -26,7 +26,7 @@
 
 class Texture;
 
-class GUINode {
+class GUINode : public virtual ruGUINode {
 protected:
 	float mGlobalX;
 	float mGlobalY;
@@ -39,7 +39,7 @@ protected:
 	bool mControlChildAlpha;
 	bool mLastMouseInside;
     ruVector3 mColor;
-    Texture * mpTexture;
+    shared_ptr<Texture> mpTexture;
     int mColorPacked;
 	vector<GUINode*> mChildList;
 	GUINode * mParent;
@@ -50,32 +50,36 @@ protected:
 	virtual void OnMouseEnter();
 	virtual void OnMouseLeave();	
 public:
+	void CalculateTransform();
+	int GetPackedColor();
 	void DoActions();
+
     static vector<GUINode*> msNodeList;
     explicit GUINode();
     virtual ~GUINode();
-    void PackColor();
-    void SetColor( ruVector3 color );
-    virtual void SetAlpha( int alpha );
+
+    void PackColor();    
+    
     float GetX();
     float GetY();
     float GetWidth();
     float GetHeight();
-    void SetSize( float w, float h );
+
+	virtual void SetColor( ruVector3 color );
+	virtual void SetAlpha( int alpha );
+    virtual void SetSize( float w, float h );
     virtual void SetVisible( bool visible );
-    bool IsVisible();
-    Texture * GetTexture();
-    void SetTexture( Texture * pTexture );
-    int GetPackedColor();
-    virtual void SetPosition( float x, float y );
-    ruVector2 GetPosition( );
-    ruVector2 GetSize( );
-    ruVector3 GetColor();
-    int GetAlpha();
-	void AttachTo( GUINode * parent );
-	void CalculateTransform();
-	void SetControlChildAlpha( bool control );
-	void AddAction( ruGUIAction act, const ruDelegate & delegat );
-	void RemoveAction( ruGUIAction act );
-	void RemoveAllActions();
+    virtual bool IsVisible();
+    virtual shared_ptr<ruTexture> GetTexture( );
+    virtual void SetTexture( shared_ptr<ruTexture> pTexture );    
+    virtual ruVector2 GetPosition( );
+    virtual ruVector2 GetSize( );
+    virtual ruVector3 GetColor();
+    virtual int GetAlpha();
+	virtual void Attach( ruGUINode * parent );
+	virtual void SetPosition( float x, float y );
+	virtual void SetChildAlphaControl( bool control );
+	virtual void AddAction( ruGUIAction act, const ruDelegate & delegat );
+	virtual void RemoveAction( ruGUIAction act );
+	virtual void RemoveAllActions();
 };

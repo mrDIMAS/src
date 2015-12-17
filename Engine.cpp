@@ -48,8 +48,8 @@ Engine::~Engine() {
     while( BitmapFont::fonts.size() ) {
         delete BitmapFont::fonts.front();
     }
-    for( auto tmr : Timer::timers ) {
-        delete tmr;
+    while( Timer::msTimerList.size() ) {
+        delete Timer::msTimerList.front();
     }
     for( auto & kv : CubeTexture::all ) {
         delete kv.second;
@@ -69,11 +69,10 @@ Engine::~Engine() {
     if( mpForwardRenderer ) {
         delete mpForwardRenderer;
     }
-    Texture::DeleteAll();
-    
+
     int counter = 0;
-    if( Engine::Instance().GetDevice() ) {
-        while( Engine::Instance().GetDevice()->Release() ) {
+    if( Engine::I().GetDevice() ) {
+        while( Engine::I().GetDevice()->Release() ) {
             counter++;
         }
     }
@@ -249,7 +248,7 @@ int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
     SetActiveWindow ( mWindowHandle );
     SetForegroundWindow ( mWindowHandle );
     // init input
-    ruInputInit( &mWindowHandle );
+    ruInputInit( mWindowHandle );
     // success
     return 1;
 }
@@ -258,14 +257,14 @@ void Engine::CreatePhysics() {
     Physics::CreateWorld();
 }
 
-void Engine::RenderWorld() {
-	
+void Engine::RenderWorld() {	
 	if( GetDevice()->TestCooperativeLevel() == D3DERR_DEVICELOST ) {
 		if( !mPaused ) {
 			Log::Write( "Device lost. Engine paused!" );
 		}
 		mPaused = true;		
 	}
+
 	 // window message pump
 	UpdateMessagePump();
 	
@@ -300,7 +299,7 @@ void Engine::RenderWorld() {
     // begin dx scene
     GetDevice()->BeginScene();
     // begin rendering into G-Buffer
-    GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
+    SetZEnabled( true );
     SetZWriteEnabled( true );
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
     SetAlphaBlendEnabled( false );
@@ -316,15 +315,15 @@ void Engine::RenderWorld() {
         GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
     }
 	SetAlphaBlendEnabled( false );
-	GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+	SetZEnabled( false );
     GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
     GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
     SetZWriteEnabled( false );
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
     SetStencilEnabled( false );
-    mpDeferredRenderer->EndFirstPassAndDoSecondPass();
+    mpDeferredRenderer->DoLightingAndPostProcessing();
     // render all opacity meshes with forward renderer
-    GetDevice()->SetRenderState( D3DRS_ZENABLE, TRUE );
+    SetZEnabled( true );
 	SetZWriteEnabled( true );
     GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
 	GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
@@ -336,19 +335,13 @@ void Engine::RenderWorld() {
     SetStencilEnabled( false );
     mpParticleSystemRenderer->RenderAllParticleSystems();
     // render gui on top of all
-    GetDevice()->SetRenderState( D3DRS_ZENABLE, FALSE );
+    SetZEnabled( false );
     mpGUIRenderer->RenderAllGUIElements();
     // finalize
     GetDevice()->EndScene();
     GetDevice()->Present( 0, 0, 0, 0 );
     // update sound subsystem
     pfSystemUpdate();
-}
-
-void ruUpdatePhysics( float timeStep, int subSteps, float fixedTimeStep ) {
-    Physics::mpDynamicsWorld->stepSimulation( timeStep, subSteps, fixedTimeStep );
-	// grab info about node's physic contacts
-	SceneNode::UpdateContacts( );
 }
 
 void Engine::RenderMeshesIntoGBuffer() {
@@ -365,22 +358,22 @@ void Engine::RenderMeshesIntoGBuffer() {
         // each group has same texture
         mTextureChangeCount++;
         for( auto pMesh : meshes ) {
-			if( !pMesh->mIndexBuffer || !pMesh->mVertexBuffer ) {
+			if( !pMesh->IsHardwareBuffersGood() ) {
 				continue;
 			}
-			if( pMesh->mVertices.size() == 0 ) {
+			if( pMesh->GetVertices().size() == 0 ) {
 				continue;
 			}
 			// bind height texture for parallax mapping
-			if( pMesh->mHeightTexture && !pMesh->mSkinned ) {
+			if( pMesh->GetHeightTexture() && !pMesh->IsSkinned() ) {
 				if( mParallaxEnabled ) {
-					pMesh->mHeightTexture->Bind( 2 );
+					pMesh->GetHeightTexture()->Bind( 2 );
 					mpDeferredRenderer->BindParallaxShaders();
 				} else {
 					mpDeferredRenderer->BindGenericShaders();
 				}
 			} else {
-				if( pMesh->mSkinned ) {
+				if( pMesh->IsSkinned() ) {
 					mpDeferredRenderer->BindGenericSkinShaders();
 				} else {
 					mpDeferredRenderer->BindGenericShaders();
@@ -428,7 +421,7 @@ void Engine::SetPixelShaderInt( UINT startRegister, int v ) {
 }
 
 void Engine::SetPixelShaderFloat( UINT startRegister, float v ) {
-    float buffer[ 4 ] = { v, 0.0f, 0.0f, 0.0f };
+    float buffer[ 4 ] = { v, v, v, v };
     GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
 }
 
@@ -560,7 +553,7 @@ void Engine::OnResetDevice() {
 
 
 
-Engine & Engine::Instance() {
+Engine & Engine::I() {
 	static Engine instance;
 	return instance;
 }
@@ -651,7 +644,7 @@ void Engine::Shutdown() {
 
 bool Engine::IsNonPowerOfTwoTexturesSupport() {
 	D3DCAPS9 caps;
-	Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
+	Engine::I().GetDevice()->GetDeviceCaps( &caps );
 	char npotcond = caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL;
 	char pot = caps.TextureCaps & D3DPTEXTURECAPS_POW2;
 	return !(npotcond || pot);
@@ -732,7 +725,7 @@ void Engine::Pause() {
 
 void Engine::SetDefaults() {
 	GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
-	GetDevice()->SetRenderState ( D3DRS_ZENABLE, TRUE );
+	SetZEnabled( true );
 	GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
 	GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
 	GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
@@ -798,4 +791,16 @@ void Engine::SetZWriteEnabled( bool state ) {
 
 void Engine::SetStencilEnabled( bool state ) {
 	mpDevice->SetRenderState( D3DRS_STENCILENABLE, state );
+}
+
+void Engine::SetZEnabled( bool state ) {
+	mpDevice->SetRenderState( D3DRS_ZENABLE, state );
+}
+
+void Engine::SetParallaxEnabled( bool state ) {
+	mParallaxEnabled = state;
+}
+
+bool Engine::IsParallaxEnabled() {
+	return mParallaxEnabled;
 }

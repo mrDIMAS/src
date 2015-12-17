@@ -8,15 +8,15 @@ void RadioButton::Update(  ) {
 
 }
 
-RadioButton::RadioButton( float x, float y, ruTextureHandle buttonImage, const string & text  ) {
+RadioButton::RadioButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text  ) {
     mOn = false;
     int textHeight = 16;
     float buttonWidth = 110;
     float buttonHeight = 32;
-    mGUIButton = ruCreateGUIButton( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-	mCheck = ruCreateGUIRect( buttonWidth + 10, 6, 20, 20, ruGetTexture( "data/gui/menu/checkbox_checked.tga" ), pGUIProp->mForeColor );
-	ruAttachGUINode( mCheck, mGUIButton );
-	ruAddGUINodeAction( mGUIButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
+    mGUIButton = ruButton::Create( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+	mCheck = ruRect::Create( buttonWidth + 10, 6, 20, 20, ruTexture::Request( "data/gui/menu/checkbox_checked.tga" ), pGUIProp->mForeColor );
+	mCheck->Attach( mGUIButton );
+	mGUIButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
 }
 
 void RadioButton::SetEnabled( bool state ) {
@@ -28,20 +28,20 @@ bool RadioButton::IsEnabled() {
 }
 
 void RadioButton::SetChangeAction( const ruDelegate & delegat ) {
-	ruRemoveAllGUINodeActions( mGUIButton );
-	ruAddGUINodeAction( mGUIButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
-	ruAddGUINodeAction( mGUIButton, ruGUIAction::OnClick, delegat );
+	mGUIButton->RemoveAllActions();
+	mGUIButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
+	mGUIButton->AddAction( ruGUIAction::OnClick, delegat );
 }
 
-void RadioButton::AttachTo( ruGUINodeHandle node ) {
-	ruAttachGUINode( mGUIButton, node );
+void RadioButton::AttachTo( ruGUINode * node ) {
+	mGUIButton->Attach( node );
 }
 
 void RadioButton::OnChange() {
 	mOn = !mOn;
 	if( mOn ) {
-		ruSetGUINodeTexture( mCheck, ruGetTexture( "data/gui/menu/checkbox_checked.tga" ) );
+		mCheck->SetTexture( ruTexture::Request( "data/gui/menu/checkbox_checked.tga" ));
 	} else {
-		ruSetGUINodeTexture( mCheck, ruGetTexture( "data/gui/menu/checkbox.tga" ) );
+		mCheck->SetTexture( ruTexture::Request( "data/gui/menu/checkbox.tga" ));
 	}
 }

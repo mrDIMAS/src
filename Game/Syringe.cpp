@@ -5,7 +5,7 @@
 
 Syringe::Syringe( ) : mDozeCount( 2 ) {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands_syringe/hands_syringe.scene" );
-	mModel.SetDepthHack( 0.155f );
+	mModel->SetDepthHack( 0.155f );
 
 	mUseAnim = ruAnimation( 6, 18, 2.5, false );
 	mUseAnim.AddFrameListener( 12, ruDelegate::Bind( this, &Syringe::Proxy_HealPlayer ));
@@ -22,7 +22,7 @@ Syringe::Syringe( ) : mDozeCount( 2 ) {
 	mHideDepletedAnim.AddFrameListener( 22, ruDelegate::Bind( this, &Syringe::Proxy_Hide ));
 
 	mIdleAnim = ruAnimation( 28, 38, 3.0f, true );
-	mModel.SetAnimation( &mIdleAnim );
+	mModel->SetAnimation( &mIdleAnim );
 
 	mIdleDepletedAnim = ruAnimation( 46, 55, 3.0f, true );
 }
@@ -39,11 +39,11 @@ void Syringe::Update() {
 	if( mAppear ) {
 		if( mDozeCount > 0 ) {
 			mShowAnim.Rewind();
-			mModel.SetAnimation( &mShowAnim );
+			mModel->SetAnimation( &mShowAnim );
 			mShowAnim.enabled = true;				
 		} else {
 			mShowDepletedAnim.Rewind();
-			mModel.SetAnimation( &mShowDepletedAnim );
+			mModel->SetAnimation( &mShowDepletedAnim );
 			mShowDepletedAnim.enabled = true;
 		}
 		mAppear = false;
@@ -52,12 +52,12 @@ void Syringe::Update() {
 	if( (mToNext || mToPrev) ) {
 		if( !mUseAnim.enabled && !mShowAnim.enabled && !mShowDepletedAnim.enabled && !mHideDepletedAnim.enabled && !mHideAnim.enabled ) {
 			if( mDozeCount > 0 ) {
-				mModel.SetAnimation( &mHideAnim );
+				mModel->SetAnimation( &mHideAnim );
 				mHideAnim.Rewind();
 				mHideAnim.enabled = true;
 			} else {				
 				if( !mHideDepletedAnim.enabled ) {
-					mModel.SetAnimation( &mHideDepletedAnim );
+					mModel->SetAnimation( &mHideDepletedAnim );
 					mHideDepletedAnim.Rewind();
 					mHideDepletedAnim.enabled = true;					
 				}
@@ -76,7 +76,7 @@ void Syringe::Update() {
 	if( ruIsMouseHit( MB_Left ) && !mShowAnim.enabled && !mHideAnim.enabled && !mUseAnim.enabled && !mHideDepletedAnim.enabled && !mShowDepletedAnim.enabled ) {
 		if( mDozeCount > 0 ) {
 			mUseAnim.Rewind();
-			mModel.SetAnimation( &mUseAnim );
+			mModel->SetAnimation( &mUseAnim );
 			mUseAnim.enabled = true;
 			mIdleAnim.enabled = false;
 			mDozeCount--;
@@ -85,10 +85,10 @@ void Syringe::Update() {
 
 	if( !mShowAnim.enabled && !mShowDepletedAnim.enabled && !mUseAnim.enabled && !mHideAnim.enabled && !mHideDepletedAnim.enabled ) {
 		if( mDozeCount > 0 ) {
-			mModel.SetAnimation( &mIdleAnim );
+			mModel->SetAnimation( &mIdleAnim );
 			mIdleAnim.enabled = true;
 		} else {
-			mModel.SetAnimation( &mIdleDepletedAnim );
+			mModel->SetAnimation( &mIdleDepletedAnim );
 			mIdleDepletedAnim.enabled = true;			
 		}
 	}
@@ -113,7 +113,7 @@ void Syringe::Proxy_Use() {
 		Prev();
 	}
 	if( !mHideDepletedAnim.enabled ) {
-		mModel.SetAnimation( &mHideDepletedAnim );
+		mModel->SetAnimation( &mHideDepletedAnim );
 		mHideDepletedAnim.Rewind();
 		mHideDepletedAnim.enabled = true;					
 	}

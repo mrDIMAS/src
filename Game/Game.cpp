@@ -44,34 +44,33 @@ void main( ) {
 	g_resW = ruEngine::GetResolutionWidth();
 	g_resH = ruEngine::GetResolutionHeight();
 
-    ruLight::SetPointDefaultTexture( ruGetCubeTexture( "data/textures/generic/pointCube.dds" ));
-    ruLight::SetSpotDefaultTexture( ruGetTexture( "data/textures/generic/spotlight.jpg" ));
+    ruPointLight::SetPointDefaultTexture( ruCubeTexture::Request( "data/textures/generic/pointCube.dds" ));
+    ruSpotLight::SetSpotDefaultTexture( ruTexture::Request( "data/textures/generic/spotlight.jpg" ));
 	
     pGUIProp = new GUIProperties;
     pMainMenu = new Menu;
-    ruEngine::SetCursorSettings( ruGetTexture( "data/gui/cursor.tga" ), 32, 32 );
+    ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
     FPSCounter fpsCounter;
 
-    ruTimerHandle dtTimer = ruCreateTimer();
+    ruTimer * dtTimer = ruTimer::Create();
 	Level::CreateLoadingScreen();
 
-    
-    double gameClock = ruGetTimeInSeconds( dtTimer );
+    double gameClock = dtTimer->GetTimeInSeconds();
 
-    ruTextHandle fpsText = ruCreateGUIText( "FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, 0, 100 );
+    ruText * fpsText = ruText::Create( "FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left, 100 );
     ruEngine::ShowCursor();
 
     while( g_running ) {
         ruEngine::RenderWorld( );
 
-        double dt = ruGetTimeInSeconds( dtTimer ) - gameClock;
+        double dt = dtTimer->GetTimeInSeconds() - gameClock;
         while( dt >= gFixedTick ) {
             dt -= gFixedTick;
             gameClock += gFixedTick;              
 			g_dt = gFixedTick;
 
 			if( !pMainMenu->IsVisible() )  {
-				ruUpdatePhysics( gFixedTick, 1, gFixedTick );
+				ruPhysics::Update( gFixedTick, 1, gFixedTick );
 			}
 
             ruInputUpdate();
@@ -100,8 +99,8 @@ void main( ) {
                 }
                 InteractiveObject::UpdateAll();
 			}
-            ruSetGUINodeText( fpsText, StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() << "\nTCs: " << ruEngine::GetTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
-            ruSetGUINodeVisible( fpsText, g_showFPS );
+            fpsText->SetText( StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() << "\nTCs: " << ruEngine::GetTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
+            fpsText->SetVisible( g_showFPS );
 			// recalculate transforms of scene nodes
 			ruEngine::UpdateWorld();
         }			

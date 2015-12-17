@@ -19,10 +19,7 @@
 *                                                                              *
 *******************************************************************************/
 
-#ifndef _SDXE_FAST_READER_
-#define _SDXE_FAST_READER_
-
-
+#pragma once
 
 class FastReader {
 private:
@@ -47,4 +44,3 @@ public:
     bool IsEnded( );
 };
 
-#endif

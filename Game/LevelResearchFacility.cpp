@@ -15,7 +15,7 @@ LevelResearchFacility::LevelResearchFacility() {
     LoadSceneFromFile( "data/maps/release/researchFacility/rf.scene" );
 	LoadLocalization( "rf.loc" );
 
-    pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" ).GetPosition() );
+    pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" )->GetPosition() );
 	
 	AddSound( mSteamHissSound = ruSound::Load3D( "data/sounds/steamhiss.ogg" ));
 	mSteamHissSound.SetRolloffFactor( 5 );
@@ -75,13 +75,13 @@ LevelResearchFacility::LevelResearchFacility() {
 
 	mMeshLock = GetUniqueObject( "MeshLock" );
 	mMeshLockAnimation = ruAnimation( 0, 30, 2 );
-	mMeshLock.SetAnimation( &mMeshLockAnimation );
+	mMeshLock->SetAnimation( &mMeshLockAnimation );
 
 	mThermitePlace = GetUniqueObject( "ThermitePlace" );
 
 	mMeshToSewers = GetUniqueObject( "MeshToSewers" );
 	mMeshAnimation = ruAnimation( 0, 30, 2 );
-	mMeshToSewers.SetAnimation( &mMeshAnimation );
+	mMeshToSewers->SetAnimation( &mMeshAnimation );
 
 	AddZone( mZoneObjectiveNeedPassThroughMesh = make_shared<Zone>( GetUniqueObject( "ObjectiveNeedPassThroughMesh" )));
 	mZoneObjectiveNeedPassThroughMesh->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelResearchFacility::OnPlayerEnterNeedPassThroughMeshZone ));
@@ -146,7 +146,7 @@ LevelResearchFacility::LevelResearchFacility() {
 
 	AutoCreateDoorsByNamePattern( "Door?([[:digit:]]+)" );
 
-    mPowerLamp = GetUniqueObject( "PowerLamp");
+    mPowerLamp = dynamic_cast<ruPointLight*>( GetUniqueObject( "PowerLamp"));
     mPowerLeverSnd = GetUniqueObject( "PowerLeverSnd");
     mSmallSteamPosition = GetUniqueObject( "RFSteamPos" );
 	mZoneNewLevelLoad = GetUniqueObject( "NewLevelLoadZone" );
@@ -201,10 +201,12 @@ LevelResearchFacility::LevelResearchFacility() {
 		mColliderDoorToUnlock.get(), "1598" );
 
 
-	ruSetAudioReverb( 10 );
+	ruSound::SetAudioReverb( 10 );
 
 	mEnemySpawnPosition = GetUniqueObject( "EnemyPosition" );
 		
+	mSteamPS = nullptr;
+
     DoneInitialization();
 }
 
@@ -261,12 +263,12 @@ void LevelResearchFacility::CreateEnemy() {
 	patrolPoints.push_back( pathRoomD.mVertexList.back() );
 
 	mEnemy = make_shared<Enemy>( allPaths, patrolPoints );
-	mEnemy->SetPosition( mEnemySpawnPosition.GetPosition() );
+	mEnemy->SetPosition( mEnemySpawnPosition->GetPosition() );
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
-	if( mSteamPS.IsValid() ) {
-		mSteamPS.Free();
+	if( mSteamPS ) {
+		mSteamPS->Free();
 	}
 	if( mpPowerSparks ) {
 		delete mpPowerSparks;
@@ -314,14 +316,14 @@ void LevelResearchFacility::DoScenario() {
 	}
 	
 	if( !mStages[ "DoorUnderFloorOpen" ] ) {
-		if( pPlayer->mNearestPickedNode.IsValid()) {
+		if( pPlayer->mNearestPickedNode ) {
 			if( pPlayer->mNearestPickedNode == mDoorUnderFloor ) {			
 				if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {	
 					if( pPlayer->GetInventory()->GetItemSelectedForUse()->GetType() == Item::Type::Crowbar ) {
 						pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
 						if( ruIsKeyHit( pPlayer->mKeyUse )) {
 							pPlayer->mInventory.ResetSelectedForUse();
-							mDoorUnderFloor.SetRotation( ruQuaternion( 0, 0, -110 ));
+							mDoorUnderFloor->SetRotation( ruQuaternion( 0, 0, -110 ));
 							mStages[ "DoorUnderFloorOpen" ] = true;
 						}
 					}
@@ -342,7 +344,7 @@ void LevelResearchFacility::DoScenario() {
 
     mpSteamValve->Update();
     mpExtemeSteam->Update();
-    mpExtemeSteam->power = 1.0f - mpSteamValve->GetClosedCoeffecient();
+    mpExtemeSteam->SetPower( 1.0f - mpSteamValve->GetClosedCoeffecient());
 
     UpdatePowerupSequence();
 	UpdateThermiteSequence();
@@ -350,29 +352,28 @@ void LevelResearchFacility::DoScenario() {
     if( mPowerOn && mpPowerSparks ) {
         mpPowerSparks->Update();
 
-        if( !mpPowerSparks->alive ) {
+        if( !mpPowerSparks->IsAlive() ) {
             delete mpPowerSparks;
 
             mpPowerSparks = 0;
         }
     }
 
-    if( mSteamHissSound.IsPlaying() && mSteamPS.IsValid() ) {
+    if( mSteamHissSound.IsPlaying() && mSteamPS ) {
         static float steamParticleSize = 0.15f;
 
-        ruGetParticleSystemProperties( mSteamPS )->pointSize = steamParticleSize;
+        mSteamPS->SetPointSize( steamParticleSize );
 
         if( steamParticleSize > 0 ) {
             steamParticleSize -= 0.0005f;
         } else {
-            mSteamPS.Free();
-
-            mSteamPS.Invalidate();
+            mSteamPS->Free();
+            mSteamPS = nullptr;
         }
     }
 
     if( mpSteamValve->IsDone() ) {
-        mExtremeSteamBlock.SetPosition( ruVector3( 1000, 1000, 1000 ));
+        mExtremeSteamBlock->SetPosition( ruVector3( 1000, 1000, 1000 ));
     } else {
         if( pPlayer->IsInsideZone( mZoneExtremeSteamHurt )) {
             pPlayer->Damage( 0.6 );
@@ -391,39 +392,35 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 				bool placed = mThermiteItemPlace->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse()->GetType() );
 				if( placed ) {
 					if( mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder ) {
-						mThermiteSmall.Show();
+						mThermiteSmall->Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::FerrumOxide );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::FerrumOxide ) {
-						mThermiteBig.Show();
+						mThermiteBig->Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::Lighter );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter ) {
 						mMeshLockAnimation.enabled = true;
 						mMeshAnimation.enabled = true;
 
-						mThermiteSmall.Hide();
-						mThermiteBig.Hide();
+						mThermiteSmall->Hide();
+						mThermiteBig->Hide();
 
 						mBurnSound = ruSound::Load3D( "data/sounds/burn.ogg" );
-						mBurnSound.SetPosition( mThermiteSmall.GetPosition() );
+						mBurnSound.SetPosition( mThermiteSmall->GetPosition() );
 						mBurnSound.Play();
 
 						mThermiteItemPlace->SetPlaceType( Item::Type::Unknown );
 						
-						ruParticleSystemProperties psProps;
-						psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
-						psProps.type = PS_BOX;
-						psProps.speedDeviationMin = ruVector3( -0.001, 0.001, -0.001 );
-						psProps.speedDeviationMax = ruVector3( 0.001, 0.009, 0.001 );
-						psProps.colorBegin = ruVector3( 255, 255, 255 );
-						psProps.colorEnd = ruVector3( 255, 255, 255 );
-						psProps.pointSize = 0.045f;
-						psProps.boundingBoxMin = ruVector3( -0.2, 0.0, -0.2 );
-						psProps.boundingBoxMax = ruVector3( 0.2, 0.4, 0.2 );
-						psProps.particleThickness = 20.5f;
-						psProps.autoResurrectDeadParticles = false;
-						psProps.useLighting = true;
-						ruSceneNode ps = ruCreateParticleSystem( 150, psProps );
-						ps.SetPosition( mThermiteSmall.GetPosition() );
+						mThermitePS = ruParticleSystem::Create( 150 );
+						mThermitePS->SetPosition( mThermiteSmall->GetPosition() );
+						mThermitePS->SetTexture( ruTexture::Request( "data/textures/particles/p1.png"));
+						mThermitePS->SetType( ruParticleSystem::Type::Box );
+						mThermitePS->SetSpeedDeviation( ruVector3( -0.001, 0.001, -0.001 ), ruVector3( 0.001, 0.009, 0.001 ));
+						mThermitePS->SetColorRange( ruVector3( 255, 255, 255 ), ruVector3( 255, 255, 255 ));
+						mThermitePS->SetPointSize( 0.045f );
+						mThermitePS->SetBoundingBox( ruVector3( -0.2, 0.0, -0.2 ), ruVector3( 0.2, 0.4, 0.2 ));
+						mThermitePS->SetParticleThickness( 20.5f );
+						mThermitePS->SetAutoResurrection( false );
+						mThermitePS->SetLightingEnabled( true );
 					}
 				}
 			}		
@@ -460,7 +457,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
                     bool placed = pFuse->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse()->GetType() );
 
                     if( placed ) {
-                        fuseModel[iFusePlace].Show();
+                        fuseModel[iFusePlace]->Show();
                         pFuse->SetPlaceType( Item::Type::Unknown );
                     }
                 }
@@ -473,14 +470,14 @@ void LevelResearchFacility::UpdatePowerupSequence() {
             pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString("powerUp") );
 
             if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
-                mPowerLamp.SetColor( ruVector3( 0, 255, 0 ) );
+                mPowerLamp->SetColor( ruVector3( 0, 255, 0 ) );
 
                 mLeverSound.Play();
 
                 mpPowerSparks = new Sparks( mPowerLeverSnd, ruSound::Load3D( "data/sounds/sparks.ogg" ));
 
-                mPowerLeverOnModel.Show();
-                mPowerLeverOffModel.Hide();
+                mPowerLeverOnModel->Show();
+                mPowerLeverOffModel->Hide();
 
                 mPowerOn = true;
             }
@@ -522,7 +519,7 @@ void LevelResearchFacility::OnDeserialize( SaveFile & in ) {
 void LevelResearchFacility::OnSerialize( SaveFile & out ) {
 	out.WriteBoolean( mEnemy != nullptr );
 	if( mEnemy ) {
-		out.WriteVector3( mEnemy->GetBody().GetPosition());
+		out.WriteVector3( mEnemy->GetBody()->GetPosition());
 	}
 	SerializeAnimation( out, mMeshAnimation );
 	SerializeAnimation( out, mMeshLockAnimation );
@@ -568,22 +565,19 @@ void LevelResearchFacility::OnPlayerEnterRestorePowerZone()
 	}
 }
 
-void LevelResearchFacility::OnPlayerEnterSteamActivateZone()
-{
+void LevelResearchFacility::OnPlayerEnterSteamActivateZone() {
 	if( !mStages[ "EnterSteamActivateZone" ] ) {
-		ruParticleSystemProperties psProps;
-		psProps.texture = ruGetTexture( "data/textures/particles/p1.png");
-		psProps.type = PS_STREAM;
-		psProps.speedDeviationMin = ruVector3( -0.0015, 0.08, -0.0015 );
-		psProps.speedDeviationMax = ruVector3( 0.0015, 0.2, 0.0015 );
-		psProps.boundingRadius = 0.4f;
-		psProps.colorBegin = ruVector3( 255, 255, 255 );
-		psProps.colorEnd = ruVector3( 255, 255, 255 );
-		psProps.pointSize = 0.15f;
-		psProps.particleThickness = 1.5f;
-		psProps.useLighting = true;
-		mSteamPS = ruCreateParticleSystem( 35, psProps );
-		mSteamPS.SetPosition( mSmallSteamPosition.GetPosition());
+		mSteamPS = ruParticleSystem::Create( 35 );
+		mSteamPS->SetPosition( mSmallSteamPosition->GetPosition());
+		mSteamPS->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));
+		mSteamPS->SetType( ruParticleSystem::Type::Stream );
+		mSteamPS->SetSpeedDeviation( ruVector3( -0.0015, 0.08, -0.0015 ), ruVector3( 0.0015, 0.2, 0.0015 ));
+		mSteamPS->SetBoundingRadius( 0.4f );
+		mSteamPS->SetColorRange( ruVector3( 255, 255, 255 ), ruVector3( 255, 255, 255 ));
+		mSteamPS->SetPointSize( 0.15f );
+		mSteamPS->SetParticleThickness( 1.5f );
+		mSteamPS->SetLightingEnabled( true );
+
 		mSteamHissSound.Attach( mSteamPS );
 		mSteamHissSound.Play();
 		mStages[ "EnterSteamActivateZone" ] = true;	

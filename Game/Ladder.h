@@ -6,7 +6,7 @@ class Ladder : public Way {
 private:
     void DoLeave();
 public:
-    explicit Ladder( ruSceneNode hBegin, ruSceneNode hEnd, ruSceneNode hEnterZone, ruSceneNode hBeginLeavePoint, ruSceneNode hEndLeavePoint );
+    explicit Ladder( ruSceneNode * hBegin, ruSceneNode * hEnd, ruSceneNode * hEnterZone, ruSceneNode * hBeginLeavePoint, ruSceneNode * hEndLeavePoint );
 
     virtual void DoPlayerCrawling() final;
     virtual void Enter() final;

@@ -38,7 +38,7 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         D3DDECL_END()
     };
 
-    Engine::Instance().GetDevice()->CreateVertexDeclaration( vdElem, &vd );
+    Engine::I().GetDevice()->CreateVertexDeclaration( vdElem, &vd );
 }
 
 ParticleSystemRenderer::~ParticleSystemRenderer() {
@@ -54,43 +54,43 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 
     pixelShader->Bind();
 
-    Engine::Instance().GetDevice()->SetVertexDeclaration( vd );
+    Engine::I().GetDevice()->SetVertexDeclaration( vd );
     vertexShader->Bind();
-    for( auto particleEmitter : ParticleEmitter::msParticleEmitters ) {
-        if( !particleEmitter->GetOwner()->IsVisible() || !particleEmitter->IsEnabled() || !particleEmitter->HasAliveParticles() ) {
+    for( auto particleEmitter : ParticleSystem::msParticleEmitters ) {
+        if( !particleEmitter->IsVisible() || !particleEmitter->IsEnabled() || !particleEmitter->HasAliveParticles() ) {
             continue;
         }
 
 		particleEmitter->Update();
 		particleEmitter->Bind();
 
-		if( fabs( particleEmitter->props.depthHack ) > 0.001 ) {
-			Camera::msCurrentCamera->EnterDepthHack( fabs( particleEmitter->props.depthHack ));
+		if( fabs( particleEmitter->mDepthHack ) > 0.001 ) {
+			Camera::msCurrentCamera->EnterDepthHack( fabs( particleEmitter->mDepthHack ));
 		}
 
-		if( particleEmitter->props.useLighting ) {
+		if( particleEmitter->mUseLighting ) {
 			vertexShaderLighting->Bind();
 		}
 
 		D3DXMATRIX mWVP;
 		D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &Camera::msCurrentCamera->mViewProjection );
-		Engine::Instance().SetVertexShaderMatrix( 0, &mWVP );
-		Engine::Instance().SetVertexShaderMatrix( 5, &particleEmitter->mWorldTransform );
+		Engine::I().SetVertexShaderMatrix( 0, &mWVP );
+		Engine::I().SetVertexShaderMatrix( 5, &particleEmitter->mWorldTransform );
 
-		if( particleEmitter->props.useLighting ) {		
-			Engine::Instance().SetVertexShaderFloat3( 61, Engine::Instance().GetAmbientColor().elements );
+		if( particleEmitter->mUseLighting ) {		
+			Engine::I().SetVertexShaderFloat3( 61, Engine::I().GetAmbientColor().elements );
 			lightList.clear();
-			for( auto pLight : Light::msPointLightList ) {
-				if( (pLight->GetPosition() - particleEmitter->GetOwner()->GetPosition()).Length() < ( 1.25f * pLight->GetRange() + particleEmitter->props.boundingRadius )) {
+			for( auto pLight : PointLight::msPointLightList ) {
+				if( (pLight->GetPosition() - particleEmitter->GetPosition()).Length() < ( 1.25f * pLight->GetRange() + particleEmitter->mBoundingRadius )) {
 					lightList.push_back( pLight );
 				}
 			}
-			Engine::Instance().SetVertexShaderFloat( 62, lightList.size() );
+			Engine::I().SetVertexShaderFloat( 62, lightList.size() );
 			int lightNumber = 0;
 			for( auto pLight : lightList ) {
-				Engine::Instance().SetVertexShaderFloat3( 10 + lightNumber, pLight->GetPosition().elements );
-				Engine::Instance().SetVertexShaderFloat3( 27 + lightNumber, pLight->GetColor().elements );
-				Engine::Instance().SetVertexShaderFloat( 44 + lightNumber, pLight->GetRange() );
+				Engine::I().SetVertexShaderFloat3( 10 + lightNumber, pLight->GetPosition().elements );
+				Engine::I().SetVertexShaderFloat3( 27 + lightNumber, pLight->GetColor().elements );
+				Engine::I().SetVertexShaderFloat( 44 + lightNumber, pLight->GetRange() );
 				lightNumber++;
 				if( lightNumber >= 16 ) {
 					break;
@@ -103,12 +103,12 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 			particleEmitter->Render();
 		}
 		
-		if( fabs( particleEmitter->props.depthHack ) > 0.001 ) {
+		if( fabs( particleEmitter->mDepthHack ) > 0.001 ) {
 			Camera::msCurrentCamera->LeaveDepthHack();
 		}
 
 		// revert to ordinary shader
-		if( particleEmitter->props.useLighting ) {
+		if( particleEmitter->mUseLighting ) {
 			vertexShader->Bind();
 		}
     }

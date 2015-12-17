@@ -24,28 +24,29 @@
 #include "Cursor.h"
 #include "Camera.h"
 #include "SceneNode.h"
+#include "Physics.h"
 
 void ruEngine::Create( int width, int height, int fullscreen, char vSync ) {
-	Engine::Instance().Initialize( width, height, fullscreen, vSync ) ;
+	Engine::I().Initialize( width, height, fullscreen, vSync ) ;
 }
 void ruEngine::Free( ) {
-	Engine::Instance().Shutdown();
+	Engine::I().Shutdown();
 }
 void ruEngine::RenderWorld( ) {
-	Engine::Instance().RenderWorld();
+	Engine::I().RenderWorld();
 }
 int ruEngine::GetResolutionWidth( ) {
-	return Engine::Instance().GetResolutionWidth();
+	return Engine::I().GetResolutionWidth();
 }
 int ruEngine::GetResolutionHeight( ) {
-	return Engine::Instance().GetResolutionHeight();
+	return Engine::I().GetResolutionHeight();
 }
 void ruEngine::HideCursor( ) {
 	if( Cursor::msCurrentCursor ) {
 		Cursor::msCurrentCursor->Hide();
 	} else {
 		::ShowCursor( 0 );
-		Engine::Instance().GetDevice()->ShowCursor( 0 );
+		Engine::I().GetDevice()->ShowCursor( 0 );
 	}
 }
 void ruEngine::ShowCursor( ) {
@@ -53,36 +54,36 @@ void ruEngine::ShowCursor( ) {
 		Cursor::msCurrentCursor->Show();
 	} else {
 		::ShowCursor( 1 );
-		Engine::Instance().GetDevice()->ShowCursor( 1 );
+		Engine::I().GetDevice()->ShowCursor( 1 );
 	}
 }
 
-void ruEngine::SetCursorSettings( ruTextureHandle texture, int w, int h ) {
+void ruEngine::SetCursorSettings( shared_ptr<ruTexture> texture, int w, int h ) {
 	if( !Cursor::msCurrentCursor ) {
-		Cursor::msCurrentCursor = new Cursor( w, h, (Texture*)texture.pointer );
+		Cursor::msCurrentCursor = new Cursor( w, h, std::dynamic_pointer_cast<Texture>( texture ));
 	}	
 }
 int ruEngine::GetDIPs( ) {
-	return Engine::Instance().GetDIPCount();
+	return Engine::I().GetDIPCount();
 }
 int ruEngine::GetMaxAnisotropy() {
 	D3DCAPS9 caps;
-	Engine::Instance().GetDevice()->GetDeviceCaps( &caps );
+	Engine::I().GetDevice()->GetDeviceCaps( &caps );
 
 	return caps.MaxAnisotropy;
 }
 int ruEngine::GetTextureUsedPerFrame( ) {
-	return Engine::Instance().GetTextureChangeCount();
+	return Engine::I().GetTextureChangeCount();
 }
 void ruEngine::SetAmbientColor( ruVector3 color ) {
-	Engine::Instance().SetAmbientColor( color );
+	Engine::I().SetAmbientColor( color );
 }
 int ruEngine::GetAvailableTextureMemory() {
-	return Engine::Instance().GetDevice()->GetAvailableTextureMem();
+	return Engine::I().GetDevice()->GetAvailableTextureMem();
 }
 void ruEngine::EnableShadows( bool state ) {
-	Engine::Instance().SetSpotLightShadowsEnabled( state );
-	Engine::Instance().SetPointLightShadowsEnabled( state );
+	Engine::I().SetSpotLightShadowsEnabled( state );
+	Engine::I().SetPointLightShadowsEnabled( state );
 }
 void ruEngine::UpdateWorld() {
 	// build view and projection matrices, frustum, also attach sound listener to camera
@@ -106,35 +107,35 @@ void ruEngine::UpdateWorld() {
 	}
 }
 void ruEngine::SetAnisotropicTextureFiltration( bool state ) {
-	Engine::Instance().SetAnisotropicTextureFiltration( state );
+	Engine::I().SetAnisotropicTextureFiltration( state );
 }
 void ruEngine::SetFXAAEnabled( bool state ) {
-	Engine::Instance().SetFXAAEnabled( state );
+	Engine::I().SetFXAAEnabled( state );
 }
 bool ruEngine::IsFXAAEnabled() {
-	return Engine::Instance().IsFXAAEnabled();
+	return Engine::I().IsFXAAEnabled();
 }
 void ruEngine::ChangeVideomode( int width, int height, int fullscreen, char vSync ) {
-	Engine::Instance().ChangeVideomode( width, height, fullscreen, vSync );
+	Engine::I().ChangeVideomode( width, height, fullscreen, vSync );
 }
 void ruEngine::SetHDREnabled( bool state ) {
-	Engine::Instance().SetHDREnabled( state );
+	Engine::I().SetHDREnabled( state );
 }
 bool ruEngine::IsHDREnabled( ) {
-	return Engine::Instance().IsHDREnabled();
+	return Engine::I().IsHDREnabled();
 }
 void ruEngine::SetSpotLightShadowMapSize( int size ) {
-	Engine::Instance().SetSpotLightShadowMapSize( size );
+	Engine::I().SetSpotLightShadowMapSize( size );
 }
 void ruEngine::EnableSpotLightShadows( bool state ) {
-	Engine::Instance().SetSpotLightShadowsEnabled( state );
+	Engine::I().SetSpotLightShadowsEnabled( state );
 }
 bool ruEngine::IsSpotLightShadowsEnabled() {
-	return Engine::Instance().IsSpotLightShadowsEnabled();
+	return Engine::I().IsSpotLightShadowsEnabled();
 }
 void ruEngine::SetParallaxEnabled( bool state ) {
-	Engine::Instance().SetParallaxEnabled( state );
+	Engine::I().SetParallaxEnabled( state );
 }
 bool ruEngine::IsParallaxEnabled() {
-	return Engine::Instance().IsParallaxEnabled();
+	return Engine::I().IsParallaxEnabled();
 }

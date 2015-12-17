@@ -23,14 +23,14 @@
 
 #include "SceneNode.h"
 #include "Frustum.h"
-#include "Light.h"
+#include "Texture.h"
 
-class Light;
 class Skybox;
+class PointLight;
 
-class Camera : public SceneNode {
-public:
-    float mFov;
+class Camera : public virtual ruCamera, public SceneNode {
+public:  
+	float mFov;
     float mNearZ;
     float mFarZ;
 
@@ -41,33 +41,37 @@ public:
     D3DXMATRIX mDepthHackMatrix;
     Frustum mFrustum;
     bool mInDepthHack;
-    Skybox * mSkybox;
+    shared_ptr<Skybox> mSkybox;
 
 	// dynamic light caching
 	class PathPoint {
 	public:
 		ruVector3 mPoint;
 		// list of lights visible from that point, filled by occlusion queries
-		vector<Light*> mVisibleLightList;
+		vector<PointLight*> mVisibleLightList;
 	};
 	PathPoint * mDefaultPathPoint;
 	PathPoint * mNearestPathPoint;
 	ruVector3 mLastPosition;
 	vector<PathPoint*> mPath;
 	float mPathNewPointDelta;
-	void ManagePath();
-
-	static Camera * msCurrentCamera;
+	void ManagePath();	
 public:
+	static Camera * msCurrentCamera;
     explicit Camera( float fov );
     virtual ~Camera();
     void CalculateProjectionMatrix();
     void CalculateInverseViewProjection();
-    void SetSkyBox( Texture * up, Texture * left, Texture * right, Texture * forward, Texture * back );
     void Update();
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );
-    static Camera * CastHandle( ruSceneNode handle );
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
+
+	virtual void SetFOV( float fov );
+
+	virtual void SetActive();
+
+	virtual void SetSkybox( shared_ptr<ruTexture> up, shared_ptr<ruTexture> left, shared_ptr<ruTexture> right, shared_ptr<ruTexture> forward, shared_ptr<ruTexture> back );
+
 };

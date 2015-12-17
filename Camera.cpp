@@ -25,16 +25,9 @@
 #include "AABB.h"
 #include "Camera.h"
 #include "Skybox.h"
+#include "PointLight.h"
 
 Camera * Camera::msCurrentCamera = nullptr;
-
-Camera * Camera::CastHandle( ruSceneNode handle ) {
-    SceneNode * n = SceneNode::CastHandle( handle );
-
-    Camera * camera = dynamic_cast< Camera* >( n );
-
-    return camera;
-}
 
 void Camera::Update() {
     btVector3 eye = mGlobalTransform.getOrigin();
@@ -63,13 +56,12 @@ void Camera::Update() {
 	ManagePath();
 }
 
-void Camera::SetSkyBox( Texture * up, Texture * left, Texture * right, Texture * forward, Texture * back ) {
+void Camera::SetSkybox( shared_ptr<ruTexture> up, shared_ptr<ruTexture> left, shared_ptr<ruTexture> right, shared_ptr<ruTexture> forward, shared_ptr<ruTexture> back ) {
     if( up && left && right && forward && back ) {
-        mSkybox = new Skybox( up, left, right, forward, back );
+        mSkybox = shared_ptr<Skybox>( new Skybox( std::dynamic_pointer_cast<Texture>( up ), std::dynamic_pointer_cast<Texture>( left ), std::dynamic_pointer_cast<Texture>( right ), std::dynamic_pointer_cast<Texture>( forward ), std::dynamic_pointer_cast<Texture>( back )));
     } else {
         if( mSkybox ) {
-            delete mSkybox;
-            mSkybox = nullptr;
+            mSkybox.reset();
         }
     }
 }
@@ -81,7 +73,7 @@ void Camera::CalculateInverseViewProjection() {
 
 void Camera::CalculateProjectionMatrix() {
     D3DVIEWPORT9 vp;
-    Engine::Instance().GetDevice()->GetViewport( &vp );
+    Engine::I().GetDevice()->GetViewport( &vp );
     D3DXMatrixPerspectiveFovRH( &mProjection, mFov * 3.14159 / 180.0f, (float)vp.Width / (float)vp.Height, mNearZ, mFarZ );
 }
 
@@ -89,9 +81,6 @@ Camera::~Camera() {
 	if( msCurrentCamera == this ) {
 		msCurrentCamera = nullptr;
 	}
-    if( mSkybox ) {
-        delete mSkybox;
-    }
 	for( auto pPoint : mPath ) {
 		delete pPoint;
 	}
@@ -132,15 +121,15 @@ void Camera::LeaveDepthHack() {
 // this function builds path of camera by creating points in regular distance between them
 void Camera::ManagePath() {
 	if( mPath.size() > 64 ) {
-		if( Light::msPointLightList.size() ) {
+		if( PointLight::msPointLightList.size() ) {
 			for( auto pPoint : mPath ) {
 				delete pPoint;
 			}
 			float mRangeSum = 0;
-			for( auto pLight : Light::msPointLightList ) {
+			for( auto pLight : PointLight::msPointLightList ) {
 				mRangeSum += pLight->GetRange();
 			}
-			mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
+			mPathNewPointDelta = ( mRangeSum / PointLight::msPointLightList.size() ) / 2;
 			mLastPosition = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
 		}
 		mPath.clear();
@@ -175,19 +164,18 @@ void Camera::OnResetDevice()
 	ManagePath();
 }
 
-void Camera::OnLostDevice()
-{
+void Camera::OnLostDevice() {
 	mNearestPathPoint = mDefaultPathPoint;
 
 	for( auto pPoint : mPath ) {
 		delete pPoint;
 	}
-	if( Light::msPointLightList.size() ) {
+	if( PointLight::msPointLightList.size() ) {
 		float mRangeSum = 0;
-		for( auto pLight : Light::msPointLightList ) {
+		for( auto pLight : PointLight::msPointLightList ) {
 			mRangeSum += pLight->GetRange();
 		}	
-		mPathNewPointDelta = ( mRangeSum / Light::msPointLightList.size() ) / 2;
+		mPathNewPointDelta = ( mRangeSum / PointLight::msPointLightList.size() ) / 2;
 	} else {
 		mPathNewPointDelta = 0.0f;
 	}
@@ -195,25 +183,14 @@ void Camera::OnLostDevice()
 	mPath.clear();
 }
 
-
-/////////////////////////////////////////////////////////////
-// API
-/////////////////////////////////////////////////////////////
-
-ruSceneNode ruCreateCamera( float fov ) {
-    return SceneNode::HandleFromPointer( new Camera( fov ) );
+void Camera::SetActive()
+{
+	Camera::msCurrentCamera = this;
 }
 
-void ruSetCameraFOV( ruSceneNode camera, float fov ) {
-    Camera::CastHandle( camera )->mFov = fov;
+void Camera::SetFOV( float fov )
+{
+	mFov = fov;
 }
 
-void ruSetActiveCamera( ruSceneNode node ) {
-    Camera::msCurrentCamera = Camera::CastHandle( node );
-}
 
-int ruSetCameraSkybox( ruSceneNode node, ruTextureHandle up, ruTextureHandle left, ruTextureHandle right, ruTextureHandle forward, ruTextureHandle back ) {
-    Camera::CastHandle( node )->SetSkyBox( (Texture*)up.pointer, (Texture*)left.pointer, (Texture*)right.pointer, (Texture*)forward.pointer, (Texture*)back.pointer );
-    return 1;
-}
- 

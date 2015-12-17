@@ -33,11 +33,11 @@ btSequentialImpulseConstraintSolver * Physics::mpSolver = 0;
 class FilterCallback : public btOverlapFilterCallback {
 public:
 	virtual bool needBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const	{
-		btCollisionObject * colObjA = (btCollisionObject*)proxy0->m_clientObject;
-		SceneNode * nodeA = (SceneNode *)colObjA->getUserPointer();
+		btCollisionObject * colObjA = static_cast<btCollisionObject*>( proxy0->m_clientObject );
+		SceneNode * nodeA = static_cast<SceneNode*>( colObjA->getUserPointer());
 
-		btCollisionObject * colObjB = (btCollisionObject*)proxy1->m_clientObject;
-		SceneNode * nodeB = (SceneNode *)colObjB->getUserPointer();
+		btCollisionObject * colObjB = static_cast<btCollisionObject*>( proxy1->m_clientObject );
+		SceneNode * nodeB = static_cast<SceneNode*>( colObjB->getUserPointer());
 
 		if( nodeA->IsFrozen() && nodeB->IsStatic() || nodeB->IsFrozen() && nodeA->IsStatic() ) {
 			return false;
@@ -55,11 +55,11 @@ public:
 void MyNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatchInfo) {
 	// Do your collision logic here
 	// Only dispatch the Bullet collision information if you want the physics to continue
-	btCollisionObject * colObjA = (btCollisionObject*)collisionPair.m_pProxy0->m_clientObject;
-	SceneNode * nodeA = (SceneNode *)colObjA->getUserPointer();
+	btCollisionObject * colObjA = static_cast<btCollisionObject*>( collisionPair.m_pProxy0->m_clientObject );
+	SceneNode * nodeA = static_cast<SceneNode*>( colObjA->getUserPointer());
 
-	btCollisionObject * colObjB = (btCollisionObject*)collisionPair.m_pProxy1->m_clientObject;
-	SceneNode * nodeB = (SceneNode *)colObjB->getUserPointer();
+	btCollisionObject * colObjB = static_cast<btCollisionObject*>( collisionPair.m_pProxy1->m_clientObject );
+	SceneNode * nodeB = static_cast<SceneNode*>( colObjB->getUserPointer());
 
 	if( nodeA->IsFrozen() && nodeB->IsStatic() || nodeB->IsFrozen() && nodeA->IsStatic() ) {
 		return;

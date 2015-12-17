@@ -30,48 +30,29 @@
 #include "Frustum.h"
 #include "Utility.h"
 
-class Light : public SceneNode {
+class Light : public virtual ruLight, public SceneNode {
 public:
 	IDirect3DQuery9 * pQuery;
 	bool mQueryDone;
-	bool mInFrustum;
-    Frustum mFrustum;
+	bool mInFrustum;   
     float mRadius;
     ruVector3 mColor;
-    float mInnerAngle;
-    float mOuterAngle;
-    float mCosHalfInnerAngle;
-    float mCosHalfOuterAngle;
-    ruLight::Type mType;
 	float mGreyScaleFactor;
-    D3DXMATRIX mSpotViewProjectionMatrix;
-    Texture * mSpotTexture;
-    CubeTexture * mPointTexture;
-
     static vector<Light*> msLightList;
-    static Texture * msDefaultSpotTexture;
-    static CubeTexture * msDefaultPointCubeTexture;
-	static vector< Light* > msPointLightList;
-	static vector< Light* > msSpotLightList; 
 public:
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-    explicit Light( ruLight::Type type );
+    explicit Light();
     virtual ~Light();
-    void SetColor( const ruVector3 & theColor );
-    ruVector3 GetColor() const;
-    void SetRange( const float & theRadius );
-    float GetRange() const;
-    void SetConeAngles( float theInner, float theOuter );
-    float GetInnerAngle() const;
-	float GetOuterAngle() const;
-    float GetCosHalfInnerAngle( );
-    float GetCosHalfOuterAngle( );
-    void SetSpotTexture( Texture * tex );
-    void SetPointTexture( CubeTexture * ctex );
-    void BuildSpotProjectionMatrixAndFrustum();
-    static Light * GetLightByHandle( ruSceneNode handle );
-	float GetGreyScaleFactor();
-	bool IsSeePoint( const ruVector3 & point );
-	void SetGreyScaleFactor( float greyScaleFactor );
+
+    virtual void SetColor( const ruVector3 & theColor );
+    virtual ruVector3 GetColor() const;
+
+    virtual void SetRange( float radius );
+    virtual float GetRange() const;
+
+	virtual void SetGreyscaleFactor( float greyScaleFactor );
+	virtual float GetGrayscaleFactor() const;
+
+	virtual bool IsSeePoint( const ruVector3 & point ) = 0;	
 };

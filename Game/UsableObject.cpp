@@ -9,10 +9,10 @@ UsableObject::UsableObject() : mToNext( false ), mToPrev( false ), mAppear( fals
 }
 
 UsableObject::~UsableObject() {
-	mModel.Free();
+	mModel->Free();
 }
 
-ruSceneNode UsableObject::GetModel() {
+ruSceneNode * UsableObject::GetModel() {
 	return mModel;
 }
 
@@ -41,7 +41,7 @@ void UsableObject::Appear() {
 
 void UsableObject::SwitchIfAble() {
 	if( mToNext || mToPrev ) {
-		mModel.Hide();
+		mModel->Hide();
 		if( mToPrev ) {
 			pPlayer->mCurrentUsableObject = mPrev;
 		} else {

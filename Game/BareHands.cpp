@@ -3,7 +3,7 @@
 
 void BareHands::Update() {
 	if( mAppear ) {
-		mModel.Show();
+		mModel->Show();
 		mAppear = false;
 	}
 	SwitchIfAble();

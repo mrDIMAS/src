@@ -126,11 +126,11 @@ Edge::Edge() {
     mDistToDestVertex = Infinite;
 }
 
-void Path::BuildPath( ruSceneNode scene, string pathBaseName ) {
-    vector<ruSceneNode> pointNodes;
-    for( int i = 0; i < scene.GetCountChildren(); i++ ) {
-        ruSceneNode child = scene.GetChild( i );
-        string cName = child.GetName();
+void Path::BuildPath( ruSceneNode * scene, string pathBaseName ) {
+    vector<ruSceneNode *> pointNodes;
+    for( int i = 0; i < scene->GetCountChildren(); i++ ) {
+        ruSceneNode * child = scene->GetChild( i );
+        string cName = child->GetName();
         if( cName.size() < pathBaseName.size() ) {
             continue;
         }
@@ -146,7 +146,7 @@ void Path::BuildPath( ruSceneNode scene, string pathBaseName ) {
     NodeSorter nodeSorter;
     sort( pointNodes.begin(), pointNodes.end(), nodeSorter );
     for( auto node : pointNodes ) {
-        AddPointAndLinkWithPrevious( new GraphVertex( node.GetPosition() ) );
+        AddPointAndLinkWithPrevious( new GraphVertex( node->GetPosition() ) );
     }
 }
 
@@ -158,9 +158,9 @@ void Path::AddPointAndLinkWithPrevious( GraphVertex * vertex ) {
     mVertexList.push_back( vertex );
 }
 
-bool Path::NodeSorter::operator()( const ruSceneNode & node1, const ruSceneNode & node2 ) {
-    string name1 = const_cast<ruSceneNode&>(node1).GetName();
-    string name2 = const_cast<ruSceneNode&>(node2).GetName();
+bool Path::NodeSorter::operator()( const ruSceneNode * node1, const ruSceneNode * node2 ) {
+    string name1 = const_cast<ruSceneNode*>(node1)->GetName();
+    string name2 = const_cast<ruSceneNode*>(node2)->GetName();
     // find numerics in names
     int numPos1 = name1.find_first_of( "0123456789" );
     int numPos2 = name2.find_first_of( "0123456789" );

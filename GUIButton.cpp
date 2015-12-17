@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-
+#include "Texture.h"
 #include "GUIButton.h"
 
 vector< GUIButton* > GUIButton::msButtonList;
@@ -75,10 +75,10 @@ void GUIButton::Update() {
 	}
 }
 
-GUIButton::GUIButton( int x, int y, int w, int h, Texture* texture, const string & text, BitmapFont * font, ruVector3 color, int textAlign, int alpha )
+GUIButton::GUIButton( int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text, BitmapFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha )
     : GUIRect( x, y, w, h, texture, color, alpha, true ) {
     mpText = new GUIText( text, 0, 0, w, h, color, alpha, textAlign, font );
-	mpText->AttachTo( this );
+	mpText->Attach( this );
     msButtonList.push_back( this );
     mPicked = false;
     mLeftPressed = false;
@@ -98,7 +98,7 @@ ruVector3 GUIButton::GetPickedColor() const {
     return pickedColor;
 }
 
-bool GUIButton::IsLeftPressed() {
+bool GUIButton::IsPressed() {
     return mLeftPressed;
 }
 
@@ -107,7 +107,7 @@ bool GUIButton::IsPicked() {
 }
 
 
-bool GUIButton::IsLeftHit() const {
+bool GUIButton::IsHit() const {
     return mLeftHit;
 }
 
@@ -119,7 +119,7 @@ bool GUIButton::IsRightPressed() {
     return mRightPressed;
 }
 
-GUIText * GUIButton::GetText() {
+ruText * GUIButton::GetText() {
     return mpText;
 }
 
@@ -137,4 +137,8 @@ void GUIButton::SetAlpha( int alpha )
 void GUIButton::SetActive( bool state )
 {
 	mActive = state;
+}
+
+ruButton * ruButton::Create( int x, int y, int w, int h, shared_ptr<ruTexture> texture, const string & text, ruFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha  ) {
+	return new GUIButton( x, y, w, h, std::dynamic_pointer_cast<Texture>( texture ), text, dynamic_cast<BitmapFont*>( font ), color, textAlign, alpha );
 }

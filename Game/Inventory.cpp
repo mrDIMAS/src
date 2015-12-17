@@ -8,14 +8,14 @@
 Inventory::Inventory() {
     mLocalization.ParseFile( localizationPath + "inventory.loc" );
 
-    mBackgroundTexture = ruGetTexture( "data/gui/inventory/back.tga");
-    mCellTexture = ruGetTexture( "data/gui/inventory/item.tga" );
-    mButtonTexture = ruGetTexture( "data/gui/inventory/button.tga" );
+    mBackgroundTexture = ruTexture::Request( "data/gui/inventory/back.tga");
+    mCellTexture = ruTexture::Request( "data/gui/inventory/item.tga" );
+    mButtonTexture = ruTexture::Request( "data/gui/inventory/button.tga" );
 
     mOpen = false;
     mpSelectedItem = nullptr;
 
-    mFont = ruCreateGUIFont( 14, "data/fonts/font1.otf" );
+    mFont = ruFont::LoadFromFile( 14, "data/fonts/font1.otf" );
 
     mpCombineItemFirst = nullptr;
     mpCombineItemSecond = nullptr;
@@ -27,7 +27,7 @@ Inventory::Inventory() {
     int screenCenterX = ruEngine::GetResolutionWidth() / 2;
     int screenCenterY = ruEngine::GetResolutionHeight() / 2;
 
-    mGUIRectItemForUse = ruCreateGUIRect( screenCenterX, screenCenterY, 64, 64, ruTextureHandle::Empty(), pGUIProp->mForeColor, 255 );
+    mGUIRectItemForUse = ruRect::Create( screenCenterX, screenCenterY, 64, 64, nullptr, pGUIProp->mForeColor, 255 );
 
     float distMult = 1.1f;
     int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
@@ -40,11 +40,11 @@ Inventory::Inventory() {
     int backgroundY = coordY - backGroundSpace;
     int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX + 128;
     int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY + 128;
-    mGUICanvas = ruCreateGUIRect( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture, pGUIProp->mBackColor );
+    mGUICanvas = ruRect::Create( backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture, pGUIProp->mBackColor );
     int combineH = 128;
     int combineY = backgroundY + backgroundH - 128;
     int descriptionY = combineY + 10;
-    mGUIDescription = ruCreateGUIText( mLocalization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW - 128, combineH, mFont, pGUIProp->mForeColor, 0 );
+    mGUIDescription = ruText::Create( mLocalization.GetString( "desc" ), backgroundX + 10, descriptionY, backgroundW - 128, combineH, mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
     // item actions
     int actionsW = 128;
     int actionsX = backgroundX + backgroundW - 128;
@@ -55,68 +55,66 @@ Inventory::Inventory() {
     int buttonY = backgroundY + 2 * buttonSpace;
     int buttonH = 30;
     int buttonW = actionsW - 2 * buttonSpace;
-    mGUIButtonUse = ruCreateGUIButton( buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "use" ), mFont, pGUIProp->mForeColor, 1, 255 );
-    mGUIButtonCombine = ruCreateGUIButton( buttonsX, buttonY + 1.5f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "combine" ), mFont, pGUIProp->mForeColor, 1, 255 );
+    mGUIButtonUse = ruButton::Create( buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "use" ), mFont, pGUIProp->mForeColor, ruTextAlignment::Center, 255 );
+    mGUIButtonCombine = ruButton::Create( buttonsX, buttonY + 1.5f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString( "combine" ), mFont, pGUIProp->mForeColor, ruTextAlignment::Center, 255 );
     // combine items
     int combineBoxY = buttonY + 3.6f * buttonH;
     ruVector3 combineColor1 = pGUIProp->mForeColor;
     ruVector3 combineColor2 = pGUIProp->mForeColor;
     int combineBoxSpacing = 5;
     buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
-    mGUIFirstCombineItem = ruCreateGUIRect( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, ruTextureHandle::Empty() );
-    mGUISecondCombineItem = ruCreateGUIRect( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * mCellHeight + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, ruTextureHandle::Empty() );
-    mGUIFirstCombineItemCell = ruCreateGUIRect( buttonsX, combineBoxY, mCellWidth, mCellHeight, mCellTexture, combineColor1, 255 );
-    mGUISecondCombineItemCell = ruCreateGUIRect( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight, mCellTexture, combineColor2, 255 );
-    mGUICharacteristics = ruCreateGUIText( mLocalization.GetString( "characteristics" ), actionsX, combineBoxY + 1.5f * mCellHeight, 128, combineH, mFont, pGUIProp->mForeColor, 1 );
+    mGUIFirstCombineItem = ruRect::Create( buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, nullptr );
+    mGUISecondCombineItem = ruRect::Create( buttonsX + combineBoxSpacing, combineBoxY + 1.2f * mCellHeight + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, nullptr );
+    mGUIFirstCombineItemCell = ruRect::Create( buttonsX, combineBoxY, mCellWidth, mCellHeight, mCellTexture, combineColor1, 255 );
+    mGUISecondCombineItemCell = ruRect::Create( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight, mCellTexture, combineColor2, 255 );
+    mGUICharacteristics = ruText::Create( mLocalization.GetString( "characteristics" ), actionsX, combineBoxY + 1.5f * mCellHeight, 128, combineH, mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 
     int itemSpacing = 5;
     for( int cw = 0; cw < mCellCountWidth; cw++ ) {
         for( int ch = 0; ch < mCellCountHeight; ch++ ) {
             int cellX = coordX + distMult * mCellWidth * cw;
             int cellY = coordY + distMult * mCellHeight * ch;           
-            mGUIItemCell[cw][ch] = ruCreateGUIRect( cellX, cellY, mCellWidth, mCellHeight, mCellTexture, pGUIProp->mForeColor, 255 );
-			mGUIItem[cw][ch] = ruCreateGUIRect( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, ruTextureHandle::Empty(), ruVector3( 255, 255, 255 ), 255 );
-			mGUIItemCountText[cw][ch] = ruCreateGUIText( "0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, pGUIProp->mForeColor, 1 );
+            mGUIItemCell[cw][ch] = ruRect::Create( cellX, cellY, mCellWidth, mCellHeight, mCellTexture, pGUIProp->mForeColor, 255 );
+			mGUIItem[cw][ch] = ruRect::Create( cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, nullptr, ruVector3( 255, 255, 255 ), 255 );
+			mGUIItemCountText[cw][ch] = ruText::Create( "0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
         }
     }
 
     int offset = combineBoxY + 2.2f * mCellHeight;
-    mGUIItemDescription = ruCreateGUIText( "Desc", backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing - 128 , combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3( 200, 200, 200 ), 0, 255 );
+    mGUIItemDescription =  ruText::Create( "Desc", backgroundX + 2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing - 128 , combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3( 200, 200, 200 ), ruTextAlignment::Left, 255 );
     // characteristics of item
     int charSpace = 28;
-	mGUIItemContentType = ruCreateGUIText( "ContentType", actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
-	mGUIItemContent = ruCreateGUIText( "Content", actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
-    mGUIItemVolume = ruCreateGUIText( "Volume", actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
-    mGUIItemMass = ruCreateGUIText( "Mass", actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, 0 );
+	mGUIItemContentType = ruText::Create( "ContentType", actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+	mGUIItemContent =  ruText::Create( "Content", actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIItemVolume =  ruText::Create( "Volume", actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIItemMass =  ruText::Create( "Mass", actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
 
     SetVisible( false );
 }
 
 void Inventory::SetVisible( bool state ) {
 	mOpen = state;
-    ruSetGUINodeVisible( mGUICanvas, state );
-    ruSetGUINodeVisible( mGUIRectItemForUse, state );
-    ruSetGUINodeVisible( mGUICanvas, state );
-    ruSetGUINodeVisible( mGUIDescription, state );
-    ruSetGUINodeVisible( mGUIButtonUse, state );
-    ruSetGUINodeVisible( mGUIButtonCombine, state );
-    ruSetGUINodeVisible( mGUIFirstCombineItem, state );
-    ruSetGUINodeVisible( mGUISecondCombineItem, state );
-    ruSetGUINodeVisible( mGUIFirstCombineItemCell, state );
-    ruSetGUINodeVisible( mGUISecondCombineItemCell, state );
-    ruSetGUINodeVisible( mGUICharacteristics, state );
-    ruSetGUINodeVisible( mGUIItem[mCellCountWidth][mCellCountHeight], state );
-    ruSetGUINodeVisible( mGUIItemCell[mCellCountWidth][mCellCountHeight], state );
-    ruSetGUINodeVisible( mGUIItemDescription, state );
-    ruSetGUINodeVisible( mGUIItemMass, state );
-    ruSetGUINodeVisible( mGUIItemContent, state );
-    ruSetGUINodeVisible( mGUIItemContentType, state );
-    ruSetGUINodeVisible( mGUIItemVolume, state );
+    mGUICanvas->SetVisible( state );
+    mGUIRectItemForUse->SetVisible( state );
+    mGUICanvas->SetVisible( state );
+    mGUIDescription->SetVisible( state );
+    mGUIButtonUse->SetVisible( state );
+    mGUIButtonCombine->SetVisible( state );
+    mGUIFirstCombineItem->SetVisible( state );
+    mGUISecondCombineItem->SetVisible( state );
+    mGUIFirstCombineItemCell->SetVisible( state );
+    mGUISecondCombineItemCell->SetVisible( state );
+    mGUICharacteristics->SetVisible( state );
+    mGUIItemDescription->SetVisible( state );
+    mGUIItemMass->SetVisible( state );
+    mGUIItemContent->SetVisible( state );
+    mGUIItemContentType->SetVisible( state );
+     mGUIItemVolume->SetVisible( state );
     for( int cw = 0; cw < mCellCountWidth; cw++ ) {
         for( int ch = 0; ch < mCellCountHeight; ch++ ) {
-            ruSetGUINodeVisible( mGUIItemCell[cw][ch], state );
-            ruSetGUINodeVisible( mGUIItem[cw][ch], state );
-			ruSetGUINodeVisible( mGUIItemCountText[cw][ch], state );
+            mGUIItemCell[cw][ch]->SetVisible( state );
+            mGUIItem[cw][ch]->SetVisible( state );
+			mGUIItemCountText[cw][ch]->SetVisible( state );
         }
     }
 }
@@ -141,8 +139,8 @@ void Inventory::Update() {
     if( mpItemForUse ) {
         ruEngine::HideCursor();
         SetVisible( false );
-        ruSetGUINodeTexture( mGUIRectItemForUse, mpItemForUse->GetPictogram() );
-        ruSetGUINodeVisible( mGUIRectItemForUse, true );
+        mGUIRectItemForUse->SetTexture( mpItemForUse->GetPictogram() );
+        mGUIRectItemForUse->SetVisible( true );
 
         if( ruIsMouseHit( MB_Left )) {
             mpItemForUse = nullptr;
@@ -154,7 +152,7 @@ void Inventory::Update() {
         }
         return;
     } else {
-        ruSetGUINodeVisible( mGUIRectItemForUse, false );
+        mGUIRectItemForUse->SetVisible( false );
     }
 
     if( !mOpen ) {
@@ -186,11 +184,11 @@ void Inventory::Update() {
     bool canCombine = ( mpCombineItemFirst != 0 && mpCombineItemSecond != 0 );
     int useAlpha = mpSelectedItem ? 255 : 60;
 
-    ruSetGUINodeAlpha( mGUIButtonUse, useAlpha );
-    ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonUse ), useAlpha );
+    mGUIButtonUse->SetAlpha( useAlpha );
+    mGUIButtonUse->GetText()->SetAlpha( useAlpha );
     int combineAlpha = canCombine ? 255 : 60;
-    ruSetGUINodeAlpha( mGUIButtonCombine, combineAlpha );
-    ruSetGUINodeAlpha( ruGetButtonText( mGUIButtonCombine ), combineAlpha );
+    mGUIButtonCombine->SetAlpha( combineAlpha );
+    mGUIButtonCombine->GetText()->SetAlpha( combineAlpha );
 
     // draw combine items
     int combineBoxY = buttonY + 3.6f * buttonH;
@@ -199,12 +197,12 @@ void Inventory::Update() {
     int combineBoxSpacing = 5;
     buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
 
-	ruSetGUINodeTexture( mGUIFirstCombineItem, ruTextureHandle::Empty() );
-	ruSetGUINodeTexture( mGUISecondCombineItem, ruTextureHandle::Empty() );
+	mGUIFirstCombineItem->SetTexture( nullptr );
+	mGUISecondCombineItem->SetTexture( nullptr );
 
     if( mpCombineItemFirst ) {				
-        ruSetGUINodeVisible( mGUIFirstCombineItem, true );
-		ruSetGUINodeTexture( mGUIFirstCombineItem, mpCombineItemFirst->GetPictogram() );
+        mGUIFirstCombineItem->SetVisible( true );
+		mGUIFirstCombineItem->SetTexture( mpCombineItemFirst->GetPictogram() );
         if( IsMouseInside( buttonsX, combineBoxY, mCellWidth, mCellHeight )) {
             combineColor1 = ruVector3( 255, 0, 0 );
             if( ruIsMouseHit( MB_Left )) {
@@ -212,12 +210,12 @@ void Inventory::Update() {
             }
         }
     } else {
-        ruSetGUINodeVisible( mGUIFirstCombineItem, false );
+        mGUIFirstCombineItem->SetVisible( false );
     };
 
     if( mpCombineItemSecond ) {
-        ruSetGUINodeVisible( mGUISecondCombineItem, true );
-		ruSetGUINodeTexture( mGUISecondCombineItem, mpCombineItemSecond->GetPictogram() );
+        mGUISecondCombineItem->SetVisible( true );
+		mGUISecondCombineItem->SetTexture( mpCombineItemSecond->GetPictogram() );
         if( IsMouseInside( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight )) {
             combineColor2 = ruVector3( 255, 0, 0 );
             if( ruIsMouseHit( MB_Left )) {
@@ -225,32 +223,32 @@ void Inventory::Update() {
             }
         }
     } else {
-        ruSetGUINodeVisible( mGUISecondCombineItem, false );
+        mGUISecondCombineItem->SetVisible( false );
     }
 
-    ruSetGUINodeColor( mGUISecondCombineItemCell, combineColor2 );
-    ruSetGUINodeColor( mGUIFirstCombineItemCell, combineColor1 );
+    mGUISecondCombineItemCell->SetColor( combineColor2 );
+    mGUIFirstCombineItemCell->SetColor( combineColor1 );
 
     // do combine
-    if( ruIsButtonHit( mGUIButtonCombine )) {
+    if( mGUIButtonCombine->IsHit() ) {
         if( canCombine ) {
             DoCombine();
         }
     }
 
     // use item
-    if( ruIsButtonHit( mGUIButtonUse )) {
+    if( mGUIButtonUse->IsHit() ) {
         if( mpSelectedItem ) {
             mpItemForUse = mpSelectedItem;
             mOpen = false;
         }
     }
 
-	ruSetGUINodeVisible( mGUIItemDescription, false );
-	ruSetGUINodeVisible( mGUIItemContentType, false );
-	ruSetGUINodeVisible( mGUIItemContent, false );
-	ruSetGUINodeVisible( mGUIItemVolume, false );
-	ruSetGUINodeVisible( mGUIItemMass, false );
+	mGUIItemDescription->SetVisible( false );
+	mGUIItemContentType->SetVisible( false );
+	mGUIItemContent->SetVisible( false );
+	mGUIItemVolume->SetVisible( false );
+	mGUIItemMass->SetVisible( false );
 
     // draw cells and item image
     bool combinePick = true;
@@ -278,14 +276,14 @@ void Inventory::Update() {
                     color = ruVector3( 0, 200, 0 );
                     alpha = 255;
                 }
-				ruSetGUINodeText( mGUIItemCountText[cw][ch], StringBuilder() << curItemCount );
+				mGUIItemCountText[cw][ch]->SetText( StringBuilder() << curItemCount );
 				if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {
-					ruSetGUINodeVisible( mGUIItemCountText[cw][ch], true );
+					mGUIItemCountText[cw][ch]->SetVisible( true );
 				} else {
-					ruSetGUINodeVisible( mGUIItemCountText[cw][ch], false );
+					mGUIItemCountText[cw][ch]->SetVisible( false );
 				}
 			} else {
-				ruSetGUINodeVisible( mGUIItemCountText[cw][ch], false );
+				mGUIItemCountText[cw][ch]->SetVisible( false );
 			}
 
             bool pressed = false;
@@ -302,7 +300,7 @@ void Inventory::Update() {
                     }
                 }
             }
-            ruSetGUINodeColor( mGUIItemCell[cw][ch], color );
+            mGUIItemCell[cw][ch]->SetColor( color );
             if( pPicked ) {
                 if( ruIsMouseHit( MB_Right ) && combinePick ) {
                     if( mpCombineItemFirst == 0 ) {
@@ -321,25 +319,25 @@ void Inventory::Update() {
             }			
             if( pItem ) {				
                 if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {
-					ruSetGUINodeVisible( mGUIItem[cw][ch], true );
-                    ruSetGUINodeTexture( mGUIItem[cw][ch], pItem->GetPictogram());
+					mGUIItem[cw][ch]->SetVisible( true );
+                    mGUIItem[cw][ch]->SetTexture( pItem->GetPictogram());
                     if( pItem == pPicked ) {
-						ruSetGUINodeVisible( mGUIItemDescription, true );
-						ruSetGUINodeVisible( mGUIItemContentType, true );
-						ruSetGUINodeVisible( mGUIItemContent, true );
-						ruSetGUINodeVisible( mGUIItemVolume, true );
-						ruSetGUINodeVisible( mGUIItemMass, true );
-                        ruSetGUINodeText( mGUIItemDescription, pItem->GetDescription());
-                        ruSetGUINodeText( mGUIItemContentType, StringBuilder() << mLocalization.GetString( "contentType" ) << ": " << pItem->GetContentType() );
-                        ruSetGUINodeText( mGUIItemContent, StringBuilder() << mLocalization.GetString( "content" ) << ": " << pItem->GetContent() );
-                        ruSetGUINodeText( mGUIItemVolume, StringBuilder() << mLocalization.GetString( "volume" ) << ": " << pItem->GetVolume() );
-                        ruSetGUINodeText( mGUIItemMass, StringBuilder() << mLocalization.GetString( "mass" ) << ": " << pItem->GetMass() );
+						mGUIItemDescription->SetVisible( true );
+						mGUIItemContentType->SetVisible( true );
+						mGUIItemContent->SetVisible( true );
+						mGUIItemVolume->SetVisible( true );
+						mGUIItemMass->SetVisible( true );
+                        mGUIItemDescription->SetText( pItem->GetDescription());
+                        mGUIItemContentType->SetText( StringBuilder() << mLocalization.GetString( "contentType" ) << ": " << pItem->GetContentType() );
+                        mGUIItemContent->SetText( StringBuilder() << mLocalization.GetString( "content" ) << ": " << pItem->GetContent() );
+                        mGUIItemVolume->SetText( StringBuilder() << mLocalization.GetString( "volume" ) << ": " << pItem->GetVolume() );
+                        mGUIItemMass->SetText( StringBuilder() << mLocalization.GetString( "mass" ) << ": " << pItem->GetMass() );
                     }
                 } else {
-					ruSetGUINodeVisible( mGUIItem[cw][ch], false );
+					mGUIItem[cw][ch]->SetVisible( false );
 				}
 			} else {
-				ruSetGUINodeVisible( mGUIItem[cw][ch], false );
+				mGUIItem[cw][ch]->SetVisible( false );
 			}
         }
     }
@@ -359,29 +357,29 @@ void Inventory::RemoveItem( Item::Type type, int count ) {
 
 Inventory::~Inventory() {
 	mPickSound.Free();
-	ruFreeGUINode( mGUIRectItemForUse );
-	ruFreeGUINode( mGUICanvas );
-	ruFreeGUINode( mGUIDescription );
-	ruFreeGUINode( mGUIButtonUse );
-	ruFreeGUINode( mGUIButtonCombine );
-	ruFreeGUINode( mGUIFirstCombineItem );
-	ruFreeGUINode( mGUISecondCombineItem );
-	ruFreeGUINode( mGUIFirstCombineItemCell );
-	ruFreeGUINode( mGUISecondCombineItemCell );
-	ruFreeGUINode( mGUICharacteristics );
+	mGUIRectItemForUse->Free();
+	mGUICanvas->Free();
+	mGUIDescription->Free();
+	mGUIButtonUse->Free();
+	mGUIButtonCombine->Free();
+	mGUIFirstCombineItem->Free();
+	mGUISecondCombineItem->Free();
+	mGUIFirstCombineItemCell->Free();
+	mGUISecondCombineItemCell->Free();
+	mGUICharacteristics->Free();;
 	for( int i = 0; i < mCellCountWidth; i++ ) {
 		for( int j = 0; j < mCellCountHeight; j++ ) {
-			ruFreeGUINode( mGUIItem[i][j] );
-			ruFreeGUINode( mGUIItemCell[i][j] );
-			ruFreeGUINode( mGUIItemCountText[i][j] );
+			mGUIItem[i][j]->Free();
+			mGUIItemCell[i][j]->Free();
+			mGUIItemCountText[i][j]->Free();
 		}
 	}
-	ruFreeGUINode( mGUIItemDescription );
-	ruFreeGUINode( mGUIItemMass );
-	ruFreeGUINode( mGUIItemContent );
-	ruFreeGUINode( mGUIItemContentType );
-	ruFreeGUINode( mGUIItemVolume );
-	mFont.Free();
+	mGUIItemDescription->Free();
+	mGUIItemMass->Free();
+	mGUIItemContent->Free();
+	mGUIItemContentType->Free();
+	mGUIItemVolume->Free();
+	mFont->Free();
 }
 
 void Inventory::Open( bool val ) {

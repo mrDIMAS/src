@@ -40,9 +40,9 @@ int GetWordWidth( BitmapFont * font, string & text, int start ) {
 
 void TextRenderer::RenderText( GUIText* guiText ) {
     TextQuad * quad = nullptr;
-    vertexBuffer->Lock( 0, maxChars * sizeof( TextQuad ), (void**)&quad, D3DLOCK_DISCARD );
+    mVertexBuffer->Lock( 0, mMaxChars * sizeof( TextQuad ), reinterpret_cast<void**>( &quad ), D3DLOCK_DISCARD );
     Face * face = nullptr;
-    indexBuffer->Lock( 0, maxChars * sizeof( Face ), (void**)&face, D3DLOCK_DISCARD );
+    mIndexBuffer->Lock( 0, mMaxChars * sizeof( Face ), reinterpret_cast<void**>( &face ), D3DLOCK_DISCARD );
     int n = 0, totalLetters = 0;
 
     RECT boundingRect = guiText->GetBoundingRect();
@@ -53,7 +53,7 @@ void TextRenderer::RenderText( GUIText* guiText ) {
     int lines, height, avWidth, avSymbolWidth ;
     ComputeTextMetrics( guiText, lines, height, avWidth, avSymbolWidth );
 
-    if( guiText->GetTextAlignment() ) {
+    if( guiText->GetTextAlignment() == ruTextAlignment::Center ) {
         caretY = boundingRect.top + (( boundingRect.bottom - boundingRect.top ) - height ) / 2.0f;
         caretX = boundingRect.left + (( boundingRect.right - boundingRect.left ) - avWidth ) / 2.0f;
     }
@@ -96,17 +96,17 @@ void TextRenderer::RenderText( GUIText* guiText ) {
 		symbolCounter++;
 	}
 
-    vertexBuffer->Unlock();
-    indexBuffer->Unlock();
+    mVertexBuffer->Unlock();
+    mIndexBuffer->Unlock();
 
     font->BindAtlasToLevel( 0 );
 
-    Engine::Instance().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( TextVertex ));
-    Engine::Instance().GetDevice()->SetIndices( indexBuffer );
+    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( TextVertex ));
+    Engine::I().GetDevice()->SetIndices( mIndexBuffer );
 	if( totalLetters > 0 ) {
-		Engine::Instance().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 );
+		Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 );
 	}
-    Engine::Instance().RegisterDIP();
+    Engine::I().RegisterDIP();
 }
 
 
@@ -155,18 +155,16 @@ TextRenderer::~TextRenderer() {
     OnLostDevice();
 }
 
-void TextRenderer::OnLostDevice()
-{
-	vertexBuffer->Release();
-	indexBuffer->Release();
+void TextRenderer::OnLostDevice() {
+	mVertexBuffer->Release();
+	mIndexBuffer->Release();
 }
 
-void TextRenderer::OnResetDevice()
-{
-	maxChars = 8192;
-	int vBufLen = maxChars * sizeof( TextQuad );
-	Engine::Instance().GetDevice()->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &vertexBuffer, nullptr );
-	int iBufLen = maxChars * sizeof( Face );
-	Engine::Instance().GetDevice()->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &indexBuffer, nullptr );
+void TextRenderer::OnResetDevice() {
+	mMaxChars = 8192;
+	int vBufLen = mMaxChars * sizeof( TextQuad );
+	Engine::I().GetDevice()->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &mVertexBuffer, nullptr );
+	int iBufLen = mMaxChars * sizeof( Face );
+	Engine::I().GetDevice()->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, nullptr );
 }
 

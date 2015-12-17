@@ -2,48 +2,48 @@
 #include "ModalWindow.h"
 #include "GUIProperties.h"
 
-ModalWindow::ModalWindow( int x, int y, int w, int h, ruTextureHandle texture, ruTextureHandle buttonTexture, ruVector3 color ) {
+ModalWindow::ModalWindow( int x, int y, int w, int h, shared_ptr<ruTexture> texture, shared_ptr<ruTexture> buttonTexture, ruVector3 color ) {
 	int buttonWidth = 128;
 	int buttonHeight = 32;
 
-	mCanvas = ruCreateGUIRect( x, y, w, h, texture, color );
-	mYesButton = ruCreateGUIButton( 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "Yes", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-	mNoButton = ruCreateGUIButton( w - buttonWidth - 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "No", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-	mText = ruCreateGUIText( "Text", 20, 20, w - 40, h - 40, pGUIProp->mFont, ruVector3( 255, 255, 255 ), 0 );
+	mCanvas = ruRect::Create( x, y, w, h, texture, color );
+	mYesButton = ruButton::Create( 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "Yes", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+	mNoButton = ruButton::Create( w - buttonWidth - 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "No", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+	mText = ruText::Create( "Text", 20, 20, w - 40, h - 40, pGUIProp->mFont, ruVector3( 255, 255, 255 ), ruTextAlignment::Left );
 
-	ruAttachGUINode( mYesButton, mCanvas );
-	ruAttachGUINode( mNoButton, mCanvas );
-	ruAttachGUINode( mText, mCanvas );
+	mYesButton->Attach( mCanvas );
+	mNoButton->Attach( mCanvas );
+	mText->Attach( mCanvas );
 
-	ruAddGUINodeAction( mYesButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
-	ruAddGUINodeAction( mNoButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
+	mYesButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
+	mNoButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
 
 	Close();
 }
 
 void ModalWindow::Ask( const string & text ) {
-	ruSetGUINodeText( mText, text );
-	ruSetGUINodeVisible( mCanvas, true );
+	mText->SetText( text );
+	mCanvas->SetVisible( true );
 }
 
-void ModalWindow::AttachTo( ruGUINodeHandle node ) {
-	ruAttachGUINode( mCanvas, node );
+void ModalWindow::AttachTo( ruGUINode * node ) {
+	mCanvas->Attach( node );
 }
 
 void ModalWindow::SetYesAction( const ruDelegate & yesAction ) {
-	ruRemoveAllGUINodeActions( mYesButton );
-	ruAddGUINodeAction( mYesButton, ruGUIAction::OnClick, yesAction );
-	ruAddGUINodeAction( mYesButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
+	mYesButton->RemoveAllActions();
+	mYesButton->AddAction( ruGUIAction::OnClick, yesAction );
+	mYesButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
 }
 
 void ModalWindow::SetNoAction( const ruDelegate & noAction ) {
-	ruRemoveAllGUINodeActions( mNoButton );
-	ruAddGUINodeAction( mNoButton, ruGUIAction::OnClick, noAction );
-	ruAddGUINodeAction( mNoButton, ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
+	mNoButton->RemoveAllActions();
+	mNoButton->AddAction( ruGUIAction::OnClick, noAction );
+	mNoButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &ModalWindow::Close ) );
 }
 
 void ModalWindow::Close() {
-	ruSetGUINodeVisible( mCanvas, false );
+	mCanvas->SetVisible( false );
 }
 
 void ModalWindow::CloseNoAction()

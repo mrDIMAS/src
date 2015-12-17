@@ -27,19 +27,18 @@
 #include "FXAA.h"
 #include "SpotlightShadowMap.h"
 #include "HDR.h"
+#include "Postprocessing.h"
+#include "PointLight.h"
+#include "SpotLight.h"
 
 class Mesh;
 
 class DeferredRenderer : public RendererComponent {
-public:
+protected:
     class BoundingVolumeRenderingShader : public RendererComponent {
     private:
-        //VertexShader * vs;
-        PixelShader * ps;
-
-        IDirect3DVertexDeclaration9 * vertexDeclaration;
-
-        //D3DXHANDLE vWVP;
+        unique_ptr<PixelShader> mPixelShader;
+        IDirect3DVertexDeclaration9 * mVertexDeclaration;
     public:
         BoundingVolumeRenderingShader();
         ~BoundingVolumeRenderingShader();
@@ -51,12 +50,10 @@ public:
 		void OnLostDevice();
     };
 
-
-
     // Ambient Light
     class AmbientLightShader {
     private:
-        PixelShader * pixelShader;
+        unique_ptr<PixelShader> pixelShader;
     public:
         AmbientLightShader();
         ~AmbientLightShader();
@@ -66,30 +63,30 @@ public:
     // Point Light
     class PointLightShader {
 	public:
-        PixelShader * pixelShader;
-		PixelShader * pixelShaderTexProj;
+        unique_ptr<PixelShader> mPixelShader;
+		unique_ptr<PixelShader> mPixelShaderTexProj;
     public:
         PointLightShader();
         ~PointLightShader();
 
-        void SetLight( D3DXMATRIX & invViewProj, Light * lit );
+        void SetLight( D3DXMATRIX & invViewProj, PointLight * lit );
     };
 
     // Spot Light
     class SpotLightShader {
     private:
-        PixelShader * pixelShader;
-		PixelShader * pixelShaderShadows;		
+        unique_ptr<PixelShader> mPixelShader;
+		unique_ptr<PixelShader> mPixelShaderShadows;		
     public:
         SpotLightShader( );
         ~SpotLightShader();
-        void SetLight( D3DXMATRIX & invViewProj, Light * lit );
+        void SetLight( D3DXMATRIX & invViewProj, SpotLight * lit );
     };
 
 	class SkyboxShader {
 	private:
-		VertexShader * mVertexShader;
-		PixelShader * mPixelShader;
+		unique_ptr<VertexShader> mVertexShader;
+		unique_ptr<PixelShader> mPixelShader;
 		
 	public:
 		SkyboxShader();
@@ -101,37 +98,44 @@ public:
 	ID3DXMesh * mBoundingStar;
 	ID3DXMesh * mBoundingCone;
 
-	shared_ptr<BoundingVolumeRenderingShader> bvRenderer;
-	shared_ptr<EffectsQuad> mFullscreenQuad;
-    shared_ptr<GBuffer> mGBuffer;
-    shared_ptr<AmbientLightShader> mAmbientLightShader;
-    shared_ptr<PointLightShader> mPointLightShader;
-    shared_ptr<SpotLightShader> mSpotLightShader;
-	shared_ptr<SkyboxShader> mSkyboxShader;
-    shared_ptr<FXAA> mFXAA;
-    shared_ptr<SpotlightShadowMap> mSpotLightShadowMap;
-    shared_ptr<HDRShader> mHDRShader;
+	unique_ptr<BoundingVolumeRenderingShader> bvRenderer;
+	unique_ptr<EffectsQuad> mFullscreenQuad;
+    unique_ptr<GBuffer> mGBuffer;
+    unique_ptr<AmbientLightShader> mAmbientLightShader;
+    unique_ptr<PointLightShader> mPointLightShader;
+    unique_ptr<SpotLightShader> mSpotLightShader;
+	unique_ptr<SkyboxShader> mSkyboxShader;
+    unique_ptr<FXAA> mFXAA;
+    unique_ptr<SpotlightShadowMap> mSpotLightShadowMap;
+    unique_ptr<HDRShader> mHDRShader;
+	unique_ptr<Postprocessing> mPostprocessing;
+
+	IDirect3DTexture9 * mHDRFrame;
+	IDirect3DSurface9 * mHDRFrameSurface;
+
+	IDirect3DTexture9 * mFrame[2];
+	IDirect3DSurface9 * mFrameSurface[2];
+
+	IDirect3DSurface9 * mBackBufferSurface;
 
     void CreateBoundingVolumes();
 
-    void RenderSphere( Light * pLight, float scale = 1.0f );
-	void RenderStar( Light * pLight, float scale = 1.0f );
-    void RenderConeIntoStencilBuffer( Light * lit );
+    void RenderSphere( PointLight * pLight, float scale = 1.0f );
+	void RenderStar( PointLight * pLight, float scale = 1.0f );
+    void RenderCone( SpotLight * lit );
     void RenderMeshShadow( Mesh * mesh );
 public:
     explicit DeferredRenderer();
     virtual ~DeferredRenderer();
 
-    GBuffer * GetGBuffer();
-
-    virtual void BeginFirstPass() = 0;
+	virtual void BeginFirstPass() = 0;
     virtual void RenderMesh( Mesh * mesh ) = 0;
     virtual void OnEnd() = 0;
 	virtual void BindParallaxShaders() = 0;
 	virtual void BindGenericShaders() = 0;
 	virtual void BindGenericSkinShaders() = 0;
     void SetSpotLightShadowMapSize( int size );
-    void EndFirstPassAndDoSecondPass();
+    void DoLightingAndPostProcessing();
 
 	void OnResetDevice();
 	void OnLostDevice();

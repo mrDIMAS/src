@@ -6,21 +6,16 @@ class ScrollList {
 private:
     int mCurrentValue;
     vector<string> mValues;
-    ruButtonHandle mGUIIncreaseButton;
-    ruButtonHandle mGUIDecreaseButton;
-    ruTextHandle mGUIText;
-    ruTextHandle mGUIValueText;
+    ruButton * mGUIIncreaseButton;
+    ruButton * mGUIDecreaseButton;
+    ruText * mGUIText;
+    ruText * mGUIValueText;
 public:
-    explicit ScrollList( float x, float y, ruTextureHandle buttonImage, const string & text );
+    explicit ScrollList( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
     virtual ~ScrollList();
     void SetCurrentValue( int value );
     int GetCurrentValue();
     void AddValue( string val );
     void Update(  );
-    void AttachTo( ruGUINodeHandle node ) {
-		ruAttachGUINode( mGUIIncreaseButton, node );
-		ruAttachGUINode( mGUIDecreaseButton, node );
-		ruAttachGUINode( mGUIText, node );
-		ruAttachGUINode( mGUIValueText, node );
-	}
+    void AttachTo( ruGUINode * node );
 };

@@ -5,17 +5,17 @@
 
 void ScrollList::Update(  ) {
     if( mValues.size() ) {
-        ruSetGUINodeText( mGUIValueText, mValues[ mCurrentValue ] );
-
-        if( ruIsButtonHit( mGUIIncreaseButton ) )
+        mGUIValueText->SetText( mValues[ mCurrentValue ] );
+        if( mGUIIncreaseButton->IsHit() )
             if( mCurrentValue < mValues.size() - 1 ) {
                 mCurrentValue++;
             }
 
-        if( ruIsButtonHit( mGUIDecreaseButton ) )
+        if( mGUIDecreaseButton->IsHit() ) {
             if( mCurrentValue > 0 ) {
                 mCurrentValue--;
             }
+		}
     }
 }
 
@@ -27,7 +27,7 @@ int ScrollList::GetCurrentValue() {
     return mCurrentValue;
 }
 
-ScrollList::ScrollList( float x, float y, ruTextureHandle buttonImage, const string & text ) {
+ScrollList::ScrollList( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text ) {
     mCurrentValue = 0;
 
     float buttonWidth = 32;
@@ -36,10 +36,10 @@ ScrollList::ScrollList( float x, float y, ruTextureHandle buttonImage, const str
     int textHeight = 16;
     int captionWidth = 100;
 
-    mGUIText = ruCreateGUIText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, 0 );
-    mGUIValueText = ruCreateGUIText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-    mGUIIncreaseButton = ruCreateGUIButton( x + captionWidth + 4.5f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
-    mGUIDecreaseButton = ruCreateGUIButton( x + captionWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, 1 );
+    mGUIText = ruText::Create( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIValueText = ruText::Create( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIIncreaseButton = ruButton::Create( x + captionWidth + 4.5f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIDecreaseButton = ruButton::Create( x + captionWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 }
 
 void ScrollList::SetCurrentValue( int value ) {
@@ -49,8 +49,15 @@ void ScrollList::SetCurrentValue( int value ) {
 }
 
 ScrollList::~ScrollList() {
-    ruFreeGUINode( mGUIValueText );
-    ruFreeGUINode( mGUIText );
-    ruFreeGUINode( mGUIIncreaseButton );
-    ruFreeGUINode( mGUIDecreaseButton );
+    mGUIValueText->Free();
+    mGUIText->Free();
+    mGUIIncreaseButton->Free();
+    mGUIDecreaseButton->Free();
+}
+
+void ScrollList::AttachTo( ruGUINode * node ) {
+	mGUIIncreaseButton->Attach( node );
+	mGUIDecreaseButton->Attach( node );
+	mGUIText->Attach( node );
+	mGUIValueText->Attach( node );
 }

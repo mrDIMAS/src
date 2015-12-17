@@ -19,9 +19,9 @@ void Tip::Serialize( SaveFile & out ) {
 }
 
 void Tip::AnimateAndDraw() {
-    ruSetGUINodePosition( mGUIText, mX, mY );
-	ruSetGUINodeAlpha( mGUIText, mAlpha );
-    if( ruGetElapsedTimeInSeconds( mTimer ) > 1.5 ) {
+    mGUIText->SetPosition( mX, mY );
+	mGUIText->SetAlpha( mAlpha );
+    if( mTimer->GetElapsedTimeInSeconds() > 1.5 ) {
         mAlpha.SetTarget( mAlpha.GetMin() );
         mAlpha.ChaseTarget( 0.1 );
         mY.SetTarget( mY.GetMax() );
@@ -30,27 +30,28 @@ void Tip::AnimateAndDraw() {
 }
 
 void Tip::SetNewText( string text ) {
-    ruRestartTimer( mTimer );
+    mTimer->Restart();
     mAlpha.Set( 255.0f );
-	ruSetGUINodeText( mGUIText, text );
+	mGUIText->SetText( text );
     mY.SetMax( ruEngine::GetResolutionHeight() - mHeight );
     mY.SetMin( ruEngine::GetResolutionHeight() / 2 + mHeight );
     mY.Set( mY.GetMin());
 }
 
 Tip::Tip() : mAlpha( 255.0f, 0.0f, 255.0f ) {
-    mTimer = ruCreateTimer();
+    mTimer = ruTimer::Create();
     mWidth = 256;
     mHeight = 32;
     mX = ruEngine::GetResolutionWidth() / 2 - mWidth / 2;
-    mGUIText = ruCreateGUIText( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, ruVector3( 255, 0, 0 ), 1 , mAlpha );
+    mGUIText = ruText::Create( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center, mAlpha );
 	SetNewText( " " );
 }
 
 void Tip::SetVisible( bool state ) {
-	ruSetGUINodeVisible( mGUIText, state );
+	mGUIText->SetVisible( state );
 }
 
 Tip::~Tip() {
-	ruFreeGUINode( mGUIText );
+	mGUIText->Free();
+	mTimer->Free();
 }

@@ -5,7 +5,7 @@
 
 class UsableObject {
 protected:
-	ruSceneNode mModel;
+	ruSceneNode * mModel;
 	UsableObject * mNext;
 	UsableObject * mPrev;
 	bool mToNext;
@@ -17,7 +17,7 @@ protected:
 public:
 	explicit UsableObject();
 	virtual ~UsableObject();
-	ruSceneNode GetModel();
+	ruSceneNode * GetModel();
 	void Link( UsableObject * other );
 	void Next( );
 	void Prev( );

@@ -26,11 +26,11 @@
 
 class Texture;
 
-class GUIRect : public GUINode {
+class GUIRect : public GUINode, public virtual ruRect {
 public:
     static vector<GUIRect*> msRectList;
 
-    explicit GUIRect( float theX, float theY, float theWidth, float theHeight, Texture * theTexture, ruVector3 theColor, int theAlpha, bool selfRegister );
+    explicit GUIRect( float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha, bool selfRegister );
     explicit GUIRect();
     virtual ~GUIRect();
 

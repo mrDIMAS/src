@@ -69,11 +69,11 @@ void ruSound::SetLoop( bool state ) {
 	pfSetSoundLooping( pfHandle, state );
 }
 
-void ruSound::Attach( ruSceneNode node ) {
-	if( SceneNode::CastHandle( node ) == nullptr ) {
-		return;
+void ruSound::Attach( ruSceneNode * node ) {
+	SceneNode * sceneNode = dynamic_cast<SceneNode*>( node );
+	if( sceneNode ) {
+		sceneNode->AttachSound( *this );
 	}
-	SceneNode::CastHandle( node )->AttachSound( *this );
 }
 
 void ruSound::Play( int oneshot ) {
@@ -128,15 +128,15 @@ bool ruSound::IsPaused() {
 	return pfIsSoundPaused( pfHandle );
 }
 
-void ruSetAudioReverb( int reverb ) {
+void ruSound::SetAudioReverb( int reverb ) {
 	pfSetListenerSetEAXPreset( (Preset)reverb );
 }
 
-void ruSetMasterVolume( float volume ) {
+void ruSound::SetMasterVolume( float volume ) {
 	pfSetMasterVolume( volume );
 }
 
-float ruGetMasterVolume() {
+float ruSound::GetMasterVolume() {
 	return pfGetMasterVolume();
 }
 

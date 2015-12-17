@@ -21,71 +21,104 @@
 
 #pragma once
 
-
 #include "SceneNode.h"
+#include "Texture.h"
 
-class ParticleEmitter : RendererComponent {
+struct ParticleVertex {
+	ruVector3 mPosition;
+	ruVector2 mTexCoord;
+	int mColor;
+};
+
+struct ParticleFace {
+	short v1;
+	short v2;
+	short v3;
+};
+
+class Particle {
 public:
-    struct ParticleVertex {
-        ruVector3 pos;
-        ruVector2 tex;
-        int color;
-    };
+	ruVector3 mPosition;
+	ruVector3 mColor;
+	ruVector3 mSpeed;
+	float mOpacity;
+	float mSize;
 
-    struct ParticleFace {
-        short v1;
-        short v2;
-        short v3;
-    };
+	explicit Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize );
+	Particle( );
+};
 
-    class Particle {
-    public:
-        ruVector3 position;
-        ruVector3 color;
-        ruVector3 speed;
-        float mOpacity;
-        float size;
-
-        explicit Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize );
-        Particle( );
-    };
-
-    vector< Particle > particles;
-
-    ParticleVertex * vertices;
-    ParticleFace * faces;
-
-    IDirect3DVertexBuffer9 * vertexBuffer;
-    IDirect3DIndexBuffer9 * indexBuffer;
-
-    SceneNode * mOwner;
-
+class ParticleSystem : public virtual ruParticleSystem, public SceneNode {
+public:
+    vector< Particle > mParticles;
+    ParticleVertex * mVertices;
+    ParticleFace * mFaces;
+    IDirect3DVertexBuffer9 * mVertexBuffer;
+    IDirect3DIndexBuffer9 * mIndexBuffer;
     int mAliveParticleCount;
 	int mMaxParticleCount;
-
 	D3DXMATRIX mWorldTransform;
-
-    bool firstTimeUpdate;
-
-    ruParticleSystemProperties props;
-
+    bool mFirstTimeUpdate;
+	ruParticleSystem::Type mType;
+	ruVector3 mColorBegin;
+	ruVector3 mColorEnd;
+	ruVector3 mSpeedDeviationMin;
+	ruVector3 mSpeedDeviationMax;
+	ruVector3 mBoundingBoxMin;
+	ruVector3 mBoundingBoxMax;
+	float mParticleThickness;
+	float mBoundingRadius;
+	float mPointSize;
+	float mScaleFactor;
+	bool mAutoResurrectDeadParticles;
+	bool mUseLighting;
+	bool mEnabled;
+	float mAlphaOffset;
+	shared_ptr<Texture> mTexture;
     int RGBAToInt( ruVector3 color, int alpha );
     ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
-
-	static vector<ParticleEmitter*> msParticleEmitters;
+	static vector<ParticleSystem*> msParticleEmitters;
 public:
-    ParticleEmitter( SceneNode * theParent, int theParticleCount, ruParticleSystemProperties creationProps );
-    ~ParticleEmitter();
+    ParticleSystem( int theParticleCount );
+    ~ParticleSystem();
 	void OnResetDevice();
 	void OnLostDevice();
-    void ResurrectParticles();
+    virtual void ResurrectParticles();
     float GetThickness( );
-    bool IsEnabled();
     bool HasAliveParticles();
     void ResurrectParticle( Particle & p );
     bool IsLightAffects( );
-    SceneNode * GetOwner();
     void Update( );
     void Bind();
     void Render();
+	virtual int GetAliveParticles();
+	virtual bool IsEnabled();
+	virtual void SetEnabled( bool state );
+	virtual void SetPointSize( float size );
+	virtual float GetPointSize();
+	virtual void SetScaleFactor( float scaleFactor );
+	virtual float GetScaleFactor( );
+	virtual void SetParticleThickness( float thickness );
+	virtual float GetParticleThickness( );
+	virtual void SetAutoResurrection( bool state );
+	virtual bool IsAutoResurrectionEnabled();
+	virtual void SetLightingEnabled( bool state );
+	virtual bool IsLightingEnabled( );
+	virtual void SetBoundingBox( const ruVector3 & bbMin, const ruVector3 & bbMax );
+	virtual ruVector3 GetBoundingBoxMax( );
+	virtual ruVector3 GetBoundingBoxMin( );
+	virtual void SetSpeedDeviation( const ruVector3 & dMin, const ruVector3 & dMax );
+	virtual ruVector3 GetSpeedDeviationMax();
+	virtual ruVector3 GetSpeedDeviationMin();
+	virtual void SetTexture( shared_ptr<ruTexture> texture );
+	virtual shared_ptr<ruTexture> GetTexture();
+	virtual void SetType( ruParticleSystem::Type type );
+	virtual ruParticleSystem::Type GetType();
+	virtual void SetBoundingRadius( float radius );
+	virtual float GetBoundingRadius( );
+	virtual void SetColorRange( const ruVector3 & cMin, const ruVector3 & cMax );
+	virtual ruVector3 GetColorMin( );
+	virtual ruVector3 GetColorMax( );
+	virtual float GetAlphaOffset( );
+	virtual void SetAlphaOffset( float alphaOffset );
 };

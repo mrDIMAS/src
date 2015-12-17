@@ -5,14 +5,14 @@
 class RadioButton {
 private:
     bool mOn;
-	ruRectHandle mCheck;
-    ruButtonHandle mGUIButton;
+	ruRect * mCheck;
+    ruButton * mGUIButton;
 	void OnChange();
 public:
-    explicit RadioButton( float x, float y, ruTextureHandle buttonImage, const string & text );
+    explicit RadioButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
     void Update(  );
     bool IsEnabled( );
     void SetEnabled( bool state );
-    void AttachTo( ruGUINodeHandle node );
+    void AttachTo( ruGUINode * node );
 	void SetChangeAction( const ruDelegate & delegat );
 };

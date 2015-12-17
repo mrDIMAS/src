@@ -30,22 +30,22 @@ private:
     void CleanUpExplodeArea();
     void CreateItems();
 
-    ruSceneNode mScreamerZone;
-    ruSceneNode mScreamerZone2;
-    ruSceneNode mConcreteWall;
-    ruSceneNode mDeathZone;
-    ruSceneNode mDetonator;
-    ruSceneNode mFindItemsZone;
-    ruSceneNode mNewLevelZone;
-    ruSceneNode mStoneFallZone;
-    ruSceneNode mWireModels[4];
-    ruSceneNode mDetonatorModels[4];
-    ruSceneNode mExplosivesModels[4];
-    ruSceneNode mExplosivesDummy[4];
-    ruSceneNode mRock[3];
-    ruSceneNode mExplosionFlashPosition;
-    ruLight mExplosionFlashLight;
-    ruSceneNode mExplosionDustParticleSystem;
+    ruSceneNode * mScreamerZone;
+    ruSceneNode * mScreamerZone2;
+    ruSceneNode * mConcreteWall;
+    ruSceneNode * mDeathZone;
+    ruSceneNode * mDetonator;
+    ruSceneNode * mFindItemsZone;
+    ruSceneNode * mNewLevelZone;
+    ruSceneNode * mStoneFallZone;
+    ruSceneNode * mWireModels[4];
+    ruSceneNode * mDetonatorModels[4];
+    ruSceneNode * mExplosivesModels[4];
+    ruSceneNode * mExplosivesDummy[4];
+    ruSceneNode * mRock[3];
+    ruSceneNode * mExplosionFlashPosition;
+    ruPointLight * mExplosionFlashLight;
+    ruParticleSystem * mExplosionDustParticleSystem;
     ruVector3 mRockPosition[3];
 
     shared_ptr<ItemPlace> mDetonatorPlace[4];
@@ -53,8 +53,8 @@ private:
     ruSound mAlertSound;
     ruSound mExplosionSound;
 
-    ruTimerHandle mExplosionTimer;
-    ruTimerHandle mBeepSoundTimer;
+    ruTimer * mExplosionTimer;
+    ruTimer * mBeepSoundTimer;
 
     bool mDetonatorActivated;
 

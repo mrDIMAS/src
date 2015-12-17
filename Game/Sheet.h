@@ -6,11 +6,11 @@ class Sheet : public InteractiveObject {
 private:
     string mText;
     string mDescription;
-    ruTextureHandle mBackgroundTexture;
-    ruRectHandle mGUIBackground;
-    ruTextHandle mGUIText;
+    shared_ptr<ruTexture> mBackgroundTexture;
+    ruRect * mGUIBackground;
+    ruText * mGUIText;
 public:
-    explicit Sheet( ruSceneNode object, string desc, string text );
+    explicit Sheet( ruSceneNode * object, string desc, string text );
     virtual ~Sheet();
     void Update();
     void Draw( );
@@ -19,8 +19,8 @@ public:
     void SetDescription( const string & description );
     const string & GetDescription( ) const;
     void SetVisible( bool state );
-    static Sheet * GetSheetPointerByNode( ruSceneNode o );
+    static Sheet * GetSheetPointerByNode( ruSceneNode * o );
     static vector<Sheet*> msSheetList;
     static ruSound msPaperFlipSound;
-    static ruFontHandle msSheetFont;
+    static ruFont * msSheetFont;
 };

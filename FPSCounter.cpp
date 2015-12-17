@@ -30,7 +30,7 @@ void FPSCounter::RegisterFrame() {
 
         frameCounter = 0;
 
-        timer->RestartTimer();
+        timer->Restart();
     }
 }
 

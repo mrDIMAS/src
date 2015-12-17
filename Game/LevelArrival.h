@@ -24,17 +24,17 @@ public:
 	ruSound mLiftFallSound;
 	ruSound mGeneratorStartSound;
     // Zones
-	ruSceneNode mLiftStopZone;
-	ruSceneNode mGeneratorSmoke;
+	ruSceneNode * mLiftStopZone;
+	ruParticleSystem * mGeneratorSmoke;
 	ruVector3 mGeneratorSmokePosition;
 
     // Entities
-    ruSceneNode mGenerator;
+    ruSceneNode * mGenerator;
 
-    ruSceneNode mLamp1;
-    ruSceneNode mLamp2;
+    ruSceneNode * mLamp1;
+    ruSceneNode * mLamp2;
 
-	ruLight mLiftLamp;
+	ruLight * mLiftLamp;
 
 	ActionSeries mLiftCrashSeries;
 	ActionSeries mGeneratorStartSeries;
