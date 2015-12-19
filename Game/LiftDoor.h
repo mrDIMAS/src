@@ -6,7 +6,7 @@ class LiftDoor : public Door {
 private:
 	float mAngleOffset;
 public:
-	LiftDoor(  ruSceneNode * hDoor, float fMaxAngle, float angleOffset );
+	LiftDoor(  shared_ptr<ruSceneNode> hDoor, float fMaxAngle, float angleOffset );
 
 	virtual void DoInteraction();
 };

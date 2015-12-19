@@ -40,7 +40,7 @@ void InteractiveObject::UpdateFlashing() {
     }
 }
 
-InteractiveObject::InteractiveObject( ruSceneNode * object ) : mInteractCountLeft( 1 ) {
+InteractiveObject::InteractiveObject( shared_ptr<ruSceneNode> object ) : mInteractCountLeft( 1 ) {
     msObjectList.push_back( this );
     this->mObject = object;
     object->Freeze();
@@ -65,7 +65,7 @@ InteractiveObject::~InteractiveObject() {
 void InteractiveObject::Update() {
 	if( mInteractCountLeft > 0 ) {
 		if( pPlayer->mNearestPickedNode == mObject ) {
-			if( ruIsKeyHit( pPlayer->mKeyUse )) {
+			if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
 				mInteractCountLeft--;
 				OnInteract.DoActions();
 				OnInteract.RemoveAllListeners();
@@ -77,7 +77,7 @@ void InteractiveObject::Update() {
 	}
 }
 
-InteractiveObject * InteractiveObject::FindByObject( ruSceneNode * node )
+InteractiveObject * InteractiveObject::FindByObject( shared_ptr<ruSceneNode> node )
 {
 	for( auto & pIO : msObjectList ) {
 		if( pIO->mObject == node ) {

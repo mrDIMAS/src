@@ -14,7 +14,7 @@ void Lamp::Hide() {
 	mBuzzSound.Pause();
 }
 
-Lamp::Lamp( ruSceneNode * lamp, ruSound buzz ) {
+Lamp::Lamp( shared_ptr<ruSceneNode> lamp, ruSound buzz ) {
 	mLamp = lamp;
 	mBuzzSound = buzz;
 	mBuzzSound.SetRolloffFactor( 2.5f );

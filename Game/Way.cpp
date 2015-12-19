@@ -5,7 +5,7 @@
 
 vector<Way*> Way::msWayList;
 
-Way::Way( ruSceneNode * hBegin, ruSceneNode * hEnd, ruSceneNode * hEnterZone, ruSceneNode * hBeginLeavePoint, ruSceneNode * hEndLeavePoint ) {
+Way::Way( shared_ptr<ruSceneNode> hBegin, shared_ptr<ruSceneNode> hEnd, shared_ptr<ruSceneNode> hEnterZone, shared_ptr<ruSceneNode> hBeginLeavePoint, shared_ptr<ruSceneNode> hEndLeavePoint ) {
     mBegin = hBegin;
     mEnd = hEnd;
     mEnterZone = hEnterZone;
@@ -60,7 +60,7 @@ bool Way::IsFreeLook() {
     return mFreeLook;
 }
 
-ruSceneNode * Way::GetTarget() {
+shared_ptr<ruSceneNode> Way::GetTarget() {
     return mTarget;
 }
 
@@ -76,7 +76,7 @@ bool Way::IsEntering() {
     return mEntering;
 }
 
-ruSceneNode * Way::GetEnterZone() {
+shared_ptr<ruSceneNode> Way::GetEnterZone() {
     return mEnterZone;
 }
 
@@ -122,7 +122,7 @@ void Way::Serialize( SaveFile & out ) {
     out.WriteInteger( targetNum );
 }
 
-Way * Way::GetByObject( ruSceneNode * obj ) {
+Way * Way::GetByObject( shared_ptr<ruSceneNode> obj ) {
     for( auto way : msWayList ) {
         if( way->mEnterZone == obj ) {
             return way;

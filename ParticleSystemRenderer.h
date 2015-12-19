@@ -22,7 +22,7 @@
 #pragma  once
 
 #include "Shader.h"
-#include "ParticleEmitter.h"
+#include "ParticleSystem.h"
 
 class ParticleSystemRenderer {
 private:

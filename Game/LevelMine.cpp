@@ -231,7 +231,7 @@ void LevelMine::DoScenario() {
         if( pPlayer->mNearestPickedNode == mDetonator ) {
             pPlayer->SetActionText( mLocalization.GetString( "detonator" ));
 
-            if( ruIsKeyHit( pPlayer->mKeyUse ) && mReadyExplosivesCount >= 4 && !mDetonatorActivated ) {
+            if( ruInput::IsKeyHit( pPlayer->mKeyUse ) && mReadyExplosivesCount >= 4 && !mDetonatorActivated ) {
                 mDetonatorActivated = 1;
 
                 mExplosionTimer->Restart();;
@@ -333,11 +333,11 @@ void LevelMine::UpdateExplodeSequence() {
             shared_ptr<ItemPlace> dp = mDetonatorPlace[i];
 
             if( dp->IsPickedByPlayer() ) {
-                pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "putItem") );
+                pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "putItem") );
             }
         }
 
-        if( ruIsKeyHit( pPlayer->mKeyUse )) {
+        if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
             for( int i = 0; i < 4; i++ ) {
                 shared_ptr<ItemPlace> dp = mDetonatorPlace[i];
 

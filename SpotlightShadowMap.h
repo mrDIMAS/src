@@ -42,7 +42,7 @@ public:
     int iSize;
     explicit SpotlightShadowMap( float size = 1024.0f );
     virtual ~SpotlightShadowMap();
-    void RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, SpotLight * spotLight );
+    void RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, const shared_ptr<SpotLight> & spotLight );
     void BindSpotShadowMap( int index );
     void UnbindSpotShadowMap( int index );
 };

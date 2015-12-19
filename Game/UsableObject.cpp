@@ -9,10 +9,10 @@ UsableObject::UsableObject() : mToNext( false ), mToPrev( false ), mAppear( fals
 }
 
 UsableObject::~UsableObject() {
-	mModel->Free();
+
 }
 
-ruSceneNode * UsableObject::GetModel() {
+shared_ptr<ruSceneNode> UsableObject::GetModel() {
 	return mModel;
 }
 

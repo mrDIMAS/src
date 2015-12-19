@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Zone.h"
 
-Zone::Zone( ruSceneNode * object ) : mObject( object ), mType( Type::OneShot ), mPlayerInside( false ), mActive( true ) {
+Zone::Zone( shared_ptr<ruSceneNode> object ) : mObject( object ), mType( Type::OneShot ), mPlayerInside( false ), mActive( true ) {
 }
 
 void Zone::Update() {

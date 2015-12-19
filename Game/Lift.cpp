@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift( ruSceneNode * base ) : mPaused( false ), mBaseNode( base ), mArrived( true ), mEngineSoundEnabled( true ), mSpeedMultiplier( 1.0f ) {
+Lift::Lift( shared_ptr<ruSceneNode> base ) : mPaused( false ), mBaseNode( base ), mArrived( true ), mEngineSoundEnabled( true ), mSpeedMultiplier( 1.0f ) {
 
 }
 
@@ -52,9 +52,9 @@ void Lift::Update() {
         }
         // player interaction( TODO: must be moved to player class )
         if( pPlayer->mNearestPickedNode == mControlPanel ) {
-            pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "liftUpDown" ) );
+            pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "liftUpDown" ) );
 
-            if( ruIsKeyHit( pPlayer->mKeyUse )) {
+            if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
                 if( mArrived ) {
 					if( IsAllDoorsClosed() ) {
 						SetDoorsLocked( true );
@@ -74,7 +74,7 @@ void Lift::Update() {
     }
 }
 
-void Lift::SetBackDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor ) {
+void Lift::SetBackDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor ) {
     mDoorBackLeftNode = leftDoor;
     mDoorBackRightNode = rightDoor;
 	mDoorBackLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackLeftNode, -90, 0 ));
@@ -83,7 +83,7 @@ void Lift::SetBackDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor ) {
 	mDoorBackRight->SetTurnDirection( Door::TurnDirection::Counterclockwise );
 }
 
-void Lift::SetFrontDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor ) {
+void Lift::SetFrontDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor ) {
     mDoorFrontLeftNode = leftDoor;
     mDoorFrontRightNode = rightDoor;
 	mDoorFrontLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorFrontLeftNode, 90, 0 ));
@@ -99,16 +99,16 @@ void Lift::SetMotorSound( ruSound motorSound ) {
 	mMotorSound.SetRoomRolloffFactor( 30 );
 }
 
-void Lift::SetSourcePoint( ruSceneNode * sourceNode ) {
+void Lift::SetSourcePoint( shared_ptr<ruSceneNode> sourceNode ) {
     mSourceNode = sourceNode;
     mTargetNode = mSourceNode;
 }
 
-void Lift::SetDestinationPoint( ruSceneNode * destNode ) {
+void Lift::SetDestinationPoint( shared_ptr<ruSceneNode> destNode ) {
     mDestNode = destNode;
 }
 
-void Lift::SetControlPanel( ruSceneNode * panel ) {
+void Lift::SetControlPanel( shared_ptr<ruSceneNode> panel ) {
     mControlPanel = panel;
 }
 

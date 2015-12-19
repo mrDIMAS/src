@@ -426,8 +426,7 @@ void Menu::Update( ) {
 	SyncPlayerControls();
 
     if( mVisible ) {
-
-        if( ruIsKeyHit( KEY_Esc ) ) {
+        if( ruInput::IsKeyHit( ruInput::Key::Esc ) ) {
 			if( pCurrentLevel ) {
 				CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameCurrent ));
 			}
@@ -567,7 +566,7 @@ void Menu::Update( ) {
 		}
         
     } else {
-        if( ruIsKeyHit( KEY_Esc ) ) {
+        if( ruInput::IsKeyHit( ruInput::Key::Esc ) ) {
             pMainMenu->Show();
         }
     }
@@ -635,23 +634,23 @@ void Menu::LoadConfig() {
         mpMouseSensivity->SetValue( config.GetNumber( "mouseSens" ));
         mpFXAAButton->SetEnabled( config.GetNumber( "fxaaEnabled" ) != 0 );
         ruEngine::SetFXAAEnabled( mpFXAAButton->IsEnabled() );
-        mpMoveForwardKey->SetSelected( config.GetNumber( "keyMoveForward" ) );
-        mpMoveBackwardKey->SetSelected( config.GetNumber( "keyMoveBackward" ) );
-        mpStrafeLeftKey->SetSelected( config.GetNumber( "keyStrafeLeft" ) );
-        mpStrafeRightKey->SetSelected( config.GetNumber( "keyStrafeRight" ) );
-        mpJumpKey->SetSelected( config.GetNumber( "keyJump" ) );
-        mpRunKey->SetSelected( config.GetNumber( "keyRun" ) );
-        mpFlashLightKey->SetSelected( config.GetNumber( "keyFlashLight" ) );
-        mpInventoryKey->SetSelected( config.GetNumber( "keyInventory" ) );
-        mpUseKey->SetSelected( config.GetNumber( "keyUse" ) );
+        mpMoveForwardKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyMoveForward" ))));
+        mpMoveBackwardKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyMoveBackward" ))));
+        mpStrafeLeftKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyStrafeLeft" ))));
+        mpStrafeRightKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyStrafeRight" ))));
+        mpJumpKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyJump" ))));
+        mpRunKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyRun" ))));
+        mpFlashLightKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyFlashLight" ))));
+        mpInventoryKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyInventory" ))));
+        mpUseKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyUse" ))));
 
-        mpQuickSaveKey->SetSelected( config.GetNumber( "keyQuickSave" ) );
+        mpQuickSaveKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyQuickSave" ))));
         g_keyQuickSave = mpQuickSaveKey->GetSelectedKey();
 
-        mpQuickLoadKey->SetSelected( config.GetNumber( "keyQuickLoad" ) );
+        mpQuickLoadKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyQuickLoad" ))));
         g_keyQuickLoad = mpQuickLoadKey->GetSelectedKey();
 
-        mpStealthKey->SetSelected( config.GetNumber( "keyStealth" ) );
+        mpStealthKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyStealth" ))));
 
         mpSpotShadowsButton->SetEnabled( config.GetNumber( "spotShadowsEnabled" ) != 0 );
         ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
@@ -668,8 +667,8 @@ void Menu::LoadConfig() {
         mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
         ruEngine::SetAnisotropicTextureFiltration( mpTextureFiltering->GetCurrentValue() );
 
-		mpLookLeftKey->SetSelected( config.GetNumber( "keyLookLeft" ) );
-		mpLookRightKey->SetSelected( config.GetNumber( "keyLookRight" ) );
+		mpLookLeftKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyLookLeft" ))));
+		mpLookRightKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyLookRight" ))));
 
 		mpFPSButton->SetEnabled( config.GetNumber( "showFPS" ) != 0.0f );
 		g_showFPS = mpFPSButton->IsEnabled();
@@ -699,23 +698,23 @@ void Menu::WriteConfig() {
     WriteFloat( config, "masterVolume", mpMasterVolume->GetValue() );
     WriteFloat( config, "musicVolume", mpMusicVolume->GetValue() );
     WriteInteger( config, "fxaaEnabled", mpFXAAButton->IsEnabled() ? 1 : 0 );
-    WriteInteger( config, "keyMoveForward", mpMoveForwardKey->GetSelectedKey() );
-    WriteInteger( config, "keyMoveBackward", mpMoveBackwardKey->GetSelectedKey() );
-    WriteInteger( config, "keyStrafeLeft", mpStrafeLeftKey->GetSelectedKey() );
-    WriteInteger( config, "keyStrafeRight", mpStrafeRightKey->GetSelectedKey() );
-    WriteInteger( config, "keyJump", mpJumpKey->GetSelectedKey() );
-    WriteInteger( config, "keyFlashLight", mpFlashLightKey->GetSelectedKey() );
-    WriteInteger( config, "keyRun", mpRunKey->GetSelectedKey() );
-    WriteInteger( config, "keyInventory", mpInventoryKey->GetSelectedKey() );
-    WriteInteger( config, "keyUse", mpUseKey->GetSelectedKey() );
-    WriteInteger( config, "keyQuickSave", mpQuickSaveKey->GetSelectedKey() );
-    WriteInteger( config, "keyQuickLoad", mpQuickLoadKey->GetSelectedKey() );
+    WriteInteger( config, "keyMoveForward", static_cast<int>( mpMoveForwardKey->GetSelectedKey()));
+    WriteInteger( config, "keyMoveBackward", static_cast<int>( mpMoveBackwardKey->GetSelectedKey()));
+    WriteInteger( config, "keyStrafeLeft", static_cast<int>( mpStrafeLeftKey->GetSelectedKey()));
+    WriteInteger( config, "keyStrafeRight", static_cast<int>( mpStrafeRightKey->GetSelectedKey()));
+    WriteInteger( config, "keyJump", static_cast<int>( mpJumpKey->GetSelectedKey()));
+    WriteInteger( config, "keyFlashLight", static_cast<int>( mpFlashLightKey->GetSelectedKey()));
+    WriteInteger( config, "keyRun", static_cast<int>( mpRunKey->GetSelectedKey()));
+    WriteInteger( config, "keyInventory", static_cast<int>( mpInventoryKey->GetSelectedKey()));
+    WriteInteger( config, "keyUse", static_cast<int>( mpUseKey->GetSelectedKey()));
+    WriteInteger( config, "keyQuickSave", static_cast<int>( mpQuickSaveKey->GetSelectedKey()));
+    WriteInteger( config, "keyQuickLoad", static_cast<int>( mpQuickLoadKey->GetSelectedKey()));
     WriteInteger( config, "spotShadowsEnabled", ruEngine::IsSpotLightShadowsEnabled() ? 1 : 0 );
     WriteInteger( config, "hdrEnabled", ruEngine::IsHDREnabled() ? 1 : 0  );
-    WriteInteger( config, "keyStealth", mpStealthKey->GetSelectedKey() );
+    WriteInteger( config, "keyStealth", static_cast<int>( mpStealthKey->GetSelectedKey()));
     WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
-	WriteInteger( config, "keyLookLeft", mpLookLeftKey->GetSelectedKey() );
-	WriteInteger( config, "keyLookRight", mpLookRightKey->GetSelectedKey() );
+	WriteInteger( config, "keyLookLeft", static_cast<int>( mpLookLeftKey->GetSelectedKey()));
+	WriteInteger( config, "keyLookRight", static_cast<int>( mpLookRightKey->GetSelectedKey()));
 	WriteInteger( config, "showFPS", mpFPSButton->IsEnabled() ? 1 : 0 );
 	WriteInteger( config, "parallax", mpParallaxButton->IsEnabled() ? 1 : 0 );
     config.close();
@@ -732,7 +731,6 @@ void Menu::WriteInteger( ofstream & stream, string name, int value ) {
 void Menu::WriteFloat( ofstream & stream, string name, float value ) {
     stream << name << "=\"" << value << "\";\n";
 }
-
 
 Menu::~Menu() {
     delete mpMasterVolume;

@@ -51,18 +51,18 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 
     // Control vars
     mouseSens = 0.5f;
-    mKeyMoveForward = KEY_W;
-    mKeyMoveBackward = KEY_S;
-    mKeyStrafeLeft = KEY_A;
-    mKeyStrafeRight = KEY_D;
-    mKeyJump = KEY_Space;
-    mKeyFlashLight = KEY_F;
-    mKeyRun = KEY_LeftShift;
-    mKeyInventory = KEY_Tab;
-    mKeyUse = KEY_R;
-    mKeyStealth = KEY_C;
-    mKeyLookLeft = KEY_Q;
-    mKeyLookRight = KEY_E;
+    mKeyMoveForward = ruInput::Key::W;
+    mKeyMoveBackward = ruInput::Key::S;
+    mKeyStrafeLeft = ruInput::Key::A;
+    mKeyStrafeRight = ruInput::Key::D;
+    mKeyJump = ruInput::Key::Space;
+    mKeyFlashLight = ruInput::Key::F;
+    mKeyRun = ruInput::Key::LeftShift;
+    mKeyInventory = ruInput::Key::Tab;
+    mKeyUse = ruInput::Key::R;
+    mKeyStealth = ruInput::Key::C;
+    mKeyLookLeft = ruInput::Key::Q;
+    mKeyLookRight = ruInput::Key::E;
 
 	mLastHealth = mHealth;
 
@@ -186,7 +186,7 @@ void Player::DrawStatusBar() {
 }
 
 bool Player::IsCanJump( ) {    
-	ruSceneNode * node = ruPhysics::CastRay( mBody->GetPosition() + ruVector3( 0, 0.1, 0 ), mBody->GetPosition() - ruVector3( 0, mBodyHeight * 2, 0 ), 0 );
+	shared_ptr<ruSceneNode> node = ruPhysics::CastRay( mBody->GetPosition() + ruVector3( 0, 0.1, 0 ), mBody->GetPosition() - ruVector3( 0, mBodyHeight * 2, 0 ), 0 );
 	if( node ) {
 		if( node == mNodeInHands ) {
 			mNodeInHands = nullptr;
@@ -240,7 +240,7 @@ void Player::AddItem( Item::Type type ) {
 
 void Player::UpdateInventory() {
 	if( !mpSheetInHands ) {
-		if( ruIsKeyHit( mKeyInventory ) ) {
+		if( ruInput::IsKeyHit( mKeyInventory ) ) {
 			mInventory.Open( !mInventory.IsOpened() );
 		}
 		mInventory.Update();
@@ -276,8 +276,8 @@ void Player::UpdateMouseLook() {
                 mouseSpeed = 0.0f;
             }
         }
-        mPitch.SetTarget( mPitch.GetTarget() + ruGetMouseYSpeed() * mouseSpeed );
-        mYaw.SetTarget( mYaw.GetTarget() - ruGetMouseXSpeed() * mouseSpeed );
+        mPitch.SetTarget( mPitch.GetTarget() + ruInput::GetMouseYSpeed() * mouseSpeed );
+        mYaw.SetTarget( mYaw.GetTarget() - ruInput::GetMouseXSpeed() * mouseSpeed );
     }
 
     if( mSmoothCamera ) {
@@ -293,11 +293,11 @@ void Player::UpdateMouseLook() {
     mBody->SetRotation( ruQuaternion( ruVector3( 0, 1, 0 ), mYaw ) );
 
     mHeadAngle.SetTarget( 0.0f );
-    if( ruIsKeyDown( mKeyLookLeft )) {
+    if( ruInput::IsKeyDown( mKeyLookLeft )) {
         ruVector3 rayBegin = mBody->GetPosition() + ruVector3( mBodyWidth / 2, 0, 0 );
         ruVector3 rayEnd = rayBegin + mBody->GetRightVector() * 10.0f;
         ruVector3 hitPoint;
-        ruSceneNode * leftIntersection = ruPhysics::CastRay( rayBegin, rayEnd, &hitPoint );
+        shared_ptr<ruSceneNode> leftIntersection = ruPhysics::CastRay( rayBegin, rayEnd, &hitPoint );
         bool canLookLeft = true;
         if( leftIntersection ) {
             float dist2 = ( hitPoint - mBody->GetPosition() ).Length2();
@@ -310,11 +310,11 @@ void Player::UpdateMouseLook() {
         }
     }
 
-    if( ruIsKeyDown( mKeyLookRight )) {
+    if( ruInput::IsKeyDown( mKeyLookRight )) {
         ruVector3 rayBegin = mBody->GetPosition() - ruVector3( mBodyWidth / 2.0f, 0.0f, 0.0f );
         ruVector3 rayEnd = rayBegin - mBody->GetRightVector() * 10.0f;
         ruVector3 hitPoint;
-        ruSceneNode * rightIntersection = ruPhysics::CastRay( rayBegin, rayEnd, &hitPoint );
+        shared_ptr<ruSceneNode> rightIntersection = ruPhysics::CastRay( rayBegin, rayEnd, &hitPoint );
         bool canLookRight = true;
         if( rightIntersection ) {
             float dist2 = ( hitPoint - mBody->GetPosition() ).Length2();
@@ -332,9 +332,9 @@ void Player::UpdateMouseLook() {
 
 void Player::UpdateJumping() {
     // do ray test, to determine collision with objects above camera
-    ruSceneNode * headBumpObject = ruPhysics::CastRay( mBody->GetPosition() + ruVector3( 0.0f, mBodyHeight * 0.98f, 0.0f ), mBody->GetPosition() + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
+    shared_ptr<ruSceneNode> headBumpObject = ruPhysics::CastRay( mBody->GetPosition() + ruVector3( 0.0f, mBodyHeight * 0.98f, 0.0f ), mBody->GetPosition() + ruVector3( 0, 1.02 * mBodyHeight, 0 ), nullptr );
 
-    if( ruIsKeyHit( mKeyJump ) ) {
+    if( ruInput::IsKeyHit( mKeyJump ) ) {
         if( IsCanJump() ) {
             mJumpTo = ruVector3( 0.0f, 350.0f, 0.0f );
             mLanded = false;
@@ -371,7 +371,7 @@ void Player::UpdateMoving() {
     for( auto pWay : Way::msWayList ) {
         if( !pWay->IsPlayerInside() )  {
             if( pWay->IsEnterPicked() ) {
-                SetActionText( StringBuilder() <<  GetKeyName( mKeyUse ) << mLocalization.GetString( "crawlIn" ));
+                SetActionText( StringBuilder() << ruInput::GetKeyName( mKeyUse ) << mLocalization.GetString( "crawlIn" ));
                 if( IsUseButtonHit() ) {
                     pWay->Enter();
                 }
@@ -383,7 +383,7 @@ void Player::UpdateMoving() {
         pDoor->DoInteraction();
         if( pDoor->IsPickedByPlayer() ) {
 			if( !pDoor->IsLocked() ) {
-				SetActionText( StringBuilder() << GetKeyName( mKeyUse ) << mLocalization.GetString( "openClose" ));
+				SetActionText( StringBuilder() << ruInput::GetKeyName( mKeyUse ) << mLocalization.GetString( "openClose" ));
 				if( IsUseButtonHit() ) {
 					pDoor->SwitchState();
 				}
@@ -401,11 +401,11 @@ void Player::UpdateMoving() {
 		mRunning = false;
         if( mpCurrentWay->IsPlayerInside() ) {
             mMoved = false;
-            if( ruIsKeyDown( mKeyMoveForward )) {
+            if( ruInput::IsKeyDown( mKeyMoveForward )) {
                 mpCurrentWay->SetDirection( Way::Direction::Forward );
                 mMoved = true;
             }
-            if( ruIsKeyDown( mKeyMoveBackward )) {
+            if( ruInput::IsKeyDown( mKeyMoveBackward )) {
                 mpCurrentWay->SetDirection( Way::Direction::Backward );
                 mMoved = true;
             }
@@ -418,7 +418,7 @@ void Player::UpdateMoving() {
                 StopInstant();
             }
         }
-		if( ruIsKeyHit( mKeyJump )) {
+		if( ruInput::IsKeyHit( mKeyJump )) {
 			mpCurrentWay->LeaveInstantly();
 			mpCurrentWay = nullptr;
 			Unfreeze();
@@ -432,17 +432,17 @@ void Player::UpdateMoving() {
 
 		bool moveBack = false;
 
-        if( ruIsKeyDown( mKeyMoveForward )) {
+        if( ruInput::IsKeyDown( mKeyMoveForward )) {
             mSpeedTo = mSpeedTo + look;
         }
-        if( ruIsKeyDown( mKeyMoveBackward )) {
+        if( ruInput::IsKeyDown( mKeyMoveBackward )) {
             mSpeedTo = mSpeedTo - look;
 			moveBack = true;
         }
-        if( ruIsKeyDown( mKeyStrafeLeft )) {
+        if( ruInput::IsKeyDown( mKeyStrafeLeft )) {
             mSpeedTo = mSpeedTo + right;
         }
-        if( ruIsKeyDown( mKeyStrafeRight )) {
+        if( ruInput::IsKeyDown( mKeyStrafeRight )) {
             mSpeedTo = mSpeedTo - right;
         }
 
@@ -458,7 +458,7 @@ void Player::UpdateMoving() {
         mFov.SetTarget( mFov.GetMin() );
 
         mRunning = false;
-        if( !IsCrouch() && ruIsKeyDown( mKeyRun ) && mMoved && !mNodeInHands ) {
+        if( !IsCrouch() && ruInput::IsKeyDown( mKeyRun ) && mMoved && !mNodeInHands ) {
             if( mStamina > 0 ) {
                 mSpeedTo = mSpeedTo * mRunSpeedMult;
                 mStamina -= 8.0f * g_dt ;
@@ -478,7 +478,7 @@ void Player::UpdateMoving() {
 			mSpeedTo = mSpeedTo * 0.4f;
 		}
 
-		if( ruIsKeyHit( mKeyStealth )) {
+		if( ruInput::IsKeyHit( mKeyStealth )) {
 			Crouch( !IsCrouch() );
 			mStealthMode = IsCrouch();
 		}
@@ -497,7 +497,7 @@ void Player::UpdateMoving() {
     UpdateCameraShake();
 }
 
-void ComputeGreyScaleFactor( ruLight * light, ruVector3 pos ) {
+void ComputeGreyScaleFactor( shared_ptr<ruLight>light, ruVector3 pos ) {
 	if( light->IsSeePoint( pos )) {	
 		float factor = (pos - light->GetPosition()).Length() / (1.25f * light->GetRange());
 		if( factor > 1.0f ) factor = 1.0f;
@@ -510,13 +510,13 @@ void ComputeGreyScaleFactor( ruLight * light, ruVector3 pos ) {
 
 void Player::ComputeStealth() {
 	for( int i = 0; i < ruPointLight::GetCount(); i++ ) {
-		ruLight * light = ruPointLight::Get( i );	
+		shared_ptr<ruLight>light = ruPointLight::Get( i );	
 		if( !(light == mFakeLight) ) {
 			ComputeGreyScaleFactor( light, mBody->GetPosition());
 		}
 	}
 	for( int i = 0; i < ruSpotLight::GetCount(); i++ ) {
-		ruLight * light = ruSpotLight::Get( i );	
+		shared_ptr<ruLight>light = ruSpotLight::Get( i );	
 		ComputeGreyScaleFactor( light, mBody->GetPosition());
 	}
 	mFakeLight->SetGreyscaleFactor( 1.0f );
@@ -788,7 +788,7 @@ void Player::DrawSheetInHands() {
 		SetActionText( StringBuilder() << mpSheetInHands->GetDescription() << mLocalization.GetString( "sheetOpen" ));
         mpSheetInHands->SetVisible( true );
         mpSheetInHands->Draw();
-        if( ruIsMouseHit( MB_Right ) ||  ( mpSheetInHands->mObject->GetPosition() - mBody->GetPosition() ).Length2() > 2 ) {
+        if( ruInput::IsMouseHit( ruInput::MouseButton::Right ) || ( mpSheetInHands->mObject->GetPosition() - mBody->GetPosition() ).Length2() > 2 ) {
             CloseCurrentSheet();
         }
     }
@@ -845,12 +845,12 @@ void Player::UpdateItemsHandling() {
 			ruVector3 ppPos = mItemPoint->GetPosition();
 			ruVector3 objectPos = mNodeInHands->GetPosition() + mPickCenterOffset ;
 			ruVector3 dir = ppPos - objectPos;
-			if( ruIsMouseDown( MB_Left ) ) {
+			if( ruInput::IsMouseDown( ruInput::MouseButton::Left ) ) {
 				mNodeInHands->Move( dir * 6 );
 
 				mNodeInHands->SetAngularVelocity( ruVector3( 0, 0, 0 ));
 
-				if( ruIsMouseDown( MB_Right ) ) {
+				if( ruInput::IsMouseDown( ruInput::MouseButton::Right ) ) {
 					if( UseStamina( mNodeInHands->GetMass() )) {
 						mNodeInHands->Move(( ppPos - mpCamera->mCamera->GetPosition() ).Normalize() * 6 );
 					}
@@ -868,7 +868,7 @@ void Player::UpdateItemsHandling() {
     }
 
 
-    if( !ruIsMouseDown( MB_Left )) {
+    if( !ruInput::IsMouseDown( ruInput::MouseButton::Left )) {
         mObjectThrown = false;
     }
 }
@@ -899,10 +899,10 @@ void Player::UpdatePicking() {
             mNearestPickedNode = mPickedNode;
 			string pickedObjectDesc;
             if( pIO ) {
-                pickedObjectDesc = StringBuilder() << pIO->GetPickDescription() << "- [" << GetKeyName( mKeyUse).c_str() << "] " << mLocalization.GetString( "itemPick" );
+                pickedObjectDesc = StringBuilder() << pIO->GetPickDescription() << "- [" << ruInput::GetKeyName( mKeyUse).c_str() << "] " << mLocalization.GetString( "itemPick" );
                 SetActionText( pickedObjectDesc );
             } else if( pSheet ) {
-                pickedObjectDesc = StringBuilder() << pSheet->GetDescription() << "- [" << GetKeyName( mKeyUse ) << "] " << mLocalization.GetString( "sheetPick" );
+                pickedObjectDesc = StringBuilder() << pSheet->GetDescription() << "- [" << ruInput::GetKeyName( mKeyUse ) << "] " << mLocalization.GetString( "sheetPick" );
                 SetActionText( pickedObjectDesc );
             } else {
                 if( IsObjectHasNormalMass( mPickedNode ) && !mPickedNode->IsFrozen()) {
@@ -910,7 +910,7 @@ void Player::UpdatePicking() {
                 }
             }
 
-            if( ruIsMouseDown( MB_Left ) ) {
+            if( ruInput::IsMouseDown( ruInput::MouseButton::Left ) ) {
                 if( IsObjectHasNormalMass( mPickedNode )) {
                     if( !mPickedNode->IsFrozen() && !mObjectThrown ) {
                         mNodeInHands = mPickedNode;
@@ -927,10 +927,10 @@ void Player::FreeHands() {
 }
 
 bool Player::IsUseButtonHit() {
-    return ruIsKeyHit( mKeyUse );
+    return ruInput::IsKeyHit( mKeyUse );
 }
 
-bool Player::IsObjectHasNormalMass( ruSceneNode * node ) {
+bool Player::IsObjectHasNormalMass( shared_ptr<ruSceneNode> node ) {
     return node->GetMass() > 0 && node->GetMass() < 40;
 }
 
@@ -1003,15 +1003,15 @@ void Player::Deserialize( SaveFile & in ) {
 
     mpSheetInHands = Sheet::GetSheetPointerByNode( ruSceneNode::FindByName( in.ReadString() ));
 
-    in.ReadInteger( mKeyMoveForward );
-    in.ReadInteger( mKeyMoveBackward );
-    in.ReadInteger( mKeyStrafeLeft );
-    in.ReadInteger( mKeyStrafeRight );
-    in.ReadInteger( mKeyJump );
-    in.ReadInteger( mKeyFlashLight );
-    in.ReadInteger( mKeyRun );
-    in.ReadInteger( mKeyInventory );
-    in.ReadInteger( mKeyUse );
+    mKeyMoveForward = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyMoveBackward = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyStrafeLeft = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyStrafeRight = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyJump = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyFlashLight = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyRun = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyInventory = static_cast<ruInput::Key>( in.ReadInteger());
+    mKeyUse = static_cast<ruInput::Key>( in.ReadInteger());
 
     mStealthMode = in.ReadBoolean();
 
@@ -1093,15 +1093,15 @@ void Player::Serialize( SaveFile & out ) {
 
     out.WriteString( mpSheetInHands ? mpSheetInHands->mObject->GetName() : "undefinedSheet" );
 
-    out.WriteInteger( mKeyMoveForward );
-    out.WriteInteger( mKeyMoveBackward );
-    out.WriteInteger( mKeyStrafeLeft );
-    out.WriteInteger( mKeyStrafeRight );
-    out.WriteInteger( mKeyJump );
-    out.WriteInteger( mKeyFlashLight );
-    out.WriteInteger( mKeyRun );
-    out.WriteInteger( mKeyInventory );
-    out.WriteInteger( mKeyUse );
+    out.WriteInteger( static_cast<int>( mKeyMoveForward ));
+    out.WriteInteger( static_cast<int>( mKeyMoveBackward ));
+    out.WriteInteger( static_cast<int>( mKeyStrafeLeft ));
+    out.WriteInteger( static_cast<int>( mKeyStrafeRight ));
+    out.WriteInteger( static_cast<int>( mKeyJump ));
+    out.WriteInteger( static_cast<int>( mKeyFlashLight ));
+    out.WriteInteger( static_cast<int>( mKeyRun ));
+    out.WriteInteger( static_cast<int>( mKeyInventory ));
+    out.WriteInteger( static_cast<int>( mKeyUse ));
 
     out.WriteBoolean( mStealthMode );
 
@@ -1198,9 +1198,9 @@ void Player::UpdateUsableObjects() {
 			usableObject->GetModel()->Hide();
 		}
 		mCurrentUsableObject->GetModel()->Show();	
-		if( ruGetMouseWheelSpeed() < 0 ) {
+		if( ruInput::GetMouseWheelSpeed() < 0 ) {
 			mCurrentUsableObject->Prev();
-		} else if( ruGetMouseWheelSpeed() > 0 ) {
+		} else if( ruInput::GetMouseWheelSpeed() > 0 ) {
 			mCurrentUsableObject->Next();	
 		}
 		mCurrentUsableObject->Update();
@@ -1301,7 +1301,7 @@ void Player::Step( ruVector3 direction, float speed )
 	ruVector3 rayBegin = currentPosition;
 	ruVector3 rayEnd = rayBegin - ruVector3( 0, 5, 0 );
 	ruVector3 intPoint;
-	ruSceneNode * rayResult = ruPhysics::CastRay( rayBegin, rayEnd, &intPoint );
+	shared_ptr<ruSceneNode> rayResult = ruPhysics::CastRay( rayBegin, rayEnd, &intPoint );
 	ruVector3 pushpullVelocity = ruVector3( 0,0,0 );
 	if( rayResult && !(rayResult == mBody)  ) {
 		pushpullVelocity.y = -( currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier  ) * 4.4f;

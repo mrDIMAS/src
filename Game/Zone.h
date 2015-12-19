@@ -9,7 +9,7 @@ public:
 		Loop,
 	};
 private:
-	ruSceneNode * mObject;
+	shared_ptr<ruSceneNode> mObject;
 	bool mPlayerInside;
 	bool mActive;
 	Type mType;
@@ -18,7 +18,7 @@ public:
 	ruEvent OnPlayerLeave;  // Loop
 	ruEvent OnPlayerInside; // Loop
 
-	explicit Zone( ruSceneNode * object );
+	explicit Zone( shared_ptr<ruSceneNode> object );
 	void Update();
 	void SetActive( bool active );
 };

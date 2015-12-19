@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "Utils.h"
 
-Valve::Valve( ruSceneNode * obj, ruVector3 axis, int turnCount ) {
+Valve::Valve( shared_ptr<ruSceneNode> obj, ruVector3 axis, int turnCount ) {
     mObject = obj;
     mTurnAxis = axis;
     mAngle = 0.0f;
@@ -24,8 +24,8 @@ void Valve::Update() {
 	mTurnSound.Pause();
     if( !mDone ) {	
 		if( pPlayer->mNearestPickedNode == mObject ) {
-			pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
-			if( ruIsKeyDown( pPlayer->mKeyUse )) {
+			pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
+			if( ruInput::IsKeyDown( pPlayer->mKeyUse )) {
 				mTurnSound.Play();
 				mAngle += 5;
 				OnTurn.DoActions();

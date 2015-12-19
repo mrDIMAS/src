@@ -29,8 +29,8 @@ void GUIButton::Update() {
 	if( IsVisible() ) {
 		CalculateTransform();
 
-		int mouseX = ruGetMouseX();
-		int mouseY = ruGetMouseY();
+		int mouseX = ruInput::GetMouseX();
+		int mouseY = ruInput::GetMouseY();
 
 		mPicked = false;
 		mLeftPressed = false;
@@ -44,7 +44,7 @@ void GUIButton::Update() {
 			if( mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight ) ) {
 				mPicked = true;
 
-				if( ruIsMouseHit( MB_Left )) {
+				if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
 					if( IsGotAction( ruGUIAction::OnClick )) {
 						mEventList[ ruGUIAction::OnClick ].DoActions();
 					}
@@ -52,15 +52,15 @@ void GUIButton::Update() {
 					mLeftHit = true;
 				}
 
-				if( ruIsMouseHit( MB_Right )) {
+				if( ruInput::IsMouseHit( ruInput::MouseButton::Right )) {
 					mRightHit = true;
 				}
 
-				if( ruIsMouseDown( MB_Left )) {
+				if( ruInput::IsMouseDown( ruInput::MouseButton::Left )) {
 					mLeftPressed = true;
 				}
 
-				if( ruIsMouseDown( MB_Right )) {
+				if( ruInput::IsMouseDown( ruInput::MouseButton::Right )) {
 					mRightPressed = true;
 				}
 

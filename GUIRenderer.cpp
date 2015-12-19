@@ -80,7 +80,7 @@ void GUIRenderer::RenderAllGUIElements() {
     if( Cursor::msCurrentCursor ) {
         Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
         if( Cursor::msCurrentCursor->IsVisible() ) {
-            Cursor::msCurrentCursor->SetPosition( ruGetMouseX(), ruGetMouseY());
+            Cursor::msCurrentCursor->SetPosition( ruInput::GetMouseX(), ruInput::GetMouseY());
             RenderRect( Cursor::msCurrentCursor );
         }
     }

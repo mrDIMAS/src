@@ -35,25 +35,31 @@ void EffectsQuad::Render() {
 }
 
 void EffectsQuad::Bind( bool bindInternalVertexShader ) {
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
     if( debug ) {
         debugPixelShader->Bind();
         Engine::I().SetAlphaBlendEnabled( false );
         Engine::I().SetStencilEnabled( false );
     }
 	if( bindInternalVertexShader ) {
-		vertexShader->Bind();
-		Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
-		Engine::I().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
-		ruVector3 camPos = ruVector3( Camera::msCurrentCamera->mView._41, Camera::msCurrentCamera->mView._42, Camera::msCurrentCamera->mView._43 );
-		Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
+		if( camera ) {
+			vertexShader->Bind();
+			Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
+			Engine::I().SetVertexShaderMatrix( 5, &camera->invViewProjection );
+			ruVector3 camPos = ruVector3( camera->mView._41, camera->mView._42, camera->mView._43 );
+			Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
+		}
 	}
 }
 
 void EffectsQuad::BindNoShader() {
-	Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
-	Engine::I().SetVertexShaderMatrix( 5, &Camera::msCurrentCamera->invViewProjection );
-	ruVector3 camPos = ruVector3( Camera::msCurrentCamera->mView._41, Camera::msCurrentCamera->mView._42, Camera::msCurrentCamera->mView._43 );
-	Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
+		Engine::I().SetVertexShaderMatrix( 5, &camera->invViewProjection );
+		ruVector3 camPos = ruVector3( camera->mView._41, camera->mView._42, camera->mView._43 );
+		Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
+	}
 }
 
 EffectsQuad::~EffectsQuad() {

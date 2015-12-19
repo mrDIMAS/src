@@ -80,4 +80,43 @@
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "dxguid.lib" )
 
+template<typename Interface>
+class COMPtr {
+private:
+	Interface * mInterface;
+public:
+	COMPtr() {
+		mInterface = nullptr;
+	}
+
+	// for Direct3DCreate9
+	void Set( Interface * iface ) {
+		mInterface = iface;
+	}
+
+	~COMPtr() {
+		if( mInterface ) {
+			mInterface->Release();
+		}
+	}
+
+	inline Interface ** operator & () {
+		return &mInterface;
+	}
+
+	inline Interface * operator -> () {
+		return mInterface;
+	}
+
+	operator Interface* () {
+		return mInterface;
+	}
+
+	Interface * operator = ( Interface * iface ) {
+		iface->AddRef();
+		mInterface = iface;
+		return mInterface;
+	}
+};
+
 using namespace std;

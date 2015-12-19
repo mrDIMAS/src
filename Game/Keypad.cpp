@@ -8,7 +8,7 @@ void Keypad::Update()
 		if( pPlayer->mNearestPickedNode == mKeys[i] ) {
 			if( !mKeyState[i] ) {
 				pPlayer->SetActionText( StringBuilder() << i << pPlayer->mLocalization.GetString( "pressButton" ) );
-				if( ruIsKeyHit( pPlayer->mKeyUse ) ) {
+				if( ruInput::IsKeyHit( pPlayer->mKeyUse ) ) {
 					mCurrentCode += to_string( i );
 					mKeyState[i] = true;
 					mButtonPushSound.Play();
@@ -28,13 +28,13 @@ void Keypad::Update()
 
 	if( pPlayer->mNearestPickedNode == mKeyCancel ) {
 		pPlayer->SetActionText( pPlayer->mLocalization.GetString( "resetButtons" ) );
-		if( ruIsKeyHit( pPlayer->mKeyUse ) ) {
+		if( ruInput::IsKeyHit( pPlayer->mKeyUse ) ) {
 			Reset();
 		}
 	}
 }
 
-Keypad::Keypad( ruSceneNode * keypad, ruSceneNode * key0, ruSceneNode * key1, ruSceneNode * key2, ruSceneNode * key3, ruSceneNode * key4, ruSceneNode * key5, ruSceneNode * key6, ruSceneNode * key7, ruSceneNode * key8, ruSceneNode * key9, ruSceneNode * keyCancel, Door * doorToUnlock, string codeToUnlock )
+Keypad::Keypad( shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, shared_ptr<ruSceneNode> key1, shared_ptr<ruSceneNode> key2, shared_ptr<ruSceneNode> key3, shared_ptr<ruSceneNode> key4, shared_ptr<ruSceneNode> key5, shared_ptr<ruSceneNode> key6, shared_ptr<ruSceneNode> key7, shared_ptr<ruSceneNode> key8, shared_ptr<ruSceneNode> key9, shared_ptr<ruSceneNode> keyCancel, Door * doorToUnlock, string codeToUnlock )
 {
 	mKeypad = keypad;
 	mKeys[0] = key0;

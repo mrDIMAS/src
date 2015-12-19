@@ -2,7 +2,7 @@
 
 #include "LightAnimator.h"
 
-LightAnimator::LightAnimator( ruLight * lit, float as, float onRange, float peakRangeMult ) {
+LightAnimator::LightAnimator( shared_ptr<ruLight>lit, float as, float onRange, float peakRangeMult ) {
     mLight = lit;
     mAnimSpeed = as;
     mOnRange = onRange;

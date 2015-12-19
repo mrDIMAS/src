@@ -166,8 +166,8 @@ bool GUINode::IsGotAction( ruGUIAction act ) {
 
 bool GUINode::IsMouseInside() {
 	CalculateTransform();
-	int mouseX = ruGetMouseX();
-	int mouseY = ruGetMouseY();
+	int mouseX = ruInput::GetMouseX();
+	int mouseY = ruInput::GetMouseY();
 	return mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight );
 }
 
@@ -185,7 +185,7 @@ void GUINode::OnMouseLeave() {
 
 void GUINode::DoActions() {
 	if( IsMouseInside() ) {
-		if( ruIsMouseHit( MB_Left )) {
+		if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
 			OnClick();
 		}
 		if( !mLastMouseInside ) {

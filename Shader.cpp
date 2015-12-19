@@ -47,8 +47,7 @@ void VertexShader::OnLostDevice() {
 	shader->Release();
 }
 
-void VertexShader::Initialize()
-{
+void VertexShader::Initialize() {
 	DWORD * code = LoadBinary();
 	if( SUCCEEDED( Engine::I().GetDevice()->CreateVertexShader( code, &shader ))) {
 		Log::Write( StringBuilder( "New vertex shader successfully created from ") << mSourceName << " binary!" );

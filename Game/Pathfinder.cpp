@@ -126,10 +126,10 @@ Edge::Edge() {
     mDistToDestVertex = Infinite;
 }
 
-void Path::BuildPath( ruSceneNode * scene, string pathBaseName ) {
-    vector<ruSceneNode *> pointNodes;
+void Path::BuildPath( shared_ptr<ruSceneNode> scene, string pathBaseName ) {
+    vector<shared_ptr<ruSceneNode>> pointNodes;
     for( int i = 0; i < scene->GetCountChildren(); i++ ) {
-        ruSceneNode * child = scene->GetChild( i );
+        shared_ptr<ruSceneNode> child = scene->GetChild( i );
         string cName = child->GetName();
         if( cName.size() < pathBaseName.size() ) {
             continue;
@@ -158,9 +158,9 @@ void Path::AddPointAndLinkWithPrevious( GraphVertex * vertex ) {
     mVertexList.push_back( vertex );
 }
 
-bool Path::NodeSorter::operator()( const ruSceneNode * node1, const ruSceneNode * node2 ) {
-    string name1 = const_cast<ruSceneNode*>(node1)->GetName();
-    string name2 = const_cast<ruSceneNode*>(node2)->GetName();
+bool Path::NodeSorter::operator()( const shared_ptr<ruSceneNode> node1, const shared_ptr<ruSceneNode> node2 ) {
+    string name1 = std::const_pointer_cast<ruSceneNode>(node1)->GetName();
+    string name2 = std::const_pointer_cast<ruSceneNode>(node2)->GetName();
     // find numerics in names
     int numPos1 = name1.find_first_of( "0123456789" );
     int numPos2 = name2.find_first_of( "0123456789" );

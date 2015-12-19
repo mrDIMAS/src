@@ -29,8 +29,6 @@ Level::Level() {
 }
 
 Level::~Level() {
-    mScene->Free();
-
     for( auto pSheet : mSheetList ) {
         delete pSheet;
     }
@@ -239,7 +237,7 @@ void Level::Deserialize( SaveFile & in ) {
     int childCount = in.ReadInteger( );
     for( int i = 0; i < childCount; i++ ) {
         string name = in.ReadString();
-        ruSceneNode * node = mScene->FindChild( name );
+        shared_ptr<ruSceneNode> node = mScene->FindChild( name );
 		ruVector3 pos = in.ReadVector3();
 		ruQuaternion quat = in.ReadQuaternion();
 		bool visible = in.ReadBoolean();
@@ -257,7 +255,7 @@ void Level::Deserialize( SaveFile & in ) {
                 node->Hide();
             }
 			if( isLight ) {
-				dynamic_cast<ruLight*>( node )->SetRange( litRange );
+				std::dynamic_pointer_cast<ruLight>( node )->SetRange( litRange );
 			}
         }
     }
@@ -286,12 +284,12 @@ void Level::Serialize( SaveFile & out ) {
     int childCount = mScene->GetCountChildren();
     out.WriteInteger( childCount );
     for( int i = 0; i < childCount; i++ ) {
-        ruSceneNode * node = mScene->GetChild( i );
+        shared_ptr<ruSceneNode> node = mScene->GetChild( i );
         out.WriteString( node->GetName() );
         out.WriteVector3( node->GetLocalPosition() );
         out.WriteQuaternion( node->GetLocalRotation());
         out.WriteBoolean( node->IsVisible() );
-		ruLight * light = dynamic_cast<ruLight*>( node );
+		shared_ptr<ruLight>light = std::dynamic_pointer_cast<ruLight>( node );
 		out.WriteBoolean( light != nullptr );
 		if( light ) {
 			out.WriteFloat( light->GetRange() );
@@ -335,7 +333,7 @@ void Level::AddAmbientSound( ruSound sound ) {
     mAmbSoundSet.AddSound( sound );
 }
 
-ruSceneNode * Level::GetUniqueObject( const string & name ) {
+shared_ptr<ruSceneNode> Level::GetUniqueObject( const string & name ) {
     // the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
     // game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
     // also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
@@ -345,7 +343,7 @@ ruSceneNode * Level::GetUniqueObject( const string & name ) {
     if( !mScene ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
     }
-    ruSceneNode * object = mScene->FindChild( name );
+    shared_ptr<ruSceneNode> object = mScene->FindChild( name );
     // each unique object must be presented in the scene, otherwise error will be generated
     if( !object ) {
         RaiseError( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
@@ -406,7 +404,7 @@ void Level::UpdateGenericObjectsIdle() {
 void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound ) {
 	std::regex rx( namePattern );
 	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
-		ruSceneNode * child = mScene->GetChild( i );
+		shared_ptr<ruSceneNode> child = mScene->GetChild( i );
 		if( regex_match( child->GetName(), rx )) {
 			AddLamp( make_shared<Lamp>( child, ruSound::Load3D( buzzSound )));
 		}
@@ -416,7 +414,7 @@ void Level::AutoCreateLampsByNamePattern( const string & namePattern, string buz
 void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
 	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
-		ruSceneNode * child = mScene->GetChild( i );
+		shared_ptr<ruSceneNode> child = mScene->GetChild( i );
 		if( regex_match( child->GetName(), rx )) {
 			AddInteractiveObject( Item::GetNameByType( Item::Type::Bullet ), make_shared<InteractiveObject>( child ), ruDelegate::Bind( this, &Level::Proxy_GiveBullet ));
 		}
@@ -427,7 +425,7 @@ void Level::AutoCreateBulletsByNamePattern( const string & namePattern ) {
 void Level::AutoCreateDoorsByNamePattern( const string & namePattern ) {
 	std::regex rx( namePattern );
 	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
-		ruSceneNode * child = mScene->GetChild( i );
+		shared_ptr<ruSceneNode> child = mScene->GetChild( i );
 		bool ignore = false;
 		for( auto pDoor : mDoorList ) {
 			if( pDoor->mDoorNode == child ) {

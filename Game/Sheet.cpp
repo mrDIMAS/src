@@ -6,7 +6,7 @@ vector<Sheet*> Sheet::msSheetList;
 ruSound Sheet::msPaperFlipSound;
 ruFont * Sheet::msSheetFont;
 
-Sheet::Sheet( ruSceneNode * object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
+Sheet::Sheet( shared_ptr<ruSceneNode> object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
     mBackgroundTexture = ruTexture::Request( "data/gui/sheet.tga" );
     msSheetList.push_back( this );
     if( !msPaperFlipSound.IsValid() ) {
@@ -32,7 +32,7 @@ void Sheet::Draw( ) {
 
 }
 
-Sheet * Sheet::GetSheetPointerByNode( ruSceneNode * node ) {
+Sheet * Sheet::GetSheetPointerByNode( shared_ptr<ruSceneNode> node ) {
     for( auto pSheet : msSheetList ) {
         if( pSheet->mObject == node ) {
             return pSheet;

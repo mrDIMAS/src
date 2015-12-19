@@ -4,19 +4,19 @@
 
 class LevelCutsceneIntro : public Level {
 private:
-	ruSceneNode * mUAZ;
+	shared_ptr<ruSceneNode> mUAZ;
 	GameCamera * mCamera;
-	ruSceneNode * mCameraPivot;
+	shared_ptr<ruSceneNode> mCameraPivot;
 	ruAnimation mUAZAnim;
 	ruAnimation mCameraAnim1;
 	ruAnimation mDeerAnim;
-	ruSceneNode * mChangeCameraZone1;
-	ruSceneNode * mChangeCameraZone2;
-	ruSceneNode * mChangeCameraZone3;
-	ruSceneNode * mCameraPivot2;
-	ruSceneNode * mCameraPivot3;
-	ruSceneNode * mCameraPivot4;
-	ruSceneNode * mNewLevelLoadZone;
+	shared_ptr<ruSceneNode> mChangeCameraZone1;
+	shared_ptr<ruSceneNode> mChangeCameraZone2;
+	shared_ptr<ruSceneNode> mChangeCameraZone3;
+	shared_ptr<ruSceneNode> mCameraPivot2;
+	shared_ptr<ruSceneNode> mCameraPivot3;
+	shared_ptr<ruSceneNode> mCameraPivot4;
+	shared_ptr<ruSceneNode> mNewLevelLoadZone;
 	ruSound mEngineLoop;
 	ruVector3 mLastUAZPosition;
 	SmoothFloat mEnginePitch;

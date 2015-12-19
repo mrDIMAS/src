@@ -23,18 +23,18 @@ private:
 
     Pathfinder mPathfinder;
 
-    ruSceneNode * mModel;
+    shared_ptr<ruSceneNode> mModel;
 
     ruVector3 mTarget;
     ruVector3 mDestination;
 	ruVector3 mDeathPosition;
 
-	vector<ruSceneNode *> mRightLegParts;
-	vector<ruSceneNode *> mLeftLegParts;
-	vector<ruSceneNode *> mRightArmParts;
-	vector<ruSceneNode *> mLeftArmParts;
-	vector<ruSceneNode *> mTorsoParts;
-	ruSceneNode * mHead;
+	vector<shared_ptr<ruSceneNode>> mRightLegParts;
+	vector<shared_ptr<ruSceneNode>> mLeftLegParts;
+	vector<shared_ptr<ruSceneNode>> mRightArmParts;
+	vector<shared_ptr<ruSceneNode>> mLeftArmParts;
+	vector<shared_ptr<ruSceneNode>> mTorsoParts;
+	shared_ptr<ruSceneNode> mHead;
 
     ruSound mHitFleshWithAxeSound;
     ruSound mBreathSound;
@@ -69,7 +69,7 @@ private:
 	ruTimer * mPathCheckTimer;
 	ruVector3 mLastCheckPosition;
 
-	ruParticleSystem * mBloodSpray;
+	shared_ptr<ruParticleSystem > mBloodSpray;
 	ruSound mFadeAwaySound;
 	bool mDead;
 
@@ -88,12 +88,12 @@ private:
 		mFootstepsSounds[ rand() % 4 ].Play();
 	}
 
-	void FillByNamePattern( vector< ruSceneNode * > & container, const string & pattern );
+	void FillByNamePattern( vector< shared_ptr<ruSceneNode> > & container, const string & pattern );
 public:
 	static vector<Enemy*> msEnemyList;
 
     int GetVertexIndexNearestTo( ruVector3 position );
-	ruSceneNode * GetBody();
+	shared_ptr<ruSceneNode> GetBody();
 	void SetNextPatrolPoint();
 	void DoBloodSpray();
 	void Resurrect();

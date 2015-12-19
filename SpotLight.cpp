@@ -21,8 +21,8 @@
 
 #include "Precompiled.h"
 #include "SpotLight.h"
+#include "SceneFactory.h"
 
-vector< SpotLight* > SpotLight::msSpotLightList;
 shared_ptr<Texture> SpotLight::msDefaultSpotTexture;
 
 bool SpotLight::IsSeePoint( const ruVector3 & point ) {
@@ -79,15 +79,11 @@ float SpotLight::GetInnerAngle() const {
 }
 
 SpotLight::~SpotLight() {
-	auto spotLight = find( msSpotLightList.begin(), msSpotLightList.end(), this );
-	if( spotLight != msSpotLightList.end() ) {
-		msSpotLightList.erase( spotLight );
-	}
+
 }
 
 SpotLight::SpotLight() {
 	mSpotTexture = nullptr;
-	msSpotLightList.push_back( this );
 	if( msDefaultSpotTexture ) {
 		mSpotTexture = msDefaultSpotTexture;
 	}
@@ -106,16 +102,16 @@ D3DXMATRIX SpotLight::GetViewProjectionMatrix() {
 	return mSpotViewProjectionMatrix;
 }
 
-ruSpotLight * ruSpotLight::Create() {
-	return new SpotLight;
+shared_ptr<ruSpotLight> ruSpotLight::Create() {
+	return SceneFactory::CreateSpotLight();
 }
 
 int ruSpotLight::GetCount() {
-	return SpotLight::msSpotLightList.size();
+	return SceneFactory::GetSpotLightList().size();
 }
 
-ruSpotLight * ruSpotLight::Get( int n ) {
-	return SpotLight::msSpotLightList[n];
+shared_ptr<ruSpotLight> ruSpotLight::Get( int n ) {
+	return SceneFactory::GetSpotLightList()[n].lock();
 }
 
 void ruSpotLight::SetSpotDefaultTexture( shared_ptr<ruTexture> defaultSpotTexture ) {

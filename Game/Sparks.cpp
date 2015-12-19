@@ -5,12 +5,12 @@
 void Sparks::Update() {
     if( mParticleSystem->GetAliveParticles() <= 0 ) {
         mAlive = 0;
-        mParticleSystem->Free();
+        mParticleSystem.reset();
         mSound.Free();
     }
 }
 
-Sparks::Sparks( ruSceneNode * at, ruSound emits ) {
+Sparks::Sparks( shared_ptr<ruSceneNode> at, ruSound emits ) {
 	mParticleSystem = ruParticleSystem::Create( 50 );
 	mParticleSystem->Attach( at );
 	mParticleSystem->SetTexture( ruTexture::Request( "data/textures/particles/p1.png") );

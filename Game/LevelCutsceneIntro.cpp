@@ -12,7 +12,7 @@ LevelCutsceneIntro::LevelCutsceneIntro() : mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 	mUAZ->SetAnimation( &mUAZAnim );
 	mUAZAnim.enabled = true;
 
-	ruSceneNode * deerBone = GetUniqueObject( "Bone012" );
+	shared_ptr<ruSceneNode> deerBone = GetUniqueObject( "Bone012" );
 	mDeerAnim = ruAnimation( 0, 350, 35 );
 	deerBone->SetAnimation( &mDeerAnim );
 	mDeerAnim.enabled = true;

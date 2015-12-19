@@ -46,18 +46,17 @@ public:
 	}
 };
 
+
+
 class Engine {
 private:
 	HWND mWindowHandle;
-	IDirect3D9 * mpDirect3D;
-	IDirect3DDevice9 * mpDevice;
-	IDirect3DSurface9 * mpBackBuffer;
-	DeferredRenderer * mpDeferredRenderer;
-	IDirect3DTexture9 * mpWhiteTexture;
-	ParticleSystemRenderer * mpParticleSystemRenderer;
-	ForwardRenderer * mpForwardRenderer;
-	GUIRenderer * mpGUIRenderer;
-	TextRenderer * mpTextRenderer;
+
+	shared_ptr<DeferredRenderer> mpDeferredRenderer;
+	shared_ptr<ParticleSystemRenderer> mpParticleSystemRenderer;
+	shared_ptr<ForwardRenderer> mpForwardRenderer;
+	shared_ptr<GUIRenderer> mpGUIRenderer;
+	shared_ptr<TextRenderer> mpTextRenderer;
 	FPSCounter mFPSCounter;
 	bool mUsePointLightShadows;
 	bool mUseSpotLightShadows;
@@ -87,12 +86,17 @@ private:
 	int mNativeResolutionHeight;
 	void SetDefaults();
 	vector<Videomode> mVideomodeList;
+	virtual ~Engine();
+
+	// !!! do not change order of these !!!
+	COMPtr<IDirect3D9> mpDirect3D;
+	COMPtr<IDirect3DDevice9> mpDevice;
+	COMPtr<IDirect3DSurface9> mpBackBuffer;	
 public:
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
 	static Engine & I();	
-	void Initialize( int width, int height, int fullscreen, char vSync );
-	virtual ~Engine();
+	void Initialize( int width, int height, int fullscreen, char vSync );	
     void RenderWorld( );
     void SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix );
     void SetVertexShaderFloat3( UINT startRegister, float * v );
@@ -118,9 +122,9 @@ public:
 	void SetAnisotropicTextureFiltration( bool state );
 	void SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
 	void SetSpotLightShadowMapSize( int size );
-	DeferredRenderer * GetDeferredRenderer();
-	ForwardRenderer * GetForwardRenderer();
-	TextRenderer * GetTextRenderer();
+	shared_ptr<DeferredRenderer> & GetDeferredRenderer();
+	shared_ptr<ForwardRenderer> & GetForwardRenderer();
+	shared_ptr<TextRenderer> & GetTextRenderer();
 	void SetPointLightShadowsEnabled( bool state );
 	void SetSpotLightShadowsEnabled( bool state );
 	bool IsPointLightShadowsEnabled();

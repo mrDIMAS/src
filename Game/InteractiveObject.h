@@ -11,10 +11,10 @@ private:
 	int mInteractCountLeft;
 	string mPickDesc;
 public:
-    ruSceneNode * mObject;
+    shared_ptr<ruSceneNode> mObject;
 	ruEvent OnInteract;
     static vector< InteractiveObject* > msObjectList;
-    explicit InteractiveObject( ruSceneNode * object );
+    explicit InteractiveObject( shared_ptr<ruSceneNode> object );
 	explicit InteractiveObject();
     virtual ~InteractiveObject();
     void UpdateFlashing();
@@ -23,5 +23,5 @@ public:
     static void DeleteAll();
 	void SetPickDescription( const string & pd );
 	string GetPickDescription() const;
-	static InteractiveObject * FindByObject( ruSceneNode * node );
+	static InteractiveObject * FindByObject( shared_ptr<ruSceneNode> node );
 };

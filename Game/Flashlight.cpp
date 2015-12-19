@@ -7,7 +7,7 @@ Flashlight::Flashlight() {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands/arm_anim.scene" );
 	mModel->SetDepthHack( 0.155f );
 
-	mLight = dynamic_cast<ruPointLight*>( mModel->FindChild( "PlayerLight" ) );
+	mLight = std::dynamic_pointer_cast<ruPointLight>( mModel->FindChild( "PlayerLight" ) );
 
 	mOnSound = ruSound::Load2D( "data/sounds/lighter/open.ogg" );
 	mOnSound.SetVolume( 0.3f );
@@ -79,7 +79,7 @@ void Flashlight::SwitchOff() {
 	}
 }
 
-void Flashlight::Attach( ruSceneNode * node ) {
+void Flashlight::Attach( shared_ptr<ruSceneNode> node ) {
     mModel->Attach( node );
 
     mInitialPosition = mModel->GetPosition();
@@ -113,7 +113,7 @@ bool Flashlight::IsOn() const {
     return mOn;
 }
 
-ruSceneNode * Flashlight::GetLight() {
+shared_ptr<ruSceneNode> Flashlight::GetLight() {
 	return mLight;
 }
 

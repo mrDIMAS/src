@@ -15,7 +15,7 @@ Door::~Door() {
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
-Door::Door( ruSceneNode * hDoor, float fMaxAngle ) : mDoorNode( hDoor ), mMaxAngle( fMaxAngle ), mLocked( false ), mCurrentAngle( 0.0f ), mState( State::Closed )
+Door::Door( shared_ptr<ruSceneNode> hDoor, float fMaxAngle ) : mDoorNode( hDoor ), mMaxAngle( fMaxAngle ), mLocked( false ), mCurrentAngle( 0.0f ), mState( State::Closed )
 {
     mOffsetAngle = hDoor->GetEulerAngles().y;
 	SetTurnDirection( TurnDirection::Clockwise );

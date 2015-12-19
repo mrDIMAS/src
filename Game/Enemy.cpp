@@ -390,10 +390,10 @@ int Enemy::GetVertexIndexNearestTo( ruVector3 position ) {
     return nearestIndex;
 }
 
-void Enemy::FillByNamePattern( vector< ruSceneNode * > & container, const string & pattern ) {
+void Enemy::FillByNamePattern( vector< shared_ptr<ruSceneNode> > & container, const string & pattern ) {
 	std::regex rx( pattern );
 	for( int i = 0; i < mModel->GetCountChildren(); i++ ) {
-		ruSceneNode * child = mModel->GetChild( i );
+		shared_ptr<ruSceneNode> child = mModel->GetChild( i );
 		if( regex_match( child->GetName(), rx )) {
 			container.push_back( child );
 		}
@@ -427,9 +427,6 @@ Enemy::~Enemy() {
 	mResurrectTimer->Free();
 	mPathCheckTimer->Free();
 
-	if( mBloodSpray ) {
-		mBloodSpray->Free();
-	}
 	mFadeAwaySound.Free();
 	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
 	if( iter != msEnemyList.end() ) {
@@ -438,9 +435,6 @@ Enemy::~Enemy() {
 }
 
 void Enemy::DoBloodSpray() {
-	if( mBloodSpray ) {
-		mBloodSpray->Free();
-	} 
 	mBloodSpray = ruParticleSystem::Create( 50 );
 	mBloodSpray->SetTexture( ruTexture::Request( "data/textures/particles/spray.png" ));
 	mBloodSpray->SetType( ruParticleSystem::Type::Box );
@@ -477,6 +471,6 @@ void Enemy::SetNextPatrolPoint() {
 	}
 }
 
-ruSceneNode * Enemy::GetBody() {
+shared_ptr<ruSceneNode> Enemy::GetBody() {
 	return mBody;
 }

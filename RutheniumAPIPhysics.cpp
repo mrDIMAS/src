@@ -24,8 +24,9 @@
 #include "SceneNode.h"
 #include "Camera.h"
 #include "Engine.h"
+#include "SceneFactory.h"
 
-ruSceneNode * ruPhysics::CastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
+shared_ptr<ruSceneNode> ruPhysics::CastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
 	btVector3 rayEnd = btVector3 ( end.x, end.y, end.z );
 	btVector3 rayBegin = btVector3 ( begin.x, begin.y, begin.z );
 
@@ -35,7 +36,7 @@ ruSceneNode * ruPhysics::CastRay( ruVector3 begin, ruVector3 end, ruVector3 * ou
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = reinterpret_cast<SceneNode*>( rayCallback.m_collisionObject->getUserPointer());
+			SceneNode * node = static_cast<SceneNode*>( rayCallback.m_collisionObject->getUserPointer());
 
 			if ( node ) {
 				if( outPickPoint ) {
@@ -44,7 +45,7 @@ ruSceneNode * ruPhysics::CastRay( ruVector3 begin, ruVector3 end, ruVector3 * ou
 					outPickPoint->z = rayCallback.m_hitPointWorld.z();
 				};
 
-				return node;
+				return std::move( node->shared_from_this() );
 			}
 		}
 	}
@@ -65,10 +66,10 @@ ruRayCastResultEx ruPhysics::CastRayEx( ruVector3 begin, ruVector3 end ) {
 	if ( rayCallback.hasHit() ) {
 		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
 		if ( pBody ) {
-			SceneNode * node = reinterpret_cast<SceneNode*>( rayCallback.m_collisionObject->getUserPointer());
+			SceneNode * node = static_cast<SceneNode*>( rayCallback.m_collisionObject->getUserPointer());
 			if ( node ) {
 				result.valid = true;
-				result.node = node;
+				result.node = std::move( node->shared_from_this());
 				result.position.x = rayCallback.m_hitPointWorld.x();
 				result.position.y = rayCallback.m_hitPointWorld.y();
 				result.position.z = rayCallback.m_hitPointWorld.z();
@@ -99,7 +100,7 @@ void ruPhysics::Update( float timeStep, int subSteps, float fixedTimeStep ) {
 	SceneNode::UpdateContacts( );
 }
 
-ruSceneNode * ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoint ) {
+shared_ptr<ruSceneNode> ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoint ) {
 	D3DVIEWPORT9 vp;
 	Engine::I().GetDevice()->GetViewport( &vp );
 	// Find screen coordinates normalized to -1,1
@@ -108,38 +109,39 @@ ruSceneNode * ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoint ) {
 	coord.y = - ( ( ( 2.0f * y ) / (float)vp.Height ) - 1 );
 	coord.z = -1.0f;
 
-	// Back project the ray from screen to the far clip plane
-	coord.x /= Camera::msCurrentCamera->mProjection._11;
-	coord.y /= Camera::msCurrentCamera->mProjection._22;
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		// Back project the ray from screen to the far clip plane
+		coord.x /= camera->mProjection._11;
+		coord.y /= camera->mProjection._22;
 
-	D3DXMATRIX matinv = Camera::msCurrentCamera->mView;
-	D3DXMatrixInverse( &matinv, NULL, &matinv );
+		D3DXMATRIX matinv = camera->mView;
+		D3DXMatrixInverse( &matinv, NULL, &matinv );
 
-	coord *= Camera::msCurrentCamera->mFarZ;
-	D3DXVec3TransformCoord ( &coord, &coord, &matinv );
+		coord *= camera->mFarZ;
+		D3DXVec3TransformCoord ( &coord, &coord, &matinv );
 
-	btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
-	btVector3 rayBegin = Camera::msCurrentCamera->mGlobalTransform.getOrigin();
+		btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
+		btVector3 rayBegin = camera->mGlobalTransform.getOrigin();
 
-	btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
-	Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
+		btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
+		Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );
 
-	if ( rayCallback.hasHit() ) {
-		const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
-		if ( pBody ) {
-			SceneNode * node = static_cast<SceneNode*>( pBody->getUserPointer());
+		if ( rayCallback.hasHit() ) {
+			const btRigidBody * pBody = btRigidBody::upcast ( rayCallback.m_collisionObject );
+			if ( pBody ) {
+				SceneNode * pNode = static_cast<SceneNode*>( pBody->getUserPointer());				 
+				if ( pNode ) {
+					if( outPickPoint ) {
+						outPickPoint->x = rayCallback.m_hitPointWorld.x();
+						outPickPoint->y = rayCallback.m_hitPointWorld.y();
+						outPickPoint->z = rayCallback.m_hitPointWorld.z();
+					};
 
-			if ( node ) {
-				if( outPickPoint ) {
-					outPickPoint->x = rayCallback.m_hitPointWorld.x();
-					outPickPoint->y = rayCallback.m_hitPointWorld.y();
-					outPickPoint->z = rayCallback.m_hitPointWorld.z();
-				};
-
-				return node;
+					return std::move( pNode->shared_from_this() );
+				}
 			}
 		}
 	}
-
 	return nullptr;
 }

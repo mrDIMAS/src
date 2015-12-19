@@ -8,7 +8,7 @@ void Fan::DoTurn() {
     mEngineSound.Play();
 }
 
-Fan::Fan( ruSceneNode * obj, float ts, ruVector3 axis, ruSound snd ) {
+Fan::Fan( shared_ptr<ruSceneNode> obj, float ts, ruVector3 axis, ruSound snd ) {
     mBody = obj;
     mTurnSpeed = ts;
     mTurnAxis = axis;

@@ -35,13 +35,13 @@ public:
 
     GameCamera * mpCamera;
 
-    ruSceneNode * mHead;
-    ruSceneNode * mPickPoint;
-    ruSceneNode * mItemPoint;
-    ruSceneNode * mNodeInHands;
-    ruSceneNode * mNearestPickedNode;
-    ruSceneNode * mPickedNode;
-	ruPointLight * mFakeLight;
+    shared_ptr<ruSceneNode> mHead;
+    shared_ptr<ruSceneNode> mPickPoint;
+    shared_ptr<ruSceneNode> mItemPoint;
+    shared_ptr<ruSceneNode> mNodeInHands;
+    shared_ptr<ruSceneNode> mNearestPickedNode;
+    shared_ptr<ruSceneNode> mPickedNode;
+	shared_ptr<ruPointLight>mFakeLight;
 
     shared_ptr<ruTexture> mStatusBar;
 
@@ -114,20 +114,18 @@ public:
 
     Inventory mInventory;
 
-	
-
-    int mKeyMoveForward;
-    int mKeyMoveBackward;
-    int mKeyStrafeLeft;
-    int mKeyStrafeRight;
-    int mKeyJump;
-    int mKeyFlashLight;
-    int mKeyRun;
-    int mKeyInventory;
-    int mKeyUse;
-    int mKeyStealth;
-    int mKeyLookLeft;
-    int mKeyLookRight;
+    ruInput::Key mKeyMoveForward;
+    ruInput::Key mKeyMoveBackward;
+    ruInput::Key mKeyStrafeLeft;
+    ruInput::Key mKeyStrafeRight;
+    ruInput::Key mKeyJump;
+    ruInput::Key mKeyFlashLight;
+    ruInput::Key mKeyRun;
+    ruInput::Key mKeyInventory;
+    ruInput::Key mKeyUse;
+    ruInput::Key mKeyStealth;
+    ruInput::Key mKeyLookLeft;
+    ruInput::Key mKeyLookRight;
 
     Goal mGoal; 
 
@@ -182,7 +180,7 @@ public:
     void SetObjective( string text );
     void CompleteObjective();
     bool IsUseButtonHit();
-    bool IsObjectHasNormalMass( ruSceneNode * node );
+    bool IsObjectHasNormalMass( shared_ptr<ruSceneNode> node );
 	bool IsDead();
 	void Resurrect();
     void DoFright();

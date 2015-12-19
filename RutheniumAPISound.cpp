@@ -69,8 +69,8 @@ void ruSound::SetLoop( bool state ) {
 	pfSetSoundLooping( pfHandle, state );
 }
 
-void ruSound::Attach( ruSceneNode * node ) {
-	SceneNode * sceneNode = dynamic_cast<SceneNode*>( node );
+void ruSound::Attach( const shared_ptr<ruSceneNode> & node ) {
+	shared_ptr<SceneNode> & sceneNode = std::dynamic_pointer_cast<SceneNode>( node );
 	if( sceneNode ) {
 		sceneNode->AttachSound( *this );
 	}

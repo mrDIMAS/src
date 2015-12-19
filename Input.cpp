@@ -20,15 +20,13 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-
-
 #include "GUIButton.h"
 
-LPDIRECTINPUT8			pInput;
-LPDIRECTINPUTDEVICE8	pKeyboard;
-LPDIRECTINPUTDEVICE8	pMouse;
-DIMOUSESTATE			mouseData;
-HWND					hwnd;
+LPDIRECTINPUT8 pInput;
+LPDIRECTINPUTDEVICE8 pKeyboard;
+LPDIRECTINPUTDEVICE8 pMouse;
+DIMOUSESTATE mouseData;
+HWND hwnd;
 
 char g_keys[ 256 ] = { 0 };
 char g_lastKeys[ 256 ] = { 0 };
@@ -46,9 +44,161 @@ int windowOffsetX = 0;
 int windowOffsetY = 0;
 RECT windowRect;
 
-void ruInputUpdate( ) {
+const char * keyNames [] = {
+	"Esc",
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+	"0",
+	"Minus",
+	"Equals",
+	"Backspace",
+	"Tab",
+	"Q",
+	"W",
+	"E",
+	"R",
+	"T",
+	"Y",
+	"U",
+	"I",
+	"O",
+	"P",
+	"LBracket",
+	"RBracket",
+	"Enter",
+	"LControl",
+	"A",
+	"S",
+	"D",
+	"F",
+	"G",
+	"H",
+	"J",
+	"K",
+	"L",
+	"Semicolon",
+	"Apostrophe",
+	"Grave",
+	"LShift",
+	"BackSlash",
+	"Z",
+	"X",
+	"C",
+	"V",
+	"B",
+	"N",
+	"M",
+	"Comma",
+	"Period",
+	"Slash",
+	"RShift",
+	"Multiply",
+	"LAlt",
+	"Space",
+	"Capital",
+	"F1",
+	"F2",
+	"F3",
+	"F4",
+	"F5",
+	"F6",
+	"F7",
+	"F8",
+	"F9",
+	"F10",
+	"NumLock",
+	"Scroll",
+	"NumPad7",
+	"NumPad8",
+	"NumPad9",
+	"SUBTRACT",
+	"NUMPAD4",
+	"NUMPAD5",
+	"NUMPAD6",
+	"ADD",
+	"NUMPAD1",
+	"NUMPAD2",
+	"NUMPAD3",
+	"NUMPAD0",
+	"Decimal",
+	"OEM_102",
+	"F11",
+	"F12",
+	"F13",
+	"F14",
+	"F15",
+	"KANA",
+	"ABNT_C1",
+	"CONVERT",
+	"NOCONVERT",
+	"YEN",
+	"ABNT_C2",
+	"NUMPADEQUALS",
+	"PREVTRACK",
+	"AT",
+	"COLON",
+	"UNDERLINE",
+	"KANJI",
+	"STOP",
+	"AX",
+	"UNLABELED",
+	"NEXTTRACK",
+	"NUMPADENTER",
+	"RCONTROL",
+	"MUTE",
+	"CALCULATOR",
+	"PLAYPAUSE",
+	"MEDIASTOP",
+	"VOLUMEDOWN",
+	"VOLUMEUP",
+	"WEBHOME",
+	"NUMPADCOMMA",
+	"DIVIDE",
+	"SYSRQ",
+	"RMENU",
+	"PAUSE",
+	"HOME",
+	"UP",
+	"PRIOR",
+	"LEFT",
+	"RIGHT",
+	"END",
+	"DOWN",
+	"NEXT",
+	"INSERT",
+	"DEL",
+	"LWIN",
+	"RWIN",
+	"APPS",
+	"POWER",
+	"SLEEP",
+	"WAKE",
+	"WEBSEARCH",
+	"WEBFAVORITES",
+	"WEBREFRESH",
+	"WEBSTOP",
+	"WEBFORWARD",
+	"WEBBACK",
+	"MYCOMPUTER",
+	"MAIL",
+	"MEDIASELECT"
+};
 
+string ruInput::GetKeyName( ruInput::Key key ) {
+	if( key >= ruInput::Key::Count ) {
+		return "BadID";
+	}
+	return keyNames[ static_cast<int>( key ) - 1 ];
+}
 
+void ruInput::Update( ) {
     if( pKeyboard->GetDeviceState( sizeof( g_keys ), reinterpret_cast<void*>( &g_keys )) == DIERR_INPUTLOST ) {
         pKeyboard->Acquire();
     }
@@ -96,7 +246,7 @@ void ruInputUpdate( ) {
     }
 };
 
-void ruInputInit( HWND window ) {
+void ruInput::Init( HWND window ) {
     HINSTANCE hInstance = GetModuleHandle( 0 );
     hwnd = window;
     DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>( &pInput ),NULL);
@@ -117,7 +267,7 @@ void ruInputInit( HWND window ) {
     GetClientRect( hwnd, &windowRect );
 };
 
-void ruInputDestroy() {
+void ruInput::Destroy() {
     pMouse->Unacquire();
     pMouse->Release();
     pKeyboard->Unacquire();
@@ -125,50 +275,51 @@ void ruInputDestroy() {
     pInput->Release();
 };
 
-int ruIsKeyDown( int key ) {
-    return g_keys[ key ];
+bool ruInput::IsKeyDown( Key key ) {
+    return g_keys[ static_cast<int>( key ) ];
 };
 
-int ruIsKeyHit( int key ) {
-    return g_keysHit[ key ];
+bool ruInput::IsKeyHit( Key key ) {
+    return g_keysHit[ static_cast<int>( key ) ];
 };
 
-int	ruIsKeyUp	( int key ) {
-    return g_keysUp[ key ];
+bool ruInput::IsKeyUp ( Key key ) {
+	return g_keysUp[ static_cast<int>( key ) ];
 }
 
-int ruIsMouseDown( int button ) {
+bool ruInput::IsMouseDown( MouseButton button ) {
     if( (int)button >= 4 ) {
         return 0;
     }
 
-    return mouseData.rgbButtons[ button ];
+    return mouseData.rgbButtons[ static_cast<int>( button ) ];
 }
 
-int ruIsMouseHit( int button ) {
-    return g_mouseHit[ button ];
+bool ruInput::IsMouseHit( MouseButton button ) {
+    return g_mouseHit[ static_cast<int>( button )];
 }
 
-int ruGetMouseX( ) {
+int ruInput::GetMouseX( ) {
     return mouseX;
 }
 
-int ruGetMouseY( ) {
+int ruInput::GetMouseY( ) {
     return mouseY;
 }
 
-int ruGetMouseWheel( ) {
+int ruInput::GetMouseWheel( ) {
     return mouseWheel;
 }
 
-int ruGetMouseXSpeed( ) {
+int ruInput::GetMouseXSpeed( ) {
     return mouseData.lX;
 }
 
-int ruGetMouseYSpeed( ) {
+int ruInput::GetMouseYSpeed( ) {
     return mouseData.lY;
 }
 
-int ruGetMouseWheelSpeed( ) {
+int ruInput::GetMouseWheelSpeed( ) {
     return mouseData.lZ;
 }
+

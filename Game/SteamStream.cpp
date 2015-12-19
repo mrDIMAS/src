@@ -9,7 +9,7 @@ void SteamStream::Update() {
     mSound.SetVolume( mPower );
 }
 
-SteamStream::SteamStream( ruSceneNode * obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound ) {
+SteamStream::SteamStream( shared_ptr<ruSceneNode> obj, ruVector3 speedMin, ruVector3 speedMax, ruSound hissSound ) {
     mSound = hissSound;
 	mSteam = ruParticleSystem::Create( 60 );
 	mSteam->SetPosition( obj->GetPosition() );
@@ -30,8 +30,6 @@ SteamStream::SteamStream( ruSceneNode * obj, ruVector3 speedMin, ruVector3 speed
     mPower = 1;
 }
 
-SteamStream::~SteamStream()
-{
-	mSteam->Free();
+SteamStream::~SteamStream() {
 	mSound.Free();
 }

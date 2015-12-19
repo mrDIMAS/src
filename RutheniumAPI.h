@@ -426,10 +426,9 @@ public:
 	static ruCubeTexture * Request( const string & file );	
 };
 
-class ruSceneNode : public ruObject {
-protected:
-	virtual ~ruSceneNode( );
+class ruSceneNode {
 public:
+	virtual ~ruSceneNode( );
 	virtual void SetBlurAmount( float blurAmount ) = 0;
 	virtual float GetBlurAmount( ) = 0;
 	virtual string GetProperty( string propName ) = 0;
@@ -438,7 +437,7 @@ public:
 	virtual bool IsVisible() = 0;	
 	virtual const string & GetName() = 0;
 	virtual void SetDepthHack( float order ) = 0;
-	virtual void Attach( ruSceneNode * parent ) = 0;
+	virtual void Attach( const shared_ptr<ruSceneNode> & parent ) = 0;
 	virtual void Detach() = 0;
 	virtual void SetDamping( float linearDamping, float angularDamping ) = 0;
 	virtual void SetPosition( ruVector3 position ) = 0;
@@ -457,8 +456,8 @@ public:
 	virtual ruVector3 GetAABBMin() = 0;
 	virtual ruVector3 GetTotalForce() = 0;
 	virtual ruVector3 GetAABBMax() = 0;
-	virtual bool IsInsideNode( ruSceneNode * node ) = 0;
-	virtual ruSceneNode * GetChild( int i ) = 0;
+	virtual bool IsInsideNode( shared_ptr<ruSceneNode> node ) = 0;
+	virtual shared_ptr<ruSceneNode> GetChild( int i ) = 0;
 	virtual int GetCountChildren() = 0;
 	virtual bool IsInFrustum() = 0;
 	virtual void SetAlbedo( float albedo ) = 0;
@@ -466,6 +465,7 @@ public:
 	virtual int GetContactCount() = 0;
 	virtual ruContact GetContact( int num ) = 0;
 	virtual void Freeze() = 0;
+	virtual shared_ptr<ruTexture> GetTexture( int n ) = 0;
 	virtual void Unfreeze() = 0;
 	virtual void SetConvexBody() = 0;
 	virtual void SetCapsuleBody( float height, float radius ) = 0;
@@ -491,17 +491,16 @@ public:
 	virtual void AddForce( ruVector3 force ) = 0;
 	virtual void AddForceAtPoint( ruVector3 force, ruVector3 point ) = 0;
 	virtual void AddTorque( ruVector3 torque ) = 0;
-	virtual ruSceneNode * GetParent() = 0;
+	virtual shared_ptr<ruSceneNode> GetParent() = 0;
 	virtual int GetTextureCount() = 0;
-	virtual shared_ptr<ruTexture> GetTexture( int n ) = 0;
-	virtual ruSceneNode * FindChild( const string & name ) = 0;
+	virtual shared_ptr<ruSceneNode> FindChild( const string & name ) = 0;
 	//virtual void Free();
-	static ruSceneNode * Create( );
-	static ruSceneNode * LoadFromFile( const string & file );
-	static ruSceneNode * FindByName( const string & name );
-	static ruSceneNode * Duplicate( ruSceneNode * source );
+	static shared_ptr<ruSceneNode> Create( );
+	static shared_ptr<ruSceneNode> LoadFromFile( const string & file );
+	static shared_ptr<ruSceneNode> FindByName( const string & name );
+	static shared_ptr<ruSceneNode> Duplicate( shared_ptr<ruSceneNode> source );
 	static int GetWorldObjectsCount();
-	static ruSceneNode * GetWorldObject( int i );
+	static shared_ptr<ruSceneNode> GetWorldObject( int i );
 };
 
 struct ruContact {
@@ -535,7 +534,7 @@ public:
 	static void SetMasterVolume( float volume );
 	static float GetMasterVolume();
 
-	void Attach( ruSceneNode * node );
+	void Attach( const shared_ptr<ruSceneNode> & node );
 	void Play( int oneshot = 1 );
 	void Pause();
 	void SetVolume( float vol );
@@ -619,14 +618,7 @@ public:
 	virtual ruVector3 GetPickedColor() const = 0;
 };
 
-struct ruRayCastResultEx {
-	bool valid;
-	int index;
-	ruSceneNode * node;
-	ruVector3 position;
-	ruVector3 normal;
-	string textureName;
-};
+
 
 class ruEngine {
 public:
@@ -664,12 +656,21 @@ public:
 	static int GetMaxAnisotropy();
 };
 
+struct ruRayCastResultEx {
+	bool valid;
+	int index;
+	shared_ptr<ruSceneNode> node;
+	ruVector3 position;
+	ruVector3 normal;
+	string textureName;
+};
+
 class ruPhysics {
 public:
 	static void Update( float timeStep, int subSteps, float fixedTimeStep );
 	static ruRayCastResultEx CastRayEx( ruVector3 begin, ruVector3 end );
-	static ruSceneNode * RayPick( int x, int y, ruVector3 * outPickPoint = 0 );
-	static ruSceneNode * CastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
+	static shared_ptr<ruSceneNode> RayPick( int x, int y, ruVector3 * outPickPoint = 0 );
+	static shared_ptr<ruSceneNode> CastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0 );
 };
 
 class ruLight : public virtual ruSceneNode {
@@ -690,9 +691,9 @@ public:
 
 class ruSpotLight : public virtual ruLight {
 public:
-	static ruSpotLight * Create();
+	static shared_ptr<ruSpotLight> Create();
 	static int GetCount();
-	static ruSpotLight * Get( int n );
+	static shared_ptr<ruSpotLight> Get( int n );
 	static void SetSpotDefaultTexture( shared_ptr<ruTexture> defaultSpotTexture );
 
 	virtual void SetSpotTexture( shared_ptr<ruTexture> texture ) = 0;	
@@ -702,9 +703,9 @@ public:
 
 class ruPointLight : public virtual ruLight {
 public:
-	static ruPointLight * Create();
+	static shared_ptr<ruPointLight> Create();
 	static int GetCount();
-	static ruPointLight * Get( int n );
+	static shared_ptr<ruPointLight> Get( int n );
 	static void SetPointDefaultTexture( ruCubeTexture * defaultPointTexture );
 
 	virtual void SetPointTexture( ruCubeTexture * cubeTexture ) = 0;
@@ -713,9 +714,9 @@ public:
 
 class ruCamera : public virtual ruSceneNode {
 public:
-	static ruCamera * Create( float fov );
+	static shared_ptr<ruCamera> Create( float fov );
 	virtual void SetActive() = 0;
-	virtual void SetSkybox( shared_ptr<ruTexture> up, shared_ptr<ruTexture> left, shared_ptr<ruTexture> right, shared_ptr<ruTexture> forward, shared_ptr<ruTexture> back ) = 0;
+	virtual void SetSkybox( const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back ) = 0;
 	virtual void SetFOV( float fov ) = 0;
 };
 
@@ -739,7 +740,7 @@ public:
 		Box, Stream
 	};
 
-	static ruParticleSystem * Create( int particleNum );
+	static shared_ptr<ruParticleSystem> Create( int particleNum );
 
 	virtual void SetType( ruParticleSystem::Type type ) = 0;
 	virtual ruParticleSystem::Type GetType() = 0;
@@ -773,7 +774,7 @@ public:
 	virtual ruVector3 GetSpeedDeviationMax() = 0;
 	virtual ruVector3 GetSpeedDeviationMin() = 0;
 
-	virtual void SetTexture( shared_ptr<ruTexture> texture ) = 0;
+	virtual void SetTexture( const shared_ptr<ruTexture> & texture ) = 0;
 	virtual shared_ptr<ruTexture> GetTexture( ) = 0;
 
 	virtual void SetBoundingRadius( float radius ) = 0;
@@ -787,179 +788,179 @@ public:
 	virtual void SetAlphaOffset( float alphaOffset ) = 0;
 };
 
+class ruInput {
+public:
+	enum class Key : int {
+		Esc = 1,
+		Num1,
+		Num2,
+		Num3,
+		Num4,
+		Num5,
+		Num6,
+		Num7,
+		Num8,
+		Num9,
+		Num0,
+		Minus,
+		Equals,
+		Backspace,
+		Tab,
+		Q,
+		W,
+		E,
+		R,
+		T,
+		Y,
+		U,
+		I,
+		O,
+		P,
+		LeftBracket,
+		RightBracket,
+		Enter,
+		LeftControl,
+		A,
+		S,
+		D,
+		F,
+		G,
+		H,
+		J,
+		K,
+		L,
+		Semicolon,
+		Apostrophe,
+		Grave,
+		LeftShift,
+		BackSlash,
+		Z,
+		X,
+		C,
+		V,
+		B,
+		N,
+		M,
+		Comma,
+		Period,
+		Slash,
+		RightShift,
+		Multiply,
+		LeftAlt,
+		Space,
+		Capital,
+		F1,
+		F2,
+		F3,
+		F4,
+		F5,
+		F6,
+		F7,
+		F8,
+		F9,
+		F10,
+		NumLock,
+		Scroll,
+		NumPad7,
+		NumPad8,
+		NumPad9,
+		Subtract,
+		Numpad4,
+		Numpad5,
+		Numpad6,
+		Add,
+		Numpad1,
+		Numpad2,
+		Numpad3,
+		Numpad0,
+		Decimal,
+		OEM_102,
+		F11,
+		F12,
+		F13,
+		F14,
+		F15,
+		Kana,
+		ABNT_C1,
+		Convert,
+		NoConvert,
+		Yen,
+		ABNT_C2,
+		NumpadEquals,
+		PrevTrack,
+		AT,
+		Colon,
+		Underline,
+		Kanji,
+		Stop,
+		AX,
+		Ulabeled,
+		NextTrack,
+		NumpadEnter,
+		RControl,
+		Mute,
+		Calculator,
+		PlayPause,
+		MediaStop,
+		VolumeDown,
+		VolumeUp,
+		WebHome,
+		NumpadComma,
+		Divide,
+		SysRQ,
+		RMenu,
+		Pause,
+		Home,
+		Up,
+		Prior,
+		Left,
+		Right,
+		End,
+		Down,
+		Next,
+		Insert,
+		Del,
+		LWin,
+		RWin,
+		Apps,
+		Power,
+		Sleep,
+		Wake,
+		WebSearch,
+		WebFavorites,
+		WebRefresh,
+		WebStop,
+		WebForward,
+		WebBack,
+		MyComputer,
+		Mail,
+		MediaSelect,
+		Count,
+	};
 
-////////////////////////////////////////////////////////////////////////////////////
-// Input functions
-////////////////////////////////////////////////////////////////////////////////////
-enum {
-    KEY_Esc = 1,
-    KEY_1,
-    KEY_2,
-    KEY_3,
-    KEY_4,
-    KEY_5,
-    KEY_6,
-    KEY_7,
-    KEY_8,
-    KEY_9,
-    KEY_0,
-    KEY_Minus,
-    KEY_Equals,
-    KEY_Backspace,
-    KEY_Tab,
-    KEY_Q,
-    KEY_W,
-    KEY_E,
-    KEY_R,
-    KEY_T,
-    KEY_Y,
-    KEY_U,
-    KEY_I,
-    KEY_O,
-    KEY_P,
-    KEY_LeftBracket,
-    KEY_RightBracket,
-    KEY_Enter,
-    KEY_LeftControl,
-    KEY_A,
-    KEY_S,
-    KEY_D,
-    KEY_F,
-    KEY_G,
-    KEY_H,
-    KEY_J,
-    KEY_K,
-    KEY_L,
-    KEY_Semicolon,
-    KEY_Apostrophe,
-    KEY_Grave,
-    KEY_LeftShift,
-    KEY_BackSlash,
-    KEY_Z,
-    KEY_X,
-    KEY_C,
-    KEY_V,
-    KEY_B,
-    KEY_N,
-    KEY_M,
-    KEY_Comma,
-    KEY_Period,
-    KEY_Slash,
-    KEY_RightShift,
-    KEY_Multiply,
-    KEY_LeftAlt,
-    KEY_Space,
-    KEY_Capital,
-    KEY_F1,
-    KEY_F2,
-    KEY_F3,
-    KEY_F4,
-    KEY_F5,
-    KEY_F6,
-    KEY_F7,
-    KEY_F8,
-    KEY_F9,
-    KEY_F10,
-    KEY_NumLock,
-    KEY_Scroll,
-    KEY_NumPad7,
-    KEY_NumPad8,
-    KEY_NumPad9,
-    KEY_Subtract,
-    KEY_Numpad4,
-    KEY_Numpad5,
-    KEY_Numpad6,
-    KEY_Add,
-    KEY_Numpad1,
-    KEY_Numpad2,
-    KEY_Numpad3,
-    KEY_Numpad0,
-    KEY_Decimal,
-    KEY_OEM_102,
-    KEY_F11,
-    KEY_F12,
-    KEY_F13,
-    KEY_F14,
-    KEY_F15,
-    KEY_Kana,
-    KEY_ABNT_C1,
-    KEY_Convert,
-    KEY_NoConvert,
-    KEY_Yen,
-    KEY_ABNT_C2,
-    KEY_NumpadEquals,
-    KEY_PrevTrack,
-    KEY_AT,
-    KEY_Colon,
-    KEY_Underline,
-    KEY_Kanji,
-    KEY_Stop,
-    KEY_AX,
-    KEY_Ulabeled,
-    KEY_NextTrack,
-    KEY_NumpadEnter,
-    KEY_RControl,
-    KEY_Mute,
-    KEY_Calculator,
-    KEY_PlayPause,
-    KEY_MediaStop,
-    KEY_VolumeDown,
-    KEY_VolumeUp,
-    KEY_WebHome,
-    KEY_NumpadComma,
-    KEY_Divide,
-    KEY_SysRQ,
-    KEY_RMenu,
-    KEY_Pause,
-    KEY_Home,
-    KEY_Up,
-    KEY_Prior,
-    KEY_Left,
-    KEY_Right,
-    KEY_End,
-    KEY_Down,
-    KEY_Next,
-    KEY_Insert,
-    KEY_Del,
-    KEY_LWin,
-    KEY_RWin,
-    KEY_Apps,
-    KEY_Power,
-    KEY_Sleep,
-    KEY_Wake,
-    KEY_WebSearch,
-    KEY_WebFavorites,
-    KEY_WebRefresh,
-    KEY_WebStop,
-    KEY_WebForward,
-    KEY_WebBack,
-    KEY_MyComputer,
-    KEY_Mail,
-    KEY_MediaSelect,
-    KEY_Count,
+	enum class MouseButton : int {
+		Left,
+		Right,
+		Middle,
+		Wheel,
+	};
+
+	static void Init( HWND window );
+	static void Destroy( );
+	static bool	IsMouseDown( MouseButton button );
+	static bool	IsMouseHit( MouseButton button );
+	static int GetMouseX( );
+	static int GetMouseY( );
+	static int GetMouseWheel( );
+	static int GetMouseXSpeed( );
+	static int GetMouseYSpeed( );
+	static int GetMouseWheelSpeed	( );
+	static bool	IsKeyDown( Key key );
+	static bool IsKeyHit( Key key );
+	static bool IsKeyUp( Key key );
+	static void Update( );
+	static string GetKeyName( Key key );
 };
-
-enum {
-    MB_Left,
-    MB_Right,
-    MB_Middle,
-    MB_Wheel,
-};
-
-void ruInputInit( HWND window );
-void ruInputDestroy( );
-int	ruIsMouseDown( int button );
-int	ruIsMouseHit( int button );
-int	ruGetMouseX( );
-int	ruGetMouseY( );
-int	ruGetMouseWheel( );
-int	ruGetMouseXSpeed( );
-int	ruGetMouseYSpeed( );
-int	ruGetMouseWheelSpeed	( );
-int	ruIsKeyDown( int key );
-int	ruIsKeyHit( int key );
-int	ruIsKeyUp( int key );
-void ruInputUpdate( );
 
 
 #endif

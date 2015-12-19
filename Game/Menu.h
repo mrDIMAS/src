@@ -25,7 +25,7 @@ private:
         LoadGame,
     };
 
-    ruSceneNode * mScene;
+    shared_ptr<ruSceneNode> mScene;
     bool mVisible;
     shared_ptr<ruTexture> mButtonImage;
     shared_ptr<ruTexture> mSmallButtonImage;

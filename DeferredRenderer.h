@@ -69,7 +69,7 @@ protected:
         PointLightShader();
         ~PointLightShader();
 
-        void SetLight( D3DXMATRIX & invViewProj, PointLight * lit );
+        void SetLight( D3DXMATRIX & invViewProj, const shared_ptr<PointLight> & lit );
     };
 
     // Spot Light
@@ -80,7 +80,7 @@ protected:
     public:
         SpotLightShader( );
         ~SpotLightShader();
-        void SetLight( D3DXMATRIX & invViewProj, SpotLight * lit );
+        void SetLight( D3DXMATRIX & invViewProj, const shared_ptr<SpotLight> & lit );
     };
 
 	class SkyboxShader {
@@ -94,9 +94,7 @@ protected:
 		void Bind( const btVector3 & position );
 	};
 
-	ID3DXMesh * mBoundingSphere;
-	ID3DXMesh * mBoundingStar;
-	ID3DXMesh * mBoundingCone;
+
 
 	unique_ptr<BoundingVolumeRenderingShader> bvRenderer;
 	unique_ptr<EffectsQuad> mFullscreenQuad;
@@ -110,26 +108,33 @@ protected:
     unique_ptr<HDRShader> mHDRShader;
 	unique_ptr<Postprocessing> mPostprocessing;
 
-	IDirect3DTexture9 * mHDRFrame;
-	IDirect3DSurface9 * mHDRFrameSurface;
 
-	IDirect3DTexture9 * mFrame[2];
-	IDirect3DSurface9 * mFrameSurface[2];
-
-	IDirect3DSurface9 * mBackBufferSurface;
 
     void CreateBoundingVolumes();
 
-    void RenderSphere( PointLight * pLight, float scale = 1.0f );
-	void RenderStar( PointLight * pLight, float scale = 1.0f );
-    void RenderCone( SpotLight * lit );
+    void RenderSphere( const shared_ptr<PointLight> & pLight, float scale = 1.0f );
+	void RenderStar( shared_ptr<PointLight> pLight, float scale = 1.0f );
+    void RenderCone( shared_ptr<SpotLight> lit );
     void RenderMeshShadow( Mesh * mesh );
+
+	// !!! do not change order of these !!!
+	COMPtr<IDirect3DTexture9> mHDRFrame;
+	COMPtr<IDirect3DSurface9> mHDRFrameSurface;
+
+	COMPtr<IDirect3DTexture9> mFrame[2];
+	COMPtr<IDirect3DSurface9> mFrameSurface[2];
+
+	COMPtr<IDirect3DSurface9> mBackBufferSurface;
+
+	COMPtr<ID3DXMesh> mBoundingSphere;
+	COMPtr<ID3DXMesh> mBoundingStar;
+	COMPtr<ID3DXMesh> mBoundingCone;
 public:
     explicit DeferredRenderer();
     virtual ~DeferredRenderer();
 
 	virtual void BeginFirstPass() = 0;
-    virtual void RenderMesh( Mesh * mesh ) = 0;
+    virtual void RenderMesh( shared_ptr<Mesh> mesh ) = 0;
     virtual void OnEnd() = 0;
 	virtual void BindParallaxShaders() = 0;
 	virtual void BindGenericShaders() = 0;

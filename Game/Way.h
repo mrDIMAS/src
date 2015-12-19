@@ -5,12 +5,12 @@
 
 class Way {
 protected:
-    ruSceneNode * mBegin;
-    ruSceneNode * mEnd;
-    ruSceneNode * mEnterZone;
-    ruSceneNode * mTarget;
-    ruSceneNode * mBeginLeavePoint;
-    ruSceneNode * mEndLeavePoint;
+    shared_ptr<ruSceneNode> mBegin;
+    shared_ptr<ruSceneNode> mEnd;
+    shared_ptr<ruSceneNode> mEnterZone;
+    shared_ptr<ruSceneNode> mTarget;
+    shared_ptr<ruSceneNode> mBeginLeavePoint;
+    shared_ptr<ruSceneNode> mEndLeavePoint;
     bool mInside;
     bool mEntering;
     bool mFreeLook;
@@ -23,19 +23,19 @@ public:
         Backward = 2,
     };
 
-    Way( ruSceneNode * hBegin, ruSceneNode * hEnd, ruSceneNode * hEnterZone, ruSceneNode * hBeginLeavePoint, ruSceneNode * hEndLeavePoint );
+    Way( shared_ptr<ruSceneNode> hBegin, shared_ptr<ruSceneNode> hEnd, shared_ptr<ruSceneNode> hEnterZone, shared_ptr<ruSceneNode> hBeginLeavePoint, shared_ptr<ruSceneNode> hEndLeavePoint );
     virtual ~Way();
     bool IsEntering();
     bool IsPlayerInside();
     bool IsEnterPicked();
-    ruSceneNode * GetEnterZone();
-    ruSceneNode * GetTarget();
+    shared_ptr<ruSceneNode> GetEnterZone();
+    shared_ptr<ruSceneNode> GetTarget();
     bool IsFreeLook();
     void DoEntering();
     virtual void Enter();
     virtual void DoPlayerCrawling() = 0;
     virtual void SetDirection( Direction direction ) = 0;
-    static Way * GetByObject( ruSceneNode * obj );
+    static Way * GetByObject( shared_ptr<ruSceneNode> obj );
     void Serialize( SaveFile & out );
     void Deserialize( SaveFile & in );
 	void LeaveInstantly() {

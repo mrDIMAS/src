@@ -6,15 +6,15 @@
 
 class Lift {
 private:
-    ruSceneNode * mBaseNode;
-    ruSceneNode * mControlPanel;
-    ruSceneNode * mSourceNode;
-    ruSceneNode * mDestNode;
-    ruSceneNode * mTargetNode;
-    ruSceneNode * mDoorFrontLeftNode;
-    ruSceneNode * mDoorFrontRightNode;
-    ruSceneNode * mDoorBackLeftNode;
-    ruSceneNode * mDoorBackRightNode;
+    shared_ptr<ruSceneNode> mBaseNode;
+    shared_ptr<ruSceneNode> mControlPanel;
+    shared_ptr<ruSceneNode> mSourceNode;
+    shared_ptr<ruSceneNode> mDestNode;
+    shared_ptr<ruSceneNode> mTargetNode;
+    shared_ptr<ruSceneNode> mDoorFrontLeftNode;
+    shared_ptr<ruSceneNode> mDoorFrontRightNode;
+    shared_ptr<ruSceneNode> mDoorBackLeftNode;
+    shared_ptr<ruSceneNode> mDoorBackRightNode;
     bool mArrived;
 	bool mPaused;
 	bool mEngineSoundEnabled;
@@ -25,14 +25,14 @@ private:
 	unique_ptr<LiftDoor> mDoorBackLeft;
 	unique_ptr<LiftDoor> mDoorBackRight;
 public:
-    explicit Lift( ruSceneNode * base );
+    explicit Lift( shared_ptr<ruSceneNode> base );
     virtual ~Lift( );
-    void SetControlPanel( ruSceneNode * panel );
-    void SetDestinationPoint( ruSceneNode * destNode );
-    void SetSourcePoint( ruSceneNode * sourceNode );
+    void SetControlPanel( shared_ptr<ruSceneNode> panel );
+    void SetDestinationPoint( shared_ptr<ruSceneNode> destNode );
+    void SetSourcePoint( shared_ptr<ruSceneNode> sourceNode );
     void SetMotorSound( ruSound motorSound );
-    void SetFrontDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor );
-    void SetBackDoors( ruSceneNode * leftDoor, ruSceneNode * rightDoor );
+    void SetFrontDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor );
+    void SetBackDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor );
     bool IsArrived( );
     void Update();
 	void SetDoorsLocked( bool state );

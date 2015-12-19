@@ -21,32 +21,29 @@
 
 #pragma once
 
-#include "Mesh.h"
-#include "SceneNode.h"
-#include "Engine.h"
+class SceneNode;
+class PointLight;
+class SpotLight;
+class Camera;
+class ParticleSystem;
 
-typedef struct MeshDesc {
-	IDirect3DIndexBuffer9 * mIB;
-	int mFaceCount;
-	MeshDesc() { };
-	MeshDesc( IDirect3DIndexBuffer9 * indexBuffer, int faceCount ) : mIB( indexBuffer ), mFaceCount( faceCount ) {};
-} MeshDesc;
-
-class Room {
+class SceneFactory {
 private:
-	vector<Room*> mNeighbourList;
-	unordered_map<Mesh*,MeshDesc> mIBList;
-	ruVector3 mMin;
-	ruVector3 mMax;
-	bool Contains( const ruVector3 & point );
-	bool Intersect( Room * room );
-	static vector<Room*> msRoomList;
-	Room( SceneNode * scene, const ruVector3 & theMin, const ruVector3 & theMax );
+	static vector<weak_ptr<SceneNode>> msNodeList;
+	static vector<weak_ptr<SpotLight>> msSpotLightList;
+	static vector<weak_ptr<PointLight>> msPointLightList;
+	static vector<weak_ptr<ParticleSystem>> msParticleEmitters;
+	template<typename Type> 
+	static void RemoveUnreferenced( vector<weak_ptr<Type>> & objList );
 public:
-	~Room();
-	static void Scan( SceneNode * scene );
-	// connect intersecting rooms
-	static void Connect();
-	// special rendering function
-	void Render( );
+	static vector<weak_ptr<SceneNode>> & GetNodeList();
+	static vector<weak_ptr<SpotLight>> & GetSpotLightList();
+	static vector<weak_ptr<PointLight>> & GetPointLightList();
+	static vector<weak_ptr<ParticleSystem>> & GetParticleSystemList();
+	static shared_ptr<SceneNode> CreateSceneNode( );
+	static shared_ptr<SceneNode> CreateSceneNodeDuplicate( shared_ptr<SceneNode> source );
+	static shared_ptr<PointLight> CreatePointLight();
+	static shared_ptr<SpotLight> CreateSpotLight();
+	static shared_ptr<Camera> CreateCamera( float fov );
+	static shared_ptr<ParticleSystem> CreateParticleSystem( int particleCount );
 };

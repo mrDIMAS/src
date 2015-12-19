@@ -21,8 +21,8 @@
 
 #include "Precompiled.h"
 #include "PointLight.h"
+#include "SceneFactory.h"
 
-vector< PointLight* > PointLight::msPointLightList;
 CubeTexture * PointLight::msDefaultPointCubeTexture;
 
 bool PointLight::IsSeePoint( const ruVector3 & point ) {
@@ -34,39 +34,31 @@ void PointLight::SetPointTexture( ruCubeTexture * cubeTexture ) {
 }
 
 PointLight::~PointLight() {
-	auto pointLight = find( msPointLightList.begin(), msPointLightList.end(), this );
-	if( pointLight != msPointLightList.end() ) {
-		msPointLightList.erase( pointLight );
-	}
-	if( Camera::msCurrentCamera ) {
-		if( Camera::msCurrentCamera->mNearestPathPoint ) {
-			auto & litList = Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList;
-			auto iter = find( litList.begin(), litList.end(), this );
-			if( iter != litList.end() ) {
-				litList.erase( iter );
-			}
-		}		
-	}
+
 }
 
 PointLight::PointLight() {
 	mPointTexture = nullptr;
-	msPointLightList.push_back( this );
 	if( msDefaultPointCubeTexture ) {
 		mPointTexture = msDefaultPointCubeTexture;
 	}
 }
 
-ruPointLight * ruPointLight::Create() {
-	return new PointLight;
+CubeTexture * PointLight::GetPointTexture()
+{
+	return mPointTexture;
+}
+
+shared_ptr<ruPointLight> ruPointLight::Create() {
+	return SceneFactory::CreatePointLight();
 }
 
 int ruPointLight::GetCount() {
-	return PointLight::msPointLightList.size();
+	return SceneFactory::GetPointLightList().size();
 }
 
-ruPointLight * ruPointLight::Get( int n ) {
-	return PointLight::msPointLightList[n];
+shared_ptr<ruPointLight> ruPointLight::Get( int n ) {
+	return SceneFactory::GetPointLightList()[n].lock();
 }
 
 void ruPointLight::SetPointDefaultTexture( ruCubeTexture * defaultPointTexture ) {

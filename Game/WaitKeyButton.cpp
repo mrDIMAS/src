@@ -15,13 +15,13 @@ void WaitKeyButton::Update( ) {
 	}
 
 	if( mGrabKey ) {
-		for( int i = KEY_Esc + 1; i < 255; i++ ) {
-			if( ruIsKeyDown( i )) {
-				SetSelected( i );
+		for( int i = static_cast<int>( ruInput::Key::Num1 ); i < static_cast<int>( ruInput::Key::Count ); i++ ) {
+			if( ruInput::IsKeyDown( static_cast<ruInput::Key>( i ))) {
+				SetSelected( static_cast<ruInput::Key>( i ) );
 				mGrabKey = false;
 			}
 		}
-		if( ruIsKeyHit( KEY_Esc )) {
+		if( ruInput::IsKeyHit( ruInput::Key::Esc )) {
 			mGrabKey = false;
 		}
 
@@ -35,13 +35,13 @@ void WaitKeyButton::Update( ) {
 		}
 		mAnimCounter++;
 	} else {
-		mGUIButton->GetText()->SetText( GetKeyName( mSelectedKey ));
+		mGUIButton->GetText()->SetText( ruInput::GetKeyName( mSelectedKey ));
 	}
 }
 
-void WaitKeyButton::SetSelected( int i ) {
-    mDesc = GetKeyName( i );
-	int lastKey = mSelectedKey;
+void WaitKeyButton::SetSelected( ruInput::Key i ) {
+    mDesc = ruInput::GetKeyName( i );
+	ruInput::Key lastKey = mSelectedKey;
     mSelectedKey = i;
 	// swap keys if duplicate found
 	for( auto pWaitKey : WaitKeyButton::msWaitKeyList ) {
@@ -65,7 +65,7 @@ WaitKeyButton::WaitKeyButton( float x, float y, shared_ptr<ruTexture> buttonImag
 	WaitKeyButton::msWaitKeyList.push_back( this );
 }
 
-int WaitKeyButton::GetSelectedKey() {
+ruInput::Key WaitKeyButton::GetSelectedKey() {
     return mSelectedKey;
 }
 

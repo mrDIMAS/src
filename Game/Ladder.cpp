@@ -3,7 +3,7 @@
 #include "Ladder.h"
 #include "Player.h"
 
-Ladder::Ladder( ruSceneNode * hBegin, ruSceneNode * hEnd, ruSceneNode * hEnterZone, ruSceneNode * hBeginLeavePoint, ruSceneNode * hEndLeavePoint )
+Ladder::Ladder( shared_ptr<ruSceneNode> hBegin, shared_ptr<ruSceneNode> hEnd, shared_ptr<ruSceneNode> hEnterZone, shared_ptr<ruSceneNode> hBeginLeavePoint, shared_ptr<ruSceneNode> hEndLeavePoint )
     : Way( hBegin, hEnd, hEnterZone, hBeginLeavePoint, hEndLeavePoint ) {
     mFreeLook = true;
 }

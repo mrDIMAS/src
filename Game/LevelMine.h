@@ -30,22 +30,22 @@ private:
     void CleanUpExplodeArea();
     void CreateItems();
 
-    ruSceneNode * mScreamerZone;
-    ruSceneNode * mScreamerZone2;
-    ruSceneNode * mConcreteWall;
-    ruSceneNode * mDeathZone;
-    ruSceneNode * mDetonator;
-    ruSceneNode * mFindItemsZone;
-    ruSceneNode * mNewLevelZone;
-    ruSceneNode * mStoneFallZone;
-    ruSceneNode * mWireModels[4];
-    ruSceneNode * mDetonatorModels[4];
-    ruSceneNode * mExplosivesModels[4];
-    ruSceneNode * mExplosivesDummy[4];
-    ruSceneNode * mRock[3];
-    ruSceneNode * mExplosionFlashPosition;
-    ruPointLight * mExplosionFlashLight;
-    ruParticleSystem * mExplosionDustParticleSystem;
+    shared_ptr<ruSceneNode> mScreamerZone;
+    shared_ptr<ruSceneNode> mScreamerZone2;
+    shared_ptr<ruSceneNode> mConcreteWall;
+    shared_ptr<ruSceneNode> mDeathZone;
+    shared_ptr<ruSceneNode> mDetonator;
+    shared_ptr<ruSceneNode> mFindItemsZone;
+    shared_ptr<ruSceneNode> mNewLevelZone;
+    shared_ptr<ruSceneNode> mStoneFallZone;
+    shared_ptr<ruSceneNode> mWireModels[4];
+    shared_ptr<ruSceneNode> mDetonatorModels[4];
+    shared_ptr<ruSceneNode> mExplosivesModels[4];
+    shared_ptr<ruSceneNode> mExplosivesDummy[4];
+    shared_ptr<ruSceneNode> mRock[3];
+    shared_ptr<ruSceneNode> mExplosionFlashPosition;
+    shared_ptr<ruPointLight>mExplosionFlashLight;
+    shared_ptr<ruParticleSystem > mExplosionDustParticleSystem;
     ruVector3 mRockPosition[3];
 
     shared_ptr<ItemPlace> mDetonatorPlace[4];

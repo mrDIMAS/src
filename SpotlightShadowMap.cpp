@@ -20,7 +20,6 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-
 #include "SpotlightShadowMap.h"
 #include "Engine.h"
 
@@ -32,7 +31,7 @@ void SpotlightShadowMap::BindSpotShadowMap( int index ) {
     Engine::I().GetDevice()->SetTexture( index, spotShadowMap );
 }
 
-void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, SpotLight * spotLight ) {
+void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, const shared_ptr<SpotLight> & spotLight ) {
     Engine::I().GetDevice()->SetRenderTarget( 0, spotSurface );
     Engine::I().GetDevice()->SetDepthStencilSurface( depthStencil );
     Engine::I().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
@@ -44,26 +43,36 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
     Engine::I().GetDevice()->GetTexture( 0, &prevZeroSamplerTexture );
 
-    for( auto meshGroupIter : Mesh::msMeshList ) {
-        auto & group = meshGroupIter.second;
-        Engine::I().GetDevice()->SetTexture( 0, meshGroupIter.first );
-        for( auto mesh : group ) {
-			for( auto pOwner : mesh->GetOwners() ) {
-				// if owner of mesh is visible
-				if( pOwner->IsVisible()) {
-					// if light "sees" mesh, it can cast shadow
-					if( spotLight->GetFrustum().IsAABBInside( mesh->GetBoundingBox(), pOwner->GetPosition())) {
-						// if mesh in light range, it can cast shadow
-						//if( (mesh->ownerNode->GetPosition() + mesh->aabb.center - spotLight->GetPosition()).Length2() < spotLight->radius * spotLight->radius ) {
-						D3DXMATRIX world, wvp;
-						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-						D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->GetViewProjectionMatrix() );
-						Engine::I().GetDevice()->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-
-						mesh->Render();
-						//}
+	auto & meshMap = Mesh::GetMeshMap();
+    for( auto texGroupPair : meshMap ) {
+        auto & group = texGroupPair.second;
+        Engine::I().GetDevice()->SetTexture( 0, texGroupPair.first );
+        for( auto meshIter = group.begin(); meshIter != group.end(); ) {
+			shared_ptr<Mesh> mesh = (*meshIter).lock();
+			if( mesh ) {
+				auto & owners = mesh->GetOwners();
+				for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {
+					shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
+					if( pOwner ) {
+						// if owner of mesh is visible
+						if( pOwner->IsVisible()) {
+							// if light "sees" mesh, it can cast shadow
+							if( spotLight->GetFrustum().IsAABBInside( mesh->GetBoundingBox(), pOwner->GetPosition())) {
+								D3DXMATRIX world, wvp;
+								GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+								D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->GetViewProjectionMatrix() );
+								Engine::I().SetVertexShaderMatrix( 0, &wvp );
+								mesh->Render();
+							}
+						}
+						++ownerIter;
+					} else {
+						ownerIter = owners.erase( ownerIter );
 					}
 				}
+				++meshIter;
+			} else {
+				meshIter = group.erase( meshIter );
 			}
         };
     }

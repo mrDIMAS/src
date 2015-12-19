@@ -9,7 +9,7 @@ void LiftDoor::DoInteraction()
 	mDoorNode->SetRotation( ruQuaternion( mDoorNode->GetUpVector(), mAngleOffset + mCurrentAngle ));
 }
 
-LiftDoor::LiftDoor( ruSceneNode * hDoor, float fMaxAngle, float angleOffset ) : Door( hDoor, fMaxAngle )
+LiftDoor::LiftDoor( shared_ptr<ruSceneNode> hDoor, float fMaxAngle, float angleOffset ) : Door( hDoor, fMaxAngle )
 {
 	mAngleOffset = angleOffset;
 }

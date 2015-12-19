@@ -28,6 +28,7 @@
 #include "Skybox.h"
 #include "Utility.h"
 #include "Engine.h"
+#include "SceneFactory.h"
 
 DeferredRenderer::DeferredRenderer() {
 
@@ -124,29 +125,17 @@ DeferredRenderer::PointLightShader::PointLightShader() {
     mPixelShaderTexProj = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredPointLightTexProj.pso" ));
 }
 
-void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, PointLight * light ) {
-	// HACK HACK HACK
-	/**
-	bool found = false;
-	auto pointIter = find( Light::msPointLightList.begin(), Light::msPointLightList.end(), light );
-	if( pointIter != Light::msPointLightList.end() ) {
-		found = true;
-	}
-
-	if( !found ) {
-		auto spotIter = find( Light::msSpotLightList.begin(), Light::msSpotLightList.end(), light );
-		if( spotIter == Light::msSpotLightList.end() ) {
-			return;
-		}
-	}*/
-
+void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, const shared_ptr<PointLight> & light ) {
 	if( light->GetPointTexture() ) {
 		Engine::I().GetDevice()->SetTexture( 3, light->GetPointTexture()->cubeTexture );
 	} else {
 		Log::Write( "Environment light cube texture is not set! ");
 	}
 
-	Engine::I().SetPixelShaderFloat3( 8, Camera::msCurrentCamera->mGlobalTransform.getOrigin().m_floats );
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		Engine::I().SetPixelShaderFloat3( 8, camera->mGlobalTransform.getOrigin().m_floats );
+	}
 	Engine::I().SetPixelShaderMatrix( 0, &invViewProj );
 	
 	// position
@@ -189,7 +178,7 @@ DeferredRenderer::SpotLightShader::SpotLightShader( ) {
 	mPixelShaderShadows = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredSpotLightShadows.pso" ));
 }
 
-void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, SpotLight * lit ) {
+void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, const shared_ptr<SpotLight> & lit ) {
 	if( Engine::I().IsSpotLightShadowsEnabled() ) {		
 		mPixelShaderShadows->Bind();		
 	} else {
@@ -199,7 +188,10 @@ void DeferredRenderer::SpotLightShader::SetLight( D3DXMATRIX & invViewProj, Spot
 	lit->GetSpotTexture()->Bind(3);
 	lit->BuildSpotProjectionMatrixAndFrustum();
 	Engine::I().SetPixelShaderMatrix( 5, &lit->GetViewProjectionMatrix() );
-	Engine::I().SetPixelShaderFloat3( 13, Camera::msCurrentCamera->mGlobalTransform.getOrigin().m_floats );
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		Engine::I().SetPixelShaderFloat3( 13, camera->mGlobalTransform.getOrigin().m_floats );
+	}
 	Engine::I().SetPixelShaderMatrix( 0, &invViewProj );
 
     btVector3 direction = ( lit->mGlobalTransform.getBasis() * btVector3( 0, 1, 0 )).normalize();
@@ -263,25 +255,31 @@ D3DXMATRIX SetUniformScaleTranslationMatrix( float s, const ruVector3 & p ) {
 					    p.x, p.y, p.z, 1.0f );
 }
 
-void DeferredRenderer::RenderSphere( PointLight * pLight, float scale ) {
+void DeferredRenderer::RenderSphere( const shared_ptr<PointLight> & pLight, float scale /*= 1.0f */ ) {
     D3DXMATRIX world = SetUniformScaleTranslationMatrix( 1.5f * pLight->mRadius * scale, pLight->GetPosition() );
     bvRenderer->Bind();
     D3DXMATRIX wvp;
-    D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
+	}
     bvRenderer->SetTransform( wvp );
 	mBoundingSphere->DrawSubset( 0 );
 }
 
-void DeferredRenderer::RenderStar( PointLight * pLight, float scale ) {
+void DeferredRenderer::RenderStar( shared_ptr<PointLight> pLight, float scale ) {
 	D3DXMATRIX world = SetUniformScaleTranslationMatrix( 1.25f * pLight->mRadius * scale,  pLight->GetPosition() );
 	bvRenderer->Bind();
 	D3DXMATRIX wvp;
-	D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
+	}
 	bvRenderer->SetTransform( wvp );
 	mBoundingStar->DrawSubset( 0 );
 }
 
-void DeferredRenderer::RenderCone( SpotLight * lit ) {
+void DeferredRenderer::RenderCone( shared_ptr<SpotLight> lit ) {
     float height = lit->GetRange() * 2.5;
     float radius = height * sinf( ( lit->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
     D3DXMATRIX scale, world, wvp;
@@ -289,7 +287,10 @@ void DeferredRenderer::RenderCone( SpotLight * lit ) {
     GetD3DMatrixFromBulletTransform( lit->mGlobalTransform, world );
     D3DXMatrixMultiply( &world, &scale, &world );
     bvRenderer->Bind();
-    D3DXMatrixMultiply( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
+	}
     bvRenderer->SetTransform( wvp );
     mBoundingCone->DrawSubset( 0 );
 }
@@ -315,8 +316,9 @@ void DeferredRenderer::DoLightingAndPostProcessing() {
 	mFullscreenQuad->Bind();
 	mFullscreenQuad->Render();
 
-	if( Camera::msCurrentCamera ) {
-		if( Camera::msCurrentCamera->mSkybox ) {
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		if( camera->mSkybox ) {
 			if( Engine::I().IsHDREnabled() ) {
 				Engine::I().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 				Engine::I().GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
@@ -325,8 +327,8 @@ void DeferredRenderer::DoLightingAndPostProcessing() {
 			Engine::I().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 			Engine::I().SetAlphaBlendEnabled( false );
 			Engine::I().SetStencilEnabled( false );
-			mSkyboxShader->Bind( Camera::msCurrentCamera->mGlobalTransform.getOrigin() );
-			Camera::msCurrentCamera->mSkybox->Render( );		
+			mSkyboxShader->Bind( camera->mGlobalTransform.getOrigin() );
+			camera->mSkybox->Render( );		
 			if( Engine::I().IsHDREnabled() ) {
 				Engine::I().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
 				Engine::I().GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
@@ -334,160 +336,187 @@ void DeferredRenderer::DoLightingAndPostProcessing() {
 		}  
 		mGBuffer->BindTextures();
 		mFullscreenQuad->Bind();
-	}
 	
-	Engine::I().SetZWriteEnabled( false );
+	
+		Engine::I().SetZWriteEnabled( false );
 
-	// begin occlusion queries
-	Engine::I().SetAlphaBlendEnabled( false );
-	Engine::I().SetStencilEnabled( false );
-	Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-	Engine::I().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );	
+		// begin occlusion queries
+		Engine::I().SetAlphaBlendEnabled( false );
+		Engine::I().SetStencilEnabled( false );
+		Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+		Engine::I().GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );	
 
-	int countInFrustum = 0;
-	for( auto pLight : PointLight::msPointLightList ) {
-		if( pLight->mQueryDone ) {
-			if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible() ) {
-				auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );
-				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end() ) {
-					pLight->pQuery->Issue( D3DISSUE_BEGIN );
-					RenderStar( pLight );
-					pLight->pQuery->Issue( D3DISSUE_END );
+		int countInFrustum = 0;
+
+		auto & pointLights = SceneFactory::GetPointLightList();
+		for( auto & lWeak : pointLights ) {
+			shared_ptr<PointLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				if( pLight->mQueryDone ) {
+					if( camera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible() ) {
+						bool found = false;
+						for( auto & lit : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
+							if( lit.lock() == pLight ) {
+								found = true;
+							}
+						}
+						if( !found ) {
+							pLight->pQuery->Issue( D3DISSUE_BEGIN );
+							RenderStar( pLight );
+							pLight->pQuery->Issue( D3DISSUE_END );
+						}
+						pLight->mInFrustum = true;
+						countInFrustum++;
+						pLight->mQueryDone = false;
+					} else {
+						pLight->mInFrustum = false;
+					}
 				}
-				pLight->mInFrustum = true;
-				countInFrustum++;
-				pLight->mQueryDone = false;
-			} else {
-				pLight->mInFrustum = false;
 			}
 		}
-	}
 
-	Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-	Engine::I().SetStencilEnabled( true );
-	Engine::I().SetAlphaBlendEnabled( true );
+		Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+		Engine::I().SetStencilEnabled( true );
+		Engine::I().SetAlphaBlendEnabled( true );
 	
-	for( auto pLight : PointLight::msPointLightList ) {
-		bool inFrustum = Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() );
-		if( pLight->IsVisible() && inFrustum ) {
-			auto iter = find( Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.begin(), Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end(), pLight );			
-			DWORD pixelsVisible = 0;
-			if( pLight->mInFrustum  && !pLight->mQueryDone ) {
-				if( iter == Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.end() ) {
-					HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
-					if( result == S_OK ) {
-						pLight->mQueryDone = true;
-						if( pixelsVisible > 0 ) {				
-							// add light to light list of nearest path point of camera									
-							Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList.push_back( pLight );								
+		for( auto & lWeak : pointLights ) {
+			shared_ptr<PointLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				bool inFrustum = camera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() );
+				if( pLight->IsVisible() && inFrustum ) {
+					bool found = false;
+					for( auto & lit : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
+						if( lit.lock() == pLight ) {
+							found = true;
+							break;
+						}
+					}
+					DWORD pixelsVisible = 0;
+					if( pLight->mInFrustum  && !pLight->mQueryDone ) {
+						if( !found ) {
+							HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
+							if( result == S_OK ) {
+								pLight->mQueryDone = true;
+								if( pixelsVisible > 0 ) {				
+									// add light to light list of nearest path point of camera									
+									camera->GetNearestPathPoint()->GetListOfVisibleLights().push_back( pLight );								
+								}
+							}
 						}
 					}
 				}
 			}
 		}
-	}
 
-	// Render point lights
-	mFullscreenQuad->vertexShader->Bind();	
+		// Render point lights
+		mFullscreenQuad->vertexShader->Bind();	
 
-    for( auto pLight : Camera::msCurrentCamera->mNearestPathPoint->mVisibleLightList ) {
-		if( pLight->IsVisible() ) {
-			if( pLight->mInFrustum  ) {
-				if( pLight->GetPointTexture() ) {
-					mPointLightShader->mPixelShaderTexProj->Bind();
-				} else {
-					mPointLightShader->mPixelShader->Bind();
+		for( auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
+			shared_ptr<PointLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				if( pLight->IsVisible() ) {
+					if( pLight->mInFrustum  ) {
+						if( pLight->GetPointTexture() ) {
+							mPointLightShader->mPixelShaderTexProj->Bind();
+						} else {
+							mPointLightShader->mPixelShader->Bind();
+						}
+
+						Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+						Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+						Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
+
+						Engine::I().SetZEnabled( true );
+
+						mPointLightShader->SetLight( camera->invViewProjection, pLight );
+
+						RenderSphere( pLight );
+
+						mFullscreenQuad->BindNoShader();
+
+						Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+						Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
+						Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+
+						mFullscreenQuad->Render();			
+					}		
 				}
-
-				Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-				Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-				Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
-
-				Engine::I().SetZEnabled( true );
-						
-				mPointLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
-
-				RenderSphere( pLight );
-
-				mFullscreenQuad->BindNoShader();
-
-				Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-				Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
-				Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-
-				mFullscreenQuad->Render();			
-			}		
-		}
-    }
-	
-    // Render spot lights
-    for( auto pLight : SpotLight::msSpotLightList ) {
-		if( Camera::msCurrentCamera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible()  ) {
-			if( Engine::I().IsSpotLightShadowsEnabled() ) {
-
-				IDirect3DSurface9 * prevSurface = mFrameSurface[0];
-				if( mHDRShader && Engine::I().IsHDREnabled() ) {
-					prevSurface = mHDRFrameSurface;
-				}
-
-				mSpotLightShadowMap->UnbindSpotShadowMap( 4 );
-
-				Engine::I().SetStencilEnabled( false );
-				Engine::I().SetAlphaBlendEnabled( false );
-				Engine::I().SetZWriteEnabled( true );
-
-				mSpotLightShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
-
-				Engine::I().SetStencilEnabled( true );
-				Engine::I().SetAlphaBlendEnabled( true );
-				Engine::I().SetZWriteEnabled( false );
-
-				mSpotLightShadowMap->BindSpotShadowMap( 4 );
 			}
-
-			Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
-			Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
-			Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-
-			RenderCone( pLight );
-
-			mSpotLightShader->SetLight( Camera::msCurrentCamera->invViewProjection, pLight );
-
-			Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
-			Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-			Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
-
-
-			mFullscreenQuad->Bind();
-			mFullscreenQuad->Render();
 		}
-    }
 	
-    if( mHDRShader && Engine::I().IsHDREnabled() ) {
-		Engine::I().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-		Engine::I().SetStencilEnabled( false );
-		Engine::I().SetZEnabled( false );
-		Engine::I().SetAlphaBlendEnabled( false );
+		// Render spot lights
+		auto & spotLights = SceneFactory::GetSpotLightList();
+		for( auto & lWeak: spotLights ) {
+			shared_ptr<SpotLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				if( camera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible()  ) {
+					if( Engine::I().IsSpotLightShadowsEnabled() ) {
 
-		Engine::I().SetGenericSamplersFiltration( D3DTEXF_POINT, true );
+						IDirect3DSurface9 * prevSurface = mFrameSurface[0];
+						if( mHDRShader && Engine::I().IsHDREnabled() ) {
+							prevSurface = mHDRFrameSurface;
+						}
 
-        mHDRShader->CalculateFrameLuminance( mHDRFrame );
-        if( Engine::I().IsFXAAEnabled() ) {
-            mHDRShader->DoToneMapping( mFrameSurface[0], mHDRFrame );
-            mFXAA->DoAntialiasing( mFrameSurface[1], mFrame[0] );
-        } else {
-            mHDRShader->DoToneMapping( mFrameSurface[1], mHDRFrame );
-        }
-    } else {
-        if( Engine::I().IsFXAAEnabled() ) {
-            Engine::I().SetStencilEnabled( false );
-            Engine::I().SetZEnabled( false );
+						mSpotLightShadowMap->UnbindSpotShadowMap( 4 );
+
+						Engine::I().SetStencilEnabled( false );
+						Engine::I().SetAlphaBlendEnabled( false );
+						Engine::I().SetZWriteEnabled( true );
+
+						mSpotLightShadowMap->RenderSpotShadowMap( prevSurface, 0, pLight );
+
+						Engine::I().SetStencilEnabled( true );
+						Engine::I().SetAlphaBlendEnabled( true );
+						Engine::I().SetZWriteEnabled( false );
+
+						mSpotLightShadowMap->BindSpotShadowMap( 4 );
+					}
+
+					Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+					Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+					Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+
+					RenderCone( pLight );
+
+					mSpotLightShader->SetLight( camera->invViewProjection, pLight );
+
+					Engine::I().GetDevice()->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+					Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+					Engine::I().GetDevice()->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+
+
+					mFullscreenQuad->Bind();
+					mFullscreenQuad->Render();
+				}
+			}
+		}
+	
+		if( mHDRShader && Engine::I().IsHDREnabled() ) {
+			Engine::I().GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+			Engine::I().SetStencilEnabled( false );
+			Engine::I().SetZEnabled( false );
+			Engine::I().SetAlphaBlendEnabled( false );
 
 			Engine::I().SetGenericSamplersFiltration( D3DTEXF_POINT, true );
 
-            mFXAA->DoAntialiasing( mFrameSurface[1], mFrame[0] );
-        }
-    }
+			mHDRShader->CalculateFrameLuminance( mHDRFrame );
+			if( Engine::I().IsFXAAEnabled() ) {
+				mHDRShader->DoToneMapping( mFrameSurface[0], mHDRFrame );
+				mFXAA->DoAntialiasing( mFrameSurface[1], mFrame[0] );
+			} else {
+				mHDRShader->DoToneMapping( mFrameSurface[1], mHDRFrame );
+			}
+		} else {
+			if( Engine::I().IsFXAAEnabled() ) {
+				Engine::I().SetStencilEnabled( false );
+				Engine::I().SetZEnabled( false );
+
+				Engine::I().SetGenericSamplersFiltration( D3DTEXF_POINT, true );
+
+				mFXAA->DoAntialiasing( mFrameSurface[1], mFrame[0] );
+			}
+		}
+	}
 
 	// Postprocessing
 	Engine::I().SetZWriteEnabled( false );
@@ -520,17 +549,19 @@ void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
 }
 
 void DeferredRenderer::OnLostDevice() {
+	/*
 	mBoundingStar->Release();
 	mBoundingSphere->Release();
 	mBoundingCone->Release();
 
+	
 	mHDRFrameSurface->Release();
 	mHDRFrame->Release();
 
 	for( int i = 0; i < 2; i++ ) {
 		mFrameSurface[i]->Release();
 		mFrame[i]->Release();
-	}
+	}*/
 }
 
 void DeferredRenderer::OnResetDevice() {
@@ -542,7 +573,10 @@ void DeferredRenderer::SkyboxShader::Bind( const btVector3 & position ) {
 	mVertexShader->Bind();
 	D3DXMATRIX matrix;
 	D3DXMatrixTranslation( &matrix, position.x(), position.y(), position.z() );
-	D3DXMatrixMultiply( &matrix, &matrix, &Camera::msCurrentCamera->mViewProjection );
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		D3DXMatrixMultiply( &matrix, &matrix, &camera->mViewProjection );
+	}
 
 	Engine::I().SetVertexShaderMatrix( 0, &matrix );
 }

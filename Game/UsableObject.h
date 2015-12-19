@@ -5,7 +5,7 @@
 
 class UsableObject {
 protected:
-	ruSceneNode * mModel;
+	shared_ptr<ruSceneNode> mModel;
 	UsableObject * mNext;
 	UsableObject * mPrev;
 	bool mToNext;
@@ -17,7 +17,7 @@ protected:
 public:
 	explicit UsableObject();
 	virtual ~UsableObject();
-	ruSceneNode * GetModel();
+	shared_ptr<ruSceneNode> GetModel();
 	void Link( UsableObject * other );
 	void Next( );
 	void Prev( );

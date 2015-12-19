@@ -40,9 +40,9 @@ public:
 	class Bone {
 	public:
 		int mMatrixID; // number of this bone in list of bones of a mesh
-		SceneNode * mNode;
+		weak_ptr<SceneNode> mNode;
 		D3DXMATRIX mMatrix;
-		Bone( SceneNode * node, int matrixID );
+		Bone( weak_ptr<SceneNode> node, int matrixID );
 		Bone( );
 	};
 
@@ -59,8 +59,8 @@ public:
 		int mBoneCount;
 	};
 private:
-    IDirect3DVertexBuffer9 * mVertexBuffer;
-    IDirect3DIndexBuffer9 * mIndexBuffer;
+	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+    COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
     shared_ptr<Texture> mDiffuseTexture;
     shared_ptr<Texture> mNormalTexture;
 	shared_ptr<Texture> mHeightTexture; // for parallax mapping
@@ -69,27 +69,27 @@ private:
     vector<BoneGroup> mBoneTable;
 	vector<Bone*> mBones;
     // mesh can be shared between multiple nodes
-	vector<SceneNode*> mOwnerList;
+	vector<weak_ptr<SceneNode>> mOwnerList;
     AABB mAABB;
 	Octree * mOctree;
 	bool mSkinned;
     float mOpacity;
 	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
 	static IDirect3DVertexDeclaration9 * msVertexDeclarationSkin;
+	typedef unordered_map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
+	static MeshMap msMeshList;
 public:
-	Bone * AddBone( SceneNode * node );
+	static MeshMap & GetMeshMap();
+	Bone * AddBone( weak_ptr<SceneNode> node );
 	vector<Bone*> & GetBones();
 	void OnResetDevice();
-	void OnLostDevice();
-    static unordered_map< IDirect3DTexture9*, vector< Mesh*>> msMeshList;
-    static void Register( Mesh * mesh );
-	static void EraseOrphanMeshes();
+	void OnLostDevice();    
+    static void Register( shared_ptr<Mesh> mesh );
 	static void CleanUp();
     explicit Mesh();
     virtual ~Mesh();
-	void LinkTo( SceneNode * owner );
-	void Unlink( SceneNode * owner );
-    vector<SceneNode*> & GetOwners();
+	void LinkTo( weak_ptr<SceneNode> owner );
+    vector<weak_ptr<SceneNode>> & GetOwners();
     void CreateVertexBuffer();
     void CreateIndexBuffer( vector< Triangle > & idc );
     void CreateHardwareBuffers();

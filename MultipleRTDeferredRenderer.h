@@ -43,6 +43,6 @@ public:
 	virtual void BindGenericShaders();
 	virtual void BindGenericSkinShaders();
     void BeginFirstPass();
-    void RenderMesh( Mesh * mesh );
+    void RenderMesh( shared_ptr<Mesh> mesh );
     void OnEnd();
 };

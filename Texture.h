@@ -23,7 +23,7 @@
 
 class Texture : public ruTexture, public RendererComponent {
 private:    
-    IDirect3DTexture9 * mTexture;
+    COMPtr<IDirect3DTexture9> mTexture;
     int mHeight;
     int mWidth;
     int mColorDepth;

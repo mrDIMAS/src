@@ -15,8 +15,8 @@
 float g_resW;
 float g_resH;
 double g_dt = 1.0f;
-int g_keyQuickSave = KEY_F5;
-int g_keyQuickLoad = KEY_F9;
+ruInput::Key g_keyQuickSave = ruInput::Key::F5;
+ruInput::Key g_keyQuickLoad = ruInput::Key::F9;
 string localizationPath;
 bool g_showFPS = false;
 bool g_running = true;
@@ -73,7 +73,7 @@ void main( ) {
 				ruPhysics::Update( gFixedTick, 1, gFixedTick );
 			}
 
-            ruInputUpdate();
+            ruInput::Update();
 
             if( pPlayer ) {
                 pPlayer->Update();
@@ -83,11 +83,11 @@ void main( ) {
 
             if( !pMainMenu->IsVisible() ) {
 				ActionTimer::UpdateAll();
-                if( ruIsKeyHit( g_keyQuickSave )) {
+                if( ruInput::IsKeyHit( g_keyQuickSave )) {
                     SaveWriter( "quickSave.save" ).SaveWorldState();
                     pPlayer->SetTip( config.GetString( "saved" ) );
                 }
-                if( ruIsKeyHit( g_keyQuickLoad )) {
+                if( ruInput::IsKeyHit( g_keyQuickLoad )) {
                     if( FileExist( "quickSave.save" )) {
                         SaveLoader( "quickSave.save" ).RestoreWorldState();
                         pPlayer->SetTip( config.GetString( "loaded" ) );

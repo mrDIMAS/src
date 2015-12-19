@@ -22,15 +22,17 @@
 
 class Mesh;
 
-class SceneNode : public virtual ruSceneNode, public RendererComponent {
+class SceneNode : public virtual ruSceneNode, public RendererComponent, public std::enable_shared_from_this<SceneNode> {
+protected:
+	friend class SceneFactory;
+	explicit SceneNode( );
 public:
-    friend class DeferredRenderer;
-    SceneNode * mParent;
-    SceneNode * mScene;
-    vector<SceneNode*> mChildList;
-    vector<Mesh*> mMeshList;
+    weak_ptr<SceneNode> mParent;
+    weak_ptr<SceneNode> mScene;
+    vector<shared_ptr<SceneNode>> mChildList;
+    vector<shared_ptr<Mesh>> mMeshList;
     vector<ruSound> mSoundList;
-	vector<btTransform*> mKeyframeList;
+	vector<unique_ptr<btTransform>> mKeyframeList;
     map<string,string> mProperties;
     btTransform mInvBoneBindTransform;    
     string mName;
@@ -50,10 +52,14 @@ public:
     int mContactCount;
     int mTotalFrameCount;
 	void AutoName();
-	static vector< SceneNode* > msNodeList;
 	vector<btRigidBody*> mBodyList;
 	vector<btTriangleMesh*> mTrimeshList;
 public:
+	static void UpdateContacts( );
+	static shared_ptr<SceneNode> FindByName( const string & name );    
+	static shared_ptr<SceneNode> LoadScene( const string & file );
+	static shared_ptr<SceneNode> Find( const shared_ptr<SceneNode> parent, string childName );
+
     btTransform mGlobalTransform;
     btTransform mLocalTransform;
 
@@ -61,15 +67,12 @@ public:
 	virtual void OnResetDevice();
 
     // Methods
-    explicit SceneNode( );
-	explicit SceneNode( const SceneNode & source );
     virtual ~SceneNode( );
-
+	void AddMesh( const shared_ptr<Mesh> & mesh );
 	virtual ruVector3 GetRotationAxis( );
 	virtual float GetRotationAngle( );
     virtual void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
     virtual ruAnimation * GetCurrentAnimation( );
-    virtual void EraseChild( const SceneNode * child );
     virtual void SetConvexBody( );
     virtual void SetBoxBody(  );
     virtual void SetSphereBody( );
@@ -77,7 +80,7 @@ public:
     virtual void SetCapsuleBody( float height, float radius );
     virtual void SetAngularFactor( ruVector3 fact );
     virtual void SetTrimeshBody();
-    virtual void Attach( ruSceneNode * parent );
+    virtual void Attach( const shared_ptr<ruSceneNode> & parent );
 	virtual void Detach();
 	virtual void AddForce( ruVector3 force );
 	virtual void AddForceAtPoint( ruVector3 force, ruVector3 point );
@@ -107,8 +110,8 @@ public:
     virtual ruContact GetContact( int num );
     virtual void ApplyProperties( );
     virtual void AttachSound( ruSound sound );
-    virtual bool IsInsideNode( ruSceneNode * n );
-    virtual SceneNode * GetChild( int i );
+    virtual bool IsInsideNode( shared_ptr<ruSceneNode> n );
+    virtual shared_ptr<ruSceneNode> GetChild( int i );
     virtual int GetCountChildren();
     virtual void SetFriction( float friction );
     virtual void SetDepthHack( float depthHack );
@@ -140,14 +143,8 @@ public:
 	virtual void SetLocalScale( ruVector3 scale );
 	virtual void SetLocalPosition( ruVector3 pos );
 	virtual void SetLocalRotation( ruQuaternion rot );
-	virtual SceneNode * GetParent();
+	virtual shared_ptr<ruSceneNode> GetParent();
 	virtual void SetBlurAmount( float blurAmount );
 	virtual float GetBlurAmount( );
-
-    static void UpdateContacts( );
-    static SceneNode * FindByName( const string & name );
-    SceneNode * FindChild( const string & name );
-    static SceneNode * LoadScene( const string & file );
-    static void EraseUnusedNodes();
-	static SceneNode * Find( SceneNode * parent, string childName );
+	virtual shared_ptr<ruSceneNode> FindChild( const string & name );
 };

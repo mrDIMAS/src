@@ -10,12 +10,12 @@ protected:
 	ruAnimation mHideAnim;
 	ruAnimation mIdleAnim;
 	void Proxy_Hide();
-	ruSceneNode * mShootPoint;
-	ruSceneNode * mProjectileModel;
+	shared_ptr<ruSceneNode> mShootPoint;
+	shared_ptr<ruSceneNode> mProjectileModel;
 	ruSound mShotSound;
 	int mShotInterval;
 	int mProjectileCount;
-	ruPointLight * mShotFlash;
+	shared_ptr<ruPointLight>mShotFlash;
 	ruSound mEmptySound;
 	ruVector3 mShotOffsetTo;
 	ruVector3 mShotOffset;

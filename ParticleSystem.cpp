@@ -21,20 +21,18 @@
 
 #include "Precompiled.h"
 #include "Engine.h"
-#include "ParticleEmitter.h"
+#include "ParticleSystem.h"
 #include "Camera.h"
 #include "Texture.h"
 #include "Utility.h"
+#include "SceneFactory.h"
 
-vector<ParticleSystem*> ParticleSystem::msParticleEmitters;
+
 
 ParticleSystem::~ParticleSystem() {
 	OnLostDevice();
-
     delete mVertices;
     delete mFaces;
-
-    ParticleSystem::msParticleEmitters.erase( find( ParticleSystem::msParticleEmitters.begin(), ParticleSystem::msParticleEmitters.end(), this ));
 }
 
 void ParticleSystem::Render() {
@@ -61,8 +59,13 @@ void ParticleSystem::Update() {
     mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
     GetD3DMatrixFromBulletTransform( mGlobalTransform, mWorldTransform );
 
-    D3DXMATRIX view = Camera::msCurrentCamera->mView;
-
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	D3DXMATRIX view;
+	if( camera ) {
+		view = camera->mView;
+	} else {
+		D3DXMatrixIdentity( &view );
+	}
     ruVector3 rightVect = ruVector3( view._11, view._21, view._31 ).Normalize();
     ruVector3 upVect = ruVector3( view._12, view._22, view._32 ).Normalize();
 
@@ -227,14 +230,15 @@ ParticleSystem::ParticleSystem( int theParticleCount ) {
 
 	mTexture = nullptr;
     mFirstTimeUpdate = false;
-    ParticleSystem::msParticleEmitters.push_back( this );
+
     ResurrectParticles();
 }
 
 void ParticleSystem::OnLostDevice()
 {
+	/*
 	mVertexBuffer->Release();
-	mIndexBuffer->Release();
+	mIndexBuffer->Release();*/
 }
 
 void ParticleSystem::OnResetDevice()
@@ -338,7 +342,8 @@ shared_ptr<ruTexture> ParticleSystem::GetTexture() {
 	return mTexture;
 }
 
-void ParticleSystem::SetTexture( shared_ptr<ruTexture> texture ) {
+void ParticleSystem::SetTexture( const shared_ptr<ruTexture> & texture )
+{
 	mTexture = std::dynamic_pointer_cast<Texture>( texture );
 }
 
@@ -404,6 +409,6 @@ Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, c
     mSize = theSize;
 }
 
-ruParticleSystem * ruParticleSystem::Create( int particleNum ) {
-	return new ParticleSystem( particleNum );
+shared_ptr<ruParticleSystem> ruParticleSystem::Create( int particleNum ) {
+	return SceneFactory::CreateParticleSystem( particleNum );
 }

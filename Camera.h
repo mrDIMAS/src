@@ -28,7 +28,30 @@
 class Skybox;
 class PointLight;
 
+// to efficienty light management (exclude invisible lights from render chain) we create path of a camera 
+// that contains special points. These points contains list of light, that can 'be seen' from this point.
+// List of visible lights is filled by occlusion queries inside the render chain (DeferredRenderer)
+class PathPoint {
+private:
+	ruVector3 mPoint;
+	// list of lights visible from that point, filled by occlusion queries
+	vector<weak_ptr<PointLight>> mVisibleLightList;
+public:		
+	ruVector3 GetPosition() const {
+		return mPoint;
+	}
+	explicit PathPoint( const ruVector3 & position ) : mPoint( position ) {
+
+	}
+	vector<weak_ptr<PointLight>> & GetListOfVisibleLights() {
+		return mVisibleLightList;
+	}
+};
+
 class Camera : public virtual ruCamera, public SceneNode {
+private:
+	friend class SceneFactory;
+	explicit Camera( float fov );
 public:  
 	float mFov;
     float mNearZ;
@@ -42,36 +65,23 @@ public:
     Frustum mFrustum;
     bool mInDepthHack;
     shared_ptr<Skybox> mSkybox;
-
-	// dynamic light caching
-	class PathPoint {
-	public:
-		ruVector3 mPoint;
-		// list of lights visible from that point, filled by occlusion queries
-		vector<PointLight*> mVisibleLightList;
-	};
-	PathPoint * mDefaultPathPoint;
-	PathPoint * mNearestPathPoint;
+	int mNearestPathPointIndex;
 	ruVector3 mLastPosition;
-	vector<PathPoint*> mPath;
+	vector<unique_ptr<PathPoint>> mPath;
 	float mPathNewPointDelta;
 	void ManagePath();	
 public:
-	static Camera * msCurrentCamera;
-    explicit Camera( float fov );
+	static weak_ptr<Camera> msCurrentCamera;    
     virtual ~Camera();
     void CalculateProjectionMatrix();
     void CalculateInverseViewProjection();
     void Update();
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );
+	unique_ptr<PathPoint> & GetNearestPathPoint();
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-
 	virtual void SetFOV( float fov );
-
 	virtual void SetActive();
-
-	virtual void SetSkybox( shared_ptr<ruTexture> up, shared_ptr<ruTexture> left, shared_ptr<ruTexture> right, shared_ptr<ruTexture> forward, shared_ptr<ruTexture> back );
-
+	virtual void SetSkybox( const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back );
 };

@@ -32,7 +32,7 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
     mLamp2 = GetUniqueObject( "Projector2" );
 	mLamp2->Hide();
 
-	mLiftLamp = dynamic_cast<ruLight*>( GetUniqueObject( "LiftLamp" ));
+	mLiftLamp = std::dynamic_pointer_cast<ruLight>( GetUniqueObject( "LiftLamp" ));
 	mLiftLamp->Hide();
 
 

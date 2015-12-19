@@ -53,8 +53,6 @@ public:
     vector< Particle > mParticles;
     ParticleVertex * mVertices;
     ParticleFace * mFaces;
-    IDirect3DVertexBuffer9 * mVertexBuffer;
-    IDirect3DIndexBuffer9 * mIndexBuffer;
     int mAliveParticleCount;
 	int mMaxParticleCount;
 	D3DXMATRIX mWorldTransform;
@@ -77,7 +75,8 @@ public:
 	shared_ptr<Texture> mTexture;
     int RGBAToInt( ruVector3 color, int alpha );
     ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
-	static vector<ParticleSystem*> msParticleEmitters;
+	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+	COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
 public:
     ParticleSystem( int theParticleCount );
     ~ParticleSystem();
@@ -110,8 +109,8 @@ public:
 	virtual void SetSpeedDeviation( const ruVector3 & dMin, const ruVector3 & dMax );
 	virtual ruVector3 GetSpeedDeviationMax();
 	virtual ruVector3 GetSpeedDeviationMin();
-	virtual void SetTexture( shared_ptr<ruTexture> texture );
-	virtual shared_ptr<ruTexture> GetTexture();
+	virtual void SetTexture( const shared_ptr<ruTexture> & texture );
+	virtual shared_ptr<ruTexture> GetTexture( );
 	virtual void SetType( ruParticleSystem::Type type );
 	virtual ruParticleSystem::Type GetType();
 	virtual void SetBoundingRadius( float radius );

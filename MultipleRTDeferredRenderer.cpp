@@ -31,54 +31,67 @@ void MultipleRTDeferredRenderer::OnEnd() {
     mGBuffer->UnbindRenderTargets();
 }
 
-void MultipleRTDeferredRenderer::RenderMesh( Mesh * mesh ) {
-    D3DXMATRIX world, vwp;
-	for( auto pOwner : mesh->GetOwners() ) {
-		bool visible = true;
-		if( pOwner->mIsBone ) {
-			visible = false;
-		} else {
-			visible = pOwner->IsVisible();
-		}
-		pOwner->mInFrustum |= Camera::msCurrentCamera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
-		if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
-			if( fabs( pOwner->mDepthHack ) > 0.001 ) {
-				Camera::msCurrentCamera->EnterDepthHack( fabs( pOwner->mDepthHack ) );
-			}			
-			if( mesh->IsSkinned() ) {
-				D3DXMatrixIdentity( &world );
-			} else {
-				GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-			}
-			D3DXMatrixMultiply( &vwp, &world, &Camera::msCurrentCamera->mViewProjection );
-			// pass albedo
-			Engine::I().SetPixelShaderFloat( 0, pOwner->mAlbedo );
-			// pass far z plane
-			Engine::I().SetPixelShaderFloat( 1, Camera::msCurrentCamera->mFarZ );
-			// pass vertex shader matrices
-			Engine::I().SetVertexShaderMatrix( 0, &world );
-			Engine::I().SetVertexShaderMatrix( 5, &vwp );
+void MultipleRTDeferredRenderer::RenderMesh( shared_ptr<Mesh> mesh ) {
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		D3DXMATRIX world, vwp;
+		auto & owners = mesh->GetOwners();
+		for( auto ownerIter = owners.begin(); ownerIter != owners.end();  ) {
+			shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
+			if( pOwner ) {
+				bool visible = true;
+				if( pOwner->mIsBone ) {
+					visible = false;
+				} else {
+					visible = pOwner->IsVisible();
+				}
+				pOwner->mInFrustum |= camera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
+				if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
+					if( fabs( pOwner->mDepthHack ) > 0.001 ) {
+						camera->EnterDepthHack( fabs( pOwner->mDepthHack ) );
+					}			
+					if( mesh->IsSkinned() ) {
+						D3DXMatrixIdentity( &world );
+					} else {
+						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+					}
+					D3DXMatrixMultiply( &vwp, &world, &camera->mViewProjection );
+					// pass albedo
+					Engine::I().SetPixelShaderFloat( 0, pOwner->mAlbedo );
+					// pass far z plane
+					Engine::I().SetPixelShaderFloat( 1, camera->mFarZ );
+					// pass vertex shader matrices
+					Engine::I().SetVertexShaderMatrix( 0, &world );
+					Engine::I().SetVertexShaderMatrix( 5, &vwp );
 		
-			// for parallax
-			Engine::I().SetVertexShaderVector3( 10, Camera::msCurrentCamera->GetPosition() );
+					// for parallax
+					Engine::I().SetVertexShaderVector3( 10, camera->GetPosition() );
 			
-			SceneNode * parent = pOwner->mParent; // HAX!
-			pOwner->mParent = nullptr; // HAX!
+					shared_ptr<SceneNode> parent = pOwner->mParent.lock(); 
+					if( parent ) {
+						pOwner->mParent.reset(); 
+						auto & bones = mesh->GetBones();
+						for( int i = 0; i < bones.size(); i++ ) {
+							Mesh::Bone * bone = bones[i];
+							shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+							if( boneNode ) {
+								boneNode->mIsBone = true;
+								btTransform transform = (boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform) * pOwner->CalculateGlobalTransform();
+								GetD3DMatrixFromBulletTransform( transform, bones[i]->mMatrix );
+								Engine::I().SetVertexShaderMatrix( 11 + i * 4, &bones[i]->mMatrix );
+							}
+						}
+						pOwner->mParent = parent;
+					}
 
-			auto & bones = mesh->GetBones();
-			for( int i = 0; i < bones.size(); i++ ) {
-				Mesh::Bone * bone = bones[i];
-				bone->mNode->mIsBone = true;
-				btTransform transform = (bone->mNode->mGlobalTransform * bone->mNode->mInvBoneBindTransform) * pOwner->CalculateGlobalTransform();
-				GetD3DMatrixFromBulletTransform( transform, bones[i]->mMatrix );
-				Engine::I().SetVertexShaderMatrix( 11 + i * 4, &bones[i]->mMatrix );
-			}
-
-			pOwner->mParent = parent;
-
-			mesh->Render();
-			if( pOwner->mDepthHack ) {
-				Camera::msCurrentCamera->LeaveDepthHack();
+					mesh->Render();
+					if( pOwner->mDepthHack ) {
+						camera->LeaveDepthHack();
+					}
+				}
+				++ownerIter;
+			} else {
+				ownerIter = owners.erase( ownerIter );
 			}
 		}
 	}

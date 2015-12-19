@@ -27,57 +27,49 @@ void ForwardRenderer::RenderMeshes() {
     mPixelShader->Bind();
     mVertexShader->Bind();
 
-    for( auto group : mRenderList ) {
-        IDirect3DTexture9 * diffuseTexture = group.first;
-        vector< Mesh* > & meshes = group.second;
-
+    for( auto texGroupPair : mRenderList ) {
+        IDirect3DTexture9 * diffuseTexture = texGroupPair.first;
+        auto & meshGroup = texGroupPair.second;
         Engine::I().GetDevice()->SetTexture( 0, diffuseTexture );
+        for( auto meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
+			shared_ptr<Mesh> pMesh = (*meshIter).lock();
+			if( pMesh ) {
+				D3DXMATRIX world, wvp;
+				// draw instances
+				auto & owners = pMesh->GetOwners();
+				for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {
+					shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
+					if( pOwner ) {
+						if( pOwner->IsVisible() ) {
+							GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+							shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+							if( camera ) {
+								D3DXMatrixMultiplyTranspose( &wvp, &world, &camera->mViewProjection );
+							}
+							Engine::I().SetVertexShaderMatrix( 0, &wvp );
+							Engine::I().SetPixelShaderFloat( 0, pMesh->GetOpacity() );
 
-        for( auto pMesh : meshes ) {
-            D3DXMATRIX world, wvp;
-
-			// draw instances
-			for( auto pOwner : pMesh->GetOwners() ) {
-				if( pOwner->IsVisible() ) {
-					GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-					D3DXMatrixMultiplyTranspose( &wvp, &world, &Camera::msCurrentCamera->mViewProjection );
-
-					Engine::I().SetVertexShaderMatrix( 0, &wvp );
-					Engine::I().SetPixelShaderFloat( 0, pMesh->GetOpacity() );
-
-					pMesh->Render();
+							pMesh->Render();
+						}
+						++ownerIter;
+					} else {
+						ownerIter = owners.erase( ownerIter );
+					}
 				}
+				++meshIter;
+			} else {
+				meshIter = meshGroup.erase( meshIter );
 			}
         }
     }
 }
 
-void ForwardRenderer::RemoveMesh( Mesh * mesh ) {
-    auto groupIter = mRenderList.find( mesh->GetDiffuseTexture()->GetInterface() );
-    if( groupIter != mRenderList.end() ) {
-        auto & group = groupIter->second;
-        group.erase( find( group.begin(), group.end(), mesh ));
-		if( group.size() == 0 ) {
-			mRenderList.erase( groupIter );
-		}
-    }
-}
-
-void ForwardRenderer::AddMesh( Mesh * mesh ) {
+void ForwardRenderer::AddMesh( shared_ptr<Mesh> mesh ) {
     mRenderList[ mesh->GetDiffuseTexture()->GetInterface() ].push_back( mesh );
 }
 
 ForwardRenderer::~ForwardRenderer() {
-	vector<Mesh*> meshList;
-	for( auto group : mRenderList ) {
-		vector< Mesh* > & meshes = group.second;
-		for( auto pMesh : meshes ) {
-			meshList.push_back( pMesh );//delete pMesh;
-		}
-	}
-	for( auto pMesh : meshList ) {
-		delete pMesh;
-	}
+
 }
 
 ForwardRenderer::ForwardRenderer() {

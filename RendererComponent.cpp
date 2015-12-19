@@ -1,4 +1,4 @@
-/*******************************************************************************
+/****************************************	***************************************
 *                               Ruthenium Engine                               *
 *            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
@@ -25,7 +25,12 @@
 vector<RendererComponent*> RendererComponent::msComponentList;
 
 RendererComponent::~RendererComponent() {
-	msComponentList.erase( find( msComponentList.begin(), msComponentList.end(), this ));
+	if( msComponentList.size() ) {
+		auto iter = find( msComponentList.begin(), msComponentList.end(), this );
+		if( iter != msComponentList.end() ) {
+			msComponentList.erase( iter );
+		}
+	}
 }
 
 RendererComponent::RendererComponent() {

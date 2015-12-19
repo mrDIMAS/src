@@ -120,7 +120,7 @@ void Inventory::SetVisible( bool state ) {
 }
 
 bool Inventory::IsMouseInside( int x, int y, int w, int h ) {
-    return ruGetMouseX() > x && ruGetMouseX() < ( x + w ) && ruGetMouseY() > y && ruGetMouseY() < ( y + h );
+    return ruInput::GetMouseX() > x && ruInput::GetMouseX() < ( x + w ) && ruInput::GetMouseY() > y && ruInput::GetMouseY() < ( y + h );
 }
 
 void Inventory::DoCombine() {
@@ -142,7 +142,7 @@ void Inventory::Update() {
         mGUIRectItemForUse->SetTexture( mpItemForUse->GetPictogram() );
         mGUIRectItemForUse->SetVisible( true );
 
-        if( ruIsMouseHit( MB_Left )) {
+        if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
             mpItemForUse = nullptr;
             mpSelectedItem = nullptr;
             SetVisible( true );
@@ -205,7 +205,7 @@ void Inventory::Update() {
 		mGUIFirstCombineItem->SetTexture( mpCombineItemFirst->GetPictogram() );
         if( IsMouseInside( buttonsX, combineBoxY, mCellWidth, mCellHeight )) {
             combineColor1 = ruVector3( 255, 0, 0 );
-            if( ruIsMouseHit( MB_Left )) {
+            if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
                 mpCombineItemFirst = 0;
             }
         }
@@ -218,7 +218,7 @@ void Inventory::Update() {
 		mGUISecondCombineItem->SetTexture( mpCombineItemSecond->GetPictogram() );
         if( IsMouseInside( buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight )) {
             combineColor2 = ruVector3( 255, 0, 0 );
-            if( ruIsMouseHit( MB_Left )) {
+            if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
                 mpCombineItemSecond = 0;
             }
         }
@@ -294,7 +294,7 @@ void Inventory::Update() {
                 alpha = 255;
                 if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {
                     pPicked = pItem;
-                    if( ruIsMouseHit( MB_Left )) {
+                    if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
                         pressed = true;
                         mpSelectedItem = pItem;
                     }
@@ -302,7 +302,7 @@ void Inventory::Update() {
             }
             mGUIItemCell[cw][ch]->SetColor( color );
             if( pPicked ) {
-                if( ruIsMouseHit( MB_Right ) && combinePick ) {
+                if( ruInput::IsMouseHit( ruInput::MouseButton::Right ) && combinePick ) {
                     if( mpCombineItemFirst == 0 ) {
                         if( pPicked != mpCombineItemFirst ) {
                             mpCombineItemFirst = pPicked;

@@ -4,7 +4,7 @@
 
 class Valve {
 private:
-	ruSceneNode * mObject;
+	shared_ptr<ruSceneNode> mObject;
 	ruSound mTurnSound;
 	ruVector3 mTurnAxis;
 	float mAngle;
@@ -14,7 +14,7 @@ private:
 public:
 	ruEvent OnTurn;
 	ruEvent OnTurnDone;
-    explicit Valve( ruSceneNode * obj, ruVector3 axis, int turnCount = 2 );
+    explicit Valve( shared_ptr<ruSceneNode> obj, ruVector3 axis, int turnCount = 2 );
     void Update();
 	bool IsDone();
 	void Reset();

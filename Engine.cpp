@@ -34,9 +34,10 @@
 #include "ForwardRenderer.h"
 #include "BitmapFont.h"
 #include "TextRenderer.h"
+#include "SceneFactory.h"
 
 
-Engine::Engine() : mpDevice( nullptr ), mpDirect3D( nullptr ), mpDeferredRenderer( nullptr ), 
+Engine::Engine() : mpDeferredRenderer( nullptr ), 
 	mpForwardRenderer( nullptr ), mpParticleSystemRenderer( nullptr ), mpTextRenderer( nullptr ),
 	mpGUIRenderer( nullptr ), mAmbientColor( 0.05, 0.05, 0.05 ), mUsePointLightShadows( false ),
 	mUseSpotLightShadows( false ), mHDREnabled( false ), mRunning( true ), mFXAAEnabled( false ),
@@ -55,32 +56,11 @@ Engine::~Engine() {
         delete kv.second;
     }
 
-    //delete mpTextRenderer;
-    delete mpParticleSystemRenderer;
-    delete mpDeferredRenderer;
-    delete mpGUIRenderer;
     while( GUINode::msNodeList.size() ) {
         delete GUINode::msNodeList.front();
     }
-    while( SceneNode::msNodeList.size() ) {
-        delete SceneNode::msNodeList.front();
-    }
 	Mesh::CleanUp();
-    if( mpForwardRenderer ) {
-        delete mpForwardRenderer;
-    }
 
-    int counter = 0;
-    if( Engine::I().GetDevice() ) {
-        while( Engine::I().GetDevice()->Release() ) {
-            counter++;
-        }
-    }
-    if( mpDirect3D ) {
-        while( mpDirect3D->Release() ) {
-            counter++;
-        }
-    }
     Physics::DestructWorld();
     pfSystemDestroy();
 }
@@ -97,7 +77,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     }
 
     // try to create Direct3D9
-    mpDirect3D = Direct3DCreate9( D3D_SDK_VERSION );
+    mpDirect3D.Set( Direct3DCreate9( D3D_SDK_VERSION ));
 
     // epic fail
     if( !mpDirect3D ) {
@@ -195,11 +175,11 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 
-    mpDeferredRenderer = new MultipleRTDeferredRenderer();	
-    mpForwardRenderer = new ForwardRenderer();	
-    mpParticleSystemRenderer = new ParticleSystemRenderer();
-    mpTextRenderer = new TextRenderer();
-    mpGUIRenderer = new GUIRenderer();
+    mpDeferredRenderer = make_shared<MultipleRTDeferredRenderer>();	
+    mpForwardRenderer = make_shared<ForwardRenderer>();	
+    mpParticleSystemRenderer = make_shared<ParticleSystemRenderer>();
+    mpTextRenderer = make_shared<TextRenderer>();
+    mpGUIRenderer = make_shared<GUIRenderer>();
 	mAmbientColor = ruVector3( 0.05, 0.05, 0.05 );
 	mUsePointLightShadows = false;
 	mUseSpotLightShadows = false;
@@ -248,7 +228,7 @@ int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
     SetActiveWindow ( mWindowHandle );
     SetForegroundWindow ( mWindowHandle );
     // init input
-    ruInputInit( mWindowHandle );
+    ruInput::Init( mWindowHandle );
     // success
     return 1;
 }
@@ -279,22 +259,25 @@ void Engine::RenderWorld() {
     if( !mRunning ) {
         return;
     }
-    if( !Camera::msCurrentCamera ) {
+
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( !camera ) {
         return;
     }
     mFPSCounter.RegisterFrame();
-    // erase marked nodes
-	Mesh::EraseOrphanMeshes();
-    SceneNode::EraseUnusedNodes();
    
     // clear statistics
     mDIPCount = 0;
     mTextureChangeCount = 0;
 
     // precalculations
-    for( auto node : SceneNode::msNodeList ) {
-        // skip frustum flag, it will be set to true, if one of node's mesh are in frustum
-        node->mInFrustum = false;
+	auto & nodes = SceneFactory::GetNodeList();
+    for( auto pWeak : nodes ) {
+		shared_ptr<SceneNode> & node = pWeak.lock();
+		if( node ) {        
+			// skip frustum flag, it will be set to true, if one of node's mesh are in frustum
+			node->mInFrustum = false;
+		}
     }
     // begin dx scene
     GetDevice()->BeginScene();
@@ -345,50 +328,57 @@ void Engine::RenderWorld() {
 }
 
 void Engine::RenderMeshesIntoGBuffer() {
-    for( auto groupIterator : Mesh::msMeshList ) {
-        IDirect3DTexture9 * pDiffuseTexture = groupIterator.first;
+	auto & meshMap = Mesh::GetMeshMap();
+    for( auto texGroupPair : meshMap ) {
+        IDirect3DTexture9 * pDiffuseTexture = texGroupPair.first;
         IDirect3DTexture9 * pNormalTexture = nullptr;
-        auto & meshes = groupIterator.second;
+        auto & meshGroup = texGroupPair.second;
         // skip group if it has no meshes
-        if( meshes.size() == 0 ) {
+        if( meshGroup.size() == 0 ) {
             continue;
         }
         // bind diffuse texture
         mpDevice->SetTexture( 0, pDiffuseTexture );
         // each group has same texture
         mTextureChangeCount++;
-        for( auto pMesh : meshes ) {
-			if( !pMesh->IsHardwareBuffersGood() ) {
-				continue;
-			}
-			if( pMesh->GetVertices().size() == 0 ) {
-				continue;
-			}
-			// bind height texture for parallax mapping
-			if( pMesh->GetHeightTexture() && !pMesh->IsSkinned() ) {
-				if( mParallaxEnabled ) {
-					pMesh->GetHeightTexture()->Bind( 2 );
-					mpDeferredRenderer->BindParallaxShaders();
-				} else {
-					mpDeferredRenderer->BindGenericShaders();
+        for( auto meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
+			shared_ptr<Mesh> pMesh = (*meshIter).lock();
+			if( pMesh ) {
+				if( !pMesh->IsHardwareBuffersGood() ) {
+					continue;
 				}
+				if( pMesh->GetVertices().size() == 0 ) {
+					continue;
+				}
+				// bind height texture for parallax mapping
+				if( pMesh->GetHeightTexture() && !pMesh->IsSkinned() ) {
+					if( mParallaxEnabled ) {
+						pMesh->GetHeightTexture()->Bind( 2 );
+						mpDeferredRenderer->BindParallaxShaders();
+					} else {
+						mpDeferredRenderer->BindGenericShaders();
+					}
+				} else {
+					if( pMesh->IsSkinned() ) {
+						mpDeferredRenderer->BindGenericSkinShaders();
+					} else {
+						mpDeferredRenderer->BindGenericShaders();
+					}
+				}
+				// prevent overhead with normal texture
+				if( pMesh->GetNormalTexture() ) {
+					IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
+					if( meshNormalTexture != pNormalTexture ) {
+						mTextureChangeCount++;
+						pMesh->GetNormalTexture()->Bind( 1 );
+						pNormalTexture = meshNormalTexture;
+					}
+				}
+				mpDeferredRenderer->RenderMesh( pMesh );      
+				++meshIter;
 			} else {
-				if( pMesh->IsSkinned() ) {
-					mpDeferredRenderer->BindGenericSkinShaders();
-				} else {
-					mpDeferredRenderer->BindGenericShaders();
-				}
+				meshIter = meshGroup.erase( meshIter );
 			}
-            // prevent overhead with normal texture
-            if( pMesh->GetNormalTexture() ) {
-                IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
-                if( meshNormalTexture != pNormalTexture ) {
-                    mTextureChangeCount++;
-                    pMesh->GetNormalTexture()->Bind( 1 );
-                    pNormalTexture = meshNormalTexture;
-                }
-            }
-            mpDeferredRenderer->RenderMesh( pMesh );            
         }
     }
 }
@@ -551,8 +541,6 @@ void Engine::OnResetDevice() {
 	}	
 }
 
-
-
 Engine & Engine::I() {
 	static Engine instance;
 	return instance;
@@ -586,15 +574,15 @@ void Engine::RegisterDIP() {
 	mDIPCount++;
 }
 
-ForwardRenderer * Engine::GetForwardRenderer() {
+shared_ptr<ForwardRenderer> & Engine::GetForwardRenderer() {
 	return mpForwardRenderer;
 }
 
-DeferredRenderer * Engine::GetDeferredRenderer() {
+shared_ptr<DeferredRenderer> & Engine::GetDeferredRenderer() {
 	return mpDeferredRenderer;
 }
 
-TextRenderer * Engine::GetTextRenderer() {
+shared_ptr<TextRenderer> & Engine::GetTextRenderer() {
 	return mpTextRenderer;
 }
 

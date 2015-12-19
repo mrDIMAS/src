@@ -46,7 +46,7 @@ shared_ptr<Texture> Texture::Request( string file ) {
     return std::move( pTexture );
 }
 
-Texture::Texture() :  mHeight( 0 ), mWidth( 0 ), mColorDepth( 0 ), mTexture( nullptr ) {
+Texture::Texture() :  mHeight( 0 ), mWidth( 0 ), mColorDepth( 0 ) {
 	mResetPriority = RendererComponent::ResetPriority::High;
 }
 

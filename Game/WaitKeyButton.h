@@ -7,7 +7,7 @@
 class WaitKeyButton {
 private:
     bool mGrabKey;
-    int mSelectedKey;
+    ruInput::Key mSelectedKey;
 	int mAnimCounter;
     string mDesc;
     ruText * mGUIText;
@@ -16,8 +16,8 @@ public:
 	static vector<WaitKeyButton*> msWaitKeyList;
     explicit WaitKeyButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
 	~WaitKeyButton();
-    int GetSelectedKey();
-    void SetSelected( int i );
+    ruInput::Key GetSelectedKey();
+    void SetSelected( ruInput::Key i );
     void Update( );
     void SetVisible( bool state );
 	void AttachTo( ruGUINode * node );

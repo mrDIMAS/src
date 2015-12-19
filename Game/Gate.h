@@ -12,10 +12,10 @@ private:
 		Closed,
 	};
 
-	ruSceneNode * mGate;
+	shared_ptr<ruSceneNode> mGate;
 	float mGateHeight;
-	ruSceneNode * mButtonOpen[2];
-	ruSceneNode * mButtonClose[2];
+	shared_ptr<ruSceneNode> mButtonOpen[2];
+	shared_ptr<ruSceneNode> mButtonClose[2];
 	ruVector3 mInitialPosition;
 	State mState;
 	float mGateYOffset;
@@ -25,7 +25,7 @@ private:
 	ruSound mButtonSound;
 	
 public:
-	explicit Gate( ruSceneNode * gate, ruSceneNode * buttonOpen, ruSceneNode * buttonClose, ruSceneNode * buttonOpen2, ruSceneNode * buttonClose2  );
+	explicit Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2  );
 	void OnEndMoving();
 	void Update();
 };

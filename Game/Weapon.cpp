@@ -78,7 +78,7 @@ void Weapon::Update() {
 	mShowAnim.Update();
 	mIdleAnim.Update();
 
-	if( ruIsMouseHit( MB_Left ) && !pPlayer->mNodeInHands && !pPlayer->GetInventory()->IsOpened() ) {
+	if( ruInput::IsMouseHit( ruInput::MouseButton::Left ) && !pPlayer->mNodeInHands && !pPlayer->GetInventory()->IsOpened() ) {
 		if( mProjectileCount > 0 ) {
 			if( mShotInterval <= 0 ) {			
 				mShotInterval = 35;
@@ -88,7 +88,7 @@ void Weapon::Update() {
 				mShotOffsetTo = ruVector3( 0, 0.065, -0.18 );
 
 				ruVector3 look = mModel->GetAbsoluteLookVector();
-				ruSceneNode * node = ruPhysics::CastRay( mShootPoint->GetPosition() + look * 0.1, mShootPoint->GetPosition() + look * 1000 );
+				shared_ptr<ruSceneNode> node = ruPhysics::CastRay( mShootPoint->GetPosition() + look * 0.1, mShootPoint->GetPosition() + look * 1000 );
 				if( node ) {
 					for( auto pEnemy : Enemy::msEnemyList ) {
 						if( node == pEnemy->GetBody() ) {

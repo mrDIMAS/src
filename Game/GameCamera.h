@@ -4,7 +4,7 @@
 
 class GameCamera {
 public:
-    ruCamera * mCamera;
+    shared_ptr<ruCamera> mCamera;
     float quadAlpha;
     float quadAlphaTo;
     ruVector3 fadeColor;

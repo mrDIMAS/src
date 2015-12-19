@@ -26,15 +26,14 @@
 
 class PointLight : public Light, public virtual ruPointLight {
 private:
+	friend class SceneFactory;
+	PointLight();
 	CubeTexture * mPointTexture;
 public:
 	static CubeTexture * msDefaultPointCubeTexture;
-	static vector< PointLight* > msPointLightList;
-	PointLight();
+		
 	~PointLight();
 	void SetPointTexture( ruCubeTexture * cubeTexture );
 	virtual bool IsSeePoint( const ruVector3 & point );
-	CubeTexture * GetPointTexture() {
-		return mPointTexture;
-	}
+	CubeTexture * GetPointTexture();
 };

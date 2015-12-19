@@ -25,7 +25,7 @@ void LevelIntroduction::DoScenario() {
 
     mTextAlpha += ( mTextAlphaTo - mTextAlpha ) * 0.025f;
 
-    if( ruIsKeyHit( KEY_Space ) ) {
+    if( ruInput::IsKeyHit( ruInput::Key::Space ) ) {
         mShowIntro = false;
     }
 

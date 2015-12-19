@@ -34,10 +34,10 @@ void Actor::SetPosition( ruVector3 position ) {
 }
 
 Actor::~Actor() {
-	mBody->Free();
+
 }
 
-char Actor::IsInsideZone( ruSceneNode * zone ) {
+char Actor::IsInsideZone( shared_ptr<ruSceneNode> zone ) {
     return mBody->IsInsideNode( zone );
 }
 
@@ -80,7 +80,7 @@ void Actor::Crouch( bool state ) {
 	ruVector3 pickPoint;
 	ruVector3 rayBegin = mBody->GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
 	ruVector3 rayEnd = mBody->GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
-	ruSceneNode * upCast = ruPhysics::CastRay( rayBegin, rayEnd, &pickPoint);
+	shared_ptr<ruSceneNode> upCast = ruPhysics::CastRay( rayBegin, rayEnd, &pickPoint);
 	if( upCast ) {
 		if( !mCrouch ) {
 			mCrouch = true;

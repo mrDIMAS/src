@@ -40,23 +40,23 @@ private:
 	ruSound mBurnSound;
     ruSound mSteamHissSound;
 
-    ruParticleSystem * mSteamPS;
-	ruParticleSystem * mThermitePS;
-    ruSceneNode * mExtremeSteamBlock;
-    ruSceneNode * mZoneExtremeSteamHurt;
-    ruSceneNode * fuseModel[3];
-    ruSceneNode * powerLever;
-    ruSceneNode * mPowerLeverOffModel;
-    ruSceneNode * mPowerLeverOnModel;
-    ruPointLight * mPowerLamp;
-    ruSceneNode * mPowerLeverSnd;
-    ruSceneNode * mSmallSteamPosition;
+    shared_ptr<ruParticleSystem > mSteamPS;
+	shared_ptr<ruParticleSystem > mThermitePS;
+    shared_ptr<ruSceneNode> mExtremeSteamBlock;
+    shared_ptr<ruSceneNode> mZoneExtremeSteamHurt;
+    shared_ptr<ruSceneNode> fuseModel[3];
+    shared_ptr<ruSceneNode> powerLever;
+    shared_ptr<ruSceneNode> mPowerLeverOffModel;
+    shared_ptr<ruSceneNode> mPowerLeverOnModel;
+    shared_ptr<ruPointLight>mPowerLamp;
+    shared_ptr<ruSceneNode> mPowerLeverSnd;
+    shared_ptr<ruSceneNode> mSmallSteamPosition;
 	
 	ruAnimation mMeshAnimation;
 	ruAnimation mMeshLockAnimation;
 	
-	ruSceneNode * mDoorUnderFloor;
-	ruSceneNode * mZoneNewLevelLoad;
+	shared_ptr<ruSceneNode> mDoorUnderFloor;
+	shared_ptr<ruSceneNode> mZoneNewLevelLoad;
 
 	shared_ptr<Zone> mZoneObjectiveNeedPassThroughMesh;
 	shared_ptr<Zone> mZoneEnemySpawn;
@@ -87,13 +87,13 @@ private:
     int fuseInsertedCount;
     bool mPowerOn;
 
-	ruSceneNode * mThermiteSmall;
-	ruSceneNode * mThermiteBig;
-	ruSceneNode * mMeshLock;
-	ruSceneNode * mThermitePlace;
-	ruSceneNode * mMeshToSewers;
-	ruSceneNode * mEnemySpawnPosition;
-	ruSceneNode * mRadioHurtZone;
+	shared_ptr<ruSceneNode> mThermiteSmall;
+	shared_ptr<ruSceneNode> mThermiteBig;
+	shared_ptr<ruSceneNode> mMeshLock;
+	shared_ptr<ruSceneNode> mThermitePlace;
+	shared_ptr<ruSceneNode> mMeshToSewers;
+	shared_ptr<ruSceneNode> mEnemySpawnPosition;
+	shared_ptr<ruSceneNode> mRadioHurtZone;
 	ItemPlace * mThermiteItemPlace;
 
 	shared_ptr<Enemy> mEnemy;

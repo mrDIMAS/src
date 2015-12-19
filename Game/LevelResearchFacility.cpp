@@ -146,7 +146,7 @@ LevelResearchFacility::LevelResearchFacility() {
 
 	AutoCreateDoorsByNamePattern( "Door?([[:digit:]]+)" );
 
-    mPowerLamp = dynamic_cast<ruPointLight*>( GetUniqueObject( "PowerLamp"));
+    mPowerLamp = std::dynamic_pointer_cast<ruPointLight>( GetUniqueObject( "PowerLamp"));
     mPowerLeverSnd = GetUniqueObject( "PowerLeverSnd");
     mSmallSteamPosition = GetUniqueObject( "RFSteamPos" );
 	mZoneNewLevelLoad = GetUniqueObject( "NewLevelLoadZone" );
@@ -267,9 +267,6 @@ void LevelResearchFacility::CreateEnemy() {
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
-	if( mSteamPS ) {
-		mSteamPS->Free();
-	}
 	if( mpPowerSparks ) {
 		delete mpPowerSparks;
 	}
@@ -320,8 +317,8 @@ void LevelResearchFacility::DoScenario() {
 			if( pPlayer->mNearestPickedNode == mDoorUnderFloor ) {			
 				if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {	
 					if( pPlayer->GetInventory()->GetItemSelectedForUse()->GetType() == Item::Type::Crowbar ) {
-						pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
-						if( ruIsKeyHit( pPlayer->mKeyUse )) {
+						pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "openDoor" ) );
+						if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
 							pPlayer->mInventory.ResetSelectedForUse();
 							mDoorUnderFloor->SetRotation( ruQuaternion( 0, 0, -110 ));
 							mStages[ "DoorUnderFloorOpen" ] = true;
@@ -367,8 +364,7 @@ void LevelResearchFacility::DoScenario() {
         if( steamParticleSize > 0 ) {
             steamParticleSize -= 0.0005f;
         } else {
-            mSteamPS->Free();
-            mSteamPS = nullptr;
+            mSteamPS.reset();
         }
     }
 
@@ -388,7 +384,7 @@ void LevelResearchFacility::DoScenario() {
 void LevelResearchFacility::UpdateThermiteSequence() {
 	if( pPlayer->GetInventory()->GetItemSelectedForUse() ) {
 		if( mThermiteItemPlace->IsPickedByPlayer() ) {
-			if( ruIsKeyHit( pPlayer->mKeyUse )) {			
+			if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {			
 				bool placed = mThermiteItemPlace->PlaceItem( pPlayer->mInventory.GetItemSelectedForUse()->GetType() );
 				if( placed ) {
 					if( mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder ) {
@@ -424,7 +420,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 					}
 				}
 			}		
-			pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "placeReactive" ) );
+			pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "placeReactive" ) );
 		}				
 	}
 }
@@ -445,11 +441,11 @@ void LevelResearchFacility::UpdatePowerupSequence() {
         for( int iFuse = 0; iFuse < 3; iFuse++ ) {
             shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFuse];
             if( pFuse->IsPickedByPlayer() ) {
-                pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "insertFuse" ) );
+                pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->GetLocalization()->GetString( "insertFuse" ) );
             }
         }
 
-        if( ruIsKeyHit( pPlayer->mKeyUse )) {
+        if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
             for( int iFusePlace = 0; iFusePlace < 3; iFusePlace++ ) {
                 shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFusePlace];
 
@@ -467,9 +463,9 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
     if( fuseInsertedCount >= 3 ) {
         if( pPlayer->mNearestPickedNode == powerLever ) {
-            pPlayer->SetActionText( StringBuilder() << GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString("powerUp") );
+            pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString("powerUp") );
 
-            if( ruIsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
+            if( ruInput::IsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
                 mPowerLamp->SetColor( ruVector3( 0, 255, 0 ) );
 
                 mLeverSound.Play();

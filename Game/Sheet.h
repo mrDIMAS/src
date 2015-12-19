@@ -10,7 +10,7 @@ private:
     ruRect * mGUIBackground;
     ruText * mGUIText;
 public:
-    explicit Sheet( ruSceneNode * object, string desc, string text );
+    explicit Sheet( shared_ptr<ruSceneNode> object, string desc, string text );
     virtual ~Sheet();
     void Update();
     void Draw( );
@@ -19,7 +19,7 @@ public:
     void SetDescription( const string & description );
     const string & GetDescription( ) const;
     void SetVisible( bool state );
-    static Sheet * GetSheetPointerByNode( ruSceneNode * o );
+    static Sheet * GetSheetPointerByNode( shared_ptr<ruSceneNode> o );
     static vector<Sheet*> msSheetList;
     static ruSound msPaperFlipSound;
     static ruFont * msSheetFont;

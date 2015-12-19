@@ -110,24 +110,15 @@ FastReader::~FastReader() {
 }
 
 bool FastReader::ReadFile( const string & fileName ) {
-    FILE * f;
-    f = fopen( fileName.c_str(), "rb" );
-
-    if ( !f ) {
+    ifstream file( fileName, ios_base::binary );
+    if ( file.bad() ) {
         return false;
     }
-
-    fseek ( f, 0, SEEK_END );
-
-    size = ftell ( f );
-
+	file.seekg( 0, ios_base::end );
+    size = file.tellg();
     data = new Byte[size];
-    fseek ( f, 0, SEEK_SET );
-
-    fread ( data, 1, size, f );
-
-    fclose ( f );
-
+    file.seekg( 0, ios_base::beg );
+    file.read( reinterpret_cast<char*>( data ), size );
     return true;
 }
 

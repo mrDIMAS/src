@@ -25,6 +25,7 @@
 #include "Camera.h"
 #include "SceneNode.h"
 #include "Physics.h"
+#include "SceneFactory.h"
 
 void ruEngine::Create( int width, int height, int fullscreen, char vSync ) {
 	Engine::I().Initialize( width, height, fullscreen, vSync ) ;
@@ -87,23 +88,33 @@ void ruEngine::EnableShadows( bool state ) {
 }
 void ruEngine::UpdateWorld() {
 	// build view and projection matrices, frustum, also attach sound listener to camera
-	if( Camera::msCurrentCamera ) {
-		Camera::msCurrentCamera->Update();
+	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	if( camera ) {
+		camera->Update();
 	}
-	for( auto node : SceneNode::msNodeList ) {
-		node->CalculateGlobalTransform();
-		// update all sounds attached to node, and physical interaction sounds( roll, hit )
-		node->UpdateSounds();
-		if( !node->mIsSkinned ) {
-			node->PerformAnimation();
+
+	auto & nodes = SceneFactory::GetNodeList();
+
+	for( auto & pWeak : nodes ) {
+		shared_ptr<SceneNode> & node = pWeak.lock();
+		if( node ) {
+			node->CalculateGlobalTransform();
+			// update all sounds attached to node, and physical interaction sounds( roll, hit )
+			node->UpdateSounds();
+			if( !node->mIsSkinned ) {
+				node->PerformAnimation();
+			}
 		}
 	}
 
 	// skinned animation is based on transforms of other nodes, so skin meshes in the end of all
-	for( auto node : SceneNode::msNodeList ) {
-		if( node->mIsSkinned ) {
-			node->PerformAnimation();
-		}
+	for( auto & pWeak : nodes ) {
+		shared_ptr<SceneNode> & node = pWeak.lock();
+		if( node ) {
+			if( node->mIsSkinned ) {
+				node->PerformAnimation();
+			}
+		} 
 	}
 }
 void ruEngine::SetAnisotropicTextureFiltration( bool state ) {

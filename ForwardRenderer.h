@@ -32,13 +32,12 @@
 // in other cases prefer DeferredRenderer
 class ForwardRenderer {
 private:
-    map< IDirect3DTexture9*, vector< Mesh* > > mRenderList;
+    map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> mRenderList;
     shared_ptr<PixelShader> mPixelShader;
     shared_ptr<VertexShader> mVertexShader;
 public:
     ForwardRenderer();
     ~ForwardRenderer();
-    void AddMesh( Mesh * mesh );
-    void RemoveMesh( Mesh * mesh );
+    void AddMesh( shared_ptr<Mesh> mesh );
     void RenderMeshes();
 };

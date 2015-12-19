@@ -29,6 +29,7 @@
 #include <iostream>
 using namespace std;
 
+/* shared_ptr\<.*\> .* */
 void main( ) {
     ruVector3 v1( 10, 20, 30 );
     ruVector3 v2( 30, 20, 10 );
@@ -45,15 +46,15 @@ void main( ) {
     ruPointLight::SetPointDefaultTexture( ruCubeTexture::Request( "data/textures/generic/pointCube.dds" ));
     ruSpotLight::SetSpotDefaultTexture( ruTexture::Request( "data/textures/generic/spotlight.jpg" ));
 
-    ruSceneNode * cameraPivot = ruSceneNode::Create();
+    shared_ptr<ruSceneNode> cameraPivot = ruSceneNode::Create();
 	cameraPivot->SetCapsuleBody( 6, 2 );
 	cameraPivot->SetAngularFactor( ruVector3( 0, 0, 0 ));
     cameraPivot->SetPosition( ruVector3( 0, 5, 0 ));
 
-    ruCamera * testCamera = ruCamera::Create( 90 );
-    testCamera->SetPosition( ruVector3( 10, 50, -100 ));
+    //shared_ptr<ruCamera> testCamera = ruCamera::Create( 90 );
+    //testCamera->SetPosition( ruVector3( 10, 50, -100 ));
 
-    ruCamera * camera = ruCamera::Create( 60 );
+    shared_ptr<ruCamera> camera = ruCamera::Create( 60 );
     camera->Attach( cameraPivot );
 
     camera->SetSkybox(  
@@ -66,8 +67,8 @@ void main( ) {
 
     camera->SetPosition( ruVector3( 0, 6, 0 ));
 
-	ruSceneNode * node = ruSceneNode::LoadFromFile( "data/newFormat.scene" );
-	ruLight * lit = dynamic_cast<ruLight*>( ruSceneNode::FindByName( "Omni002" ));
+	shared_ptr<ruSceneNode> node = ruSceneNode::LoadFromFile( "data/newFormat.scene" );
+	shared_ptr<ruLight> lit = dynamic_pointer_cast<ruLight>( ruSceneNode::FindByName( "Omni002" ));
 	node->FindChild( "Box021" )->SetBlurAmount( 1.0f );
 
 	float pitchTo = 0, yawTo = 0;
@@ -81,14 +82,15 @@ void main( ) {
     int counter = 0;
     int fps = 0;
 
-	ruParticleSystem * streamParticleEmitter = ruParticleSystem::Create( 256 );
+	
+	shared_ptr<ruParticleSystem> streamParticleEmitter = ruParticleSystem::Create( 256 );
 	streamParticleEmitter->SetPosition( ruVector3( 10, 0, 10 ));
     streamParticleEmitter->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));
     streamParticleEmitter->SetType( ruParticleSystem::Type::Stream );
     streamParticleEmitter->SetSpeedDeviation( ruVector3( -0.01, 0.0, -0.01 ), ruVector3(  0.01, 0.8,  0.01 ));
     streamParticleEmitter->SetBoundingRadius( 50 );
 	streamParticleEmitter->SetLightingEnabled( true );
-
+	
     ruTimer * timer = ruTimer::Create();
     ruTimer * perfTimer = ruTimer::Create();
 
@@ -110,36 +112,36 @@ void main( ) {
 	ruEngine::SetHDREnabled( false );
 	ruEngine::SetFXAAEnabled( false );
 
-	ruSceneNode * cube = ruSceneNode::LoadFromFile( "data/cube.scene" );
+	shared_ptr<ruSceneNode> cube = ruSceneNode::LoadFromFile( "data/cube.scene" );
 	
 	ruSound snd = ruSound::LoadMusic( "data/music/rf.ogg" );
 	snd.SetVolume( 0.1 );
 
-	ruSceneNode * ripper = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
+	shared_ptr<ruSceneNode> ripper = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
 	ruAnimation anim = ruAnimation( 0, 85, 8, true );
 	anim.enabled = true;
 	ripper->SetAnimation( &anim );
 	ripper->SetBlurAmount( 1.0f );
 
-    while( !ruIsKeyDown( KEY_Esc )) {
+    while( !ruInput::IsKeyDown( ruInput::Key::Esc )) {
         //idleAnim.Update();
-        ruInputUpdate();
+        ruInput::Update();
 
 		anim.Update();
-		if( ruIsMouseHit( MB_Right )) {
+		if( ruInput::IsMouseHit( ruInput::MouseButton::Right )) {
             ruEngine::SetHDREnabled( !ruEngine::IsHDREnabled() );
         }
 		
-		if( ruIsKeyHit( KEY_T )) {
+		if( ruInput::IsKeyHit( ruInput::Key::T )) {
 			ruEngine::ChangeVideomode( 2560, 1440, 0, 1 );
 		}
-		if( ruIsKeyHit( KEY_Y )) {
+		if( ruInput::IsKeyHit( ruInput::Key::Y )) {
 			ruEngine::ChangeVideomode( 1920, 1080, 0, 1 );
 		}
         ruVector3 speed;
 
-        pitchTo += ruGetMouseYSpeed() / 2.0;
-        yawTo += -ruGetMouseXSpeed() / 2.0;
+        pitchTo += ruInput::GetMouseYSpeed() / 2.0;
+        yawTo += -ruInput::GetMouseXSpeed() / 2.0;
 
         pitch = pitch + ( pitchTo - pitch ) * 0.2f;
         yaw = yaw + ( yawTo - yaw ) * 0.2f;
@@ -152,51 +154,51 @@ void main( ) {
 		 
         ruPhysics::Update( 1.0f / 60.0f, 10, 1.0f / 60.0f );
 
-		if( ruIsKeyHit( KEY_1 )) {
+		if( ruInput::IsKeyHit( ruInput::Key::Num1 )) {
 			testrect->SetVisible( false );
 			ruEngine::SetFXAAEnabled( true );
 		}
-		if( ruIsKeyHit( KEY_2 )) {
+		if( ruInput::IsKeyHit( ruInput::Key::Num2 )) {
 			testrect->SetVisible( true );
 			ruEngine::SetFXAAEnabled( false );
 		}
-		if( ruIsKeyHit( KEY_3 )) {
-			node->Free();
+		if( ruInput::IsKeyHit( ruInput::Key::Num3 )) {
+			node.reset();
 		}
 
-		if( ruIsMouseHit( MB_Left )) {
-			ruSceneNode * newCube = ruSceneNode::Duplicate( cube );
-			newCube->Attach( camera );
+		if( ruInput::IsMouseHit(  ruInput::MouseButton::Left )) {
+			shared_ptr<ruSceneNode> newCube = ruSceneNode::Duplicate( cube );
+			//newCube->Attach( camera );
 			newCube->SetPosition( ruVector3( 0, 0, 1 ));
 		}
 
-        if( ruIsKeyDown( KEY_W )) {
+        if( ruInput::IsKeyDown( ruInput::Key::W )) {
             speed = speed + look;
         }
-        if( ruIsKeyDown( KEY_S )) {
+        if( ruInput::IsKeyDown( ruInput::Key::S )) {
             speed = speed - look;
         }
-        if( ruIsKeyDown( KEY_A )) {
+        if( ruInput::IsKeyDown( ruInput::Key::A )) {
             speed = speed + right;
         }
-        if( ruIsKeyDown( KEY_D )) {
+        if( ruInput::IsKeyDown( ruInput::Key::D )) {
             speed = speed - right;
         }
 
-        if( ruIsKeyHit( KEY_Q )) {
+        if( ruInput::IsKeyHit( ruInput::Key::Q )) {
             cameraNum = 1 - cameraNum;
 
+			/*
             if( cameraNum ) {
                 testCamera->SetActive();
             } else {
                 camera->SetActive();
-            }
+            }*/
         }
 
         cameraPivot->Move( speed * ruVector3( 100, 1, 100 ));
         camera->SetRotation( pitchRotation );
         cameraPivot->SetRotation( yawRotation );
-
 		//ripper.SetPosition( cameraPivot.GetPosition() );
 
         counter++;

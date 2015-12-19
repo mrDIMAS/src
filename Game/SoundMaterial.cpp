@@ -14,7 +14,7 @@ enum class ReaderMode {
 	Sound,
 };
 
-SoundMaterial::SoundMaterial( const string & filename, ruSceneNode * owner ) {
+SoundMaterial::SoundMaterial( const string & filename, shared_ptr<ruSceneNode> owner ) {
 	ifstream matFile( filename, ifstream::in );	
 	ReaderMode mode = ReaderMode::Unknown;
 	float volume = 1.0f;

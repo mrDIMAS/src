@@ -73,7 +73,7 @@ void Syringe::Update() {
 	mHideDepletedAnim.Update();
 	mIdleDepletedAnim.Update();
 
-	if( ruIsMouseHit( MB_Left ) && !mShowAnim.enabled && !mHideAnim.enabled && !mUseAnim.enabled && !mHideDepletedAnim.enabled && !mShowDepletedAnim.enabled ) {
+	if( ruInput::IsMouseHit( ruInput::MouseButton::Left ) && !mShowAnim.enabled && !mHideAnim.enabled && !mUseAnim.enabled && !mHideDepletedAnim.enabled && !mShowDepletedAnim.enabled ) {
 		if( mDozeCount > 0 ) {
 			mUseAnim.Rewind();
 			mModel->SetAnimation( &mUseAnim );

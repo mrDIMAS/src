@@ -9,7 +9,7 @@ void Gate::Update()
 	if( pPlayer->mNearestPickedNode == mButtonOpen[0] || pPlayer->mNearestPickedNode == mButtonOpen[1] ) {
 		if( !( mState == State::Closing || mState == State::Opening )) {
 			pPlayer->SetActionText( "Открыть" );
-			if( ruIsKeyHit( pPlayer->mKeyUse )) {
+			if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
 				mButtonSound.SetPosition( pPlayer->mNearestPickedNode->GetPosition() );
 				mButtonSound.Play();
 				if( mState != State::Opened ) {
@@ -22,7 +22,7 @@ void Gate::Update()
 	if( pPlayer->mNearestPickedNode == mButtonClose[0] || pPlayer->mNearestPickedNode == mButtonClose[1] ) {
 		if( !( mState == State::Closing || mState == State::Opening )) {
 			pPlayer->SetActionText( "Закрыть" );
-			if( ruIsKeyHit( pPlayer->mKeyUse )) {	
+			if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {	
 				mButtonSound.SetPosition( pPlayer->mNearestPickedNode->GetPosition() );
 				mButtonSound.Play();
 				if( mState != State::Closed ) {
@@ -63,7 +63,7 @@ void Gate::OnEndMoving()
 	mEndSound.Play();;
 }
 
-Gate::Gate( ruSceneNode * gate, ruSceneNode * buttonOpen, ruSceneNode * buttonClose, ruSceneNode * buttonOpen2, ruSceneNode * buttonClose2 )
+Gate::Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2 )
 {
 	mGate = gate;
 	mGateHeight = ( mGate->GetAABBMax() - mGate->GetAABBMin() ).y * 0.9f;
