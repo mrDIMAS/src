@@ -8,9 +8,9 @@ private:
     float mTurnSpeed;
     ruVector3 mTurnAxis;
     float mAngle;
-    ruSound mEngineSound;
+    shared_ptr<ruSound> mEngineSound;
 public:
-    explicit Fan( shared_ptr<ruSceneNode> object, float turnSpeed, ruVector3 turnAxis, ruSound engineSound );
+    explicit Fan( shared_ptr<ruSceneNode> object, float turnSpeed, ruVector3 turnAxis, shared_ptr<ruSound> engineSound );
     virtual ~Fan();
     void DoTurn();
 };

@@ -12,7 +12,7 @@ Valve::Valve( shared_ptr<ruSceneNode> obj, ruVector3 axis, int turnCount ) {
     mTurnCount = turnCount;
     mValue = 0.0f;
 	mTurnSound = ruSound::Load3D( "data/sounds/valve_squeaky.ogg" );
-	mTurnSound.SetPosition( mObject->GetPosition() );
+	mTurnSound->SetPosition( mObject->GetPosition() );
 }
 
 void Valve::Reset() {
@@ -21,12 +21,12 @@ void Valve::Reset() {
 }
 
 void Valve::Update() {
-	mTurnSound.Pause();
+	mTurnSound->Pause();
     if( !mDone ) {	
 		if( pPlayer->mNearestPickedNode == mObject ) {
 			pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
 			if( ruInput::IsKeyDown( pPlayer->mKeyUse )) {
-				mTurnSound.Play();
+				mTurnSound->Play();
 				mAngle += 5;
 				OnTurn.DoActions();
 				if( mAngle >= 360 * mTurnCount ) {

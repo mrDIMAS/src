@@ -77,14 +77,13 @@ void GBuffer::BindDepthMap( int layer ) {
     Engine::I().GetDevice()->SetTexture( layer, mDepthMap );
 }
 
-
 void GBuffer::FreeRenderTargets() {
-	mDepthSurface->Release();
-	mNormalSurface->Release();
-	mDiffuseSurface->Release();
-	while( mDepthMap->Release());
-	while( mNormalMap->Release());
-	while( mDiffuseMap->Release());
+	mDepthSurface.Reset();
+	mNormalSurface.Reset();
+	mDiffuseSurface.Reset();
+	mDepthMap.Reset();
+	mNormalMap.Reset();
+	mDiffuseMap.Reset();
 }
 
 void GBuffer::CreateRenderTargets() {
@@ -104,12 +103,10 @@ void GBuffer::CreateRenderTargets() {
 	mBackSurface = Engine::I().GetBackBuffer();
 }
 
-void GBuffer::OnLostDevice()
-{
+void GBuffer::OnLostDevice() {
 	FreeRenderTargets();
 }
 
-void GBuffer::OnResetDevice()
-{
+void GBuffer::OnResetDevice() {
 	CreateRenderTargets();
 }

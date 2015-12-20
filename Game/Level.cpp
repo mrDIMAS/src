@@ -25,23 +25,15 @@ int Level::msCurLevelID = 0;
 Level::Level() {
     mInitializationComplete = false;
     mTypeNum = 0; //undefined
-    mMusic.Invalidate();
 }
 
 Level::~Level() {
     for( auto pSheet : mSheetList ) {
         delete pSheet;
     }
-
-	for( auto iSound : mSounds ) {
-        iSound.Free();
-    }
-
 	for( auto pButton : mButtonList ) {
 		delete pButton;
 	}
-
-	mMusic.Free();
 }
 
 void Level::LoadLocalization( string fn ) {
@@ -50,8 +42,11 @@ void Level::LoadLocalization( string fn ) {
 
 void Level::Hide() {
     mScene->Hide();
-    for( auto & sound : mSounds ) {
-        sound.Pause();
+    for( auto & sWeak : mSounds ) {
+		shared_ptr<ruSound> & sound = sWeak.lock();
+		if( sound ) {
+			sound->Pause();
+		}
     }
 	for( auto pLamp : mLampList ) {
 		pLamp->Hide();
@@ -60,9 +55,12 @@ void Level::Hide() {
 
 void Level::Show() {
     mScene->Show();
-    for( auto & sound : mSounds ) {
-        if( sound.IsPaused() ) {
-            sound.Play();
+    for( auto & sWeak : mSounds ) {
+		shared_ptr<ruSound> & sound = sWeak.lock();
+		if( sound ) {
+			if( sound->IsPaused() ) {
+				sound->Play();
+			}
         }
     }
 	for( auto pLamp : mLampList ) {
@@ -314,8 +312,8 @@ void Level::Serialize( SaveFile & out ) {
     OnSerialize( out );
 }
 
-void Level::AddSound( ruSound sound ) {
-    if( !sound.IsValid() ) {
+void Level::AddSound( shared_ptr<ruSound> sound ) {
+    if( !sound ) {
         RaiseError( "Unable to add ambient sound! Invalid source!" );
     }
     mSounds.push_back( sound );
@@ -325,8 +323,8 @@ void Level::PlayAmbientSounds() {
     mAmbSoundSet.DoRandomPlaying();
 }
 
-void Level::AddAmbientSound( ruSound sound ) {
-    if( !sound.IsValid() ) {
+void Level::AddAmbientSound( shared_ptr<ruSound> sound ) {
+    if( !sound ) {
         RaiseError( "Unable to add ambient sound! Invalid source!" );
     }
     mSounds.push_back( sound );
@@ -388,7 +386,7 @@ void Level::AddLamp( const shared_ptr<Lamp> & lamp ) {
 }
 
 void Level::UpdateGenericObjectsIdle() {
-	mMusic.SetVolume( pMainMenu->GetMusicVolume() );
+	mMusic->SetVolume( pMainMenu->GetMusicVolume() );
 
 	for( auto pLamp : mLampList ) {
 		pLamp->Update();

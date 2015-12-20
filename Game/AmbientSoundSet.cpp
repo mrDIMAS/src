@@ -7,13 +7,13 @@ void AmbientSoundSet::DoRandomPlaying() {
     if( mTimer->GetElapsedTimeInSeconds() >= mTimeToNextSoundSec ) {
         mTimeToNextSoundSec = frandom( mTimeMinSec, mTimeMaxSec );
         int randomSound = rand() % mSoundList.size();
-        mSoundList[ randomSound ].SetPosition( pPlayer->mpCamera->mCamera->GetPosition() + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
-        mSoundList[ randomSound ].Play();
+        mSoundList[ randomSound ]->SetPosition( pPlayer->mpCamera->mCamera->GetPosition() + ruVector3( frandom( -10.0f, 10.0f ), 0.0f, frandom( -10.0f, 10.0f ) ) );
+        mSoundList[ randomSound ]->Play();
         mTimer->Restart();
     }
 }
 
-void AmbientSoundSet::AddSound( ruSound sound ) {
+void AmbientSoundSet::AddSound( shared_ptr<ruSound> sound ) {
     mSoundList.push_back( sound );
 }
 
@@ -29,10 +29,6 @@ AmbientSoundSet::AmbientSoundSet() {
     mTimer = ruTimer::Create();
 }
 
-AmbientSoundSet::~AmbientSoundSet()
-{
+AmbientSoundSet::~AmbientSoundSet() {
 	mTimer->Free();
-	for( auto & snd : mSoundList ) {
-		snd.Free();
-	}
 }

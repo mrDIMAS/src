@@ -36,9 +36,9 @@ private:
     shared_ptr<Fan> mpFan1;
     shared_ptr<Fan> mpFan2;
 
-    ruSound mLeverSound;
-	ruSound mBurnSound;
-    ruSound mSteamHissSound;
+    shared_ptr<ruSound> mLeverSound;
+	shared_ptr<ruSound> mBurnSound;
+    shared_ptr<ruSound> mSteamHissSound;
 
     shared_ptr<ruParticleSystem > mSteamPS;
 	shared_ptr<ruParticleSystem > mThermitePS;

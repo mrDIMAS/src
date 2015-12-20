@@ -27,11 +27,30 @@ void ForwardRenderer::RenderMeshes() {
     mPixelShader->Bind();
     mVertexShader->Bind();
 
-    for( auto texGroupPair : mRenderList ) {
+	for( auto texGroupPairIter = mRenderList.begin(); texGroupPairIter != mRenderList.end(); ) {
+		auto & meshGroup = (*texGroupPairIter).second;
+		if( meshGroup.size()) {
+			for( auto meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
+				if( (*meshIter).use_count() ) {				
+					++meshIter;
+				} else {
+					meshIter = meshGroup.erase( meshIter );
+				}
+			}
+			++texGroupPairIter;
+		} else {
+			texGroupPairIter = mRenderList.erase( texGroupPairIter );
+		}
+	}
+
+    for( auto & texGroupPair : mRenderList ) {
         IDirect3DTexture9 * diffuseTexture = texGroupPair.first;
         auto & meshGroup = texGroupPair.second;
+		if( meshGroup.size() == 0 ) {
+			continue;
+		}
         Engine::I().GetDevice()->SetTexture( 0, diffuseTexture );
-        for( auto meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
+        for( auto & meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
 			shared_ptr<Mesh> pMesh = (*meshIter).lock();
 			if( pMesh ) {
 				D3DXMATRIX world, wvp;
@@ -42,7 +61,7 @@ void ForwardRenderer::RenderMeshes() {
 					if( pOwner ) {
 						if( pOwner->IsVisible() ) {
 							GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-							shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+							shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 							if( camera ) {
 								D3DXMatrixMultiplyTranspose( &wvp, &world, &camera->mViewProjection );
 							}
@@ -65,7 +84,9 @@ void ForwardRenderer::RenderMeshes() {
 }
 
 void ForwardRenderer::AddMesh( shared_ptr<Mesh> mesh ) {
-    mRenderList[ mesh->GetDiffuseTexture()->GetInterface() ].push_back( mesh );
+	if( mesh->GetDiffuseTexture() ) {
+		mRenderList[ mesh->GetDiffuseTexture()->GetInterface() ].push_back( mesh );
+	}
 }
 
 ForwardRenderer::~ForwardRenderer() {

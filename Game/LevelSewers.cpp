@@ -28,9 +28,9 @@ LevelSewers::LevelSewers( ) {
 	mZoneKnocks = GetUniqueObject( "ZoneKnocks" );
 
 	mKnocksSound = ruSound::Load3D( "data/sounds/knocks.ogg" );
-	mKnocksSound.SetPosition( mZoneKnocks->GetPosition() );
-	mKnocksSound.SetRolloffFactor( 0.2f );
-	mKnocksSound.SetRoomRolloffFactor( 0.2f );
+	mKnocksSound->SetPosition( mZoneKnocks->GetPosition() );
+	mKnocksSound->SetRolloffFactor( 0.2f );
+	mKnocksSound->SetRoomRolloffFactor( 0.2f );
 
 	ruSound::SetAudioReverb( 10 );
 
@@ -50,7 +50,7 @@ void LevelSewers::DoScenario() {
 
 	if( !mStages[ "KnocksDone" ] ) {
 		if( pPlayer->IsInsideZone( mZoneKnocks )) {
-			mKnocksSound.Play();
+			mKnocksSound->Play();
 			mStages[ "KnocksDone" ] = true;
 		}
 	}

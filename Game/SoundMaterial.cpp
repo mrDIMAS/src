@@ -31,9 +31,9 @@ SoundMaterial::SoundMaterial( const string & filename, shared_ptr<ruSceneNode> o
 		} else {
 			if( line.size() > 2 ) {
 				if( mode == ReaderMode::Sound ) {
-					ruSound snd = ruSound::Load3D( line );
-					snd.SetVolume( volume );
-					snd.Attach( owner );
+					shared_ptr<ruSound> snd = ruSound::Load3D( line );
+					snd->SetVolume( volume );
+					snd->Attach( owner );
 					mSoundList.push_back( snd );
 				} else if( mode == ReaderMode::Texture ) {
 					mTextureList.push_back( line );
@@ -43,9 +43,8 @@ SoundMaterial::SoundMaterial( const string & filename, shared_ptr<ruSceneNode> o
 	}
 }
 
-ruSound SoundMaterial::GetRandomSoundAssociatedWith( const string & texName ) {
-	ruSound snd;
-	snd.Invalidate();
+shared_ptr<ruSound> SoundMaterial::GetRandomSoundAssociatedWith( const string & texName ) {
+	shared_ptr<ruSound> snd;
 	if( mSoundList.size() ) {
 		for( auto & str : mTextureList ) {
 			if( str == texName ) {
@@ -62,8 +61,6 @@ ruSound SoundMaterial::GetRandomSoundAssociatedWith( const string & texName ) {
 }
 
 SoundMaterial::~SoundMaterial() {
-	for( auto & sound : mSoundList ) {
-		sound.Free();
-	}
+
 }
 

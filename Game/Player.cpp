@@ -106,12 +106,12 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	mPainSound.push_back( ruSound::Load2D( "data/sounds/player/grunt3.ogg" ));
 
 	mWhispersSound = ruSound::Load2D( "data/sounds/whispers.ogg" );
-	mWhispersSound.SetVolume( 0.085f );
-	mWhispersSound.SetLoop( true );
-	//mWhispersSound.Play();
+	mWhispersSound->SetVolume( 0.085f );
+	mWhispersSound->SetLoop( true );
+	//mWhispersSound->Play();
 
 	for( auto & ps : mPainSound ) {
-		ps.SetVolume( 0.7 ); 
+		ps->SetVolume( 0.7 ); 
 	}
 
 	mNodeInHands = nullptr;
@@ -131,9 +131,6 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 }
 
 Player::~Player() {
-	for( auto & ps : mPainSound ) {
-		ps.Free();
-	}
 	for( auto uo : mUsableObjectList ) {
 		delete uo;
 	}
@@ -146,15 +143,6 @@ Player::~Player() {
 	}
 	mGUIBackground->Free( );
 	mGUIStealthSign->Free( );
-	mLighterCloseSound.Free();
-	mLighterOpenSound.Free();
-	mItemPickupSound.Free();
-	mHeartBeatSound.Free();
-	mBreathSound.Free();
-	mWhispersSound.Free();
-	if( mDeadSound.IsValid() ) {
-		mDeadSound.Free();
-	}
 	for( auto sndMat : mSoundMaterialList ) {
 		delete sndMat;
 	}
@@ -216,7 +204,7 @@ void Player::Damage( float dmg, bool headJitter ) {
 		mYaw.SetTarget( mYaw.GetTarget() + frandom( -40, 40 ) );
 	}
 	if( mLastHealth - mHealth > 5 ) {
-		mPainSound[ rand() % mPainSound.size() ].Play();
+		mPainSound[ rand() % mPainSound.size() ]->Play();
 		mLastHealth = mHealth;
 	}
     if( mHealth <= 0.0f ) {
@@ -227,7 +215,7 @@ void Player::Damage( float dmg, bool headJitter ) {
             mBody->Move( ruVector3( 1.0f, 1.0f, 1.0f ));
         }
 		mDeadSound = ruSound::Load2D( "data/sounds/dead.ogg" );
-		mDeadSound.Play();
+		mDeadSound->Play();
         mDead = true;
         mpCamera->FadePercent( 0 );
         mpCamera->SetFadeColor( ruVector3( 70.0f, 0.0f, 0.0f ) );
@@ -549,7 +537,7 @@ void Player::ComputeStealth() {
 		}
 	}
 
-	mWhispersSound.Play();
+	mWhispersSound->Play();
 
 	if( mInLight ) {
 		mWhispersSoundVolume -= 0.001f;
@@ -563,7 +551,7 @@ void Player::ComputeStealth() {
 		}
 	}
 
-	mWhispersSound.SetVolume( mWhispersSoundVolume );
+	mWhispersSound->SetVolume( mWhispersSoundVolume );
 
     mStealthFactor = 0.0f;
 
@@ -648,15 +636,15 @@ void Player::Update( ) {
 			mGUIYouDied->SetVisible( true );
 		}
 
-		if( mDeadSound.IsValid() ) {
-			if( !mDeadSound.IsPlaying() ) {
+		if( mDeadSound ) {
+			if( !mDeadSound->IsPlaying() ) {
 				pMainMenu->Show();
 			}
 		}
 
 	} else {
-		if( mDeadSound.IsValid() ) {
-			mDeadSound.Pause();
+		if( mDeadSound ) {
+			mDeadSound->Pause();
 		}
 		mGUIYouDied->SetVisible( false );
 	}
@@ -705,14 +693,14 @@ void Player::LoadSounds() {
     mLighterCloseSound = ruSound::Load3D( "data/sounds/lighter_close.ogg" );
     mLighterOpenSound = ruSound::Load3D( "data/sounds/lighter_open.ogg" );
 
-    mLighterCloseSound.Attach( mpCamera->mCamera );
-    mLighterOpenSound.Attach( mpCamera->mCamera );
+    mLighterCloseSound->Attach( mpCamera->mCamera );
+    mLighterOpenSound->Attach( mpCamera->mCamera );
 
     mHeartBeatSound = ruSound::Load2D( "data/sounds/heart.ogg" );
     mBreathSound = ruSound::Load2D( "data/sounds/breath.ogg" );
 
-    mHeartBeatSound.SetReferenceDistance( 100.0f );
-    mBreathSound.SetReferenceDistance( 100.0f );
+    mHeartBeatSound->SetReferenceDistance( 100.0f );
+    mBreathSound->SetReferenceDistance( 100.0f );
 
     mBreathVolume = SmoothFloat( 0.1f );
     mHeartBeatVolume = SmoothFloat( 0.15f );
@@ -755,9 +743,9 @@ void Player::UpdateCameraShake() {
 			if( mpCurrentWay ) {
 				if( mpCurrentWay->GetEnterZone()->GetTextureCount() > 0 ) {
 					for( auto sMat : mSoundMaterialList ) {
-						ruSound snd = sMat->GetRandomSoundAssociatedWith( mpCurrentWay->GetEnterZone()->GetTexture( 0 )->GetName() );
-						if( snd.IsValid() ) {
-							snd.Play( true );
+						shared_ptr<ruSound> snd = sMat->GetRandomSoundAssociatedWith( mpCurrentWay->GetEnterZone()->GetTexture( 0 )->GetName() );
+						if( snd ) {
+							snd->Play( true );
 						}
 					}
 				}
@@ -786,8 +774,6 @@ void Player::UpdateCameraShake() {
 void Player::DrawSheetInHands() {
     if( mpSheetInHands ) {
 		SetActionText( StringBuilder() << mpSheetInHands->GetDescription() << mLocalization.GetString( "sheetOpen" ));
-        mpSheetInHands->SetVisible( true );
-        mpSheetInHands->Draw();
         if( ruInput::IsMouseHit( ruInput::MouseButton::Right ) || ( mpSheetInHands->mObject->GetPosition() - mBody->GetPosition() ).Length2() > 2 ) {
             CloseCurrentSheet();
         }
@@ -832,8 +818,7 @@ void Player::UpdateItemsHandling() {
 				} else {
 					if( pSheet ) {
 						mpSheetInHands = pSheet;
-						mpSheetInHands->mObject->Hide();
-						Sheet::msPaperFlipSound.Play();
+						mpSheetInHands->SetVisible( true );						
 					}
 				}
 			}
@@ -1015,7 +1000,7 @@ void Player::Deserialize( SaveFile & in ) {
 
     mStealthMode = in.ReadBoolean();
 
-    mTip.Deserialize( in );
+   // mTip.Deserialize( in );
 	
 	in.ReadBoolean( mFlashlightLocked );
 
@@ -1105,7 +1090,7 @@ void Player::Serialize( SaveFile & out ) {
 
     out.WriteBoolean( mStealthMode );
 
-    mTip.Serialize( out );
+   // mTip.Serialize( out );
 
 	out.WriteBoolean( mFlashlightLocked );
 
@@ -1116,9 +1101,7 @@ void Player::Serialize( SaveFile & out ) {
 
 void Player::CloseCurrentSheet() {
     mpSheetInHands->SetVisible( false );
-    mpSheetInHands->mObject->Show();
     mpSheetInHands = nullptr;
-    Sheet::msPaperFlipSound.Play();
 }
 
 void Player::SetTip( const string & text ) {
@@ -1313,9 +1296,9 @@ void Player::EmitStepSound() {
 	ruRayCastResultEx result = ruPhysics::CastRayEx( mBody->GetPosition() + ruVector3( 0, 0.1, 0 ), mBody->GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
 	if( result.valid ) {
 		for( auto sMat : mSoundMaterialList ) {
-			ruSound snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
-			if( snd.IsValid() ) {
-				snd.Play( true );
+			shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
+			if( snd ) {
+				snd->Play( true );
 			}
 		}
 	}

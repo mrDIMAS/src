@@ -28,7 +28,7 @@ private:
     int mWidth;
     int mColorDepth;
 	string mName;
-	void LoadFromFile( const string & file );
+	bool LoadFromFile( const string & file );
 public:
 	int GetHeight();
 	int GetWidth();

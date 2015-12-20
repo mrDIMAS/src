@@ -22,7 +22,6 @@
 #include "Engine.h"
 #include "Shader.h"
 
-vector<Shader*> Shader::msShaderList;
 IDirect3DVertexShader9 * VertexShader::msLastBinded = nullptr;
 IDirect3DPixelShader9 * PixelShader::msLastBinded = nullptr;
 
@@ -34,9 +33,7 @@ void VertexShader::Bind() {
 }
 
 VertexShader::~VertexShader() {
-    if( shader ) {
-        shader->Release();
-    }
+    OnLostDevice();
 }
 
 VertexShader::VertexShader( string fileName ) : Shader( fileName ) {
@@ -44,7 +41,7 @@ VertexShader::VertexShader( string fileName ) : Shader( fileName ) {
 }
 
 void VertexShader::OnLostDevice() {
-	shader->Release();
+	shader.Reset();
 }
 
 void VertexShader::Initialize() {
@@ -57,8 +54,7 @@ void VertexShader::Initialize() {
 	delete code;
 }
 
-void VertexShader::OnResetDevice()
-{
+void VertexShader::OnResetDevice() {
 	Initialize();
 }
 
@@ -71,9 +67,7 @@ void PixelShader::Bind() {
 }
 
 PixelShader::~PixelShader() {
-    if( shader ) {
-        shader->Release();
-    }
+    OnLostDevice();
 }
 
 PixelShader::PixelShader( string fileName ) : Shader( fileName )  {
@@ -81,11 +75,10 @@ PixelShader::PixelShader( string fileName ) : Shader( fileName )  {
 }
 
 void PixelShader::OnLostDevice() {
-	shader->Release();	
+	shader.Reset();	
 }
 
-void PixelShader::Initialize()
-{
+void PixelShader::Initialize() {
 	DWORD * code = LoadBinary();
 	if( SUCCEEDED( Engine::I().GetDevice()->CreatePixelShader( code, &shader ))) {
 		Log::Write( StringBuilder( "New pixel shader successfully created from ") << mSourceName << " binary!" );
@@ -95,49 +88,38 @@ void PixelShader::Initialize()
 	delete code;
 }
 
-void PixelShader::OnResetDevice()
-{
+void PixelShader::OnResetDevice() {
 	Initialize();
 }
 
 Shader::Shader( const string & sourceName ) : mSourceName( sourceName ) {
-	msShaderList.push_back( this );
+
 }
 
 DWORD * Shader::LoadBinary() {
-	FILE * pFile = 0;
 	UINT fSize = 0;
-	UINT numRead = 0;
 	DWORD * binaryData;
-	pFile = fopen( mSourceName.c_str(), "rb" );
-
-	if( !pFile ) {
+	ifstream pFile( mSourceName, ios_base::binary | ios_base::in );
+	if( pFile.bad() ) {
 		Log::Error( StringBuilder( "Failed to load shader " ) << mSourceName << " !" );
 	}
-
-	fseek(pFile, 0, SEEK_END);
-	fSize = ftell(pFile);
-	fseek(pFile, 0, SEEK_SET);
-
+	pFile.seekg( 0, ios_base::end );
+	fSize = pFile.tellg();
+	pFile.seekg( 0, ios_base::beg );
 	binaryData = new DWORD[ fSize ];
-	while (numRead != fSize) {
-		numRead = fread( &binaryData[numRead], 1, fSize, pFile);
-	}
-	fclose(pFile);
+	pFile.read( reinterpret_cast<char*>( binaryData ), fSize );
+	pFile.close();
 	return binaryData;
 }
 
-Shader::~Shader()
-{
-	msShaderList.erase( find( msShaderList.begin(), msShaderList.end(), this ));
-}
-
-void Shader::OnResetDevice()
-{
+Shader::~Shader() {
 
 }
 
-void Shader::OnLostDevice()
-{
+void Shader::OnResetDevice() {
+
+}
+
+void Shader::OnLostDevice() {
 
 }

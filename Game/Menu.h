@@ -34,9 +34,9 @@ private:
     string mLoadSaveGameName;
 	string mSaveGameSlotName;
 
-    ruSound mPickSound;
+    shared_ptr<ruSound> mPickSound;
     Page mPage;
-    ruSound mMusic;
+    shared_ptr<ruSound> mMusic;
     Parser mLocalization;
 
     Slider * mpMasterVolume;

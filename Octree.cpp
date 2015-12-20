@@ -75,7 +75,7 @@ void Octree::GetVisibleTrianglesList( Node * node, vector< Mesh::Triangle > & tr
 
 bool Octree::CubeInFrustum( const AABB & box ) {
 	bool inFrustum = false;
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		auto & owners = mMesh->GetOwners();
 		for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {

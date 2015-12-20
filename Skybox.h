@@ -30,9 +30,9 @@ private:
 		float tx, ty;
 	};
 	shared_ptr<Texture> mTextures[5];
-	IDirect3DVertexBuffer9 * mVertexBuffer;
-	IDirect3DIndexBuffer9 * mIndexBuffer;
-	IDirect3DVertexDeclaration9 * mVertexDeclaration;
+	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+	COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
+	COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
 public:
     explicit Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back );
     virtual ~Skybox();

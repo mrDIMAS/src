@@ -10,10 +10,10 @@ Flashlight::Flashlight() {
 	mLight = std::dynamic_pointer_cast<ruPointLight>( mModel->FindChild( "PlayerLight" ) );
 
 	mOnSound = ruSound::Load2D( "data/sounds/lighter/open.ogg" );
-	mOnSound.SetVolume( 0.3f );
+	mOnSound->SetVolume( 0.3f );
 
 	mOffSound = ruSound::Load2D( "data/sounds/lighter/close.ogg" );
-	mOffSound.SetVolume( 0.3f );
+	mOffSound->SetVolume( 0.3f );
 
 	mFireSound = ruSound::Load2D( "data/sounds/lighter/fire.ogg" );
 
@@ -96,9 +96,7 @@ bool Flashlight::GotCharge() {
 }
 
 Flashlight::~Flashlight() {
-	mOnSound.Free();
-	mOffSound.Free();
-	mFireSound.Free();
+
 }
 
 bool Flashlight::IsBeamContainsPoint( ruVector3 point ){
@@ -118,7 +116,7 @@ shared_ptr<ruSceneNode> Flashlight::GetLight() {
 }
 
 void Flashlight::Proxy_Open() {
-	mOnSound.Play();
+	mOnSound->Play();
 }
 
 void Flashlight::Proxy_Show() {
@@ -130,7 +128,7 @@ void Flashlight::Proxy_Hide() {
 }
 
 void Flashlight::Proxy_Fire() {
-	mFireSound.Play();
+	mFireSound->Play();
 	mFire->Show();
 	mOn = true;
 }
@@ -138,7 +136,7 @@ void Flashlight::Proxy_Fire() {
 void Flashlight::Proxy_Close() {
 	mFire->Hide();
 	mOn = false;
-	mOffSound.Play();
+	mOffSound->Play();
 }
 
 void Flashlight::DeserializeAnimation( SaveFile & in, ruAnimation & anim ) {

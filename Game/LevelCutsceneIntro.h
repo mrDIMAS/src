@@ -17,7 +17,7 @@ private:
 	shared_ptr<ruSceneNode> mCameraPivot3;
 	shared_ptr<ruSceneNode> mCameraPivot4;
 	shared_ptr<ruSceneNode> mNewLevelLoadZone;
-	ruSound mEngineLoop;
+	shared_ptr<ruSound> mEngineLoop;
 	ruVector3 mLastUAZPosition;
 	SmoothFloat mEnginePitch;
 public:

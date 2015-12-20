@@ -51,29 +51,17 @@ SceneNode::SceneNode( ) : mStatic( false ),  mInFrustum( false ), mTotalFrameCou
 }
 
 SceneNode::~SceneNode() {
-	mHitSound.Free();
-	mIdleSound.Free();
-
-	for( auto sound : mSoundList ) {
-		sound.Free();
-	}
-
-
-	for( auto trimesh : mTrimeshList ) {
+	for( auto & trimesh : mTrimeshList ) {
 		delete trimesh;
 	}
-
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		if( body->getCollisionShape() ) {
 			delete body->getCollisionShape();
 		}
-
 		if( body->getMotionState() ) {
 			delete body->getMotionState();
 		}
-
 		Physics::mpDynamicsWorld->removeRigidBody( body );
-
 		delete body;
 	}
 }
@@ -130,7 +118,7 @@ void SceneNode::SetSphereBody( ) {
 }
 
 void SceneNode::SetAngularFactor( ruVector3 fact ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setAngularFactor( btVector3( fact.x, fact.y, fact.z ) );
     }
 }
@@ -160,7 +148,7 @@ void SceneNode::SetTrimeshBody() {
 				body->setSleepingThresholds( 1.0f, 1.0f );
 				body->getCollisionShape()->setMargin( 0.02 );
 				mBodyList.push_back( body );
-				Physics::mpDynamicsWorld->addRigidBody ( body );
+				Physics::mpDynamicsWorld->addRigidBody( body );
 				mTrimeshList.push_back( trimesh );
 			}
 			meshNum++;
@@ -203,10 +191,6 @@ btTransform & SceneNode::CalculateGlobalTransform() {
             mGlobalTransform = mLocalTransform;
         }
     }
-
-	if( dynamic_cast<Camera*>( this )) {
-		int t = 0;
-	}
     return mGlobalTransform;
 }
 
@@ -300,7 +284,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
             node->mLocalTransform = *node->mKeyframeList[ 0 ];
         }
 
-        node->mTotalFrameCount = framesCount - 1; // - 1 because numeration started from zero
+        node->mTotalFrameCount = framesCount - 1; // -1,  because numeration started from zero
 
         for( int i = 0; i < meshCount; i++ ) {
             shared_ptr<Mesh> & mesh = make_shared<Mesh>();
@@ -342,9 +326,12 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
             mesh->SetDiffuseTexture( Texture::Request( Engine::I().GetTextureStoragePath() + diffuse ));
 			if( mesh->GetOpacity() > 0.95f ) {
 				mesh->SetNormalTexture( Texture::Request( Engine::I().GetTextureStoragePath() + normal ));
-
+				// try to load height map
 				string height = diffuse.substr( 0, diffuse.find_first_of( '.' )) + "_height" + diffuse.substr( diffuse.find_first_of( '.' ));
 				mesh->SetHeightTexture( Texture::Request( Engine::I().GetTextureStoragePath() + height ));
+				if( !mesh->GetHeightTexture() ) {
+					Log::Write( "WARNING: Unable to use Parallax Occlusion Mapping, no height map loaded. Using Bump Mapping instead." );
+				}
 			}
             node->AddMesh( mesh );
 
@@ -444,8 +431,8 @@ void SceneNode::PerformAnimation() {
     if( !mIsSkinned ) {
 		if( mCurrentAnimation ) {
 			if ( mKeyframeList.size() ) {
-				btTransform * currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ].get();
-				btTransform * nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ].get();
+				unique_ptr<btTransform> & currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ];
+				unique_ptr<btTransform> & nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ];
 				mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->interpolator ));
 				mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->interpolator ));
 			}            
@@ -455,7 +442,7 @@ void SceneNode::PerformAnimation() {
 
 void SceneNode::Freeze() {
     mFrozen = true;
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->setAngularFactor( 0 );
 		body->setLinearFactor( btVector3( 0, 0, 0 ));
 		body->setAngularVelocity( btVector3( 0, 0, 0 ));
@@ -466,7 +453,7 @@ void SceneNode::Freeze() {
 
 void SceneNode::Unfreeze() {
     mFrozen = false;
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->activate(true);
 		body->setAngularFactor( 1 );
 		body->setLinearFactor( btVector3( 1, 1, 1 ));
@@ -477,8 +464,8 @@ void SceneNode::Unfreeze() {
 bool SceneNode::IsVisible() {
     bool trulyVisible = mVisible;
 
-	shared_ptr<SceneNode> & parent = mParent.lock();
-    if( parent ) {
+    if( mParent.use_count() ) {
+		shared_ptr<SceneNode> & parent = mParent.lock();
         trulyVisible &= parent->IsVisible();
     }
 
@@ -506,12 +493,11 @@ std::string SceneNode::GetProperty( string propName ) {
 void SceneNode::UpdateSounds() {
     btVector3 pos = mGlobalTransform.getOrigin();
 
-    for( auto sound : mSoundList ) {
-        pfSetSoundPosition( sound.pfHandle, pos.x(), pos.y(), pos.z() );
+    for( auto & sound : mSoundList ) {
+        sound->SetPosition( ruVector3( pos.x(), pos.y(), pos.z() ));
     }
-
-    if( mIdleSound.pfHandle ) {
-        pfPlaySound( mIdleSound.pfHandle, true );
+    if( mIdleSound ) {
+        mIdleSound->Play();
     }
 }
 
@@ -581,41 +567,42 @@ void SceneNode::UpdateContacts() {
 
                 if( pt.m_appliedImpulse > 10.0f ) {
                     if( !nodeA->mFrozen ) {
-                        if( nodeA->mHitSound.pfHandle ) {
-                            pfPlaySound( nodeA->mHitSound.pfHandle );
-                        }
+						if( nodeA->mHitSound ) {
+							if( nodeA->mHitSound->pfHandle ) {
+								nodeA->mHitSound->Play();
+							}
+						}
 					}
                     if( !nodeB->mFrozen ) {
-                        if( nodeB->mHitSound.pfHandle ) {
-                            pfPlaySound( nodeB->mHitSound.pfHandle );
-                        }
+						if( nodeB->mHitSound ) {
+							if( nodeB->mHitSound->pfHandle ) {
+								nodeB->mHitSound->Play();
+							}
+						}
 					}
                     float vol = pt.m_appliedImpulse / 20.0f;
 
                     if( vol > 1.0f ) {
                         vol = 1.0f;
                     }
+					float pc = pt.m_appliedImpulse / 30.0f;
+					if( pc > 0.7f ) {
+						pc = 0.7f;
+					}
+					float pitch = 0.6f + pc;
 
-                    if( nodeA->mHitSound.pfHandle ) {
-                        pfSetSoundVolume( nodeA->mHitSound.pfHandle, vol );
-                    }
-                    if( nodeB->mHitSound.pfHandle ) {
-                        pfSetSoundVolume( nodeB->mHitSound.pfHandle, vol );
-                    }
-
-                    float pc = pt.m_appliedImpulse / 30.0f;
-                    if( pc > 0.7f ) {
-                        pc = 0.7f;
-                    }
-
-                    float pitch = 0.6f + pc;
-
-                    if( nodeA->mHitSound.pfHandle ) {
-                        pfSetSoundPitch( nodeA->mHitSound.pfHandle, pitch );
-                    }
-                    if( nodeB->mHitSound.pfHandle ) {
-                        pfSetSoundPitch( nodeB->mHitSound.pfHandle, pitch );
-                    }
+					if( nodeA->mHitSound ) {
+						if( nodeA->mHitSound->pfHandle ) {
+							nodeA->mHitSound->SetVolume( vol );
+							nodeA->mHitSound->SetPitch( pitch );
+						}
+					}
+					if( nodeB->mHitSound ) {
+						if( nodeB->mHitSound->pfHandle ) {
+							nodeB->mHitSound->SetVolume( vol );
+							nodeB->mHitSound->SetPitch( pitch );
+						}
+					}
                 }
             }
         }
@@ -623,7 +610,7 @@ void SceneNode::UpdateContacts() {
 }
 
 void SceneNode::SetLinearFactor( ruVector3 lin ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setLinearFactor( btVector3( lin.x, lin.y, lin.z ) );
     }
 }
@@ -698,7 +685,7 @@ void SceneNode::ApplyProperties() {
 		}
 
         if ( pname == "friction" ) {
-            for( auto body : mBodyList ) {
+            for( auto & body : mBodyList ) {
                 body->setFriction ( atof( value.c_str()) );
             }
 		}
@@ -716,7 +703,7 @@ void SceneNode::ApplyProperties() {
 }
 
 
-void SceneNode::AttachSound( ruSound sound ) {
+void SceneNode::AttachSound( const shared_ptr<ruSound> & sound ) {
     mSoundList.push_back( sound );
 }
 
@@ -781,7 +768,7 @@ shared_ptr<SceneNode> SceneNode::FindByName( const string & name ) {
 }
 
 void SceneNode::SetFriction( float friction ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setFriction( friction );
     }
 }
@@ -796,13 +783,13 @@ void SceneNode::SetDepthHack( float depthHack ) {
 }
 
 void SceneNode::SetAnisotropicFriction( ruVector3 aniso ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setAnisotropicFriction( btVector3( aniso.x, aniso.y, aniso.z ));
     }
 }
 
 void SceneNode::Move( ruVector3 speed ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
 		body->activate( true );
         body->setLinearVelocity(  btVector3( speed.x, speed.y, speed.z ) );
     };
@@ -810,7 +797,7 @@ void SceneNode::Move( ruVector3 speed ) {
 }
 
 void SceneNode::SetVelocity( ruVector3 velocity ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
 		body->activate( true );
         body->setLinearVelocity( btVector3( velocity.x, velocity.y, velocity.z ) );
     }
@@ -818,7 +805,7 @@ void SceneNode::SetVelocity( ruVector3 velocity ) {
 
 void SceneNode::SetPosition( ruVector3 position ) {
 	mLocalTransform.setOrigin( btVector3( position.x, position.y, position.z ) );
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
 		body->activate(true);
         body->getWorldTransform().setOrigin( btVector3( position.x, position.y, position.z ) );
     };
@@ -838,7 +825,7 @@ bool SceneNode::IsFrozen() {
 }
 
 void SceneNode::SetRotation( ruQuaternion rotation ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
 		body->activate( true );
         body->getWorldTransform().getBasis().setRotation( btQuaternion( rotation.x, rotation.y, rotation.z, rotation.w ) );
     }
@@ -846,7 +833,7 @@ void SceneNode::SetRotation( ruQuaternion rotation ) {
 }
 
 void SceneNode::SetLocalScale( ruVector3 scale ) {
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->getCollisionShape()->setLocalScaling( btVector3( scale.x, scale.y, scale.z ));
 	}
 }
@@ -913,7 +900,7 @@ shared_ptr<ruSceneNode> SceneNode::FindChild( const string & name ) {
 }
 
 void SceneNode::SetAngularVelocity( ruVector3 velocity ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setAngularVelocity( btVector3( velocity.x, velocity.y, velocity.z ));
     }
 }
@@ -939,7 +926,7 @@ ruQuaternion SceneNode::GetLocalRotation() {
 }
 
 void SceneNode::SetDamping( float linearDamping, float angularDamping ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setDamping( linearDamping, angularDamping );
     }
 }
@@ -947,13 +934,13 @@ void SceneNode::SetDamping( float linearDamping, float angularDamping ) {
 void SceneNode::SetGravity( const ruVector3 & gravity ) {
     btVector3 g( gravity.x, gravity.y, gravity.z );
 
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         body->setGravity( g );
     }
 }
 
 void SceneNode::SetMass( float mass ) {
-    for( auto body : mBodyList ) {
+    for( auto & body : mBodyList ) {
         btVector3 inertia;
         body->getCollisionShape()->calculateLocalInertia( mass, inertia );
         body->setMassProps( mass, inertia );
@@ -1039,19 +1026,19 @@ ruVector3 SceneNode::GetRotationAxis() {
 }
 
 void SceneNode::AddTorque( ruVector3 torque ) {
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->applyTorque( btVector3( torque.x, torque.y, torque.z ));
 	}
 }
 
 void SceneNode::AddForceAtPoint( ruVector3 force, ruVector3 point ) {
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->applyForce( btVector3( force.x, force.y, force.z ), btVector3( point.x, point.y, point.z ) );
 	}
 }
 
 void SceneNode::AddForce( ruVector3 force ) {
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->applyCentralForce( btVector3( force.x, force.y, force.z ));
 	}
 }
@@ -1066,7 +1053,7 @@ void SceneNode::OnLostDevice() {
 
 void SceneNode::SetLocalPosition( ruVector3 pos ) {
 	mLocalTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->getWorldTransform().setOrigin( btVector3( pos.x, pos.y, pos.z ) );
 	}
 	CalculateGlobalTransform();
@@ -1074,7 +1061,7 @@ void SceneNode::SetLocalPosition( ruVector3 pos ) {
 
 void  SceneNode::SetLocalRotation( ruQuaternion rot ) {
 	mLocalTransform.setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ));
-	for( auto body : mBodyList ) {
+	for( auto & body : mBodyList ) {
 		body->getWorldTransform().setRotation( btQuaternion( rot.x, rot.y, rot.z, rot.w ) );
 	}
 	CalculateGlobalTransform( );

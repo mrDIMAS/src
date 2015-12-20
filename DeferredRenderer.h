@@ -38,7 +38,7 @@ protected:
     class BoundingVolumeRenderingShader : public RendererComponent {
     private:
         unique_ptr<PixelShader> mPixelShader;
-        IDirect3DVertexDeclaration9 * mVertexDeclaration;
+        COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
     public:
         BoundingVolumeRenderingShader();
         ~BoundingVolumeRenderingShader();
@@ -94,8 +94,6 @@ protected:
 		void Bind( const btVector3 & position );
 	};
 
-
-
 	unique_ptr<BoundingVolumeRenderingShader> bvRenderer;
 	unique_ptr<EffectsQuad> mFullscreenQuad;
     unique_ptr<GBuffer> mGBuffer;
@@ -107,8 +105,6 @@ protected:
     unique_ptr<SpotlightShadowMap> mSpotLightShadowMap;
     unique_ptr<HDRShader> mHDRShader;
 	unique_ptr<Postprocessing> mPostprocessing;
-
-
 
     void CreateBoundingVolumes();
 

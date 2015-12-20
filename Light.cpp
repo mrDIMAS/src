@@ -54,7 +54,7 @@ float Light::GetRange() const {
 }
 
 Light::~Light() {
-	pQuery->Release();
+	pQuery.Reset();
 }
 
 void Light::OnResetDevice() {

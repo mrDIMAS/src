@@ -50,9 +50,9 @@ void Skybox::Render( ) {
 }
 
 void Skybox::OnLostDevice() {
-	mVertexBuffer->Release();
-	mIndexBuffer->Release();
-	mVertexDeclaration->Release();
+	mVertexBuffer.Reset();
+	mIndexBuffer.Reset();
+	mVertexDeclaration.Reset();
 }
 
 void Skybox::OnResetDevice() {	

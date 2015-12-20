@@ -32,7 +32,7 @@
 
 class Light : public virtual ruLight, public SceneNode {
 public:
-	IDirect3DQuery9 * pQuery;
+	COMPtr<IDirect3DQuery9> pQuery;
 	bool mQueryDone;
 	bool mInFrustum;   
     float mRadius;

@@ -11,7 +11,7 @@ public:
 	Gate * mGate2;
 
 	shared_ptr<ruSceneNode> mZoneKnocks;
-	ruSound mKnocksSound;
+	shared_ptr<ruSound> mKnocksSound;
 
 	explicit LevelSewers( );
 	~LevelSewers( );

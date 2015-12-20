@@ -114,8 +114,8 @@ void main( ) {
 
 	shared_ptr<ruSceneNode> cube = ruSceneNode::LoadFromFile( "data/cube.scene" );
 	
-	ruSound snd = ruSound::LoadMusic( "data/music/rf.ogg" );
-	snd.SetVolume( 0.1 );
+	shared_ptr<ruSound> snd = ruSound::LoadMusic( "data/music/rf.ogg" );
+	snd->SetVolume( 0.1 );
 
 	shared_ptr<ruSceneNode> ripper = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
 	ruAnimation anim = ruAnimation( 0, 85, 8, true );

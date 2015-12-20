@@ -18,9 +18,9 @@ LevelResearchFacility::LevelResearchFacility() {
     pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" )->GetPosition() );
 	
 	AddSound( mSteamHissSound = ruSound::Load3D( "data/sounds/steamhiss.ogg" ));
-	mSteamHissSound.SetRolloffFactor( 5 );
-	mSteamHissSound.SetReferenceDistance( 4 );
-	mSteamHissSound.SetRoomRolloffFactor( 2.5f );
+	mSteamHissSound->SetRolloffFactor( 5 );
+	mSteamHissSound->SetReferenceDistance( 4 );
+	mSteamHissSound->SetRoomRolloffFactor( 2.5f );
 
     mLift1 = make_shared<Lift>( GetUniqueObject( "Lift1" ) );
     mLift1->SetControlPanel( GetUniqueObject( "Lift1Screen" ));
@@ -54,10 +54,10 @@ LevelResearchFacility::LevelResearchFacility() {
     AddSound( mLeverSound = ruSound::Load3D( "data/sounds/lever.ogg"));
 
     AddValve( mpSteamValve = make_shared<Valve>( GetUniqueObject( "SteamValve" ), ruVector3( 0, 1, 0 )));
-    ruSound steamHis = ruSound::Load3D( "data/sounds/steamhiss_loop.ogg" ) ;
-	steamHis.SetRolloffFactor( 5 );
-	steamHis.SetReferenceDistance( 4 );
-	steamHis.SetRoomRolloffFactor( 2.5f );
+    shared_ptr<ruSound> steamHis = ruSound::Load3D( "data/sounds/steamhiss_loop.ogg" ) ;
+	steamHis->SetRolloffFactor( 5 );
+	steamHis->SetReferenceDistance( 4 );
+	steamHis->SetRoomRolloffFactor( 2.5f );
     AddSound( steamHis );
     mpExtemeSteam = new SteamStream( GetUniqueObject( "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis );
 
@@ -107,7 +107,7 @@ LevelResearchFacility::LevelResearchFacility() {
     CreatePowerUpSequence();
 
     AddSound( mMusic = ruSound::LoadMusic( "data/music/rf.ogg" ));
-    mMusic.SetVolume( 0.75f );
+    mMusic->SetVolume( 0.75f );
 	
 	AddLadder( make_shared<Ladder>( GetUniqueObject( "LadderBegin" ), GetUniqueObject( "LadderEnd" ), GetUniqueObject( "LadderEnter" ),
 		GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
@@ -271,20 +271,19 @@ LevelResearchFacility::~LevelResearchFacility() {
 		delete mpPowerSparks;
 	}
     delete mpExtemeSteam;
-	mBurnSound.Free();
 }
 
 
 void LevelResearchFacility::Show() {
     Level::Show();
 
-    mMusic.Play();
+    mMusic->Play();
 }
 
 void LevelResearchFacility::Hide() {
     Level::Hide();
 
-    mMusic.Pause();
+    mMusic->Pause();
 }
 
 void LevelResearchFacility::DoScenario() {
@@ -292,7 +291,7 @@ void LevelResearchFacility::DoScenario() {
         return;
     }
 
-	mMusic.Play();
+	mMusic->Play();
 
 	mMeshAnimation.Update();
 	mMeshLockAnimation.Update();
@@ -356,7 +355,7 @@ void LevelResearchFacility::DoScenario() {
         }
     }
 
-    if( mSteamHissSound.IsPlaying() && mSteamPS ) {
+    if( mSteamHissSound->IsPlaying() && mSteamPS ) {
         static float steamParticleSize = 0.15f;
 
         mSteamPS->SetPointSize( steamParticleSize );
@@ -401,8 +400,8 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						mThermiteBig->Hide();
 
 						mBurnSound = ruSound::Load3D( "data/sounds/burn.ogg" );
-						mBurnSound.SetPosition( mThermiteSmall->GetPosition() );
-						mBurnSound.Play();
+						mBurnSound->SetPosition( mThermiteSmall->GetPosition() );
+						mBurnSound->Play();
 
 						mThermiteItemPlace->SetPlaceType( Item::Type::Unknown );
 						
@@ -468,7 +467,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
             if( ruInput::IsKeyHit( pPlayer->mKeyUse ) && !mPowerOn ) {
                 mPowerLamp->SetColor( ruVector3( 0, 255, 0 ) );
 
-                mLeverSound.Play();
+                mLeverSound->Play();
 
                 mpPowerSparks = new Sparks( mPowerLeverSnd, ruSound::Load3D( "data/sounds/sparks.ogg" ));
 
@@ -574,8 +573,8 @@ void LevelResearchFacility::OnPlayerEnterSteamActivateZone() {
 		mSteamPS->SetParticleThickness( 1.5f );
 		mSteamPS->SetLightingEnabled( true );
 
-		mSteamHissSound.Attach( mSteamPS );
-		mSteamHissSound.Play();
+		mSteamHissSound->Attach( mSteamPS );
+		mSteamHissSound->Play();
 		mStages[ "EnterSteamActivateZone" ] = true;	
 	}
 }

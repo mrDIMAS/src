@@ -109,7 +109,7 @@ shared_ptr<ruSceneNode> ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoi
 	coord.y = - ( ( ( 2.0f * y ) / (float)vp.Height ) - 1 );
 	coord.z = -1.0f;
 
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		// Back project the ray from screen to the far clip plane
 		coord.x /= camera->mProjection._11;

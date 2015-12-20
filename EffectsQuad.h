@@ -23,41 +23,28 @@
 
 #include "Shader.h"
 
+struct QuadVertex {
+	float x, y, z;
+	float tx, ty;
+};
+
 class EffectsQuad : public RendererComponent {
 private:
 	void Initialize();
 	void Free();
+	D3DXMATRIX mOrthoProjection;
+	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+	COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
 public:
-    IDirect3DVertexBuffer9 * vertexBuffer;
-    IDirect3DVertexDeclaration9 * vertexDeclaration;
-
-    struct QuadVertex {
-        float x, y, z;
-        float tx, ty;
-    };
-
     bool debug;
-
-    VertexShader * vertexShader;
-    PixelShader * debugPixelShader;
-
-    D3DXMATRIX orthoProjection;
-    D3DXHANDLE v2Proj;
-
+    unique_ptr<VertexShader> mVertexShader;
+    unique_ptr<PixelShader> mDebugPixelShader; 
     explicit EffectsQuad( bool bDebug = false );
     virtual ~EffectsQuad();
-
     void SetSize( float width, float height );
-
     void Bind( bool bindInternalVertexShader = true );
 	void BindNoShader();
     void Render();
-
-	void OnResetDevice() {
-		Initialize();
-	}
-
-	void OnLostDevice() {
-		Free();
-	}
+	void OnResetDevice();
+	void OnLostDevice();
 };

@@ -32,7 +32,7 @@ private:
     vector<shared_ptr<Lift>> mLiftList;
 	vector<shared_ptr<Lamp>> mLampList;
 	vector<shared_ptr<Zone>> mZoneList;
-    vector<ruSound> mSounds;
+    vector<weak_ptr<ruSound>> mSounds;
 	vector<Button*> mButtonList;
 	vector<shared_ptr<InteractiveObject>> mInteractiveObjectList;
     virtual void OnSerialize( SaveFile & out ) = 0;
@@ -44,7 +44,7 @@ protected:
     Parser mLocalization;
 public:
     int mTypeNum;
-    ruSound mMusic;
+    shared_ptr<ruSound> mMusic;
     unordered_map<string, bool > mStages;
 	void AddInteractiveObject( const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction );
     void AddItemPlace( const shared_ptr<ItemPlace> & ipc );
@@ -59,9 +59,9 @@ public:
 	void AutoCreateLampsByNamePattern( const string & namePattern, string buzzSound );
 	void AutoCreateBulletsByNamePattern( const string & namePattern );
 	void AutoCreateDoorsByNamePattern( const string & namePattern );
-    void AddSound( ruSound sound );
+    void AddSound( shared_ptr<ruSound> sound );
     void LoadLocalization( string fn );
-    void AddAmbientSound( ruSound sound );
+    void AddAmbientSound( shared_ptr<ruSound> sound );
     void PlayAmbientSounds();
 	void UpdateGenericObjectsIdle();
     void LoadSceneFromFile( const string & file );

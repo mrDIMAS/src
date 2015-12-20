@@ -45,24 +45,24 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
     //////////////////////////////////////////////////////////////////////////
     // Load sounds
     AddSound( mGeneratorSound = ruSound::Load3D( "data/sounds/generator.ogg" ));
-    mGeneratorSound.Attach( GetUniqueObject( "Generator" ) );
-    mGeneratorSound.SetRolloffFactor( 5 );
-    mGeneratorSound.SetReferenceDistance( 5 );
-	mGeneratorSound.SetLoop( true );
-	mGeneratorSound.Pause();
+    mGeneratorSound->Attach( GetUniqueObject( "Generator" ) );
+    mGeneratorSound->SetRolloffFactor( 5 );
+    mGeneratorSound->SetReferenceDistance( 5 );
+	mGeneratorSound->SetLoop( true );
+	mGeneratorSound->Pause();
 	
 	AddSound( mPowerDownSound = ruSound::Load2D( "data/sounds/powerdown.ogg"));
-	mPowerDownSound.SetVolume( 0.7 );
+	mPowerDownSound->SetVolume( 0.7 );
 	AddSound( mMetalWhineSound = ruSound::Load2D( "data/sounds/metal_whining.ogg" ));
-	mMetalWhineSound.SetVolume( 0.95 );
+	mMetalWhineSound->SetVolume( 0.95 );
 
 	AddSound( mMetalStressSound = ruSound::Load2D( "data/sounds/metal_stress1.ogg" ));
 	AddSound( mLiftFallSound = ruSound::Load2D( "data/sounds/lift_fall.ogg" ));
-	mLiftFallSound.SetVolume( 1.25f );
+	mLiftFallSound->SetVolume( 1.25f );
 
     AddSound( mWindSound = ruSound::Load2D( "data/sounds/wind.ogg"));
-    mWindSound.SetVolume( 0.5f );
-    mWindSound.Play();
+    mWindSound->SetVolume( 0.5f );
+    mWindSound->Play();
 
 	mLift = make_shared<Lift>( GetUniqueObject( "Lift1" ) );
 	mLift->SetControlPanel( GetUniqueObject( "Lift1Screen" ));
@@ -93,20 +93,20 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
 	mStages[ "LiftCrashed" ] = false;
 
 	mGeneratorStartSound = ruSound::Load3D( "data/sounds/generator_start.ogg" );
-	mGeneratorStartSound.Attach( mGenerator );
+	mGeneratorStartSound->Attach( mGenerator );
 
 	// every action series disabled by default
 	mLiftCrashSeries.AddAction( 0.0f, ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_PowerDown ) );
-	mLiftCrashSeries.AddAction( mPowerDownSound.GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterPowerDown ) );
-	mLiftCrashSeries.AddAction( mMetalStressSound.GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterFirstStressSound ) );
-	mLiftCrashSeries.AddAction( mLiftFallSound.GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterFalldown ) );
+	mLiftCrashSeries.AddAction( mPowerDownSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterPowerDown ) );
+	mLiftCrashSeries.AddAction( mMetalStressSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterFirstStressSound ) );
+	mLiftCrashSeries.AddAction( mLiftFallSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterFalldown ) );
 
 	// when player pushes button on the generator, he starts mGeneratorStartSeries that actually plays sound sequence and starts the generator
 	AddButton( mGeneratorButton = new Button( GetUniqueObject( "GeneratorButton" ), ruVector3( 0.0f, 0.0f, 1.0f ), ruSound::Load3D( "data/sounds/button_push.ogg" ), ruSound::Load3D( "data/sounds/button_pop.ogg" )));
 	mGeneratorButton->OnPush.AddListener( ruDelegate::Bind( this, &LevelArrival::GeneratorEnableAction ) );
 
 	mGeneratorStartSeries.AddAction( 0.0f, ruDelegate::Bind( this, &LevelArrival::ActGenerator_Start ) );
-	mGeneratorStartSeries.AddAction( mGeneratorStartSound.GetLength(), ruDelegate::Bind( this, &LevelArrival::ActGenerator_OnLine ) );
+	mGeneratorStartSeries.AddAction( mGeneratorStartSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActGenerator_OnLine ) );
 
 	mGeneratorSmokePosition = GetUniqueObject( "GeneratorSmoke" )->GetPosition();
 
@@ -172,12 +172,12 @@ void LevelArrival::OnSerialize( SaveFile & out )
 
 // ACTIONS
 void LevelArrival::ActLiftCrash_PowerDown() {
-	mPowerDownSound.Play();		
-	mWindSound.Pause();
-	mGeneratorSound.Pause();
+	mPowerDownSound->Play();		
+	mWindSound->Pause();
+	mGeneratorSound->Pause();
 }
 void LevelArrival::ActLiftCrash_AfterPowerDown() {		
-	mMetalStressSound.Play();
+	mMetalStressSound->Play();
 	pPlayer->TrembleCamera( 1.5f );
 	mLift->SetEngineSoundEnabled( false );
 	mLift->SetPaused( false );
@@ -187,7 +187,7 @@ void LevelArrival::ActLiftCrash_AfterFirstStressSound() {
 	if( pPlayer->GetFlashLight() ) {
 		pPlayer->GetFlashLight()->SwitchOff();
 	}
-	mLiftFallSound.Play();
+	mLiftFallSound->Play();
 	pPlayer->TrembleCamera( 2.0f );
 	pPlayer->LockFlashlight( true );
 }
@@ -201,7 +201,7 @@ void LevelArrival::GeneratorEnableAction( ) {
 	mGeneratorStartSeries.SetEnabled( true );
 }
 void LevelArrival::ActGenerator_Start() {
-	mGeneratorStartSound.Play();
+	mGeneratorStartSound->Play();
 	mGeneratorSmoke = ruParticleSystem::Create( 30 );
 	mGeneratorSmoke->SetPosition( mGeneratorSmokePosition );
 	mGeneratorSmoke->SetType( ruParticleSystem::Type::Stream );
@@ -220,5 +220,5 @@ void LevelArrival::ActGenerator_OnLine() {
 	mLamp2->Show();
 	mLiftLamp->Show();		
 	mPowerRestored = true;
-	mGeneratorSound.Play();
+	mGeneratorSound->Play();
 }

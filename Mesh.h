@@ -93,9 +93,9 @@ public:
     void CreateVertexBuffer();
     void CreateIndexBuffer( vector< Triangle > & idc );
     void CreateHardwareBuffers();
-    shared_ptr<Texture> GetDiffuseTexture();
-    shared_ptr<Texture> GetNormalTexture();
-	shared_ptr<Texture> GetHeightTexture();
+    shared_ptr<Texture> & GetDiffuseTexture();
+    shared_ptr<Texture> & GetNormalTexture();
+	shared_ptr<Texture> & GetHeightTexture();
     void Render();
 	void RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount );
 	AABB GetBoundingBox( );
@@ -103,9 +103,9 @@ public:
 	vector<Triangle> & GetTriangles();
 	bool IsSkinned() const;
 	void AddBoneGroup( const BoneGroup & bg );
-	void SetDiffuseTexture( shared_ptr<Texture> diffuseTexture );
-	void SetNormalTexture( shared_ptr<Texture> normalTexture );
-	void SetHeightTexture( shared_ptr<Texture> heightTexture );
+	void SetDiffuseTexture( const shared_ptr<Texture>& diffuseTexture );
+	void SetNormalTexture( const shared_ptr<Texture> & normalTexture );
+	void SetHeightTexture( const shared_ptr<Texture> & heightTexture );
 	void AddTriangle( const Triangle & triangle );
 	void SetOpacity( float opacity );
 	float GetOpacity( ) const;

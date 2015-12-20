@@ -88,7 +88,7 @@ void ruEngine::EnableShadows( bool state ) {
 }
 void ruEngine::UpdateWorld() {
 	// build view and projection matrices, frustum, also attach sound listener to camera
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		camera->Update();
 	}

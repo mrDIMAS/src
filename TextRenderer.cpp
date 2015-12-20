@@ -156,8 +156,8 @@ TextRenderer::~TextRenderer() {
 }
 
 void TextRenderer::OnLostDevice() {
-	mVertexBuffer->Release();
-	mIndexBuffer->Release();
+	mVertexBuffer.Reset();
+	mIndexBuffer.Reset();
 }
 
 void TextRenderer::OnResetDevice() {

@@ -8,7 +8,7 @@ void Button::Update() {
 		pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << "Запустить генератор" );
 		if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
 			OnPush.DoActions();
-			mPushSound.Play();
+			mPushSound->Play();
 			mPush = true;
 		}
 		if( ruInput::IsKeyDown( pPlayer->mKeyUse )) {
@@ -19,15 +19,15 @@ void Button::Update() {
 		mNode->SetPosition( mInitialPosition );
 	}
 	if( mPush ) {
-		mPopSound.Play();
+		mPopSound->Play();
 		mPush = false;
 	}
 }
 
-Button::Button( shared_ptr<ruSceneNode> node, const ruVector3 & axis, ruSound pushSound, ruSound popSound ) 
+Button::Button( shared_ptr<ruSceneNode> node, const ruVector3 & axis, shared_ptr<ruSound> pushSound, shared_ptr<ruSound> popSound ) 
 	: mNode( node ), mAxis( axis ), mPush( false ), mPushSound( pushSound ), mPopSound( popSound ) {
 	mInitialPosition = mNode->GetPosition();
 	mSize = (mNode->GetAABBMax() - mNode->GetAABBMin()).Abs();
-	mPushSound.Attach( mNode );
-	mPopSound.Attach( mNode );
+	mPushSound->Attach( mNode );
+	mPopSound->Attach( mNode );
 }

@@ -22,6 +22,7 @@
 #include "SceneNode.h"
 #include "Engine.h"
 
+vector<weak_ptr<ruSound>> gSoundList;
 
 SoundData GetSoundData( const string & fn, bool streamed ) {
 	return pfDataLoad( fn.c_str(), streamed );
@@ -32,37 +33,30 @@ ruSound::ruSound() {
 }
 
 ruSound::~ruSound() {
-
+	if( pfIsSound( pfHandle )) {
+		pfFreeSound( pfHandle );
+	}
 }
 
-bool ruSound::IsValid() const {
-	return pfIsSound( pfHandle );
+shared_ptr<ruSound> ruSound::Load2D( const string & file ) {
+	shared_ptr<ruSound> & handle = make_shared<ruSound>();
+	handle->pfHandle = pfCreateSound( GetSoundData( file, false ), false );
+	gSoundList.push_back( handle );
+	return std::move( handle );
 }
 
-void ruSound::Invalidate() {
-	pfHandle = -1;
+shared_ptr<ruSound> ruSound::Load3D( const string & file ) {
+	shared_ptr<ruSound> & handle = make_shared<ruSound>();
+	handle->pfHandle = pfCreateSound( GetSoundData( file, false ), true );
+	gSoundList.push_back( handle );
+	return std::move( handle );
 }
 
-bool ruSound::operator == ( const ruSound & node ) {
-	return pfHandle == node.pfHandle;
-}
-
-ruSound ruSound::Load2D( const string & file ) {
-	ruSound handle;
-	handle.pfHandle = pfCreateSound( GetSoundData( file, false ), false );
-	return handle;
-}
-
-ruSound ruSound::Load3D( const string & file ) {
-	ruSound handle;
-	handle.pfHandle = pfCreateSound( GetSoundData( file, false ), true );
-	return handle;
-}
-
-ruSound ruSound::LoadMusic( const string & file ) {
-	ruSound handle;
-	handle.pfHandle = pfCreateSound( GetSoundData( file, true ), false );
-	return handle;
+shared_ptr<ruSound> ruSound::LoadMusic( const string & file ) {
+	shared_ptr<ruSound> & handle = make_shared<ruSound>();
+	handle->pfHandle = pfCreateSound( GetSoundData( file, true ), false );
+	gSoundList.push_back( handle );
+	return std::move( handle );
 }
 
 void ruSound::SetLoop( bool state ) {
@@ -72,7 +66,7 @@ void ruSound::SetLoop( bool state ) {
 void ruSound::Attach( const shared_ptr<ruSceneNode> & node ) {
 	shared_ptr<SceneNode> & sceneNode = std::dynamic_pointer_cast<SceneNode>( node );
 	if( sceneNode ) {
-		sceneNode->AttachSound( *this );
+		sceneNode->AttachSound( shared_from_this() );
 	}
 }
 
@@ -116,10 +110,6 @@ int ruSound::IsPlaying() {
 	return pfIsSoundPlaying( pfHandle );
 }
 
-void ruSound::Free() {
-	pfFreeSound( pfHandle );
-}
-
 void ruSound::SetPitch( float pitch ) {
 	pfSetSoundPitch( pfHandle, pitch );
 }
@@ -144,10 +134,8 @@ int ruSound::GetCount() {
 	return pfSystemGetSoundCount();
 }
 
-ruSound ruSound::GetSound( int n ) {
-	ruSound snd;
-	snd.pfHandle = pfSystemGetSound( n );
-	return snd;
+shared_ptr<ruSound> ruSound::GetSound( int n ) {
+	return gSoundList[n].lock();
 }
 
 float ruSound::GetPlaybackPosition( ) {

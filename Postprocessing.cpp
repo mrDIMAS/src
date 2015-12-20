@@ -49,12 +49,12 @@ void Postprocessing::RenderMask() {
 	D3DXMATRIX world, vwp;
 	auto & meshMap = Mesh::GetMeshMap();
 	for( auto & texGroupPair : meshMap ) {
-		for( auto meshIter = texGroupPair.second.begin(); meshIter != texGroupPair.second.end(); ) {
-			shared_ptr<Mesh> pMesh = (*meshIter).lock();
+		for( auto & meshIter = texGroupPair.second.begin(); meshIter != texGroupPair.second.end(); ) {
+			shared_ptr<Mesh> & pMesh = (*meshIter).lock();
 			if( pMesh ) {
 				auto & owners = pMesh->GetOwners();
-				for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {
-					shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
+				for( auto & ownerIter = owners.begin(); ownerIter != owners.end(); ) {
+					shared_ptr<SceneNode> & pOwner = (*ownerIter).lock();
 					if( pOwner ) {
 						if( pOwner->mBlurAmount > 0.0f ) {
 							bool visible = true;
@@ -63,7 +63,7 @@ void Postprocessing::RenderMask() {
 							} else {
 								visible = pOwner->IsVisible();
 							}
-							shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+							shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 							if( camera ) {
 								pOwner->mInFrustum |= camera->mFrustum.IsAABBInside( pMesh->GetBoundingBox(), ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
 								if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
@@ -82,7 +82,7 @@ void Postprocessing::RenderMask() {
 									// pass vertex shader matrices
 									Engine::I().SetVertexShaderMatrix( 0, &vwp );
 
-									shared_ptr<SceneNode> parent = pOwner->mParent.lock();
+									shared_ptr<SceneNode> & parent = pOwner->mParent.lock();
 									if( parent ) {
 										pOwner->mParent.reset(); 
 										auto & bones = pMesh->GetBones();
@@ -136,8 +136,8 @@ void Postprocessing::DoPostprocessing( IDirect3DSurface9 * renderTarget, IDirect
 }
 
 void Postprocessing::OnLostDevice() {
-	mBlurMaskSurface->Release();
-	mBlurMask->Release();
+	mBlurMaskSurface.Reset();
+	mBlurMask.Reset();
 }
 
 void Postprocessing::OnResetDevice() {

@@ -40,8 +40,11 @@ shared_ptr<Texture> Texture::Request( string file ) {
 	} else {
 		pTexture = make_shared<Texture>();
 		pTexture->mName = file;
-		pTexture->LoadFromFile( file );
-		msTextureList[ file ] = pTexture;
+		if( pTexture->LoadFromFile( file )) {
+			msTextureList[ file ] = pTexture;			
+		} else {
+			pTexture.reset();
+		}
 	}
     return std::move( pTexture );
 }
@@ -51,7 +54,7 @@ Texture::Texture() :  mHeight( 0 ), mWidth( 0 ), mColorDepth( 0 ) {
 }
 
 Texture::~Texture( ) {
-	//OnLostDevice();
+	OnLostDevice();
 }
 
 void Texture::Bind( int level ) {
@@ -71,16 +74,15 @@ int Texture::GetHeight() {
 }
 
 void Texture::OnLostDevice() {
-	if( mTexture ) {
-		mTexture->Release();
-	}
+	mTexture.Reset();	
 }
 
 void Texture::OnResetDevice() {
 	LoadFromFile( mName );
 }
 
-void Texture::LoadFromFile( const string & file ) {
+bool Texture::LoadFromFile( const string & file )
+{
 	D3DXIMAGE_INFO imgInfo;
 
 	int slashPos = file.find_last_of( '/' );
@@ -94,16 +96,23 @@ void Texture::LoadFromFile( const string & file ) {
 	if(pFile) {       
 		fclose(pFile);
 		if( FAILED( D3DXCreateTextureFromFileExA( Engine::I().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture ))) {
-			Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
+			Log::Write( StringBuilder( "WARNING: Unable to load " ) << file << " texture!" );
+			return false;
+		} else {
+			Log::Write( StringBuilder( "Texture successfully loaded: ") << cacheFileName );
 		}
 	} else {
 		if( FAILED( D3DXCreateTextureFromFileExA( Engine::I().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture ))) {
-			Log::Write( StringBuilder( "Unable to load " ) << file << " texture!" );
+			Log::Write( StringBuilder( "WARNING: Unable to load " ) << file << " texture!" );
+			return false;
+		} else {
+			Log::Write( StringBuilder( "Texture successfully loaded: ") << file );
 		}
 	}
 	mWidth = imgInfo.Width;
 	mHeight = imgInfo.Height;
 	mColorDepth = 32;
+	return true;
 }
 
 std::string Texture::GetName() {

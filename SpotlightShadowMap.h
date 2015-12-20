@@ -29,12 +29,12 @@
 
 class SpotlightShadowMap : public RendererComponent {
 private:
-    IDirect3DTexture9 * spotShadowMap;
-    IDirect3DSurface9 * spotSurface;
-    IDirect3DSurface9 * defaultDepthStencil;
-    IDirect3DSurface9 * depthStencil;
-    PixelShader * pixelShader;
-    VertexShader * vertexShader;
+    COMPtr<IDirect3DTexture9> mShadowMap;
+    COMPtr<IDirect3DSurface9> mRenderTarget;
+    COMPtr<IDirect3DSurface9> mDefaultDepthStencil;
+    COMPtr<IDirect3DSurface9> mDepthStencil;
+    unique_ptr<PixelShader> mPixelShader;
+    unique_ptr<VertexShader> mVertexShader;
 	void Initialize();
 public:
 	void OnResetDevice();

@@ -34,12 +34,12 @@ private:
     unique_ptr<PixelShader> mAdaptationPixelShader;
     unique_ptr<PixelShader> mScaleScenePixelShader;
 
-    IDirect3DTexture9 * mScaledScene;
-    IDirect3DSurface9 * mScaledSceneSurf;
-    IDirect3DTexture9 * mDownSampTex[ DOWNSAMPLE_COUNT ];
-    IDirect3DSurface9 * mDownSampSurf[ DOWNSAMPLE_COUNT ];
-    IDirect3DTexture9 * mAdaptedLuminanceLast;
-    IDirect3DTexture9 * mAdaptedLuminanceCurrent;
+    COMPtr<IDirect3DTexture9> mScaledScene;
+    COMPtr<IDirect3DSurface9> mScaledSceneSurf;
+    COMPtr<IDirect3DTexture9> mDownSampTex[ DOWNSAMPLE_COUNT ];
+    COMPtr<IDirect3DSurface9> mDownSampSurf[ DOWNSAMPLE_COUNT ];
+    COMPtr<IDirect3DTexture9> mAdaptedLuminanceLast;
+    COMPtr<IDirect3DTexture9> mAdaptedLuminanceCurrent;
 public:
     HDRShader();
     ~HDRShader();

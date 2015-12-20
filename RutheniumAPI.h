@@ -514,26 +514,21 @@ struct ruContact {
 	}
 };
 
-class ruSound {
+class ruSound : public std::enable_shared_from_this<ruSound> {
 public:
     int pfHandle;
 
     explicit ruSound();
     virtual ~ruSound();
 
-    bool operator == ( const ruSound & node );
-    virtual bool IsValid() const;
-    virtual void Invalidate();
-
-	static ruSound Load2D( const string & file );
-	static ruSound Load3D( const string & file );
-	static ruSound LoadMusic( const string & file );
+	static shared_ptr<ruSound> Load2D( const string & file );
+	static shared_ptr<ruSound> Load3D( const string & file );
+	static shared_ptr<ruSound> LoadMusic( const string & file );
 	static int GetCount();
-	static ruSound GetSound( int n );
+	static shared_ptr<ruSound> GetSound( int n );
 	static void SetAudioReverb( int reverb );
 	static void SetMasterVolume( float volume );
 	static float GetMasterVolume();
-
 	void Attach( const shared_ptr<ruSceneNode> & node );
 	void Play( int oneshot = 1 );
 	void Pause();
@@ -544,7 +539,6 @@ public:
 	void SetRoomRolloffFactor( float rolloffDistance );
 	void SetMaxDistance( float maxDistance );
 	int IsPlaying();
-	void Free();
 	void SetPitch( float pitch );
 	bool IsPaused();
 	float GetLength();

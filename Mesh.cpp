@@ -71,13 +71,15 @@ void Mesh::LinkTo( weak_ptr<SceneNode> owner ) {
 void Mesh::Register( shared_ptr<Mesh> mesh ) {
 	mesh->mAABB = AABB( mesh->mVertices );
     if( mesh->mOpacity > 0.99f ) { // pass it to deferred renderer
-        auto textureGroup = Mesh::msMeshList.find( mesh->mDiffuseTexture->GetInterface() );
+		if( mesh->mDiffuseTexture ) {
+			auto textureGroup = Mesh::msMeshList.find( mesh->mDiffuseTexture->GetInterface() );
 
-        if( textureGroup == Mesh::msMeshList.end()) {
-            Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ] = vector<weak_ptr<Mesh>>();
-        }
+			if( textureGroup == Mesh::msMeshList.end()) {
+				Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ] = vector<weak_ptr<Mesh>>();
+			}
 
-        Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
+			Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
+		}
     } else { // pass it to forward renderer
         Engine::I().GetForwardRenderer()->AddMesh( mesh );
     }
@@ -170,11 +172,11 @@ void Mesh::CleanUp() {
 	msVertexDeclarationSkin->Release();
 }
 
-shared_ptr<Texture> Mesh::GetDiffuseTexture() {
+shared_ptr<Texture> & Mesh::GetDiffuseTexture() {
     return mDiffuseTexture;
 }
 
-shared_ptr<Texture> Mesh::GetNormalTexture() {
+shared_ptr<Texture> & Mesh::GetNormalTexture() {
     return mNormalTexture;
 }
 
@@ -271,24 +273,26 @@ void Mesh::AddTriangle( const Triangle & triangle ) {
 	mTriangles.push_back( triangle );
 }
 
-void Mesh::SetHeightTexture( shared_ptr<Texture> heightTexture ) {
+void Mesh::SetHeightTexture( const shared_ptr<Texture> & heightTexture )
+{
 	mHeightTexture = heightTexture;
 }
 
-void Mesh::SetNormalTexture( shared_ptr<Texture> normalTexture ) {
+void Mesh::SetNormalTexture( const shared_ptr<Texture> & normalTexture )
+{
 	mNormalTexture = normalTexture;
 }
 
-void Mesh::SetDiffuseTexture( shared_ptr<Texture> diffuseTexture ) {
+void Mesh::SetDiffuseTexture( const shared_ptr<Texture>& diffuseTexture )
+{
 	mDiffuseTexture = diffuseTexture;
 }
 
-shared_ptr<Texture> Mesh::GetHeightTexture(){
+shared_ptr<Texture> & Mesh::GetHeightTexture(){
 	return mHeightTexture;
 }
 
-Mesh::MeshMap & Mesh::GetMeshMap()
-{
+Mesh::MeshMap & Mesh::GetMeshMap() {
 	for( auto texGroupPairIter = msMeshList.begin(); texGroupPairIter != msMeshList.end();  ) {
 		auto & texGroupPair = *texGroupPairIter;
 		if( texGroupPair.second.size() ) {

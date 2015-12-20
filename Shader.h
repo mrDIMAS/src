@@ -26,7 +26,6 @@ protected:
 	string mSourceName;
 	DWORD * LoadBinary();
 public:
-	static vector<Shader*> msShaderList;
 	explicit Shader( const string & sourceName );
 	virtual ~Shader();
 	virtual void OnLostDevice();
@@ -35,7 +34,7 @@ public:
 
 class VertexShader : public Shader {
 private:
-    IDirect3DVertexShader9 * shader;
+    COMPtr<IDirect3DVertexShader9> shader;
 	static IDirect3DVertexShader9 * msLastBinded;
 	virtual void Initialize();
 public:
@@ -48,7 +47,7 @@ public:
 
 class PixelShader : public Shader {
 private:
-    IDirect3DPixelShader9 * shader;
+    COMPtr<IDirect3DPixelShader9> shader;
 	static IDirect3DPixelShader9 * msLastBinded;
 	virtual void Initialize();
 public:

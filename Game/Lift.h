@@ -19,7 +19,7 @@ private:
 	bool mPaused;
 	bool mEngineSoundEnabled;
 	float mSpeedMultiplier;
-    ruSound mMotorSound;
+    shared_ptr<ruSound> mMotorSound;
 	unique_ptr<LiftDoor> mDoorFrontLeft;
 	unique_ptr<LiftDoor> mDoorFrontRight;
 	unique_ptr<LiftDoor> mDoorBackLeft;
@@ -30,7 +30,7 @@ public:
     void SetControlPanel( shared_ptr<ruSceneNode> panel );
     void SetDestinationPoint( shared_ptr<ruSceneNode> destNode );
     void SetSourcePoint( shared_ptr<ruSceneNode> sourceNode );
-    void SetMotorSound( ruSound motorSound );
+    void SetMotorSound( shared_ptr<ruSound> motorSound );
     void SetFrontDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor );
     void SetBackDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor );
     bool IsArrived( );

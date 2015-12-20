@@ -356,7 +356,6 @@ void Inventory::RemoveItem( Item::Type type, int count ) {
 }
 
 Inventory::~Inventory() {
-	mPickSound.Free();
 	mGUIRectItemForUse->Free();
 	mGUICanvas->Free();
 	mGUIDescription->Free();

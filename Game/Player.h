@@ -86,17 +86,17 @@ public:
 
     Way * mpCurrentWay;
 
-    ruSound mLighterCloseSound;
-    ruSound mLighterOpenSound;
-    ruSound mItemPickupSound;
-    ruSound mHeartBeatSound;
-    ruSound mBreathSound;
+    shared_ptr<ruSound> mLighterCloseSound;
+    shared_ptr<ruSound> mLighterOpenSound;
+    shared_ptr<ruSound> mItemPickupSound;
+    shared_ptr<ruSound> mHeartBeatSound;
+    shared_ptr<ruSound> mBreathSound;
 
 	float mWhispersSoundVolume;
 	float mWhispersSoundVolumeTo;
-	ruSound mWhispersSound;
+	shared_ptr<ruSound> mWhispersSound;
 
-	vector< ruSound > mPainSound;
+	vector< shared_ptr<ruSound> > mPainSound;
 
 	
 	bool mInLight;
@@ -145,7 +145,7 @@ public:
 	ruRect * mGUIDamageBackground;
 	int mDamageBackgroundAlpha;
 
-	ruSound mDeadSound;
+	shared_ptr<ruSound> mDeadSound;
 	ruVector3 mAirPosition;
 
 	ruTimer * mAutoSaveTimer;

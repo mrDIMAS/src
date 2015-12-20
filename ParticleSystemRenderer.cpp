@@ -28,9 +28,9 @@
 #include "SceneFactory.h"
 
 ParticleSystemRenderer::ParticleSystemRenderer() {
-    vertexShader = new VertexShader( "data/shaders/particle.vso" );
-    pixelShader = new PixelShader( "data/shaders/particle.pso" );
-	vertexShaderLighting = new VertexShader( "data/shaders/particleLighting.vso" );
+    mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/particle.vso" )));
+    mPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/particle.pso" )));
+	mVertexShaderLighting = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/particleLighting.vso" )));
 
     D3DVERTEXELEMENT9 vdElem[ ] = {
         { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -39,24 +39,20 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         D3DDECL_END()
     };
 
-    Engine::I().GetDevice()->CreateVertexDeclaration( vdElem, &vd );
+    Engine::I().GetDevice()->CreateVertexDeclaration( vdElem, &mVertexDeclaration );
 }
 
 ParticleSystemRenderer::~ParticleSystemRenderer() {
-    delete vertexShader;
-    delete pixelShader;
-	delete vertexShaderLighting;
-
-    vd->Release();
+    mVertexDeclaration.Reset();
 }
 
 void ParticleSystemRenderer::RenderAllParticleSystems() {
 	static vector<weak_ptr<Light>> lightList;
 
-    pixelShader->Bind();
+    mPixelShader->Bind();
 
-    Engine::I().GetDevice()->SetVertexDeclaration( vd );
-    vertexShader->Bind();
+    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    mVertexShader->Bind();
 
 	auto & particleSystems = SceneFactory::GetParticleSystemList();
     for( auto pWeak : particleSystems ) {
@@ -69,14 +65,14 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 			particleEmitter->Update();
 			particleEmitter->Bind();
 
-			shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+			shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 			if( camera ) {
 				if( fabs( particleEmitter->mDepthHack ) > 0.001 ) {
 					camera->EnterDepthHack( fabs( particleEmitter->mDepthHack ));
 				}
 
 				if( particleEmitter->mUseLighting ) {
-					vertexShaderLighting->Bind();
+					mVertexShaderLighting->Bind();
 				}
 
 				D3DXMATRIX mWVP;
@@ -125,7 +121,7 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 			}
 			// revert to ordinary shader
 			if( particleEmitter->mUseLighting ) {
-				vertexShader->Bind();
+				mVertexShader->Bind();
 			}
 		}
     }

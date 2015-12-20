@@ -36,9 +36,9 @@ private:
 	vector<shared_ptr<ruSceneNode>> mTorsoParts;
 	shared_ptr<ruSceneNode> mHead;
 
-    ruSound mHitFleshWithAxeSound;
-    ruSound mBreathSound;
-    ruSound mScreamSound;
+    shared_ptr<ruSound> mHitFleshWithAxeSound;
+    shared_ptr<ruSound> mBreathSound;
+    shared_ptr<ruSound> mScreamSound;
 
     bool mPlayerDetected;
     ruTimer * mPlayerInSightTimer;
@@ -57,7 +57,7 @@ private:
     float mRunSpeed;
 	float mHitDistance;
 
-    ruSound mFootstepsSounds[ 4 ];
+    shared_ptr<ruSound> mFootstepsSounds[ 4 ];
 
     ruAnimation mIdleAnimation;
     ruAnimation mRunAnimation;
@@ -70,7 +70,7 @@ private:
 	ruVector3 mLastCheckPosition;
 
 	shared_ptr<ruParticleSystem > mBloodSpray;
-	ruSound mFadeAwaySound;
+	shared_ptr<ruSound> mFadeAwaySound;
 	bool mDead;
 
 
@@ -79,13 +79,13 @@ private:
 		float distanceToPlayer = ( pPlayer->GetCurrentPosition() - mBody->GetPosition() ).Length();
 		if( distanceToPlayer < mHitDistance ) {
 			pPlayer->Damage( 20 );
-			mHitFleshWithAxeSound.Play( true );
+			mHitFleshWithAxeSound->Play( true );
 		}		
 	}
 
 	// called from animation frames
 	void Proxy_RandomStepSound() {
-		mFootstepsSounds[ rand() % 4 ].Play();
+		mFootstepsSounds[ rand() % 4 ]->Play();
 	}
 
 	void FillByNamePattern( vector< shared_ptr<ruSceneNode> > & container, const string & pattern );

@@ -28,16 +28,16 @@ void SpotlightShadowMap::UnbindSpotShadowMap( int index ) {
 }
 
 void SpotlightShadowMap::BindSpotShadowMap( int index ) {
-    Engine::I().GetDevice()->SetTexture( index, spotShadowMap );
+    Engine::I().GetDevice()->SetTexture( index, mShadowMap );
 }
 
 void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, int rtIndex, const shared_ptr<SpotLight> & spotLight ) {
-    Engine::I().GetDevice()->SetRenderTarget( 0, spotSurface );
-    Engine::I().GetDevice()->SetDepthStencilSurface( depthStencil );
+    Engine::I().GetDevice()->SetRenderTarget( 0, mRenderTarget );
+    Engine::I().GetDevice()->SetDepthStencilSurface( mDepthStencil );
     Engine::I().GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
-    pixelShader->Bind();
-    vertexShader->Bind();
+    mPixelShader->Bind();
+    mVertexShader->Bind();
 
     spotLight->BuildSpotProjectionMatrixAndFrustum();
     IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
@@ -82,27 +82,25 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 
     // revert to the last used render target
     Engine::I().GetDevice()->SetRenderTarget( rtIndex, lastUsedRT );
-    Engine::I().GetDevice()->SetDepthStencilSurface( defaultDepthStencil );
+    Engine::I().GetDevice()->SetDepthStencilSurface( mDefaultDepthStencil );
 }
 
 SpotlightShadowMap::~SpotlightShadowMap() {
 	OnLostDevice();
-    delete pixelShader;
-    delete vertexShader;
 }
 
 SpotlightShadowMap::SpotlightShadowMap( float size ) {
     iSize = static_cast<int>( size );
 	Initialize();
-	vertexShader = new VertexShader( "data/shaders/spotShadowMap.vso" );
-	pixelShader = new PixelShader( "data/shaders/spotShadowMap.pso" );
+	mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/spotShadowMap.vso" )));
+	mPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/spotShadowMap.pso" )));
 }
 
 void SpotlightShadowMap::OnLostDevice() {
-	depthStencil->Release();
-	spotSurface->Release();
-	spotShadowMap->Release();	
-	defaultDepthStencil->Release();
+	mDepthStencil.Reset();
+	mRenderTarget.Reset();
+	mShadowMap.Reset();	
+	mDefaultDepthStencil.Reset();
 }
 
 void SpotlightShadowMap::OnResetDevice() {
@@ -111,11 +109,11 @@ void SpotlightShadowMap::OnResetDevice() {
 
 void SpotlightShadowMap::Initialize() {
 	// create shadow maps
-	Engine::I().GetDevice()->CreateTexture( iSize, iSize, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &spotShadowMap, nullptr );
+	Engine::I().GetDevice()->CreateTexture( iSize, iSize, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mShadowMap, nullptr );
 
 	// get surfaces
-	spotShadowMap->GetSurfaceLevel( 0, &spotSurface );
+	mShadowMap->GetSurfaceLevel( 0, &mRenderTarget );
 
-	Engine::I().GetDevice()->GetDepthStencilSurface( &defaultDepthStencil );
-	Engine::I().GetDevice()->CreateDepthStencilSurface( iSize, iSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &depthStencil, 0 );
+	Engine::I().GetDevice()->GetDepthStencilSurface( &mDefaultDepthStencil );
+	Engine::I().GetDevice()->CreateDepthStencilSurface( iSize, iSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDepthStencil, 0 );
 }

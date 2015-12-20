@@ -30,8 +30,8 @@ class GUIText;
 class TextRenderer : public RendererComponent {
 private:
     int mMaxChars;
-    IDirect3DVertexBuffer9 * mVertexBuffer;
-    IDirect3DIndexBuffer9 * mIndexBuffer;
+    COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+    COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
 public:
     explicit TextRenderer( );
     virtual ~TextRenderer( );

@@ -10,8 +10,6 @@ bool Door::IsPickedByPlayer() {
 }
 
 Door::~Door() {
-	mOpenSound.Free();
-	mCloseSound.Free();
     msDoorList.erase( find( msDoorList.begin(), msDoorList.end(), this ));
 }
 
@@ -20,9 +18,9 @@ Door::Door( shared_ptr<ruSceneNode> hDoor, float fMaxAngle ) : mDoorNode( hDoor 
     mOffsetAngle = hDoor->GetEulerAngles().y;
 	SetTurnDirection( TurnDirection::Clockwise );
     mOpenSound = ruSound::Load3D( "data/sounds/door/dooropen.ogg" );
-    mOpenSound.Attach( mDoorNode );
+    mOpenSound->Attach( mDoorNode );
     mCloseSound = ruSound::Load3D( "data/sounds/door/doorclose.ogg" );
-    mCloseSound.Attach( mDoorNode );
+    mCloseSound->Attach( mDoorNode );
     msDoorList.push_back( this );
 }
 
@@ -33,17 +31,17 @@ void Door::DoInteraction() {
 		turnSpeed = 0.0f;
 
 		if( mState == State::Closing ) {
-			mCloseSound.Pause();
+			mCloseSound->Pause();
 		} 
 		if( mState == State::Opening ) {
-			mOpenSound.Pause();
+			mOpenSound->Pause();
 		}
 	} else {
 		if( mState == State::Closing ) {
-			mCloseSound.Play();
+			mCloseSound->Play();
 		} 
 		if( mState == State::Opening ) {
-			mOpenSound.Play();
+			mOpenSound->Play();
 		}
 	}
 
@@ -91,25 +89,25 @@ Door::State Door::GetState() {
 void Door::SwitchState() {
     if( mState == State::Closed ) {
         mState = State::Opening;
-        mOpenSound.Play();
+        mOpenSound->Play();
     }
     if( mState == State::Opened ) {
         mState = State::Closing;
-        mCloseSound.Play();
+        mCloseSound->Play();
     }
 }
 
 void Door::Close() {
     if( mState == State::Opened ) {
         mState = State::Closing;
-        mCloseSound.Play();
+        mCloseSound->Play();
     }
 }
 
 void Door::Open() {
     if( mState == State::Closed ) {
         mState = State::Opening;
-        mOpenSound.Play();
+        mOpenSound->Play();
     }
 }
 

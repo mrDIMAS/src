@@ -6,11 +6,10 @@ void Sparks::Update() {
     if( mParticleSystem->GetAliveParticles() <= 0 ) {
         mAlive = 0;
         mParticleSystem.reset();
-        mSound.Free();
     }
 }
 
-Sparks::Sparks( shared_ptr<ruSceneNode> at, ruSound emits ) {
+Sparks::Sparks( shared_ptr<ruSceneNode> at, shared_ptr<ruSound> emits ) {
 	mParticleSystem = ruParticleSystem::Create( 50 );
 	mParticleSystem->Attach( at );
 	mParticleSystem->SetTexture( ruTexture::Request( "data/textures/particles/p1.png") );
@@ -23,18 +22,16 @@ Sparks::Sparks( shared_ptr<ruSceneNode> at, ruSound emits ) {
 	mParticleSystem->SetAutoResurrection( false );
 	mParticleSystem->SetLightingEnabled( false );
 
-    emits.Attach( mParticleSystem );
-    emits.Play();
+    emits->Attach( mParticleSystem );
+    emits->Play();
     mSound = emits;
     mAlive = 1;
 }
 
-bool Sparks::IsAlive()
-{
+bool Sparks::IsAlive() {
 	return mAlive;
 }
 
-Sparks::~Sparks()
-{
-	mSound.Free();
+Sparks::~Sparks() {
+
 }

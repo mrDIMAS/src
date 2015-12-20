@@ -2,6 +2,7 @@
 
 #include "Tip.h"
 
+/*
 void Tip::Deserialize( SaveFile & in ) {
     mAlpha.Deserialize( in );
     in.ReadInteger( mX );
@@ -17,7 +18,7 @@ void Tip::Serialize( SaveFile & out ) {
     out.WriteInteger( mWidth );
     out.WriteInteger( mHeight );
 }
-
+*/
 void Tip::AnimateAndDraw() {
     mGUIText->SetPosition( mX, mY );
 	mGUIText->SetAlpha( mAlpha );

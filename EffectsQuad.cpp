@@ -25,8 +25,8 @@
 #include "Camera.h"
 
 void EffectsQuad::Render() {
-    Engine::I().GetDevice()->SetStreamSource( 0, vertexBuffer, 0, sizeof( QuadVertex ));
-    Engine::I().GetDevice()->SetVertexDeclaration( vertexDeclaration );
+    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( QuadVertex ));
+    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
     Engine::I().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
     if( debug ) {
         Engine::I().SetAlphaBlendEnabled( true );
@@ -35,16 +35,16 @@ void EffectsQuad::Render() {
 }
 
 void EffectsQuad::Bind( bool bindInternalVertexShader ) {
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
     if( debug ) {
-        debugPixelShader->Bind();
+        mDebugPixelShader->Bind();
         Engine::I().SetAlphaBlendEnabled( false );
         Engine::I().SetStencilEnabled( false );
     }
 	if( bindInternalVertexShader ) {
 		if( camera ) {
-			vertexShader->Bind();
-			Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
+			mVertexShader->Bind();
+			Engine::I().SetVertexShaderMatrix( 0, &mOrthoProjection );
 			Engine::I().SetVertexShaderMatrix( 5, &camera->invViewProjection );
 			ruVector3 camPos = ruVector3( camera->mView._41, camera->mView._42, camera->mView._43 );
 			Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
@@ -53,9 +53,9 @@ void EffectsQuad::Bind( bool bindInternalVertexShader ) {
 }
 
 void EffectsQuad::BindNoShader() {
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
-		Engine::I().SetVertexShaderMatrix( 0, &orthoProjection );
+		Engine::I().SetVertexShaderMatrix( 0, &mOrthoProjection );
 		Engine::I().SetVertexShaderMatrix( 5, &camera->invViewProjection );
 		ruVector3 camPos = ruVector3( camera->mView._41, camera->mView._42, camera->mView._43 );
 		Engine::I().SetVertexShaderFloat3( 10, camPos.elements );
@@ -64,10 +64,6 @@ void EffectsQuad::BindNoShader() {
 
 EffectsQuad::~EffectsQuad() {
     Free();
-    if( debugPixelShader ) {
-        delete debugPixelShader;
-    }
-    delete vertexShader;
 }
 
 void EffectsQuad::SetSize( float width, float height ) {
@@ -79,28 +75,27 @@ void EffectsQuad::SetSize( float width, float height ) {
 
         void * data = 0;
 
-        vertexBuffer->Lock( 0, 0, &data, 0 );
+        mVertexBuffer->Lock( 0, 0, &data, 0 );
         memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-        vertexBuffer->Unlock( );
+        mVertexBuffer->Unlock( );
     }
 }
 
 EffectsQuad::EffectsQuad( bool bDebug ) {
 	debug = bDebug;
-	debugPixelShader = nullptr;
+	mDebugPixelShader = nullptr;
 	Initialize();
-	vertexShader = new VertexShader( "data/shaders/quad.vso" );
+	mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/quad.vso" )));
 }
 
-void EffectsQuad::Free()
-{
-	vertexDeclaration->Release();
-	vertexBuffer->Release();
+void EffectsQuad::Free() {
+	mVertexDeclaration.Reset();
+	mVertexBuffer.Reset();
 }
 
 void EffectsQuad::Initialize()
 {
-	Engine::I().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &vertexBuffer, 0 );
+	Engine::I().GetDevice()->CreateVertexBuffer( 6 * sizeof( QuadVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 
 	if( !debug ) {
 		QuadVertex vertices[ ] = {
@@ -110,9 +105,9 @@ void EffectsQuad::Initialize()
 
 		void * data = 0;
 		
-		vertexBuffer->Lock( 0, 0, &data, 0 );
+		mVertexBuffer->Lock( 0, 0, &data, 0 );
 		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		vertexBuffer->Unlock( );
+		mVertexBuffer->Unlock( );
 	} else {
 		int size = 500;
 		QuadVertex vertices[ ] = {
@@ -122,9 +117,9 @@ void EffectsQuad::Initialize()
 
 		void * data = 0;
 
-		vertexBuffer->Lock( 0, 0, &data, 0 );
+		mVertexBuffer->Lock( 0, 0, &data, 0 );
 		memcpy( data, vertices, sizeof( QuadVertex ) * 6 );
-		vertexBuffer->Unlock( );
+		mVertexBuffer->Unlock( );
 
 		string debugPixelShaderSource =
 			"sampler diffuse : register( s4 );\n"
@@ -132,7 +127,7 @@ void EffectsQuad::Initialize()
 			"   return tex2D( diffuse, texCoord );\n"
 			"};\n";
 
-		debugPixelShader = new PixelShader( debugPixelShaderSource );
+		mDebugPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( debugPixelShaderSource )));
 	}
 
 	D3DVERTEXELEMENT9 quadVertexDeclation[ ] = {
@@ -141,8 +136,18 @@ void EffectsQuad::Initialize()
 		D3DDECL_END()
 	};
 
-	Engine::I().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &vertexDeclaration );
+	Engine::I().GetDevice()->CreateVertexDeclaration( quadVertexDeclation, &mVertexDeclaration );
 
 	
-	D3DXMatrixOrthoOffCenterLH ( &orthoProjection, 0, Engine::I().GetResolutionWidth(), Engine::I().GetResolutionHeight(), 0, 0, 1024 );
+	D3DXMatrixOrthoOffCenterLH ( &mOrthoProjection, 0, Engine::I().GetResolutionWidth(), Engine::I().GetResolutionHeight(), 0, 0, 1024 );
+}
+
+void EffectsQuad::OnLostDevice()
+{
+	Free();
+}
+
+void EffectsQuad::OnResetDevice()
+{
+	Initialize();
 }

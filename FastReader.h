@@ -27,7 +27,6 @@ private:
     long cursor;
     typedef unsigned char Byte;
     Byte * data;
-
 public:
     FastReader( );
     bool ReadFile ( const string & fileName );

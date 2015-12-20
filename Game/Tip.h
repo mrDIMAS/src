@@ -20,6 +20,6 @@ public:
 	void SetVisible( bool state );
     void SetNewText( string text );
     void AnimateAndDraw();
-    void Serialize( SaveFile & out );
-    void Deserialize( SaveFile & in );
+    //void Serialize( SaveFile & out );
+    //void Deserialize( SaveFile & in );
 };

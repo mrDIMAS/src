@@ -31,8 +31,8 @@ private:
 	unique_ptr<VertexShader> mBlurVertexShader;
 	unique_ptr<VertexShader> mBlurSkinVertexShader;
 	unique_ptr<EffectsQuad> mEffectsQuad;
-	IDirect3DTexture9 * mBlurMask;
-	IDirect3DSurface9 * mBlurMaskSurface;	
+	COMPtr<IDirect3DTexture9> mBlurMask;
+	COMPtr<IDirect3DSurface9> mBlurMaskSurface;	
 public:
 	explicit Postprocessing( );
 	~Postprocessing( );

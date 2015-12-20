@@ -42,10 +42,10 @@ struct BGRA8Pixel {
 
 class BitmapFont : public RendererComponent, public ruFont {
 private:
-	IDirect3DTexture9 * atlas;
-	vector< CharMetrics > charsMetrics;
+	COMPtr<IDirect3DTexture9> mAtlas;
+	vector< CharMetrics > mCharsMetrics;
 	string mSourceFile;
-	int glyphSize;
+	int mGlyphSize;
 	void Create( );
 public:
     static vector< BitmapFont* > fonts;   

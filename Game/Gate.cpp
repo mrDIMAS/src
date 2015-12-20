@@ -10,11 +10,11 @@ void Gate::Update()
 		if( !( mState == State::Closing || mState == State::Opening )) {
 			pPlayer->SetActionText( "Открыть" );
 			if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
-				mButtonSound.SetPosition( pPlayer->mNearestPickedNode->GetPosition() );
-				mButtonSound.Play();
+				mButtonSound->SetPosition( pPlayer->mNearestPickedNode->GetPosition() );
+				mButtonSound->Play();
 				if( mState != State::Opened ) {
 					mState = State::Opening;
-					mBeginSound.Play();
+					mBeginSound->Play();
 				}
 			}
 		}
@@ -23,11 +23,11 @@ void Gate::Update()
 		if( !( mState == State::Closing || mState == State::Opening )) {
 			pPlayer->SetActionText( "Закрыть" );
 			if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {	
-				mButtonSound.SetPosition( pPlayer->mNearestPickedNode->GetPosition() );
-				mButtonSound.Play();
+				mButtonSound->SetPosition( pPlayer->mNearestPickedNode->GetPosition() );
+				mButtonSound->Play();
 				if( mState != State::Closed ) {
 					mState = State::Closing;
-					mBeginSound.Play();
+					mBeginSound->Play();
 				}
 			}
 		}
@@ -50,8 +50,8 @@ void Gate::Update()
 	}
 
 	if( mState == State::Opening || mState == State::Closing ) {
-		if( !mBeginSound.IsPlaying() ) {
-			mIdleSound.Play();;
+		if( !mBeginSound->IsPlaying() ) {
+			mIdleSound->Play();;
 		}
 	}
 	mGate->SetPosition( mInitialPosition + ruVector3( 0, mGateYOffset, 0 ));
@@ -59,8 +59,8 @@ void Gate::Update()
 
 void Gate::OnEndMoving()
 {
-	mIdleSound.Pause();
-	mEndSound.Play();;
+	mIdleSound->Pause();
+	mEndSound->Play();;
 }
 
 Gate::Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2 )
@@ -80,7 +80,7 @@ Gate::Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, sh
 	mEndSound = ruSound::Load3D( "data/sounds/door_open_end.ogg" );
 	mButtonSound = ruSound::Load3D( "data/sounds/button.ogg" );
 
-	mBeginSound.SetPosition( mGate->GetPosition() );
-	mIdleSound.SetPosition( mGate->GetPosition() );
-	mEndSound.SetPosition( mGate->GetPosition() );
+	mBeginSound->SetPosition( mGate->GetPosition() );
+	mIdleSound->SetPosition( mGate->GetPosition() );
+	mEndSound->SetPosition( mGate->GetPosition() );
 }

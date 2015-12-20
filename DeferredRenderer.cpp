@@ -127,12 +127,12 @@ DeferredRenderer::PointLightShader::PointLightShader() {
 
 void DeferredRenderer::PointLightShader::SetLight( D3DXMATRIX & invViewProj, const shared_ptr<PointLight> & light ) {
 	if( light->GetPointTexture() ) {
-		Engine::I().GetDevice()->SetTexture( 3, light->GetPointTexture()->cubeTexture );
+		Engine::I().GetDevice()->SetTexture( 3, light->GetPointTexture()->mCubeTexture );
 	} else {
 		Log::Write( "Environment light cube texture is not set! ");
 	}
 
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		Engine::I().SetPixelShaderFloat3( 8, camera->mGlobalTransform.getOrigin().m_floats );
 	}
@@ -224,7 +224,7 @@ DeferredRenderer::BoundingVolumeRenderingShader::BoundingVolumeRenderingShader()
 }
 
 DeferredRenderer::BoundingVolumeRenderingShader::~BoundingVolumeRenderingShader() {
-    mVertexDeclaration->Release();
+    mVertexDeclaration.Reset();
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::Bind() {
@@ -236,7 +236,7 @@ void DeferredRenderer::BoundingVolumeRenderingShader::SetTransform( D3DXMATRIX &
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::OnLostDevice() {
-	mVertexDeclaration->Release();
+	mVertexDeclaration.Reset();
 }
 
 void DeferredRenderer::BoundingVolumeRenderingShader::OnResetDevice() {
@@ -271,7 +271,7 @@ void DeferredRenderer::RenderStar( shared_ptr<PointLight> pLight, float scale ) 
 	D3DXMATRIX world = SetUniformScaleTranslationMatrix( 1.25f * pLight->mRadius * scale,  pLight->GetPosition() );
 	bvRenderer->Bind();
 	D3DXMATRIX wvp;
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
 	}
@@ -287,7 +287,7 @@ void DeferredRenderer::RenderCone( shared_ptr<SpotLight> lit ) {
     GetD3DMatrixFromBulletTransform( lit->mGlobalTransform, world );
     D3DXMatrixMultiply( &world, &scale, &world );
     bvRenderer->Bind();
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
 	}
@@ -316,7 +316,7 @@ void DeferredRenderer::DoLightingAndPostProcessing() {
 	mFullscreenQuad->Bind();
 	mFullscreenQuad->Render();
 
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		if( camera->mSkybox ) {
 			if( Engine::I().IsHDREnabled() ) {
@@ -409,7 +409,7 @@ void DeferredRenderer::DoLightingAndPostProcessing() {
 		}
 
 		// Render point lights
-		mFullscreenQuad->vertexShader->Bind();	
+		mFullscreenQuad->mVertexShader->Bind();	
 
 		for( auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
 			shared_ptr<PointLight> & pLight = lWeak.lock();
@@ -520,7 +520,9 @@ void DeferredRenderer::DoLightingAndPostProcessing() {
 
 	// Postprocessing
 	Engine::I().SetZWriteEnabled( false );
+	Engine::I().SetZEnabled( true );
 	mPostprocessing->RenderMask();
+	Engine::I().SetZEnabled( false );
 	Engine::I().SetZWriteEnabled( true );
 
 	if( Engine::I().IsFXAAEnabled() || Engine::I().IsHDREnabled() ) {
@@ -549,19 +551,15 @@ void DeferredRenderer::SetSpotLightShadowMapSize( int size ) {
 }
 
 void DeferredRenderer::OnLostDevice() {
-	/*
-	mBoundingStar->Release();
-	mBoundingSphere->Release();
-	mBoundingCone->Release();
-
-	
-	mHDRFrameSurface->Release();
-	mHDRFrame->Release();
-
+	mBoundingStar.Reset();
+	mBoundingSphere.Reset();
+	mBoundingCone.Reset();	
+	mHDRFrameSurface.Reset();
+	mHDRFrame.Reset();
 	for( int i = 0; i < 2; i++ ) {
-		mFrameSurface[i]->Release();
-		mFrame[i]->Release();
-	}*/
+		mFrameSurface[i].Reset();
+		mFrame[i].Reset();
+	}
 }
 
 void DeferredRenderer::OnResetDevice() {
@@ -573,7 +571,7 @@ void DeferredRenderer::SkyboxShader::Bind( const btVector3 & position ) {
 	mVertexShader->Bind();
 	D3DXMATRIX matrix;
 	D3DXMatrixTranslation( &matrix, position.x(), position.y(), position.z() );
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		D3DXMatrixMultiply( &matrix, &matrix, &camera->mViewProjection );
 	}

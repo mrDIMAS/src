@@ -45,7 +45,7 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mDead = false;
 
 	mFadeAwaySound = ruSound::Load2D( "data/sounds/fadeaway.ogg" );
-	mFadeAwaySound.SetVolume( 1.0f );
+	mFadeAwaySound->SetVolume( 1.0f );
 	mResurrectTimer = ruTimer::Create();
 
 	mPathCheckTimer = ruTimer::Create();
@@ -54,9 +54,9 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 
 void Enemy::Think() {
     if( pMainMenu->IsVisible() || mHealth <= 0.0f ) {
-		mScreamSound.Pause( );
-		mBreathSound.Pause();
-		mHitFleshWithAxeSound.Pause();
+		mScreamSound->Pause( );
+		mBreathSound->Pause();
+		mHitFleshWithAxeSound->Pause();
 
 		if( mDead ) {
 			if( mResurrectTimer->GetElapsedTimeInSeconds() >= 10 ) {
@@ -165,15 +165,15 @@ void Enemy::Think() {
 	if( enemyDetectPlayer ) {
 		mMoveType = MoveType::ChasePlayer;
 		mDoPatrol = false;
-		mBreathSound.Pause();
-		mScreamSound.Play( true );
+		mBreathSound->Pause();
+		mScreamSound->Play( true );
 		mRunSpeed = 3.1f;
 	} else {
 		mMoveType = MoveType::GoToDestination;
 		mDoPatrol = true;
 		mRunSpeed = 2.5f;
-		mBreathSound.Play( true );
-		mScreamSound.Pause();
+		mBreathSound->Play( true );
+		mScreamSound->Pause();
 	}
 
 	if( enemyDetectPlayer ) {	
@@ -348,32 +348,32 @@ void Enemy::CreateAnimations() {
 
 void Enemy::CreateSounds() {
     mHitFleshWithAxeSound = ruSound::Load3D( "data/sounds/armor_axe_flesh.ogg" );
-    mHitFleshWithAxeSound.Attach( mModel->FindChild( "Weapon" ));
+    mHitFleshWithAxeSound->Attach( mModel->FindChild( "Weapon" ));
 
     mBreathSound = ruSound::Load3D( "data/sounds/breath1.ogg" );
-    mBreathSound.Attach( mBody );
-    mBreathSound.SetVolume( 0.25f );
-    mBreathSound.SetRolloffFactor( 35 );
-	mBreathSound.SetRoomRolloffFactor( 35 );
-    mBreathSound.SetReferenceDistance( 2.8 );
+    mBreathSound->Attach( mBody );
+    mBreathSound->SetVolume( 0.25f );
+    mBreathSound->SetRolloffFactor( 35 );
+	mBreathSound->SetRoomRolloffFactor( 35 );
+    mBreathSound->SetReferenceDistance( 2.8 );
 
     mScreamSound = ruSound::Load3D( "data/sounds/scream_creepy_1.ogg" );
-    mScreamSound.SetVolume( 1.0f );
-    mScreamSound.Attach( mBody );
-    mScreamSound.SetRolloffFactor( 20 );
-	mScreamSound.SetRoomRolloffFactor( 20 );
-    mScreamSound.SetReferenceDistance( 4 );
+    mScreamSound->SetVolume( 1.0f );
+    mScreamSound->Attach( mBody );
+    mScreamSound->SetRolloffFactor( 20 );
+	mScreamSound->SetRoomRolloffFactor( 20 );
+    mScreamSound->SetReferenceDistance( 4 );
 
     mFootstepsSounds[ 0 ] = ruSound::Load3D( "data/sounds/step1.ogg" );
     mFootstepsSounds[ 1 ] = ruSound::Load3D( "data/sounds/step2.ogg" );
     mFootstepsSounds[ 2 ] = ruSound::Load3D( "data/sounds/step3.ogg" );
     mFootstepsSounds[ 3 ] = ruSound::Load3D( "data/sounds/step4.ogg" );
     for( int i = 0; i < 4; i++ ) {
-        mFootstepsSounds[i].Attach( mBody );
-        mFootstepsSounds[i].SetVolume( 0.75f );
-        mFootstepsSounds[i].SetRolloffFactor( 35 );
-		mFootstepsSounds[i].SetRoomRolloffFactor( 35 );
-        mFootstepsSounds[i].SetReferenceDistance( 5 );
+        mFootstepsSounds[i]->Attach( mBody );
+        mFootstepsSounds[i]->SetVolume( 0.75f );
+        mFootstepsSounds[i]->SetRolloffFactor( 35 );
+		mFootstepsSounds[i]->SetRoomRolloffFactor( 35 );
+        mFootstepsSounds[i]->SetReferenceDistance( 5 );
     }
 }
 
@@ -427,7 +427,6 @@ Enemy::~Enemy() {
 	mResurrectTimer->Free();
 	mPathCheckTimer->Free();
 
-	mFadeAwaySound.Free();
 	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
 	if( iter != msEnemyList.end() ) {
 		msEnemyList.erase( iter );
@@ -454,7 +453,7 @@ void Enemy::Damage( float dmg ) {
 		mResurrectTimer->Restart();
 		if( !mDead ) {
 			DoBloodSpray();
-			mFadeAwaySound.Play();
+			mFadeAwaySound->Play();
 			mDead = true;
 		}
 		mDeathPosition = mBody->GetPosition();

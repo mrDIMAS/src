@@ -10,9 +10,9 @@ Weapon::Weapon() {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands_pistol/hands_pistol.scene" );
 	mShootPoint = mModel->FindChild( "ShootPoint" );
 	mShotSound = ruSound::Load3D( "data/sounds/shot3.ogg" );
-	mShotSound.Attach( mShootPoint );
+	mShotSound->Attach( mShootPoint );
 	mEmptySound = ruSound::Load3D( "data/sounds/pistol_empty.ogg" );
-	mEmptySound.Attach( mShootPoint );
+	mEmptySound->Attach( mShootPoint );
 	mShotInterval = 0;
 	mProjectileCount = 6;
 	mShotFlash = ruPointLight::Create();
@@ -84,7 +84,7 @@ void Weapon::Update() {
 				mShotInterval = 35;
 				mShotFlashIntensity = 5.0f;
 				mProjectileCount--;
-				mShotSound.Play();
+				mShotSound->Play();
 				mShotOffsetTo = ruVector3( 0, 0.065, -0.18 );
 
 				ruVector3 look = mModel->GetAbsoluteLookVector();
@@ -100,7 +100,7 @@ void Weapon::Update() {
 
 			}
 		} else {
-			mEmptySound.Play();
+			mEmptySound->Play();
 		}
 	}
 

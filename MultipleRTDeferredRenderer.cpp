@@ -32,12 +32,12 @@ void MultipleRTDeferredRenderer::OnEnd() {
 }
 
 void MultipleRTDeferredRenderer::RenderMesh( shared_ptr<Mesh> mesh ) {
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( camera ) {
 		D3DXMATRIX world, vwp;
 		auto & owners = mesh->GetOwners();
 		for( auto ownerIter = owners.begin(); ownerIter != owners.end();  ) {
-			shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
+			shared_ptr<SceneNode> & pOwner = (*ownerIter).lock();
 			if( pOwner ) {
 				bool visible = true;
 				if( pOwner->mIsBone ) {
@@ -67,7 +67,7 @@ void MultipleRTDeferredRenderer::RenderMesh( shared_ptr<Mesh> mesh ) {
 					// for parallax
 					Engine::I().SetVertexShaderVector3( 10, camera->GetPosition() );
 			
-					shared_ptr<SceneNode> parent = pOwner->mParent.lock(); 
+					shared_ptr<SceneNode> & parent = pOwner->mParent.lock(); 
 					if( parent ) {
 						pOwner->mParent.reset(); 
 						auto & bones = mesh->GetBones();
@@ -104,23 +104,18 @@ void MultipleRTDeferredRenderer::BeginFirstPass() {
 
 MultipleRTDeferredRenderer::MultipleRTDeferredRenderer( ) {
 	// Parallax occlusion mapping shaders
-	mVertexShaderPOM = new VertexShader( "data/shaders/deferredGBufferPOM.vso" );
-	mPixelShaderPOM = new PixelShader( "data/shaders/deferredGBufferPOM.pso" );
+	mVertexShaderPOM = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/deferredGBufferPOM.vso" )));
+	mPixelShaderPOM = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredGBufferPOM.pso" )));
 	// Standard GBuffer shader
-	mVertexShader = new VertexShader( "data/shaders/deferredGBuffer.vso" );
-	mPixelShader = new PixelShader( "data/shaders/deferredGBuffer.pso" );
+	mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/deferredGBuffer.vso" )));
+	mPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredGBuffer.pso" )));
 	// Standard GBuffer shader with skinning
-	mVertexShaderSkin = new VertexShader( "data/shaders/deferredGBufferSkin.vso" );
-	mPixelShaderSkin = new PixelShader( "data/shaders/deferredGBufferSkin.pso" );
+	mVertexShaderSkin = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/deferredGBufferSkin.vso" )));
+	mPixelShaderSkin = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredGBufferSkin.pso" )));
 }
 
 MultipleRTDeferredRenderer::~MultipleRTDeferredRenderer() {
-    delete mVertexShader;
-    delete mPixelShader;
-	delete mVertexShaderPOM;
-	delete mPixelShaderPOM;
-	delete mPixelShaderSkin;
-	delete mVertexShaderSkin;
+
 }
 
 void MultipleRTDeferredRenderer::BindGenericSkinShaders() {

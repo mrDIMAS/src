@@ -6,11 +6,11 @@ private:
 	ruVector3 mInitialPosition;
 	ruVector3 mSize;
 	ruVector3 mAxis;
-	ruSound mPushSound;
-	ruSound mPopSound;
+	shared_ptr<ruSound> mPushSound;
+	shared_ptr<ruSound> mPopSound;
 	bool mPush;
 public:
 	ruEvent OnPush;
-	explicit Button( shared_ptr<ruSceneNode> node, const ruVector3 & axis, ruSound pushSound, ruSound popSound );
+	explicit Button( shared_ptr<ruSceneNode> node, const ruVector3 & axis, shared_ptr<ruSound> pushSound, shared_ptr<ruSound> popSound );
 	void Update();
 };

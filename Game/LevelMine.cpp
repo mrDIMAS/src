@@ -39,10 +39,10 @@ LevelMine::LevelMine() {
     mDetonator = GetUniqueObject( "Detonator" );
 
     AddSound( mAlertSound = ruSound::Load3D( "data/sounds/alert.ogg" ));
-    mAlertSound.Attach( mDetonator );
+    mAlertSound->Attach( mDetonator );
 
     AddSound( mExplosionSound = ruSound::Load3D( "data/sounds/blast.ogg" ));
-    mExplosionSound.SetReferenceDistance( 10 );
+    mExplosionSound->SetReferenceDistance( 10 );
 
     mDetonatorActivated = 0;
 
@@ -96,7 +96,7 @@ LevelMine::LevelMine() {
                            GetUniqueObject( "LadderBeginLeavePoint"), GetUniqueObject( "LadderEndLeavePoint")));
     AddDoor( make_shared<Door>( GetUniqueObject( "Door1" ), 90 ));
 
-    mMusic.Play();
+    mMusic->Play();
 
     mStages[ "EnterRockFallZoneWallExp" ] = false;
     mStages[ "EnterScreamerDone" ] = false;
@@ -187,7 +187,7 @@ void LevelMine::Show() {
 void LevelMine::Hide() {
     Level::Hide();
 
-    mMusic.Pause();
+    mMusic->Pause();
 }
 
 void LevelMine::DoScenario() {
@@ -195,7 +195,7 @@ void LevelMine::DoScenario() {
         return;
     }
 
-	mMusic.Play();
+	mMusic->Play();
 
     mEnemy->Think();
 
@@ -242,9 +242,9 @@ void LevelMine::DoScenario() {
             if( mExplosionTimer->GetElapsedTimeInSeconds() >= 10.0f ) {
                 mDetonatorActivated = 0;
 
-                mExplosionSound.Play();
+                mExplosionSound->Play();
 
-                mExplosionSound.SetPosition( mConcreteWall->GetPosition() );
+                mExplosionSound->SetPosition( mConcreteWall->GetPosition() );
 
                 mStages[ "ConcreteWallExp" ] = true;
 
@@ -285,7 +285,7 @@ void LevelMine::DoScenario() {
             if( mBeepSoundTimer->GetElapsedTimeInSeconds() > mBeepSoundTiming ) { // every 1 sec
                 mBeepSoundTiming -= 0.05f;
                 mBeepSoundTimer->Restart();
-                mAlertSound.Play( false );
+                mAlertSound->Play( false );
             }
         }
     }

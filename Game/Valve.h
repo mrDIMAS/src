@@ -5,7 +5,7 @@
 class Valve {
 private:
 	shared_ptr<ruSceneNode> mObject;
-	ruSound mTurnSound;
+	shared_ptr<ruSound> mTurnSound;
 	ruVector3 mTurnAxis;
 	float mAngle;
 	bool mDone;

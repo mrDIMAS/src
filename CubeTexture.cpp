@@ -42,12 +42,11 @@ CubeTexture::CubeTexture( string fn ) {
 }
 
 CubeTexture::~CubeTexture() {
-    cubeTexture->Release();
+    OnLostDevice();
 }
 
-void CubeTexture::OnLostDevice()
-{
-	cubeTexture->Release();
+void CubeTexture::OnLostDevice(){
+	mCubeTexture.Reset();
 }
 
 void CubeTexture::OnResetDevice()
@@ -57,7 +56,7 @@ void CubeTexture::OnResetDevice()
 
 void CubeTexture::Load()
 {
-	D3DXCreateCubeTextureFromFileA( Engine::I().GetDevice(), mSourceName.c_str(), &cubeTexture );
+	D3DXCreateCubeTextureFromFileA( Engine::I().GetDevice(), mSourceName.c_str(), &mCubeTexture );
 }
 
 ruCubeTexture * ruCubeTexture::Request( const string & file ) {

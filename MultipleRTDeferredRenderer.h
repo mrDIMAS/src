@@ -26,16 +26,16 @@
 class MultipleRTDeferredRenderer : public DeferredRenderer {
 private:
 	// Standard GBuffer shader
-	VertexShader * mVertexShader;
-	PixelShader * mPixelShader;
+	unique_ptr<VertexShader> mVertexShader;
+	unique_ptr<PixelShader> mPixelShader;
 
 	// Standard GBuffer shader with skinning
-	VertexShader * mVertexShaderSkin;
-	PixelShader * mPixelShaderSkin;
+	unique_ptr<VertexShader> mVertexShaderSkin;
+	unique_ptr<PixelShader> mPixelShaderSkin;
 
 	// Parallax occlusion mapping shaders
-	VertexShader * mVertexShaderPOM;
-	PixelShader * mPixelShaderPOM;	
+	unique_ptr<VertexShader> mVertexShaderPOM;
+	unique_ptr<PixelShader> mPixelShaderPOM;	
 public:
     explicit MultipleRTDeferredRenderer( );
     virtual ~MultipleRTDeferredRenderer();

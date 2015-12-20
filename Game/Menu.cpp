@@ -276,7 +276,7 @@ void Menu::Hide( ) {
     mVisible = false;
     mPage = Page::Main;
     ruEngine::HideCursor();
-    mMusic.Pause();
+    mMusic->Pause();
     mGUICanvas->SetVisible( false );
 	mGUICaption->SetVisible( false );
 }
@@ -396,10 +396,10 @@ void Menu::OnMouseSensivityChange() {
 }
 
 void Menu::OnMusicVolumeChange() {
-	mMusic.SetVolume( mpMusicVolume->GetValue() / 100.0f );
+	mMusic->SetVolume( mpMusicVolume->GetValue() / 100.0f );
 	g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
 	if( pCurrentLevel ) {
-		pCurrentLevel->mMusic.SetVolume( g_musicVolume );
+		pCurrentLevel->mMusic->SetVolume( g_musicVolume );
 	}
 }
 void Menu::OnSoundVolumeChange() {
@@ -553,7 +553,7 @@ void Menu::Update( ) {
             mGUIOptionsKeysCanvas->SetVisible( false );
         }
 
-		mMusic.Play();
+		mMusic->Play();
 
 		if( mGUILoadGameButton->IsHit() ) {
 			SetPage( Page::LoadGame );
@@ -656,7 +656,7 @@ void Menu::LoadConfig() {
         ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
 
         ruSound::SetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
-        mMusic.SetVolume( mpMusicVolume->GetValue() / 100.0f );
+        mMusic->SetVolume( mpMusicVolume->GetValue() / 100.0f );
 
         mpHDRButton->SetEnabled( config.GetNumber( "hdrEnabled" ) != 0 );
         ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );

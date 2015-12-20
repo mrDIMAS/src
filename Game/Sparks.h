@@ -6,9 +6,9 @@ class Sparks {
 private:
     shared_ptr<ruParticleSystem > mParticleSystem;
     bool mAlive;
-    ruSound mSound;
+    shared_ptr<ruSound> mSound;
 public:
-    Sparks( shared_ptr<ruSceneNode> at, ruSound emits );
+    Sparks( shared_ptr<ruSceneNode> at, shared_ptr<ruSound> emits );
 	~Sparks();
     void Update();
 	bool IsAlive();

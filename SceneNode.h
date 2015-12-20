@@ -31,13 +31,13 @@ public:
     weak_ptr<SceneNode> mScene;
     vector<shared_ptr<SceneNode>> mChildList;
     vector<shared_ptr<Mesh>> mMeshList;
-    vector<ruSound> mSoundList;
+    vector<shared_ptr<ruSound>> mSoundList;
 	vector<unique_ptr<btTransform>> mKeyframeList;
     map<string,string> mProperties;
     btTransform mInvBoneBindTransform;    
     string mName;
-    ruSound mHitSound;
-    ruSound mIdleSound;
+    shared_ptr<ruSound> mHitSound;
+    shared_ptr<ruSound> mIdleSound;
     float mAlbedo;
     float mDepthHack;
 	float mBlurAmount;
@@ -109,7 +109,7 @@ public:
     virtual void SetBody( btRigidBody * theBody );
     virtual ruContact GetContact( int num );
     virtual void ApplyProperties( );
-    virtual void AttachSound( ruSound sound );
+    virtual void AttachSound( const shared_ptr<ruSound> & sound );
     virtual bool IsInsideNode( shared_ptr<ruSceneNode> n );
     virtual shared_ptr<ruSceneNode> GetChild( int i );
     virtual int GetCountChildren();

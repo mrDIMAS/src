@@ -119,6 +119,7 @@ bool FastReader::ReadFile( const string & fileName ) {
     data = new Byte[size];
     file.seekg( 0, ios_base::beg );
     file.read( reinterpret_cast<char*>( data ), size );
+	file.close();
     return true;
 }
 

@@ -23,8 +23,8 @@ public:
 	TurnDirection mTurnDirection;
     State mState;
 	bool mLocked;
-    ruSound mOpenSound;
-    ruSound mCloseSound;
+    shared_ptr<ruSound> mOpenSound;
+    shared_ptr<ruSound> mCloseSound;
 public:
     static vector< Door* > msDoorList;
     explicit Door( shared_ptr<ruSceneNode> hDoor, float fMaxAngle );

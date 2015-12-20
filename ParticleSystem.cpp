@@ -59,7 +59,7 @@ void ParticleSystem::Update() {
     mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
     GetD3DMatrixFromBulletTransform( mGlobalTransform, mWorldTransform );
 
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	D3DXMATRIX view;
 	if( camera ) {
 		view = camera->mView;
@@ -234,98 +234,79 @@ ParticleSystem::ParticleSystem( int theParticleCount ) {
     ResurrectParticles();
 }
 
-void ParticleSystem::OnLostDevice()
-{
-	/*
-	mVertexBuffer->Release();
-	mIndexBuffer->Release();*/
+void ParticleSystem::OnLostDevice() {
+	mVertexBuffer.Reset();
+	mIndexBuffer.Reset();
 }
 
-void ParticleSystem::OnResetDevice()
-{
+void ParticleSystem::OnResetDevice() {
 	Engine::I().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 	Engine::I().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
 }
 
-ruVector3 ParticleSystem::GetSpeedDeviationMin()
-{
+ruVector3 ParticleSystem::GetSpeedDeviationMin() {
 	return mSpeedDeviationMin;
 }
 
-ruVector3 ParticleSystem::GetSpeedDeviationMax()
-{
+ruVector3 ParticleSystem::GetSpeedDeviationMax() {
 	return mSpeedDeviationMax;
 }
 
-void ParticleSystem::SetSpeedDeviation( const ruVector3 & dMin, const ruVector3 & dMax )
-{
+void ParticleSystem::SetSpeedDeviation( const ruVector3 & dMin, const ruVector3 & dMax ) {
 	mSpeedDeviationMax = dMax;
 	mSpeedDeviationMin = dMin;
 }
 
-ruVector3 ParticleSystem::GetBoundingBoxMin()
-{
+ruVector3 ParticleSystem::GetBoundingBoxMin() {
 	return mBoundingBoxMin;
 }
 
-ruVector3 ParticleSystem::GetBoundingBoxMax()
-{
+ruVector3 ParticleSystem::GetBoundingBoxMax() {
 	return mBoundingBoxMax;
 }
 
-void ParticleSystem::SetBoundingBox( const ruVector3 & bbMin, const ruVector3 & bbMax )
-{
+void ParticleSystem::SetBoundingBox( const ruVector3 & bbMin, const ruVector3 & bbMax ) {
 	mBoundingBoxMax = bbMax;
 	mBoundingBoxMin = bbMin;
 }
 
-bool ParticleSystem::IsLightingEnabled()
-{
+bool ParticleSystem::IsLightingEnabled() {
 	return mUseLighting ;
 }
 
-void ParticleSystem::SetLightingEnabled( bool state )
-{
+void ParticleSystem::SetLightingEnabled( bool state ) {
 	mUseLighting = state;
 }
 
-bool ParticleSystem::IsAutoResurrectionEnabled()
-{
+bool ParticleSystem::IsAutoResurrectionEnabled() {
 	return mAutoResurrectDeadParticles;
 }
 
-void ParticleSystem::SetAutoResurrection( bool state )
-{
+void ParticleSystem::SetAutoResurrection( bool state ) {
 	mAutoResurrectDeadParticles = state;
 }
 
-float ParticleSystem::GetParticleThickness()
-{
+float ParticleSystem::GetParticleThickness() {
 	return mParticleThickness;
 }
 
-void ParticleSystem::SetParticleThickness( float thickness )
-{
+void ParticleSystem::SetParticleThickness( float thickness ) {
 	mParticleThickness = thickness;
 }
 
-float ParticleSystem::GetScaleFactor()
-{
+float ParticleSystem::GetScaleFactor() {
 	return mScaleFactor;
 }
 
-void ParticleSystem::SetScaleFactor( float scaleFactor )
-{
+void ParticleSystem::SetScaleFactor( float scaleFactor ) {
 	mScaleFactor = scaleFactor;
 }
 
-float ParticleSystem::GetPointSize()
-{
+float ParticleSystem::GetPointSize() {
 	return mPointSize;
 }
 
-void ParticleSystem::SetPointSize( float size )
-{
+void ParticleSystem::SetPointSize( float size ) {
 	mPointSize = size;
 }
 
@@ -333,8 +314,7 @@ void ParticleSystem::SetEnabled( bool state ){
 	mEnabled = state;
 }
 
-int ParticleSystem::GetAliveParticles()
-{
+int ParticleSystem::GetAliveParticles() {
 	return mAliveParticleCount;
 }
 
@@ -342,54 +322,44 @@ shared_ptr<ruTexture> ParticleSystem::GetTexture() {
 	return mTexture;
 }
 
-void ParticleSystem::SetTexture( const shared_ptr<ruTexture> & texture )
-{
+void ParticleSystem::SetTexture( const shared_ptr<ruTexture> & texture ) {
 	mTexture = std::dynamic_pointer_cast<Texture>( texture );
 }
 
-float ParticleSystem::GetBoundingRadius()
-{
+float ParticleSystem::GetBoundingRadius() {
 	return mBoundingRadius;
 }
 
-void ParticleSystem::SetBoundingRadius( float radius )
-{
+void ParticleSystem::SetBoundingRadius( float radius ) {
 	mBoundingRadius = radius;
 }
 
-ruParticleSystem::Type ParticleSystem::GetType()
-{
+ruParticleSystem::Type ParticleSystem::GetType() {
 	return mType;
 }
 
-void ParticleSystem::SetType( ruParticleSystem::Type type )
-{
+void ParticleSystem::SetType( ruParticleSystem::Type type ) {
 	mType = type;
 }
 
-ruVector3 ParticleSystem::GetColorMax()
-{
+ruVector3 ParticleSystem::GetColorMax() {
 	return mColorBegin;
 }
 
-ruVector3 ParticleSystem::GetColorMin()
-{
+ruVector3 ParticleSystem::GetColorMin() {
 	return mColorEnd;
 }
 
-void ParticleSystem::SetColorRange( const ruVector3 & cMin, const ruVector3 & cMax )
-{
+void ParticleSystem::SetColorRange( const ruVector3 & cMin, const ruVector3 & cMax ) {
 	mColorEnd = cMin;
 	mColorBegin = cMax;
 }
 
-void ParticleSystem::SetAlphaOffset( float alphaOffset )
-{
+void ParticleSystem::SetAlphaOffset( float alphaOffset ) {
 	mAlphaOffset = alphaOffset;
 }
 
-float ParticleSystem::GetAlphaOffset()
-{
+float ParticleSystem::GetAlphaOffset() {
 	return mAlphaOffset;
 }
 

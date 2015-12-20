@@ -20,9 +20,9 @@ private:
     float mChargeWorkTimeSeconds;
     float mShakeCoeff;
 
-    ruSound mOnSound;
-    ruSound mOffSound;
-	ruSound mFireSound;
+    shared_ptr<ruSound> mOnSound;
+    shared_ptr<ruSound> mOffSound;
+	shared_ptr<ruSound> mFireSound;
 
 	shared_ptr<ruParticleSystem > mFire;
     ruVector3 mInitialPosition;

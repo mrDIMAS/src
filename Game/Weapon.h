@@ -12,11 +12,11 @@ protected:
 	void Proxy_Hide();
 	shared_ptr<ruSceneNode> mShootPoint;
 	shared_ptr<ruSceneNode> mProjectileModel;
-	ruSound mShotSound;
+	shared_ptr<ruSound> mShotSound;
 	int mShotInterval;
 	int mProjectileCount;
 	shared_ptr<ruPointLight>mShotFlash;
-	ruSound mEmptySound;
+	shared_ptr<ruSound> mEmptySound;
 	ruVector3 mShotOffsetTo;
 	ruVector3 mShotOffset;
 	ruVector3 mOffset;

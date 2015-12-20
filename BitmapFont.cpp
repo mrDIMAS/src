@@ -27,7 +27,7 @@
 vector< BitmapFont* > BitmapFont::fonts;
 
 BitmapFont::BitmapFont( const string & file, int size ) {
-	glyphSize = size;
+	mGlyphSize = size;
 	mSourceFile = file;
 	Create();
 	BitmapFont::fonts.push_back( this );
@@ -35,36 +35,30 @@ BitmapFont::BitmapFont( const string & file, int size ) {
 
 BitmapFont::~BitmapFont() {
 	BitmapFont::fonts.erase( find( BitmapFont::fonts.begin(), BitmapFont::fonts.end(), this ));
-	if( atlas ) {
-		atlas->Release();
-	}
+	mAtlas.Reset();	
 }
 
-void BitmapFont::BindAtlasToLevel( int level )
-{
-	Engine::I().GetDevice()->SetTexture( level, atlas );
+void BitmapFont::BindAtlasToLevel( int level ) {
+	Engine::I().GetDevice()->SetTexture( level, mAtlas );
 }
 
-int BitmapFont::GetGlyphSize()
-{
-	return glyphSize;
+int BitmapFont::GetGlyphSize() {
+	return mGlyphSize;
 }
 
-void BitmapFont::OnLostDevice()
-{
-	charsMetrics.clear();
-	atlas->Release();
+void BitmapFont::OnLostDevice() {
+	mCharsMetrics.clear();
+	mAtlas.Reset();
 }
 
-void BitmapFont::OnResetDevice()
-{
+void BitmapFont::OnResetDevice() {
 	Create();
 }
 
 CharMetrics * BitmapFont::GetCharacterMetrics( int charNum )
 {
 	if( charNum > 0 && charNum < 256 ) {
-		return &charsMetrics[charNum];
+		return &mCharsMetrics[charNum];
 	} else {
 		return nullptr;
 	}
@@ -72,10 +66,10 @@ CharMetrics * BitmapFont::GetCharacterMetrics( int charNum )
 
 void BitmapFont::Create()
 {
-	int pow2Size = CeilPow2(glyphSize);
+	int pow2Size = CeilPow2(mGlyphSize);
 	int atlasWidth = pow2Size * 16;
 	int atlasHeight = pow2Size * 16;
-	float scale = static_cast<float>(glyphSize) / static_cast<float>(pow2Size);
+	float scale = static_cast<float>(mGlyphSize) / static_cast<float>(pow2Size);
 	FT_Library ftLibrary;
 	if( FT_Init_FreeType( &ftLibrary ) ) {
 		throw std::runtime_error( "Unable to initialize FreeType 2.53" );
@@ -92,9 +86,9 @@ void BitmapFont::Create()
 		Log::Error( StringBuilder( "Failed to FT_Select_Charmap!" ));
 	}
 	// create atlas texture
-	Engine::I().GetDevice()->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &atlas, nullptr );
+	Engine::I().GetDevice()->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &mAtlas, nullptr );
 	IDirect3DSurface9 * atlasSurface = nullptr;
-	atlas->GetSurfaceLevel( 0, &atlasSurface );
+	mAtlas->GetSurfaceLevel( 0, &atlasSurface );
 	D3DLOCKED_RECT lockedRect;
 	RECT rect = { 0, 0, atlasWidth, atlasHeight };
 	atlasSurface->LockRect( &lockedRect, &rect, 0 );
@@ -130,7 +124,7 @@ void BitmapFont::Create()
 		cm.texCoords[3] = ruVector2( tcX, tcY + tcStep );
 		cm.bitmapTop = static_cast<float>( face->glyph->bitmap_top ) * scale;
 		cm.bitmapLeft = static_cast<float>( face->glyph->bitmap_left ) * scale;
-		charsMetrics.push_back( cm );
+		mCharsMetrics.push_back( cm );
 		// read glyph bitmap into the atlas
 		for( int row = 0; row < bitmap->rows; row++ ) {
 			for( int col = 0; col < bitmap->width; col++ ) {

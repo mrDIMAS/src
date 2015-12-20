@@ -50,8 +50,8 @@ private:
 
     shared_ptr<ItemPlace> mDetonatorPlace[4];
 
-    ruSound mAlertSound;
-    ruSound mExplosionSound;
+    shared_ptr<ruSound> mAlertSound;
+    shared_ptr<ruSound> mExplosionSound;
 
     ruTimer * mExplosionTimer;
     ruTimer * mBeepSoundTimer;

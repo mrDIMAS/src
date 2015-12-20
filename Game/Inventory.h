@@ -21,7 +21,7 @@ private:
     static const int mCellCountHeight = 4;
     static const int mCellWidth = 64;
     static const int mCellHeight = 64;
-    ruSound mPickSound;
+    shared_ptr<ruSound> mPickSound;
     ruFont * mFont;
     Parser mLocalization;
     ruRect * mGUIRectItemForUse;

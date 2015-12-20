@@ -23,14 +23,14 @@
 
 class GBuffer : public RendererComponent {
 private:
-    IDirect3DTexture9 * mDepthMap;
-    IDirect3DTexture9 * mNormalMap;
-    IDirect3DTexture9 * mDiffuseMap;
+    COMPtr<IDirect3DTexture9> mDepthMap;
+    COMPtr<IDirect3DTexture9> mNormalMap;
+    COMPtr<IDirect3DTexture9> mDiffuseMap;
 
-    IDirect3DSurface9 * mDepthSurface;
-    IDirect3DSurface9 * mNormalSurface;
-    IDirect3DSurface9 * mDiffuseSurface;
-    IDirect3DSurface9 * mBackSurface;
+    COMPtr<IDirect3DSurface9> mDepthSurface;
+    COMPtr<IDirect3DSurface9> mNormalSurface;
+    COMPtr<IDirect3DSurface9> mDiffuseSurface;
+    COMPtr<IDirect3DSurface9> mBackSurface;
 
 	void CreateRenderTargets();
 	void FreeRenderTargets();

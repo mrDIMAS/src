@@ -94,6 +94,13 @@ public:
 		mInterface = iface;
 	}
 
+	void Reset() {
+		if( mInterface ) {
+			mInterface->Release();
+			mInterface = nullptr;	
+		}
+	}
+
 	~COMPtr() {
 		if( mInterface ) {
 			mInterface->Release();

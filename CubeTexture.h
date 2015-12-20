@@ -26,7 +26,7 @@ private:
 	string mSourceName;
 	void Load();
 public:
-    IDirect3DCubeTexture9 * cubeTexture;
+    COMPtr<IDirect3DCubeTexture9> mCubeTexture;
     explicit CubeTexture( string fn );
     virtual ~CubeTexture();
     static CubeTexture * Request( string fn );

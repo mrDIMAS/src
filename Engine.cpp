@@ -260,7 +260,7 @@ void Engine::RenderWorld() {
         return;
     }
 
-	shared_ptr<Camera> camera = Camera::msCurrentCamera.lock();
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	if( !camera ) {
         return;
     }
@@ -329,7 +329,7 @@ void Engine::RenderWorld() {
 
 void Engine::RenderMeshesIntoGBuffer() {
 	auto & meshMap = Mesh::GetMeshMap();
-    for( auto texGroupPair : meshMap ) {
+    for( auto & texGroupPair : meshMap ) {
         IDirect3DTexture9 * pDiffuseTexture = texGroupPair.first;
         IDirect3DTexture9 * pNormalTexture = nullptr;
         auto & meshGroup = texGroupPair.second;
@@ -342,7 +342,7 @@ void Engine::RenderMeshesIntoGBuffer() {
         // each group has same texture
         mTextureChangeCount++;
         for( auto meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
-			shared_ptr<Mesh> pMesh = (*meshIter).lock();
+			shared_ptr<Mesh> & pMesh = (*meshIter).lock();
 			if( pMesh ) {
 				if( !pMesh->IsHardwareBuffersGood() ) {
 					continue;

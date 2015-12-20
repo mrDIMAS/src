@@ -18,9 +18,9 @@ LevelCutsceneIntro::LevelCutsceneIntro() : mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 	mDeerAnim.enabled = true;
 
 	AddSound( mEngineLoop = ruSound::Load3D( "data/sounds/engineloop.ogg"));
-	mEngineLoop.Attach( GetUniqueObject( "Engine" ));
-	mEngineLoop.SetLoop( true );
-	mEngineLoop.Play();
+	mEngineLoop->Attach( GetUniqueObject( "Engine" ));
+	mEngineLoop->SetLoop( true );
+	mEngineLoop->Play();
 
 	mNewLevelLoadZone = GetUniqueObject( "NewLevelLoadZone" );
 
@@ -83,7 +83,7 @@ void LevelCutsceneIntro::DoScenario() {
 	mEnginePitch.ChaseTarget( 0.1f );
 
 	mLastUAZPosition = mUAZ->GetPosition();
-	mEngineLoop.SetPitch(mEnginePitch);
+	mEngineLoop->SetPitch(mEnginePitch);
 
 	if( mUAZ->IsInsideNode( mNewLevelLoadZone )) {
 		Level::Change( LevelName::L1Arrival );

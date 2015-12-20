@@ -11,7 +11,7 @@ void Keypad::Update()
 				if( ruInput::IsKeyHit( pPlayer->mKeyUse ) ) {
 					mCurrentCode += to_string( i );
 					mKeyState[i] = true;
-					mButtonPushSound.Play();
+					mButtonPushSound->Play();
 					if( mCurrentCode.size() == 4 ) {
 						if( mCurrentCode == mCodeToUnlock ) {
 							mDoorToUnlock->SetLocked( false );
@@ -68,8 +68,8 @@ Keypad::Keypad( shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sh
 	mButtonPushSound = ruSound::Load3D( "data/sounds/button_push.ogg" );
 	mButtonPopSound = ruSound::Load3D( "data/sounds/button_pop.ogg" );
 
-	mButtonPushSound.SetPosition( mKeypad->GetPosition() );
-	mButtonPopSound.SetPosition( mKeypad->GetPosition() );
+	mButtonPushSound->SetPosition( mKeypad->GetPosition() );
+	mButtonPopSound->SetPosition( mKeypad->GetPosition() );
 }
 
 void Keypad::Reset()
@@ -79,5 +79,5 @@ void Keypad::Reset()
 		mCurrentCode.clear();
 		mKeys[i]->SetPosition( mKeysInitialPosition[i] );
 	}
-	mButtonPopSound.Play();
+	mButtonPopSound->Play();
 }

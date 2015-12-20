@@ -24,12 +24,12 @@ void Lift::Update() {
             distSqr = 1.0f;
         }
 
-        mMotorSound.SetVolume( distSqr );
+        mMotorSound->SetVolume( distSqr );
 
 		if( mEngineSoundEnabled ) {
-			mMotorSound.Play();
+			mMotorSound->Play();
 		} else {
-			mMotorSound.Pause();
+			mMotorSound->Pause();
 		}
 	
         // smooth arriving
@@ -47,7 +47,7 @@ void Lift::Update() {
 			if( !mPaused ) {
 				mBaseNode->Move( speedVector * speed );
 			} else {
-				mMotorSound.Pause();
+				mMotorSound->Pause();
 			}
         }
         // player interaction( TODO: must be moved to player class )
@@ -92,11 +92,11 @@ void Lift::SetFrontDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNo
 	mDoorFrontRight->SetTurnDirection( Door::TurnDirection::Clockwise );
 }
 
-void Lift::SetMotorSound( ruSound motorSound ) {
+void Lift::SetMotorSound( shared_ptr<ruSound> motorSound ) {
     mMotorSound = motorSound;
-    mMotorSound.Attach( mBaseNode );
-	mMotorSound.SetRolloffFactor( 30 );
-	mMotorSound.SetRoomRolloffFactor( 30 );
+    mMotorSound->Attach( mBaseNode );
+	mMotorSound->SetRolloffFactor( 30 );
+	mMotorSound->SetRoomRolloffFactor( 30 );
 }
 
 void Lift::SetSourcePoint( shared_ptr<ruSceneNode> sourceNode ) {
@@ -113,7 +113,7 @@ void Lift::SetControlPanel( shared_ptr<ruSceneNode> panel ) {
 }
 
 Lift::~Lift() {
-	mMotorSound.Free();
+
 }
 
 bool Lift::IsArrived() {

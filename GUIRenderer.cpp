@@ -32,25 +32,14 @@
 
 GUIRenderer::GUIRenderer() {
    Initialize();
-
-   mVertexShader = new VertexShader( "data/shaders/gui.vso" );
-   mPixelShader = new PixelShader( "data/shaders/gui.pso" );
+   mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/gui.vso" )));
+   mPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/gui.pso" )));
 }
 
 GUIRenderer::~GUIRenderer() {
-	delete mVertexShader;
-	delete mPixelShader;
     OnLostDevice();
 }
 
-/*
-ruFontHandle GUIRenderer::CreateFont( int size, const string & name ) {
-    BitmapFont * font = new BitmapFont( name, size );
-    ruFontHandle handle;
-    handle.pointer = font;
-    return handle;
-}
-*/
 void GUIRenderer::RenderAllGUIElements() {
     mPixelShader->Bind();
     mVertexShader->Bind();
@@ -104,8 +93,8 @@ void GUIRenderer::RenderRect( GUIRect * rect ) {
 }
 
 void GUIRenderer::OnLostDevice() {
-	mVertexBuffer->Release();
-	mVertexDeclaration->Release();
+	mVertexBuffer.Reset();
+	mVertexDeclaration.Reset();
 }
 
 void GUIRenderer::OnResetDevice() {

@@ -26,11 +26,10 @@
 
 class ParticleSystemRenderer {
 private:
-    PixelShader * pixelShader;
-    VertexShader * vertexShader;
-	VertexShader * vertexShaderLighting;
-
-    IDirect3DVertexDeclaration9 * vd;
+    unique_ptr<PixelShader> mPixelShader;
+    unique_ptr<VertexShader> mVertexShader;
+	unique_ptr<VertexShader> mVertexShaderLighting;
+    COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
 public:
     ParticleSystemRenderer();
     ~ParticleSystemRenderer();

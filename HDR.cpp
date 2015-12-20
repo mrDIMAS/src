@@ -41,11 +41,11 @@ HDRShader::~HDRShader() {
 HDRShader::HDRShader() {
 	OnResetDevice();
 	
-	mToneMapShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrTonemap.pso" ));
-	mScreenQuad = unique_ptr<EffectsQuad>( new EffectsQuad( false ));
-    mScaleScenePixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrScale.pso" ));
-    mAdaptationPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrAdaptation.pso" ));
-	mDownScalePixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrDownscale.pso" ));
+	mToneMapShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrTonemap.pso" )));
+	mScreenQuad = std::move( unique_ptr<EffectsQuad>( new EffectsQuad( false )));
+    mScaleScenePixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrScale.pso" )));
+    mAdaptationPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrAdaptation.pso" )));
+	mDownScalePixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrDownscale.pso" )));
 }
 
 void HDRShader::CalculateFrameLuminance( IDirect3DTexture9 * hdrFrame ) {
@@ -96,14 +96,14 @@ void HDRShader::CalculateFrameLuminance( IDirect3DTexture9 * hdrFrame ) {
 }
 
 void HDRShader::OnLostDevice() {
-	mScaledSceneSurf->Release();
-	mScaledScene->Release();
+	mScaledSceneSurf.Reset();
+	mScaledScene.Reset();
 	for( int i = 0; i < DOWNSAMPLE_COUNT; i++ ) {
-		mDownSampSurf[ i ]->Release();
-		mDownSampTex[ i ]->Release();
+		mDownSampSurf[ i ].Reset();
+		mDownSampTex[ i ].Reset();
 	}
-	mAdaptedLuminanceLast->Release();
-	mAdaptedLuminanceCurrent->Release();
+	mAdaptedLuminanceLast.Reset();
+	mAdaptedLuminanceCurrent.Reset();
 }
 
 void HDRShader::OnResetDevice() {

@@ -49,13 +49,13 @@ public:
 
 class GUIRenderer : public RendererComponent {
 private:
-    IDirect3DVertexBuffer9 * mVertexBuffer;
-    IDirect3DVertexDeclaration9 * mVertexDeclaration;
+    COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+    COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
     int mSizeOfRectBytes;
     D3DXMATRIX mOrthoMatrix;
     void RenderRect( GUIRect * r );
-    VertexShader * mVertexShader;
-    PixelShader * mPixelShader;
+    unique_ptr<VertexShader> mVertexShader;
+    unique_ptr<PixelShader> mPixelShader;
 	void Initialize();
 public:
     GUIRenderer();
