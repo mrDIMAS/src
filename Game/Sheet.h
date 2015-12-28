@@ -7,8 +7,8 @@ private:
     string mText;
     string mDescription;
     shared_ptr<ruTexture> mBackgroundTexture;
-    ruRect * mGUIBackground;
-    ruText * mGUIText;
+    shared_ptr<ruRect> mGUIBackground;
+    shared_ptr<ruText> mGUIText;
 	shared_ptr<ruSound> mPaperFlipSound;
 public:
     explicit Sheet( shared_ptr<ruSceneNode> object, string desc, string text );
@@ -21,5 +21,5 @@ public:
     void SetVisible( bool state );
     static Sheet * GetSheetPointerByNode( shared_ptr<ruSceneNode> o );
     static vector<Sheet*> msSheetList;    
-    static ruFont * msSheetFont;
+    static shared_ptr<ruFont> msSheetFont;
 };

@@ -62,16 +62,16 @@ void Weapon::Update() {
 	if( mAppear ) {
 		mShowAnim.Rewind();
 		mModel->SetAnimation( &mShowAnim );
-		mShowAnim.enabled = true;
+		mShowAnim.SetEnabled( true );
 		mAppear = false;
 	}
 
 	if( mToPrev || mToNext ) {
-		if( !mHideAnim.enabled ) {
+		if( !mHideAnim.IsEnabled() ) {
 			mHideAnim.Rewind();
 		}
 		mModel->SetAnimation( &mHideAnim );
-		mHideAnim.enabled = true;		
+		mHideAnim.SetEnabled( true );		
 	}
 
 	mHideAnim.Update();
@@ -125,9 +125,9 @@ void Weapon::Update() {
 	}
 
 
-	if( !mShowAnim.enabled && !mHideAnim.enabled ) {
+	if( !mShowAnim.IsEnabled() && !mHideAnim.IsEnabled() ) {
 		mModel->SetAnimation( &mIdleAnim );
-		mIdleAnim.enabled = true;
+		mIdleAnim.SetEnabled( true );
 	}
 }
 

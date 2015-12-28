@@ -63,7 +63,7 @@ Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ),
 void Mesh::LinkTo( weak_ptr<SceneNode> owner ) {
 	shared_ptr<SceneNode> pOwner = owner.lock();
 	if( pOwner ) {
-		mSkinned = pOwner->mIsSkinned;
+		mSkinned = pOwner->IsSkinned();
 	}
 	mOwnerList.push_back( owner );
 }
@@ -86,15 +86,10 @@ void Mesh::Register( shared_ptr<Mesh> mesh ) {
 }
 
 Mesh::~Mesh() {
-    OnLostDevice();
-    
+    OnLostDevice();    
 	for( auto pBone : mBones ) {
 		delete pBone;
 	}
-
-    if( mOctree ) {
-        delete mOctree;
-    }
 }
 
 void Mesh::CreateVertexBuffer() {
@@ -141,6 +136,9 @@ Mesh::Bone * Mesh::AddBone( weak_ptr<SceneNode> node ) {
 		}
 	}
 	if( !bone ) {
+		if( node.use_count()) {
+			node.lock()->MakeBone();
+		}
 		bone = new Bone( node, mBones.size() );
 		mBones.push_back( bone );
 	}
@@ -245,7 +243,8 @@ vector<Vertex> & Mesh::GetVertices() {
 	return mVertices;
 }
 
-AABB Mesh::GetBoundingBox() {
+AABB Mesh::GetBoundingBox() const
+{
 	return mAABB;
 }
 
@@ -273,18 +272,15 @@ void Mesh::AddTriangle( const Triangle & triangle ) {
 	mTriangles.push_back( triangle );
 }
 
-void Mesh::SetHeightTexture( const shared_ptr<Texture> & heightTexture )
-{
+void Mesh::SetHeightTexture( const shared_ptr<Texture> & heightTexture ) {
 	mHeightTexture = heightTexture;
 }
 
-void Mesh::SetNormalTexture( const shared_ptr<Texture> & normalTexture )
-{
+void Mesh::SetNormalTexture( const shared_ptr<Texture> & normalTexture ) {
 	mNormalTexture = normalTexture;
 }
 
-void Mesh::SetDiffuseTexture( const shared_ptr<Texture>& diffuseTexture )
-{
+void Mesh::SetDiffuseTexture( const shared_ptr<Texture>& diffuseTexture ) {
 	mDiffuseTexture = diffuseTexture;
 }
 
@@ -317,7 +313,7 @@ Mesh::Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short v
 	mC = vC;
 }
 
-Mesh::Bone::Bone() {
+Mesh::Bone::Bone() : mMatrixID( 0 ) {
 	D3DXMatrixIdentity( &mMatrix );
 }
 

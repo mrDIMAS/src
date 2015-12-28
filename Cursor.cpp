@@ -24,16 +24,14 @@
 #include "Cursor.h"
 #include "GUIRenderer.h"
 
-Cursor * Cursor::msCurrentCursor = nullptr;
-
 void Cursor::Hide() {
-    msCurrentCursor->mVisible = 0;
+    mVisible = false;
     ShowCursor( FALSE );
     Engine::I().GetDevice()->ShowCursor( FALSE );
 }
 
 void Cursor::Show() {
-    msCurrentCursor->mVisible = 1;
+    mVisible = true;
     ShowCursor( FALSE );
     Engine::I().GetDevice()->ShowCursor( FALSE );
 }

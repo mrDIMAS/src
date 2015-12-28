@@ -40,26 +40,26 @@ void Syringe::Update() {
 		if( mDozeCount > 0 ) {
 			mShowAnim.Rewind();
 			mModel->SetAnimation( &mShowAnim );
-			mShowAnim.enabled = true;				
+			mShowAnim.SetEnabled( true );				
 		} else {
 			mShowDepletedAnim.Rewind();
 			mModel->SetAnimation( &mShowDepletedAnim );
-			mShowDepletedAnim.enabled = true;
+			mShowDepletedAnim.SetEnabled( true );
 		}
 		mAppear = false;
 	}
 
 	if( (mToNext || mToPrev) ) {
-		if( !mUseAnim.enabled && !mShowAnim.enabled && !mShowDepletedAnim.enabled && !mHideDepletedAnim.enabled && !mHideAnim.enabled ) {
+		if( !mUseAnim.IsEnabled() && !mShowAnim.IsEnabled() && !mShowDepletedAnim.IsEnabled() && !mHideDepletedAnim.IsEnabled() && !mHideAnim.IsEnabled() ) {
 			if( mDozeCount > 0 ) {
 				mModel->SetAnimation( &mHideAnim );
 				mHideAnim.Rewind();
-				mHideAnim.enabled = true;
+				mHideAnim.SetEnabled( true );
 			} else {				
-				if( !mHideDepletedAnim.enabled ) {
+				if( !mHideDepletedAnim.IsEnabled() ) {
 					mModel->SetAnimation( &mHideDepletedAnim );
 					mHideDepletedAnim.Rewind();
-					mHideDepletedAnim.enabled = true;					
+					mHideDepletedAnim.SetEnabled( true );					
 				}
 			}
 		}
@@ -73,23 +73,23 @@ void Syringe::Update() {
 	mHideDepletedAnim.Update();
 	mIdleDepletedAnim.Update();
 
-	if( ruInput::IsMouseHit( ruInput::MouseButton::Left ) && !mShowAnim.enabled && !mHideAnim.enabled && !mUseAnim.enabled && !mHideDepletedAnim.enabled && !mShowDepletedAnim.enabled ) {
+	if( ruInput::IsMouseHit( ruInput::MouseButton::Left ) && !mShowAnim.IsEnabled() && !mHideAnim.IsEnabled() && !mUseAnim.IsEnabled() && !mHideDepletedAnim.IsEnabled() && !mShowDepletedAnim.IsEnabled() ) {
 		if( mDozeCount > 0 ) {
 			mUseAnim.Rewind();
 			mModel->SetAnimation( &mUseAnim );
-			mUseAnim.enabled = true;
-			mIdleAnim.enabled = false;
+			mUseAnim.SetEnabled( true );
+			mIdleAnim.SetEnabled( false );
 			mDozeCount--;
 		}
 	}
 
-	if( !mShowAnim.enabled && !mShowDepletedAnim.enabled && !mUseAnim.enabled && !mHideAnim.enabled && !mHideDepletedAnim.enabled ) {
+	if( !mShowAnim.IsEnabled() && !mShowDepletedAnim.IsEnabled() && !mUseAnim.IsEnabled() && !mHideAnim.IsEnabled() && !mHideDepletedAnim.IsEnabled() ) {
 		if( mDozeCount > 0 ) {
 			mModel->SetAnimation( &mIdleAnim );
-			mIdleAnim.enabled = true;
+			mIdleAnim.SetEnabled( true );
 		} else {
 			mModel->SetAnimation( &mIdleDepletedAnim );
-			mIdleDepletedAnim.enabled = true;			
+			mIdleDepletedAnim.SetEnabled( true );			
 		}
 	}
 }
@@ -112,9 +112,19 @@ void Syringe::Proxy_Use() {
 	} else if ( mPrev ) {
 		Prev();
 	}
-	if( !mHideDepletedAnim.enabled ) {
+	if( !mHideDepletedAnim.IsEnabled() ) {
 		mModel->SetAnimation( &mHideDepletedAnim );
 		mHideDepletedAnim.Rewind();
-		mHideDepletedAnim.enabled = true;					
+		mHideDepletedAnim.SetEnabled( true );					
 	}
+}
+
+Item::Type Syringe::GetItemType()
+{
+	return Item::Type::Syringe;
+}
+
+Syringe::~Syringe()
+{
+
 }

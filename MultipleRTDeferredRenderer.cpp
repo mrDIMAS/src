@@ -40,24 +40,23 @@ void MultipleRTDeferredRenderer::RenderMesh( shared_ptr<Mesh> mesh ) {
 			shared_ptr<SceneNode> & pOwner = (*ownerIter).lock();
 			if( pOwner ) {
 				bool visible = true;
-				if( pOwner->mIsBone ) {
+				if( pOwner->IsBone() ) {
 					visible = false;
 				} else {
 					visible = pOwner->IsVisible();
 				}
-				pOwner->mInFrustum |= camera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
-				if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
-					if( fabs( pOwner->mDepthHack ) > 0.001 ) {
-						camera->EnterDepthHack( fabs( pOwner->mDepthHack ) );
+				if( visible && ( pOwner->IsInFrustum() || pOwner->IsSkinned() ) ) {
+					if( fabs( pOwner->GetDepthHack() ) > 0.001 ) {
+						camera->EnterDepthHack( fabs( pOwner->GetDepthHack() ) );
 					}			
 					if( mesh->IsSkinned() ) {
 						D3DXMatrixIdentity( &world );
 					} else {
-						GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+						world = pOwner->GetWorldMatrix();
 					}
 					D3DXMatrixMultiply( &vwp, &world, &camera->mViewProjection );
 					// pass albedo
-					Engine::I().SetPixelShaderFloat( 0, pOwner->mAlbedo );
+					Engine::I().SetPixelShaderFloat( 0, pOwner->GetAlbedo() );
 					// pass far z plane
 					Engine::I().SetPixelShaderFloat( 1, camera->mFarZ );
 					// pass vertex shader matrices
@@ -67,25 +66,19 @@ void MultipleRTDeferredRenderer::RenderMesh( shared_ptr<Mesh> mesh ) {
 					// for parallax
 					Engine::I().SetVertexShaderVector3( 10, camera->GetPosition() );
 			
-					shared_ptr<SceneNode> & parent = pOwner->mParent.lock(); 
-					if( parent ) {
-						pOwner->mParent.reset(); 
-						auto & bones = mesh->GetBones();
-						for( int i = 0; i < bones.size(); i++ ) {
-							Mesh::Bone * bone = bones[i];
-							shared_ptr<SceneNode> boneNode = bone->mNode.lock();
-							if( boneNode ) {
-								boneNode->mIsBone = true;
-								btTransform transform = (boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform) * pOwner->CalculateGlobalTransform();
-								GetD3DMatrixFromBulletTransform( transform, bones[i]->mMatrix );
-								Engine::I().SetVertexShaderMatrix( 11 + i * 4, &bones[i]->mMatrix );
-							}
+					auto & bones = mesh->GetBones();
+					int n = 0;
+					for( auto * bone : bones ) {
+						shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+						if( boneNode ) {
+							bone->mMatrix = TransformToMatrix( boneNode->GetRelativeTransform() * pOwner->GetLocalTransform() );
+							Engine::I().SetVertexShaderMatrix( 11 + n * 4, &bone->mMatrix );
 						}
-						pOwner->mParent = parent;
+						n++;
 					}
-
+					
 					mesh->Render();
-					if( pOwner->mDepthHack ) {
+					if( pOwner->GetDepthHack() ) {
 						camera->LeaveDepthHack();
 					}
 				}

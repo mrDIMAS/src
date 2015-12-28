@@ -48,7 +48,6 @@ private:
 	int mGlyphSize;
 	void Create( );
 public:
-    static vector< BitmapFont* > fonts;   
     explicit BitmapFont( const string & file, int size );
     virtual ~BitmapFont( );
 	int GetGlyphSize();

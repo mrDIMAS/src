@@ -119,6 +119,11 @@ std::string Texture::GetName() {
 	return mName;
 }
 
+int Texture::GetColorDepth()
+{
+	return mColorDepth;
+}
+
 shared_ptr<ruTexture> ruTexture::Request( const string & file ) {
 	return Texture::Request( file );
 }

@@ -38,7 +38,8 @@ int GetWordWidth( BitmapFont * font, string & text, int start ) {
 }
 
 
-void TextRenderer::RenderText( GUIText* guiText ) {
+void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
+{
     TextQuad * quad = nullptr;
     mVertexBuffer->Lock( 0, mMaxChars * sizeof( TextQuad ), reinterpret_cast<void**>( &quad ), D3DLOCK_DISCARD );
     Face * face = nullptr;
@@ -57,13 +58,13 @@ void TextRenderer::RenderText( GUIText* guiText ) {
         caretY = boundingRect.top + (( boundingRect.bottom - boundingRect.top ) - height ) / 2.0f;
         caretX = boundingRect.left + (( boundingRect.right - boundingRect.left ) - avWidth ) / 2.0f;
     }
-	BitmapFont * font = guiText->GetFont();
+	shared_ptr<BitmapFont> & font = guiText->GetFont();
 	int symbolCounter = 0;
 	for( unsigned char symbol : guiText->GetText() ) {
 		CharMetrics * charMetr = font->GetCharacterMetrics( symbol );
 
 		// word wrap
-		if( caretX + GetWordWidth( font, guiText->GetText(), symbolCounter ) > boundingRect.right ) {
+		if( caretX + GetWordWidth( font.get(), guiText->GetText(), symbolCounter ) > boundingRect.right ) {
 			caretX = boundingRect.left;
 			caretY += font->GetGlyphSize();
 		}
@@ -110,7 +111,8 @@ void TextRenderer::RenderText( GUIText* guiText ) {
 }
 
 
-void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth  ) {
+void TextRenderer::ComputeTextMetrics( const shared_ptr<GUIText> & guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth  )
+{
     lines = 1;
 
     RECT boundingRect = guiText->GetBoundingRect();
@@ -126,7 +128,7 @@ void TextRenderer::ComputeTextMetrics( GUIText * guiText, int & lines, int & hei
 	int size = str.size();
 	for( int i = 0; i < size; i++ ) {
 		unsigned char symbol = str[i];
-		BitmapFont * font = guiText->GetFont();
+		shared_ptr<BitmapFont> & font = guiText->GetFont();
         CharMetrics * charMetr = font->GetCharacterMetrics( symbol );
 
         caretX += charMetr->advanceX;

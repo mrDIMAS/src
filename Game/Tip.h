@@ -12,8 +12,8 @@ private:
     SmoothFloat mY;
 	int mWidth;
 	int mHeight;
-    ruTimer * mTimer;
-    ruText * mGUIText;
+    shared_ptr<ruTimer> mTimer;
+    shared_ptr<ruText> mGUIText;
 public:
     explicit Tip();
 	virtual ~Tip();

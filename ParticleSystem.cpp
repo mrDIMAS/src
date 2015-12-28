@@ -57,7 +57,7 @@ void ParticleSystem::Update() {
     mAliveParticleCount = 0;
 
     mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
-    GetD3DMatrixFromBulletTransform( mGlobalTransform, mWorldTransform );
+    mWorldTransform = GetWorldMatrix();
 
 	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 	D3DXMATRIX view;
@@ -363,20 +363,14 @@ float ParticleSystem::GetAlphaOffset() {
 	return mAlphaOffset;
 }
 
-Particle::Particle() {
-    mPosition = ruVector3( 0, 0, 0 );
-    mSpeed = ruVector3( 0, 0, 0 );
-    mColor = ruVector3( 255, 255, 255 );
-    mOpacity = 255;
-    mSize = 1.0f;
+Particle::Particle() : mPosition( 0, 0, 0 ), mSpeed( 0, 0, 0 ), mColor( 255, 255, 255 ),
+	mOpacity( 255 ), mSize( 1.0f ) {
+
 }
 
-Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) {
-    mPosition = thePosition;
-    mSpeed = theSpeed;
-    mColor = theColor;
-    mOpacity = theTranslucency;
-    mSize = theSize;
+Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) :
+	mPosition( thePosition ), mSpeed( theSpeed ), mColor( theColor ), mOpacity( theTranslucency ), mSize( theSize ) {
+
 }
 
 shared_ptr<ruParticleSystem> ruParticleSystem::Create( int particleNum ) {

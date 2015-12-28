@@ -23,10 +23,10 @@
 
 class FastReader {
 private:
-    long size;
-    long cursor;
+    long mSize;
+    long mCursor;
     typedef unsigned char Byte;
-    Byte * data;
+    Byte * mData;
 public:
     FastReader( );
     bool ReadFile ( const string & fileName );

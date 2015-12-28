@@ -58,23 +58,23 @@ Flashlight::Flashlight() {
 }
 
 void Flashlight::SwitchOn() {
-	if( !mCloseAnim.enabled && !mOpenAnim.enabled ) {
+	if( !mCloseAnim.IsEnabled() && !mOpenAnim.IsEnabled() ) {
 		if( !mOn ) {
 			mOpenAnim.Rewind();
 			mModel->SetAnimation( &mOpenAnim );
-			mOpenAnim.enabled = true;
-			mIdleAnim.enabled = false;
+			mOpenAnim.SetEnabled( true );
+			mIdleAnim.SetEnabled( false );
 		}
 	}
 }
 
 void Flashlight::SwitchOff() {
-	if( !mOpenAnim.enabled && !mCloseAnim.enabled ) {
+	if( !mOpenAnim.IsEnabled() && !mCloseAnim.IsEnabled() ) {
 		if( mOn ) {		
 			mCloseAnim.Rewind();
 			mModel->SetAnimation( &mCloseAnim );
-			mCloseAnim.enabled = true;
-			mIdleAnim.enabled = false;
+			mCloseAnim.SetEnabled( true );
+			mIdleAnim.SetEnabled( false );
 		}
 	}
 }
@@ -141,12 +141,12 @@ void Flashlight::Proxy_Close() {
 
 void Flashlight::DeserializeAnimation( SaveFile & in, ruAnimation & anim ) {
 	anim.SetCurrentFrame( in.ReadInteger());
-	in.ReadBoolean( anim.enabled );
+	anim.SetEnabled( in.ReadBoolean() );
 }
 
 void Flashlight::SerializeAnimation( SaveFile & out, ruAnimation & anim ) {
 	out.WriteInteger( anim.GetCurrentFrame() );
-	out.WriteBoolean( anim.enabled );
+	out.WriteBoolean( anim.IsEnabled() );
 }
 
 void Flashlight::OnDeserialize( SaveFile & in ) {
@@ -251,8 +251,8 @@ void Flashlight::Update() {
 	mCloseAnim.Update();
 	mIdleAnim.Update();
 
-	if( mOn && !mCloseAnim.enabled && !mOpenAnim.enabled ) {
+	if( mOn && !mCloseAnim.IsEnabled() && !mOpenAnim.IsEnabled() ) {
 		mModel->SetAnimation( &mIdleAnim );
-		mIdleAnim.enabled = true;
+		mIdleAnim.SetEnabled( true );
 	}
 }

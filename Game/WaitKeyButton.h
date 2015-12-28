@@ -10,8 +10,8 @@ private:
     ruInput::Key mSelectedKey;
 	int mAnimCounter;
     string mDesc;
-    ruText * mGUIText;
-    ruButton * mGUIButton;
+    shared_ptr<ruText> mGUIText;
+    shared_ptr<ruButton> mGUIButton;
 public:
 	static vector<WaitKeyButton*> msWaitKeyList;
     explicit WaitKeyButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
@@ -20,7 +20,7 @@ public:
     void SetSelected( ruInput::Key i );
     void Update( );
     void SetVisible( bool state );
-	void AttachTo( ruGUINode * node );
+	void AttachTo( const shared_ptr<ruGUINode> & node );
 	static void UpdateAll() {
 		for( auto pWaitKey : msWaitKeyList ) {
 			pWaitKey->Update();

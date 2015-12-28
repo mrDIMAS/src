@@ -56,24 +56,24 @@ void Postprocessing::RenderMask() {
 				for( auto & ownerIter = owners.begin(); ownerIter != owners.end(); ) {
 					shared_ptr<SceneNode> & pOwner = (*ownerIter).lock();
 					if( pOwner ) {
-						if( pOwner->mBlurAmount > 0.0f ) {
+						if( pOwner->GetBlurAmount() > 0.0f ) {
 							bool visible = true;
-							if( pOwner->mIsBone ) {
+							if( pOwner->IsBone() ) {
 								visible = false;
 							} else {
 								visible = pOwner->IsVisible();
 							}
 							shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 							if( camera ) {
-								pOwner->mInFrustum |= camera->mFrustum.IsAABBInside( pMesh->GetBoundingBox(), ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ));
-								if( visible && ( pOwner->mInFrustum || pOwner->mIsSkinned ) ) {
+								
+								if( visible && ( pOwner->IsInFrustum() || pOwner->IsSkinned() ) ) {
 									if( pMesh->IsSkinned() ) {
 										D3DXMatrixIdentity( &world );
 										mBlurSkinVertexShader->Bind();
 									} else {
 										D3DXMATRIX scale;
-										D3DXMatrixScaling( &scale, 1.07f, 1.07f, 1.07f );
-										GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+										D3DXMatrixScaling( &scale, 1.1f, 1.1f, 1.1f );
+										world = pOwner->GetWorldMatrix();
 										D3DXMatrixMultiply( &world, &scale,  &world );
 										mBlurVertexShader->Bind();
 									}
@@ -81,24 +81,18 @@ void Postprocessing::RenderMask() {
 
 									// pass vertex shader matrices
 									Engine::I().SetVertexShaderMatrix( 0, &vwp );
-
-									shared_ptr<SceneNode> & parent = pOwner->mParent.lock();
-									if( parent ) {
-										pOwner->mParent.reset(); 
-										auto & bones = pMesh->GetBones();
-										for( int i = 0; i < bones.size(); i++ ) {
-											Mesh::Bone * bone = bones[i];
-											shared_ptr<SceneNode> boneNode = bone->mNode.lock();
-											if( boneNode ) {
-												boneNode->mIsBone = true;
-												btTransform transform = (boneNode->mGlobalTransform * boneNode->mInvBoneBindTransform) * pOwner->CalculateGlobalTransform();
-												GetD3DMatrixFromBulletTransform( transform, bones[i]->mMatrix );
-												Engine::I().SetVertexShaderMatrix( 4 + i * 4, &bones[i]->mMatrix );
-											}
+									
+									auto & bones = pMesh->GetBones();
+									int n = 0;
+									for( auto * bone : bones ) {
+										shared_ptr<SceneNode> & boneNode = bone->mNode.lock();
+										if( boneNode ) {
+											bone->mMatrix = TransformToMatrix( boneNode->GetRelativeTransform() * pOwner->GetLocalTransform() );
+											Engine::I().SetVertexShaderMatrix( 4 + n * 4, &bone->mMatrix );
 										}
-										pOwner->mParent = parent;
+										n++;
 									}
-
+									
 									pMesh->Render();
 								}
 							}

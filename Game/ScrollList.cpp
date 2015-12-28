@@ -49,13 +49,10 @@ void ScrollList::SetCurrentValue( int value ) {
 }
 
 ScrollList::~ScrollList() {
-    mGUIValueText->Free();
-    mGUIText->Free();
-    mGUIIncreaseButton->Free();
-    mGUIDecreaseButton->Free();
+
 }
 
-void ScrollList::AttachTo( ruGUINode * node ) {
+void ScrollList::AttachTo( shared_ptr<ruGUINode> node ) {
 	mGUIIncreaseButton->Attach( node );
 	mGUIDecreaseButton->Attach( node );
 	mGUIText->Attach( node );

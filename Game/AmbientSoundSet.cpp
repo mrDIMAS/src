@@ -30,5 +30,5 @@ AmbientSoundSet::AmbientSoundSet() {
 }
 
 AmbientSoundSet::~AmbientSoundSet() {
-	mTimer->Free();
+
 }

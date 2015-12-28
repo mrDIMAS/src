@@ -34,13 +34,13 @@ private:
 	bool mActive;
 	ruVector3 mInitColor;
     ruVector3 pickedColor;
-	GUIText * mpText;
+	shared_ptr<GUIText> mpText;
 	virtual void OnClick() {
 		// action defined in Update()
 	}
 public:
-    static vector< GUIButton* > msButtonList;
-    explicit GUIButton( int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text, BitmapFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha );
+    
+    explicit GUIButton( int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha );
     virtual ~GUIButton();
     void Update(); // must be called inside ruInputUpdate
   
@@ -52,6 +52,6 @@ public:
 	virtual void SetAlpha( int alpha );
 	virtual void SetActive( bool state );
 	virtual bool IsPicked();
-    virtual ruText * GetText();
+    virtual shared_ptr<ruText> GetText();
 	virtual bool IsPressed();
 };

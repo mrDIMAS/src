@@ -43,27 +43,16 @@ int ruEngine::GetResolutionHeight( ) {
 	return Engine::I().GetResolutionHeight();
 }
 void ruEngine::HideCursor( ) {
-	if( Cursor::msCurrentCursor ) {
-		Cursor::msCurrentCursor->Hide();
-	} else {
-		::ShowCursor( 0 );
-		Engine::I().GetDevice()->ShowCursor( 0 );
-	}
+	Engine::I().SetCursorVisible( false );
 }
 void ruEngine::ShowCursor( ) {
-	if( Cursor::msCurrentCursor ) {
-		Cursor::msCurrentCursor->Show();
-	} else {
-		::ShowCursor( 1 );
-		Engine::I().GetDevice()->ShowCursor( 1 );
-	}
+	Engine::I().SetCursorVisible( true );
 }
 
 void ruEngine::SetCursorSettings( shared_ptr<ruTexture> texture, int w, int h ) {
-	if( !Cursor::msCurrentCursor ) {
-		Cursor::msCurrentCursor = new Cursor( w, h, std::dynamic_pointer_cast<Texture>( texture ));
-	}	
+	Engine::I().SetCursor( texture, w, h );
 }
+
 int ruEngine::GetDIPs( ) {
 	return Engine::I().GetDIPCount();
 }
@@ -101,7 +90,7 @@ void ruEngine::UpdateWorld() {
 			node->CalculateGlobalTransform();
 			// update all sounds attached to node, and physical interaction sounds( roll, hit )
 			node->UpdateSounds();
-			if( !node->mIsSkinned ) {
+			if( !node->IsSkinned() ) {
 				node->PerformAnimation();
 			}
 		}
@@ -111,7 +100,7 @@ void ruEngine::UpdateWorld() {
 	for( auto & pWeak : nodes ) {
 		shared_ptr<SceneNode> & node = pWeak.lock();
 		if( node ) {
-			if( node->mIsSkinned ) {
+			if( node->IsSkinned() ) {
 				node->PerformAnimation();
 			}
 		} 

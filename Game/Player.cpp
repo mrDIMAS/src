@@ -116,15 +116,15 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 
 	mNodeInHands = nullptr;
 
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/stone.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/metal.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/wood.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/gravel.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/muddyrock.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/rock.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/grass.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/soil.smat", mpCamera->mCamera ));
-	mSoundMaterialList.push_back( new SoundMaterial( "data/materials/chain.smat", mpCamera->mCamera ));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/stone.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/metal.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/wood.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/gravel.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/muddyrock.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/rock.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/grass.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/soil.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/chain.smat", mpCamera->mCamera )));
 
 	AddUsableObject( new BareHands );
 	AddUsableObject( new Flashlight );
@@ -135,23 +135,6 @@ Player::~Player() {
 		delete uo;
 	}
 	mUsableObjectList.clear();
-	delete mpCamera;
-	mGUIActionText->Free( );
-	for( int i = 0; i < mGUISegmentCount; i++ ) {
-		mGUIHealthBarSegment[i]->Free( );
-		mGUIStaminaBarSegment[i]->Free( );
-	}
-	mGUIBackground->Free( );
-	mGUIStealthSign->Free( );
-	for( auto sndMat : mSoundMaterialList ) {
-		delete sndMat;
-	}
-	mGUICursorPickUp->Free( );
-	mGUICursorPut->Free( );
-	mGUICrosshair->Free( );
-	mGUIYouDied->Free( );
-	mGUIYouDiedFont->Free();
-	mAutoSaveTimer->Free();
 }
 
 void Player::DrawStatusBar() {
@@ -669,7 +652,7 @@ void Player::CreateCamera() {
     mHead = ruSceneNode::Create();
     mHead->Attach( mBody );
     mHead->SetPosition( ruVector3( 0, -2.0f, 0.0f ));
-    mpCamera = new GameCamera( mFov );
+    mpCamera = unique_ptr<GameCamera>( new GameCamera( mFov ));
     mpCamera->mCamera->Attach( mHead );
     mCameraOffset = ruVector3( 0, mHeadHeight, 0 );
     mCameraShakeOffset = ruVector3( 0, mHeadHeight, 0 );
@@ -742,8 +725,8 @@ void Player::UpdateCameraShake() {
         if( mStepLength > mBodyWidth / 2.0f ) {
 			if( mpCurrentWay ) {
 				if( mpCurrentWay->GetEnterZone()->GetTextureCount() > 0 ) {
-					for( auto sMat : mSoundMaterialList ) {
-						shared_ptr<ruSound> snd = sMat->GetRandomSoundAssociatedWith( mpCurrentWay->GetEnterZone()->GetTexture( 0 )->GetName() );
+					for( auto & sMat : mSoundMaterialList ) {
+						shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith( mpCurrentWay->GetEnterZone()->GetTexture( 0 )->GetName() );
 						if( snd ) {
 							snd->Play( true );
 						}
@@ -1000,16 +983,15 @@ void Player::Deserialize( SaveFile & in ) {
 
     mStealthMode = in.ReadBoolean();
 
-   // mTip.Deserialize( in );
-	
 	in.ReadBoolean( mFlashlightLocked );
 
 	in.ReadFloat( mLastHealth );
 
-
 	mpCamera->FadePercent( 100 );
 	mpCamera->SetFadeColor( ruVector3( 255, 255, 255 ) );
 	mBody->SetFriction( 0 );
+
+	mCrouch = in.ReadBoolean();
 
 	mInventory.Deserialize( in );
 }
@@ -1065,9 +1047,6 @@ void Player::Serialize( SaveFile & out ) {
 
     out.WriteBoolean( mMoved );
 
-   // mStaminaAlpha.Serialize( out );
-//    mHealthAlpha.Serialize( out );
-
     out.WriteBoolean( mMoved );
     out.WriteBoolean( mObjectiveDone );
 
@@ -1090,11 +1069,11 @@ void Player::Serialize( SaveFile & out ) {
 
     out.WriteBoolean( mStealthMode );
 
-   // mTip.Serialize( out );
-
 	out.WriteBoolean( mFlashlightLocked );
 
 	out.WriteFloat( mLastHealth );
+
+	out.WriteBoolean( mCrouch );
 
 	mInventory.Serialize( out );
 }
@@ -1254,7 +1233,7 @@ bool Player::AddUsableObject( UsableObject * usObj ) {
 		// register in inventory
 		mInventory.AddItem( usObj->GetItemType() );
 
-		// link last object with new to correct switching
+		// link last object with new for correct switching
 		if( mUsableObjectList.size() > 0 ) {
 			mUsableObjectList.at( mUsableObjectList.size() - 1 )->Link( usObj );
 		}
@@ -1295,7 +1274,7 @@ void Player::Step( ruVector3 direction, float speed )
 void Player::EmitStepSound() {
 	ruRayCastResultEx result = ruPhysics::CastRayEx( mBody->GetPosition() + ruVector3( 0, 0.1, 0 ), mBody->GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
 	if( result.valid ) {
-		for( auto sMat : mSoundMaterialList ) {
+		for( auto & sMat : mSoundMaterialList ) {
 			shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
 			if( snd ) {
 				snd->Play( true );

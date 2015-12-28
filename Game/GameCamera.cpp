@@ -55,5 +55,5 @@ void GameCamera::SetFadeColor( ruVector3 newFadeColor ) {
 }
 
 GameCamera::~GameCamera() {
-	mFullscreenQuad->Free();
+
 }

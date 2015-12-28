@@ -30,9 +30,9 @@ private:
 
     shared_ptr<Lift> mLift1;
 	shared_ptr<Lift> mLift2;
-    Sparks * mpPowerSparks;
+    unique_ptr<Sparks> mpPowerSparks;
     shared_ptr<Valve> mpSteamValve;
-    SteamStream * mpExtemeSteam;
+    unique_ptr<SteamStream> mpExtemeSteam;
     shared_ptr<Fan> mpFan1;
     shared_ptr<Fan> mpFan2;
 
@@ -66,19 +66,19 @@ private:
 	shared_ptr<Zone> mZoneRemovePathBlockingMesh;
 	shared_ptr<Zone> mZoneNeedCrowbar;
 
-	Keypad * mKeypad1;
+	unique_ptr<Keypad> mKeypad1;
 	shared_ptr<Door> mKeypad1DoorToUnlock;
 
-	Keypad * mKeypad2;
+	unique_ptr<Keypad> mKeypad2;
 	shared_ptr<Door> mKeypad2DoorToUnlock;
 
-	Keypad * mKeypad3;
+	unique_ptr<Keypad> mKeypad3;
 	shared_ptr<Door> mKeypad3DoorToUnlock;
 
-	Keypad * mLabKeypad;
+	unique_ptr<Keypad> mLabKeypad;
 	shared_ptr<Door> mLabDoorToUnlock;
 
-	Keypad * mColliderKeypad;
+	unique_ptr<Keypad> mColliderKeypad;
 	shared_ptr<Door> mColliderDoorToUnlock;
 
 	shared_ptr<Door> mLockedDoor;

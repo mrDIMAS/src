@@ -67,8 +67,8 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 
 			shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 			if( camera ) {
-				if( fabs( particleEmitter->mDepthHack ) > 0.001 ) {
-					camera->EnterDepthHack( fabs( particleEmitter->mDepthHack ));
+				if( fabs( particleEmitter->GetDepthHack() ) > 0.001 ) {
+					camera->EnterDepthHack( fabs( particleEmitter->GetDepthHack() ));
 				}
 
 				if( particleEmitter->mUseLighting ) {
@@ -115,7 +115,7 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 					particleEmitter->Render();
 				}
 		
-				if( fabs( particleEmitter->mDepthHack ) > 0.001 ) {
+				if( fabs( particleEmitter->GetDepthHack() ) > 0.001 ) {
 					camera->LeaveDepthHack();
 				}
 			}

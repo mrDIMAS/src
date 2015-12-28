@@ -7,10 +7,10 @@ private:
     float mValue;
     float mfMinimum, mfMaximum;
     float mfStep;
-    ruButton * mGUIIncreaseButton;
-    ruButton * mGUIDecreaseButton;
-    ruText * mGUIText;
-    ruText * mGUIValueText;
+    shared_ptr<ruButton> mGUIIncreaseButton;
+    shared_ptr<ruButton> mGUIDecreaseButton;
+    shared_ptr<ruText> mGUIText;
+    shared_ptr<ruText> mGUIValueText;
 	void UpdateText();
 	void OnIncreaseClick();
 	void OnDecreaseClick();
@@ -19,7 +19,7 @@ public:
     float GetValue();
     void SetValue( float value );
     ~Slider();
-    void AttachTo( ruGUINode * node );
+    void AttachTo( shared_ptr<ruGUINode> node );
 	void SetChangeAction( const ruDelegate & action );
 	int GetWidth();
 	int GetHeight();

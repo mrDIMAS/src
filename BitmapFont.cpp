@@ -24,17 +24,13 @@
 #include "BitmapFont.h"
 #include "Utility.h"
 
-vector< BitmapFont* > BitmapFont::fonts;
-
 BitmapFont::BitmapFont( const string & file, int size ) {
 	mGlyphSize = size;
 	mSourceFile = file;
 	Create();
-	BitmapFont::fonts.push_back( this );
 }
 
 BitmapFont::~BitmapFont() {
-	BitmapFont::fonts.erase( find( BitmapFont::fonts.begin(), BitmapFont::fonts.end(), this ));
 	mAtlas.Reset();	
 }
 
@@ -151,12 +147,9 @@ void BitmapFont::Create()
 	FT_Done_FreeType( ftLibrary );
 }
 
-void ruFont::Free() {
-	delete this;
-}
-
-ruFont * ruFont::LoadFromFile( int size, const string & name ) {
-	return new BitmapFont( name, size );
+shared_ptr<ruFont> ruFont::LoadFromFile( int size, const string & name )
+{
+	return shared_ptr<BitmapFont>( new BitmapFont( name, size ));
 }
 
 ruFont::~ruFont() {

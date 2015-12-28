@@ -14,9 +14,9 @@
 #include "LevelSewers.h"
 #include "LevelCutsceneIntro.h"
 
-ruText * Level::msGUILoadingText;
-ruRect * Level::msGUILoadingBackground;
-ruFont * Level::msGUIFont;
+shared_ptr<ruText> Level::msGUILoadingText;
+shared_ptr<ruRect> Level::msGUILoadingBackground;
+shared_ptr<ruFont> Level::msGUIFont;
 
 int g_initialLevel;
 Level * pCurrentLevel = 0;
@@ -386,7 +386,9 @@ void Level::AddLamp( const shared_ptr<Lamp> & lamp ) {
 }
 
 void Level::UpdateGenericObjectsIdle() {
-	mMusic->SetVolume( pMainMenu->GetMusicVolume() );
+	if( mMusic ) {
+		mMusic->SetVolume( pMainMenu->GetMusicVolume() );
+	}
 
 	for( auto pLamp : mLampList ) {
 		pLamp->Update();
@@ -443,13 +445,11 @@ void Level::AddZone( const shared_ptr<Zone> & zone ) {
 	mZoneList.push_back( zone );
 }
 
-void Level::AddButton( Button * button )
-{
+void Level::AddButton( Button * button ) {
 	mButtonList.push_back( button );
 }
 
-void Level::AddInteractiveObject( const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction )
-{
+void Level::AddInteractiveObject( const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction ) {
 	io->OnInteract.AddListener( interactAction );
 	io->SetPickDescription( desc );
 	mInteractiveObjectList.push_back( io );

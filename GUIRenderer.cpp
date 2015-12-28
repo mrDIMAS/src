@@ -29,6 +29,7 @@
 #include "TextRenderer.h"
 #include "BitmapFont.h"
 #include "Engine.h"
+#include "GUIFactory.h"
 
 GUIRenderer::GUIRenderer() {
    Initialize();
@@ -50,44 +51,56 @@ void GUIRenderer::RenderAllGUIElements() {
     Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
     Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
 
-	for( auto pNode : GUINode::msNodeList ) {
-		pNode->DoActions();
+	auto & nodes = GUIFactory::GetNodeList();
+	for( auto & nWeak : nodes ) {
+		shared_ptr<GUINode> & pNode = nWeak.lock();
+		if( pNode ) {
+			pNode->DoActions();
+		}
 	}
 
-    for( auto pRect : GUIRect::msRectList ) {
-        if( pRect->IsVisible() ) {
-            RenderRect( pRect );
+	auto & rects = GUIFactory::GetRectList();
+    for( auto & rWeak : rects ) {
+		shared_ptr<GUIRect> & pRect = rWeak.lock();
+		if( pRect ) {
+			if( pRect->IsVisible() ) {
+				RenderRect( pRect );
+			}
         }
     }
 
-    for( auto pText : GUIText::msTextList ) {
-        if( pText->IsVisible() ) {
-            Engine::I().GetTextRenderer()->RenderText( pText );
-        }
+	auto & texts = GUIFactory::GetTextList();
+    for( auto tWeak : texts ) {
+		shared_ptr<GUIText> & pText = tWeak.lock();
+		if( pText ) {
+			if( pText->IsVisible() ) {
+				Engine::I().GetTextRenderer()->RenderText( pText );
+			}
+		}
     }
-
-    if( Cursor::msCurrentCursor ) {
+	
+    if( Engine::I().GetCursor() ) {
         Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
-        if( Cursor::msCurrentCursor->IsVisible() ) {
-            Cursor::msCurrentCursor->SetPosition( ruInput::GetMouseX(), ruInput::GetMouseY());
-            RenderRect( Cursor::msCurrentCursor );
+        if( Engine::I().GetCursor()->IsVisible() ) {
+            Engine::I().GetCursor()->SetPosition( ruInput::GetMouseX(), ruInput::GetMouseY());
+            RenderRect( Engine::I().GetCursor() );
         }
     }
 }
 
 
-void GUIRenderer::RenderRect( GUIRect * rect ) {
-	if( !rect->GetTexture() )  {
+void GUIRenderer::RenderRect( const shared_ptr<GUIRect> & r ) {
+	if( !r->GetTexture() )  {
 		return;
 	}
     void * data = nullptr;
     Vertex2D vertices[6];
-	rect->CalculateTransform();
-    rect->GetSixVertices( vertices );
+	r->CalculateTransform();
+    r->GetSixVertices( vertices );
     mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD );
     memcpy( data, vertices, mSizeOfRectBytes );
     mVertexBuffer->Unlock( );
-    std::dynamic_pointer_cast<Texture>(rect->GetTexture())->Bind( 0 );
+    std::dynamic_pointer_cast<Texture>(r->GetTexture())->Bind( 0 );
     Engine::I().RegisterDIP();
     Engine::I().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 }

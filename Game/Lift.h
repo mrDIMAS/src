@@ -15,15 +15,15 @@ private:
     shared_ptr<ruSceneNode> mDoorFrontRightNode;
     shared_ptr<ruSceneNode> mDoorBackLeftNode;
     shared_ptr<ruSceneNode> mDoorBackRightNode;
-    bool mArrived;
-	bool mPaused;
-	bool mEngineSoundEnabled;
-	float mSpeedMultiplier;
     shared_ptr<ruSound> mMotorSound;
 	unique_ptr<LiftDoor> mDoorFrontLeft;
 	unique_ptr<LiftDoor> mDoorFrontRight;
 	unique_ptr<LiftDoor> mDoorBackLeft;
 	unique_ptr<LiftDoor> mDoorBackRight;
+	bool mArrived;
+	bool mPaused;
+	bool mEngineSoundEnabled;
+	float mSpeedMultiplier;
 public:
     explicit Lift( shared_ptr<ruSceneNode> base );
     virtual ~Lift( );

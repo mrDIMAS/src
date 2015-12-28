@@ -33,17 +33,14 @@
 #include "Engine.h"
 #include "SceneFactory.h"
 
-bool SceneNode::IsRenderable() {
-    return IsVisible();
-}
-
 void SceneNode::AutoName() {
-	mName = StringBuilder( "Unnamed" ) << SceneFactory::GetNodeList().size();
+	static unsigned int uniqueNum = 0;
+	mName = StringBuilder( "Unnamed" ) << uniqueNum++;
 }
 
 SceneNode::SceneNode( ) : mStatic( false ),  mInFrustum( false ), mTotalFrameCount( 0 ),
 						  mIsSkinned( false ), mVisible( true ), mContactCount( 0 ),
-						  mFrozen( false ), mIsBone( false ), mDepthHack( 0.0f ),
+						  mFrozen( false ), mIsBone( false ), mDepthHack( 0.0f ), mCollisionEnabled( true ),
 						  mAlbedo( 0.0f ), mCurrentAnimation( nullptr ), mBlurAmount( 0.0f )  {
 	AutoName();    
     mLocalTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
@@ -83,8 +80,6 @@ void SceneNode::SetConvexBody() {
     convex->calculateLocalInertia ( 1, inertia );
     SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), static_cast<btCollisionShape*>( convex ), inertia ));
 }
-
-
 
 void SceneNode::SetCapsuleBody( float height, float radius ) {
     btCollisionShape * shape = new btCapsuleShape ( radius, height );
@@ -231,8 +226,7 @@ ruVector3 SceneNode::GetAABBMax() {
     return max;
 }
 
-shared_ptr<SceneNode> SceneNode::Find( const shared_ptr<SceneNode> parent, string childName )
-{
+shared_ptr<SceneNode> SceneNode::Find( const shared_ptr<SceneNode> parent, string childName ) {
     for( auto & child : parent->mChildList ) {
 		if( child->mName == childName ) {
 			return child;
@@ -328,9 +322,8 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
 				mesh->SetNormalTexture( Texture::Request( Engine::I().GetTextureStoragePath() + normal ));
 				// try to load height map
 				string height = diffuse.substr( 0, diffuse.find_first_of( '.' )) + "_height" + diffuse.substr( diffuse.find_first_of( '.' ));
-				mesh->SetHeightTexture( Texture::Request( Engine::I().GetTextureStoragePath() + height ));
-				if( !mesh->GetHeightTexture() ) {
-					Log::Write( "WARNING: Unable to use Parallax Occlusion Mapping, no height map loaded. Using Bump Mapping instead." );
+				if( FileExist( Engine::I().GetTextureStoragePath() + height )) {
+					mesh->SetHeightTexture( Texture::Request( Engine::I().GetTextureStoragePath() + height ));
 				}
 			}
             node->AddMesh( mesh );
@@ -421,7 +414,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
     }
 
 	for( auto & node : scene->mChildList ) {
-		node->mInvBoneBindTransform = node->CalculateGlobalTransform().inverse();		
+		node->mInverseBindTransform = node->CalculateGlobalTransform().inverse();		
     }
 
     return scene;
@@ -431,10 +424,10 @@ void SceneNode::PerformAnimation() {
     if( !mIsSkinned ) {
 		if( mCurrentAnimation ) {
 			if ( mKeyframeList.size() ) {
-				unique_ptr<btTransform> & currentFrameTransform = mKeyframeList[ mCurrentAnimation->currentFrame ];
-				unique_ptr<btTransform> & nextFrameTransform = mKeyframeList[ mCurrentAnimation->nextFrame ];
-				mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->interpolator ));
-				mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->interpolator ));
+				unique_ptr<btTransform> & currentFrameTransform = mKeyframeList[ mCurrentAnimation->GetCurrentFrame() ];
+				unique_ptr<btTransform> & nextFrameTransform = mKeyframeList[ mCurrentAnimation->GetNextFrame() ];
+				mLocalTransform.setRotation( currentFrameTransform->getRotation().slerp( nextFrameTransform->getRotation(), mCurrentAnimation->GetInterpolator() ));
+				mLocalTransform.setOrigin( currentFrameTransform->getOrigin().lerp( nextFrameTransform->getOrigin(), mCurrentAnimation->GetInterpolator() ));
 			}            
 		}
     };
@@ -615,7 +608,7 @@ void SceneNode::SetLinearFactor( ruVector3 lin ) {
     }
 }
 
-ruVector3 SceneNode::GetPosition() {
+ruVector3 SceneNode::GetPosition() const {
     btVector3 pos = mGlobalTransform.getOrigin();
     return ruVector3( pos.x(), pos.y(), pos.z() );
 }
@@ -838,7 +831,8 @@ void SceneNode::SetLocalScale( ruVector3 scale ) {
 	}
 }
 
-ruVector3 SceneNode::GetLookVector() {
+ruVector3 SceneNode::GetLookVector() const
+{
     btVector3 look = mLocalTransform.getBasis().getColumn ( 2 );
     return ruVector3( look.x(), look.y(), look.z() );
 }
@@ -848,21 +842,23 @@ ruVector3 SceneNode::GetAbsoluteLookVector() {
     return ruVector3( look.x(), look.y(), look.z() );
 }
 
-const string & SceneNode::GetName() {
+const string SceneNode::GetName() {
     return mName;
 }
 
-ruVector3 SceneNode::GetRightVector() {
+ruVector3 SceneNode::GetRightVector() const
+{
     btVector3 right = mLocalTransform.getBasis().getColumn ( 0 );
     return ruVector3( right.x(), right.y(), right.z() );
 }
 
-ruVector3 SceneNode::GetUpVector() {
+ruVector3 SceneNode::GetUpVector() const
+{
     btVector3 up = mLocalTransform.getBasis().getColumn ( 1 );
     return ruVector3( up.x(), up.y(), up.z() );
 }
 
-btTransform & SceneNode::GetGlobalTransform() {
+btTransform SceneNode::GetGlobalTransform() const {
     return mGlobalTransform;
 }
 
@@ -882,8 +878,8 @@ ruVector3 SceneNode::GetLocalPosition() {
     return lp;
 }
 
-shared_ptr<SceneNode>  FindChildInNode( shared_ptr<SceneNode> node, const string & name ) {
-	if( node->mName == name ) {
+shared_ptr<SceneNode> SceneNode::FindChildInNode( shared_ptr<SceneNode> node, const string & name ) {
+	if( node->GetName() == name ) {
 		return node;
 	}	
 	for( auto & child : node->mChildList ) {
@@ -1127,6 +1123,94 @@ void SceneNode::AddMesh( const shared_ptr<Mesh> & mesh ) {
 	mMeshList.push_back( mesh );
 }
 
+void SceneNode::CheckFrustum( Camera * pCamera )
+{
+	mInFrustum = false;
+	for( auto & mesh : mMeshList ) {
+		mInFrustum |= pCamera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), GetPosition() );
+	}
+}
+
+btTransform SceneNode::GetRelativeTransform()
+{
+	return mGlobalTransform * mInverseBindTransform;
+}
+
+btTransform SceneNode::GetInverseBindTransform()
+{
+	return mInverseBindTransform;
+}
+
+btTransform SceneNode::GetLocalTransform()
+{
+	return mLocalTransform;
+}
+
+int SceneNode::GetMeshCount() const
+{
+	return mMeshList.size();
+}
+
+void SceneNode::MakeBone()
+{
+	mIsBone = true;
+}
+
+D3DXMATRIX SceneNode::GetWorldMatrix()
+{
+	D3DXMATRIX outMatrix;
+	btVector3 R = mGlobalTransform.getBasis().getColumn ( 0 );
+	btVector3 U = mGlobalTransform.getBasis().getColumn ( 1 );
+	btVector3 L = mGlobalTransform.getBasis().getColumn ( 2 );
+	btVector3 P = mGlobalTransform.getOrigin();
+	outMatrix._11 = R.x();
+	outMatrix._12 = R.y();
+	outMatrix._13 = R.z();
+	outMatrix._14 = 0.0f;
+	outMatrix._21 = U.x();
+	outMatrix._22 = U.y();
+	outMatrix._23 = U.z();
+	outMatrix._24 = 0.0f;
+	outMatrix._31 = L.x();
+	outMatrix._32 = L.y();
+	outMatrix._33 = L.z();
+	outMatrix._34 = 0.0f;
+	outMatrix._41 = P.x();
+	outMatrix._42 = P.y();
+	outMatrix._43 = P.z();
+	outMatrix._44 = 1.0f;
+	return outMatrix;
+}
+
+bool SceneNode::IsBone() const
+{
+	return mIsBone;
+}
+
+float SceneNode::GetAlbedo() const
+{
+	return mAlbedo;
+}
+
+float SceneNode::GetDepthHack() const
+{
+	return mDepthHack;
+}
+
+bool SceneNode::IsSkinned() const
+{
+	return mIsSkinned;
+}
+
+shared_ptr<Mesh> SceneNode::GetMesh( int n )
+{
+	try {
+		return mMeshList.at( n );
+	} catch( std::out_of_range ) {
+		return nullptr;
+	}
+}
+
 shared_ptr<ruSceneNode> ruSceneNode::Create( ) {
 	return SceneFactory::CreateSceneNode();
 }
@@ -1153,8 +1237,4 @@ shared_ptr<ruSceneNode> ruSceneNode::GetWorldObject( int i ) {
 
 ruSceneNode::~ruSceneNode( ) {
 
-}
-
-void ruObject::Free() {
-	delete this;
 }

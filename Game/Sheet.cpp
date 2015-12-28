@@ -3,7 +3,7 @@
 #include "GUIProperties.h"
 
 vector<Sheet*> Sheet::msSheetList;
-ruFont * Sheet::msSheetFont;
+shared_ptr<ruFont> Sheet::msSheetFont;
 
 Sheet::Sheet( shared_ptr<ruSceneNode> object, string desc, string text ) : InteractiveObject( object ), mText( text ), mDescription( desc ) {
     mBackgroundTexture = ruTexture::Request( "data/gui/sheet.tga" );
@@ -53,8 +53,6 @@ void Sheet::SetText( const string & text ) {
 }
 
 Sheet::~Sheet() {
-    mGUIBackground->Free();
-    mGUIText->Free();
     msSheetList.erase( find( msSheetList.begin(), msSheetList.end(), this ));
 }
 

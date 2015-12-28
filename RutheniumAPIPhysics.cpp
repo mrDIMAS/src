@@ -76,14 +76,13 @@ ruRayCastResultEx ruPhysics::CastRayEx( ruVector3 begin, ruVector3 end ) {
 				result.normal.x = rayCallback.m_hitNormalWorld.x();
 				result.normal.y = rayCallback.m_hitNormalWorld.y();
 				result.normal.z = rayCallback.m_hitNormalWorld.z();
-				if( node->mMeshList.size() ) {
+				if( node->GetMeshCount() ) {
 					int index = rayCallback.m_collisionObject->getUserIndex();
 					result.index = index;
 					if( index >= 0 ) {
-						try {
-							result.textureName = node->mMeshList.at( index )->GetDiffuseTexture()->GetName();
-						} catch( ... ) {
-							// do nothing
+						shared_ptr<Mesh> & mesh = node->GetMesh( index );
+						if( mesh ) {
+							result.textureName = mesh->GetDiffuseTexture()->GetName();
 						}
 					}
 				}
@@ -122,7 +121,7 @@ shared_ptr<ruSceneNode> ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoi
 		D3DXVec3TransformCoord ( &coord, &coord, &matinv );
 
 		btVector3 rayEnd = btVector3 ( coord.x, coord.y, coord.z );
-		btVector3 rayBegin = camera->mGlobalTransform.getOrigin();
+		btVector3 rayBegin = camera->GetGlobalTransform().getOrigin();
 
 		btCollisionWorld::ClosestRayResultCallback rayCallback ( rayBegin, rayEnd );
 		Physics::mpDynamicsWorld->rayTest ( rayBegin, rayEnd, rayCallback );

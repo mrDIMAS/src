@@ -34,8 +34,8 @@ class Light : public virtual ruLight, public SceneNode {
 public:
 	COMPtr<IDirect3DQuery9> pQuery;
 	bool mQueryDone;
-	bool mInFrustum;   
     float mRadius;
+	int mInFrustum;
     ruVector3 mColor;
 	float mGreyScaleFactor;
     static vector<Light*> msLightList;

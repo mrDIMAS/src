@@ -24,84 +24,77 @@
 
 #include "SceneNode.h"
 
-vector<ruAnimation*> ruAnimation::msAnimationList;
-
 ruAnimation::ruAnimation() {
-    looped = false;
-    beginFrame = 0;
-    endFrame = 0;
-    currentFrame = 0;
-    duration = 0.0f;
-    interpolator = 0.0f;
-    nextFrame = 0;
-	enabled = false;
-	msAnimationList.push_back( this );
+    mLooped = false;
+    mBeginFrame = 0;
+    mEndFrame = 0;
+    mCurrentFrame = 0;
+    mDuration = 0.0f;
+    mInterpolator = 0.0f;
+    mNextFrame = 0;
+	mEnabled = false;
 }
 
 ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped ) {
-    currentFrame = theBeginFrame;
-    nextFrame = currentFrame + 1;
-    beginFrame = theBeginFrame;
-    endFrame = theEndFrame;
-    duration = theDuration;
-    looped = theLooped;
-	enabled = false;
-    interpolator = 0.0f;
-	msAnimationList.push_back( this );
+    mCurrentFrame = theBeginFrame;
+    mNextFrame = mCurrentFrame + 1;
+    mBeginFrame = theBeginFrame;
+    mEndFrame = theEndFrame;
+    mDuration = theDuration;
+    mLooped = theLooped;
+	mEnabled = false;
+    mInterpolator = 0.0f;
 }
 
 ruAnimation::~ruAnimation() {
-	auto iter = find( msAnimationList.begin(), msAnimationList.end(), this );
-	if( iter != msAnimationList.end() ) {
-		msAnimationList.erase( iter );
-	}
+
 }
 
 void ruAnimation::AddFrameListener( int frameNum, const ruDelegate & action ) {
-	if( frameNum >= 0 || frameNum < endFrame ) {
+	if( frameNum >= 0 || frameNum < mEndFrame ) {
 		mFrameListenerList[ frameNum ] = AnimationEvent();
 		mFrameListenerList[ frameNum ].Event.AddListener( action );
 	}
 }
 
 void ruAnimation::Rewind() {
-	currentFrame = beginFrame;
-	nextFrame = beginFrame + 1;
-	interpolator = 0.0f;
+	mCurrentFrame = mBeginFrame;
+	mNextFrame = mBeginFrame + 1;
+	mInterpolator = 0.0f;
 	for( auto & frameActionPair : mFrameListenerList ) {
 		frameActionPair.second.mState = false;
 	}
 }
 
 void ruAnimation::Update( float dt ) {
-	if( enabled ) {
-		if ( interpolator >= 1.0f ) {
-			currentFrame++;
+	if( mEnabled ) {
+		if ( mInterpolator >= 1.0f ) {
+			mCurrentFrame++;
 			// get next frame number
-			if( currentFrame > endFrame ) {
-				currentFrame = beginFrame;
-				nextFrame = currentFrame + 1;
-			} else if( currentFrame == endFrame ) { 
-				if ( !looped ) {
-					enabled = false;
+			if( mCurrentFrame > mEndFrame ) {
+				mCurrentFrame = mBeginFrame;
+				mNextFrame = mCurrentFrame + 1;
+			} else if( mCurrentFrame == mEndFrame ) { 
+				if ( !mLooped ) {
+					mEnabled = false;
 				}
-				nextFrame = beginFrame;
+				mNextFrame = mBeginFrame;
 				for( auto & frameActionPair : mFrameListenerList ) {
 					frameActionPair.second.mState = false;
 				}
 			} else {
-				nextFrame = currentFrame + 1;
+				mNextFrame = mCurrentFrame + 1;
 			}	
-			interpolator = 0.0f;
+			mInterpolator = 0.0f;
 		}
 
-		if( enabled ) {
-			interpolator += dt * ( ( endFrame - beginFrame ) / duration );
+		if( mEnabled ) {
+			mInterpolator += dt * ( ( mEndFrame - mBeginFrame ) / mDuration );
 		}
 
 		for( auto & frameActionPair : mFrameListenerList ) {
 			if( !frameActionPair.second.mState ) {
-				if( currentFrame == frameActionPair.first ) {
+				if( mCurrentFrame == frameActionPair.first ) {
 					frameActionPair.second.Event.DoActions();
 					frameActionPair.second.mState = true;
 				}
@@ -111,30 +104,64 @@ void ruAnimation::Update( float dt ) {
 }
 
 void ruAnimation::SetCurrentFrame( int frame ) {
-    currentFrame = frame;
+    mCurrentFrame = frame;
     // range check
-    if( currentFrame >= ( endFrame - 1 ) ) {
-        currentFrame  = ( endFrame - 1 );
+    if( mCurrentFrame >= ( mEndFrame - 1 ) ) {
+        mCurrentFrame  = ( mEndFrame - 1 );
     }
-    if( currentFrame < beginFrame ) {
-        currentFrame = beginFrame;
+    if( mCurrentFrame < mBeginFrame ) {
+        mCurrentFrame = mBeginFrame;
     }
 }
 
 void ruAnimation::SetFrameInterval( int begin, int end ) {
-    beginFrame = begin;
-    endFrame = end;
+    mBeginFrame = begin;
+    mEndFrame = end;
     // swap if needed
-    if( beginFrame > endFrame ) {
-        int temp = beginFrame;
-        beginFrame = endFrame;
-        endFrame = temp;
+    if( mBeginFrame > mEndFrame ) {
+        int temp = mBeginFrame;
+        mBeginFrame = mEndFrame;
+        mEndFrame = temp;
     }
     // range check
-    if( beginFrame < 0 ) {
-        beginFrame = 0;
+    if( mBeginFrame < 0 ) {
+        mBeginFrame = 0;
     }
-    if( endFrame < 0 ) {
-        endFrame = 0;
+    if( mEndFrame < 0 ) {
+        mEndFrame = 0;
     }
+}
+
+int ruAnimation::GetCurrentFrame() const {
+	return mCurrentFrame;
+}
+int ruAnimation::GetEndFrame() const {
+	return mEndFrame;
+}
+int ruAnimation::GetBeginFrame() const {
+	return mBeginFrame;
+}
+int ruAnimation::GetNextFrame() const {
+	return mNextFrame;
+}
+void ruAnimation::SetName( const string & newName ) {
+	mName = newName;
+}
+float ruAnimation::GetInterpolator() const {
+	return mInterpolator;
+}
+string ruAnimation::GetName( ) const {
+	return mName;
+}
+void ruAnimation::SetDuration( float duration ) {
+	mDuration = duration;
+}
+float ruAnimation::GetDuration( ) const {
+	return mDuration;
+}
+void ruAnimation::SetEnabled( bool state ) {
+	mEnabled = state;
+}
+bool ruAnimation::IsEnabled() const {
+	return mEnabled;
 }

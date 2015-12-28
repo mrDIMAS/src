@@ -22,11 +22,10 @@
 #include "Precompiled.h"
 
 #include "GUIText.h"
-
-vector<GUIText*> GUIText::msTextList;
+#include "GUIFactory.h"
 
 GUIText::GUIText( const string & theText, float theX, float theY, float theWidth,
-                  float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, BitmapFont * theFont ) {
+                  float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign,  const shared_ptr<BitmapFont> & theFont ) {
     mX = theX;
     mY = theY;
     mWidth = theWidth;
@@ -37,11 +36,10 @@ GUIText::GUIText( const string & theText, float theX, float theY, float theWidth
     SetColor( theColor );
     SetAlpha( theAlpha );
     mVisible = true;
-    msTextList.push_back( this );
 }
 
 GUIText::~GUIText() {
-    msTextList.erase( find( msTextList.begin(), msTextList.end(), this ));
+
 }
 
 RECT GUIText::GetBoundingRect() {
@@ -53,7 +51,7 @@ RECT GUIText::GetBoundingRect() {
     return mRect;
 }
 
-BitmapFont * GUIText::GetFont() {
+shared_ptr<BitmapFont> GUIText::GetFont() {
     return mFont;
 }
 
@@ -69,6 +67,6 @@ void GUIText::SetText( const string & text ) {
 	mText = text;
 }
 
-ruText * ruText::Create( const string & text, int x, int y, int w, int h, ruFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha ) {
-	return new GUIText( text, x, y, w, h, color, alpha, textAlign, dynamic_cast<BitmapFont*>( font ));
+shared_ptr<ruText> ruText::Create( const string & text, int x, int y, int w, int h, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha /*= 255 */ ) {
+	return GUIFactory::CreateText( text, x, y, w, h, color, alpha, textAlign, std::dynamic_pointer_cast<BitmapFont>( font ));
 }

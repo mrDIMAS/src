@@ -53,6 +53,5 @@ void Tip::SetVisible( bool state ) {
 }
 
 Tip::~Tip() {
-	mGUIText->Free();
-	mTimer->Free();
+
 }

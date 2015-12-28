@@ -26,7 +26,7 @@ void ModalWindow::Ask( const string & text ) {
 	mCanvas->SetVisible( true );
 }
 
-void ModalWindow::AttachTo( ruGUINode * node ) {
+void ModalWindow::AttachTo( shared_ptr<ruGUINode> node ) {
 	mCanvas->Attach( node );
 }
 

@@ -9,7 +9,7 @@ private:
     float mTimeToNextSoundSec;
     float mTimeMinSec;
     float mTimeMaxSec;
-    ruTimer * mTimer;
+    shared_ptr<ruTimer> mTimer;
 public:
     AmbientSoundSet();
 	~AmbientSoundSet();

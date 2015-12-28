@@ -349,51 +349,43 @@ struct ruContact;
 // Animation
 class ruAnimation {
 private:
-	friend class SceneNode;
-	int beginFrame;
-	int endFrame;
-	int currentFrame;
-	int nextFrame;
-	float interpolator;
+	int mBeginFrame;
+	int mEndFrame;
+	int mCurrentFrame;
+	int mNextFrame;
+	float mInterpolator;
+	float mDuration;
+	bool mLooped;
+	bool mEnabled;
 	string mName;
+
 	class AnimationEvent {
 	public:
 		bool mState;
 		ruEvent Event;
 		AnimationEvent( ) : mState( false ) { }
 	};
+
 	// list of actions, which must be done on n-th frame 
 	unordered_map<int,AnimationEvent> mFrameListenerList;
 public:
-	// list of all animations
-	static vector<ruAnimation*> msAnimationList;
-	float duration;
-	bool looped;
-	bool enabled;
-	
-	explicit ruAnimation();
-	explicit ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped = false );
+	ruAnimation();
+	ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped = false );
 	virtual ~ruAnimation();
+
 	void SetFrameInterval( int begin, int end );
 	void SetCurrentFrame( int frame );
-	int GetCurrentFrame() {
-		return currentFrame;
-	}
-	int GetEndFrame() {
-		return endFrame;
-	}
-	int GetBeginFrame() {
-		return beginFrame;
-	}
-	int GetNextFrame() {
-		return nextFrame;
-	}
-	void SetName( const string & newName ) {
-		mName = newName;
-	}
-	string GetName( ) {
-		return mName;
-	}
+	int GetCurrentFrame() const;
+	int GetEndFrame() const;
+	int GetBeginFrame() const;
+	int GetNextFrame() const;
+	void SetName( const string & newName );
+	float GetInterpolator() const;
+	string GetName( ) const;
+	void SetDuration( float duration );
+	float GetDuration( ) const;
+	void SetEnabled( bool state );
+	bool IsEnabled() const;
 	void AddFrameListener( int frameNum, const ruDelegate & action );
 	void Rewind();
 	void Update( float dt = 1.0f / 60.0f );
@@ -403,13 +395,6 @@ enum class BodyType : int {
 	None, Sphere, Cylinder,	Box, Trimesh, Convex
 };
 
-class ruObject {
-protected:
-	virtual ~ruObject() { };
-public:
-	virtual void Free();
-};
-
 class ruTexture {
 public:	
 	virtual ~ruTexture();
@@ -417,6 +402,7 @@ public:
 	virtual string GetName() = 0;
 	virtual int GetWidth() = 0;
 	virtual int GetHeight() = 0;
+	virtual int GetColorDepth() = 0;
 };
 
 class ruCubeTexture {
@@ -435,7 +421,7 @@ public:
 	virtual void Hide() = 0;
 	virtual void Show() = 0;
 	virtual bool IsVisible() = 0;	
-	virtual const string & GetName() = 0;
+	virtual const string GetName() = 0;
 	virtual void SetDepthHack( float order ) = 0;
 	virtual void Attach( const shared_ptr<ruSceneNode> & parent ) = 0;
 	virtual void Detach() = 0;
@@ -443,10 +429,10 @@ public:
 	virtual void SetPosition( ruVector3 position ) = 0;
 	virtual void SetRotation( ruQuaternion rotation ) = 0;
 	virtual void SetGravity( const ruVector3 & gravity ) = 0;
-	virtual ruVector3 GetLookVector() = 0;
-	virtual ruVector3 GetRightVector() = 0;
-	virtual ruVector3 GetUpVector() = 0;
-	virtual ruVector3 GetPosition() = 0;
+	virtual ruVector3 GetLookVector() const = 0;
+	virtual ruVector3 GetRightVector() const = 0;
+	virtual ruVector3 GetUpVector() const = 0;
+	virtual ruVector3 GetPosition() const = 0;
 	virtual void SetMass( float mass ) = 0;
 	virtual ruQuaternion GetLocalRotation() = 0;
 	virtual ruVector3 GetLocalPosition() = 0;
@@ -493,8 +479,14 @@ public:
 	virtual void AddTorque( ruVector3 torque ) = 0;
 	virtual shared_ptr<ruSceneNode> GetParent() = 0;
 	virtual int GetTextureCount() = 0;
+	virtual bool IsSkinned() const = 0;
+	virtual float GetDepthHack() const = 0;
+	virtual float GetAlbedo() const = 0;
+	virtual bool IsBone() const = 0;
+	virtual int GetMeshCount() const = 0;
+	virtual void SetCollisionEnabled( bool state ) = 0;
+	virtual bool IsCollisionEnabled( ) const = 0;
 	virtual shared_ptr<ruSceneNode> FindChild( const string & name ) = 0;
-	//virtual void Free();
 	static shared_ptr<ruSceneNode> Create( );
 	static shared_ptr<ruSceneNode> LoadFromFile( const string & file );
 	static shared_ptr<ruSceneNode> FindByName( const string & name );
@@ -544,6 +536,7 @@ public:
 	float GetLength();
 	void SetLoop( bool state );
 	float GetPlaybackPosition( );
+	void Stop();
 	void SetPlaybackPosition( float timeSeconds );
 };
 
@@ -559,15 +552,14 @@ class ruFont {
 protected:
 	virtual ~ruFont();
 public:	
-	static ruFont * LoadFromFile( int size, const string & name );
-	virtual void Free();
+	static shared_ptr<ruFont> LoadFromFile( int size, const string & name );
 };
 
-class ruGUINode : public ruObject {
+class ruGUINode {
 protected:
 	virtual ~ruGUINode();
 public:	
-    virtual void Attach( ruGUINode * parent ) = 0;
+    virtual void Attach( const shared_ptr<ruGUINode> & parent ) = 0;
 	virtual void AddAction( ruGUIAction action, const ruDelegate & delegat ) = 0;
 	virtual void RemoveAction( ruGUIAction action ) = 0;
 	virtual void RemoveAllActions() = 0;
@@ -580,33 +572,32 @@ public:
 	virtual ruVector2 GetPosition() = 0;
 	virtual ruVector2 GetSize() = 0;
 	virtual ruVector3 GetColor() = 0;
-	virtual void SetTexture( shared_ptr<ruTexture> pTexture ) = 0;
+	virtual void SetTexture( const shared_ptr<ruTexture> & pTexture ) = 0;
 	virtual int GetAlpha() = 0;
-	//virtual void Free();
 	virtual void SetChildAlphaControl( bool controlChildAlpha ) = 0;
 	virtual shared_ptr<ruTexture> GetTexture( ) = 0;
 };
 
 class ruRect : public virtual ruGUINode {
 public:
-	static ruRect * Create( float x, float y, float w, float h, shared_ptr<ruTexture> texture, ruVector3 color = ruVector3( 255, 255, 255 ), int alpha = 255 );
+	static shared_ptr<ruRect> Create( float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3 theColor = ruVector3( 255, 255, 255 ), int theAlpha = 255 );
 };
 
 class ruText : public virtual ruGUINode {
 public:
-	static ruText * Create( const string & text, int x, int y, int w, int h, ruFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha = 255 );
+	static shared_ptr<ruText> Create( const string & text, int x, int y, int w, int h, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha = 255 );
 	virtual void SetText( const string & text ) = 0;
 };
 
 class ruButton : public virtual ruRect {
 public:
-	static ruButton * Create( int x, int y, int w, int h, shared_ptr<ruTexture> texture, const string & text, ruFont * font, ruVector3 color, ruTextAlignment textAlign, int alpha = 255 );
+	static shared_ptr<ruButton> Create( int x, int y, int w, int h, const shared_ptr<ruTexture> & texture, const string & text, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha = 255 );
 	virtual bool IsPressed() = 0;
 	virtual bool IsHit() const = 0;
 	virtual bool IsRightPressed() = 0;
 	virtual bool IsRightHit() const = 0;
 	virtual bool IsPicked() = 0;
-	virtual ruText * GetText() = 0;
+	virtual shared_ptr<ruText> GetText() = 0;
 	virtual void SetActive( bool state ) = 0;
 	virtual void SetPickedColor(ruVector3 val ) = 0;
 	virtual ruVector3 GetPickedColor() const = 0;
@@ -714,11 +705,11 @@ public:
 	virtual void SetFOV( float fov ) = 0;
 };
 
-class ruTimer : public ruObject {
+class ruTimer {
 protected:
 	virtual ~ruTimer();
 public:
-	static ruTimer * Create( );
+	static shared_ptr<ruTimer> Create( );
 	virtual void Restart() = 0;
 	virtual double GetTimeInSeconds() = 0;
 	virtual double GetTimeInMilliSeconds() = 0;

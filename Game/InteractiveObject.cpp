@@ -40,22 +40,12 @@ void InteractiveObject::UpdateFlashing() {
     }
 }
 
-InteractiveObject::InteractiveObject( shared_ptr<ruSceneNode> object ) : mInteractCountLeft( 1 ) {
+InteractiveObject::InteractiveObject( shared_ptr<ruSceneNode> object ) : mInteractCountLeft( 1 ), mFlashAlbedo( 0.2f ), mFlashAlbedoTo( 1.0f ), mFlashSpeed( 0.075f ), mFlashDirection( true ), mObject( object ) {
     msObjectList.push_back( this );
-    this->mObject = object;
-    object->Freeze();
-    mFlashAlbedo = 0.2f;
-    mFlashAlbedoTo = 1.0f;
-    mFlashSpeed = 0.075f;
-    mFlashDirection = true;
+    mObject->Freeze();         
 }
 
-InteractiveObject::InteractiveObject()
-{
-	mFlashAlbedo = 0.0f;
-	mFlashAlbedoTo = 0.0f;
-	mFlashSpeed = 0.0f;
-	mFlashDirection = false;
+InteractiveObject::InteractiveObject() : mInteractCountLeft( 1 ), mFlashAlbedo( 0.0f ), mFlashAlbedoTo( 0.0f ), mFlashSpeed( 0.0f ), mFlashDirection( false ) {
 }
 
 InteractiveObject::~InteractiveObject() {

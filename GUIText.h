@@ -25,19 +25,18 @@
 
 class GUIText : public GUINode, public ruText {
 protected:
-    BitmapFont * mFont;
+	friend class GUIFactory;
+	explicit GUIText( const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
+    shared_ptr<BitmapFont> mFont;
     string mText;
     ruTextAlignment mTextAlign;
     RECT mRect;
 public:
-    static vector<GUIText*> msTextList;
-
-    explicit GUIText( const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, BitmapFont * theFont );
     virtual ~GUIText( );
     RECT GetBoundingRect();
     ruTextAlignment GetTextAlignment();
     string & GetText();
-    BitmapFont * GetFont();
+    shared_ptr<BitmapFont> GetFont();
 
     virtual void SetText( const string & text );
 };

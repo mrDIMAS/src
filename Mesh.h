@@ -25,6 +25,7 @@
 
 class Octree;
 class Texture;
+class SceneNode;
 
 class Mesh : public RendererComponent {
 public:
@@ -71,7 +72,7 @@ private:
     // mesh can be shared between multiple nodes
 	vector<weak_ptr<SceneNode>> mOwnerList;
     AABB mAABB;
-	Octree * mOctree;
+	unique_ptr<Octree> mOctree;
 	bool mSkinned;
     float mOpacity;
 	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
@@ -98,7 +99,7 @@ public:
 	shared_ptr<Texture> & GetHeightTexture();
     void Render();
 	void RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount );
-	AABB GetBoundingBox( );
+	AABB GetBoundingBox( ) const;
 	vector<Vertex> & GetVertices();
 	vector<Triangle> & GetTriangles();
 	bool IsSkinned() const;

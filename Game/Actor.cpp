@@ -51,10 +51,12 @@ void Actor::StopInstant() {
 
 void Actor::Unfreeze() {
     mBody->Unfreeze();
+	mBody->SetCollisionEnabled( true );
 }
 
 void Actor::Freeze() {
     mBody->Freeze();
+	mBody->SetCollisionEnabled( false );
 }
 
 ruVector3 Actor::GetLookDirection() {

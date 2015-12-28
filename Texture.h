@@ -30,9 +30,11 @@ private:
 	string mName;
 	bool LoadFromFile( const string & file );
 public:
-	int GetHeight();
-	int GetWidth();
-	string GetName();    
+	virtual int GetHeight();
+	virtual int GetWidth();
+	virtual int GetColorDepth();
+	virtual string GetName();    
+
     static unordered_map< string, weak_ptr<Texture>> msTextureList;
 	explicit Texture( );
     virtual ~Texture( );

@@ -81,7 +81,7 @@ bool Octree::CubeInFrustum( const AABB & box ) {
 		for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {
 			shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
 			if( pOwner ) {
-				inFrustum |= camera->mFrustum.IsAABBInside( box, ruVector3( pOwner->mGlobalTransform.getOrigin().m_floats ) );
+				inFrustum |= camera->mFrustum.IsAABBInside( box, pOwner->GetPosition() );
 				++ownerIter;
 			} else {
 				ownerIter = owners.erase( ownerIter );

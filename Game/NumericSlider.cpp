@@ -45,10 +45,7 @@ float Slider::GetValue() {
 }
 
 Slider::~Slider() {
-    mGUIValueText->Free( );
-    mGUIText->Free( );
-    mGUIIncreaseButton->Free( );
-    mGUIDecreaseButton->Free( );
+
 }
 
 void Slider::SetChangeAction( const ruDelegate & action ) {
@@ -61,7 +58,7 @@ void Slider::SetChangeAction( const ruDelegate & action ) {
 	mGUIDecreaseButton->AddAction( ruGUIAction::OnClick, action );
 }
 
-void Slider::AttachTo( ruGUINode * node ) {
+void Slider::AttachTo( shared_ptr<ruGUINode> node ) {
 	mGUIIncreaseButton->Attach( node );
 	mGUIDecreaseButton->Attach( node );
 	mGUIText->Attach( node );

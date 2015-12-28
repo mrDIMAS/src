@@ -70,8 +70,8 @@ Timer::~Timer()
 	msTimerList.erase( find( msTimerList.begin(), msTimerList.end(), this ));
 }
 
-ruTimer * ruTimer::Create( ) {
-	return new Timer;
+shared_ptr<ruTimer> ruTimer::Create( ) {
+	return shared_ptr<ruTimer>( new Timer );
 }
 
 ruTimer::~ruTimer() {

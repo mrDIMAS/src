@@ -8,7 +8,7 @@ public:
     float quadAlpha;
     float quadAlphaTo;
     ruVector3 fadeColor;
-    ruRect * mFullscreenQuad;
+    shared_ptr<ruRect> mFullscreenQuad;
 public:
     explicit GameCamera( float fov = 65 );
 	virtual ~GameCamera();

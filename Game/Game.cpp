@@ -52,12 +52,12 @@ void main( ) {
     ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
     FPSCounter fpsCounter;
 
-    ruTimer * dtTimer = ruTimer::Create();
+    shared_ptr<ruTimer> dtTimer = ruTimer::Create();
 	Level::CreateLoadingScreen();
 
     double gameClock = dtTimer->GetTimeInSeconds();
 
-    ruText * fpsText = ruText::Create( "FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left, 100 );
+    shared_ptr<ruText> fpsText = ruText::Create( "FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left, 100 );
     ruEngine::ShowCursor();
 
     while( g_running ) {
@@ -88,7 +88,7 @@ void main( ) {
                     pPlayer->SetTip( config.GetString( "saved" ) );
                 }
                 if( ruInput::IsKeyHit( g_keyQuickLoad )) {
-                    if( FileExist( "quickSave.save" )) {
+                    if( IsFileExists( "quickSave.save" )) {
                         SaveLoader( "quickSave.save" ).RestoreWorldState();
                         pPlayer->SetTip( config.GetString( "loaded" ) );
                     }

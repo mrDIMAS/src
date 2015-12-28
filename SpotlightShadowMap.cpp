@@ -44,7 +44,7 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
     Engine::I().GetDevice()->GetTexture( 0, &prevZeroSamplerTexture );
 
 	auto & meshMap = Mesh::GetMeshMap();
-    for( auto texGroupPair : meshMap ) {
+    for( auto & texGroupPair : meshMap ) {
         auto & group = texGroupPair.second;
         Engine::I().GetDevice()->SetTexture( 0, texGroupPair.first );
         for( auto meshIter = group.begin(); meshIter != group.end(); ) {
@@ -52,15 +52,15 @@ void SpotlightShadowMap::RenderSpotShadowMap( IDirect3DSurface9 * lastUsedRT, in
 			if( mesh ) {
 				auto & owners = mesh->GetOwners();
 				for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {
-					shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
+					shared_ptr<SceneNode> & pOwner = (*ownerIter).lock();
 					if( pOwner ) {
 						// if owner of mesh is visible
 						if( pOwner->IsVisible()) {
 							// if light "sees" mesh, it can cast shadow
 							if( spotLight->GetFrustum().IsAABBInside( mesh->GetBoundingBox(), pOwner->GetPosition())) {
 								D3DXMATRIX world, wvp;
-								GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
-								D3DXMatrixMultiplyTranspose( &wvp, &world, &spotLight->GetViewProjectionMatrix() );
+								world = pOwner->GetWorldMatrix();
+								D3DXMatrixMultiply( &wvp, &world, &spotLight->GetViewProjectionMatrix() );
 								Engine::I().SetVertexShaderMatrix( 0, &wvp );
 								mesh->Render();
 							}

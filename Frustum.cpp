@@ -96,10 +96,9 @@ Frustum::Frustum() {
 }
 
 bool Frustum::IsSphereInside( const ruVector3 & center, const float & radius ) {
-	float fDistance;
 	for(int i = 0; i < 6; ++i) {
 		D3DXVECTOR4 center( center.x, center.y, center.z, 1.0f );
-		fDistance = D3DXPlaneDot( &planes[i], &center );
+		float fDistance = D3DXPlaneDot( &planes[i], &center );
 		if(fDistance < -radius) {
 			return false;
 		}

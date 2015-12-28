@@ -53,14 +53,15 @@ void ForwardRenderer::RenderMeshes() {
         for( auto & meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
 			shared_ptr<Mesh> pMesh = (*meshIter).lock();
 			if( pMesh ) {
-				D3DXMATRIX world, wvp;
+				
 				// draw instances
 				auto & owners = pMesh->GetOwners();
 				for( auto ownerIter = owners.begin(); ownerIter != owners.end(); ) {
 					shared_ptr<SceneNode> pOwner = (*ownerIter).lock();
 					if( pOwner ) {
 						if( pOwner->IsVisible() ) {
-							GetD3DMatrixFromBulletTransform( pOwner->mGlobalTransform, world );
+							D3DXMATRIX world, wvp;
+							world = pOwner->GetWorldMatrix();
 							shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
 							if( camera ) {
 								D3DXMatrixMultiplyTranspose( &wvp, &world, &camera->mViewProjection );

@@ -10,12 +10,12 @@ LevelCutsceneIntro::LevelCutsceneIntro() : mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 
 	mUAZAnim = ruAnimation( 0, 350, 20 );
 	mUAZ->SetAnimation( &mUAZAnim );
-	mUAZAnim.enabled = true;
+	mUAZAnim.SetEnabled( true );
 
 	shared_ptr<ruSceneNode> deerBone = GetUniqueObject( "Bone012" );
 	mDeerAnim = ruAnimation( 0, 350, 35 );
 	deerBone->SetAnimation( &mDeerAnim );
-	mDeerAnim.enabled = true;
+	mDeerAnim.SetEnabled( true );
 
 	AddSound( mEngineLoop = ruSound::Load3D( "data/sounds/engineloop.ogg"));
 	mEngineLoop->Attach( GetUniqueObject( "Engine" ));
@@ -31,7 +31,7 @@ LevelCutsceneIntro::LevelCutsceneIntro() : mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 	mCameraPivot = GetUniqueObject( "Camera" );
 	mCameraAnim1 = ruAnimation( 0, 120, 12 );
 	mCameraPivot->SetAnimation( &mCameraAnim1 );
-	mCameraAnim1.enabled = true;
+	mCameraAnim1.SetEnabled( true );
 
 	mCameraPivot2 = GetUniqueObject( "Camera2" );
 	mCameraPivot3 = GetUniqueObject( "Camera3" );

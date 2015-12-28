@@ -3,15 +3,9 @@
 #include "Utils.h"
 
 
-
-bool FileExist( const string & file ) {
-    fstream f( file );
-
-    bool state = f.good();
-
-    f.close();
-
-    return state;
+bool IsFileExists( const string & file ) {
+    ifstream f( file );
+    return f.good();
 }
 
 void GetFilesWithExtension( string folder, vector< string > & names ) {

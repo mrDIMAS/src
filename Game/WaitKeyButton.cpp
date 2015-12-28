@@ -74,7 +74,8 @@ void WaitKeyButton::SetVisible( bool state ) {
     mGUIButton->SetVisible( state );
 }
 
-void WaitKeyButton::AttachTo( ruGUINode * node ) {
+void WaitKeyButton::AttachTo( const shared_ptr<ruGUINode> & node )
+{
 	mGUIText->Attach( node );
 	mGUIButton->Attach( node );
 }

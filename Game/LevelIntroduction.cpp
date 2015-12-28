@@ -42,10 +42,7 @@ void LevelIntroduction::DoScenario() {
 }
 
 LevelIntroduction::~LevelIntroduction() {
-    mGUIText->Free();
-	mGUISkipText->Free();
-	mGUIBackground->SetVisible( false );
-	mGUIBackground->Free();
+
 }
 
 LevelIntroduction::LevelIntroduction() {

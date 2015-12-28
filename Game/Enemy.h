@@ -41,7 +41,7 @@ private:
     shared_ptr<ruSound> mScreamSound;
 
     bool mPlayerDetected;
-    ruTimer * mPlayerInSightTimer;
+    shared_ptr<ruTimer> mPlayerInSightTimer;
 
     float mLastStepLength;
     float mStepLength;
@@ -57,17 +57,17 @@ private:
     float mRunSpeed;
 	float mHitDistance;
 
-    shared_ptr<ruSound> mFootstepsSounds[ 4 ];
-
     ruAnimation mIdleAnimation;
     ruAnimation mRunAnimation;
     ruAnimation mAttackAnimation;
     ruAnimation mWalkAnimation;
 
-	ruTimer * mResurrectTimer;
+	shared_ptr<ruTimer> mResurrectTimer;
 
-	ruTimer * mPathCheckTimer;
+	shared_ptr<ruTimer> mPathCheckTimer;
 	ruVector3 mLastCheckPosition;
+
+	vector<unique_ptr<SoundMaterial>> mSoundMaterialList;
 
 	shared_ptr<ruParticleSystem > mBloodSpray;
 	shared_ptr<ruSound> mFadeAwaySound;
@@ -84,8 +84,16 @@ private:
 	}
 
 	// called from animation frames
-	void Proxy_RandomStepSound() {
-		mFootstepsSounds[ rand() % 4 ]->Play();
+	void Proxy_EmitStepSound() {
+		ruRayCastResultEx result = ruPhysics::CastRayEx( mBody->GetPosition() + ruVector3( 0, 0.1, 0 ), mBody->GetPosition() - ruVector3( 0, mBodyHeight * 2.2, 0 ));
+		if( result.valid ) {
+			for( auto & sMat : mSoundMaterialList ) {
+				shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith( result.textureName );
+				if( snd ) {
+					snd->Play( true );
+				}
+			}
+		}
 	}
 
 	void FillByNamePattern( vector< shared_ptr<ruSceneNode> > & container, const string & pattern );

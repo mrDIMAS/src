@@ -28,6 +28,8 @@ LevelMine::LevelMine() {
 
     mStoneFallZone = GetUniqueObject( "StoneFallZone" );
 
+	mLiftButton = GetUniqueObject( "Lift1Screen" );
+
     mNewLevelZone = GetUniqueObject( "NewLevel" );
 
     ruSound::SetAudioReverb( 10 );
@@ -176,8 +178,7 @@ LevelMine::LevelMine() {
 }
 
 LevelMine::~LevelMine() {
-	mExplosionTimer->Free();
-	mBeepSoundTimer->Free();
+
 }
 
 void LevelMine::Show() {
@@ -210,6 +211,10 @@ void LevelMine::DoScenario() {
             mStages[ "EnterRockFallZoneWallExp" ] = true;
         }
     }
+
+	if( pPlayer->mNearestPickedNode == mLiftButton ) {
+		pPlayer->SetActionText( mLocalization.GetString( "brokenLift" ) );
+	}
 
     if( !mStages[ "FindObjectObjectiveSet" ] ) {
         if( !mStages[ "FoundObjectsForExplosion" ] ) {

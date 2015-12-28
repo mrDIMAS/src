@@ -4,7 +4,7 @@
 
 class GUIProperties {
 public:
-    ruFont * mFont;
+    shared_ptr<ruFont> mFont;
 
 	ruVector3 mBackColor;
 	ruVector3 mForeColor;

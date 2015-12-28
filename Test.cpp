@@ -75,9 +75,9 @@ void main( ) {
     float pitch = 0, yaw = 0;
     int cameraNum = 0;
 
-    ruFont * font = ruFont::LoadFromFile( 12, "data/fonts/font1.otf" );
-    ruFont * font2 = ruFont::LoadFromFile( 16, "data/fonts/font1.otf" );
-    ruFont * font3 = ruFont::LoadFromFile( 20, "data/fonts/font1.otf" );
+    shared_ptr<ruFont> font = ruFont::LoadFromFile( 12, "data/fonts/font1.otf" );
+    shared_ptr<ruFont> font2 = ruFont::LoadFromFile( 16, "data/fonts/font1.otf" );
+    shared_ptr<ruFont> font3 = ruFont::LoadFromFile( 20, "data/fonts/font1.otf" );
 
     int counter = 0;
     int fps = 0;
@@ -91,20 +91,20 @@ void main( ) {
     streamParticleEmitter->SetBoundingRadius( 50 );
 	streamParticleEmitter->SetLightingEnabled( true );
 	
-    ruTimer * timer = ruTimer::Create();
-    ruTimer * perfTimer = ruTimer::Create();
+    shared_ptr<ruTimer> timer = ruTimer::Create();
+    shared_ptr<ruTimer> perfTimer = ruTimer::Create();
 
     int perfTime=0;
 
     ruEngine::EnableSpotLightShadows( false );
     
 
-    ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.png" ), 32, 32 );
-    ruText * fpsText = ruText::Create( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
+    ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
+    shared_ptr<ruText> fpsText = ruText::Create( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
 
-	ruRect * testrect = ruRect::Create( 100, 100, 200, 200, ruTexture::Request( "data/gui/inventory/items/detonator.png" ));
-	ruButton * testButton = ruButton::Create( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
-	ruButton * testButton2 = ruButton::Create( 0, 100, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
+	shared_ptr<ruRect> testrect = ruRect::Create( 100, 100, 200, 200, ruTexture::Request( "data/gui/inventory/items/detonator.png" ));
+	shared_ptr<ruButton> testButton = ruButton::Create( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
+	shared_ptr<ruButton> testButton2 = ruButton::Create( 0, 100, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
 	testButton->Attach( testrect );
 	testButton2->Attach( testrect );
 
@@ -119,9 +119,13 @@ void main( ) {
 
 	shared_ptr<ruSceneNode> ripper = ruSceneNode::LoadFromFile( "data/models/ripper/ripper0.scene" );
 	ruAnimation anim = ruAnimation( 0, 85, 8, true );
-	anim.enabled = true;
+	anim.SetEnabled( true );
 	ripper->SetAnimation( &anim );
 	ripper->SetBlurAmount( 1.0f );
+
+	for( int i = 0; i < ruPointLight::GetCount(); i++ ) {
+		ruPointLight::Get( i )->SetGreyscaleFactor( 1.0f );
+	}
 
     while( !ruInput::IsKeyDown( ruInput::Key::Esc )) {
         //idleAnim.Update();

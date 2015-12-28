@@ -69,7 +69,7 @@ protected:
         PointLightShader();
         ~PointLightShader();
 
-        void SetLight( D3DXMATRIX & invViewProj, const shared_ptr<PointLight> & lit );
+        void SetLight( D3DXMATRIX & invViewProj, const shared_ptr<PointLight> & lit, int noiseTexSize );
     };
 
     // Spot Light
@@ -80,7 +80,7 @@ protected:
     public:
         SpotLightShader( );
         ~SpotLightShader();
-        void SetLight( D3DXMATRIX & invViewProj, const shared_ptr<SpotLight> & lit );
+        void SetLight( D3DXMATRIX & invViewProj, const shared_ptr<SpotLight> & lit, int noiseTexSize );
     };
 
 	class SkyboxShader {
@@ -91,7 +91,7 @@ protected:
 	public:
 		SkyboxShader();
 		~SkyboxShader();
-		void Bind( const btVector3 & position );
+		void Bind( const ruVector3 & position );
 	};
 
 	unique_ptr<BoundingVolumeRenderingShader> bvRenderer;
@@ -125,6 +125,9 @@ protected:
 	COMPtr<ID3DXMesh> mBoundingSphere;
 	COMPtr<ID3DXMesh> mBoundingStar;
 	COMPtr<ID3DXMesh> mBoundingCone;
+
+	int mNoiseTextureSize;
+	COMPtr<IDirect3DTexture9> mNoiseTexture;
 public:
     explicit DeferredRenderer();
     virtual ~DeferredRenderer();

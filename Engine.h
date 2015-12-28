@@ -32,6 +32,7 @@ class ForwardRenderer;
 class ParticleSystemRenderer;
 class TextRenderer;
 class GUIRenderer;
+class Cursor;
 
 class Videomode {
 public:
@@ -45,8 +46,6 @@ public:
 		mRefreshRate = refreshRate;
 	}
 };
-
-
 
 class Engine {
 private:
@@ -87,7 +86,7 @@ private:
 	void SetDefaults();
 	vector<Videomode> mVideomodeList;
 	virtual ~Engine();
-
+	shared_ptr<Cursor> mCursor;
 	// !!! do not change order of these !!!
 	COMPtr<IDirect3D9> mpDirect3D;
 	COMPtr<IDirect3DDevice9> mpDevice;
@@ -134,10 +133,13 @@ public:
 	void SetStencilEnabled( bool state );
 	ruVector3 GetAmbientColor();
 	void SetAmbientColor( ruVector3 ambColor );
-
+	void SetCursor( shared_ptr<ruTexture> texture, int w, int h );
+	void SetCursorVisible( bool state );
 	bool IsNonPowerOfTwoTexturesSupport();
 	void Shutdown();
-
+	shared_ptr<Cursor> & GetCursor() {
+		return mCursor;
+	}
 	int GetTextureChangeCount();
 	string GetTextureStoragePath();
 	IDirect3DSurface9 * GetBackBuffer();

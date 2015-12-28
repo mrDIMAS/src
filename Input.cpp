@@ -21,6 +21,7 @@
 
 #include "Precompiled.h"
 #include "GUIButton.h"
+#include "GUIFactory.h"
 
 LPDIRECTINPUT8 pInput;
 LPDIRECTINPUTDEVICE8 pKeyboard;
@@ -239,9 +240,13 @@ void ruInput::Update( ) {
     memcpy( g_lastKeys, g_keys, sizeof( g_lastKeys ));
     memcpy( g_mousePressed, mouseData.rgbButtons, sizeof( g_mousePressed ));
 
-    for( auto pButton : GUIButton::msButtonList ) {
-        if( pButton->IsVisible() ) {
-            pButton->Update();
+	auto & buttons = GUIFactory::GetButtonList();
+    for( auto & bWeak : buttons ) {
+		shared_ptr<GUIButton> & pButton = bWeak.lock();
+		if( pButton ) {
+			if( pButton->IsVisible() ) {
+				pButton->Update();
+			}
         }
     }
 };

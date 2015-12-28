@@ -24,7 +24,7 @@
 #include "FastReader.h"
 
 bool FastReader::IsEnded() {
-    return cursor > size;
+    return mCursor > mSize;
 }
 
 btQuaternion FastReader::GetQuaternion() {
@@ -62,51 +62,51 @@ btVector3 FastReader::GetVector() {
 std::string FastReader::GetString() {
     string out;
 
-    for ( ; data[ cursor ] != '\0'; ++cursor ) {
-        out += data[ cursor ];
+    for ( ; mData[ mCursor ] != '\0'; ++mCursor ) {
+        out += mData[ mCursor ];
     }
 
-    if ( data[ cursor ] == '\0' ) {
-        ++cursor;
+    if ( mData[ mCursor ] == '\0' ) {
+        ++mCursor;
     }
 
     return out;
 }
 
 float FastReader::GetFloat() {
-    float value = *reinterpret_cast<float*>( data + cursor );
+    float value = *reinterpret_cast<float*>( mData + mCursor );
 
-    cursor += sizeof(float);
+    mCursor += sizeof(float);
 
     return value;
 }
 
 unsigned char FastReader::GetByte() {
-    unsigned char value = data[ cursor ];
+    unsigned char value = mData[ mCursor ];
 
-    ++cursor;
+    ++mCursor;
 
     return value;
 }
 
 unsigned short FastReader::GetShort() {
-    unsigned short value = *reinterpret_cast<unsigned short*>( data + cursor );
+    unsigned short value = *reinterpret_cast<unsigned short*>( mData + mCursor );
 
-    cursor += sizeof(short);
+    mCursor += sizeof(short);
 
     return value;
 }
 
 int FastReader::GetInteger() {
-    int value = *reinterpret_cast<int *>( data + cursor );
+    int value = *reinterpret_cast<int *>( mData + mCursor );
 
-    cursor += sizeof(int);
+    mCursor += sizeof(int);
 
     return value;
 }
 
 FastReader::~FastReader() {
-    delete [] data;
+    delete [] mData;
 }
 
 bool FastReader::ReadFile( const string & fileName ) {
@@ -115,15 +115,14 @@ bool FastReader::ReadFile( const string & fileName ) {
         return false;
     }
 	file.seekg( 0, ios_base::end );
-    size = file.tellg();
-    data = new Byte[size];
+    mSize = file.tellg();
+    mData = new Byte[mSize];
     file.seekg( 0, ios_base::beg );
-    file.read( reinterpret_cast<char*>( data ), size );
+    file.read( reinterpret_cast<char*>( mData ), mSize );
 	file.close();
     return true;
 }
 
-FastReader::FastReader() {
-    cursor = 0;
-    data = 0;
+FastReader::FastReader() : mSize( 0 ), mCursor( 0 ), mData( 0 ) {
+
 }

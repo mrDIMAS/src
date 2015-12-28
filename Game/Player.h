@@ -33,7 +33,7 @@ public:
     void UpdateFright();
     Parser mLocalization;
 
-    GameCamera * mpCamera;
+    unique_ptr<GameCamera> mpCamera;
 
     shared_ptr<ruSceneNode> mHead;
     shared_ptr<ruSceneNode> mPickPoint;
@@ -45,14 +45,12 @@ public:
 
     shared_ptr<ruTexture> mStatusBar;
 
-	ruRect * mGUICursorPickUp;
-	ruRect * mGUICursorPut;
-	ruRect * mGUICrosshair;
+	shared_ptr<ruRect> mGUICursorPickUp;
+	shared_ptr<ruRect> mGUICursorPut;
+	shared_ptr<ruRect> mGUICrosshair;
 
     SmoothFloat mPitch;
     SmoothFloat mYaw;
-   // SmoothFloat mStaminaAlpha;
-    //SmoothFloat mHealthAlpha;
     SmoothFloat mBreathVolume;
     SmoothFloat mHeartBeatVolume;
     SmoothFloat mHeartBeatPitch;
@@ -70,7 +68,6 @@ public:
     float mStealthFactor;
 	float mStepLength;
 	float mLastHealth;
-	
 
     ruVector3 mSpeed;
     ruVector3 mSpeedTo;
@@ -96,7 +93,7 @@ public:
 	float mWhispersSoundVolumeTo;
 	shared_ptr<ruSound> mWhispersSound;
 
-	vector< shared_ptr<ruSound> > mPainSound;
+	vector<shared_ptr<ruSound>> mPainSound;
 
 	
 	bool mInLight;
@@ -133,23 +130,23 @@ public:
 
     Sheet * mpSheetInHands;
 
-    ruText * mGUIActionText;
+    shared_ptr<ruText> mGUIActionText;
 
     static const int mGUISegmentCount = 20;
-    ruRect * mGUIHealthBarSegment[mGUISegmentCount];
-    ruRect * mGUIStaminaBarSegment[mGUISegmentCount];
-    ruRect * mGUIBackground;
-	ruRect * mGUIStealthSign;
-	ruText * mGUIYouDied;
-	ruFont * mGUIYouDiedFont;
-	ruRect * mGUIDamageBackground;
+    shared_ptr<ruRect> mGUIHealthBarSegment[mGUISegmentCount];
+    shared_ptr<ruRect> mGUIStaminaBarSegment[mGUISegmentCount];
+    shared_ptr<ruRect> mGUIBackground;
+	shared_ptr<ruRect> mGUIStealthSign;
+	shared_ptr<ruText> mGUIYouDied;
+	shared_ptr<ruFont> mGUIYouDiedFont;
+	shared_ptr<ruRect> mGUIDamageBackground;
 	int mDamageBackgroundAlpha;
 
 	shared_ptr<ruSound> mDeadSound;
 	ruVector3 mAirPosition;
 
-	ruTimer * mAutoSaveTimer;
-	vector<SoundMaterial*> mSoundMaterialList;
+	shared_ptr<ruTimer> mAutoSaveTimer;
+	vector<unique_ptr<SoundMaterial>> mSoundMaterialList;
 
 	vector<UsableObject*> mUsableObjectList;
 	UsableObject * mCurrentUsableObject;

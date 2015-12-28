@@ -49,6 +49,24 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mResurrectTimer = ruTimer::Create();
 
 	mPathCheckTimer = ruTimer::Create();
+
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/stone.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/metal.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/wood.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/gravel.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/muddyrock.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/rock.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/grass.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/soil.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/chain.smat", mBody )));
+	for( auto & pMat : mSoundMaterialList ) {
+		for( auto & pSound : pMat->GetSoundList() ) {
+			pSound->SetVolume( 0.75f );
+			pSound->SetRolloffFactor( 35 );
+			pSound->SetRoomRolloffFactor( 35 );
+			pSound->SetReferenceDistance( 5 );
+		}
+	}
 }
 
 
@@ -260,7 +278,7 @@ void Enemy::Think() {
 		mPathCheckTimer->Restart();
 	}
 
-	mIdleAnimation.enabled = true;
+	mIdleAnimation.SetEnabled( true );
 
 	mAttackAnimation.Update();
 	mIdleAnimation.Update();
@@ -280,36 +298,36 @@ void Enemy::Resurrect() {
 
 void Enemy::SetWalkAnimation() {
     SetCommonAnimation( &mWalkAnimation );
-	mRunAnimation.enabled = false;
-	mWalkAnimation.enabled = true;
-	mAttackAnimation.enabled = false;
+	mRunAnimation.SetEnabled( false );
+	mWalkAnimation.SetEnabled( true );
+	mAttackAnimation.SetEnabled( false );
 }
 
 
 void Enemy::SetStayAndAttackAnimation() {
     SetCommonAnimation( &mIdleAnimation );
     SetTorsoAnimation( &mAttackAnimation );
-	mAttackAnimation.enabled = true;
+	mAttackAnimation.SetEnabled( true );
 }
 
 void Enemy::SetRunAndAttackAnimation() {
     SetCommonAnimation( &mAttackAnimation );
     SetLegsAnimation( &mRunAnimation );
-	mRunAnimation.enabled = true;
-	mWalkAnimation.enabled = false;
-	mAttackAnimation.enabled = true;
+	mRunAnimation.SetEnabled( true );
+	mWalkAnimation.SetEnabled( false );
+	mAttackAnimation.SetEnabled( true );
 }
 
 void Enemy::SetRunAnimation() {
     SetCommonAnimation( &mRunAnimation );
-	mRunAnimation.enabled = true;
-	mWalkAnimation.enabled = false;
-	mAttackAnimation.enabled = false;
+	mRunAnimation.SetEnabled( true );
+	mWalkAnimation.SetEnabled( false );
+	mAttackAnimation.SetEnabled( false );
 }
 
 void Enemy::SetIdleAnimation() {
     SetCommonAnimation( &mIdleAnimation );
-	mAttackAnimation.enabled = false;
+	mAttackAnimation.SetEnabled( false );
 }
 
 void Enemy::SetCommonAnimation( ruAnimation * anim ) {
@@ -333,15 +351,15 @@ void Enemy::SetLegsAnimation( ruAnimation *pAnim ) {
 
 void Enemy::CreateAnimations() {    
     mRunAnimation = ruAnimation( 0, 33, 0.8, true );
-	mRunAnimation.AddFrameListener( 5, ruDelegate::Bind( this, &Enemy::Proxy_RandomStepSound ));
-	mRunAnimation.AddFrameListener( 23, ruDelegate::Bind( this, &Enemy::Proxy_RandomStepSound ));
+	mRunAnimation.AddFrameListener( 5, ruDelegate::Bind( this, &Enemy::Proxy_EmitStepSound ));
+	mRunAnimation.AddFrameListener( 23, ruDelegate::Bind( this, &Enemy::Proxy_EmitStepSound ));
 
     mAttackAnimation = ruAnimation( 34, 48, 0.78, true );
 	mAttackAnimation.AddFrameListener( 44, ruDelegate::Bind( this, &Enemy::Proxy_HitPlayer ));
 
     mWalkAnimation = ruAnimation( 49, 76, 1, true );
-	mWalkAnimation.AddFrameListener( 51, ruDelegate::Bind( this, &Enemy::Proxy_RandomStepSound ));
-	mWalkAnimation.AddFrameListener( 67, ruDelegate::Bind( this, &Enemy::Proxy_RandomStepSound ));
+	mWalkAnimation.AddFrameListener( 51, ruDelegate::Bind( this, &Enemy::Proxy_EmitStepSound ));
+	mWalkAnimation.AddFrameListener( 67, ruDelegate::Bind( this, &Enemy::Proxy_EmitStepSound ));
 
 	mIdleAnimation = ruAnimation( 77, 85, 1.5, true );
 }
@@ -363,18 +381,6 @@ void Enemy::CreateSounds() {
     mScreamSound->SetRolloffFactor( 20 );
 	mScreamSound->SetRoomRolloffFactor( 20 );
     mScreamSound->SetReferenceDistance( 4 );
-
-    mFootstepsSounds[ 0 ] = ruSound::Load3D( "data/sounds/step1.ogg" );
-    mFootstepsSounds[ 1 ] = ruSound::Load3D( "data/sounds/step2.ogg" );
-    mFootstepsSounds[ 2 ] = ruSound::Load3D( "data/sounds/step3.ogg" );
-    mFootstepsSounds[ 3 ] = ruSound::Load3D( "data/sounds/step4.ogg" );
-    for( int i = 0; i < 4; i++ ) {
-        mFootstepsSounds[i]->Attach( mBody );
-        mFootstepsSounds[i]->SetVolume( 0.75f );
-        mFootstepsSounds[i]->SetRolloffFactor( 35 );
-		mFootstepsSounds[i]->SetRoomRolloffFactor( 35 );
-        mFootstepsSounds[i]->SetReferenceDistance( 5 );
-    }
 }
 
 int Enemy::GetVertexIndexNearestTo( ruVector3 position ) {
@@ -424,9 +430,6 @@ void Enemy::Deserialize( SaveFile & in ) {
 }
 
 Enemy::~Enemy() {
-	mResurrectTimer->Free();
-	mPathCheckTimer->Free();
-
 	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
 	if( iter != msEnemyList.end() ) {
 		msEnemyList.erase( iter );

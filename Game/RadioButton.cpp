@@ -21,6 +21,7 @@ RadioButton::RadioButton( float x, float y, shared_ptr<ruTexture> buttonImage, c
 
 void RadioButton::SetEnabled( bool state ) {
     mOn = state;
+	SelectCheckTexture();
 }
 
 bool RadioButton::IsEnabled() {
@@ -33,15 +34,11 @@ void RadioButton::SetChangeAction( const ruDelegate & delegat ) {
 	mGUIButton->AddAction( ruGUIAction::OnClick, delegat );
 }
 
-void RadioButton::AttachTo( ruGUINode * node ) {
+void RadioButton::AttachTo( shared_ptr<ruGUINode> node ) {
 	mGUIButton->Attach( node );
 }
 
 void RadioButton::OnChange() {
 	mOn = !mOn;
-	if( mOn ) {
-		mCheck->SetTexture( ruTexture::Request( "data/gui/menu/checkbox_checked.tga" ));
-	} else {
-		mCheck->SetTexture( ruTexture::Request( "data/gui/menu/checkbox.tga" ));
-	}
+	SelectCheckTexture();
 }

@@ -356,29 +356,7 @@ void Inventory::RemoveItem( Item::Type type, int count ) {
 }
 
 Inventory::~Inventory() {
-	mGUIRectItemForUse->Free();
-	mGUICanvas->Free();
-	mGUIDescription->Free();
-	mGUIButtonUse->Free();
-	mGUIButtonCombine->Free();
-	mGUIFirstCombineItem->Free();
-	mGUISecondCombineItem->Free();
-	mGUIFirstCombineItemCell->Free();
-	mGUISecondCombineItemCell->Free();
-	mGUICharacteristics->Free();;
-	for( int i = 0; i < mCellCountWidth; i++ ) {
-		for( int j = 0; j < mCellCountHeight; j++ ) {
-			mGUIItem[i][j]->Free();
-			mGUIItemCell[i][j]->Free();
-			mGUIItemCountText[i][j]->Free();
-		}
-	}
-	mGUIItemDescription->Free();
-	mGUIItemMass->Free();
-	mGUIItemContent->Free();
-	mGUIItemContentType->Free();
-	mGUIItemVolume->Free();
-	mFont->Free();
+
 }
 
 void Inventory::Open( bool val ) {

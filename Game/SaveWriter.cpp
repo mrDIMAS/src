@@ -7,9 +7,8 @@
 #include "Enemy.h"
 
 void SaveWriter::SaveWorldState() {	
-    WriteInteger( pCurrentLevel->mTypeNum );
-
     if( pCurrentLevel ) {
+		WriteInteger( pCurrentLevel->mTypeNum );
         pCurrentLevel->Serialize( *this );
     }
 

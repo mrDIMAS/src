@@ -19,12 +19,8 @@ private:
 	virtual void OnDeserialize( SaveFile & in ) final;
 public:
 	explicit Syringe( );
-	~Syringe( ) {
-
-	}
+	~Syringe( );
 	virtual void Update() final;
-	virtual Item::Type GetItemType( ) final {
-		return Item::Type::Syringe;
-	}
+	virtual Item::Type GetItemType( ) final;
 	void AddDoze();
 };

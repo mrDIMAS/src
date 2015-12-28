@@ -22,13 +22,13 @@
 #include "Precompiled.h"
 #include "Texture.h"
 #include "GUINode.h"
+#include "GUIFactory.h"
 
-vector<GUINode*> GUINode::msNodeList;
 
 void GUINode::SetAlpha( int alpha ) {
     mAlpha = alpha;
 	if( mControlChildAlpha ) {
-		for( auto pChild : mChildList ) {
+		for( auto & pChild : mChildList ) {
 			pChild->SetAlpha( alpha );
 		}
 	}
@@ -56,32 +56,26 @@ GUINode::GUINode() {
 	mLastMouseInside = false;
     SetColor( ruVector3( 255, 255, 255 ));
     SetAlpha( 255 );
-	mParent = nullptr;
-    msNodeList.push_back( this );
 }
 
 GUINode::~GUINode() {
-	for( auto pNode : msNodeList ) {
-		if( pNode->mParent == this ) {
-			pNode->mParent = nullptr;
-		}
-	}
-    msNodeList.erase( find( msNodeList.begin(), msNodeList.end(), this ));
+
 }
 
-void GUINode::SetTexture( shared_ptr<ruTexture> pTexture ) {
+void GUINode::SetTexture( const shared_ptr<ruTexture> & pTexture )
+{
     mpTexture = std::dynamic_pointer_cast<Texture>( pTexture );
 }
 
-shared_ptr<ruTexture> GUINode::GetTexture()
-{
+shared_ptr<ruTexture> GUINode::GetTexture() {
     return mpTexture;
 }
 
 bool GUINode::IsVisible() {
 	bool visibility = mVisible;
-	if( mParent ) {
-		visibility &= mParent->IsVisible();
+	if( mParent.use_count() ) {
+		shared_ptr<GUINode> & pParent = mParent.lock();
+		visibility &= pParent->IsVisible();
 	}
     return visibility;
 }
@@ -136,19 +130,21 @@ int GUINode::GetPackedColor() {
     return mColorPacked;
 }
 
-void GUINode::Attach( ruGUINode * parent ) {
-	GUINode * parentNode = dynamic_cast<GUINode*>( parent );
-	parentNode->mChildList.push_back( this );
+void GUINode::Attach( const shared_ptr<ruGUINode> & parent )
+{
+	shared_ptr<GUINode> & parentNode = std::dynamic_pointer_cast<GUINode>( parent );
+	parentNode->mChildList.push_back( shared_from_this() );
 	mParent = parentNode;
 }
 
 void GUINode::CalculateTransform() {
 	mGlobalX = 0.0f;
 	mGlobalY = 0.0f;
-	if( mParent ) {
-		mParent->CalculateTransform();
-		mGlobalX = mX + mParent->mGlobalX;
-		mGlobalY = mY + mParent->mGlobalY;
+	if( mParent.use_count() ) {
+		shared_ptr<GUINode> & pParent = mParent.lock();
+		pParent->CalculateTransform();
+		mGlobalX = mX + pParent->mGlobalX;
+		mGlobalY = mY + pParent->mGlobalY;
 	} else {
 		mGlobalX = mX;
 		mGlobalY = mY;

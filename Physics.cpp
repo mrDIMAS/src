@@ -39,6 +39,9 @@ public:
 		btCollisionObject * colObjB = static_cast<btCollisionObject*>( proxy1->m_clientObject );
 		SceneNode * nodeB = static_cast<SceneNode*>( colObjB->getUserPointer());
 
+		if( !nodeA->IsCollisionEnabled() || !nodeB->IsCollisionEnabled() ) {
+			return false;
+		}
 		if( nodeA->IsFrozen() && nodeB->IsStatic() || nodeB->IsFrozen() && nodeA->IsStatic() ) {
 			return false;
 		} 
@@ -61,6 +64,9 @@ void MyNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& disp
 	btCollisionObject * colObjB = static_cast<btCollisionObject*>( collisionPair.m_pProxy1->m_clientObject );
 	SceneNode * nodeB = static_cast<SceneNode*>( colObjB->getUserPointer());
 
+	if( !nodeA->IsCollisionEnabled() || !nodeB->IsCollisionEnabled() ) {
+		return ;
+	}
 	if( nodeA->IsFrozen() && nodeB->IsStatic() || nodeB->IsFrozen() && nodeA->IsStatic() ) {
 		return;
 	} 

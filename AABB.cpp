@@ -44,26 +44,15 @@ AABB::AABB() {
 AABB::AABB( const vector< Vertex > & vertices ) {
     mMax = ruVector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
     mMin = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
+
     for( auto & vert : vertices ) {
         auto & v = vert.mPosition;
-		if( v.x > mMax.x ) {
-			mMax.x = v.x;
-		}
-		if( v.x < mMin.x ) {
-			mMin.x = v.x;
-		}
-		if( v.y > mMax.y ) {
-			mMax.y = v.y;
-		} 
-		if( v.y < mMin.y ) {
-			mMin.y = v.y;
-		}
-		if( v.z > mMax.z ) {
-			mMax.z = v.z;
-		} 
-		if( v.z < mMin.z ) {
-			mMin.z = v.z;
-		}
+		if( v.x > mMax.x ) mMax.x = v.x;
+		if( v.x < mMin.x ) mMin.x = v.x;
+		if( v.y > mMax.y ) mMax.y = v.y;
+		if( v.y < mMin.y ) mMin.y = v.y;
+		if( v.z > mMax.z ) mMax.z = v.z;
+		if( v.z < mMin.z ) mMin.z = v.z;
     }
 	
 	mCenter = ( mMin + mMax ) / 2;
@@ -71,18 +60,15 @@ AABB::AABB( const vector< Vertex > & vertices ) {
 	// find max metrics
 	float maxSize = 0;
 	ruVector3 size = mMax - mMin;
-	if( size.x > maxSize ) {
-		maxSize = size.x;
-	} 
-	if ( size.y > maxSize ) {
-		maxSize = size.y;
-	} 
-	if ( size.z > maxSize ) {
-		maxSize = size.z;
-	}
+	if( size.x > maxSize ) maxSize = size.x;
+	if ( size.y > maxSize ) maxSize = size.y;
+	if ( size.z > maxSize ) maxSize = size.z;
 
 	// make cube from aabb
 	ruVector3 halfSize( maxSize / 2, maxSize / 2, maxSize / 2 );
 	mFrustumMin = mCenter - halfSize;
 	mFrustumMax = mCenter + halfSize;
+
+	//mFrustumMin = mMax;
+	//mFrustumMax = mMin;
 }

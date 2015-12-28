@@ -72,7 +72,7 @@ Menu::Menu( ) {
 		int aTabWidth = buttonWidth * 3;
 		int aTabHeight = buttonHeight * 8;
 
-		mpModalWindow = new ModalWindow( aTabX, aTabY, aTabWidth, aTabHeight, ruTexture::Request( "data/gui/menu/tab.tga" ), mButtonImage, pGUIProp->mBackColor );
+		mpModalWindow = unique_ptr<ModalWindow>( new ModalWindow( aTabX, aTabY, aTabWidth, aTabHeight, ruTexture::Request( "data/gui/menu/tab.tga" ), mButtonImage, pGUIProp->mBackColor ));
 		mpModalWindow->AttachTo( mGUICanvas );
 
 		mGUIWindowText = ruText::Create( " ", aTabX, aTabY - 17, aTabWidth, 32, pGUIProp->mFont, ruVector3( 255, 255, 255 ), ruTextAlignment::Left );
@@ -104,48 +104,48 @@ Menu::Menu( ) {
 		mGUIOptionsKeysCanvas->SetVisible( false );
 		{
 			float x = 40, y = 10;
-			mpMoveForwardKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "forward" ));
+			mpMoveForwardKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "forward" )));
 			mpMoveForwardKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpMoveBackwardKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "backward" ) );
+			mpMoveBackwardKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "backward" )));
 			mpMoveBackwardKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpStrafeLeftKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "strafeLeft" ));
+			mpStrafeLeftKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "strafeLeft" )));
 			mpStrafeLeftKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpStrafeRightKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "strafeRight" ));
+			mpStrafeRightKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "strafeRight" )));
 			mpStrafeRightKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpJumpKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "jump" ));
+			mpJumpKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "jump" )));
 			mpJumpKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpFlashLightKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "flashLight" ));
+			mpFlashLightKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "flashLight" )));
 			mpFlashLightKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpRunKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "run" ));
+			mpRunKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "run" )));
 			mpRunKey->AttachTo( mGUIOptionsKeysCanvas );
 			// Second column
 			x += 150;
 			y = 10;
-			mpInventoryKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "inventory" ));
+			mpInventoryKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "inventory" )));
 			mpInventoryKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpUseKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "use" ));
+			mpUseKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "use" )));
 			mpUseKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpQuickLoadKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickLoad" ));
+			mpQuickLoadKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickLoad" )));
 			mpQuickLoadKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpQuickSaveKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickSave" ));
+			mpQuickSaveKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "quickSave" )));
 			mpQuickSaveKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpStealthKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "stealth" ));
+			mpStealthKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "stealth" )));
 			mpStealthKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpLookLeftKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "lookLeft" ));
+			mpLookLeftKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "lookLeft" )));
 			mpLookLeftKey->AttachTo( mGUIOptionsKeysCanvas );
 			y += 32 * 1.1f;
-			mpLookRightKey = new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "lookRight" ));
+			mpLookRightKey = unique_ptr<WaitKeyButton>( new WaitKeyButton( x, y, mSmallButtonImage, mLocalization.GetString( "lookRight" )));
 			mpLookRightKey->AttachTo( mGUIOptionsKeysCanvas );
 		}
 
@@ -154,24 +154,24 @@ Menu::Menu( ) {
 		mGUIOptionsGraphicsCanvas->SetVisible( false );
 		{
 			float x = 30, y = 10;
-			mpFXAAButton = new RadioButton( x, y, mButtonImage, mLocalization.GetString( "fxaa" ) );
+			mpFXAAButton = unique_ptr<RadioButton>( new RadioButton( x, y, mButtonImage, mLocalization.GetString( "fxaa" )));
 			mpFXAAButton->AttachTo( mGUIOptionsGraphicsCanvas );
 
-			mpFPSButton = new RadioButton( x, y + 0.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "showFPS" ));
+			mpFPSButton = unique_ptr<RadioButton>( new RadioButton( x, y + 0.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "showFPS" )));
 			mpFPSButton->AttachTo( mGUIOptionsGraphicsCanvas );
 
-			mpSpotShadowsButton = new RadioButton( x, y + mDistBetweenButtons, mButtonImage, mLocalization.GetString( "spotLightShadows" ));
+			mpSpotShadowsButton = unique_ptr<RadioButton>( new RadioButton( x, y + mDistBetweenButtons, mButtonImage, mLocalization.GetString( "spotLightShadows" )));
 			mpSpotShadowsButton->AttachTo( mGUIOptionsGraphicsCanvas );
 
-			mpHDRButton = new RadioButton( x, y + 1.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "hdr" ));
+			mpHDRButton = unique_ptr<RadioButton>( new RadioButton( x, y + 1.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "hdr" )));
 			mpHDRButton->AttachTo( mGUIOptionsGraphicsCanvas );
 			mpHDRButton->SetChangeAction( ruDelegate::Bind( this, &Menu::OnHDRButtonClick ));
 
-			mpParallaxButton = new RadioButton( x, y + 2.0 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "parallax" ));
+			mpParallaxButton = unique_ptr<RadioButton>( new RadioButton( x, y + 2.0 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "parallax" )));
 			mpParallaxButton->AttachTo( mGUIOptionsGraphicsCanvas );
 			mpParallaxButton->SetChangeAction( ruDelegate::Bind( this, &Menu::OnParallaxButtonClick ));
 
-			mpTextureFiltering = new ScrollList( x, y + 2.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "filtering" ) );
+			mpTextureFiltering = unique_ptr<ScrollList>( new ScrollList( x, y + 2.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString( "filtering" )));
 			mpTextureFiltering->AttachTo( mGUIOptionsGraphicsCanvas );
 			mpTextureFiltering->AddValue( mLocalization.GetString( "trilinear" ));
 			mpTextureFiltering->AddValue( mLocalization.GetString( "anisotropic" ));   
@@ -215,15 +215,15 @@ Menu::Menu( ) {
 			int yOffset = (aTabHeight - 1.5 * mDistBetweenButtons ) / 2;
 			int xOffset = aTabWidth / 6.5;
 
-			mpMasterVolume = new Slider( xOffset, yOffset, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "masterVolume" ) );
+			mpMasterVolume = unique_ptr<Slider>( new Slider( xOffset, yOffset, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "masterVolume" )));
 			mpMasterVolume->AttachTo( mGUIOptionsCommonCanvas );
 			mpMasterVolume->SetChangeAction( ruDelegate::Bind( this, &Menu::OnSoundVolumeChange ));
 
-			mpMusicVolume = new Slider( xOffset, yOffset + 0.5f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga"), mLocalization.GetString(  "musicVolume" ) );
+			mpMusicVolume = unique_ptr<Slider>( new Slider( xOffset, yOffset + 0.5f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga"), mLocalization.GetString(  "musicVolume" )));
 			mpMusicVolume->AttachTo( mGUIOptionsCommonCanvas );
 			mpMusicVolume->SetChangeAction( ruDelegate::Bind( this, &Menu::OnMusicVolumeChange ));
 
-			mpMouseSensivity = new Slider( xOffset, yOffset + 1.0f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "mouseSens" ) );
+			mpMouseSensivity = unique_ptr<Slider>( new Slider( xOffset, yOffset + 1.0f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request( "data/gui/menu/smallbutton.tga" ), mLocalization.GetString( "mouseSens" )));
 			mpMouseSensivity->AttachTo( mGUIOptionsCommonCanvas );
 			mpMouseSensivity->SetChangeAction( ruDelegate::Bind( this, &Menu::OnMouseSensivityChange ));
 		}
@@ -236,6 +236,14 @@ Menu::Menu( ) {
     SetPage( Page::Main );
 	mMainButtonsAlpha = 255.0f;
     LoadConfig();
+
+	mpCamera->mCamera->SetSkybox(
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_l.jpg" ),
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_r.jpg" ),
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_f.jpg" ), 
+		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_b.jpg" )
+	);
 }
 
 float Menu::GetMusicVolume() {
@@ -377,7 +385,7 @@ void Menu::StartLoadFromSave() {
 }
 
 void Menu::OnLoadSaveClick() {	
-	mpModalWindow->Ask( mLocalization.GetString( "loadSaveQuestion" ) );	
+	mpModalWindow->Ask( mLocalization.GetString( "youSelect" ) + mLoadSaveGameName + "." + mLocalization.GetString( "loadSaveQuestion" ) );	
 	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::StartLoadFromSave ));
 }
 
@@ -387,7 +395,7 @@ void Menu::DoLoadFromSave() {
 }
 
 void Menu::OnSaveClick() {
-	mpModalWindow->Ask( mLocalization.GetString( "rewriteSaveQuestion" ) );	
+	mpModalWindow->Ask( mLocalization.GetString( "youSelect" ) + mSaveGameSlotName + "." + mLocalization.GetString( "rewriteSaveQuestion" ) );	
 	mpModalWindow->SetYesAction( ruDelegate::Bind( this, &Menu::DoSaveCurrentGame ));
 }
 
@@ -418,7 +426,7 @@ void Menu::CameraStartFadeOut( const ruDelegate & onFadeDoneAction ) {
 }
 
 void Menu::Update( ) {
-    ruEngine::SetAmbientColor( ruVector3( 14 / 255.0f, 14 / 255.0f, 14 / 255.0f));
+    ruEngine::SetAmbientColor( ruVector3( 0.1, 0.1, 0.1 ));
 
 	WaitKeyButton::UpdateAll();
     UpdateCamera();
@@ -426,6 +434,18 @@ void Menu::Update( ) {
 	SyncPlayerControls();
 
     if( mVisible ) {
+		ifstream f( "quickSave.save" );
+		if( f.good() ) {
+			mGUIContinueGameButton->SetActive( true );
+			f.close();
+		} else {
+			if( !pCurrentLevel ) {
+				mGUIContinueGameButton->SetActive( false );
+			} else {
+				mGUIContinueGameButton->SetActive( true );
+			}
+		}
+
         if( ruInput::IsKeyHit( ruInput::Key::Esc ) ) {
 			if( pCurrentLevel ) {
 				CameraStartFadeOut( ruDelegate::Bind( this, &Menu::DoContinueGameCurrent ));
@@ -485,7 +505,7 @@ void Menu::Update( ) {
                 mGUILoadGameSlot[i]->GetText()->SetText( nameList[i] );
                 if( mGUILoadGameSlot[i]->IsHit() ) {
                     mLoadSaveGameName = nameList[i];
-                    SetPage( Page::Main );
+                    SetPage( Page::Main, false );
                 }
             }
         } else {
@@ -572,8 +592,12 @@ void Menu::Update( ) {
     }
 }
 
-void Menu::SetPage( Page page ) {
-	mpModalWindow->Close();
+void Menu::SetPage( Page page, bool hideModalWindow )
+{
+	if( hideModalWindow ) {
+		mpModalWindow->Close();
+	}
+	
     if( mPage == page ) {
         mPage = Page::Main;
     } else {
@@ -609,7 +633,7 @@ void Menu::LoadTextures() {
 }
 
 void Menu::CreateCamera() {
-    mpCamera = new GameCamera;
+    mpCamera = unique_ptr<GameCamera>( new GameCamera);
 	mCameraFadeActionDone = false;
     mCameraInitialPosition = mScene->FindChild( "Camera" )->GetPosition();
     mCameraAnimationNewOffset = ruVector3( 0.5, 0.5, 0.5 );
@@ -733,30 +757,7 @@ void Menu::WriteFloat( ofstream & stream, string name, float value ) {
 }
 
 Menu::~Menu() {
-    delete mpMasterVolume;
-    delete mpMouseSensivity;
-    delete mpMusicVolume;
-    delete mpFXAAButton;
-    delete mpTextureFiltering;
-    delete mpMoveForwardKey;
-    delete mpMoveBackwardKey;
-    delete mpStrafeLeftKey;
-    delete mpStrafeRightKey;
-    delete mpJumpKey;
-    delete mpInventoryKey;
-    delete mpRunKey;
-    delete mpFlashLightKey;
-    delete mpCamera;
-    delete mpUseKey;
-    delete mpQuickLoadKey;
-	delete mpParallaxButton;
-    delete mpQuickSaveKey;
-    delete mpHDRButton;
-    delete mpSpotShadowsButton;
-    delete mpStealthKey;
-    delete mpFPSButton;
-	delete mpLookLeftKey;
-	delete mpLookRightKey;
+
 }
 
 void Menu::SetMainPageVisible( bool state ) {
@@ -780,10 +781,10 @@ bool Menu::IsVisible() {
 }
 
 void Menu::CameraFloating() {
-    mCameraAnimationOffset = mCameraAnimationOffset.Lerp( mCameraAnimationNewOffset, 0.0085f );
+    mCameraAnimationOffset = mCameraAnimationOffset.Lerp( mCameraAnimationNewOffset, 0.00065f );
 
-    if( ( mCameraAnimationOffset - mCameraAnimationNewOffset ).Length2() < 0.025 ) {
-        mCameraAnimationNewOffset = ruVector3( frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ), frandom( -1.5, 1.5 ) );
+    if( ( mCameraAnimationOffset - mCameraAnimationNewOffset ).Length2() < 0.015 ) {
+        mCameraAnimationNewOffset = ruVector3( frandom( -0.25, 0.25 ), frandom( -0.25, 0.25 ), frandom( -0.25, 0.25 ) );
     }
 
     mpCamera->mCamera->SetPosition( mCameraInitialPosition + mCameraAnimationOffset );

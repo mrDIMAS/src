@@ -63,13 +63,13 @@ Keypad::Keypad( shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sh
 
 	mDoorToUnlock->SetLocked( true );
 
-	Reset();
-
 	mButtonPushSound = ruSound::Load3D( "data/sounds/button_push.ogg" );
 	mButtonPopSound = ruSound::Load3D( "data/sounds/button_pop.ogg" );
 
 	mButtonPushSound->SetPosition( mKeypad->GetPosition() );
 	mButtonPopSound->SetPosition( mKeypad->GetPosition() );
+
+	Reset();
 }
 
 void Keypad::Reset()
@@ -80,4 +80,9 @@ void Keypad::Reset()
 		mKeys[i]->SetPosition( mKeysInitialPosition[i] );
 	}
 	mButtonPopSound->Play();
+}
+
+Keypad::~Keypad()
+{
+
 }

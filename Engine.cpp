@@ -35,7 +35,7 @@
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 #include "SceneFactory.h"
-
+#include "Cursor.h"
 
 Engine::Engine() : mpDeferredRenderer( nullptr ), 
 	mpForwardRenderer( nullptr ), mpParticleSystemRenderer( nullptr ), mpTextRenderer( nullptr ),
@@ -46,21 +46,13 @@ Engine::Engine() : mpDeferredRenderer( nullptr ),
 }
 
 Engine::~Engine() {	
-    while( BitmapFont::fonts.size() ) {
-        delete BitmapFont::fonts.front();
-    }
     while( Timer::msTimerList.size() ) {
         delete Timer::msTimerList.front();
     }
     for( auto & kv : CubeTexture::all ) {
         delete kv.second;
     }
-
-    while( GUINode::msNodeList.size() ) {
-        delete GUINode::msNodeList.front();
-    }
 	Mesh::CleanUp();
-
     Physics::DestructWorld();
     pfSystemDestroy();
 }
@@ -275,8 +267,7 @@ void Engine::RenderWorld() {
     for( auto pWeak : nodes ) {
 		shared_ptr<SceneNode> & node = pWeak.lock();
 		if( node ) {        
-			// skip frustum flag, it will be set to true, if one of node's mesh are in frustum
-			node->mInFrustum = false;
+			node->CheckFrustum( camera.get() );
 		}
     }
     // begin dx scene
@@ -351,8 +342,30 @@ void Engine::RenderMeshesIntoGBuffer() {
 					continue;
 				}
 				// bind height texture for parallax mapping
+				/*
 				if( pMesh->GetHeightTexture() && !pMesh->IsSkinned() ) {
 					if( mParallaxEnabled ) {
+						pMesh->GetHeightTexture()->Bind( 2 );
+						mpDeferredRenderer->BindParallaxShaders();
+					} else {
+						mpDeferredRenderer->BindGenericShaders();
+					}
+				} else {
+					if( mParallaxEnabled ) {
+						if( pMesh->IsSkinned() ) {
+							mpDeferredRenderer->BindGenericSkinShaders();
+						} else {
+							mpDeferredRenderer->BindParallaxShaders();
+						}
+					} else {
+						mpDeferredRenderer->BindGenericShaders();
+					}
+				}*/
+				
+				if( pMesh->GetHeightTexture() ) {
+					if( pMesh->IsSkinned() ) {
+						mpDeferredRenderer->BindGenericSkinShaders();
+					} else if( mParallaxEnabled ) {
 						pMesh->GetHeightTexture()->Bind( 2 );
 						mpDeferredRenderer->BindParallaxShaders();
 					} else {
@@ -365,6 +378,7 @@ void Engine::RenderMeshesIntoGBuffer() {
 						mpDeferredRenderer->BindGenericShaders();
 					}
 				}
+				
 				// prevent overhead with normal texture
 				if( pMesh->GetNormalTexture() ) {
 					IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
@@ -748,6 +762,9 @@ void Engine::SetDefaults() {
 
 	D3DCAPS9 dCaps;
 	mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps );
+	if( dCaps.MaxAnisotropy > 4 ) {
+		dCaps.MaxAnisotropy = 4;
+	}
 
 	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
@@ -791,4 +808,28 @@ void Engine::SetParallaxEnabled( bool state ) {
 
 bool Engine::IsParallaxEnabled() {
 	return mParallaxEnabled;
+}
+
+void Engine::SetCursorVisible( bool state )
+{
+	if( state ) {
+		if( mCursor ) {
+			mCursor->Show();
+		} else {
+			::ShowCursor( 1 );
+			Engine::I().GetDevice()->ShowCursor( 1 );
+		}
+	} else {
+		if( mCursor ) {
+			mCursor->Hide();
+		} else {
+			::ShowCursor( 0 );
+			Engine::I().GetDevice()->ShowCursor( 0 );
+		}
+	}
+}
+
+void Engine::SetCursor( shared_ptr<ruTexture> texture, int w, int h )
+{
+	mCursor = shared_ptr<Cursor>( new Cursor( w, h, std::dynamic_pointer_cast<Texture>( texture )));
 }

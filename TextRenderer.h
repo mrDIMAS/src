@@ -35,8 +35,8 @@ private:
 public:
     explicit TextRenderer( );
     virtual ~TextRenderer( );
-    void ComputeTextMetrics( GUIText * guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );
-    void RenderText( GUIText* guiText );
+    void ComputeTextMetrics( const shared_ptr<GUIText> & guiText, int & lines, int & height, int & avWidth, int & avSymbolWidth );
+    void RenderText( const shared_ptr<GUIText> & guiText );
 	void OnResetDevice();
 	void OnLostDevice();
 };

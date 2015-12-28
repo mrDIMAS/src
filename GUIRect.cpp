@@ -23,21 +23,17 @@
 #include "Texture.h"
 #include "GUIRect.h"
 #include "GUIRenderer.h"
-
-vector<GUIRect*> GUIRect::msRectList;
+#include "GUIFactory.h"
 
 GUIRect::~GUIRect() {
-	auto iter = find( msRectList.begin(), msRectList.end(), this );
-	if( iter != msRectList.end() ) {
-		msRectList.erase( iter );
-	}
+
 }
 
 GUIRect::GUIRect() {
 
 }
 
-GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha, bool selfRegister ) {
+GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha ) {
     mX = theX;
     mY = theY;
     mWidth = theWidth;
@@ -46,13 +42,9 @@ GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, share
     mVisible = true;
     SetColor( theColor );
     SetAlpha( theAlpha );
-    if( selfRegister ) {
-        msRectList.push_back( this );
-    }
 }
 
-void GUIRect::GetSixVertices( Vertex2D * vertices )
-{
+void GUIRect::GetSixVertices( Vertex2D * vertices ) {
 	vertices[ 0 ] = Vertex2D( mGlobalX, mGlobalY, 0, 0, 0, mColorPacked );
 	vertices[ 1 ] = Vertex2D( mGlobalX + mWidth, mGlobalY, 0, 1, 0, mColorPacked );
 	vertices[ 2 ] = Vertex2D( mGlobalX, mGlobalY + mHeight, 0, 0, 1, mColorPacked );
@@ -61,6 +53,6 @@ void GUIRect::GetSixVertices( Vertex2D * vertices )
 	vertices[ 5 ] = Vertex2D( mGlobalX, mGlobalY + mHeight, 0, 0, 1, mColorPacked );
 }
 
-ruRect * ruRect::Create( float x, float y, float w, float h, shared_ptr<ruTexture> texture, ruVector3 color, int alpha ) {
-	return new GUIRect( x, y, w, h, std::dynamic_pointer_cast<Texture>( texture ), color, alpha, true );
-}
+shared_ptr<ruRect> ruRect::Create( float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3 theColor, int theAlpha ) {
+	return GUIFactory::CreateRect( theX, theY, theWidth, theHeight, std::dynamic_pointer_cast<Texture>( theTexture ), theColor, theAlpha );
+};

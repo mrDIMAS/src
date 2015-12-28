@@ -46,6 +46,8 @@ private:
     shared_ptr<ruSceneNode> mExplosionFlashPosition;
     shared_ptr<ruPointLight>mExplosionFlashLight;
     shared_ptr<ruParticleSystem > mExplosionDustParticleSystem;
+	shared_ptr<ruSceneNode> mLiftButton;
+
     ruVector3 mRockPosition[3];
 
     shared_ptr<ItemPlace> mDetonatorPlace[4];
@@ -53,8 +55,8 @@ private:
     shared_ptr<ruSound> mAlertSound;
     shared_ptr<ruSound> mExplosionSound;
 
-    ruTimer * mExplosionTimer;
-    ruTimer * mBeepSoundTimer;
+    shared_ptr<ruTimer> mExplosionTimer;
+    shared_ptr<ruTimer> mBeepSoundTimer;
 
     bool mDetonatorActivated;
 

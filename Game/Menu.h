@@ -39,71 +39,71 @@ private:
     shared_ptr<ruSound> mMusic;
     Parser mLocalization;
 
-    Slider * mpMasterVolume;
-    Slider * mpMusicVolume;
-    Slider * mpMouseSensivity;
-    RadioButton * mpFXAAButton;
-	RadioButton * mpParallaxButton;
-    RadioButton * mpFPSButton;
-    RadioButton * mpSpotShadowsButton;
-    RadioButton * mpHDRButton;
-    ScrollList * mpTextureFiltering;
+    unique_ptr<Slider> mpMasterVolume;
+    unique_ptr<Slider> mpMusicVolume;
+    unique_ptr<Slider> mpMouseSensivity;
+    unique_ptr<RadioButton> mpFXAAButton;
+	unique_ptr<RadioButton> mpParallaxButton;
+    unique_ptr<RadioButton> mpFPSButton;
+    unique_ptr<RadioButton> mpSpotShadowsButton;
+    unique_ptr<RadioButton> mpHDRButton;
+    unique_ptr<ScrollList> mpTextureFiltering;
 
     // Keys
-    WaitKeyButton * mpMoveForwardKey;
-    WaitKeyButton * mpMoveBackwardKey;
-    WaitKeyButton * mpStrafeLeftKey;
-    WaitKeyButton * mpStrafeRightKey;
-    WaitKeyButton * mpJumpKey;
-    WaitKeyButton * mpFlashLightKey;
-    WaitKeyButton * mpRunKey;
-    WaitKeyButton * mpInventoryKey;
-    WaitKeyButton * mpUseKey;
-    WaitKeyButton * mpQuickSaveKey;
-    WaitKeyButton * mpQuickLoadKey;
-    WaitKeyButton * mpStealthKey;
-	WaitKeyButton * mpLookLeftKey;
-	WaitKeyButton * mpLookRightKey;
+    unique_ptr<WaitKeyButton> mpMoveForwardKey;
+    unique_ptr<WaitKeyButton> mpMoveBackwardKey;
+    unique_ptr<WaitKeyButton> mpStrafeLeftKey;
+    unique_ptr<WaitKeyButton> mpStrafeRightKey;
+    unique_ptr<WaitKeyButton> mpJumpKey;
+    unique_ptr<WaitKeyButton> mpFlashLightKey;
+    unique_ptr<WaitKeyButton> mpRunKey;
+    unique_ptr<WaitKeyButton> mpInventoryKey;
+    unique_ptr<WaitKeyButton> mpUseKey;
+    unique_ptr<WaitKeyButton> mpQuickSaveKey;
+    unique_ptr<WaitKeyButton> mpQuickLoadKey;
+    unique_ptr<WaitKeyButton> mpStealthKey;
+	unique_ptr<WaitKeyButton> mpLookLeftKey;
+	unique_ptr<WaitKeyButton> mpLookRightKey;
     ruVector3 mCameraInitialPosition;
     ruVector3 mCameraAnimationOffset;
     ruVector3 mCameraAnimationNewOffset;
 
-    GameCamera * mpCamera;
+    unique_ptr<GameCamera> mpCamera;
 
-	ruGUINode * mGUICanvas;
-	ruGUINode * mGUIMainButtonsCanvas;
-	ruGUINode * mGUIOptionsCanvas;
-	ruGUINode * mGUIOptionsKeysCanvas;
-	ruGUINode * mGUIOptionsGraphicsCanvas;
-	ruGUINode * mGUISaveGameCanvas;
-	ruGUINode * mGUILoadGameCanvas;
-	ruGUINode * mGUIOptionsCommonCanvas;
+	shared_ptr<ruGUINode> mGUICanvas;
+	shared_ptr<ruGUINode> mGUIMainButtonsCanvas;
+	shared_ptr<ruGUINode> mGUIOptionsCanvas;
+	shared_ptr<ruGUINode> mGUIOptionsKeysCanvas;
+	shared_ptr<ruGUINode> mGUIOptionsGraphicsCanvas;
+	shared_ptr<ruGUINode> mGUISaveGameCanvas;
+	shared_ptr<ruGUINode> mGUILoadGameCanvas;
+	shared_ptr<ruGUINode> mGUIOptionsCommonCanvas;
 
-    ruButton * mGUIContinueGameButton;
-    ruButton * mGUIStartButton;
-    ruButton * mGUISaveGameButton;
-    ruButton * mGUILoadGameButton;
-    ruButton * mGUIOptionsButton;
-    ruButton * mGUIAuthorsButton;
-    ruButton * mGUIExitButton;
+    shared_ptr<ruButton> mGUIContinueGameButton;
+    shared_ptr<ruButton> mGUIStartButton;
+    shared_ptr<ruButton> mGUISaveGameButton;
+    shared_ptr<ruButton> mGUILoadGameButton;
+    shared_ptr<ruButton> mGUIOptionsButton;
+    shared_ptr<ruButton> mGUIAuthorsButton;
+    shared_ptr<ruButton> mGUIExitButton;
 
-    ruButton * mGUIOptionsCommonButton;
-    ruButton * mGUIOptionsControlsButton;
-    ruButton * mGUIOptionsGraphicsButton;
+    shared_ptr<ruButton> mGUIOptionsCommonButton;
+    shared_ptr<ruButton> mGUIOptionsControlsButton;
+    shared_ptr<ruButton> mGUIOptionsGraphicsButton;
 
-    ruText * mGUIAuthorsText;
-    ruRect * mGUIAuthorsBackground;
+    shared_ptr<ruText> mGUIAuthorsText;
+    shared_ptr<ruRect> mGUIAuthorsBackground;
 
-	ruText * mGUIWindowText;
-	ruText * mGUICaption;
+	shared_ptr<ruText> mGUIWindowText;
+	shared_ptr<ruText> mGUICaption;
 
-	ModalWindow * mpModalWindow;
+	unique_ptr<ModalWindow> mpModalWindow;
 
     static const int mSaveLoadSlotCount = 7;
-    ruButton * mGUISaveGameSlot[mSaveLoadSlotCount];
-    ruButton * mGUILoadGameSlot[mSaveLoadSlotCount];
+    shared_ptr<ruButton> mGUISaveGameSlot[mSaveLoadSlotCount];
+    shared_ptr<ruButton> mGUILoadGameSlot[mSaveLoadSlotCount];
 
-    void SetPage( Page page );
+    void SetPage( Page page, bool hideModalWindow = true );
     void SetOptionsPageVisible( bool state );
     void SetAuthorsPageVisible( bool state );
     void SetMainPageVisible( bool state );

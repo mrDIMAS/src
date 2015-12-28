@@ -76,18 +76,18 @@ public:
     shared_ptr<ruSceneNode> GetUniqueObject( const string & name );
     static int msCurLevelID;
     static void Change( int levelId, bool continueFromSave = false );
-	static ruText * msGUILoadingText;
-	static ruRect * msGUILoadingBackground;
-	static ruFont * msGUIFont;
+	static shared_ptr<ruText> msGUILoadingText;
+	static shared_ptr<ruRect> msGUILoadingBackground;
+	static shared_ptr<ruFont> msGUIFont;
 	static void CreateLoadingScreen();
     virtual void Serialize( SaveFile & out ) final;
     virtual void Deserialize( SaveFile & in ) final;
 	void SerializeAnimation( SaveFile & out, ruAnimation & anim ) {
 		out.WriteInteger( anim.GetCurrentFrame() );
-		out.WriteBoolean( anim.enabled );
+		out.WriteBoolean( anim.IsEnabled() );
 	}
 	void DeserializeAnimation( SaveFile & in, ruAnimation & anim ) {
 		anim.SetCurrentFrame( in.ReadInteger());
-		in.ReadBoolean( anim.enabled );
+		anim.SetEnabled( in.ReadBoolean( ));
 	}
 };

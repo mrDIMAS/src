@@ -18,6 +18,31 @@
 * along with Ruthenium Engine.  If not, see <http://www.gnu.org/licenses/>.   *
 *                                                                              *
 *******************************************************************************/
-#include "Precompiled.h"
-#include "RutheniumAPI.h"
-#include "BitmapFont.h"
+
+#pragma once
+
+class GUINode;
+class GUIButton;
+class GUIText;
+class GUIRect;
+class BitmapFont;
+class Texture;
+
+class GUIFactory {
+private:
+	static vector<weak_ptr<GUINode>> msNodeList;
+	static vector<weak_ptr<GUIText>> msTextList;
+	static vector<weak_ptr<GUIRect>> msRectList;
+	static vector<weak_ptr<GUIButton>> msButtonList;
+	template<typename Type>
+	static void RemoveUnreferenced( vector<weak_ptr<Type>> & objList );
+public:
+	static vector<weak_ptr<GUINode>> & GetNodeList();
+	static vector<weak_ptr<GUIText>> & GetTextList();
+	static vector<weak_ptr<GUIRect>> & GetRectList();
+	static vector<weak_ptr<GUIButton>> & GetButtonList();
+	static shared_ptr<GUINode> CreateNode();
+	static shared_ptr<GUIText> CreateText( const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
+	static shared_ptr<GUIRect> CreateRect( float theX, float theY, float theWidth, float theHeight, const shared_ptr<Texture> & theTexture, ruVector3 theColor, int theAlpha );
+	static shared_ptr<GUIButton> CreateButton( int x, int y, int w, int h, const shared_ptr<Texture> & texture, const string & text, const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha );;
+};

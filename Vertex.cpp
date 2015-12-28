@@ -52,3 +52,21 @@ Vertex2D::Vertex2D( float x, float y, float z, float tx, float ty, int color /*=
     this->ty = ty;
     this->color = color;
 }
+
+VertexSkin::VertexSkin()
+{
+
+}
+
+VertexSkin::VertexSkin( const Vertex & v, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
+	mPosition( v.mPosition ), mNormal( v.mNormal ), mTexCoord( v.mTexCoord ), mTangent( v.mTangent ),
+	mBoneIndices( boneIndices ), mBoneWeights( boneWeights )
+{
+
+}
+
+VertexSkin::VertexSkin( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) : 
+	mPosition( position ), mNormal( normal ), mTexCoord( texCoord ), mTangent( tangent ), mBoneIndices( boneIndices ), mBoneWeights( boneWeights )
+{
+
+}

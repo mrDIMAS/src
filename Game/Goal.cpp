@@ -35,8 +35,7 @@ Goal::Goal() {
 }
 
 Goal::~Goal() {
-	mGoalText->Free();
-	mWaitTimer->Free();
+
 }
 
 void Goal::SetVisible( bool state ) {

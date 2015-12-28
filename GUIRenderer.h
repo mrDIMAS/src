@@ -53,7 +53,7 @@ private:
     COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
     int mSizeOfRectBytes;
     D3DXMATRIX mOrthoMatrix;
-    void RenderRect( GUIRect * r );
+    void RenderRect( const shared_ptr<GUIRect> & r );
     unique_ptr<VertexShader> mVertexShader;
     unique_ptr<PixelShader> mPixelShader;
 	void Initialize();

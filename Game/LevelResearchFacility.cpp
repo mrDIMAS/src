@@ -59,7 +59,7 @@ LevelResearchFacility::LevelResearchFacility() {
 	steamHis->SetReferenceDistance( 4 );
 	steamHis->SetRoomRolloffFactor( 2.5f );
     AddSound( steamHis );
-    mpExtemeSteam = new SteamStream( GetUniqueObject( "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis );
+    mpExtemeSteam = unique_ptr<SteamStream>( new SteamStream( GetUniqueObject( "ExtremeSteam"), ruVector3( -0.0015, -0.1, -0.0015 ), ruVector3( 0.0015, -0.45, 0.0015 ), steamHis ));
 
     ruEngine::SetAmbientColor( ruVector3( 0, 0, 0 ));
 
@@ -170,35 +170,35 @@ LevelResearchFacility::LevelResearchFacility() {
 	AddInteractiveObject( Item::GetNameByType( Item::Type::FerrumOxide ), make_shared<InteractiveObject>( GetUniqueObject( "FerrumOxide" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveFe2O3 ));
 	AddInteractiveObject( Item::GetNameByType( Item::Type::AluminumPowder ), make_shared<InteractiveObject>( GetUniqueObject( "AluminumPowder" )), ruDelegate::Bind( this, &LevelResearchFacility::Proxy_GiveAl ));
 
-	mKeypad1 = new Keypad( GetUniqueObject( "Keypad1"), GetUniqueObject( "Keypad1Key0" ), GetUniqueObject( "Keypad1Key1"),
+	mKeypad1 = unique_ptr<Keypad>( new Keypad( GetUniqueObject( "Keypad1"), GetUniqueObject( "Keypad1Key0" ), GetUniqueObject( "Keypad1Key1"),
 						   GetUniqueObject( "Keypad1Key2"), GetUniqueObject( "Keypad1Key3"), GetUniqueObject( "Keypad1Key4"),
 						   GetUniqueObject( "Keypad1Key5"), GetUniqueObject( "Keypad1Key6" ), GetUniqueObject( "Keypad1Key7"),
 						   GetUniqueObject( "Keypad1Key8"), GetUniqueObject( "Keypad1Key9"), GetUniqueObject( "Keypad1KeyCancel"), 
-						   mKeypad1DoorToUnlock.get(), "3065" );
+						   mKeypad1DoorToUnlock.get(), "3065" ));
 
-	mKeypad2 = new Keypad( GetUniqueObject( "Keypad2"), GetUniqueObject( "Keypad2Key0" ), GetUniqueObject( "Keypad2Key1"),
+	mKeypad2 = unique_ptr<Keypad>( new Keypad( GetUniqueObject( "Keypad2"), GetUniqueObject( "Keypad2Key0" ), GetUniqueObject( "Keypad2Key1"),
 		GetUniqueObject( "Keypad2Key2"), GetUniqueObject( "Keypad2Key3"), GetUniqueObject( "Keypad2Key4"),
 		GetUniqueObject( "Keypad2Key5"), GetUniqueObject( "Keypad2Key6" ), GetUniqueObject( "Keypad2Key7"),
 		GetUniqueObject( "Keypad2Key8"), GetUniqueObject( "Keypad2Key9"), GetUniqueObject( "Keypad2KeyCancel"), 
-		mKeypad2DoorToUnlock.get(), "6497" );
+		mKeypad2DoorToUnlock.get(), "6497" ));
 
-	mKeypad3 = new Keypad( GetUniqueObject( "Keypad3"), GetUniqueObject( "Keypad3Key0" ), GetUniqueObject( "Keypad3Key1"),
+	mKeypad3 = unique_ptr<Keypad>( new Keypad( GetUniqueObject( "Keypad3"), GetUniqueObject( "Keypad3Key0" ), GetUniqueObject( "Keypad3Key1"),
 		GetUniqueObject( "Keypad3Key2"), GetUniqueObject( "Keypad3Key3"), GetUniqueObject( "Keypad3Key4"),
 		GetUniqueObject( "Keypad3Key5"), GetUniqueObject( "Keypad3Key6" ), GetUniqueObject( "Keypad3Key7"),
 		GetUniqueObject( "Keypad3Key8"), GetUniqueObject( "Keypad3Key9"), GetUniqueObject( "Keypad3KeyCancel"), 
-		mKeypad3DoorToUnlock.get(), "1487" );
+		mKeypad3DoorToUnlock.get(), "1487" ));
 
-	mLabKeypad = new Keypad( GetUniqueObject( "Keypad4"), GetUniqueObject( "Keypad4Key0" ), GetUniqueObject( "Keypad4Key1"),
+	mLabKeypad = unique_ptr<Keypad>( new Keypad( GetUniqueObject( "Keypad4"), GetUniqueObject( "Keypad4Key0" ), GetUniqueObject( "Keypad4Key1"),
 		GetUniqueObject( "Keypad4Key2"), GetUniqueObject( "Keypad4Key3"), GetUniqueObject( "Keypad4Key4"),
 		GetUniqueObject( "Keypad4Key5"), GetUniqueObject( "Keypad4Key6" ), GetUniqueObject( "Keypad4Key7"),
 		GetUniqueObject( "Keypad4Key8"), GetUniqueObject( "Keypad4Key9"), GetUniqueObject( "Keypad4KeyCancel"), 
-		mLabDoorToUnlock.get(), "8279" );
+		mLabDoorToUnlock.get(), "8279" ));
 
-	mColliderKeypad = new Keypad( GetUniqueObject( "Keypad5"), GetUniqueObject( "Keypad5Key0" ), GetUniqueObject( "Keypad5Key1"),
+	mColliderKeypad = unique_ptr<Keypad>( new Keypad( GetUniqueObject( "Keypad5"), GetUniqueObject( "Keypad5Key0" ), GetUniqueObject( "Keypad5Key1"),
 		GetUniqueObject( "Keypad5Key2"), GetUniqueObject( "Keypad5Key3"), GetUniqueObject( "Keypad5Key4"),
 		GetUniqueObject( "Keypad5Key5"), GetUniqueObject( "Keypad5Key6" ), GetUniqueObject( "Keypad5Key7"),
 		GetUniqueObject( "Keypad5Key8"), GetUniqueObject( "Keypad5Key9"), GetUniqueObject( "Keypad5KeyCancel"), 
-		mColliderDoorToUnlock.get(), "1598" );
+		mColliderDoorToUnlock.get(), "1598" ));
 
 
 	ruSound::SetAudioReverb( 10 );
@@ -267,10 +267,7 @@ void LevelResearchFacility::CreateEnemy() {
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
-	if( mpPowerSparks ) {
-		delete mpPowerSparks;
-	}
-    delete mpExtemeSteam;
+
 }
 
 
@@ -349,9 +346,7 @@ void LevelResearchFacility::DoScenario() {
         mpPowerSparks->Update();
 
         if( !mpPowerSparks->IsAlive() ) {
-            delete mpPowerSparks;
-
-            mpPowerSparks = 0;
+            mpPowerSparks.reset();
         }
     }
 
@@ -393,8 +388,8 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						mThermiteBig->Show();
 						mThermiteItemPlace->SetPlaceType( Item::Type::Lighter );
 					} else if( mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter ) {
-						mMeshLockAnimation.enabled = true;
-						mMeshAnimation.enabled = true;
+						mMeshLockAnimation.SetEnabled( true );
+						mMeshAnimation.SetEnabled( true );
 
 						mThermiteSmall->Hide();
 						mThermiteBig->Hide();
@@ -469,7 +464,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
                 mLeverSound->Play();
 
-                mpPowerSparks = new Sparks( mPowerLeverSnd, ruSound::Load3D( "data/sounds/sparks.ogg" ));
+                mpPowerSparks = unique_ptr<Sparks>( new Sparks( mPowerLeverSnd, ruSound::Load3D( "data/sounds/sparks.ogg" )));
 
                 mPowerLeverOnModel->Show();
                 mPowerLeverOffModel->Hide();
