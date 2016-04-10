@@ -39,13 +39,13 @@ Skybox::Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Tex
 }
 
 void Skybox::Render( ) {
-	Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
-    Engine::I().GetDevice()->SetIndices( mIndexBuffer );
-	Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( SkyVertex ));
+	pD3D->SetVertexDeclaration( mVertexDeclaration );
+    pD3D->SetIndices( mIndexBuffer );
+	pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( SkyVertex ));
 	for( int i = 0; i < 5; i++ ) {
-		mTextures[i]->Bind( 3 );
-		Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2 );
-		Engine::I().RegisterDIP();
+		pD3D->SetTexture( 0, mTextures[i]->GetInterface() );
+		pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2 );
+		pEngine->RegisterDIP();
 	}
 }
 
@@ -56,12 +56,14 @@ void Skybox::OnLostDevice() {
 }
 
 void Skybox::OnResetDevice() {	
+	void * data = nullptr;
+
 	D3DVERTEXELEMENT9 vd[ ] = {
 		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
 		{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 		D3DDECL_END()
 	};
-	Engine::I().GetDevice()->CreateVertexDeclaration( vd, &mVertexDeclaration );
+	pD3D->CreateVertexDeclaration( vd, &mVertexDeclaration );
 
 	float size = 1024.0f;
 	SkyVertex fv[ ] = { 
@@ -85,14 +87,15 @@ void Skybox::OnResetDevice() {
 		{  size,  size,  size, 1.0f, 0.0f },
 		{  size,  size, -size, 1.0f, 1.0f },
 		{ -size,  size, -size, 0.0f, 1.0f } };
-	Engine::I().GetDevice()->CreateVertexBuffer( sizeof( fv ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
-	void * data = nullptr;
+
+	unsigned short indices [] = { 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19 };
+
+	pD3D->CreateVertexBuffer( sizeof( fv ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );	
 	mVertexBuffer->Lock( 0, 0, &data, 0 );
 	memcpy( data, fv, sizeof( fv ));
 	mVertexBuffer->Unlock();
-
-	unsigned short indices [] = { 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19 };
-	Engine::I().GetDevice()->CreateIndexBuffer( sizeof( indices ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
+	
+	pD3D->CreateIndexBuffer( sizeof( indices ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
 	mIndexBuffer->Lock( 0, 0, &data, 0 );
 	memcpy( data, indices, sizeof( indices ) );
 	mIndexBuffer->Unlock();

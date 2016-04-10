@@ -23,9 +23,15 @@
 #include "Engine.h"
 #include "ForwardRenderer.h"
 
-void ForwardRenderer::RenderMeshes() {
-    mPixelShader->Bind();
-    mVertexShader->Bind();
+void ForwardRenderer::Render() {
+	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+	pD3D->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+	pD3D->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+
+    mTransparentPixelShader->Bind();
+    mTransparentVertexShader->Bind();
 
 	for( auto texGroupPairIter = mRenderList.begin(); texGroupPairIter != mRenderList.end(); ) {
 		auto & meshGroup = (*texGroupPairIter).second;
@@ -49,7 +55,7 @@ void ForwardRenderer::RenderMeshes() {
 		if( meshGroup.size() == 0 ) {
 			continue;
 		}
-        Engine::I().GetDevice()->SetTexture( 0, diffuseTexture );
+        pD3D->SetTexture( 0, diffuseTexture );
         for( auto & meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
 			shared_ptr<Mesh> pMesh = (*meshIter).lock();
 			if( pMesh ) {
@@ -66,8 +72,15 @@ void ForwardRenderer::RenderMeshes() {
 							if( camera ) {
 								D3DXMatrixMultiplyTranspose( &wvp, &world, &camera->mViewProjection );
 							}
-							Engine::I().SetVertexShaderMatrix( 0, &wvp );
-							Engine::I().SetPixelShaderFloat( 0, pMesh->GetOpacity() );
+
+							pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+							
+							GPURegister psFloatConstants[] = {
+								{ pMesh->GetOpacity(), 0.0f, 0.0f, 0.0f }
+							};
+
+							pD3D->SetPixelShaderConstantF( 0, (float*)psFloatConstants, 1 );
+
 
 							pMesh->Render();
 						}
@@ -95,6 +108,6 @@ ForwardRenderer::~ForwardRenderer() {
 }
 
 ForwardRenderer::ForwardRenderer() {
-    mVertexShader = make_shared<VertexShader>( "data/shaders/forwardTransparent.vso" );
-    mPixelShader = make_shared<PixelShader>( "data/shaders/forwardTransparent.pso" );
+    mTransparentVertexShader = make_shared<VertexShader>( "data/shaders/forwardTransparent.vso" );
+    mTransparentPixelShader = make_shared<PixelShader>( "data/shaders/forwardTransparent.pso" );
 }

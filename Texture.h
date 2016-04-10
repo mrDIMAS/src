@@ -38,7 +38,6 @@ public:
     static unordered_map< string, weak_ptr<Texture>> msTextureList;
 	explicit Texture( );
     virtual ~Texture( );
-    void Bind( int level );
     IDirect3DTexture9 * GetInterface();
     static shared_ptr<Texture> Request( string file );
 	void OnResetDevice();

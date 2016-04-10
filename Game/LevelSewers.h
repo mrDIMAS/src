@@ -15,9 +15,25 @@ private:
 
 	unique_ptr<Gate> mGate1;
 	unique_ptr<Gate> mGate2;
+	unique_ptr<Gate> mGateToLift;
 
 	shared_ptr<ruSceneNode> mZoneKnocks;
 	shared_ptr<ruSound> mKnocksSound;
+	shared_ptr<ruSceneNode> mWater;
+
+	shared_ptr<Zone> mZoneEnemySpawn;
+
+	vector<shared_ptr<ruSceneNode>> mVerticalWaterList;
+	float mVerticalWaterFlow;
+	shared_ptr<ruSceneNode> mEnemySpawnPosition;
+	float mWaterFlow;
+
+	void OnPlayerEnterSpawnEnemyZone() 	{
+		if( !mStages[ "EnemySpawned" ] ) {
+			CreateEnemy();
+			mStages[ "EnemySpawned" ] = true;			
+		}
+	}
 public:
 	LevelSewers( );
 	~LevelSewers( );
@@ -28,4 +44,6 @@ public:
 
 	virtual void OnSerialize( SaveFile & out ) final;
 	virtual void OnDeserialize( SaveFile & in ) final;
+
+	void CreateEnemy();
 };

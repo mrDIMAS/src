@@ -46,7 +46,7 @@ protected:
 	weak_ptr<GUINode> mParent;
 	unordered_map<ruGUIAction, ruEvent> mEventList;
 	bool IsGotAction( ruGUIAction act );
-	bool IsMouseInside();	
+		
 	virtual void OnClick();
 	virtual void OnMouseEnter();
 	virtual void OnMouseLeave();	
@@ -61,12 +61,8 @@ public:
     float GetY();
     float GetWidth();
     float GetHeight();
-	shared_ptr<GUINode> GetParent() {
-		return mParent.lock();
-	}
-	bool GotParent() {
-		return mParent.use_count() > 0;
-	}
+	shared_ptr<GUINode> GetParent();
+	bool GotParent();
 	virtual void SetColor( ruVector3 color );
 	virtual void SetAlpha( int alpha );
     virtual void SetSize( float w, float h );
@@ -78,6 +74,7 @@ public:
     virtual ruVector2 GetSize( );
     virtual ruVector3 GetColor();
     virtual int GetAlpha();
+	virtual bool IsMouseInside();
 	virtual void Attach( const shared_ptr<ruGUINode> & parent );
 	virtual void SetPosition( float x, float y );
 	virtual void SetChildAlphaControl( bool control );

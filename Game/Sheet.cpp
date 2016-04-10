@@ -12,8 +12,8 @@ Sheet::Sheet( shared_ptr<ruSceneNode> object, string desc, string text ) : Inter
     if( !msSheetFont ) {
         msSheetFont = ruFont::LoadFromFile( 16, "data/fonts/font1.otf" );
     }
-    int cx = ruEngine::GetResolutionWidth() / 2;
-    int cy = ruEngine::GetResolutionHeight() / 2;
+    int cx = ruVirtualScreenWidth / 2;
+    int cy = ruVirtualScreenHeight / 2;
 
     int w = 400;
     int h = 600;

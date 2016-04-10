@@ -8,13 +8,16 @@ void Actor::Move( ruVector3 direction, float speed ) {
 
 
 
-Actor::Actor( float height, float width ) :	mBodyHeight( height ), 
-											mBodyWidth( width ), 
-											mSpringLength( 1.0f ), 
-											mCrouch( false ),
-											mCrouchMultiplier( 1.0f ),
-											mVerticalSpeed( 0.0f ),
-											mLastVerticalPosition( 0.0f )
+Actor::Actor( float height, float width ) :	
+	mBodyHeight( height ), 											
+	mBodyWidth( width ), 
+	mSpringLength( 1.0f ), 
+	mCrouch( false ),
+	mCrouchMultiplier( 1.0f ),
+	mVerticalSpeed( 0.0f ),
+	mLastVerticalPosition( 0.0f ),
+	mMaxHealth( 100 ),
+	mHealth( 100 )
 {
     mBody = ruSceneNode::Create();
     mBody->SetCapsuleBody( mBodyHeight, mBodyWidth );
@@ -24,9 +27,6 @@ Actor::Actor( float height, float width ) :	mBodyHeight( height ),
     mBody->SetDamping( 0, 0 );
     mBody->SetMass( 2 );
     mBody->SetGravity( ruVector3( 0, 0, 0 ));
-
-	mMaxHealth = 100;
-	mHealth = mMaxHealth;
 }
 
 void Actor::SetPosition( ruVector3 position ) {
@@ -37,7 +37,7 @@ Actor::~Actor() {
 
 }
 
-char Actor::IsInsideZone( shared_ptr<ruSceneNode> zone ) {
+char Actor::IsInsideZone( const shared_ptr<ruSceneNode> & zone ) {
     return mBody->IsInsideNode( zone );
 }
 

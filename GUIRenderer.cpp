@@ -33,23 +33,26 @@
 
 GUIRenderer::GUIRenderer() {
    Initialize();
-   mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/gui.vso" )));
-   mPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/gui.pso" )));
+   mVertexShader = unique_ptr<VertexShader>( new VertexShader( "data/shaders/gui.vso" ));
+   mPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/gui.pso" ));
 }
 
 GUIRenderer::~GUIRenderer() {
     OnLostDevice();
 }
 
-void GUIRenderer::RenderAllGUIElements() {
+void GUIRenderer::Render() {
+	pD3D->SetRenderState( D3DRS_ZENABLE, FALSE );
+
     mPixelShader->Bind();
     mVertexShader->Bind();
 
-    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    pD3D->SetVertexDeclaration( mVertexDeclaration );
 
-    Engine::I().SetVertexShaderMatrix( 0, &mOrthoMatrix );
-    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
-    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
+	pD3D->SetVertexShaderConstantF( 0, &mOrthoMatrix.m[0][0], 4 );
+
+    pD3D->SetVertexDeclaration( mVertexDeclaration );
+    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
 
 	auto & nodes = GUIFactory::GetNodeList();
 	for( auto & nWeak : nodes ) {
@@ -74,16 +77,18 @@ void GUIRenderer::RenderAllGUIElements() {
 		shared_ptr<GUIText> & pText = tWeak.lock();
 		if( pText ) {
 			if( pText->IsVisible() ) {
-				Engine::I().GetTextRenderer()->RenderText( pText );
+				pEngine->GetTextRenderer()->RenderText( pText );
 			}
 		}
     }
 	
-    if( Engine::I().GetCursor() ) {
-        Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
-        if( Engine::I().GetCursor()->IsVisible() ) {
-            Engine::I().GetCursor()->SetPosition( ruInput::GetMouseX(), ruInput::GetMouseY());
-            RenderRect( Engine::I().GetCursor() );
+    if( pEngine->GetCursor() ) {
+        pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
+        if( pEngine->GetCursor()->IsVisible() ) {
+            pEngine->GetCursor()->SetPosition( 
+				ruInput::GetMouseX() / pEngine->GetGUIWidthScaleFactor(), 
+				ruInput::GetMouseY() / pEngine->GetGUIHeightScaleFactor());
+            RenderRect( pEngine->GetCursor() );
         }
     }
 }
@@ -100,9 +105,9 @@ void GUIRenderer::RenderRect( const shared_ptr<GUIRect> & r ) {
     mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD );
     memcpy( data, vertices, mSizeOfRectBytes );
     mVertexBuffer->Unlock( );
-    std::dynamic_pointer_cast<Texture>(r->GetTexture())->Bind( 0 );
-    Engine::I().RegisterDIP();
-    Engine::I().GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+    pD3D->SetTexture( 0, std::dynamic_pointer_cast<Texture>(r->GetTexture())->GetInterface() );
+    pEngine->RegisterDIP();
+    pD3D->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
 }
 
 void GUIRenderer::OnLostDevice() {
@@ -116,7 +121,7 @@ void GUIRenderer::OnResetDevice() {
 
 void GUIRenderer::Initialize() {
 	mSizeOfRectBytes = 6 * sizeof( Vertex2D  );
-	Engine::I().GetDevice()->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+	pD3D->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 
 	D3DVERTEXELEMENT9 guivd[ ] = {
 		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -125,10 +130,10 @@ void GUIRenderer::Initialize() {
 		D3DDECL_END()
 	};
 
-	Engine::I().GetDevice()->CreateVertexDeclaration( guivd, &mVertexDeclaration );
+	pD3D->CreateVertexDeclaration( guivd, &mVertexDeclaration );
 
 	D3DVIEWPORT9 vp;
-	Engine::I().GetDevice()->GetViewport( &vp );
+	pD3D->GetViewport( &vp );
 	D3DXMatrixOrthoOffCenterLH ( &mOrthoMatrix, 0, vp.Width, vp.Height, 0, 0.0f, 1024.0f );
 }
 

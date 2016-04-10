@@ -70,7 +70,7 @@ void Lift::Update() {
             }
         }
     } else {
-        RaiseError( "Lift objects are set improperly!" );
+        throw std::runtime_error( "Lift objects are set improperly!" );
     }
 }
 

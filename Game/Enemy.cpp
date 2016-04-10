@@ -1,10 +1,8 @@
 #include "Precompiled.h"
-
+#include "Gate.h"
 #include "Enemy.h"
 #include "Menu.h"
 #include "Door.h"
-
-vector<Enemy*> Enemy::msEnemyList;
 
 Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Actor( 0.5f, 0.25f ), mHitDistance( 1.3 ) {
 	mPathfinder.SetVertices( path );
@@ -40,8 +38,6 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mPlayerDetected = false;
 	mPlayerInSightTimer = ruTimer::Create();
 
-	msEnemyList.push_back( this );
-
 	mDead = false;
 
 	mFadeAwaySound = ruSound::Load2D( "data/sounds/fadeaway.ogg" );
@@ -59,6 +55,7 @@ Enemy::Enemy( vector<GraphVertex*> & path, vector<GraphVertex*> & patrol ) : Act
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/grass.smat", mBody )));
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/soil.smat", mBody )));
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/chain.smat", mBody )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/mud.smat", mBody )));
 	for( auto & pMat : mSoundMaterialList ) {
 		for( auto & pSound : pMat->GetSoundList() ) {
 			pSound->SetVolume( 0.75f );
@@ -90,7 +87,7 @@ void Enemy::Think() {
 	} else if( mMoveType == MoveType::GoToDestination ) {
 		if( mCurrentPath.size() ) {
 			mTarget = mCurrentPath[mCurrentWaypointNum]->mPosition;
-			if( ( mTarget - mBody->GetPosition() ).Length2() < 0.5f ) {
+			if( ( mTarget - mBody->GetPosition() ).Length2() < 0.25f ) {
 				mCurrentWaypointNum += mDestinationWaypointNum - mCurrentWaypointNum > 0 ? 1 : 0;
 			}
 		}
@@ -178,14 +175,14 @@ void Enemy::Think() {
 
 
 	// DEBUG
-	enemyDetectPlayer = false;
+	// enemyDetectPlayer = false;
 
 	if( enemyDetectPlayer ) {
 		mMoveType = MoveType::ChasePlayer;
 		mDoPatrol = false;
 		mBreathSound->Pause();
 		mScreamSound->Play( true );
-		mRunSpeed = 3.1f;
+		mRunSpeed = 2.8f;
 	} else {
 		mMoveType = MoveType::GoToDestination;
 		mDoPatrol = true;
@@ -240,15 +237,27 @@ void Enemy::Think() {
 		SetRunAnimation();
 	}
 
+	const float doorCheckDistance = 8.0f;
 	// check doors
 	bool allDoorsAreOpen = true;
 	for( auto pDoor : Door::msDoorList ) {
-		if( ( pDoor->mDoorNode->GetPosition() - mBody->GetPosition()).Length2() < 2.2f ) {
+		if( ( pDoor->mDoorNode->GetPosition() - mBody->GetPosition()).Length2() < doorCheckDistance ) {
 			if( pDoor->GetState() != Door::State::Opened && !pDoor->IsLocked() ) {
 				allDoorsAreOpen = false;
 			}
 			if( pDoor->GetState() == Door::State::Closed && !pDoor->IsLocked() ) {
 				pDoor->Open();
+			}
+		}
+	}
+	// check gates (door too)
+	for( auto pGate : Gate::msGateList ) {
+		if( ( pGate->GetNode()->GetPosition() - mBody->GetPosition()).Length2() < doorCheckDistance ) {
+			if( pGate->GetState() != Gate::State::Opened ) {
+				allDoorsAreOpen = false;
+			}
+			if( pGate->GetState() == Gate::State::Closed ) {
+				pGate->Open();
 			}
 		}
 	}
@@ -268,6 +277,13 @@ void Enemy::Think() {
 	if( !move ) {
 		StopInstant();
 	}
+
+	if( !allDoorsAreOpen ) {
+		StopInstant();
+		SetIdleAnimation();
+	}
+
+
 	if( mPathCheckTimer->GetElapsedTimeInSeconds() > 2.5f ) {
 		// got obstacle (door), can't get throuh it, try next patrol point
 		if( ( mModel->GetPosition() - mLastCheckPosition).Length2() < 0.055 ) {
@@ -430,10 +446,7 @@ void Enemy::Deserialize( SaveFile & in ) {
 }
 
 Enemy::~Enemy() {
-	auto iter = find( msEnemyList.begin(), msEnemyList.end(), this );
-	if( iter != msEnemyList.end() ) {
-		msEnemyList.erase( iter );
-	}
+
 }
 
 void Enemy::DoBloodSpray() {

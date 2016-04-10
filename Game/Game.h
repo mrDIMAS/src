@@ -12,7 +12,7 @@ enum LevelName {
     LXTestingChamber,
 };
 
-void RaiseError( const string & text );
+
 
 extern float mouseSens;
 
@@ -33,8 +33,6 @@ extern int g_initialLevel;
 extern bool g_continueGame;
 extern ruInput::Key g_keyQuickSave;
 extern ruInput::Key g_keyQuickLoad;
-extern float g_resW;
-extern float g_resH;
 extern double g_dt;
 extern float g_musicVolume;
 

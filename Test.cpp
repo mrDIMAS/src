@@ -96,7 +96,7 @@ void main( ) {
 
     int perfTime=0;
 
-    ruEngine::EnableSpotLightShadows( false );
+    
     
 
     ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
@@ -109,8 +109,10 @@ void main( ) {
 	testButton2->Attach( testrect );
 
 	ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
+	ruEngine::EnableSpotLightShadows( true );
 	ruEngine::SetHDREnabled( false );
 	ruEngine::SetFXAAEnabled( false );
+	ruEngine::SetParallaxEnabled( true );
 
 	shared_ptr<ruSceneNode> cube = ruSceneNode::LoadFromFile( "data/cube.scene" );
 	
@@ -126,6 +128,8 @@ void main( ) {
 	for( int i = 0; i < ruPointLight::GetCount(); i++ ) {
 		ruPointLight::Get( i )->SetGreyscaleFactor( 1.0f );
 	}
+
+	//ruEngine::SetAmbientColor( ruVector3( 1, 1, 1 ));
 
     while( !ruInput::IsKeyDown( ruInput::Key::Esc )) {
         //idleAnim.Update();

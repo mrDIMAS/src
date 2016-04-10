@@ -127,3 +127,10 @@ public:
 };
 
 using namespace std;
+
+extern IDirect3DDevice9 * pD3D;
+extern unique_ptr<class Engine> pEngine;
+
+struct GPURegister {
+	float a, b, c, d;
+};

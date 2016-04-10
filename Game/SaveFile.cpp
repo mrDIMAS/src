@@ -119,7 +119,7 @@ SaveFile::~SaveFile() {
 SaveFile::SaveFile( const string & fileName, bool save ) {
     int flags = save ? ( fstream::out | fstream::trunc ) : ( fstream::in );
     mStream.open( fileName, flags );
-	if( mStream.bad() ) {
-		RaiseError( StringBuilder( "Unable to open " ) << fileName << " save file!" );
+	if( !mStream.good() ) {
+		throw std::runtime_error( StringBuilder( "Unable to open " ) << fileName << " save file!" );
 	}
 }

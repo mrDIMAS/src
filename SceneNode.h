@@ -49,10 +49,12 @@ protected:
     bool mVisible;
 	bool mIsBone;
 	bool mCollisionEnabled;
+	ruVector2 mTexCoordFlow;
     ruContact mContactList[ BODY_MAX_CONTACTS ];
     int mContactCount;
     int mTotalFrameCount;
 	void AutoName();
+	// Objects of Bullet Physics does not fit into STL smartpointers, so bad
 	vector<btRigidBody*> mBodyList;
 	vector<btTriangleMesh*> mTrimeshList;
 	btTransform mGlobalTransform;
@@ -68,6 +70,12 @@ public:
 
     // Methods
     virtual ~SceneNode( );
+	virtual void SetTexCoordFlow( const ruVector2 & flow ) {
+		mTexCoordFlow = flow;
+	}
+	virtual ruVector2 GetTexCoordFlow( ) const {
+		return mTexCoordFlow;
+	}
 	void AddMesh( const shared_ptr<Mesh> & mesh );
 	virtual ruVector3 GetRotationAxis( );
 	virtual float GetRotationAngle( );

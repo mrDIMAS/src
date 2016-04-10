@@ -22,10 +22,11 @@
 #include "Precompiled.h"
 
 #include "ParticleSystemRenderer.h"
-#include "DeferredRenderer.h"
 #include "Camera.h"
 #include "Engine.h"
 #include "SceneFactory.h"
+#include "PointLight.h"
+#include "SpotLight.h"
 
 ParticleSystemRenderer::ParticleSystemRenderer() {
     mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/particle.vso" )));
@@ -39,19 +40,23 @@ ParticleSystemRenderer::ParticleSystemRenderer() {
         D3DDECL_END()
     };
 
-    Engine::I().GetDevice()->CreateVertexDeclaration( vdElem, &mVertexDeclaration );
+    pD3D->CreateVertexDeclaration( vdElem, &mVertexDeclaration );
 }
 
 ParticleSystemRenderer::~ParticleSystemRenderer() {
     mVertexDeclaration.Reset();
 }
 
-void ParticleSystemRenderer::RenderAllParticleSystems() {
+void ParticleSystemRenderer::Render() {
+	pD3D->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+	pD3D->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+	pD3D->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+
 	static vector<weak_ptr<Light>> lightList;
 
     mPixelShader->Bind();
 
-    Engine::I().GetDevice()->SetVertexDeclaration( mVertexDeclaration );
+    pD3D->SetVertexDeclaration( mVertexDeclaration );
     mVertexShader->Bind();
 
 	auto & particleSystems = SceneFactory::GetParticleSystemList();
@@ -77,11 +82,12 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 
 				D3DXMATRIX mWVP;
 				D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &camera->mViewProjection );
-				Engine::I().SetVertexShaderMatrix( 0, &mWVP );
-				Engine::I().SetVertexShaderMatrix( 5, &particleEmitter->mWorldTransform );
 
+
+				pD3D->SetVertexShaderConstantF( 0, &mWVP.m[0][0], 4 );
+				pD3D->SetVertexShaderConstantF( 4, &particleEmitter->mWorldTransform.m[0][0], 4 );
+				
 				if( particleEmitter->mUseLighting ) {		
-					Engine::I().SetVertexShaderFloat3( 61, Engine::I().GetAmbientColor().elements );
 					lightList.clear();
 
 					auto & pointLights = SceneFactory::GetPointLightList();
@@ -94,14 +100,25 @@ void ParticleSystemRenderer::RenderAllParticleSystems() {
 						}
 					}
 
-					Engine::I().SetVertexShaderFloat( 62, lightList.size() );
+					GPURegister ambientColorConstant = {
+						pEngine->GetAmbientColor().x, pEngine->GetAmbientColor().y, pEngine->GetAmbientColor().z, lightList.size()
+					};
+					pD3D->SetVertexShaderConstantF( 57, (float*)&ambientColorConstant, 1 );
+
 					int lightNumber = 0;
 					for( auto & lWeak : lightList ) {
 						shared_ptr<Light> & pLight = lWeak.lock();
 						if( pLight ) {
-							Engine::I().SetVertexShaderFloat3( 10 + lightNumber, pLight->GetPosition().elements );
-							Engine::I().SetVertexShaderFloat3( 27 + lightNumber, pLight->GetColor().elements );
-							Engine::I().SetVertexShaderFloat( 44 + lightNumber, pLight->GetRange() );
+
+							GPURegister lightPositionConstant = { pLight->GetPosition().x, pLight->GetPosition().y, pLight->GetPosition().z, 1.0f	};
+							pD3D->SetVertexShaderConstantF( 9 + lightNumber, (float*)&lightPositionConstant, 1);
+
+							GPURegister lightColorConstant = { pLight->GetColor().x, pLight->GetColor().y, pLight->GetColor().z, 1.0f };
+							pD3D->SetVertexShaderConstantF( 25 + lightNumber, (float*)&lightColorConstant, 1);
+
+							GPURegister lightRangeConstant = { pLight->GetRange(), 1.0f, 1.0f, 1.0f	};
+							pD3D->SetVertexShaderConstantF( 41 + lightNumber, (float*)&lightRangeConstant, 1);
+
 							lightNumber++;
 							if( lightNumber >= 16 ) {
 								break;

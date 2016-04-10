@@ -19,8 +19,16 @@ Door::Door( shared_ptr<ruSceneNode> hDoor, float fMaxAngle ) : mDoorNode( hDoor 
 	SetTurnDirection( TurnDirection::Clockwise );
     mOpenSound = ruSound::Load3D( "data/sounds/door/dooropen.ogg" );
     mOpenSound->Attach( mDoorNode );
+	mOpenSound->SetRolloffFactor( 20 );
+	mOpenSound->SetRoomRolloffFactor( 20 );
+	mOpenSound->SetReferenceDistance( 0.5 );
+
     mCloseSound = ruSound::Load3D( "data/sounds/door/doorclose.ogg" );
     mCloseSound->Attach( mDoorNode );
+	mCloseSound->SetRolloffFactor( 20 );
+	mCloseSound->SetRoomRolloffFactor( 20 );
+	mCloseSound->SetReferenceDistance( 0.5 );
+
     msDoorList.push_back( this );
 }
 

@@ -34,10 +34,8 @@ GUIRect::GUIRect() {
 }
 
 GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha ) {
-    mX = theX;
-    mY = theY;
-    mWidth = theWidth;
-    mHeight = theHeight;
+	SetPosition( theX, theY );
+	SetSize( theWidth, theHeight );
     mpTexture = theTexture;
     mVisible = true;
     SetColor( theColor );

@@ -4,13 +4,15 @@
 #include "Player.h"
 
 class Gate {
-private:
-	enum class State {
+public:
+	enum class State : int {
 		Opening,
 		Closing,
 		Opened,
 		Closed,
 	};
+private:
+
 	State mState;
 	shared_ptr<ruSceneNode> mGate;
 	shared_ptr<ruSceneNode> mButtonOpen[2];
@@ -30,6 +32,7 @@ private:
 
 	void Proxy_BeginGateClosing() {
 		mGate->SetAnimation( &mCloseAnim );
+		
 		mCloseAnim.Rewind();
 		mCloseAnim.SetEnabled( true );
 	}
@@ -66,6 +69,22 @@ private:
 		mState = State::Closing;
 	}
 public:
+	static vector<Gate*> msGateList;
 	explicit Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2  );
+	~Gate() {
+		auto iter = find( msGateList.begin(), msGateList.end(), this );
+		if( iter != msGateList.end() ) {
+			msGateList.erase( iter );
+		}
+	}
 	void Update();
+	void Open() {
+		Proxy_BeginGateOpening();
+	}
+	shared_ptr<ruSceneNode> GetNode() const {
+		return mGate;
+	}
+	State GetState() const {
+		return mState;
+	}
 };

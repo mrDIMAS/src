@@ -3,7 +3,7 @@
 
 
 
-Vector3 Vector3::normalized()
+Vector3 Vector3::Normalized()
 {
 	float len = sqrt( x*x + y*y + z*z );
 	if( len > 0.000001 )
@@ -12,24 +12,13 @@ Vector3 Vector3::normalized()
 		return Vector3( x, y, z );
 }
 
-float Vector3::dot( const Vector3 & v )
+float Vector3::Dot( const Vector3 & v )
 {
 	return x * v.x + y * v.y + z * v.z;
 }
 
-Vector3 Vector3::cross( const Vector3 & v )
+Vector3 Vector3::Cross( const Vector3 & v )
 {
 	return Vector3( y * v.z - z * v.x, z * v.x - x * v.z, x * v.y - y * v.x );
 }
 
-Vector3::Vector3()
-{
-
-}
-
-Vector3::Vector3( float _x, float _y, float _z )
-{
-	x = _x;
-	y = _y;
-	z = _z;
-}

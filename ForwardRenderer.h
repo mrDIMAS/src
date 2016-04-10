@@ -28,16 +28,14 @@
 #include "Utility.h"
 #include "Shader.h"
 
-// must be used to render transparent faces only
-// in other cases prefer DeferredRenderer
 class ForwardRenderer {
 private:
     map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> mRenderList;
-    shared_ptr<PixelShader> mPixelShader;
-    shared_ptr<VertexShader> mVertexShader;
+    shared_ptr<PixelShader> mTransparentPixelShader;
+    shared_ptr<VertexShader> mTransparentVertexShader;
 public:
     ForwardRenderer();
     ~ForwardRenderer();
     void AddMesh( shared_ptr<Mesh> mesh );
-    void RenderMeshes();
+    void Render();
 };

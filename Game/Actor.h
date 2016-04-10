@@ -21,7 +21,7 @@ public:
     void Move( ruVector3 direction, float speed );
 	
     ruVector3 GetCurrentPosition( );
-    char IsInsideZone( shared_ptr<ruSceneNode> zone );
+    char IsInsideZone( const shared_ptr<ruSceneNode> & zone );
     void StopInstant();
     void Freeze();
     void Unfreeze();
@@ -33,4 +33,7 @@ public:
 	virtual void Damage( float dmg );
 	virtual void Heal( float howMuch );
     ruVector3 GetLookDirection();
+	float DistanceTo( const shared_ptr<ruSceneNode> & obj ) {
+		return (obj->GetPosition() - mBody->GetPosition()).Length();
+	}
 };

@@ -96,8 +96,6 @@ private:
 	shared_ptr<ruSceneNode> mRadioHurtZone;
 	ItemPlace * mThermiteItemPlace;
 
-	shared_ptr<Enemy> mEnemy;
-
     void CreatePowerUpSequence();
     void UpdatePowerupSequence();
 	void UpdateThermiteSequence();

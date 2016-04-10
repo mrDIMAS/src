@@ -24,8 +24,8 @@ Inventory::Inventory() {
 
     mPickSound = ruSound::Load2D( "data/sounds/menupick.ogg" );
 
-    int screenCenterX = ruEngine::GetResolutionWidth() / 2;
-    int screenCenterY = ruEngine::GetResolutionHeight() / 2;
+    int screenCenterX = ruVirtualScreenWidth / 2;
+    int screenCenterY = ruVirtualScreenHeight / 2;
 
     mGUIRectItemForUse = ruRect::Create( screenCenterX, screenCenterY, 64, 64, nullptr, pGUIProp->mForeColor, 255 );
 
@@ -133,8 +133,8 @@ void Inventory::DoCombine() {
 
 void Inventory::Update() {
     ruVector3 whiteColor = ruVector3( 255, 255, 255 );
-    int screenCenterX = ruEngine::GetResolutionWidth() / 2;
-    int screenCenterY = ruEngine::GetResolutionHeight() / 2;
+    int screenCenterX = ruVirtualScreenWidth / 2;
+    int screenCenterY = ruVirtualScreenHeight / 2;
 
     if( mpItemForUse ) {
         ruEngine::HideCursor();
@@ -289,7 +289,8 @@ void Inventory::Update() {
             bool pressed = false;
             int cellX = coordX + distMult * mCellWidth * cw;
             int cellY = coordY + distMult * mCellHeight * ch;
-            if( IsMouseInside( cellX, cellY, mCellWidth, mCellHeight ) ) {
+
+            if( mGUIItemCell[cw][ch]->IsMouseInside() ) {
                 color = ruVector3( 255, 0, 0 );
                 alpha = 255;
                 if( pItem != mpCombineItemFirst && pItem != mpCombineItemSecond ) {

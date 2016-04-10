@@ -36,16 +36,16 @@ ParticleSystem::~ParticleSystem() {
 }
 
 void ParticleSystem::Render() {
-    Engine::I().RegisterDIP();
-    Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 );
+    pEngine->RegisterDIP();
+    pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 );
 }
 
 void ParticleSystem::Bind() {
     if( mTexture ) {
-        mTexture->Bind( 0 );
+		pD3D->SetTexture( 0, mTexture->GetInterface() );
     }
-    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( ParticleVertex ));
-    Engine::I().GetDevice()->SetIndices( mIndexBuffer );
+    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( ParticleVertex ));
+    pD3D->SetIndices( mIndexBuffer );
 }
 
 void ParticleSystem::Update() {
@@ -240,8 +240,8 @@ void ParticleSystem::OnLostDevice() {
 }
 
 void ParticleSystem::OnResetDevice() {
-	Engine::I().GetDevice()->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
-	Engine::I().GetDevice()->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
+	pD3D->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+	pD3D->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
 }
 
 ruVector3 ParticleSystem::GetSpeedDeviationMin() {

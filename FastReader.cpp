@@ -111,7 +111,7 @@ FastReader::~FastReader() {
 
 bool FastReader::ReadFile( const string & fileName ) {
     ifstream file( fileName, ios_base::binary );
-    if ( file.bad() ) {
+    if ( !file.good() ) {
         return false;
     }
 	file.seekg( 0, ios_base::end );

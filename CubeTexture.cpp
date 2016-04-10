@@ -56,7 +56,7 @@ void CubeTexture::OnResetDevice()
 
 void CubeTexture::Load()
 {
-	D3DXCreateCubeTextureFromFileA( Engine::I().GetDevice(), mSourceName.c_str(), &mCubeTexture );
+	D3DXCreateCubeTextureFromFileA( pD3D, mSourceName.c_str(), &mCubeTexture );
 }
 
 ruCubeTexture * ruCubeTexture::Request( const string & file ) {

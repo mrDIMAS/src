@@ -28,52 +28,54 @@
 #include "SceneFactory.h"
 
 void ruEngine::Create( int width, int height, int fullscreen, char vSync ) {
-	Engine::I().Initialize( width, height, fullscreen, vSync ) ;
+	pEngine = unique_ptr<Engine>( new Engine( ));
+	pEngine->Initialize( width, height, fullscreen, vSync ) ;
 }
 void ruEngine::Free( ) {
-	Engine::I().Shutdown();
+	pEngine->Shutdown();
+	pfSystemDestroy();
 }
 void ruEngine::RenderWorld( ) {
-	Engine::I().RenderWorld();
+	pEngine->RenderWorld();
 }
 int ruEngine::GetResolutionWidth( ) {
-	return Engine::I().GetResolutionWidth();
+	return pEngine->GetResolutionWidth();
 }
 int ruEngine::GetResolutionHeight( ) {
-	return Engine::I().GetResolutionHeight();
+	return pEngine->GetResolutionHeight();
 }
 void ruEngine::HideCursor( ) {
-	Engine::I().SetCursorVisible( false );
+	pEngine->SetCursorVisible( false );
 }
 void ruEngine::ShowCursor( ) {
-	Engine::I().SetCursorVisible( true );
+	pEngine->SetCursorVisible( true );
 }
 
 void ruEngine::SetCursorSettings( shared_ptr<ruTexture> texture, int w, int h ) {
-	Engine::I().SetCursor( texture, w, h );
+	pEngine->SetCursor( texture, w, h );
 }
 
 int ruEngine::GetDIPs( ) {
-	return Engine::I().GetDIPCount();
+	return pEngine->GetDIPCount();
 }
 int ruEngine::GetMaxAnisotropy() {
 	D3DCAPS9 caps;
-	Engine::I().GetDevice()->GetDeviceCaps( &caps );
+	pD3D->GetDeviceCaps( &caps );
 
 	return caps.MaxAnisotropy;
 }
 int ruEngine::GetTextureUsedPerFrame( ) {
-	return Engine::I().GetTextureChangeCount();
+	return pEngine->GetTextureChangeCount();
 }
 void ruEngine::SetAmbientColor( ruVector3 color ) {
-	Engine::I().SetAmbientColor( color );
+	pEngine->SetAmbientColor( color );
 }
 int ruEngine::GetAvailableTextureMemory() {
-	return Engine::I().GetDevice()->GetAvailableTextureMem();
+	return pD3D->GetAvailableTextureMem();
 }
 void ruEngine::EnableShadows( bool state ) {
-	Engine::I().SetSpotLightShadowsEnabled( state );
-	Engine::I().SetPointLightShadowsEnabled( state );
+	pEngine->SetSpotLightShadowsEnabled( state );
+	pEngine->SetPointLightShadowsEnabled( state );
 }
 void ruEngine::UpdateWorld() {
 	// build view and projection matrices, frustum, also attach sound listener to camera
@@ -106,36 +108,47 @@ void ruEngine::UpdateWorld() {
 		} 
 	}
 }
+
 void ruEngine::SetAnisotropicTextureFiltration( bool state ) {
-	Engine::I().SetAnisotropicTextureFiltration( state );
+	pEngine->SetAnisotropicTextureFiltration( state );
 }
+
 void ruEngine::SetFXAAEnabled( bool state ) {
-	Engine::I().SetFXAAEnabled( state );
+	pEngine->SetFXAAEnabled( state );
 }
+
 bool ruEngine::IsFXAAEnabled() {
-	return Engine::I().IsFXAAEnabled();
+	return pEngine->IsFXAAEnabled();
 }
+
 void ruEngine::ChangeVideomode( int width, int height, int fullscreen, char vSync ) {
-	Engine::I().ChangeVideomode( width, height, fullscreen, vSync );
+	pEngine->ChangeVideomode( width, height, fullscreen, vSync );
 }
+
 void ruEngine::SetHDREnabled( bool state ) {
-	Engine::I().SetHDREnabled( state );
+	pEngine->SetHDREnabled( state );
 }
+
 bool ruEngine::IsHDREnabled( ) {
-	return Engine::I().IsHDREnabled();
+	return pEngine->IsHDREnabled();
 }
+
 void ruEngine::SetSpotLightShadowMapSize( int size ) {
-	Engine::I().SetSpotLightShadowMapSize( size );
+	pEngine->SetSpotLightShadowMapSize( size );
 }
+
 void ruEngine::EnableSpotLightShadows( bool state ) {
-	Engine::I().SetSpotLightShadowsEnabled( state );
+	pEngine->SetSpotLightShadowsEnabled( state );
 }
+
 bool ruEngine::IsSpotLightShadowsEnabled() {
-	return Engine::I().IsSpotLightShadowsEnabled();
+	return pEngine->IsSpotLightShadowsEnabled();
 }
+
 void ruEngine::SetParallaxEnabled( bool state ) {
-	Engine::I().SetParallaxEnabled( state );
+	pEngine->SetParallaxEnabled( state );
 }
+
 bool ruEngine::IsParallaxEnabled() {
-	return Engine::I().IsParallaxEnabled();
+	return pEngine->IsParallaxEnabled();
 }

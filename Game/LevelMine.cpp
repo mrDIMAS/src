@@ -156,7 +156,7 @@ LevelMine::LevelMine() {
     patrolPoints.push_back( pathToRoom.mVertexList.front() );
     patrolPoints.push_back( pathToRoom.mVertexList.back() );
 
-    mEnemy = new Enemy( allPaths, patrolPoints );
+    mEnemy = unique_ptr<Enemy>( new Enemy( allPaths, patrolPoints ));
     mEnemy->SetPosition( GetUniqueObject( "EnemyPosition" )->GetPosition());
 
     mRock[0] = GetUniqueObject( "Rock1" );
@@ -200,7 +200,7 @@ void LevelMine::DoScenario() {
 
     mEnemy->Think();
 
-	ruEngine::SetAmbientColor( ruVector3( 8.0f / 255.0f, 8.0f / 255.0f, 8.0f / 255.0f ));
+	ruEngine::SetAmbientColor( ruVector3( 0.01, 0.01, 0.01 ));
 
     PlayAmbientSounds();
 
@@ -266,7 +266,7 @@ void LevelMine::DoScenario() {
                 mExplosionFlashLight = ruPointLight::Create();
                 mExplosionFlashLight->Attach( mExplosionFlashPosition );
                 mExplosionFlashLight->SetColor( ruVector3( 255, 200, 160 ));
-                mExplosionFlashAnimator = new LightAnimator( mExplosionFlashLight, 0.25, 30, 1.1 );
+                mExplosionFlashAnimator = unique_ptr<LightAnimator>( new LightAnimator( mExplosionFlashLight, 0.25, 30, 1.1 ));
                 mExplosionFlashAnimator->SetAnimationType( LightAnimator::AnimationType::Off );
 
                 // dust

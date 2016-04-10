@@ -56,8 +56,6 @@ public:
 };
 
 void MyNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatchInfo) {
-	// Do your collision logic here
-	// Only dispatch the Bullet collision information if you want the physics to continue
 	btCollisionObject * colObjA = static_cast<btCollisionObject*>( collisionPair.m_pProxy0->m_clientObject );
 	SceneNode * nodeA = static_cast<SceneNode*>( colObjA->getUserPointer());
 

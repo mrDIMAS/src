@@ -127,7 +127,7 @@ private:
 	void OnOptionsControlsClick();
 	void OnHDRButtonClick();
 	void OnParallaxButtonClick() {
-		ruEngine::SetParallaxEnabled( mpParallaxButton->IsEnabled() );
+		ruEngine::SetParallaxEnabled( mpParallaxButton->IsChecked() );
 	}
 	void OnLoadSaveClick();
 	void OnSaveClick();

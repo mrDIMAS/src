@@ -5,7 +5,7 @@
 #include "LevelMine.h"
 
 
-LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
+LevelArrival::LevelArrival( ) : mChangeLevel( false ) {
     mTypeNum = 2;
 
     // Load localization
@@ -24,17 +24,18 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
 
     //////////////////////////////////////////////////////////////////////////
     // Find entities
-    mGenerator = GetUniqueObject( "Generator" );
-
-    mLamp1 = GetUniqueObject( "Projector1" );
-	mLamp1->Hide();
-
-    mLamp2 = GetUniqueObject( "Projector2" );
-	mLamp2->Hide();
 
 	mLiftLamp = std::dynamic_pointer_cast<ruLight>( GetUniqueObject( "LiftLamp" ));
 	mLiftLamp->Hide();
 
+	mTutorialZone1 = GetUniqueObject( "TutorialZone1" );
+	mTutorialZone2 = GetUniqueObject( "TutorialZone2" );
+	mTutorialZone3 = GetUniqueObject( "TutorialZone3" );
+	mTutorialZone4 = GetUniqueObject( "TutorialZone4" );
+	mTutorialZone5 = GetUniqueObject( "TutorialZone5" );
+	mTutorialZone6 = GetUniqueObject( "TutorialZone6" );
+
+	mHalt = GetUniqueObject( "Halt" );
 
     //////////////////////////////////////////////////////////////////////////
     // Player noticements
@@ -44,15 +45,10 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
 
     //////////////////////////////////////////////////////////////////////////
     // Load sounds
-    AddSound( mGeneratorSound = ruSound::Load3D( "data/sounds/generator.ogg" ));
-    mGeneratorSound->Attach( GetUniqueObject( "Generator" ) );
-    mGeneratorSound->SetRolloffFactor( 5 );
-    mGeneratorSound->SetReferenceDistance( 5 );
-	mGeneratorSound->SetLoop( true );
-	mGeneratorSound->Pause();
 	
 	AddSound( mPowerDownSound = ruSound::Load2D( "data/sounds/powerdown.ogg"));
 	mPowerDownSound->SetVolume( 0.7 );
+
 	AddSound( mMetalWhineSound = ruSound::Load2D( "data/sounds/metal_whining.ogg" ));
 	mMetalWhineSound->SetVolume( 0.95 );
 
@@ -92,24 +88,11 @@ LevelArrival::LevelArrival( ) : mChangeLevel( false ), mPowerRestored( false ) {
 
 	mStages[ "LiftCrashed" ] = false;
 
-	mGeneratorStartSound = ruSound::Load3D( "data/sounds/generator_start.ogg" );
-	mGeneratorStartSound->Attach( mGenerator );
-
 	// every action series disabled by default
 	mLiftCrashSeries.AddAction( 0.0f, ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_PowerDown ) );
 	mLiftCrashSeries.AddAction( mPowerDownSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterPowerDown ) );
 	mLiftCrashSeries.AddAction( mMetalStressSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterFirstStressSound ) );
 	mLiftCrashSeries.AddAction( mLiftFallSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActLiftCrash_AfterFalldown ) );
-
-	// when player pushes button on the generator, he starts mGeneratorStartSeries that actually plays sound sequence and starts the generator
-	AddButton( mGeneratorButton = new Button( GetUniqueObject( "GeneratorButton" ), ruVector3( 0.0f, 0.0f, 1.0f ), ruSound::Load3D( "data/sounds/button_push.ogg" ), ruSound::Load3D( "data/sounds/button_pop.ogg" )));
-	mGeneratorButton->OnPush.AddListener( ruDelegate::Bind( this, &LevelArrival::GeneratorEnableAction ) );
-
-	mGeneratorStartSeries.AddAction( 0.0f, ruDelegate::Bind( this, &LevelArrival::ActGenerator_Start ) );
-	mGeneratorStartSeries.AddAction( mGeneratorStartSound->GetLength(), ruDelegate::Bind( this, &LevelArrival::ActGenerator_OnLine ) );
-
-	mGeneratorSmokePosition = GetUniqueObject( "GeneratorSmoke" )->GetPosition();
-
 
     DoneInitialization();
 }
@@ -132,14 +115,31 @@ void LevelArrival::DoScenario() {
     }
 
 	mLiftCrashSeries.Perform();
-	mGeneratorStartSeries.Perform();
 
-	if( mPowerRestored ) {
-		mLift->Update();
+
+	mLift->Update();
+
+	if( pPlayer->IsInsideZone( mTutorialZone1 )) {
+		pPlayer->SetActionText( mLocalization.GetString( "tutorialControls" ));
+	}
+	if( pPlayer->IsInsideZone( mTutorialZone2 )) {
+		pPlayer->SetActionText( mLocalization.GetString( "tutorialControls2" ));
+	}
+	if( pPlayer->IsInsideZone( mTutorialZone3 )) {
+		pPlayer->SetActionText( mLocalization.GetString( "tutorialControls3" ));
+	}
+	if( pPlayer->IsInsideZone( mTutorialZone4 )) {
+		pPlayer->SetActionText( mLocalization.GetString( "tutorialControls4" ));
+	}
+	if( pPlayer->IsInsideZone( mTutorialZone5 )) {
+		pPlayer->SetActionText( mLocalization.GetString( "tutorialControls5" ));
+	}
+	if( pPlayer->IsInsideZone( mTutorialZone6 )) {
+		pPlayer->SetActionText( mLocalization.GetString( "tutorialControls6" ));
 	}
 
 	if( !mStages[ "LiftCrashed" ] ) {
-		ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
+		ruEngine::SetAmbientColor( ruVector3( 0.115, 0.115, 0.115 ));
 		PlayAmbientSounds();
 		if( pPlayer->IsInsideZone( mLiftStopZone )) {
 			mLift->SetPaused( true );
@@ -153,29 +153,29 @@ void LevelArrival::DoScenario() {
 		ruEngine::SetAmbientColor( ruVector3( 0.0, 0.0, 0.0 ));
 	}    
 		
+	if( pPlayer->DistanceTo( mHalt ) < 4 ) {
+		mHalt->Unfreeze();
+	}
+
     if( mChangeLevel ) {
         Level::Change( LevelName::L2Mine );
     }
 }
 
-void LevelArrival::OnDeserialize( SaveFile & in )
-{
+void LevelArrival::OnDeserialize( SaveFile & in ){
 	mLiftCrashSeries.Deserialize( in );
-	mGeneratorStartSeries.Deserialize( in );
 }
 
-void LevelArrival::OnSerialize( SaveFile & out )
-{
+void LevelArrival::OnSerialize( SaveFile & out ){
 	mLiftCrashSeries.Serialize( out );
-	mGeneratorStartSeries.Serialize( out );
 }
 
 // ACTIONS
 void LevelArrival::ActLiftCrash_PowerDown() {
 	mPowerDownSound->Play();		
 	mWindSound->Pause();
-	mGeneratorSound->Pause();
 }
+
 void LevelArrival::ActLiftCrash_AfterPowerDown() {		
 	mMetalStressSound->Play();
 	pPlayer->TrembleCamera( 1.5f );
@@ -183,6 +183,7 @@ void LevelArrival::ActLiftCrash_AfterPowerDown() {
 	mLift->SetPaused( false );
 	mLift->SetSpeedMultiplier( 0.24f );
 }
+
 void LevelArrival::ActLiftCrash_AfterFirstStressSound() {
 	if( pPlayer->GetFlashLight() ) {
 		pPlayer->GetFlashLight()->SwitchOff();
@@ -191,34 +192,9 @@ void LevelArrival::ActLiftCrash_AfterFirstStressSound() {
 	pPlayer->TrembleCamera( 2.0f );
 	pPlayer->LockFlashlight( true );
 }
+
 void LevelArrival::ActLiftCrash_AfterFalldown() {
 	mChangeLevel = true;
 	pPlayer->LockFlashlight( false );
 	pPlayer->SetHealth( 20 );
-}
-// when player pushes generator start button
-void LevelArrival::GeneratorEnableAction( ) {
-	mGeneratorStartSeries.SetEnabled( true );
-}
-void LevelArrival::ActGenerator_Start() {
-	mGeneratorStartSound->Play();
-	mGeneratorSmoke = ruParticleSystem::Create( 30 );
-	mGeneratorSmoke->SetPosition( mGeneratorSmokePosition );
-	mGeneratorSmoke->SetType( ruParticleSystem::Type::Stream );
-	mGeneratorSmoke->SetSpeedDeviation( ruVector3( -0.0025, 0.014, 0.0015 ), ruVector3( -0.0025, 0.024, 0.0015 ));
-	mGeneratorSmoke->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));
-	mGeneratorSmoke->SetColorRange( ruVector3( 150, 150, 150 ), ruVector3( 150, 150, 150 ));
-	mGeneratorSmoke->SetPointSize( 0.05f );
-	mGeneratorSmoke->SetParticleThickness( 1.5f );
-	mGeneratorSmoke->SetBoundingRadius( 0.8f );
-	mGeneratorSmoke->SetLightingEnabled( true );
-	mGeneratorSmoke->SetScaleFactor( 0.005f );
-	mGeneratorSmoke->SetAlphaOffset( 0.8f );
-} 
-void LevelArrival::ActGenerator_OnLine() {
-	mLamp1->Show();
-	mLamp2->Show();
-	mLiftLamp->Show();		
-	mPowerRestored = true;
-	mGeneratorSound->Play();
 }

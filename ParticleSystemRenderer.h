@@ -33,5 +33,5 @@ private:
 public:
     ParticleSystemRenderer();
     ~ParticleSystemRenderer();
-    void RenderAllParticleSystems();
+    void Render();
 };

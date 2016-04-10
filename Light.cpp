@@ -58,7 +58,7 @@ Light::~Light() {
 }
 
 void Light::OnResetDevice() {
-	Engine::I().GetDevice()->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
+	pD3D->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
 	mQueryDone = true;
 }
 

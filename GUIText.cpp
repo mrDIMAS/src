@@ -26,10 +26,9 @@
 
 GUIText::GUIText( const string & theText, float theX, float theY, float theWidth,
                   float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign,  const shared_ptr<BitmapFont> & theFont ) {
-    mX = theX;
-    mY = theY;
-    mWidth = theWidth;
-    mHeight = theHeight;
+
+	SetPosition( theX, theY );
+	SetSize( theWidth, theHeight );
     mText = theText;
     mFont = theFont;
     mTextAlign = theTextAlign;

@@ -41,6 +41,8 @@ void SaveLoader::RestoreWorldState() {
 		way->Deserialize( *this );	
     }
     pPlayer->Deserialize( *this );
+
+	Game_UpdateClock(); 
 }
 
 SaveLoader::~SaveLoader() {

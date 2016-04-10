@@ -98,8 +98,6 @@ private:
 
 	void FillByNamePattern( vector< shared_ptr<ruSceneNode> > & container, const string & pattern );
 public:
-	static vector<Enemy*> msEnemyList;
-
     int GetVertexIndexNearestTo( ruVector3 position );
 	shared_ptr<ruSceneNode> GetBody();
 	void SetNextPatrolPoint();

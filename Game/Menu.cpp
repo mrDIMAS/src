@@ -37,7 +37,7 @@ Menu::Menu( ) {
 	mGUICanvas = ruRect::Create( 0, 0, 0, 0, nullptr );
 	mGUICanvas->SetChildAlphaControl( true );
 	{
-		mGUIMainButtonsCanvas = ruRect::Create( 20, g_resH - 4.0 * mDistBetweenButtons, buttonWidth + 2 * buttonXOffset, buttonHeight * 8, tabTexture, pGUIProp->mBackColor );    
+		mGUIMainButtonsCanvas = ruRect::Create( 20, ruVirtualScreenHeight - 4.0 * mDistBetweenButtons, buttonWidth + 2 * buttonXOffset, buttonHeight * 8, tabTexture, pGUIProp->mBackColor );    
 		mGUIMainButtonsCanvas->SetChildAlphaControl( true );
 		mGUIMainButtonsCanvas->Attach( mGUICanvas );
 		{
@@ -68,7 +68,7 @@ Menu::Menu( ) {
 		}
 
 		int aTabX = 200;
-		int aTabY = g_resH - 4.0 * mDistBetweenButtons;
+		int aTabY = ruVirtualScreenHeight - 4.0 * mDistBetweenButtons;
 		int aTabWidth = buttonWidth * 3;
 		int aTabHeight = buttonHeight * 8;
 
@@ -229,7 +229,7 @@ Menu::Menu( ) {
 		}
 	}
 	
-    ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );
+    ruEngine::SetHDREnabled( mpHDRButton->IsChecked() );
 
     SetOptionsPageVisible( false );
     SetAuthorsPageVisible( false );
@@ -542,11 +542,11 @@ void Menu::Update( ) {
 
             // FXAA Options
             mpFXAAButton->Update();
-            ruEngine::SetFXAAEnabled( mpFXAAButton->IsEnabled() );
+            ruEngine::SetFXAAEnabled( mpFXAAButton->IsChecked() );
 
             // show fps
             mpFPSButton->Update();
-            g_showFPS = mpFPSButton->IsEnabled();
+            g_showFPS = mpFPSButton->IsChecked();
 
             // texture filtering
             mpTextureFiltering->Update( );
@@ -557,7 +557,7 @@ void Menu::Update( ) {
             }
 
             mpSpotShadowsButton->Update();
-            ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
+            ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsChecked() );
 
             mpHDRButton->Update();
 
@@ -657,7 +657,7 @@ void Menu::LoadConfig() {
 
         mpMouseSensivity->SetValue( config.GetNumber( "mouseSens" ));
         mpFXAAButton->SetEnabled( config.GetNumber( "fxaaEnabled" ) != 0 );
-        ruEngine::SetFXAAEnabled( mpFXAAButton->IsEnabled() );
+        ruEngine::SetFXAAEnabled( mpFXAAButton->IsChecked() );
         mpMoveForwardKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyMoveForward" ))));
         mpMoveBackwardKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyMoveBackward" ))));
         mpStrafeLeftKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyStrafeLeft" ))));
@@ -677,16 +677,16 @@ void Menu::LoadConfig() {
         mpStealthKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyStealth" ))));
 
         mpSpotShadowsButton->SetEnabled( config.GetNumber( "spotShadowsEnabled" ) != 0 );
-        ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsEnabled() );
+        ruEngine::EnableSpotLightShadows( mpSpotShadowsButton->IsChecked() );
 
         ruSound::SetMasterVolume( mpMasterVolume->GetValue() / 100.0f );
         mMusic->SetVolume( mpMusicVolume->GetValue() / 100.0f );
 
         mpHDRButton->SetEnabled( config.GetNumber( "hdrEnabled" ) != 0 );
-        ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );
+        ruEngine::SetHDREnabled( mpHDRButton->IsChecked() );
 
 		mpParallaxButton->SetEnabled( config.GetNumber( "parallax" ) != 0 );
-		ruEngine::SetParallaxEnabled( mpParallaxButton->IsEnabled() );
+		ruEngine::SetParallaxEnabled( mpParallaxButton->IsChecked() );
 
         mpTextureFiltering->SetCurrentValue( config.GetNumber( "textureFiltering" ));
         ruEngine::SetAnisotropicTextureFiltration( mpTextureFiltering->GetCurrentValue() );
@@ -695,7 +695,7 @@ void Menu::LoadConfig() {
 		mpLookRightKey->SetSelected( static_cast<ruInput::Key>( static_cast<int>( config.GetNumber( "keyLookRight" ))));
 
 		mpFPSButton->SetEnabled( config.GetNumber( "showFPS" ) != 0.0f );
-		g_showFPS = mpFPSButton->IsEnabled();
+		g_showFPS = mpFPSButton->IsChecked();
     }
 }
 
@@ -721,7 +721,7 @@ void Menu::WriteConfig() {
     WriteFloat( config, "mouseSens", mpMouseSensivity->GetValue() );
     WriteFloat( config, "masterVolume", mpMasterVolume->GetValue() );
     WriteFloat( config, "musicVolume", mpMusicVolume->GetValue() );
-    WriteInteger( config, "fxaaEnabled", mpFXAAButton->IsEnabled() ? 1 : 0 );
+    WriteInteger( config, "fxaaEnabled", mpFXAAButton->IsChecked() ? 1 : 0 );
     WriteInteger( config, "keyMoveForward", static_cast<int>( mpMoveForwardKey->GetSelectedKey()));
     WriteInteger( config, "keyMoveBackward", static_cast<int>( mpMoveBackwardKey->GetSelectedKey()));
     WriteInteger( config, "keyStrafeLeft", static_cast<int>( mpStrafeLeftKey->GetSelectedKey()));
@@ -739,8 +739,8 @@ void Menu::WriteConfig() {
     WriteInteger( config, "textureFiltering", mpTextureFiltering->GetCurrentValue() );
 	WriteInteger( config, "keyLookLeft", static_cast<int>( mpLookLeftKey->GetSelectedKey()));
 	WriteInteger( config, "keyLookRight", static_cast<int>( mpLookRightKey->GetSelectedKey()));
-	WriteInteger( config, "showFPS", mpFPSButton->IsEnabled() ? 1 : 0 );
-	WriteInteger( config, "parallax", mpParallaxButton->IsEnabled() ? 1 : 0 );
+	WriteInteger( config, "showFPS", mpFPSButton->IsChecked() ? 1 : 0 );
+	WriteInteger( config, "parallax", mpParallaxButton->IsChecked() ? 1 : 0 );
     config.close();
 }
 
@@ -792,5 +792,5 @@ void Menu::CameraFloating() {
 
 void Menu::OnHDRButtonClick()
 {
-	ruEngine::SetHDREnabled( mpHDRButton->IsEnabled() );
+	ruEngine::SetHDREnabled( mpHDRButton->IsChecked() );
 }

@@ -64,9 +64,9 @@ private:
 
     float mBeepSoundTiming;
 
-    LightAnimator * mExplosionFlashAnimator;
+    unique_ptr<LightAnimator> mExplosionFlashAnimator;
 
-    Enemy * mEnemy;
+    
 public:
     explicit LevelMine( );
     virtual ~LevelMine();

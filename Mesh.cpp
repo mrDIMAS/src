@@ -43,7 +43,7 @@ Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ),
 			D3DDECL_END()
 		};
 
-		Engine::I().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclaration );
+		pD3D->CreateVertexDeclaration( vd, &msVertexDeclaration );
 	}
 	if( !msVertexDeclarationSkin ) {
 		D3DVERTEXELEMENT9 vd[ ] = {
@@ -56,7 +56,7 @@ Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ),
 			D3DDECL_END()
 		};
 
-		Engine::I().GetDevice()->CreateVertexDeclaration( vd, &msVertexDeclarationSkin );
+		pD3D->CreateVertexDeclaration( vd, &msVertexDeclarationSkin );
 	}
 }
 
@@ -81,7 +81,7 @@ void Mesh::Register( shared_ptr<Mesh> mesh ) {
 			Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
 		}
     } else { // pass it to forward renderer
-        Engine::I().GetForwardRenderer()->AddMesh( mesh );
+        pEngine->GetForwardRenderer()->AddMesh( mesh );
     }
 }
 
@@ -118,7 +118,7 @@ void Mesh::CreateVertexBuffer() {
 		
 
 		// dont care about FVF, set it to simple D3DFVF_XYZ
-		Engine::I().GetDevice()->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+		pD3D->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 		
 		void * vertexData = 0;
 		mVertexBuffer->Lock( 0, 0, &vertexData, 0 );
@@ -148,7 +148,7 @@ Mesh::Bone * Mesh::AddBone( weak_ptr<SceneNode> node ) {
 void Mesh::CreateIndexBuffer( vector< Triangle > & triangles ) {
 	if( triangles.size() ) {
 		int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
-		Engine::I().GetDevice()->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );		
+		pD3D->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );		
 		void * indexData = 0;
 		mIndexBuffer->Lock( 0, 0, &indexData, 0 );
 		memcpy( indexData, &triangles[ 0 ], sizeBytes );
@@ -157,6 +157,15 @@ void Mesh::CreateIndexBuffer( vector< Triangle > & triangles ) {
 }
 
 vector<weak_ptr<SceneNode>> & Mesh::GetOwners() {
+	// Erase pointers to nonexistent scene nodes
+	for( auto ownerIter = mOwnerList.begin(); ownerIter != mOwnerList.end();  ) {
+		if( (*ownerIter).lock() ) {			
+			++ownerIter;
+		} else {
+			ownerIter = mOwnerList.erase( ownerIter );
+		}
+	}
+
     return mOwnerList;
 }
 
@@ -180,11 +189,11 @@ shared_ptr<Texture> & Mesh::GetNormalTexture() {
 
 void Mesh::Render() {
 	if( mSkinned ) {
-		Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( VertexSkin ));
-		Engine::I().GetDevice()->SetVertexDeclaration( msVertexDeclarationSkin );
+		pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( VertexSkin ));
+		pD3D->SetVertexDeclaration( msVertexDeclarationSkin );
 	} else {
-		Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
-		Engine::I().GetDevice()->SetVertexDeclaration( msVertexDeclaration );
+		pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
+		pD3D->SetVertexDeclaration( msVertexDeclaration );
 	}
 	
 	if( mOctree ) {
@@ -193,25 +202,25 @@ void Mesh::Render() {
 			CreateIndexBuffer( id );
 		}
 	}
-	Engine::I().GetDevice()->SetIndices( mIndexBuffer );
+	pD3D->SetIndices( mIndexBuffer );
     if( mOctree ) {
 #ifdef _OCTREE_DEBUG
         mOctree->VisualizeHierarchy();
         ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", mOctree->mVisibleNodeCount, mOctree->mVisibleTriangleCount ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
 #endif
         if( mOctree->mVisibleTriangleList.size() ) {
-			Engine::I().DrawIndexedTriangleList( mVertices.size(), mOctree->mVisibleTriangleList.size() );
+			pEngine->DrawIndexedTriangleList( mVertices.size(), mOctree->mVisibleTriangleList.size() );
         }
     } else {
-		Engine::I().DrawIndexedTriangleList( mVertices.size(), mTriangles.size() );
+		pEngine->DrawIndexedTriangleList( mVertices.size(), mTriangles.size() );
     }
 }
 
 void Mesh::RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount ) {
-	Engine::I().GetDevice()->SetIndices( ib );
-	Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, faceCount );
+	pD3D->SetIndices( ib );
+	pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, faceCount );
 	// each mesh renders in one DIP
-	Engine::I().RegisterDIP();
+	pEngine->RegisterDIP();
 }
 
 void Mesh::OnLostDevice() {

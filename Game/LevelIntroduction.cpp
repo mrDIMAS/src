@@ -52,13 +52,13 @@ LevelIntroduction::LevelIntroduction() {
     mShowIntro = true;
     mTypeNum = 1;
     LoadLocalization( "intro.loc" );
-    int scx = ruEngine::GetResolutionWidth() / 2;
-    int scy = ruEngine::GetResolutionHeight() / 2;
+    int scx = ruVirtualScreenWidth / 2;
+    int scy = ruVirtualScreenHeight / 2;
     int w = 600;
     int h = 400;
     mGUIText = ruText::Create( mLocalization.GetString( "intro" ), scx - w / 2, scy - h / 2, w, h, pGUIProp->mFont, ruVector3( 0, 0, 0 ), ruTextAlignment::Left, mTextAlpha );
-    mGUISkipText = ruText::Create( mLocalization.GetString( "skip" ), ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center );
-	mGUIBackground = ruRect::Create( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(),  ruTexture::Request( "data/textures/generic/loadingScreen.jpg" ));
+    mGUISkipText = ruText::Create( mLocalization.GetString( "skip" ), ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center );
+	mGUIBackground = ruRect::Create( 0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight,  ruTexture::Request( "data/textures/generic/loadingScreen.jpg" ));
 }
 
 void LevelIntroduction::OnDeserialize( SaveFile & in ) {

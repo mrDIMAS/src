@@ -24,20 +24,28 @@
 #include "TextRenderer.h"
 #include "GUIRenderer.h"
 
-
 int GetWordWidth( BitmapFont * font, string & text, int start ) {
 	int wordWidth = 0;
 	for( int i = start; i < text.size(); i++ ) {
 		unsigned char symbol = text[ i ];
 		if( symbol == 0 || symbol == ' ') {
-			break;
+			break;	
 		}
 		wordWidth += font->GetCharacterMetrics( symbol )->advanceX;
 	}
 	return wordWidth;
 }
 
+int GetStringWidth( BitmapFont * font, string & text, int start ) {
+	int wordWidth = 0;
+	for( int i = start; i < text.size(); i++ ) {
+		unsigned char symbol = text[ i ];
+		wordWidth += font->GetCharacterMetrics( symbol )->advanceX;
+	}
+	return wordWidth;
+}
 
+// grim code, must be rewritten !!!
 void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 {
     TextQuad * quad = nullptr;
@@ -58,14 +66,23 @@ void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
         caretY = boundingRect.top + (( boundingRect.bottom - boundingRect.top ) - height ) / 2.0f;
         caretX = boundingRect.left + (( boundingRect.right - boundingRect.left ) - avWidth ) / 2.0f;
     }
+
 	shared_ptr<BitmapFont> & font = guiText->GetFont();
+
 	int symbolCounter = 0;
+
+	string & text = guiText->GetText();
+
 	for( unsigned char symbol : guiText->GetText() ) {
 		CharMetrics * charMetr = font->GetCharacterMetrics( symbol );
 
 		// word wrap
 		if( caretX + GetWordWidth( font.get(), guiText->GetText(), symbolCounter ) > boundingRect.right ) {
-			caretX = boundingRect.left;
+			if( guiText->GetTextAlignment() == ruTextAlignment::Center ) {
+				caretX = boundingRect.left + (( boundingRect.right - boundingRect.left ) - GetStringWidth( font.get(), text, symbolCounter ) ) / 2.0f;
+			} else {
+				caretX = boundingRect.left;
+			}
 			caretY += font->GetGlyphSize();
 		}
 		
@@ -84,6 +101,10 @@ void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 		if( caretX >= boundingRect.right || symbol == '\n' ) {
 			caretX = boundingRect.left;
 			caretY += font->GetGlyphSize();
+
+			if( guiText->GetTextAlignment() == ruTextAlignment::Center ) {
+				caretX = boundingRect.left + (( boundingRect.right - boundingRect.left ) - GetStringWidth( font.get(), text, symbolCounter ) ) / 2.0f;
+			}
 		}
 
 		quad++;
@@ -102,12 +123,12 @@ void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 
     font->BindAtlasToLevel( 0 );
 
-    Engine::I().GetDevice()->SetStreamSource( 0, mVertexBuffer, 0, sizeof( TextVertex ));
-    Engine::I().GetDevice()->SetIndices( mIndexBuffer );
+    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( TextVertex ));
+    pD3D->SetIndices( mIndexBuffer );
 	if( totalLetters > 0 ) {
-		Engine::I().GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 );
+		pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 );
 	}
-    Engine::I().RegisterDIP();
+    pEngine->RegisterDIP();
 }
 
 
@@ -124,11 +145,10 @@ void TextRenderer::ComputeTextMetrics( const shared_ptr<GUIText> & guiText, int 
     int totalHeight = 0;
 
     int symbolCount = 0;
-	string & str = guiText->GetText();
-	int size = str.size();
-	for( int i = 0; i < size; i++ ) {
-		unsigned char symbol = str[i];
-		shared_ptr<BitmapFont> & font = guiText->GetFont();
+
+	shared_ptr<BitmapFont> & font = guiText->GetFont();
+
+	for( unsigned char symbol : guiText->GetText()  ) {
         CharMetrics * charMetr = font->GetCharacterMetrics( symbol );
 
         caretX += charMetr->advanceX;
@@ -140,6 +160,7 @@ void TextRenderer::ComputeTextMetrics( const shared_ptr<GUIText> & guiText, int 
             caretX = boundingRect.left;
             caretY += font->GetGlyphSize();
         }
+
         symbol++;
         symbolCount++;
     }
@@ -165,8 +186,8 @@ void TextRenderer::OnLostDevice() {
 void TextRenderer::OnResetDevice() {
 	mMaxChars = 8192;
 	int vBufLen = mMaxChars * sizeof( TextQuad );
-	Engine::I().GetDevice()->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &mVertexBuffer, nullptr );
+	pD3D->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &mVertexBuffer, nullptr );
 	int iBufLen = mMaxChars * sizeof( Face );
-	Engine::I().GetDevice()->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, nullptr );
+	pD3D->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, nullptr );
 }
 

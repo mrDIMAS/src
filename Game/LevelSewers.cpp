@@ -2,8 +2,11 @@
 #include "Keypad.h"
 #include "LevelSewers.h"
 
-LevelSewers::LevelSewers( ) {
+LevelSewers::LevelSewers( ) : mWaterFlow( 0.0f ), mVerticalWaterFlow( 0.0f )  {
 	mTypeNum = 5;
+
+	LoadLocalization( "sewers.loc" );
+
 	LoadSceneFromFile( "data/maps/release/sewers/sewers.scene" );
 
 	pPlayer->SetPosition( GetUniqueObject( "PlayerPosition" )->GetPosition() );
@@ -17,6 +20,9 @@ LevelSewers::LevelSewers( ) {
 	mGate2 = unique_ptr<Gate>( new Gate( GetUniqueObject( "SmallGate2" ), GetUniqueObject( "Button2Open" ), GetUniqueObject( "Button2Close" ),
 		GetUniqueObject( "Button2Open2" ), GetUniqueObject( "Button2Close2" ) ));
 
+	mGateToLift = unique_ptr<Gate>( new Gate( GetUniqueObject( "SmallGate3" ), GetUniqueObject( "Button3Open" ), GetUniqueObject( "Button3Close" ),
+		GetUniqueObject( "Button3Open2" ), GetUniqueObject( "Button3Close2" ) ));
+
 	AutoCreateLampsByNamePattern( "Lamp?([[:digit:]]+)", "data/sounds/lamp_buzz.ogg" );
 
 	mZoneKnocks = GetUniqueObject( "ZoneKnocks" );
@@ -28,6 +34,10 @@ LevelSewers::LevelSewers( ) {
 
 	ruSound::SetAudioReverb( 10 );
 
+	AddSheet( new Sheet( GetUniqueObject( "Note1" ), mLocalization.GetString( "note1Desc" ), mLocalization.GetString( "note1" ) ) );
+	AddSheet( new Sheet( GetUniqueObject( "Note2" ), mLocalization.GetString( "note2Desc" ), mLocalization.GetString( "note2" ) ) );
+
+
 	AddDoor( make_shared<Door>( GetUniqueObject( "Door1" ), 90.0f ));
 	AddDoor( make_shared<Door>( GetUniqueObject( "Door2" ), 90.0f ));
 	AddDoor( make_shared<Door>( GetUniqueObject( "Door3" ), 90.0f ));
@@ -37,6 +47,7 @@ LevelSewers::LevelSewers( ) {
 	AddDoor( make_shared<Door>( GetUniqueObject( "Door007" ), 90.0f ));
 	AddDoor( make_shared<Door>( GetUniqueObject( "Door008" ), 90.0f ));
 	AddDoor( make_shared<Door>( GetUniqueObject( "Door009" ), 90.0f ));
+	AddDoor( make_shared<Door>( GetUniqueObject( "Door010" ), 90.0f ));
 
 	AddDoor( mDoorToControl = make_shared<Door>( GetUniqueObject( "DoorToControl" ), 90.0f ));
 
@@ -52,21 +63,94 @@ LevelSewers::LevelSewers( ) {
 		GetUniqueObject( "Keypad2Key2"), GetUniqueObject( "Keypad2Key3"), GetUniqueObject( "Keypad2Key4"),
 		GetUniqueObject( "Keypad2Key5"), GetUniqueObject( "Keypad2Key6" ), GetUniqueObject( "Keypad2Key7"),
 		GetUniqueObject( "Keypad2Key8"), GetUniqueObject( "Keypad2Key9"), GetUniqueObject( "Keypad2KeyCancel"), 
-		mDoorToCode.get(), "9632" ));
+		mDoorToCode.get(), "5486" ));
 
-	DoneInitialization();
+	mEnemySpawnPosition = GetUniqueObject( "EnemySpawnPosition" );
+
+	AddZone( mZoneEnemySpawn = make_shared<Zone>( GetUniqueObject( "EnemySpawnZone" )));
+	mZoneEnemySpawn->OnPlayerEnter.AddListener( ruDelegate::Bind( this, &LevelSewers::OnPlayerEnterSpawnEnemyZone ));
+
+	mWater = GetUniqueObject( "Water" );
+	
 
 	mStages[ "KnocksDone" ] = false;
+	mStages[ "EnemySpawned" ] = false;
+
+	std::regex rx( "VerticalWater?([[:digit:]]+)" );
+	for( int i = 0; i < mScene->GetCountChildren(); i++ ) {
+		shared_ptr<ruSceneNode> child = mScene->GetChild( i );
+		if( regex_match( child->GetName(), rx )) {
+			mVerticalWaterList.push_back( child );
+		}
+	}
+
+	
+
+
+	DoneInitialization();
 }
+
+void LevelSewers::CreateEnemy()
+{
+	// create paths
+	Path wayNorth; BuildPath( wayNorth, "WayNorth" );
+	Path wayWest; BuildPath( wayWest, "WayWest" );
+	Path waySouthWest; BuildPath( waySouthWest, "WaySouthWest" );
+	Path wayBasement; BuildPath( wayBasement, "WayBasement" );
+
+	// add edges
+	wayNorth.mVertexList[0]->AddEdge( wayWest.mVertexList[0] );
+	wayNorth.mVertexList[0]->AddEdge( waySouthWest.mVertexList[0] );
+	wayBasement.mVertexList[0]->AddEdge( waySouthWest.mVertexList.back() );
+
+	// concatenate paths
+	vector<GraphVertex*> allPaths;
+	allPaths.insert( allPaths.end(), wayNorth.mVertexList.begin(), wayNorth.mVertexList.end() );
+	allPaths.insert( allPaths.end(), wayWest.mVertexList.begin(), wayWest.mVertexList.end() );
+	allPaths.insert( allPaths.end(), waySouthWest.mVertexList.begin(), waySouthWest.mVertexList.end() );
+	allPaths.insert( allPaths.end(), wayBasement.mVertexList.begin(), wayBasement.mVertexList.end() );
+
+	// create patrol paths
+	vector< GraphVertex* > patrolPoints;
+
+	patrolPoints.push_back( wayNorth.mVertexList.front() );
+	patrolPoints.push_back( wayNorth.mVertexList.back() );
+
+	patrolPoints.push_back( wayWest.mVertexList.front() );
+	patrolPoints.push_back( wayWest.mVertexList.back() );
+
+	patrolPoints.push_back( waySouthWest.mVertexList.front() );
+	patrolPoints.push_back( waySouthWest.mVertexList.back() );
+
+	patrolPoints.push_back( wayBasement.mVertexList.front() );
+	patrolPoints.push_back( wayBasement.mVertexList.back() );
+
+	mEnemy = unique_ptr<Enemy>( new Enemy( allPaths, patrolPoints ));
+	mEnemy->SetPosition( mEnemySpawnPosition->GetPosition() );
+}
+
 
 LevelSewers::~LevelSewers( ) {
 
 }
 
 void LevelSewers::DoScenario() {
+	mWater->SetTexCoordFlow( ruVector2( 0.0, -mWaterFlow ));
+	mWaterFlow += 0.00025f;
+
+	mVerticalWaterFlow += 0.001;
+	for( auto & pVW : mVerticalWaterList ) {
+		pVW->SetTexCoordFlow( ruVector2( 0.0f, mVerticalWaterFlow ));
+	}
+
+	if( mEnemy ) {
+		mEnemy->Think();
+	}
+
 	ruEngine::SetAmbientColor( ruVector3( 9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f ));
 	mGate1->Update();
 	mGate2->Update();
+	mGateToLift->Update();
 
 	mKeypad1->Update();
 	mKeypad2->Update();
@@ -87,12 +171,17 @@ void LevelSewers::Hide() {
 	Level::Hide();
 }
 
-void LevelSewers::OnDeserialize( SaveFile & in )
-{
-
+void LevelSewers::OnDeserialize( SaveFile & in ) {
+	if( in.ReadBoolean() ) {
+		CreateEnemy();
+		mEnemy->SetPosition( in.ReadVector3() );
+	}
 }
 
-void LevelSewers::OnSerialize( SaveFile & out )
-{
-
+void LevelSewers::OnSerialize( SaveFile & out ) {
+	out.WriteBoolean( mEnemy != nullptr );
+	if( mEnemy ) {
+		out.WriteVector3( mEnemy->GetBody()->GetPosition());
+	}
 }
+

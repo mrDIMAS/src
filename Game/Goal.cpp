@@ -21,7 +21,7 @@ void Goal::SetText( string t ) {
     mDestY = mInitialY;
     mText = t;
     mGoalText->SetText( mText );
-    mCurrentY = g_resH * 0.45f;
+    mCurrentY = ruVirtualScreenHeight * 0.45f;
 }
 
 Goal::Goal() {
@@ -31,7 +31,7 @@ Goal::Goal() {
     mDestY = 20;
     mWaitSec = 2.0f;
     mAlpha = 255.0f;
-    mGoalText = ruText::Create( "Goal", 40, mCurrentY, g_resW - 80, 32, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center, mAlpha );
+    mGoalText = ruText::Create( "Goal", 40, mCurrentY, ruVirtualScreenWidth - 80, 32, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center, mAlpha );
 }
 
 Goal::~Goal() {

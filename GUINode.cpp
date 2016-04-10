@@ -23,7 +23,7 @@
 #include "Texture.h"
 #include "GUINode.h"
 #include "GUIFactory.h"
-
+#include "Engine.h"
 
 void GUINode::SetAlpha( int alpha ) {
     mAlpha = alpha;
@@ -44,16 +44,17 @@ void GUINode::PackColor() {
     mColorPacked = D3DCOLOR_ARGB( mAlpha, (int)mColor.x, (int)mColor.y, (int)mColor.z );
 }
 
-GUINode::GUINode() {
-    mX = 0;
-    mY = 0;
-    mWidth = 0;
-    mHeight = 0;
-    mVisible = true;
-	mGlobalX = 0.0f;
-	mGlobalY = 0.0f;
-	mControlChildAlpha = false;
-	mLastMouseInside = false;
+GUINode::GUINode() :     
+	mX( 0 ),
+	mY( 0 ),
+	mWidth( 0 ),
+	mHeight( 0 ),
+	mVisible( true ),
+	mGlobalX( 0.0f ),
+	mGlobalY( 0.0f ),
+	mControlChildAlpha( false ),
+	mLastMouseInside( false )
+{
     SetColor( ruVector3( 255, 255, 255 ));
     SetAlpha( 255 );
 }
@@ -62,8 +63,7 @@ GUINode::~GUINode() {
 
 }
 
-void GUINode::SetTexture( const shared_ptr<ruTexture> & pTexture )
-{
+void GUINode::SetTexture( const shared_ptr<ruTexture> & pTexture ) {
     mpTexture = std::dynamic_pointer_cast<Texture>( pTexture );
 }
 
@@ -85,24 +85,24 @@ void GUINode::SetVisible( bool visible ) {
 }
 
 void GUINode::SetSize( float w, float h ) {
-    mWidth = w;
-    mHeight = h;
+    mWidth = w * pEngine->GetGUIWidthScaleFactor();
+    mHeight = h * pEngine->GetGUIHeightScaleFactor();
 }
 
 float GUINode::GetHeight() {
-    return mHeight;
+    return mHeight / pEngine->GetGUIHeightScaleFactor();
 }
 
 float GUINode::GetWidth() {
-    return mWidth;
+    return mWidth / pEngine->GetGUIWidthScaleFactor();
 }
 
 float GUINode::GetY() {
-    return mY;
+    return mY / pEngine->GetGUIHeightScaleFactor();
 }
 
 float GUINode::GetX() {
-    return mX;
+    return mX / pEngine->GetGUIWidthScaleFactor();
 }
 
 int GUINode::GetAlpha() {
@@ -114,16 +114,17 @@ ruVector3 GUINode::GetColor() {
 }
 
 ruVector2 GUINode::GetSize() {
-    return ruVector2( mWidth, mHeight );
+    return ruVector2( mWidth / pEngine->GetGUIWidthScaleFactor(), mHeight / pEngine->GetGUIHeightScaleFactor() );
 }
 
 ruVector2 GUINode::GetPosition() {
-    return ruVector2( mX, mY );
+    return ruVector2( GetX(), GetY() );
 }
 
 void GUINode::SetPosition( float x, float y ) {
-    mX = x;
-    mY = y;
+    mX = x * pEngine->GetGUIWidthScaleFactor();
+    mY = y * pEngine->GetGUIHeightScaleFactor();
+	CalculateTransform();
 }
 
 int GUINode::GetPackedColor() {
@@ -164,7 +165,8 @@ bool GUINode::IsMouseInside() {
 	CalculateTransform();
 	int mouseX = ruInput::GetMouseX();
 	int mouseY = ruInput::GetMouseY();
-	return mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight );
+	return mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && 
+		   mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight );
 }
 
 void GUINode::OnMouseEnter() {
@@ -210,6 +212,16 @@ void GUINode::RemoveAction( ruGUIAction act ) {
 
 void GUINode::SetChildAlphaControl( bool control ) {
 	mControlChildAlpha = control;
+}
+
+bool GUINode::GotParent()
+{
+	return mParent.use_count() > 0;
+}
+
+shared_ptr<GUINode> GUINode::GetParent()
+{
+	return mParent.lock();
 }
 
 ruGUINode::~ruGUINode() {

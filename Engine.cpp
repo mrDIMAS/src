@@ -28,24 +28,70 @@
 #include "Texture.h"
 #include "Engine.h"
 #include "Physics.h"
-#include "MultipleRTDeferredRenderer.h"
-#include "FXAA.h"
 #include "FPSCounter.h"
 #include "ForwardRenderer.h"
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 #include "SceneFactory.h"
 #include "Cursor.h"
+#include "Shader.h"
+#include "EffectsQuad.h"
+#include "PointLight.h"
+#include "SpotLight.h"
+#include "Light.h"
+#include "SceneNode.h"
+#include "Mesh.h"
+#include "Camera.h"
+#include "Skybox.h"
+#include "Utility.h"
+#include "Engine.h"
+#include "SceneFactory.h"
+#include <random>
 
-Engine::Engine() : mpDeferredRenderer( nullptr ), 
-	mpForwardRenderer( nullptr ), mpParticleSystemRenderer( nullptr ), mpTextRenderer( nullptr ),
-	mpGUIRenderer( nullptr ), mAmbientColor( 0.05, 0.05, 0.05 ), mUsePointLightShadows( false ),
-	mUseSpotLightShadows( false ), mHDREnabled( false ), mRunning( true ), mFXAAEnabled( false ),
-	mTextureStoragePath( "data/textures/generic/" ), mParallaxEnabled( true ) {
+IDirect3DDevice9 * pD3D;
+unique_ptr<Engine> pEngine;
+
+struct A8R8G8B8Pixel {
+	uint8_t a;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+};
+
+struct XYZNormalVertex {
+	D3DXVECTOR3 p;
+	D3DXVECTOR3 n;
+};
+
+#define StaticArraySize( array ) (sizeof( array ) / sizeof( array[0] ))
+
+D3DXMATRIX SetUniformScaleTranslationMatrix( float s, const ruVector3 & p ) {
+	return D3DXMATRIX ( s, 0.0f, 0.0f, 0.0f,
+		0.0f, s, 0.0f, 0.0f,
+		0.0f, 0.0f, s, 0.0f,
+		p.x, p.y, p.z, 1.0f );
+}
+
+Engine::Engine() : 
+	mpForwardRenderer( nullptr ), 
+	mpParticleSystemRenderer( nullptr ), 
+	mpTextRenderer( nullptr ),
+	mpGUIRenderer( nullptr ), 
+	mAmbientColor( 0.05, 0.05, 0.05 ), 
+	mUsePointLightShadows( false ),
+	mUseSpotLightShadows( false ), 
+	mHDREnabled( false ), 
+	mRunning( true ), 
+	mFXAAEnabled( false ),
+	mTextureStoragePath( "data/textures/generic/" ), 
+	mParallaxEnabled( true ) 
+{
 
 }
 
 Engine::~Engine() {	
+	
+
     while( Timer::msTimerList.size() ) {
         delete Timer::msTimerList.front();
     }
@@ -54,14 +100,13 @@ Engine::~Engine() {
     }
 	Mesh::CleanUp();
     Physics::DestructWorld();
-    pfSystemDestroy();
 }
 
 void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     if ( width == 0 || height == 0 ) {
         width = GetSystemMetrics ( SM_CXSCREEN );
 		height = GetSystemMetrics ( SM_CYSCREEN );
-		Log::Write( "0 passed as resolution, using desktop native resolution!" );
+		Log::Write( "Zero passed as a resolution, using desktop native resolution." );
     }
   
     if( !CreateRenderWindow( width, height, fullscreen )) {
@@ -110,7 +155,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     mResWidth = width;
     mResHeight = height;
 
-	mNativeResolutionWidth = GetSystemMetrics ( SM_CXSCREEN );;
+	mNativeResolutionWidth = GetSystemMetrics ( SM_CXSCREEN );
 	mNativeResolutionHeight = GetSystemMetrics ( SM_CYSCREEN );
 
     D3DDISPLAYMODE displayMode = { 0 };
@@ -153,7 +198,9 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 		Log::Write( "Direct3D 9 Device Created successfully!" );
 	}
 
-	GetDevice()->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer );
+	pD3D = mpDevice;
+
+	pD3D->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer );
 
     SetDefaults();
 
@@ -167,7 +214,6 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 
-    mpDeferredRenderer = make_shared<MultipleRTDeferredRenderer>();	
     mpForwardRenderer = make_shared<ForwardRenderer>();	
     mpParticleSystemRenderer = make_shared<ParticleSystemRenderer>();
     mpTextRenderer = make_shared<TextRenderer>();
@@ -181,6 +227,135 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 	mPaused = false;
 	mChangeVideomode = false;
 	mTextureStoragePath = "data/textures/generic/";
+
+	//***************************************************************
+	// Init Deferred Rendering Stuff
+	// Create render targets 
+	D3DXCreateTexture( pD3D, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16, D3DPOOL_DEFAULT, &mHDRFrame );
+	mHDRFrame->GetSurfaceLevel( 0, &mHDRFrameSurface );
+
+	for( int i = 0; i < 2; i++ ) {
+		D3DXCreateTexture( pD3D, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8B8G8R8, D3DPOOL_DEFAULT, &mFrame[i] );
+		mFrame[i]->GetSurfaceLevel( 0, &mFrameSurface[i] );
+	}
+
+	mBackBufferSurface = GetBackBuffer();
+
+	mFullscreenQuad = unique_ptr<EffectsQuad>( new EffectsQuad() );
+	mFXAAPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/fxaa.pso" ));
+
+	// Create G-Buffer ( Depth: R32F, Diffuse: ARGB8, Normal: ARGB8 )
+	pD3D->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDepthMap, nullptr );
+	pD3D->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mNormalMap, nullptr );
+	pD3D->CreateTexture( width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mDiffuseMap, nullptr );
+
+	mDepthMap->GetSurfaceLevel( 0, &mDepthSurface );
+	mNormalMap->GetSurfaceLevel( 0, &mNormalSurface );
+	mDiffuseMap->GetSurfaceLevel( 0, &mDiffuseSurface );
+
+	// Ambient light pixel shader
+	mAmbientPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredAmbientLight.pso" ));
+
+	// Parallax occlusion mapping shaders
+	mGBufferVertexShaderPOM = unique_ptr<VertexShader>( new VertexShader( "data/shaders/deferredGBufferPOM.vso" ));
+	mGBufferPixelShaderPOM = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredGBufferPOM.pso" ));
+	// Standard GBuffer shader
+	mGBufferVertexShader = unique_ptr<VertexShader>( new VertexShader( "data/shaders/deferredGBuffer.vso" ));
+	mGBufferPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredGBuffer.pso" ));
+	// Standard GBuffer shader with skinning
+	mGBufferVertexShaderSkin = unique_ptr<VertexShader>( new VertexShader( "data/shaders/deferredGBufferSkin.vso" ));
+	mGBufferPixelShaderSkin = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredGBufferSkin.pso" ));
+
+	// Init HDR Stuff
+	int scaledSize = IntegerPow( 2, mHDRDownSampleCount + 1 );
+	D3DXCreateTexture( pD3D, scaledSize, scaledSize, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mScaledScene );
+	mScaledScene->GetSurfaceLevel( 0, &mScaledSceneSurf );
+
+	for( int i = 0; i < mHDRDownSampleCount; i++ ) {
+		int size = IntegerPow( 2, mHDRDownSampleCount - i );
+		D3DXCreateTexture( pD3D, size, size, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDownSampTex[ i ]);
+	}
+
+	D3DXCreateTexture( pD3D, 1, 1, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mAdaptedLuminanceLast );
+	D3DXCreateTexture( pD3D, 1, 1, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mAdaptedLuminanceCurrent );
+
+	for( int i = 0; i < mHDRDownSampleCount; i++ ) {
+		mDownSampTex[i]->GetSurfaceLevel( 0, &mDownSampSurf[i] );
+	}
+
+	mToneMapShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrTonemap.pso" ));
+	mScaleScenePixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrScale.pso" ));
+	mAdaptationPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrAdaptation.pso" ));
+	mDownScalePixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/hdrDownscale.pso" ));
+
+	// Skybox shader
+	mSkyboxVertexShader = unique_ptr<VertexShader>( new VertexShader( "data/shaders/skybox.vso" ));
+	mSkyboxPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/skybox.pso" ));
+
+	// Point light pixel shaders
+	mPointLightPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredPointLight.pso" ));
+	mPointLightPixelShaderTexProj = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredPointLightTexProj.pso" ));
+
+	// Spot light pixel shaders
+	mSpotLightPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredSpotLight.pso" ));
+	mSpotLightPixelShaderShadows = unique_ptr<PixelShader>( new PixelShader( "data/shaders/deferredSpotLightShadows.pso" ));
+
+	// Spot light shadow map
+	const int shadowMapSize = 512;
+
+	mSpotLightShadowMapVertexShader = unique_ptr<VertexShader>( new VertexShader( "data/shaders/spotShadowMap.vso" ));
+	mSpotLightShadowMapPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/spotShadowMap.pso" ));
+
+	pD3D->CreateTexture( shadowMapSize, shadowMapSize, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mShadowMap, nullptr );
+	mShadowMap->GetSurfaceLevel( 0, &mShadowMapSurface );
+
+	pD3D->GetDepthStencilSurface( &mDefaultDepthStencil );
+	pD3D->CreateDepthStencilSurface( shadowMapSize, shadowMapSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDepthStencilSurface, 0 );
+
+	// Create Bounding volumes
+	int quality = 6;
+
+	D3DVERTEXELEMENT9 vd[ ] = {
+		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		D3DDECL_END()
+	};
+
+	XYZNormalVertex * data;
+
+	D3DXCreateSphere( pD3D, 1.0, quality, quality, &mBoundingSphere, 0 );
+	mBoundingSphere->UpdateSemantics( vd );
+
+	D3DXCreateCylinder( pD3D, 0.0f, 1.0f, 1.0f, quality, quality, &mBoundingCone, 0 );
+
+	mBoundingCone->LockVertexBuffer( 0, reinterpret_cast<void**>( &data ));
+	D3DXMATRIX tran, rot90, transform;
+	D3DXMatrixTranslation( &tran, 0, -0.5, 0 );
+	D3DXMatrixRotationAxis( &rot90, &D3DXVECTOR3( 1, 0, 0 ), SIMD_HALF_PI ); 
+	D3DXMatrixMultiply( &transform, &rot90, &tran );
+	for( int i = 0; i < mBoundingCone->GetNumVertices(); i++ ) {
+		XYZNormalVertex * v = &data[ i ];
+		D3DXVec3TransformCoord( &v->p, &v->p, &transform );
+	}
+	mBoundingCone->UnlockVertexBuffer();
+	mBoundingCone->UpdateSemantics( vd );
+
+	D3DXCreateSphere( pD3D, 1.0, quality, quality, &mBoundingStar, 0 );
+
+	mBoundingStar->LockVertexBuffer( 0, reinterpret_cast<void**>( &data ));
+	int n = 0;
+	for( int i = 0; i < mBoundingStar->GetNumVertices(); i++ ) {
+		XYZNormalVertex * v = &data[ i ];
+		n++;
+		if( n == 5 ) {
+			v->p.x = 0;
+			v->p.y = 0;
+			v->p.z = 0;
+			n = 0;
+		}
+	}
+	mBoundingStar->UnlockVertexBuffer();
+	mBoundingStar->UpdateSemantics( vd );
 }
 
 int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
@@ -230,32 +405,31 @@ void Engine::CreatePhysics() {
 }
 
 void Engine::RenderWorld() {	
-	if( GetDevice()->TestCooperativeLevel() == D3DERR_DEVICELOST ) {
+	if( pD3D->TestCooperativeLevel() == D3DERR_DEVICELOST ) {
 		if( !mPaused ) {
 			Log::Write( "Device lost. Engine paused!" );
 		}
 		mPaused = true;		
 	}
 
-	 // window message pump
+	// window message pump
 	UpdateMessagePump();
 	
 	if( mPaused ) {
-		if( GetDevice()->TestCooperativeLevel() == D3DERR_DEVICENOTRESET )  {
+		if( pD3D->TestCooperativeLevel() == D3DERR_DEVICENOTRESET )  {
 			OnLostDevice();
 			mPaused = false;
 			Log::Write( "Lost device handled. Engine restored!" );
 		}
 		return;
 	}
-    if( !mRunning ) {
+
+	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
+
+	if( !camera || !mRunning ) {
         return;
     }
 
-	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
-	if( !camera ) {
-        return;
-    }
     mFPSCounter.RegisterFrame();
    
     // clear statistics
@@ -270,131 +444,654 @@ void Engine::RenderWorld() {
 			node->CheckFrustum( camera.get() );
 		}
     }
-    // begin dx scene
-    GetDevice()->BeginScene();
-    // begin rendering into G-Buffer
-    SetZEnabled( true );
-    SetZWriteEnabled( true );
-    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-    SetAlphaBlendEnabled( false );
-    mpDeferredRenderer->BeginFirstPass();
-    // render from current camera
-    RenderMeshesIntoGBuffer();
-    // end render into G-Buffer and do a lighting passes
-    if( IsHDREnabled() ) {
-        GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
-        GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, TRUE );
-    } else {
-        GetDevice()->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-        GetDevice()->SetSamplerState( 2, D3DSAMP_SRGBTEXTURE, FALSE );
-    }
-	SetAlphaBlendEnabled( false );
-	SetZEnabled( false );
-    GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-    GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
-    SetZWriteEnabled( false );
-    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    SetStencilEnabled( false );
-    mpDeferredRenderer->DoLightingAndPostProcessing();
-    // render all opacity meshes with forward renderer
-    SetZEnabled( true );
-	SetZWriteEnabled( true );
-    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
-	GetDevice()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-	GetDevice()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
-    mpForwardRenderer->RenderMeshes();
-	SetZWriteEnabled( false );
-    // render particles after all, because deferred shading doesnt support transparency
-    GetDevice()->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-    SetStencilEnabled( false );
-    mpParticleSystemRenderer->RenderAllParticleSystems();
-    // render gui on top of all
-    SetZEnabled( false );
-    mpGUIRenderer->RenderAllGUIElements();
-    // finalize
-    GetDevice()->EndScene();
-    GetDevice()->Present( 0, 0, 0, 0 );
+
+	//mParallaxEnabled = true;
+	//mHDREnabled = true;
+	//mFXAAEnabled = true;
+
+    // Begin rendering
+    pD3D->BeginScene();
+
+    //********************************
+	// Geometry pass
+	//
+	// Samplers layout: 
+	//	0 - diffuse 
+	//	1 - normal
+	//	2 - height
+	//
+	// Render Target layout: 
+	//	0 - depth
+	//	1 - normal
+	//	2 - diffuse
+
+	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+	pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+
+	pD3D->SetTexture( 0, 0 );
+	pD3D->SetTexture( 1, 0 );
+	pD3D->SetTexture( 2, 0 );
+
+	pD3D->SetRenderTarget( 0, mDepthSurface );
+	pD3D->SetRenderTarget( 1, mNormalSurface );
+	pD3D->SetRenderTarget( 2, mDiffuseSurface );
+
+	pD3D->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+	if( mHDREnabled ) {
+		pD3D->SetSamplerState( 0, D3DSAMP_SRGBTEXTURE, TRUE );
+	}
+
+	auto & meshMap = Mesh::GetMeshMap();
+
+	for( auto & texGroupPair : meshMap ) {
+		IDirect3DTexture9 * pDiffuseTexture = texGroupPair.first;
+		IDirect3DTexture9 * pNormalTexture = nullptr;
+
+		// skip group, if it has no meshes
+		if( texGroupPair.second.size() == 0 ) {
+			continue;
+		}
+
+		pD3D->SetTexture( 0, pDiffuseTexture );
+
+		for( auto weakMesh : texGroupPair.second ) {
+			shared_ptr<Mesh> & pMesh = weakMesh.lock();
+
+			if( !pMesh->IsHardwareBuffersGood() ) {
+				continue;
+			}
+			if( pMesh->GetVertices().size() == 0 ) {
+				continue;
+			}
+
+			if( pMesh->GetHeightTexture() ) {
+				if( pMesh->IsSkinned() ) {
+					mGBufferVertexShaderSkin->Bind();
+					mGBufferPixelShaderSkin->Bind();
+				} else if( IsParallaxEnabled() ) {
+					pD3D->SetTexture( 2, pMesh->GetHeightTexture()->GetInterface() );
+					mGBufferVertexShaderPOM->Bind();
+					mGBufferPixelShaderPOM->Bind();
+				} else {
+					mGBufferVertexShader->Bind();
+					mGBufferPixelShader->Bind();
+				}
+			} else {
+				if( pMesh->IsSkinned() ) {
+					mGBufferVertexShaderSkin->Bind();
+					mGBufferPixelShaderSkin->Bind();
+				} else {
+					mGBufferVertexShader->Bind();
+					mGBufferPixelShader->Bind();
+				}
+			}
+
+			// prevent overhead with normal texture
+			if( pMesh->GetNormalTexture() ) {
+				IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
+				if( meshNormalTexture != pNormalTexture ) {
+					pD3D->SetTexture( 1, pMesh->GetNormalTexture()->GetInterface());
+					pNormalTexture = meshNormalTexture;
+				}
+			}
+
+			// render mesh
+			if( camera ) {
+				D3DXMATRIX world, vwp;
+
+				auto & owners = pMesh->GetOwners();
+
+				for( auto weakOwner : owners ) {
+
+					shared_ptr<SceneNode> & pOwner = weakOwner.lock();
+						
+					bool visible = true;
+							
+					// Bones is not renderable
+					if( pOwner->IsBone() ) {
+						visible = false; 
+					} else {
+						visible = pOwner->IsVisible();
+					}
+
+					if( visible && ( pOwner->IsInFrustum() || pOwner->IsSkinned() ) ) {
+						if( fabs( pOwner->GetDepthHack() ) > 0.001 ) {
+							camera->EnterDepthHack( fabs( pOwner->GetDepthHack() ) );
+						}			
+						if( pMesh->IsSkinned() ) {
+							D3DXMatrixIdentity( &world );
+						} else {
+							world = pOwner->GetWorldMatrix();
+						}
+
+						D3DXMatrixMultiply( &vwp, &world, &camera->mViewProjection );
+									
+						// Pass pixel shader constants to GPU by a single call	
+						GPURegister psFloatConstants[] = {
+							{ pOwner->GetAlbedo(), 0.0f, 0.0f, 0.0f },
+						};
+
+						pD3D->SetPixelShaderConstantF( 0, (float*)psFloatConstants, StaticArraySize( psFloatConstants ));
+								
+						// Pass vertex shader constants to GPU by a single call							
+						GPURegister vsFloatConstants[] = {
+							{ world._11, world._12, world._13, world._14 },
+							{ world._21, world._22, world._23, world._24 },
+							{ world._31, world._32, world._33, world._34 },
+							{ world._41, world._42, world._43, world._44 },
+
+							{ vwp._11, vwp._12, vwp._13, vwp._14 },
+							{ vwp._21, vwp._22, vwp._23, vwp._24 },
+							{ vwp._31, vwp._32, vwp._33, vwp._34 },
+							{ vwp._41, vwp._42, vwp._43, vwp._44 },
+
+							{ camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0f },
+							{ pOwner->GetTexCoordFlow().x, pOwner->GetTexCoordFlow().y, 1.0f, 1.0f }
+						};
+
+						pD3D->SetVertexShaderConstantF( 0, (float*)vsFloatConstants, StaticArraySize( vsFloatConstants ));
+								
+						// Pass bone matrices
+						auto & bones = pMesh->GetBones();
+						if( bones.size() ) {
+							D3DMATRIX vsBoneMatrices[ 128 ];
+
+							int n = 0;
+							for( auto bone : bones ) {
+								shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+								if( boneNode ) {
+									vsBoneMatrices[n++] = bone->mMatrix = TransformToMatrix( boneNode->GetRelativeTransform() * pOwner->GetLocalTransform() );
+								}
+							}
+
+							pD3D->SetVertexShaderConstantF( 10, &vsBoneMatrices[0].m[0][0], n * 4 );
+						}
+
+						pMesh->Render();
+						if( pOwner->GetDepthHack() ) {
+							camera->LeaveDepthHack();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//********************************
+	// Lighting pass
+	//
+	// Samplers layout: 
+	//	0 - depth
+	//	1 - normal
+	//	2 - diffuse
+	//
+	// Render Target layout: 
+	//	0 - backbuffer, hdr buffer or temp color buffer
+
+	
+	pD3D->SetTexture( 0, nullptr );
+	pD3D->SetTexture( 1, nullptr );
+	pD3D->SetTexture( 2, nullptr );
+
+	pD3D->SetSamplerState( 0, D3DSAMP_SRGBTEXTURE, FALSE );
+
+	// select render target 
+	IDirect3DSurface9 * renderTarget = mFrameSurface[0];
+
+	// If HDR enabled, render all in high-precision float texture
+	if( IsHDREnabled() ) {
+		renderTarget = mHDRFrameSurface;
+	}
+
+	pD3D->SetRenderTarget( 0, renderTarget );
+	pD3D->SetRenderTarget( 1, nullptr );
+	pD3D->SetRenderTarget( 2, nullptr );
+
+    pD3D->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+	pD3D->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+	pD3D->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+	pD3D->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+
+	if( camera ) {	
+		// Begin light occlusion queries
+		mSkyboxPixelShader->Bind();
+		mSkyboxVertexShader->Bind();
+
+		pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+
+		auto & pointLights = SceneFactory::GetPointLightList();
+		for( auto & lWeak : pointLights ) {
+			shared_ptr<PointLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				if( pLight->mQueryDone ) {
+					if( camera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible() ) {
+						bool found = false;
+						for( auto & lit : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
+							if( lit.lock() == pLight ) {
+								found = true;
+							}
+						}
+						if( !found ) {
+							pLight->pQuery->Issue( D3DISSUE_BEGIN );
+
+							D3DXMATRIX wvp = SetUniformScaleTranslationMatrix( 1.25f * pLight->mRadius,  pLight->GetPosition() );
+							D3DXMatrixMultiply( &wvp, &wvp, &camera->mViewProjection );
+					
+							pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+							mBoundingStar->DrawSubset( 0 );
+
+							pLight->pQuery->Issue( D3DISSUE_END );
+						}
+
+						pLight->mInFrustum = true;						
+						pLight->mQueryDone = false;
+					} else {
+						pLight->mInFrustum = false;
+					}
+				}
+			}
+		}
+
+		for( auto & lWeak : pointLights ) {
+			shared_ptr<PointLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				bool inFrustum = camera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() );
+				if( pLight->IsVisible() && inFrustum ) {
+					bool found = false;
+					for( auto & lit : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
+						if( lit.lock() == pLight ) {
+							found = true;
+							break;
+						}
+					}
+					DWORD pixelsVisible = 0;
+					if( pLight->mInFrustum  && !pLight->mQueryDone ) {
+						if( !found ) {
+							HRESULT result = pLight->pQuery->GetData( &pixelsVisible, sizeof( pixelsVisible ), D3DGETDATA_FLUSH ) ;
+							if( result == S_OK ) {
+								pLight->mQueryDone = true;
+								if( pixelsVisible > 0 ) {				
+									// add light to light list of nearest path point of camera									
+									camera->GetNearestPathPoint()->GetListOfVisibleLights().push_back( pLight );								
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+
+		// Render Skybox
+		if( camera->mSkybox ) {
+			D3DXMATRIX wvp;
+			D3DXMatrixTranslation( &wvp, camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z );
+			D3DXMatrixMultiply( &wvp, &wvp, &camera->mViewProjection );
+			
+			pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+
+			camera->mSkybox->Render( );	
+		}  
+
+		// Bind G-Buffer Textures
+		pD3D->SetTexture( 0, mDepthMap );
+		pD3D->SetTexture( 1, mNormalMap );
+		pD3D->SetTexture( 2, mDiffuseMap );
+
+		// Apply ambient lighting
+		mAmbientPixelShader->Bind();
+
+		GPURegister ambientLightShaderConstants[] = {
+			{ GetAmbientColor().x, GetAmbientColor().y, GetAmbientColor().z, 1.0f }
+		};
+		pD3D->SetPixelShaderConstantF( 0, (float*)ambientLightShaderConstants, StaticArraySize( ambientLightShaderConstants ));
+
+		mFullscreenQuad->Render();
+
+		// Render point lights
+		pD3D->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+
+		pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );		
+		pD3D->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+		pD3D->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+		
+		for( auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights() ) {
+			shared_ptr<PointLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				if( pLight->IsVisible() ) {
+					if( pLight->mInFrustum  ) {					
+						pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+						pD3D->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+						pD3D->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );			
+
+						pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+								
+						// Setup point light pixel shader
+						if( pLight->GetPointTexture() ) {
+							mPointLightPixelShaderTexProj->Bind();
+						} else {
+							mPointLightPixelShader->Bind();
+						}
+
+						if( pLight->GetPointTexture() ) {
+							pD3D->SetTexture( 3, pLight->GetPointTexture()->mCubeTexture );
+						} 
+
+						// Load pixel shader constants
+						auto & ivp = camera->invViewProjection;
+						GPURegister psFloatConstants[] = {
+							{ ivp._11, ivp._12, ivp._13, ivp._14 },
+							{ ivp._21, ivp._22, ivp._23, ivp._24 },
+							{ ivp._31, ivp._32, ivp._33, ivp._34 },
+							{ ivp._41, ivp._42, ivp._43, ivp._44 },
+							{ pLight->GetPosition().x, pLight->GetPosition().y, pLight->GetPosition().z, 0.0f },
+							{ pLight->GetColor().x, pLight->GetColor().y, pLight->GetColor().z, 0.0f },
+							{ pLight->GetRange(), 0.0f, 0.0f, 0.0f },
+							{ camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 0.0f }
+						};
+
+						pD3D->SetPixelShaderConstantF( 0, (float*)psFloatConstants, StaticArraySize( psFloatConstants ));
+
+						// Render bounding sphere
+						D3DXMATRIX wvp = SetUniformScaleTranslationMatrix( 1.5f * pLight->mRadius, pLight->GetPosition() );
+						D3DXMatrixMultiply( &wvp, &wvp, &camera->mViewProjection );
+							
+						pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+						mBoundingSphere->DrawSubset( 0 );
+
+						pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+						pD3D->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
+						pD3D->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+
+						// Apply lighting to pixels, that marked by bounding sphere
+						mFullscreenQuad->Render();			
+					}		
+				}
+			}
+		}
+	
+		// Render spot lights
+		auto & spotLights = SceneFactory::GetSpotLightList();
+		for( auto & lWeak : spotLights ) {
+			shared_ptr<SpotLight> & pLight = lWeak.lock();
+			if( pLight ) {
+				if( camera->mFrustum.IsSphereInside( pLight->GetPosition(), pLight->GetRange() ) && pLight->IsVisible()  ) {
+					// If shadows enabled, render shadowmap firts
+					if( IsSpotLightShadowsEnabled() ) {
+						pD3D->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+						pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+						pD3D->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+						
+						pD3D->SetTexture( 4, nullptr );
+
+						pD3D->SetRenderTarget( 0, mShadowMapSurface );
+						pD3D->SetDepthStencilSurface( mDepthStencilSurface );
+						pD3D->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+						mSpotLightShadowMapPixelShader->Bind();
+						mSpotLightShadowMapVertexShader->Bind();
+
+						pLight->BuildSpotProjectionMatrixAndFrustum();
+						IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
+						pD3D->GetTexture( 0, &prevZeroSamplerTexture );
+
+						auto & meshMap = Mesh::GetMeshMap();
+						for( auto & texGroupPair : meshMap ) {
+							auto & group = texGroupPair.second;
+							for( auto & weakMesh : group ) {
+								shared_ptr<Mesh> mesh = weakMesh.lock();
+								auto & owners = mesh->GetOwners();
+								for( auto & weakOwner : owners ) {
+									shared_ptr<SceneNode> & pOwner = weakOwner.lock();
+									// if owner of mesh is visible
+									if( pOwner->IsVisible()) {
+										// if light "sees" mesh, it can cast shadow
+										//if( pLight->GetFrustum().IsAABBInside( mesh->GetBoundingBox(), pOwner->GetPosition())) {
+											D3DXMATRIX world, wvp;
+											world = pOwner->GetWorldMatrix();
+											D3DXMatrixMultiply( &wvp, &world, &pLight->GetViewProjectionMatrix() );
+											pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+											mesh->Render();
+										//}
+									}	
+								}
+							};
+						}
+
+						pD3D->SetTexture( 0, prevZeroSamplerTexture );
+						prevZeroSamplerTexture->Release();
+
+						// revert to the last used render target
+						pD3D->SetRenderTarget( 0, renderTarget );
+						pD3D->SetDepthStencilSurface( mDefaultDepthStencil );
+
+						pD3D->SetRenderState( D3DRS_STENCILENABLE, TRUE );
+						pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+						pD3D->SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+
+						pD3D->SetTexture( 4, mShadowMap );
+					}
+
+					pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0x00000000 );
+					pD3D->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_KEEP );
+					pD3D->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+
+					// Render Oriented Bounding Cone
+					float height = pLight->GetRange() * 2.5;
+					float radius = height * sinf( ( pLight->GetOuterAngle() * 0.75f ) * SIMD_PI / 180.0f );
+					D3DXMATRIX scale, world, wvp;
+					D3DXMatrixScaling( &scale, radius, height, radius );
+					world = pLight->GetWorldMatrix();
+					D3DXMatrixMultiply( &world, &scale, &world );
+					D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
+					pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+					mBoundingCone->DrawSubset( 0 );
+					
+					// Setup pixel shader
+					if( IsSpotLightShadowsEnabled() ) {		
+						mSpotLightPixelShaderShadows->Bind();		
+					} else {
+						mSpotLightPixelShader->Bind();
+					}
+
+					pD3D->SetTexture( 3, pLight->GetSpotTexture()->GetInterface() );
+
+					pLight->BuildSpotProjectionMatrixAndFrustum();
+
+					// Load pixel shader constants
+					auto & ivp = camera->invViewProjection;
+					auto spm = pLight->GetViewProjectionMatrix();
+					GPURegister psFloatConstants[] = {
+						{ ivp._11, ivp._12, ivp._13, ivp._14 },
+						{ ivp._21, ivp._22, ivp._23, ivp._24 },
+						{ ivp._31, ivp._32, ivp._33, ivp._34 },
+						{ ivp._41, ivp._42, ivp._43, ivp._44 },
+
+						{ spm._11, spm._12, spm._13, spm._14 },
+						{ spm._21, spm._22, spm._23, spm._24 },
+						{ spm._31, spm._32, spm._33, spm._34 },
+						{ spm._41, spm._42, spm._43, spm._44 },
+
+						{ pLight->GetPosition().x, pLight->GetPosition().y, pLight->GetPosition().z, 0.0f },
+						{ pLight->GetColor().x, pLight->GetColor().y, pLight->GetColor().z, 0.0f },
+						{ pLight->GetRange(), 0.0f, 0.0f, 0.0f }
+					};
+					
+					pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( psFloatConstants ), StaticArraySize( psFloatConstants ));
+					
+					pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
+					pD3D->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+					pD3D->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
+
+					// Apply lighting to pixels, that marked by bounding cone
+					mFullscreenQuad->Render();
+				}
+			}
+		}
+	}
+
+	// Apply post-effects (HDR, FXAA, and so on)
+	IDirect3DTexture9 * finalFrame = mFrame[0];
+
+	pD3D->SetRenderState( D3DRS_STENCILENABLE, FALSE );
+	pD3D->SetRenderState( D3DRS_ZENABLE, FALSE );
+	pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+
+	SetGenericSamplersFiltration( D3DTEXF_POINT, true );
+
+	// Do HDR
+	if( IsHDREnabled() ) {	
+
+		// Calculate HDR-frame luminance
+		pD3D->SetTexture( 7, mHDRFrame );
+		pD3D->SetRenderTarget( 0, mScaledSceneSurf );
+		pD3D->Clear( 0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+		mScaleScenePixelShader->Bind();
+		mFullscreenQuad->Render();
+
+		mDownScalePixelShader->Bind();
+
+		pD3D->SetTexture( 7, mScaledScene );
+		for( int i = 0; i < mHDRDownSampleCount; i++ ) {
+			float pixelSize = 1.0f / static_cast<float>( IntegerPow( 2, mHDRDownSampleCount - i ));	
+
+			pD3D->SetRenderTarget( 0, mDownSampSurf[ i ] );
+			pD3D->Clear( 0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+			GPURegister downSampleConstants[ ] = {
+				{ pixelSize, 0.0f, 0.0f, 0.0f }
+			};
+			pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( downSampleConstants ), StaticArraySize( downSampleConstants ));
+
+			mFullscreenQuad->Render();
+
+			pD3D->SetTexture( 7, mDownSampTex[ i ] );
+		}
+
+		for( int i = 0; i < 8; i++ ) {
+			pD3D->SetTexture( i, 0 );
+		}
+
+		// now we get average frame luminance presented as 1x1 pixel RGBA8 texture
+		// render it into R32F luminance texture
+		IDirect3DTexture9 * pTexSwap = mAdaptedLuminanceLast;
+		mAdaptedLuminanceLast = mAdaptedLuminanceCurrent;
+		mAdaptedLuminanceCurrent = pTexSwap;
+
+		IDirect3DSurface9 * pSurfAdaptedLum = NULL;
+		mAdaptedLuminanceCurrent->GetSurfaceLevel( 0, &pSurfAdaptedLum );
+
+		pD3D->SetRenderTarget( 0, pSurfAdaptedLum );
+		pD3D->SetTexture( 6, mAdaptedLuminanceLast );
+		pD3D->SetTexture( 7, mDownSampTex[ mHDRDownSampleCount - 1 ] );
+
+		mAdaptationPixelShader->Bind();
+
+		// Set pixel shader constants
+		GPURegister psFloatConstants[] = {
+			{ 0.75f, 0.0f, 0.0f, 0.0f }
+		};
+		pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( psFloatConstants ), StaticArraySize( psFloatConstants ));
+
+		mFullscreenQuad->Render();
+
+		pSurfAdaptedLum->Release();
+
+		// And finally do tone-mapping
+		pD3D->SetRenderTarget( 0, mFrameSurface[0] );
+		pD3D->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+		pD3D->SetTexture( 0, mHDRFrame );
+		pD3D->SetTexture( 7, mAdaptedLuminanceCurrent );
+
+		mToneMapShader->Bind();
+		mFullscreenQuad->Render();
+
+		finalFrame = mFrame[0];
+	};
+	
+	// Do FXAA
+	if( IsFXAAEnabled() ) {
+		pD3D->SetRenderTarget( 0, mFrameSurface[1] );
+		pD3D->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+		pD3D->SetTexture( 0, finalFrame );
+
+		mFXAAPixelShader->Bind();
+
+		GPURegister psFloatConstants[] = {
+			{ GetResolutionWidth(), GetResolutionHeight(), 0.0, 0.0 }
+		};
+		pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( psFloatConstants ), StaticArraySize( psFloatConstants ));
+
+		mFullscreenQuad->Render();
+
+		finalFrame = mFrame[1];
+	}
+
+	// Postprocessing
+	if( IsHDREnabled() ) {
+		pD3D->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+	}
+
+	pD3D->SetRenderTarget( 0, mBackBufferSurface );
+	pD3D->Clear( 0, 0, D3DCLEAR_TARGET , D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
+
+	pD3D->SetTexture( 0, finalFrame );
+
+	mSkyboxPixelShader->Bind();
+	mFullscreenQuad->Render();
+			
+	if( IsAnisotropicFilteringEnabled() ) {
+		SetGenericSamplersFiltration( D3DTEXF_ANISOTROPIC, false );
+	} else {
+		SetGenericSamplersFiltration( D3DTEXF_LINEAR, false );
+	}
+
+	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+	pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // render all transparent meshes
+    mpForwardRenderer->Render();
+	
+    mpParticleSystemRenderer->Render();
+
+    // render gui on top of all    
+    mpGUIRenderer->Render();
+
+    // end rendering
+    pD3D->EndScene();
+    pD3D->Present( 0, 0, 0, 0 );
+
     // update sound subsystem
     pfSystemUpdate();
-}
-
-void Engine::RenderMeshesIntoGBuffer() {
-	auto & meshMap = Mesh::GetMeshMap();
-    for( auto & texGroupPair : meshMap ) {
-        IDirect3DTexture9 * pDiffuseTexture = texGroupPair.first;
-        IDirect3DTexture9 * pNormalTexture = nullptr;
-        auto & meshGroup = texGroupPair.second;
-        // skip group if it has no meshes
-        if( meshGroup.size() == 0 ) {
-            continue;
-        }
-        // bind diffuse texture
-        mpDevice->SetTexture( 0, pDiffuseTexture );
-        // each group has same texture
-        mTextureChangeCount++;
-        for( auto meshIter = meshGroup.begin(); meshIter != meshGroup.end(); ) {
-			shared_ptr<Mesh> & pMesh = (*meshIter).lock();
-			if( pMesh ) {
-				if( !pMesh->IsHardwareBuffersGood() ) {
-					continue;
-				}
-				if( pMesh->GetVertices().size() == 0 ) {
-					continue;
-				}
-				// bind height texture for parallax mapping
-				/*
-				if( pMesh->GetHeightTexture() && !pMesh->IsSkinned() ) {
-					if( mParallaxEnabled ) {
-						pMesh->GetHeightTexture()->Bind( 2 );
-						mpDeferredRenderer->BindParallaxShaders();
-					} else {
-						mpDeferredRenderer->BindGenericShaders();
-					}
-				} else {
-					if( mParallaxEnabled ) {
-						if( pMesh->IsSkinned() ) {
-							mpDeferredRenderer->BindGenericSkinShaders();
-						} else {
-							mpDeferredRenderer->BindParallaxShaders();
-						}
-					} else {
-						mpDeferredRenderer->BindGenericShaders();
-					}
-				}*/
-				
-				if( pMesh->GetHeightTexture() ) {
-					if( pMesh->IsSkinned() ) {
-						mpDeferredRenderer->BindGenericSkinShaders();
-					} else if( mParallaxEnabled ) {
-						pMesh->GetHeightTexture()->Bind( 2 );
-						mpDeferredRenderer->BindParallaxShaders();
-					} else {
-						mpDeferredRenderer->BindGenericShaders();
-					}
-				} else {
-					if( pMesh->IsSkinned() ) {
-						mpDeferredRenderer->BindGenericSkinShaders();
-					} else {
-						mpDeferredRenderer->BindGenericShaders();
-					}
-				}
-				
-				// prevent overhead with normal texture
-				if( pMesh->GetNormalTexture() ) {
-					IDirect3DTexture9 * meshNormalTexture = pMesh->GetNormalTexture()->GetInterface();
-					if( meshNormalTexture != pNormalTexture ) {
-						mTextureChangeCount++;
-						pMesh->GetNormalTexture()->Bind( 1 );
-						pNormalTexture = meshNormalTexture;
-					}
-				}
-				mpDeferredRenderer->RenderMesh( pMesh );      
-				++meshIter;
-			} else {
-				meshIter = meshGroup.erase( meshIter );
-			}
-        }
-    }
 }
 
 void Engine::UpdateMessagePump() {
@@ -419,53 +1116,28 @@ LRESULT CALLBACK Engine::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARA
     return DefWindowProc ( wnd, msg, wParam, lParam );
 }
 
-void Engine::SetPixelShaderInt( UINT startRegister, int v ) {
-    int buffer[ 4 ] = { v, 0, 0, 0 };
-    GetDevice()->SetPixelShaderConstantI( startRegister, buffer, 1 );
-}
-
-void Engine::SetPixelShaderFloat( UINT startRegister, float v ) {
-    float buffer[ 4 ] = { v, v, v, v };
-    GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
-}
-
-void Engine::SetPixelShaderFloat3( UINT startRegister, float * v ) {
-    float buffer[ 4 ] = { v[0], v[1], v[2], 0.0f };
-    GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
-}
-
-void Engine::SetPixelShaderFloat3( UINT startRegister, float x, float y, float z ) {
-	float buffer[ 4 ] = { x, y, z, 0.0f };
-	GetDevice()->SetPixelShaderConstantF( startRegister, buffer, 1 );
-}
-
-void Engine::SetPixelShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
-    GetDevice()->SetPixelShaderConstantF( startRegister, &matrix->m[0][0], 4 );
-}
-
-void Engine::SetVertexShaderInt( UINT startRegister, int v ) {
-    int buffer[ 4 ] = { v, v, v, v };
-    GetDevice()->SetVertexShaderConstantI( startRegister, buffer, 1 );
-}
-
-void Engine::SetVertexShaderFloat( UINT startRegister, float v ) {
-    float buffer[ 4 ] = { v, v, v, v };
-    GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
-}
-
-void Engine::SetVertexShaderFloat3( UINT startRegister, float * v ) {
-    float buffer[ 4 ] = { v[0], v[1], v[2], v[2] };
-    GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
-}
-
-void Engine::SetVertexShaderMatrix( UINT startRegister, D3DMATRIX * matrix ) {
-    GetDevice()->SetVertexShaderConstantF( startRegister, &matrix->m[0][0], 4 );
-}
-
 void Engine::OnLostDevice() {
+	mDepthSurface.Reset();
+	mNormalSurface.Reset();
+	mDiffuseSurface.Reset();
+	mDepthMap.Reset();
+	mNormalMap.Reset();
+	mDiffuseMap.Reset();
+
+	mBoundingStar.Reset();
+	mBoundingSphere.Reset();
+	mBoundingCone.Reset();	
+	mHDRFrameSurface.Reset();
+	mHDRFrame.Reset();
+	for( int i = 0; i < 2; i++ ) {
+		mFrameSurface[i].Reset();
+		mFrame[i].Reset();
+	}
+
 	for( RendererComponent * pComponent : RendererComponent::msComponentList ) {
 		pComponent->OnLostDevice();
 	}	
+
 	Reset();	
 }
 
@@ -531,7 +1203,7 @@ void Engine::ChangeVideomode( int width, int height, bool fullscreen, bool vsync
 }
 
 void Engine::OnResetDevice() {
-	GetDevice()->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer );
+	pD3D->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer );
 
 	RendererComponent::ResetPriority highPriority = RendererComponent::ResetPriority::High;
 	for( RendererComponent * pComponent : RendererComponent::msComponentList ) {
@@ -555,21 +1227,12 @@ void Engine::OnResetDevice() {
 	}	
 }
 
-Engine & Engine::I() {
-	static Engine instance;
-	return instance;
-}
-
 bool Engine::IsTextureFormatOk( D3DFORMAT TextureFormat ) {
 	return SUCCEEDED( mpDirect3D->CheckDeviceFormat( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_TEXTURE, TextureFormat) );
 }
 
-IDirect3DDevice9 * Engine::GetDevice() {
-	return mpDevice;
-}
-
 void Engine::SetSpotLightShadowMapSize( int size ) {
-	mpDeferredRenderer->SetSpotLightShadowMapSize( size );
+	
 }
 
 int Engine::GetDIPCount() {
@@ -592,9 +1255,6 @@ shared_ptr<ForwardRenderer> & Engine::GetForwardRenderer() {
 	return mpForwardRenderer;
 }
 
-shared_ptr<DeferredRenderer> & Engine::GetDeferredRenderer() {
-	return mpDeferredRenderer;
-}
 
 shared_ptr<TextRenderer> & Engine::GetTextRenderer() {
 	return mpTextRenderer;
@@ -636,6 +1296,11 @@ void Engine::SetFXAAEnabled( bool state ) {
 	mFXAAEnabled = state;
 }
 
+float Engine::GetGUIHeightScaleFactor() const
+{
+	return mResHeight / ruVirtualScreenHeight;
+}
+
 bool Engine::IsFXAAEnabled() {
 	return mFXAAEnabled;
 }
@@ -644,9 +1309,14 @@ void Engine::Shutdown() {
 	mRunning = false;
 }
 
+shared_ptr<Cursor> & Engine::GetCursor()
+{
+	return mCursor;
+}
+
 bool Engine::IsNonPowerOfTwoTexturesSupport() {
 	D3DCAPS9 caps;
-	Engine::I().GetDevice()->GetDeviceCaps( &caps );
+	pD3D->GetDeviceCaps( &caps );
 	char npotcond = caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL;
 	char pot = caps.TextureCaps & D3DPTEXTURECAPS_POW2;
 	return !(npotcond || pot);
@@ -670,36 +1340,36 @@ void Engine::SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool dis
 
 	if( filter == D3DTEXF_NONE ) { // invalid argument to min and mag filters
 		for( int i = 0; i < genericSamplersCount; i++ ) {
-			GetDevice()->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 		}
 	} else if( filter == D3DTEXF_LINEAR ) {
 		for( int i = 0; i < genericSamplersCount; i++ ) {
-			GetDevice()->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 		}
 	} else if( filter == D3DTEXF_ANISOTROPIC ) {
-		GetDevice()->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-		GetDevice()->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		pD3D->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+		pD3D->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 		// it's too expensive to set anisotropic filtration to normal and height maps, so set linear
 		for( int i = 1; i < genericSamplersCount; i++ ) {
-			GetDevice()->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-			GetDevice()->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState ( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState ( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 		}
 	}
 
 	// mip filters
 	if( filter == D3DTEXF_NONE || disableMips ) {
 		for( int i = 0; i < genericSamplersCount; i++ ) {
-			GetDevice()->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+			pD3D->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
 		}
 	} else if( filter == D3DTEXF_POINT ) {
 		for( int i = 0; i < genericSamplersCount; i++ ) {
-			GetDevice()->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
+			pD3D->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_POINT );
 		}
 	} else if( filter == D3DTEXF_LINEAR || filter == D3DTEXF_ANISOTROPIC ) {
 		for( int i = 0; i < genericSamplersCount; i++ ) {
-			GetDevice()->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
+			pD3D->SetSamplerState( i, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 		}
 	}
 }
@@ -726,39 +1396,38 @@ void Engine::Pause() {
 }
 
 void Engine::SetDefaults() {
-	GetDevice()->SetRenderState ( D3DRS_LIGHTING, FALSE );
-	SetZEnabled( true );
-	GetDevice()->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
-	GetDevice()->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
-	GetDevice()->SetRenderState ( D3DRS_ALPHAREF, 10 );
-	GetDevice()->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
-	GetDevice()->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
-	GetDevice()->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
+	pD3D->SetRenderState ( D3DRS_LIGHTING, FALSE );
+	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+	pD3D->SetRenderState ( D3DRS_ZWRITEENABLE, TRUE );
+	pD3D->SetRenderState ( D3DRS_ZFUNC, D3DCMP_LESSEQUAL );
+	pD3D->SetRenderState ( D3DRS_ALPHAREF, 10 );
+	pD3D->SetRenderState( D3DRS_ALPHATESTENABLE, FALSE );
+	pD3D->SetRenderState ( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL );
+	pD3D->SetRenderState ( D3DRS_CULLMODE, D3DCULL_CW );
 
-	GetDevice()->SetRenderState( D3DRS_STENCILREF, 0x0 );
-	GetDevice()->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
-	GetDevice()->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
-	GetDevice()->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
-	GetDevice()->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
-	GetDevice()->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
-	GetDevice()->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
+	pD3D->SetRenderState( D3DRS_STENCILREF, 0x0 );
+	pD3D->SetRenderState( D3DRS_STENCILMASK, 0xFFFFFFFF );
+	pD3D->SetRenderState( D3DRS_STENCILWRITEMASK, 0xFFFFFFFF);
+	pD3D->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, TRUE );
+	pD3D->SetRenderState( D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP );
+	pD3D->SetRenderState( D3DRS_STENCILZFAIL, D3DSTENCILOP_DECR );
+	pD3D->SetRenderState( D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_INCR );
 
 	// setup samplers
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+	pD3D->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+	pD3D->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+	pD3D->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );    
+	pD3D->SetSamplerState ( 1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+	pD3D->SetSamplerState ( 1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );    
+	pD3D->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 
-	GetDevice()->SetSamplerState ( 3, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
-	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );   
+	pD3D->SetSamplerState ( 3, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC );
+	pD3D->SetSamplerState ( 3, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR ); 	
+	pD3D->SetSamplerState ( 3, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-	GetDevice()->SetSamplerState ( 3, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-
-	GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-	GetDevice()->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+	pD3D->SetSamplerState( 3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+	pD3D->SetSamplerState( 3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
 
 	D3DCAPS9 dCaps;
 	mpDirect3D->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps );
@@ -766,10 +1435,10 @@ void Engine::SetDefaults() {
 		dCaps.MaxAnisotropy = 4;
 	}
 
-	GetDevice()->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-	GetDevice()->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-	GetDevice()->SetSamplerState ( 2, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
-	GetDevice()->SetSamplerState ( 3, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	pD3D->SetSamplerState ( 0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	pD3D->SetSamplerState ( 1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	pD3D->SetSamplerState ( 2, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
+	pD3D->SetSamplerState ( 3, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy );
 
 	SetAnisotropicTextureFiltration( true );
 
@@ -781,25 +1450,9 @@ void Engine::DrawIndexedTriangleList( int vertexCount, int faceCount ) {
 	++mDIPCount;
 }
 
-void Engine::SetVertexShaderVector3( UINT startRegister, ruVector3 v ) {
-	float buffer[ 4 ] = { v.x, v.y, v.z, 0.0f };
-	GetDevice()->SetVertexShaderConstantF( startRegister, buffer, 1 );
-}
-
-void Engine::SetAlphaBlendEnabled( bool state ) {
-	mpDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, state );
-}
-
-void Engine::SetZWriteEnabled( bool state ) {
-	mpDevice->SetRenderState( D3DRS_ZWRITEENABLE, state );
-}
-
-void Engine::SetStencilEnabled( bool state ) {
-	mpDevice->SetRenderState( D3DRS_STENCILENABLE, state );
-}
-
-void Engine::SetZEnabled( bool state ) {
-	mpDevice->SetRenderState( D3DRS_ZENABLE, state );
+float Engine::GetGUIWidthScaleFactor() const
+{
+	return mResWidth / ruVirtualScreenWidth;
 }
 
 void Engine::SetParallaxEnabled( bool state ) {
@@ -817,14 +1470,14 @@ void Engine::SetCursorVisible( bool state )
 			mCursor->Show();
 		} else {
 			::ShowCursor( 1 );
-			Engine::I().GetDevice()->ShowCursor( 1 );
+			pD3D->ShowCursor( 1 );
 		}
 	} else {
 		if( mCursor ) {
 			mCursor->Hide();
 		} else {
 			::ShowCursor( 0 );
-			Engine::I().GetDevice()->ShowCursor( 0 );
+			pD3D->ShowCursor( 0 );
 		}
 	}
 }

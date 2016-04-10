@@ -10,8 +10,6 @@ LevelResearchFacility::LevelResearchFacility() {
 
     mTypeNum = 4;
 
-	mEnemy = nullptr;
-
     LoadSceneFromFile( "data/maps/release/researchFacility/rf.scene" );
 	LoadLocalization( "rf.loc" );
 
@@ -262,7 +260,7 @@ void LevelResearchFacility::CreateEnemy() {
 	patrolPoints.push_back( pathRoomD.mVertexList.front() );
 	patrolPoints.push_back( pathRoomD.mVertexList.back() );
 
-	mEnemy = make_shared<Enemy>( allPaths, patrolPoints );
+	mEnemy = unique_ptr<Enemy>( new Enemy( allPaths, patrolPoints ));
 	mEnemy->SetPosition( mEnemySpawnPosition->GetPosition() );
 }
 

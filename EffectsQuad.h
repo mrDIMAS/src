@@ -36,14 +36,9 @@ private:
 	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
 	COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
 public:
-    bool debug;
     unique_ptr<VertexShader> mVertexShader;
-    unique_ptr<PixelShader> mDebugPixelShader; 
-    explicit EffectsQuad( bool bDebug = false );
+    explicit EffectsQuad();
     virtual ~EffectsQuad();
-    void SetSize( float width, float height );
-    void Bind( bool bindInternalVertexShader = true );
-	void BindNoShader();
     void Render();
 	void OnResetDevice();
 	void OnLostDevice();

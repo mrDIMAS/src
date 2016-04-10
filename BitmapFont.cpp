@@ -25,7 +25,7 @@
 #include "Utility.h"
 
 BitmapFont::BitmapFont( const string & file, int size ) {
-	mGlyphSize = size;
+	mGlyphSize = size * pEngine->GetGUIWidthScaleFactor();
 	mSourceFile = file;
 	Create();
 }
@@ -35,7 +35,7 @@ BitmapFont::~BitmapFont() {
 }
 
 void BitmapFont::BindAtlasToLevel( int level ) {
-	Engine::I().GetDevice()->SetTexture( level, mAtlas );
+	pD3D->SetTexture( level, mAtlas );
 }
 
 int BitmapFont::GetGlyphSize() {
@@ -82,7 +82,7 @@ void BitmapFont::Create()
 		Log::Error( StringBuilder( "Failed to FT_Select_Charmap!" ));
 	}
 	// create atlas texture
-	Engine::I().GetDevice()->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &mAtlas, nullptr );
+	pD3D->CreateTexture( atlasWidth, atlasHeight, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &mAtlas, nullptr );
 	IDirect3DSurface9 * atlasSurface = nullptr;
 	mAtlas->GetSurfaceLevel( 0, &atlasSurface );
 	D3DLOCKED_RECT lockedRect;

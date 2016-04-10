@@ -39,7 +39,7 @@ void SceneNode::AutoName() {
 }
 
 SceneNode::SceneNode( ) : mStatic( false ),  mInFrustum( false ), mTotalFrameCount( 0 ),
-						  mIsSkinned( false ), mVisible( true ), mContactCount( 0 ),
+						  mIsSkinned( false ), mVisible( true ), mContactCount( 0 ), mTexCoordFlow( 0.0f, 0.0f ),
 						  mFrozen( false ), mIsBone( false ), mDepthHack( 0.0f ), mCollisionEnabled( true ),
 						  mAlbedo( 0.0f ), mCurrentAnimation( nullptr ), mBlurAmount( 0.0f )  {
 	AutoName();    
@@ -70,15 +70,21 @@ void SceneNode::SetConvexBody() {
 
     btConvexHullShape * convex = new btConvexHullShape();
 
+	int vertexCount = 0;
     for( auto mesh : mMeshList ) {
         for( auto & vertex : mesh->GetVertices() ) {
             convex->addPoint ( btVector3( vertex.mPosition.x, vertex.mPosition.y, vertex.mPosition.z ));
+			++vertexCount;
         }
     }
-
-    btVector3 inertia ( 0.0f, 0.0f, 0.0f );
-    convex->calculateLocalInertia ( 1, inertia );
-    SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), static_cast<btCollisionShape*>( convex ), inertia ));
+	
+	if( vertexCount > 0 ) {
+		btVector3 inertia ( 0.0f, 0.0f, 0.0f );
+		convex->calculateLocalInertia ( 1, inertia );
+		SetBody( new btRigidBody ( 1, static_cast<btMotionState*>( new btDefaultMotionState() ), static_cast<btCollisionShape*>( convex ), inertia ));
+	} else {
+		delete convex;
+	}
 }
 
 void SceneNode::SetCapsuleBody( float height, float radius ) {
@@ -153,10 +159,15 @@ void SceneNode::SetTrimeshBody() {
 
 void SceneNode::Attach( const shared_ptr<ruSceneNode> & parent ) {
 	shared_ptr<SceneNode> & pParent = std::dynamic_pointer_cast<SceneNode>( parent );
-	//if( mParent.lock() != parent ) {
-		mParent = pParent;
-		pParent->mChildList.push_back( shared_from_this());
-	//}     
+
+	mParent = pParent;
+	pParent->mChildList.push_back( shared_from_this());
+
+	// for correct attaching, we must recalculate local transform of this node
+	pParent->CalculateGlobalTransform();
+	CalculateGlobalTransform();
+	// local transform becomes transform relative to parent
+	mLocalTransform = pParent->mGlobalTransform.inverse() * mGlobalTransform; 
 }
 
 void SceneNode::Detach() {
@@ -175,10 +186,10 @@ btTransform & SceneNode::CalculateGlobalTransform() {
             } else {
                 mGlobalTransform = mBodyList[0]->getWorldTransform();
             }
-        } else { // dont has parent
+        } else { // no parent
             mGlobalTransform = mBodyList[0]->getWorldTransform();
         }
-    } else { // dont has body
+    } else { // no body
         if( mParent.use_count() ) {
 			shared_ptr<SceneNode> & pParent = mParent.lock();
             mGlobalTransform = pParent->CalculateGlobalTransform() * mLocalTransform;
@@ -239,9 +250,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
     FastReader reader;
 
     if ( !reader.ReadFile( file ) ) {
-        MessageBoxA( 0, (StringBuilder( "Unable to load" ) << file << "scene!").ToCStr(), 0, MB_OK | MB_ICONERROR );
-        exit( -1 );
-        return nullptr;
+		Log::Error( StringBuilder( "Unable to load '" ) << file << "' scene!" );
     }
 
     int numObjects = reader.GetInteger();
@@ -303,7 +312,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
                 v.mPosition = reader.GetBareVector();
                 v.mNormal = reader.GetBareVector();
                 v.mTexCoord = reader.GetBareVector2();
-                ruVector2 tc2 = reader.GetBareVector2(); // just read secondary texcoords, but don't add it to the mesh. need to compatibility
+                ruVector2 tc2 = reader.GetBareVector2(); // odd
                 v.mTangent = reader.GetBareVector();
 
                 mesh->AddVertex( v );
@@ -317,13 +326,13 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
                 mesh->AddTriangle( Mesh::Triangle( a, b, c ));
             }
 
-            mesh->SetDiffuseTexture( Texture::Request( Engine::I().GetTextureStoragePath() + diffuse ));
+            mesh->SetDiffuseTexture( Texture::Request( pEngine->GetTextureStoragePath() + diffuse ));
 			if( mesh->GetOpacity() > 0.95f ) {
-				mesh->SetNormalTexture( Texture::Request( Engine::I().GetTextureStoragePath() + normal ));
+				mesh->SetNormalTexture( Texture::Request( pEngine->GetTextureStoragePath() + normal ));
 				// try to load height map
 				string height = diffuse.substr( 0, diffuse.find_first_of( '.' )) + "_height" + diffuse.substr( diffuse.find_first_of( '.' ));
-				if( FileExist( Engine::I().GetTextureStoragePath() + height )) {
-					mesh->SetHeightTexture( Texture::Request( Engine::I().GetTextureStoragePath() + height ));
+				if( FileExist( pEngine->GetTextureStoragePath() + height )) {
+					mesh->SetHeightTexture( Texture::Request( pEngine->GetTextureStoragePath() + height ));
 				}
 			}
             node->AddMesh( mesh );

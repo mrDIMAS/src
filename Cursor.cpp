@@ -27,12 +27,12 @@
 void Cursor::Hide() {
     mVisible = false;
     ShowCursor( FALSE );
-    Engine::I().GetDevice()->ShowCursor( FALSE );
+    pD3D->ShowCursor( FALSE );
 }
 
 void Cursor::Show() {
     mVisible = true;
     ShowCursor( FALSE );
-    Engine::I().GetDevice()->ShowCursor( FALSE );
+    pD3D->ShowCursor( FALSE );
 }
 

@@ -19,8 +19,7 @@
 *                                                                              *
 *******************************************************************************/
 
-#ifndef _ENGINE_
-#define _ENGINE_
+#pragma once
 
 #pragma warning( disable:4250 )
 
@@ -486,6 +485,8 @@ public:
 	virtual int GetMeshCount() const = 0;
 	virtual void SetCollisionEnabled( bool state ) = 0;
 	virtual bool IsCollisionEnabled( ) const = 0;
+	virtual void SetTexCoordFlow( const ruVector2 & flow ) = 0;
+	virtual ruVector2 GetTexCoordFlow( ) const = 0;
 	virtual shared_ptr<ruSceneNode> FindChild( const string & name ) = 0;
 	static shared_ptr<ruSceneNode> Create( );
 	static shared_ptr<ruSceneNode> LoadFromFile( const string & file );
@@ -555,10 +556,14 @@ public:
 	static shared_ptr<ruFont> LoadFromFile( int size, const string & name );
 };
 
+const float ruVirtualScreenWidth = 1024.0f;
+const float ruVirtualScreenHeight = 768.0f;
+
 class ruGUINode {
 protected:
 	virtual ~ruGUINode();
 public:	
+	// Note: All size and position methods are operate on a virtual screen 
     virtual void Attach( const shared_ptr<ruGUINode> & parent ) = 0;
 	virtual void AddAction( ruGUIAction action, const ruDelegate & delegat ) = 0;
 	virtual void RemoveAction( ruGUIAction action ) = 0;
@@ -574,6 +579,7 @@ public:
 	virtual ruVector3 GetColor() = 0;
 	virtual void SetTexture( const shared_ptr<ruTexture> & pTexture ) = 0;
 	virtual int GetAlpha() = 0;
+	virtual bool IsMouseInside() = 0;
 	virtual void SetChildAlphaControl( bool controlChildAlpha ) = 0;
 	virtual shared_ptr<ruTexture> GetTexture( ) = 0;
 };
@@ -603,8 +609,6 @@ public:
 	virtual ruVector3 GetPickedColor() const = 0;
 };
 
-
-
 class ruEngine {
 public:
 	static void Create( int width, int height, int fullscreen, char vSync );
@@ -623,9 +627,11 @@ public:
 	static void UpdateWorld();
 	static void SetAnisotropicTextureFiltration( bool state );
 	static void ChangeVideomode( int width, int height, int fullscreen, char vSync );
+
 	// FXAA
 	static void SetFXAAEnabled( bool state );
 	static bool IsFXAAEnabled();	
+
 	// HDR
 	static void SetHDREnabled( bool state );
 	static bool IsHDREnabled( );
@@ -638,6 +644,7 @@ public:
 	static void SetSpotLightShadowMapSize( int size );
 	static void EnableSpotLightShadows( bool state );
 	static bool IsSpotLightShadowsEnabled();
+
 	static int GetMaxAnisotropy();
 };
 
@@ -946,6 +953,3 @@ public:
 	static void Update( );
 	static string GetKeyName( Key key );
 };
-
-
-#endif

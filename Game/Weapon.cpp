@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Item.h"
+#include "Level.h"
 
 Weapon::Weapon() {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands_pistol/hands_pistol.scene" );
@@ -90,9 +91,12 @@ void Weapon::Update() {
 				ruVector3 look = mModel->GetAbsoluteLookVector();
 				shared_ptr<ruSceneNode> node = ruPhysics::CastRay( mShootPoint->GetPosition() + look * 0.1, mShootPoint->GetPosition() + look * 1000 );
 				if( node ) {
-					for( auto pEnemy : Enemy::msEnemyList ) {
-						if( node == pEnemy->GetBody() ) {
-							pEnemy->Damage( 1000 );
+					if( pCurrentLevel ) {
+						unique_ptr<Enemy> & enemy = pCurrentLevel->GetEnemy();
+						if( enemy ) {
+							if( node == enemy->GetBody() ) {
+								enemy->Damage( 1000 );
+							}
 						}
 					}
 					node->AddForce( look.Normalize() * 200 );

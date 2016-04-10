@@ -33,3 +33,5 @@
 
 
 using namespace std;
+
+void Game_UpdateClock();

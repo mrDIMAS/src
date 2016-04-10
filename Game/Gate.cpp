@@ -1,6 +1,8 @@
 #include "Precompiled.h"
 #include "Gate.h"
 
+vector<Gate*> Gate::msGateList;
+
 void Gate::Update() {
 	mOpenAnim.Update();
 	mCloseAnim.Update();
@@ -84,4 +86,6 @@ Gate::Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, sh
 	mEndSound->Attach( mGate );
 
 	mButtonSound = ruSound::Load3D( "data/sounds/button.ogg" );
+
+	msGateList.push_back( this );
 }

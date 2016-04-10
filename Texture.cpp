@@ -57,10 +57,6 @@ Texture::~Texture( ) {
 	OnLostDevice();
 }
 
-void Texture::Bind( int level ) {
-    Engine::I().GetDevice()->SetTexture( level, mTexture );
-}
-
 IDirect3DTexture9 * Texture::GetInterface() {
     return mTexture;
 }
@@ -93,16 +89,17 @@ bool Texture::LoadFromFile( const string & file )
 	// cache lookup
 	string cacheFileName = "./cache/" + name + ".dds";
 	FILE * pFile = fopen( cacheFileName.c_str(), "r" );
-	if(pFile) {       
+	bool genericTex = file.find( "textures/generic" ) != string::npos;
+	if(pFile && genericTex ) {       
 		fclose(pFile);
-		if( FAILED( D3DXCreateTextureFromFileExA( Engine::I().GetDevice(), cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture ))) {
+		if( FAILED( D3DXCreateTextureFromFileExA( pD3D, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture ))) {
 			Log::Write( StringBuilder( "WARNING: Unable to load " ) << file << " texture!" );
 			return false;
 		} else {
-			Log::Write( StringBuilder( "Texture successfully loaded: ") << cacheFileName );
+			Log::Write( StringBuilder( "Texture successfully loaded from DDS cache: ") << cacheFileName );
 		}
 	} else {
-		if( FAILED( D3DXCreateTextureFromFileExA( Engine::I().GetDevice(), file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture ))) {
+		if( FAILED( D3DXCreateTextureFromFileExA( pD3D, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture ))) {
 			Log::Write( StringBuilder( "WARNING: Unable to load " ) << file << " texture!" );
 			return false;
 		} else {

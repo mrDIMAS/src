@@ -7,70 +7,59 @@
 #include "Enemy.h"
 #include "SaveWriter.h"
 #include "BareHands.h"
+#include "Level.h"
 
 Player * pPlayer = 0;
 
 extern double gFixedTick;
 
-Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime( 0.0f ), mFlashlightLocked( false ), mCurrentUsableObject( nullptr ), 
-	mLandedSoundEmitted( true ) {
+Player::Player() : 
+	Actor( 0.7f, 0.2f ), 
+	mStepLength( 0.0f ), 
+	mCameraTrembleTime( 0.0f ), 
+	mFlashlightLocked( false ), 
+	mCurrentUsableObject( nullptr ), 
+	mLandedSoundEmitted( true ), 
+	mMaxStamina( 100.0f ), 
+	mStamina( 100.0f ), 
+	mFov( 75.0f, 75.0f, 80.0f ), 
+	mRunSpeedMult( 2.5f ), 
+	mObjectThrown( false ),
+	mSmoothCamera( true ), 
+	mPitch( 0.0f, -89.9f, 89.9f ), 
+	mYaw( 0.0f ), 
+	mHeadAngle( 0.0f, -12.50f, 12.50f ), 
+	mDead( false ), 
+	mLanded( false ),
+	mStealthMode( false ), 
+	mWhispersSoundVolume( 0.0f ), 
+	mWhispersSoundVolumeTo( 0.0f ), 
+	mpSheetInHands( nullptr ), 
+	mCameraShakeOffset( 0, mHeadHeight, 0 ),
+	mRunCameraShakeCoeff( 1.0f ), 
+	mCameraBobCoeff( 0 ), 
+	mFrameColor( 1.0f, 1.0f, 1.0f ), 
+	mKeyMoveForward( ruInput::Key::W ), 
+	mKeyMoveBackward( ruInput::Key::S ), 
+	mKeyStrafeLeft( ruInput::Key::A ), 
+	mKeyStrafeRight( ruInput::Key::D ), 
+	mKeyJump( ruInput::Key::Space ),
+	mKeyFlashLight( ruInput::Key::F ), 
+	mKeyRun( ruInput::Key::LeftShift ), 
+	mKeyInventory( ruInput::Key::Tab ), 
+	mKeyUse( ruInput::Key::R ),
+	mKeyStealth( ruInput::Key::C ),
+	mKeyLookLeft( ruInput::Key::Q ),
+	mKeyLookRight( ruInput::Key::E ),
+	mpCurrentWay( nullptr ),
+	mInAir( false ),
+	mNodeInHands( nullptr )
+{
     mLocalization.ParseFile( localizationPath + "player.loc" );
 
-    // Stamina vars
-    mMaxStamina = 100.0f;
-    mStamina = mMaxStamina;
-
-    mFov = SmoothFloat( 75.0f, 75.0f, 80.0f );
-
-    // Run vars
-    mRunSpeedMult = 2.5f;
-
-    mObjectThrown = false;
-    mSmoothCamera = true;
-	
-    mPitch = SmoothFloat( 0.0f, -89.9f, 89.9f );
-    mYaw = SmoothFloat( 0.0f );
-    mHeadAngle = SmoothFloat( 0.0f, -12.50f, 12.50f );
-    // State vars
-    mDead = false;
-    mLanded = false;
-    mStealthMode = false;
-
-	mWhispersSoundVolume = 0.0f;
-	mWhispersSoundVolumeTo = 0.0f;
-
-    mpSheetInHands = nullptr;
-
-    // Camera bob vars
-    mCameraShakeOffset = ruVector3( 0, mHeadHeight, 0 );
-    mRunCameraShakeCoeff = 1.0f;
-    mCameraBobCoeff = 0;
-
-    // Effects vars
-    mFrameColor = ruVector3( 1.0f, 1.0f, 1.0f );
-
-    // Control vars
-    mouseSens = 0.5f;
-    mKeyMoveForward = ruInput::Key::W;
-    mKeyMoveBackward = ruInput::Key::S;
-    mKeyStrafeLeft = ruInput::Key::A;
-    mKeyStrafeRight = ruInput::Key::D;
-    mKeyJump = ruInput::Key::Space;
-    mKeyFlashLight = ruInput::Key::F;
-    mKeyRun = ruInput::Key::LeftShift;
-    mKeyInventory = ruInput::Key::Tab;
-    mKeyUse = ruInput::Key::R;
-    mKeyStealth = ruInput::Key::C;
-    mKeyLookLeft = ruInput::Key::Q;
-    mKeyLookRight = ruInput::Key::E;
+	mouseSens = 0.5f;
 
 	mLastHealth = mHealth;
-
-    // GUI vars
-    //mStaminaAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
-    //mHealthAlpha = SmoothFloat( 255.0, 0.0f, 255.0f );
-
-    mpCurrentWay = nullptr;
 
     LoadGUIElements();
     CreateCamera();
@@ -79,22 +68,20 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 
     mBody->SetName( "Player" );
 
-    mGUIActionText = ruText::Create( "Action text", ruEngine::GetResolutionWidth() / 2 - 256, ruEngine::GetResolutionHeight() - 200, 512, 128, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIActionText = ruText::Create( "Action text", ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center );
 
     float scale = 2;
     int w = 512.0f / scale;
     int h = 256.0f / scale;
-    mGUIBackground = ruRect::Create( 0, ruEngine::GetResolutionHeight() - h, w, h, mStatusBar, pGUIProp->mBackColor );
+    mGUIBackground = ruRect::Create( 0, ruVirtualScreenHeight - h, w, h, mStatusBar, pGUIProp->mBackColor );
     for( int i = 0; i < mGUISegmentCount; i++ ) {
-        mGUIStaminaBarSegment[i] = ruRect::Create( 44 + i * ( 8 + 2 ), ruEngine::GetResolutionHeight() - 3 * 15, 8, 16, ruTexture::Request( "data/gui/fatigue.png" ), pGUIProp->mForeColor );
-        mGUIHealthBarSegment[i] = ruRect::Create( 44 + i * ( 8 + 2 ), ruEngine::GetResolutionHeight() - 4 * 26, 8, 16, ruTexture::Request( "data/gui/life.png" ), pGUIProp->mForeColor );
+        mGUIStaminaBarSegment[i] = ruRect::Create( 44 + i * ( 8 + 2 ), ruVirtualScreenHeight - 3 * 15, 8, 16, ruTexture::Request( "data/gui/fatigue.png" ), pGUIProp->mForeColor );
+        mGUIHealthBarSegment[i] = ruRect::Create( 44 + i * ( 8 + 2 ), ruVirtualScreenHeight - 4 * 26, 8, 16, ruTexture::Request( "data/gui/life.png" ), pGUIProp->mForeColor );
     }
 
 	mGUIYouDiedFont = ruFont::LoadFromFile( 40, "data/fonts/font1.otf" );
-	mGUIYouDied = ruText::Create( mLocalization.GetString( "youDied" ), (ruEngine::GetResolutionWidth() - 300) / 2, ruEngine::GetResolutionHeight() / 2, 300, 50, mGUIYouDiedFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center, 255 );
+	mGUIYouDied = ruText::Create( mLocalization.GetString( "youDied" ), (ruVirtualScreenWidth - 300) / 2, ruVirtualScreenHeight / 2, 300, 50, mGUIYouDiedFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center, 255 );
 	mGUIYouDied->SetVisible( false );
-
-	mInAir = false;
 
 	// hack
 	pMainMenu->SyncPlayerControls();
@@ -114,8 +101,6 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 		ps->SetVolume( 0.7 ); 
 	}
 
-	mNodeInHands = nullptr;
-
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/stone.smat", mpCamera->mCamera )));
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/metal.smat", mpCamera->mCamera )));
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/wood.smat", mpCamera->mCamera )));
@@ -125,6 +110,7 @@ Player::Player() : Actor( 0.7f, 0.2f ), mStepLength( 0.0f ), mCameraTrembleTime(
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/grass.smat", mpCamera->mCamera )));
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/soil.smat", mpCamera->mCamera )));
 	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/chain.smat", mpCamera->mCamera )));
+	mSoundMaterialList.push_back( unique_ptr<SoundMaterial>( new SoundMaterial( "data/materials/mud.smat", mpCamera->mCamera )));
 
 	AddUsableObject( new BareHands );
 	AddUsableObject( new Flashlight );
@@ -234,12 +220,6 @@ void Player::CompleteObjective() {
 }
 
 void Player::UpdateMouseLook() {
-    if( mpCurrentWay ) {
-        mSmoothCamera = false;
-    } else {
-        mSmoothCamera = true;
-    }
-
     if( !mInventory.IsOpened() ) {
         float mouseSpeed =  mouseSens / 2.0f;
         if( mpCurrentWay ) {
@@ -321,14 +301,12 @@ void Player::UpdateJumping() {
 
 	if( !mLandedSoundEmitted ) {
 		if( IsCanJump() && mLanded ) {
-			// two foot
+			// two feet
 			EmitStepSound();
 			EmitStepSound();
 			mLandedSoundEmitted = true;
 		}
 	}
-
-
 
     if( mLanded || headBumpObject ) {
         mJumpTo = ruVector3( 0, -400.0f, 0.0f );
@@ -492,8 +470,6 @@ void Player::ComputeStealth() {
 	}
 	mFakeLight->SetGreyscaleFactor( 1.0f );
 
-
-	
 	mInLight = false;
 
     for( int i = 0; i < ruPointLight::GetCount(); i++ ) {
@@ -637,13 +613,13 @@ void Player::LoadGUIElements() {
     mItemPickupSound = ruSound::Load2D( "data/sounds/menuhit.ogg" );
     mStatusBar = ruTexture::Request( "data/gui/statusbar.tga" );
 
-	mGUICursorPickUp = ruRect::Create( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruTexture::Request( "data/gui/up.tga" ) );
-	mGUICursorPut = ruRect::Create( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruTexture::Request( "data/gui/down.tga" ) );
-	mGUICrosshair = ruRect::Create( (ruEngine::GetResolutionWidth() - 32) / 2, (ruEngine::GetResolutionHeight() - 32) / 2, 32, 32, ruTexture::Request( "data/gui/crosshair.tga" ) );
-	mGUIStealthSign = ruRect::Create( ruEngine::GetResolutionWidth() / 2 - 32, 200, 64, 32, ruTexture::Request( "data/textures/effects/eye.png" ));
+	mGUICursorPickUp = ruRect::Create( (ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request( "data/gui/up.tga" ) );
+	mGUICursorPut = ruRect::Create( (ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request( "data/gui/down.tga" ) );
+	mGUICrosshair = ruRect::Create( (ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request( "data/gui/crosshair.tga" ) );
+	mGUIStealthSign = ruRect::Create( ruVirtualScreenWidth / 2 - 32, 200, 64, 32, ruTexture::Request( "data/textures/effects/eye.png" ));
 
 	mDamageBackgroundAlpha = 0;
-	mGUIDamageBackground = ruRect::Create( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruTexture::Request("data/textures/effects/damageBackground.tga" ),ruVector3( 200, 0, 0 ), mDamageBackgroundAlpha );
+	mGUIDamageBackground = ruRect::Create( 0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/effects/damageBackground.tga" ),ruVector3( 200, 0, 0 ), mDamageBackgroundAlpha );
 }
 
 void Player::CreateCamera() {
@@ -844,13 +820,17 @@ void Player::UpdateItemsHandling() {
 void Player::UpdatePicking() {
     ruVector3 pickPosition;
 
-    mPickedNode = ruPhysics::RayPick( ruEngine::GetResolutionWidth() / 2, ruEngine::GetResolutionHeight() / 2, &pickPosition );
+    mPickedNode = ruPhysics::RayPick( ruVirtualScreenWidth / 2, ruVirtualScreenHeight / 2, &pickPosition );
 
     mNearestPickedNode = nullptr;
 
-	for( auto pEnemy : Enemy::msEnemyList ) {
-		if( mPickedNode == pEnemy->GetBody() ) {
-			mPickedNode = nullptr;
+	// discard picked node if it is node of enemy
+	if( pCurrentLevel ) {
+		unique_ptr<Enemy> & enemy = pCurrentLevel->GetEnemy();
+		if( enemy ) {
+			if( mPickedNode == enemy->GetBody() ) {
+				mPickedNode = nullptr;
+			}
 		}
 	}
 
@@ -958,9 +938,6 @@ void Player::Deserialize( SaveFile & in ) {
 
     in.ReadBoolean( mMoved );
 
-   // mStaminaAlpha.Deserialize( in );
-//    mHealthAlpha.Deserialize( in );
-
     in.ReadBoolean( mMoved );
     in.ReadBoolean( mObjectiveDone );
 
@@ -993,6 +970,8 @@ void Player::Deserialize( SaveFile & in ) {
 
 	mCrouch = in.ReadBoolean();
 
+	mBody->SetCollisionEnabled( in.ReadBoolean() );
+
 	mInventory.Deserialize( in );
 }
 
@@ -1011,9 +990,15 @@ void Player::Serialize( SaveFile & out ) {
 	}
 	out.WriteInteger( currentUO_N );
 
-    mBody->Unfreeze();
-    out.WriteVector3( mBody->GetLocalPosition() );
+	//bool frozen = mBody->IsFrozen();
+    //mBody->Unfreeze();
+   // out.WriteVector3( mBody->GetLocalPosition() );
+	out.WriteVector3( mBody->GetPosition() );
     mBody->SetAngularFactor( ruVector3( 0, 0, 0 ));
+
+	//if( frozen ) {
+	//	mBody->Freeze();
+	//}
 
     out.WriteBoolean( mSmoothCamera );
     out.WriteFloat( mRunCameraShakeCoeff );
@@ -1074,6 +1059,8 @@ void Player::Serialize( SaveFile & out ) {
 	out.WriteFloat( mLastHealth );
 
 	out.WriteBoolean( mCrouch );
+
+	out.WriteBoolean( mBody->IsCollisionEnabled() );
 
 	mInventory.Serialize( out );
 }

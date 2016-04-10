@@ -90,6 +90,7 @@ public:
     explicit Mesh();
     virtual ~Mesh();
 	void LinkTo( weak_ptr<SceneNode> owner );
+	// This method guaranteed to return list with only existing owners
     vector<weak_ptr<SceneNode>> & GetOwners();
     void CreateVertexBuffer();
     void CreateIndexBuffer( vector< Triangle > & idc );

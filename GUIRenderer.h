@@ -63,5 +63,5 @@ public:
 	void OnResetDevice();
 	void OnLostDevice();
     //ruFontHandle CreateFont( int size, const string & name );
-    void RenderAllGUIElements();
+    void Render();
 };

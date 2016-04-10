@@ -101,7 +101,11 @@ void ruPhysics::Update( float timeStep, int subSteps, float fixedTimeStep ) {
 
 shared_ptr<ruSceneNode> ruPhysics::RayPick( int x, int y, ruVector3 * outPickPoint ) {
 	D3DVIEWPORT9 vp;
-	Engine::I().GetDevice()->GetViewport( &vp );
+	pD3D->GetViewport( &vp );
+
+	x *= pEngine->GetGUIWidthScaleFactor();
+	y *= pEngine->GetGUIHeightScaleFactor();
+
 	// Find screen coordinates normalized to -1,1
 	D3DXVECTOR3 coord;
 	coord.x = ( ( ( 2.0f * x ) / (float)vp.Width ) - 1 );

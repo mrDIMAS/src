@@ -13,7 +13,7 @@ void Parser::ParseFile( string fn ) {
     fopen_s ( &file, fn.c_str(), "r" );
 
     if ( !file ) {
-        RaiseError( StringBuilder( "Unable to parse file " ) << fn );
+        throw std::runtime_error( StringBuilder( "Unable to parse file " ) << fn );
         return;
     }
 
@@ -30,7 +30,7 @@ void Parser::ParseFile( string fn ) {
     fclose ( file );
 
     if ( str.size() <= 1 ) {
-        RaiseError( StringBuilder( "Unable to parse file " ) << fn );
+        throw std::runtime_error( StringBuilder( "Unable to parse file " ) << fn );
         return;
     }
 
@@ -100,7 +100,7 @@ float Parser::GetNumber( string varName ) {
     if( iValue != mValueList.end() ) {
         return atof( iValue->second.c_str() );
     } else {
-        RaiseError( StringBuilder( "Unable to get number " ) << varName << " from " << mFileName << "!" );
+        throw std::runtime_error( StringBuilder( "Unable to get number " ) << varName << " from " << mFileName << "!" );
     }
 
     // never reached
@@ -113,7 +113,7 @@ const string & Parser::GetString( string varName ) {
     if( iValue != mValueList.end() ) {
         return iValue->second;
     }
-    RaiseError( StringBuilder( "Unable to get string " ) << varName << " from " << mFileName << "!" );
+    throw std::runtime_error( StringBuilder( "Unable to get string " ) << varName << " from " << mFileName << "!" );
 }
 
 bool Parser::IsParsed() {

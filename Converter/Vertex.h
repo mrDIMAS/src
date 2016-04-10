@@ -10,6 +10,21 @@ struct Vertex
   Vector2 * tex;
   Vector2 * secondTex;
   Vector3 tan;
-  Vertex( Vector3 * _pos, Vector2 * _tex, Vector2 * _secondTex, Vector3 normal );
-  Vertex( const Vertex & v );
+  Vertex( const Vertex & v )
+  {
+	  pos = v.pos;
+	  tex = v.tex;
+	  secondTex = v.secondTex;
+	  nor = v.nor;
+	  tan = v.tan;
+  }
+   
+  Vertex( Vector3 * _pos, Vector2 * _tex, Vector2 * _secondTex, Vector3 normal )
+  {
+	  pos = _pos;
+	  tex = _tex;
+	  secondTex = _secondTex;
+	  nor = normal;
+  }
+
 };

@@ -10,39 +10,32 @@ private:
 	void ActLiftCrash_AfterPowerDown();
 	void ActLiftCrash_AfterFirstStressSound();
 	void ActLiftCrash_AfterFalldown();
-	void GeneratorEnableAction( );
-	void ActGenerator_Start();
-	void ActGenerator_OnLine();
 	bool mChangeLevel;
 public:
     // Sounds
     shared_ptr<ruSound> mWindSound;
-    shared_ptr<ruSound> mGeneratorSound;
 	shared_ptr<ruSound> mPowerDownSound;
 	shared_ptr<ruSound> mMetalWhineSound;
 	shared_ptr<ruSound> mMetalStressSound;
 	shared_ptr<ruSound> mLiftFallSound;
-	shared_ptr<ruSound> mGeneratorStartSound;
+
     // Zones
 	shared_ptr<ruSceneNode> mLiftStopZone;
-	shared_ptr<ruParticleSystem > mGeneratorSmoke;
-	ruVector3 mGeneratorSmokePosition;
+	shared_ptr<ruSceneNode> mTutorialZone1;
+	shared_ptr<ruSceneNode> mTutorialZone2;
+	shared_ptr<ruSceneNode> mTutorialZone3;
+	shared_ptr<ruSceneNode> mTutorialZone4;
+	shared_ptr<ruSceneNode> mTutorialZone5;
+	shared_ptr<ruSceneNode> mTutorialZone6;
 
     // Entities
-    shared_ptr<ruSceneNode> mGenerator;
-
-    shared_ptr<ruSceneNode> mLamp1;
-    shared_ptr<ruSceneNode> mLamp2;
+	shared_ptr<ruSceneNode> mHalt;
 
 	shared_ptr<ruLight>mLiftLamp;
 
 	ActionSeries mLiftCrashSeries;
-	ActionSeries mGeneratorStartSeries;
 
 	shared_ptr<Lift> mLift;
-	Button * mGeneratorButton;
-
-	bool mPowerRestored;
 
     LevelArrival( );
     ~LevelArrival( );

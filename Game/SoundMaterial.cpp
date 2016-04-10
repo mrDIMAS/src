@@ -16,27 +16,29 @@ enum class ReaderMode {
 
 SoundMaterial::SoundMaterial( const string & filename, shared_ptr<ruSceneNode> owner ) {
 	ifstream matFile( filename, ifstream::in );	
-	ReaderMode mode = ReaderMode::Unknown;
-	float volume = 1.0f;
-	while( !matFile.eof() ) {
-		string line = GetFileLine( matFile );
-		if( line == ".snd" ) {
-			mode = ReaderMode::Sound;
-		} else if( line == ".tex" ) {
-			mode = ReaderMode::Texture;
-		} else if( line[0] == '#' ) {
-			// # is a comment, ignore
-		} else if( line.substr( 0, 4 ) == ".vol" ) {
-			volume = stof( line.substr( 4, line.size() - 1 ));
-		} else {
-			if( line.size() > 2 ) {
-				if( mode == ReaderMode::Sound ) {
-					shared_ptr<ruSound> snd = ruSound::Load3D( line );
-					snd->SetVolume( volume );
-					snd->Attach( owner );
-					mSoundList.push_back( snd );
-				} else if( mode == ReaderMode::Texture ) {
-					mTextureList.push_back( line );
+	if( matFile.good() ) {
+		ReaderMode mode = ReaderMode::Unknown;
+		float volume = 1.0f;
+		while( !matFile.eof() ) {
+			string line = GetFileLine( matFile );
+			if( line == ".snd" ) {
+				mode = ReaderMode::Sound;
+			} else if( line == ".tex" ) {
+				mode = ReaderMode::Texture;
+			} else if( line[0] == '#' ) {
+				// # is a comment, ignore
+			} else if( line.substr( 0, 4 ) == ".vol" ) {
+				volume = stof( line.substr( 4, line.size() - 1 ));
+			} else {
+				if( line.size() > 2 ) {
+					if( mode == ReaderMode::Sound ) {
+						shared_ptr<ruSound> snd = ruSound::Load3D( line );
+						snd->SetVolume( volume );
+						snd->Attach( owner );
+						mSoundList.push_back( snd );
+					} else if( mode == ReaderMode::Texture ) {
+						mTextureList.push_back( line );
+					}
 				}
 			}
 		}

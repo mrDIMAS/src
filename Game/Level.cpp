@@ -121,11 +121,6 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	}
 	Way::msWayList.clear();
 
-	while( Enemy::msEnemyList.size() ) {
-		delete Enemy::msEnemyList.front();
-	}
-	Enemy::msEnemyList.clear();
-
 	while( Item::msItemList.size() ) {
 		delete Item::msItemList.front();
 	}
@@ -200,6 +195,8 @@ void Level::Change( int levelId, bool continueFromSave ) {
 	}
 	
 	lastLevel = levelId;
+
+	Game_UpdateClock(); 
 }
 
 void Level::AddLift( const shared_ptr<Lift> & lift ) {
@@ -314,7 +311,7 @@ void Level::Serialize( SaveFile & out ) {
 
 void Level::AddSound( shared_ptr<ruSound> sound ) {
     if( !sound ) {
-        RaiseError( "Unable to add ambient sound! Invalid source!" );
+        throw std::runtime_error( "Unable to add ambient sound! Invalid source!" );
     }
     mSounds.push_back( sound );
 }
@@ -325,7 +322,7 @@ void Level::PlayAmbientSounds() {
 
 void Level::AddAmbientSound( shared_ptr<ruSound> sound ) {
     if( !sound ) {
-        RaiseError( "Unable to add ambient sound! Invalid source!" );
+        throw std::runtime_error( "Unable to add ambient sound! Invalid source!" );
     }
     mSounds.push_back( sound );
     mAmbSoundSet.AddSound( sound );
@@ -336,15 +333,15 @@ shared_ptr<ruSceneNode> Level::GetUniqueObject( const string & name ) {
     // game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
     // also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
     if( mInitializationComplete ) {
-        RaiseError( StringBuilder( "You must get object in game level intialization! Get object in game logic loop is strictly forbidden! Object name: " ) << name );
+        throw std::runtime_error( StringBuilder( "You must get object in game level initialization! Get object in game logic loop is strictly forbidden! Object name: " ) << name );
     }
     if( !mScene ) {
-        RaiseError( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
+        throw std::runtime_error( StringBuilder( "Object " ) << name << " can't be found in the empty scene. Load scene first!" );
     }
     shared_ptr<ruSceneNode> object = mScene->FindChild( name );
     // each unique object must be presented in the scene, otherwise error will be generated
     if( !object ) {
-        RaiseError( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
+        throw std::runtime_error( StringBuilder( "Object " ) << name << " can't be found in the scene! Game will be closed." );
     }
     return object;
 }
@@ -352,7 +349,7 @@ shared_ptr<ruSceneNode> Level::GetUniqueObject( const string & name ) {
 void Level::LoadSceneFromFile( const string & file ) {
     mScene = ruSceneNode::LoadFromFile( file );
     if( !mScene ) {
-        RaiseError( StringBuilder( "Unable to load scene from " ) << file << "! Game will be closed." );
+        throw std::runtime_error( StringBuilder( "Unable to load scene from " ) << file << "! Game will be closed." );
     }
 }
 
@@ -373,11 +370,11 @@ void Level::CreateLoadingScreen()
 	msGUIFont = ruFont::LoadFromFile( 32, "data/fonts/font1.otf" );
 	int w = 200;
 	int h = 32;
-	int x = ( ruEngine::GetResolutionWidth() - w ) / 2;
-	int y = ( ruEngine::GetResolutionHeight() - h ) / 2;
+	int x = ( ruVirtualScreenWidth - w ) / 2;
+	int y = ( ruVirtualScreenHeight - h ) / 2;
 	msGUILoadingText = ruText::Create( "Загрузка...", x, y, w, h, msGUIFont, ruVector3( 0, 0, 0 ), ruTextAlignment::Center );
 	msGUILoadingText->SetVisible( false );
-	msGUILoadingBackground = ruRect::Create( 0, 0, ruEngine::GetResolutionWidth(), ruEngine::GetResolutionHeight(), ruTexture::Request( "data/gui/loadingscreen.tga" ), pGUIProp->mBackColor );
+	msGUILoadingBackground = ruRect::Create( 0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request( "data/gui/loadingscreen.tga" ), pGUIProp->mBackColor );
 	msGUILoadingBackground->SetVisible( false );
 }
 
@@ -453,4 +450,21 @@ void Level::AddInteractiveObject( const string & desc, const shared_ptr<Interact
 	io->OnInteract.AddListener( interactAction );
 	io->SetPickDescription( desc );
 	mInteractiveObjectList.push_back( io );
+}
+
+void Level::DeserializeAnimation( SaveFile & in, ruAnimation & anim )
+{
+	anim.SetCurrentFrame( in.ReadInteger());
+	anim.SetEnabled( in.ReadBoolean( ));
+}
+
+void Level::SerializeAnimation( SaveFile & out, ruAnimation & anim )
+{
+	out.WriteInteger( anim.GetCurrentFrame() );
+	out.WriteBoolean( anim.IsEnabled() );
+}
+
+void Level::Proxy_GiveBullet()
+{
+	pPlayer->AddItem( Item::Type::Bullet );
 }

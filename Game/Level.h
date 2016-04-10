@@ -18,12 +18,11 @@
 #include "ActionTimer.h"
 #include "ActionSeries.h"
 #include "Button.h"
+#include "Enemy.h"
 
 class Level {
 private:
-	void Proxy_GiveBullet() {
-		pPlayer->AddItem( Item::Type::Bullet );
-	}
+	void Proxy_GiveBullet();
     vector<Sheet*> mSheetList;
     vector<shared_ptr<Door>> mDoorList;
     vector<shared_ptr<Ladder>> mLadderList;
@@ -37,15 +36,20 @@ private:
 	vector<shared_ptr<InteractiveObject>> mInteractiveObjectList;
     virtual void OnSerialize( SaveFile & out ) = 0;
     virtual void OnDeserialize( SaveFile & in ) = 0;
-    AmbientSoundSet mAmbSoundSet;
-    shared_ptr<ruSceneNode> mScene;
-    bool mInitializationComplete;
+    AmbientSoundSet mAmbSoundSet;    
+    bool mInitializationComplete;	
 protected:
+	shared_ptr<ruSceneNode> mScene;
     Parser mLocalization;
+	// on each level only one enemy presented	
+	unique_ptr<Enemy> mEnemy;
 public:
     int mTypeNum;
     shared_ptr<ruSound> mMusic;
     unordered_map<string, bool > mStages;
+	unique_ptr<Enemy> & GetEnemy() {
+		return mEnemy;
+	}
 	void AddInteractiveObject( const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction );
     void AddItemPlace( const shared_ptr<ItemPlace> & ipc );
     void AddSheet( Sheet * sheet );
@@ -82,12 +86,6 @@ public:
 	static void CreateLoadingScreen();
     virtual void Serialize( SaveFile & out ) final;
     virtual void Deserialize( SaveFile & in ) final;
-	void SerializeAnimation( SaveFile & out, ruAnimation & anim ) {
-		out.WriteInteger( anim.GetCurrentFrame() );
-		out.WriteBoolean( anim.IsEnabled() );
-	}
-	void DeserializeAnimation( SaveFile & in, ruAnimation & anim ) {
-		anim.SetCurrentFrame( in.ReadInteger());
-		anim.SetEnabled( in.ReadBoolean( ));
-	}
+	void SerializeAnimation( SaveFile & out, ruAnimation & anim );
+	void DeserializeAnimation( SaveFile & in, ruAnimation & anim );
 };
