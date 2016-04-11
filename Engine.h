@@ -25,9 +25,8 @@
 #include "Timer.h"
 #include "BitmapFont.h"
 #include "Mesh.h"
-#include "FPSCounter.h"
+#include "Shader.h"
 
-class ForwardRenderer;
 class ParticleSystemRenderer;
 class TextRenderer;
 class GUIRenderer;
@@ -46,21 +45,18 @@ public:
 	}
 };
 
+typedef unordered_map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
+
 class Engine {
 private:
 	HWND mWindowHandle;
 
 	shared_ptr<ParticleSystemRenderer> mpParticleSystemRenderer;
-	shared_ptr<ForwardRenderer> mpForwardRenderer;
 	shared_ptr<GUIRenderer> mpGUIRenderer;
 	shared_ptr<TextRenderer> mpTextRenderer;
-	FPSCounter mFPSCounter;
 	bool mUsePointLightShadows;
 	bool mUseSpotLightShadows;
-	bool mHDREnabled;
-	bool mParallaxEnabled;
-	bool mRunning;
-	bool mFXAAEnabled;
+	bool mRunning;	
 	bool mAnisotropicFiltering;
 	float mResWidth;
 	float mResHeight;
@@ -72,7 +68,6 @@ private:
 	
 	Engine( const Engine & other );
 	void operator = ( const Engine & other );
-	static LRESULT CALLBACK WindowProcess ( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam );
 	void UpdateMessagePump( );
 
 	void CreatePhysics( );
@@ -86,10 +81,19 @@ private:
 	
 	shared_ptr<Cursor> mCursor;
 
+	MeshMap mDeferredMeshMap;
+	MeshMap mForwardMeshMap;
+
+	void PrepareMeshMaps();
+	void RenderMesh( const shared_ptr<Mesh> & mesh );
+
+	//**************************************
+	// Forward Rendering Stuff
+	shared_ptr<PixelShader> mTransparentPixelShader;
+	shared_ptr<VertexShader> mTransparentVertexShader;
+
 	//**************************************
 	// Deferred Rendering Stuff
-
-	unique_ptr<EffectsQuad> mFullscreenQuad;
 
 	unique_ptr<PixelShader> mAmbientPixelShader;
 	unique_ptr<PixelShader> mFXAAPixelShader;
@@ -110,8 +114,6 @@ private:
 	// Two Frame Buffers for Post-effects
 	COMPtr<IDirect3DTexture9> mFrame[2];
 	COMPtr<IDirect3DSurface9> mFrameSurface[2];
-
-	COMPtr<IDirect3DSurface9> mBackBufferSurface;
 
 	COMPtr<ID3DXMesh> mBoundingSphere;
 	COMPtr<ID3DXMesh> mBoundingStar;
@@ -163,14 +165,30 @@ private:
 	unique_ptr<PixelShader> mSpotLightShadowMapPixelShader;
 	unique_ptr<VertexShader> mSpotLightShadowMapVertexShader;
 
-	//
-	//**************************************
+	// Quad
+	D3DXMATRIX mOrthoProjectionMatrix;
+	COMPtr<IDirect3DVertexBuffer9> mQuadVertexBuffer;
+	unique_ptr<VertexShader> mQuadVertexShader;
 
+	void RenderFullscreenQuad() {
+		mQuadVertexShader->Bind();
+		pD3D->SetVertexShaderConstantF( 0, &mOrthoProjectionMatrix.m[0][0], 4 );		
+		pD3D->SetStreamSource( 0, mQuadVertexBuffer, 0, sizeof( Vertex ));
+		
+		pD3D->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
+	}
 
-	// !!! do not change order of these !!!
+	// Common vertex declaration
+	COMPtr<IDirect3DVertexDeclaration9> msVertexDeclaration;
+
+	// D3D9
 	COMPtr<IDirect3D9> mpDirect3D;
 	COMPtr<IDirect3DDevice9> mpDevice;
 	COMPtr<IDirect3DSurface9> mpBackBuffer;	
+		
+	bool mHDREnabled;
+	bool mParallaxEnabled;
+	bool mFXAAEnabled;
 public:
 	explicit Engine();
 	virtual ~Engine();
@@ -179,8 +197,6 @@ public:
 	void Initialize( int width, int height, int fullscreen, char vSync );	
     void RenderWorld( );
 	void Reset();
-	void Pause();
-	void Continue();
 	bool IsTextureFormatOk( D3DFORMAT TextureFormat );
 	void RegisterDIP();
 	float GetResolutionWidth();
@@ -191,7 +207,6 @@ public:
 	void SetAnisotropicTextureFiltration( bool state );
 	void SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
 	void SetSpotLightShadowMapSize( int size );
-	shared_ptr<ForwardRenderer> & GetForwardRenderer();
 	shared_ptr<TextRenderer> & GetTextRenderer();
 	void SetPointLightShadowsEnabled( bool state );
 	void SetSpotLightShadowsEnabled( bool state );
@@ -206,18 +221,15 @@ public:
 	shared_ptr<Cursor> & GetCursor();
 	int GetTextureChangeCount();
 	string GetTextureStoragePath();
-	IDirect3DSurface9 * GetBackBuffer();
 	void SetTextureStoragePath( const string & path );
-	void DrawIndexedTriangleList( int vertexCount, int faceCount );
 	float GetGUIWidthScaleFactor( ) const;
 	float GetGUIHeightScaleFactor( ) const;
 	// Effects control methods
 	bool IsFXAAEnabled();
 	void SetFXAAEnabled( bool state );
-
 	bool IsHDREnabled();
 	void SetHDREnabled( bool state );
-
 	bool IsParallaxEnabled();
 	void SetParallaxEnabled( bool state );
+	void AddMesh( const shared_ptr<Mesh> & mesh );
 };

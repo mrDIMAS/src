@@ -64,19 +64,24 @@ int ruEngine::GetMaxAnisotropy() {
 
 	return caps.MaxAnisotropy;
 }
+
 int ruEngine::GetTextureUsedPerFrame( ) {
 	return pEngine->GetTextureChangeCount();
 }
+
 void ruEngine::SetAmbientColor( ruVector3 color ) {
 	pEngine->SetAmbientColor( color );
 }
+
 int ruEngine::GetAvailableTextureMemory() {
 	return pD3D->GetAvailableTextureMem();
 }
+
 void ruEngine::EnableShadows( bool state ) {
 	pEngine->SetSpotLightShadowsEnabled( state );
 	pEngine->SetPointLightShadowsEnabled( state );
 }
+
 void ruEngine::UpdateWorld() {
 	// build view and projection matrices, frustum, also attach sound listener to camera
 	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();

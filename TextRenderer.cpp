@@ -48,8 +48,8 @@ int GetStringWidth( BitmapFont * font, string & text, int start ) {
 // grim code, must be rewritten !!!
 void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 {
-    TextQuad * quad = nullptr;
-    mVertexBuffer->Lock( 0, mMaxChars * sizeof( TextQuad ), reinterpret_cast<void**>( &quad ), D3DLOCK_DISCARD );
+    Vertex * vertices = nullptr;
+    mVertexBuffer->Lock( 0, mMaxChars * 4 * sizeof( Vertex ), reinterpret_cast<void**>( &vertices ), D3DLOCK_DISCARD );
     Face * face = nullptr;
     mIndexBuffer->Lock( 0, mMaxChars * sizeof( Face ), reinterpret_cast<void**>( &face ), D3DLOCK_DISCARD );
     int n = 0, totalLetters = 0;
@@ -89,12 +89,10 @@ void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 		int currentX = caretX + charMetr->bitmapLeft;
 		int currentY = caretY - charMetr->bitmapTop + font->GetGlyphSize();
 
-		int color = guiText->GetPackedColor();
-
-		quad->mVertices[0].Set( currentX, currentY, charMetr->texCoords[0], color );
-		quad->mVertices[1].Set( currentX + font->GetGlyphSize(), currentY, charMetr->texCoords[1], color );
-		quad->mVertices[2].Set( currentX + font->GetGlyphSize(), currentY + font->GetGlyphSize(), charMetr->texCoords[2], color );
-		quad->mVertices[3].Set( currentX, currentY + font->GetGlyphSize(), charMetr->texCoords[3], color );
+		*(vertices + 0) = Vertex( ruVector3( currentX, currentY, 0.0f ), charMetr->texCoords[0], ruVector4( guiText->GetColor(), guiText->GetAlpha() / 255.0f ));
+		*(vertices + 1) = Vertex( ruVector3( currentX + font->GetGlyphSize(), currentY, 0.0f ), charMetr->texCoords[1], ruVector4( guiText->GetColor(), guiText->GetAlpha() / 255.0f ));
+		*(vertices + 2) = Vertex( ruVector3( currentX + font->GetGlyphSize(), currentY + font->GetGlyphSize(), 0.0f ), charMetr->texCoords[2], ruVector4( guiText->GetColor(), guiText->GetAlpha() / 255.0f ));
+		*(vertices + 3) = Vertex( ruVector3( currentX, currentY + font->GetGlyphSize(), 0.0f ), charMetr->texCoords[3], ruVector4( guiText->GetColor(), guiText->GetAlpha() / 255.0f ));
 
 		caretX += charMetr->advanceX;
 
@@ -107,7 +105,7 @@ void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 			}
 		}
 
-		quad++;
+		vertices += 4;
 		totalLetters++;
 
 		// indices
@@ -123,7 +121,7 @@ void TextRenderer::RenderText( const shared_ptr<GUIText> & guiText )
 
     font->BindAtlasToLevel( 0 );
 
-    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( TextVertex ));
+    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
     pD3D->SetIndices( mIndexBuffer );
 	if( totalLetters > 0 ) {
 		pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, totalLetters * 4, 0, totalLetters * 2 );
@@ -185,7 +183,7 @@ void TextRenderer::OnLostDevice() {
 
 void TextRenderer::OnResetDevice() {
 	mMaxChars = 8192;
-	int vBufLen = mMaxChars * sizeof( TextQuad );
+	int vBufLen = mMaxChars * 4 * sizeof( Vertex );
 	pD3D->CreateVertexBuffer( vBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_TEX1 | D3DFVF_XYZ | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &mVertexBuffer, nullptr );
 	int iBufLen = mMaxChars * sizeof( Face );
 	pD3D->CreateIndexBuffer( iBufLen, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, nullptr );

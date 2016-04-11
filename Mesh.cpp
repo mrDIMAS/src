@@ -22,41 +22,25 @@
 #include "Precompiled.h"
 #include "Engine.h"
 #include "Mesh.h"
-#include "Octree.h"
 #include "Texture.h"
 #include "Vertex.h"
-#include "ForwardRenderer.h"
+#include "SceneNode.h"
 
-IDirect3DVertexDeclaration9 * Mesh::msVertexDeclaration;
-IDirect3DVertexDeclaration9 * Mesh::msVertexDeclarationSkin;
 
-unordered_map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> Mesh::msMeshList;
+Mesh::Mesh() : 
+	mHeightTexture( nullptr ), 
+	mDiffuseTexture( nullptr ),			   
+	mNormalTexture( nullptr ), 
+	mOpacity( 1.0f ), 
+	mSkinned( false ) 
+{
 
-Mesh::Mesh() : mHeightTexture( nullptr ), mDiffuseTexture( nullptr ),
-			   mNormalTexture( nullptr ), mOctree( nullptr ), mOpacity( 1.0f ), mSkinned( false ) {
-	if( !msVertexDeclaration ) {
-		D3DVERTEXELEMENT9 vd[ ] = {
-			{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-			{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
-			{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-			{ 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
-			D3DDECL_END()
-		};
+}
 
-		pD3D->CreateVertexDeclaration( vd, &msVertexDeclaration );
-	}
-	if( !msVertexDeclarationSkin ) {
-		D3DVERTEXELEMENT9 vd[ ] = {
-			{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-			{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
-			{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-			{ 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
-			{ 0, 44, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 }, // bone indices
-			{ 0, 60, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 }, // bone weights
-			D3DDECL_END()
-		};
-
-		pD3D->CreateVertexDeclaration( vd, &msVertexDeclarationSkin );
+Mesh::~Mesh() {
+	OnLostDevice();    
+	for( auto pBone : mBones ) {
+		delete pBone;
 	}
 }
 
@@ -68,38 +52,14 @@ void Mesh::LinkTo( weak_ptr<SceneNode> owner ) {
 	mOwnerList.push_back( owner );
 }
 
-void Mesh::Register( shared_ptr<Mesh> mesh ) {
-	mesh->mAABB = AABB( mesh->mVertices );
-    if( mesh->mOpacity > 0.99f ) { // pass it to deferred renderer
-		if( mesh->mDiffuseTexture ) {
-			auto textureGroup = Mesh::msMeshList.find( mesh->mDiffuseTexture->GetInterface() );
-
-			if( textureGroup == Mesh::msMeshList.end()) {
-				Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ] = vector<weak_ptr<Mesh>>();
-			}
-
-			Mesh::msMeshList[ mesh->mDiffuseTexture->GetInterface() ].push_back( mesh );
-		}
-    } else { // pass it to forward renderer
-        pEngine->GetForwardRenderer()->AddMesh( mesh );
-    }
-}
-
-Mesh::~Mesh() {
-    OnLostDevice();    
-	for( auto pBone : mBones ) {
-		delete pBone;
-	}
-}
-
 void Mesh::CreateVertexBuffer() {
 	int sizeBytes;
 	void * data;
-	vector<VertexSkin> skinVertices;
+	vector<Vertex> skinVertices;
 
 	if( mVertices.size() ) {		
 		if( mSkinned ) {
-			sizeBytes = mVertices.size() * sizeof( VertexSkin );
+			sizeBytes = mVertices.size() * sizeof( Vertex );
 			for( int i = 0; i < mVertices.size(); i++ ) {
 				Mesh::BoneGroup w = mBoneTable[i];
 				ruVector4 boneIndices = ruVector4( -1, -1, -1, -1 );	
@@ -108,7 +68,7 @@ void Mesh::CreateVertexBuffer() {
 					boneIndices.c[ k ] = w.mBone[k].mRealBone->mMatrixID;
 					boneWeights.c[ k ] = w.mBone[k].mWeight;
 				}
-				skinVertices.push_back( VertexSkin( mVertices[i], boneIndices, boneWeights ));
+				skinVertices.push_back( Vertex( mVertices[i], boneIndices, boneWeights ));
 			}
 			data = &skinVertices[0];
 		} else {
@@ -174,11 +134,6 @@ void Mesh::CreateHardwareBuffers() {
     CreateIndexBuffer( mTriangles );
 }
 
-void Mesh::CleanUp() {
-	msVertexDeclaration->Release();
-	msVertexDeclarationSkin->Release();
-}
-
 shared_ptr<Texture> & Mesh::GetDiffuseTexture() {
     return mDiffuseTexture;
 }
@@ -187,49 +142,12 @@ shared_ptr<Texture> & Mesh::GetNormalTexture() {
     return mNormalTexture;
 }
 
-void Mesh::Render() {
-	if( mSkinned ) {
-		pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( VertexSkin ));
-		pD3D->SetVertexDeclaration( msVertexDeclarationSkin );
-	} else {
-		pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
-		pD3D->SetVertexDeclaration( msVertexDeclaration );
-	}
-	
-	if( mOctree ) {
-		vector< Triangle > & id = mOctree->GetTrianglesToRender();
-		if( id.size() ) {
-			CreateIndexBuffer( id );
-		}
-	}
-	pD3D->SetIndices( mIndexBuffer );
-    if( mOctree ) {
-#ifdef _OCTREE_DEBUG
-        mOctree->VisualizeHierarchy();
-        ruDrawGUIText( Format( "Nodes: %d, Triangles: %d", mOctree->mVisibleNodeCount, mOctree->mVisibleTriangleCount ).c_str(), 40, 40, 100, 50, g_font, ruVector3( 255, 0, 0 ), 1 );
-#endif
-        if( mOctree->mVisibleTriangleList.size() ) {
-			pEngine->DrawIndexedTriangleList( mVertices.size(), mOctree->mVisibleTriangleList.size() );
-        }
-    } else {
-		pEngine->DrawIndexedTriangleList( mVertices.size(), mTriangles.size() );
-    }
-}
-
-void Mesh::RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount ) {
-	pD3D->SetIndices( ib );
-	pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mVertices.size(), 0, faceCount );
-	// each mesh renders in one DIP
-	pEngine->RegisterDIP();
-}
-
 void Mesh::OnLostDevice() {
 		
 }
 
 void Mesh::OnResetDevice() {
-	//CreateHardwareBuffers();
-	//Mesh::Register( this );
+
 }
 
 vector<Mesh::Bone*> & Mesh::GetBones() {
@@ -244,7 +162,7 @@ bool Mesh::IsSkinned() const {
 	return mSkinned;
 }
 
-vector<Mesh::Triangle> & Mesh::GetTriangles(){
+vector<Triangle> & Mesh::GetTriangles(){
 	return mTriangles;
 }
 
@@ -297,35 +215,12 @@ shared_ptr<Texture> & Mesh::GetHeightTexture(){
 	return mHeightTexture;
 }
 
-Mesh::MeshMap & Mesh::GetMeshMap() {
-	for( auto texGroupPairIter = msMeshList.begin(); texGroupPairIter != msMeshList.end();  ) {
-		auto & texGroupPair = *texGroupPairIter;
-		if( texGroupPair.second.size() ) {
-			for( auto & meshIter = texGroupPair.second.begin(); meshIter != texGroupPair.second.end(); ) {
-				if( (*meshIter).use_count() ) {
-					++meshIter;
-				} else {
-					meshIter = texGroupPair.second.erase( meshIter );
-				}
-			}
-			++texGroupPairIter;
-		} else {
-			texGroupPairIter = msMeshList.erase( texGroupPairIter );
-		}
-	}
-	return msMeshList;
-}
 
-Mesh::Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
-	mA = vA;
-	mB = vB;
-	mC = vC;
-}
 
 Mesh::Bone::Bone() : mMatrixID( 0 ) {
-	D3DXMatrixIdentity( &mMatrix );
+
 }
 
 Mesh::Bone::Bone( weak_ptr<SceneNode> node, int matrixID ) : mNode( node ), mMatrixID( matrixID ) {
-	D3DXMatrixIdentity( &mMatrix );
+
 }

@@ -23,50 +23,50 @@
 
 #include "Vertex.h"
 
-Vertex::Vertex() {
-
-}
-
-Vertex::Vertex( float x, float y, float z, float tx, float ty ) {
-    mPosition.x = x;
-    mPosition.y = y;
-    mPosition.z = z;
-
-    mTexCoord.x = tx;
-    mTexCoord.y = ty;
-}
-
-Vertex::Vertex( ruVector3 & theCoords, ruVector3 & theNormals, ruVector2 & theTexCoords, ruVector3 & theTangents ) {
-    mPosition = theCoords;
-    mNormal = theNormals;
-    mTexCoord = theTexCoords;
-    mTangent = theTangents;
-}
-
-
-Vertex2D::Vertex2D( float x, float y, float z, float tx, float ty, int color /*= 0 */ ) {
-    this->x = x;
-    this->y = y;
-    this->z = z;
-    this->tx = tx;
-    this->ty = ty;
-    this->color = color;
-}
-
-VertexSkin::VertexSkin()
+Vertex::Vertex()
 {
 
 }
 
-VertexSkin::VertexSkin( const Vertex & v, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
-	mPosition( v.mPosition ), mNormal( v.mNormal ), mTexCoord( v.mTexCoord ), mTangent( v.mTangent ),
-	mBoneIndices( boneIndices ), mBoneWeights( boneWeights )
+Vertex::Vertex( const Vertex & v, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
+	mPosition( v.mPosition ), 
+	mNormal( v.mNormal ), 
+	mTexCoord( v.mTexCoord ), 
+	mTangent( v.mTangent ),
+	mBoneIndices( boneIndices ), 
+	mBoneWeights( boneWeights )
 {
 
 }
 
-VertexSkin::VertexSkin( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) : 
-	mPosition( position ), mNormal( normal ), mTexCoord( texCoord ), mTangent( tangent ), mBoneIndices( boneIndices ), mBoneWeights( boneWeights )
+Vertex::Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) : 
+	mPosition( position ), 
+	mNormal( normal ), 
+	mTexCoord( texCoord ), 
+	mTangent( tangent ), 
+	mBoneIndices( boneIndices ), 
+	mBoneWeights( boneWeights )
 {
 
+}
+
+Vertex::Vertex( const ruVector3 & position, const ruVector2 & texCoord, const ruVector4 & color ) :
+	mPosition( position ),
+	mTexCoord( texCoord ),
+	mBoneIndices( color )
+{
+
+}
+
+Vertex::Vertex( const ruVector3 & position, const ruVector2 & texCoord ) :
+	mPosition( position ),
+	mTexCoord( texCoord )
+{
+
+}
+
+Triangle::Triangle( unsigned short vA, unsigned short vB, unsigned short vC ) {
+	mA = vA;
+	mB = vB;
+	mC = vC;
 }

@@ -28,17 +28,14 @@
 #include "Texture.h"
 #include "Engine.h"
 #include "Physics.h"
-#include "FPSCounter.h"
-#include "ForwardRenderer.h"
 #include "BitmapFont.h"
 #include "TextRenderer.h"
 #include "SceneFactory.h"
 #include "Cursor.h"
 #include "Shader.h"
-#include "EffectsQuad.h"
 #include "PointLight.h"
 #include "SpotLight.h"
-#include "Light.h"
+#include "Mesh.h"
 #include "SceneNode.h"
 #include "Mesh.h"
 #include "Camera.h"
@@ -73,7 +70,6 @@ D3DXMATRIX SetUniformScaleTranslationMatrix( float s, const ruVector3 & p ) {
 }
 
 Engine::Engine() : 
-	mpForwardRenderer( nullptr ), 
 	mpParticleSystemRenderer( nullptr ), 
 	mpTextRenderer( nullptr ),
 	mpGUIRenderer( nullptr ), 
@@ -90,16 +86,25 @@ Engine::Engine() :
 }
 
 Engine::~Engine() {	
-	
-
     while( Timer::msTimerList.size() ) {
         delete Timer::msTimerList.front();
     }
     for( auto & kv : CubeTexture::all ) {
         delete kv.second;
     }
-	Mesh::CleanUp();
     Physics::DestructWorld();
+}
+
+LRESULT CALLBACK WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
+	switch ( msg ) {
+	case WM_DESTROY:
+		ruEngine::Free();
+		PostQuitMessage ( 0 );
+		break;
+	case WM_ERASEBKGND:
+		return 0;
+	}	
+	return DefWindowProc ( wnd, msg, wParam, lParam );
 }
 
 void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
@@ -202,6 +207,19 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 
 	pD3D->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer );
 
+	// Create common vertex declaration
+	D3DVERTEXELEMENT9 commonVertexDeclaration[ ] = {
+		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+		{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		{ 0, 32, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0 },
+		{ 0, 44, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 }, // bone indices
+		{ 0, 60, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 }, // bone weights
+		D3DDECL_END()
+	};
+
+	pD3D->CreateVertexDeclaration( commonVertexDeclaration, &msVertexDeclaration );
+	
     SetDefaults();
 
     CreatePhysics( );
@@ -214,7 +232,6 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
     pfSystemInit( );
     pfSetListenerDopplerFactor( 0 );
 
-    mpForwardRenderer = make_shared<ForwardRenderer>();	
     mpParticleSystemRenderer = make_shared<ParticleSystemRenderer>();
     mpTextRenderer = make_shared<TextRenderer>();
     mpGUIRenderer = make_shared<GUIRenderer>();
@@ -230,6 +247,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 
 	//***************************************************************
 	// Init Deferred Rendering Stuff
+
 	// Create render targets 
 	D3DXCreateTexture( pD3D, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16, D3DPOOL_DEFAULT, &mHDRFrame );
 	mHDRFrame->GetSurfaceLevel( 0, &mHDRFrameSurface );
@@ -239,9 +257,7 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 		mFrame[i]->GetSurfaceLevel( 0, &mFrameSurface[i] );
 	}
 
-	mBackBufferSurface = GetBackBuffer();
-
-	mFullscreenQuad = unique_ptr<EffectsQuad>( new EffectsQuad() );
+	// FXAA Pixel Shader
 	mFXAAPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/fxaa.pso" ));
 
 	// Create G-Buffer ( Depth: R32F, Diffuse: ARGB8, Normal: ARGB8 )
@@ -356,6 +372,30 @@ void Engine::Initialize( int width, int height, int fullscreen, char vSync ) {
 	}
 	mBoundingStar->UnlockVertexBuffer();
 	mBoundingStar->UpdateSemantics( vd );
+
+	//***************************************************************
+	// Init Forward Rendering Stuff
+	mTransparentVertexShader = make_shared<VertexShader>( "data/shaders/forwardTransparent.vso" );
+	mTransparentPixelShader = make_shared<PixelShader>( "data/shaders/forwardTransparent.pso" );
+
+	// Create fullscreen quad
+	mQuadVertexShader = unique_ptr<VertexShader>( new VertexShader( "data/shaders/quad.vso" ));
+
+	Vertex vertices[6];
+	vertices[0] = Vertex( ruVector3( -0.5, -0.5, 0.0f ), ruVector2( 0, 0 ));
+	vertices[1] = Vertex( ruVector3( pEngine->GetResolutionWidth() - 0.5, -0.5, 0.0f ), ruVector2( 1, 0 ));
+	vertices[2] = Vertex( ruVector3( -0.5, pEngine->GetResolutionHeight() - 0.5, 0 ), ruVector2( 0, 1 ));
+	vertices[3] = Vertex( ruVector3( pEngine->GetResolutionWidth() - 0.5, -0.5, 0.0f ), ruVector2( 1, 0 ));
+	vertices[4] = Vertex( ruVector3( pEngine->GetResolutionWidth() - 0.5, pEngine->GetResolutionHeight() - 0.5, 0.0f ), ruVector2( 1, 1 ));
+	vertices[5] = Vertex( ruVector3( -0.5, pEngine->GetResolutionHeight() - 0.5, 0.0f ), ruVector2( 0, 1 ));
+
+	void * lockedData;
+	pD3D->CreateVertexBuffer( 6 * sizeof( Vertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mQuadVertexBuffer, 0 );
+	mQuadVertexBuffer->Lock( 0, 0, &lockedData, 0 );
+	memcpy( lockedData, vertices, sizeof( Vertex ) * 6 );
+	mQuadVertexBuffer->Unlock( );
+
+	D3DXMatrixOrthoOffCenterLH ( &mOrthoProjectionMatrix, 0, pEngine->GetResolutionWidth(), pEngine->GetResolutionHeight(), 0, 0, 1024 );
 }
 
 int Engine::CreateRenderWindow( int width, int height, int fullscreen ) {
@@ -429,8 +469,6 @@ void Engine::RenderWorld() {
 	if( !camera || !mRunning ) {
         return;
     }
-
-    mFPSCounter.RegisterFrame();
    
     // clear statistics
     mDIPCount = 0;
@@ -450,7 +488,10 @@ void Engine::RenderWorld() {
 	//mFXAAEnabled = true;
 
     // Begin rendering
+	PrepareMeshMaps();
+
     pD3D->BeginScene();
+
 
     //********************************
 	// Geometry pass
@@ -464,6 +505,7 @@ void Engine::RenderWorld() {
 	//	0 - depth
 	//	1 - normal
 	//	2 - diffuse
+	GPURegisterStack gpuRegisterStack;
 
 	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
 	pD3D->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
@@ -484,9 +526,9 @@ void Engine::RenderWorld() {
 		pD3D->SetSamplerState( 0, D3DSAMP_SRGBTEXTURE, TRUE );
 	}
 
-	auto & meshMap = Mesh::GetMeshMap();
+	pD3D->SetVertexDeclaration( msVertexDeclaration );
 
-	for( auto & texGroupPair : meshMap ) {
+	for( auto & texGroupPair : mDeferredMeshMap ) {
 		IDirect3DTexture9 * pDiffuseTexture = texGroupPair.first;
 		IDirect3DTexture9 * pNormalTexture = nullptr;
 
@@ -540,8 +582,6 @@ void Engine::RenderWorld() {
 
 			// render mesh
 			if( camera ) {
-				D3DXMATRIX world, vwp;
-
 				auto & owners = pMesh->GetOwners();
 
 				for( auto weakOwner : owners ) {
@@ -558,9 +598,9 @@ void Engine::RenderWorld() {
 					}
 
 					if( visible && ( pOwner->IsInFrustum() || pOwner->IsSkinned() ) ) {
-						if( fabs( pOwner->GetDepthHack() ) > 0.001 ) {
-							camera->EnterDepthHack( fabs( pOwner->GetDepthHack() ) );
-						}			
+						camera->EnterDepthHack( pOwner->GetDepthHack() );
+							
+						D3DXMATRIX world, vwp;
 						if( pMesh->IsSkinned() ) {
 							D3DXMatrixIdentity( &world );
 						} else {
@@ -568,52 +608,29 @@ void Engine::RenderWorld() {
 						}
 
 						D3DXMatrixMultiply( &vwp, &world, &camera->mViewProjection );
-									
+
 						// Pass pixel shader constants to GPU by a single call	
-						GPURegister psFloatConstants[] = {
-							{ pOwner->GetAlbedo(), 0.0f, 0.0f, 0.0f },
-						};
-
-						pD3D->SetPixelShaderConstantF( 0, (float*)psFloatConstants, StaticArraySize( psFloatConstants ));
+						gpuRegisterStack.Clear();
+						gpuRegisterStack.PushFloat( pOwner->GetAlbedo() );
+						pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 								
-						// Pass vertex shader constants to GPU by a single call							
-						GPURegister vsFloatConstants[] = {
-							{ world._11, world._12, world._13, world._14 },
-							{ world._21, world._22, world._23, world._24 },
-							{ world._31, world._32, world._33, world._34 },
-							{ world._41, world._42, world._43, world._44 },
-
-							{ vwp._11, vwp._12, vwp._13, vwp._14 },
-							{ vwp._21, vwp._22, vwp._23, vwp._24 },
-							{ vwp._31, vwp._32, vwp._33, vwp._34 },
-							{ vwp._41, vwp._42, vwp._43, vwp._44 },
-
-							{ camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0f },
-							{ pOwner->GetTexCoordFlow().x, pOwner->GetTexCoordFlow().y, 1.0f, 1.0f }
-						};
-
-						pD3D->SetVertexShaderConstantF( 0, (float*)vsFloatConstants, StaticArraySize( vsFloatConstants ));
-								
-						// Pass bone matrices
-						auto & bones = pMesh->GetBones();
-						if( bones.size() ) {
-							D3DMATRIX vsBoneMatrices[ 128 ];
-
-							int n = 0;
-							for( auto bone : bones ) {
-								shared_ptr<SceneNode> boneNode = bone->mNode.lock();
-								if( boneNode ) {
-									vsBoneMatrices[n++] = bone->mMatrix = TransformToMatrix( boneNode->GetRelativeTransform() * pOwner->GetLocalTransform() );
-								}
+						// Pass vertex shader constants to GPU by a single call	
+						gpuRegisterStack.Clear();
+						gpuRegisterStack.PushMatrix( world );
+						gpuRegisterStack.PushMatrix( vwp );
+						gpuRegisterStack.PushVector( camera->GetPosition() );
+						gpuRegisterStack.PushVector( pOwner->GetTexCoordFlow() );
+						for( auto bone : pMesh->GetBones() ) {
+							shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+							if( boneNode ) {
+								gpuRegisterStack.PushMatrix( TransformToMatrix( boneNode->GetRelativeTransform() * pOwner->GetLocalTransform() ));
 							}
+						}						
+						pD3D->SetVertexShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
-							pD3D->SetVertexShaderConstantF( 10, &vsBoneMatrices[0].m[0][0], n * 4 );
-						}
+						RenderMesh( pMesh );
 
-						pMesh->Render();
-						if( pOwner->GetDepthHack() ) {
-							camera->LeaveDepthHack();
-						}
+						camera->LeaveDepthHack();						
 					}
 				}
 			}
@@ -642,7 +659,7 @@ void Engine::RenderWorld() {
 	IDirect3DSurface9 * renderTarget = mFrameSurface[0];
 
 	// If HDR enabled, render all in high-precision float texture
-	if( IsHDREnabled() ) {
+	if( mHDREnabled ) {
 		renderTarget = mHDRFrameSurface;
 	}
 
@@ -683,8 +700,12 @@ void Engine::RenderWorld() {
 							D3DXMATRIX wvp = SetUniformScaleTranslationMatrix( 1.25f * pLight->mRadius,  pLight->GetPosition() );
 							D3DXMatrixMultiply( &wvp, &wvp, &camera->mViewProjection );
 					
-							pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+							gpuRegisterStack.Clear();
+							gpuRegisterStack.PushMatrix( wvp );
+							pD3D->SetVertexShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
+
 							mBoundingStar->DrawSubset( 0 );
+							pD3D->SetVertexDeclaration( msVertexDeclaration );
 
 							pLight->pQuery->Issue( D3DISSUE_END );
 						}
@@ -727,6 +748,7 @@ void Engine::RenderWorld() {
 			}
 		}
 
+		
 		pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
 
 		// Render Skybox
@@ -735,7 +757,9 @@ void Engine::RenderWorld() {
 			D3DXMatrixTranslation( &wvp, camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z );
 			D3DXMatrixMultiply( &wvp, &wvp, &camera->mViewProjection );
 			
-			pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+			gpuRegisterStack.Clear();
+			gpuRegisterStack.PushMatrix( wvp );
+			pD3D->SetVertexShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
 			camera->mSkybox->Render( );	
 		}  
@@ -748,12 +772,11 @@ void Engine::RenderWorld() {
 		// Apply ambient lighting
 		mAmbientPixelShader->Bind();
 
-		GPURegister ambientLightShaderConstants[] = {
-			{ GetAmbientColor().x, GetAmbientColor().y, GetAmbientColor().z, 1.0f }
-		};
-		pD3D->SetPixelShaderConstantF( 0, (float*)ambientLightShaderConstants, StaticArraySize( ambientLightShaderConstants ));
+		gpuRegisterStack.Clear();
+		gpuRegisterStack.PushVector( mAmbientColor );
+		pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
-		mFullscreenQuad->Render();
+		RenderFullscreenQuad();
 
 		// Render point lights
 		pD3D->SetRenderState( D3DRS_STENCILENABLE, TRUE );
@@ -785,33 +808,29 @@ void Engine::RenderWorld() {
 						} 
 
 						// Load pixel shader constants
-						auto & ivp = camera->invViewProjection;
-						GPURegister psFloatConstants[] = {
-							{ ivp._11, ivp._12, ivp._13, ivp._14 },
-							{ ivp._21, ivp._22, ivp._23, ivp._24 },
-							{ ivp._31, ivp._32, ivp._33, ivp._34 },
-							{ ivp._41, ivp._42, ivp._43, ivp._44 },
-							{ pLight->GetPosition().x, pLight->GetPosition().y, pLight->GetPosition().z, 0.0f },
-							{ pLight->GetColor().x, pLight->GetColor().y, pLight->GetColor().z, 0.0f },
-							{ pLight->GetRange(), 0.0f, 0.0f, 0.0f },
-							{ camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 0.0f }
-						};
-
-						pD3D->SetPixelShaderConstantF( 0, (float*)psFloatConstants, StaticArraySize( psFloatConstants ));
+						gpuRegisterStack.Clear();
+						gpuRegisterStack.PushMatrix( camera->invViewProjection );
+						gpuRegisterStack.PushVector( pLight->GetPosition() );
+						gpuRegisterStack.PushVector( pLight->GetColor() );
+						gpuRegisterStack.PushFloat( pLight->GetRange() );
+						gpuRegisterStack.PushVector( camera->GetPosition() );
+						pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
 						// Render bounding sphere
 						D3DXMATRIX wvp = SetUniformScaleTranslationMatrix( 1.5f * pLight->mRadius, pLight->GetPosition() );
 						D3DXMatrixMultiply( &wvp, &wvp, &camera->mViewProjection );
 							
 						pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+
 						mBoundingSphere->DrawSubset( 0 );
+						pD3D->SetVertexDeclaration( msVertexDeclaration );
 
 						pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
 						pD3D->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL );
 						pD3D->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
 
 						// Apply lighting to pixels, that marked by bounding sphere
-						mFullscreenQuad->Render();			
+						RenderFullscreenQuad();		
 					}		
 				}
 			}
@@ -839,36 +858,29 @@ void Engine::RenderWorld() {
 						mSpotLightShadowMapVertexShader->Bind();
 
 						pLight->BuildSpotProjectionMatrixAndFrustum();
-						IDirect3DBaseTexture9 * prevZeroSamplerTexture = nullptr;
-						pD3D->GetTexture( 0, &prevZeroSamplerTexture );
-
-						auto & meshMap = Mesh::GetMeshMap();
-						for( auto & texGroupPair : meshMap ) {
+						
+						for( auto & texGroupPair : mDeferredMeshMap ) {
 							auto & group = texGroupPair.second;
 							for( auto & weakMesh : group ) {
 								shared_ptr<Mesh> mesh = weakMesh.lock();
 								auto & owners = mesh->GetOwners();
 								for( auto & weakOwner : owners ) {
 									shared_ptr<SceneNode> & pOwner = weakOwner.lock();
-									// if owner of mesh is visible
-									if( pOwner->IsVisible()) {
-										// if light "sees" mesh, it can cast shadow
-										//if( pLight->GetFrustum().IsAABBInside( mesh->GetBoundingBox(), pOwner->GetPosition())) {
-											D3DXMATRIX world, wvp;
-											world = pOwner->GetWorldMatrix();
-											D3DXMatrixMultiply( &wvp, &world, &pLight->GetViewProjectionMatrix() );
-											pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
-											mesh->Render();
-										//}
+									if( pOwner->IsVisible() && pLight->GetFrustum().IsAABBInside( mesh->GetBoundingBox(), pOwner->GetPosition())) {
+										D3DXMATRIX world, wvp;
+										world = pOwner->GetWorldMatrix();
+										D3DXMatrixMultiply( &wvp, &world, &pLight->GetViewProjectionMatrix() );
+
+										gpuRegisterStack.Clear();
+										gpuRegisterStack.PushMatrix( wvp );
+										pD3D->SetVertexShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
+
+										RenderMesh( mesh );										
 									}	
 								}
-							};
+							}
 						}
 
-						pD3D->SetTexture( 0, prevZeroSamplerTexture );
-						prevZeroSamplerTexture->Release();
-
-						// revert to the last used render target
 						pD3D->SetRenderTarget( 0, renderTarget );
 						pD3D->SetDepthStencilSurface( mDefaultDepthStencil );
 
@@ -892,7 +904,9 @@ void Engine::RenderWorld() {
 					D3DXMatrixMultiply( &world, &scale, &world );
 					D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );
 					pD3D->SetVertexShaderConstantF( 0, &wvp.m[0][0], 4 );
+
 					mBoundingCone->DrawSubset( 0 );
+					pD3D->SetVertexDeclaration( msVertexDeclaration );
 					
 					// Setup pixel shader
 					if( IsSpotLightShadowsEnabled() ) {		
@@ -906,32 +920,20 @@ void Engine::RenderWorld() {
 					pLight->BuildSpotProjectionMatrixAndFrustum();
 
 					// Load pixel shader constants
-					auto & ivp = camera->invViewProjection;
-					auto spm = pLight->GetViewProjectionMatrix();
-					GPURegister psFloatConstants[] = {
-						{ ivp._11, ivp._12, ivp._13, ivp._14 },
-						{ ivp._21, ivp._22, ivp._23, ivp._24 },
-						{ ivp._31, ivp._32, ivp._33, ivp._34 },
-						{ ivp._41, ivp._42, ivp._43, ivp._44 },
+					gpuRegisterStack.Clear();
+					gpuRegisterStack.PushMatrix( camera->invViewProjection );
+					gpuRegisterStack.PushMatrix( pLight->GetViewProjectionMatrix() );
+					gpuRegisterStack.PushVector( pLight->GetPosition() );
+					gpuRegisterStack.PushVector( pLight->GetColor() );
+					gpuRegisterStack.PushFloat( pLight->GetRange() );
+					pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
-						{ spm._11, spm._12, spm._13, spm._14 },
-						{ spm._21, spm._22, spm._23, spm._24 },
-						{ spm._31, spm._32, spm._33, spm._34 },
-						{ spm._41, spm._42, spm._43, spm._44 },
-
-						{ pLight->GetPosition().x, pLight->GetPosition().y, pLight->GetPosition().z, 0.0f },
-						{ pLight->GetColor().x, pLight->GetColor().y, pLight->GetColor().z, 0.0f },
-						{ pLight->GetRange(), 0.0f, 0.0f, 0.0f }
-					};
-					
-					pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( psFloatConstants ), StaticArraySize( psFloatConstants ));
-					
 					pD3D->SetRenderState( D3DRS_COLORWRITEENABLE, 0xFFFFFFFF );
 					pD3D->SetRenderState( D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
 					pD3D->SetRenderState( D3DRS_STENCILPASS, D3DSTENCILOP_ZERO );
 
 					// Apply lighting to pixels, that marked by bounding cone
-					mFullscreenQuad->Render();
+					RenderFullscreenQuad();
 				}
 			}
 		}
@@ -947,7 +949,7 @@ void Engine::RenderWorld() {
 	SetGenericSamplersFiltration( D3DTEXF_POINT, true );
 
 	// Do HDR
-	if( IsHDREnabled() ) {	
+	if( mHDREnabled ) {	
 
 		// Calculate HDR-frame luminance
 		pD3D->SetTexture( 7, mHDRFrame );
@@ -955,7 +957,7 @@ void Engine::RenderWorld() {
 		pD3D->Clear( 0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
 		mScaleScenePixelShader->Bind();
-		mFullscreenQuad->Render();
+		RenderFullscreenQuad();
 
 		mDownScalePixelShader->Bind();
 
@@ -966,18 +968,17 @@ void Engine::RenderWorld() {
 			pD3D->SetRenderTarget( 0, mDownSampSurf[ i ] );
 			pD3D->Clear( 0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
-			GPURegister downSampleConstants[ ] = {
-				{ pixelSize, 0.0f, 0.0f, 0.0f }
-			};
-			pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( downSampleConstants ), StaticArraySize( downSampleConstants ));
+			gpuRegisterStack.Clear();
+			gpuRegisterStack.PushFloat( pixelSize );
+			pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
-			mFullscreenQuad->Render();
+			RenderFullscreenQuad();
 
 			pD3D->SetTexture( 7, mDownSampTex[ i ] );
 		}
 
 		for( int i = 0; i < 8; i++ ) {
-			pD3D->SetTexture( i, 0 );
+			pD3D->SetTexture( i, nullptr );
 		}
 
 		// now we get average frame luminance presented as 1x1 pixel RGBA8 texture
@@ -996,12 +997,11 @@ void Engine::RenderWorld() {
 		mAdaptationPixelShader->Bind();
 
 		// Set pixel shader constants
-		GPURegister psFloatConstants[] = {
-			{ 0.75f, 0.0f, 0.0f, 0.0f }
-		};
-		pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( psFloatConstants ), StaticArraySize( psFloatConstants ));
+		gpuRegisterStack.Clear();
+		gpuRegisterStack.PushFloat( 0.75f );
+		pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
-		mFullscreenQuad->Render();
+		RenderFullscreenQuad();
 
 		pSurfAdaptedLum->Release();
 
@@ -1013,13 +1013,13 @@ void Engine::RenderWorld() {
 		pD3D->SetTexture( 7, mAdaptedLuminanceCurrent );
 
 		mToneMapShader->Bind();
-		mFullscreenQuad->Render();
+		RenderFullscreenQuad();
 
 		finalFrame = mFrame[0];
 	};
 	
 	// Do FXAA
-	if( IsFXAAEnabled() ) {
+	if( mFXAAEnabled ) {
 		pD3D->SetRenderTarget( 0, mFrameSurface[1] );
 		pD3D->Clear( 0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
@@ -1027,28 +1027,27 @@ void Engine::RenderWorld() {
 
 		mFXAAPixelShader->Bind();
 
-		GPURegister psFloatConstants[] = {
-			{ GetResolutionWidth(), GetResolutionHeight(), 0.0, 0.0 }
-		};
-		pD3D->SetPixelShaderConstantF( 0, reinterpret_cast<float*>( psFloatConstants ), StaticArraySize( psFloatConstants ));
+		gpuRegisterStack.Clear();
+		gpuRegisterStack.PushFloat( GetResolutionWidth(), GetResolutionHeight() );
+		pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
 
-		mFullscreenQuad->Render();
+		RenderFullscreenQuad();
 
 		finalFrame = mFrame[1];
 	}
 
 	// Postprocessing
-	if( IsHDREnabled() ) {
+	if( mHDREnabled ) {
 		pD3D->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
 	}
 
-	pD3D->SetRenderTarget( 0, mBackBufferSurface );
+	pD3D->SetRenderTarget( 0, mpBackBuffer );
 	pD3D->Clear( 0, 0, D3DCLEAR_TARGET , D3DCOLOR_XRGB( 0, 0, 0 ), 1.0, 0 );
 
 	pD3D->SetTexture( 0, finalFrame );
 
 	mSkyboxPixelShader->Bind();
-	mFullscreenQuad->Render();
+	RenderFullscreenQuad();
 			
 	if( IsAnisotropicFilteringEnabled() ) {
 		SetGenericSamplersFiltration( D3DTEXF_ANISOTROPIC, false );
@@ -1056,31 +1055,60 @@ void Engine::RenderWorld() {
 		SetGenericSamplersFiltration( D3DTEXF_LINEAR, false );
 	}
 
-	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
 	pD3D->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-	pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // render all transparent meshes
-    mpForwardRenderer->Render();
 	
+	
+	//********************************
+    // Forward rendering for transparent meshes
+
+	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_ZWRITEENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW );
+
+	pD3D->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+	pD3D->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+	pD3D->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+
+	mTransparentPixelShader->Bind();
+	mTransparentVertexShader->Bind();
+
+	for( auto & texGroupPair : mForwardMeshMap ) {
+		IDirect3DTexture9 * diffuseTexture = texGroupPair.first;
+
+		auto & meshGroup = texGroupPair.second;
+
+		if( meshGroup.size() == 0 ) {
+			continue;
+		}
+
+		pD3D->SetTexture( 0, diffuseTexture );
+
+		for( auto & weakMesh : meshGroup ) {
+			shared_ptr<Mesh> pMesh = weakMesh.lock();
+
+			auto & owners = pMesh->GetOwners();
+			for( auto & weakOwner : owners ) {
+				shared_ptr<SceneNode> pOwner = weakOwner.lock();
+					
+				if( pOwner->IsVisible() ) {
+					D3DXMATRIX world, wvp;
+					world = pOwner->GetWorldMatrix();
+					D3DXMatrixMultiply( &wvp, &world, &camera->mViewProjection );					
+
+					gpuRegisterStack.Clear();
+					gpuRegisterStack.PushMatrix( wvp );
+					pD3D->SetVertexShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
+
+					gpuRegisterStack.Clear();
+					gpuRegisterStack.PushFloat( pMesh->GetOpacity() );
+					pD3D->SetPixelShaderConstantF( 0, gpuRegisterStack.GetPointer(), gpuRegisterStack.mRegisterCount );
+					
+					RenderMesh( pMesh );
+				}
+			}
+		}						
+	}
+
     mpParticleSystemRenderer->Render();
 
     // render gui on top of all    
@@ -1104,17 +1132,7 @@ void Engine::UpdateMessagePump() {
     }
 }
 
-LRESULT CALLBACK Engine::WindowProcess( HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
-    switch ( msg ) {
-    case WM_DESTROY:
-        ruEngine::Free();
-        PostQuitMessage ( 0 );
-        break;
-    case WM_ERASEBKGND:
-        return 0;
-    }	
-    return DefWindowProc ( wnd, msg, wParam, lParam );
-}
+
 
 void Engine::OnLostDevice() {
 	mDepthSurface.Reset();
@@ -1251,11 +1269,6 @@ void Engine::RegisterDIP() {
 	mDIPCount++;
 }
 
-shared_ptr<ForwardRenderer> & Engine::GetForwardRenderer() {
-	return mpForwardRenderer;
-}
-
-
 shared_ptr<TextRenderer> & Engine::GetTextRenderer() {
 	return mpTextRenderer;
 }
@@ -1382,19 +1395,6 @@ bool Engine::IsAnisotropicFilteringEnabled() {
 	return mAnisotropicFiltering;
 }
 
-
-IDirect3DSurface9 * Engine::GetBackBuffer() {
-	return mpBackBuffer;
-}
-
-void Engine::Continue() {
-	mPaused = false;
-}
-
-void Engine::Pause() {
-	mPaused = true;
-}
-
 void Engine::SetDefaults() {
 	pD3D->SetRenderState ( D3DRS_LIGHTING, FALSE );
 	pD3D->SetRenderState( D3DRS_ZENABLE, TRUE );
@@ -1445,13 +1445,38 @@ void Engine::SetDefaults() {
 	SetParallaxEnabled( true );
 }
 
-void Engine::DrawIndexedTriangleList( int vertexCount, int faceCount ) {
-	mpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, vertexCount, 0, faceCount );
+static void PrepareMeshMap( MeshMap & mm ) {
+	for( auto texGroupPairIter = mm.begin(); texGroupPairIter != mm.end();  ) {
+		auto & texGroupPair = *texGroupPairIter;
+		if( texGroupPair.second.size() ) {
+			for( auto & meshIter = texGroupPair.second.begin(); meshIter != texGroupPair.second.end(); ) {
+				if( (*meshIter).use_count() ) {
+					++meshIter;
+				} else {
+					meshIter = texGroupPair.second.erase( meshIter );
+				}
+			}
+			++texGroupPairIter;
+		} else {
+			texGroupPairIter = mm.erase( texGroupPairIter );
+		}
+	}
+}
+
+void Engine::PrepareMeshMaps() {
+	PrepareMeshMap( mDeferredMeshMap );
+	PrepareMeshMap( mForwardMeshMap );
+}
+
+void Engine::RenderMesh( const shared_ptr<Mesh> & mesh ) {
+	pD3D->SetStreamSource( 0, mesh->mVertexBuffer, 0, sizeof( Vertex ));
+	pD3D->SetIndices( mesh->mIndexBuffer );
+
+	mpDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mesh->mVertices.size(), 0, mesh->mTriangles.size() );
 	++mDIPCount;
 }
 
-float Engine::GetGUIWidthScaleFactor() const
-{
+float Engine::GetGUIWidthScaleFactor() const {
 	return mResWidth / ruVirtualScreenWidth;
 }
 
@@ -1459,12 +1484,32 @@ void Engine::SetParallaxEnabled( bool state ) {
 	mParallaxEnabled = state;
 }
 
+void Engine::AddMesh( const shared_ptr<Mesh> & mesh ) {
+	mesh->CalculateAABB();
+	if( mesh->GetOpacity() > 0.99f ) { 
+		// pass it to deferred renderer
+		if( mesh->GetDiffuseTexture() ) {
+			auto textureGroup = mDeferredMeshMap.find( mesh->GetDiffuseTexture()->GetInterface() );
+
+			if( textureGroup == mDeferredMeshMap.end()) {
+				mDeferredMeshMap[ mesh->GetDiffuseTexture()->GetInterface() ] = vector<weak_ptr<Mesh>>();
+			}
+
+			mDeferredMeshMap[ mesh->GetDiffuseTexture()->GetInterface() ].push_back( mesh );
+		}
+	} else { 
+		// pass it to forward renderer
+		if( mesh->GetDiffuseTexture() ) {
+			mForwardMeshMap[ mesh->GetDiffuseTexture()->GetInterface() ].push_back( mesh );
+		}
+	}
+}
+
 bool Engine::IsParallaxEnabled() {
 	return mParallaxEnabled;
 }
 
-void Engine::SetCursorVisible( bool state )
-{
+void Engine::SetCursorVisible( bool state ) {
 	if( state ) {
 		if( mCursor ) {
 			mCursor->Show();
@@ -1482,7 +1527,6 @@ void Engine::SetCursorVisible( bool state )
 	}
 }
 
-void Engine::SetCursor( shared_ptr<ruTexture> texture, int w, int h )
-{
+void Engine::SetCursor( shared_ptr<ruTexture> texture, int w, int h ) {
 	mCursor = shared_ptr<Cursor>( new Cursor( w, h, std::dynamic_pointer_cast<Texture>( texture )));
 }

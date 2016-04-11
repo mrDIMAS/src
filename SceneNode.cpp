@@ -27,7 +27,6 @@
 #include "SpotLight.h"
 #include "SceneNode.h"
 #include "Mesh.h"
-#include "Octree.h"
 #include "Texture.h"
 #include "Vertex.h"
 #include "Engine.h"
@@ -323,7 +322,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
                 unsigned short b = reader.GetShort();
                 unsigned short c = reader.GetShort();
 
-                mesh->AddTriangle( Mesh::Triangle( a, b, c ));
+                mesh->AddTriangle( Triangle( a, b, c ));
             }
 
             mesh->SetDiffuseTexture( Texture::Request( pEngine->GetTextureStoragePath() + diffuse ));
@@ -355,7 +354,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
 				if( !mesh->IsSkinned() ) {
 					mesh->CreateHardwareBuffers();
 				}
-                Mesh::Register( mesh );
+                pEngine->AddMesh( mesh );
             }
         }
 		        

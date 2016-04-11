@@ -47,12 +47,9 @@ void GUIRenderer::Render() {
     mPixelShader->Bind();
     mVertexShader->Bind();
 
-    pD3D->SetVertexDeclaration( mVertexDeclaration );
-
 	pD3D->SetVertexShaderConstantF( 0, &mOrthoMatrix.m[0][0], 4 );
 
-    pD3D->SetVertexDeclaration( mVertexDeclaration );
-    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
+    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
 
 	auto & nodes = GUIFactory::GetNodeList();
 	for( auto & nWeak : nodes ) {
@@ -83,7 +80,7 @@ void GUIRenderer::Render() {
     }
 	
     if( pEngine->GetCursor() ) {
-        pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex2D ));
+        pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
         if( pEngine->GetCursor()->IsVisible() ) {
             pEngine->GetCursor()->SetPosition( 
 				ruInput::GetMouseX() / pEngine->GetGUIWidthScaleFactor(), 
@@ -99,7 +96,7 @@ void GUIRenderer::RenderRect( const shared_ptr<GUIRect> & r ) {
 		return;
 	}
     void * data = nullptr;
-    Vertex2D vertices[6];
+    Vertex vertices[6];
 	r->CalculateTransform();
     r->GetSixVertices( vertices );
     mVertexBuffer->Lock( 0, 0, &data, D3DLOCK_DISCARD );
@@ -112,7 +109,6 @@ void GUIRenderer::RenderRect( const shared_ptr<GUIRect> & r ) {
 
 void GUIRenderer::OnLostDevice() {
 	mVertexBuffer.Reset();
-	mVertexDeclaration.Reset();
 }
 
 void GUIRenderer::OnResetDevice() {
@@ -120,17 +116,8 @@ void GUIRenderer::OnResetDevice() {
 }
 
 void GUIRenderer::Initialize() {
-	mSizeOfRectBytes = 6 * sizeof( Vertex2D  );
+	mSizeOfRectBytes = 6 * sizeof( Vertex );
 	pD3D->CreateVertexBuffer( mSizeOfRectBytes, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
-
-	D3DVERTEXELEMENT9 guivd[ ] = {
-		{ 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-		{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-		{ 0, 20, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0  },
-		D3DDECL_END()
-	};
-
-	pD3D->CreateVertexDeclaration( guivd, &mVertexDeclaration );
 
 	D3DVIEWPORT9 vp;
 	pD3D->GetViewport( &vp );
@@ -144,12 +131,4 @@ void Face::Set( unsigned short i1, unsigned short i2, unsigned short i3, unsigne
 	mIndex[3] = i4;
 	mIndex[4] = i5;
 	mIndex[5] = i6;
-}
-
-void TextVertex::Set( float posX, float posY, ruVector2 & texCoord, DWORD color ) {
-	mPosition.x = posX;
-	mPosition.y = posY;
-	mPosition.z = 0.0f;
-	mTexCoord = texCoord;
-	mColor = color;
 }

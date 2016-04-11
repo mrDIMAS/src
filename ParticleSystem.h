@@ -23,18 +23,7 @@
 
 #include "SceneNode.h"
 #include "Texture.h"
-
-struct ParticleVertex {
-	ruVector3 mPosition;
-	ruVector2 mTexCoord;
-	int mColor;
-};
-
-struct ParticleFace {
-	short v1;
-	short v2;
-	short v3;
-};
+#include "Vertex.h"
 
 class Particle {
 public:
@@ -51,9 +40,9 @@ public:
 class ParticleSystem : public virtual ruParticleSystem, public SceneNode {
 public:
     vector< Particle > mParticles;
-    ParticleVertex * mVertices;
-    ParticleFace * mFaces;
-    int mAliveParticleCount;
+    Vertex * mVertices;
+    Triangle * mFaces;
+	int mAliveParticleCount;
 	int mMaxParticleCount;
 	D3DXMATRIX mWorldTransform;
     bool mFirstTimeUpdate;
@@ -71,13 +60,16 @@ public:
 	bool mAutoResurrectDeadParticles;
 	bool mUseLighting;
 	bool mEnabled;
-	float mAlphaOffset;
-	shared_ptr<Texture> mTexture;
-    int RGBAToInt( ruVector3 color, int alpha );
+	float mAlphaOffset;	
     ruVector3 RandomVector3( ruVector3 & min, ruVector3 & max );
+public:
+	// Data for renderer
+	shared_ptr<Texture> mTexture;
 	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
 	COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
+
 public:
+
     ParticleSystem( int theParticleCount );
     ~ParticleSystem();
 	void OnResetDevice();

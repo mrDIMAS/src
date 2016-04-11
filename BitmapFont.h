@@ -21,9 +21,7 @@
 
 #pragma once
 
-
 #include "fterrors.h"
-#include "EffectsQuad.h"
 
 struct CharMetrics {
 	int advanceX;

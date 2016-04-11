@@ -44,7 +44,7 @@ void ParticleSystem::Bind() {
     if( mTexture ) {
 		pD3D->SetTexture( 0, mTexture->GetInterface() );
     }
-    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( ParticleVertex ));
+    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
     pD3D->SetIndices( mIndexBuffer );
 }
 
@@ -99,8 +99,6 @@ void ParticleSystem::Update() {
                 ResurrectParticle( p );
             }
         } else {
-			int color = RGBAToInt( p.mColor, p.mOpacity );
-
 			short v1 = vertexNum + 1;
 			short v2 = vertexNum + 2;
 			short v3 = vertexNum + 3;
@@ -108,33 +106,33 @@ void ParticleSystem::Update() {
             mVertices[ vertexNum ].mPosition = p.mPosition + leftTop * p.mSize;
 			mVertices[ vertexNum ].mTexCoord.x = 0.0f;
 			mVertices[ vertexNum ].mTexCoord.y = 0.0f; 
-			mVertices[ vertexNum ].mColor = color;
+			mVertices[ vertexNum ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
 
             mVertices[ v1 ].mPosition = p.mPosition + rightTop * p.mSize;
 			mVertices[ v1 ].mTexCoord.x = 1.0f;
 			mVertices[ v1 ].mTexCoord.y = 0.0f;
-			mVertices[ v1 ].mColor = color;
+			mVertices[ v1 ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
 
             mVertices[ v2 ].mPosition = p.mPosition + rightBottom * p.mSize;
 			mVertices[ v2 ].mTexCoord.x = 1.0f;
 			mVertices[ v2 ].mTexCoord.y = 1.0f;
-			mVertices[ v2 ].mColor = color;
+			mVertices[ v2 ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
 
             mVertices[ v3 ].mPosition = p.mPosition + leftBottom * p.mSize;
 			mVertices[ v3 ].mTexCoord.x = 0.0f;
 			mVertices[ v3 ].mTexCoord.y = 1.0f;
-			mVertices[ v3 ].mColor = color;
+			mVertices[ v3 ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
 
             // indices
-            mFaces[ faceNum ].v1 = vertexNum;
-			mFaces[ faceNum ].v2 = v1;
-			mFaces[ faceNum ].v3 = v3;
+            mFaces[ faceNum ].mA = vertexNum;
+			mFaces[ faceNum ].mB = v1;
+			mFaces[ faceNum ].mC = v3;
 
 			int f1 = faceNum + 1;
 
-            mFaces[ f1 ].v1 = v1;
-			mFaces[ f1 ].v2 = v2;
-			mFaces[ f1 ].v3 = v3;
+            mFaces[ f1 ].mA = v1;
+			mFaces[ f1 ].mB = v2;
+			mFaces[ f1 ].mC = v3;
 
             ++mAliveParticleCount;
             vertexNum += 4;
@@ -144,11 +142,11 @@ void ParticleSystem::Update() {
 
     void * data = 0;
     mVertexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
-    memcpy( data, mVertices, mAliveParticleCount * 4 * sizeof( ParticleVertex ));
+    memcpy( data, mVertices, mAliveParticleCount * 4 * sizeof( Vertex ));
     mVertexBuffer->Unlock();
 
     mIndexBuffer->Lock( 0, 0, &data,  D3DLOCK_DISCARD );
-    memcpy( data, mFaces, mAliveParticleCount * 2 * sizeof( ParticleFace ));
+    memcpy( data, mFaces, mAliveParticleCount * 2 * sizeof( Triangle ));
     mIndexBuffer->Unlock();
 }
 
@@ -156,9 +154,6 @@ bool ParticleSystem::IsLightAffects() {
     return mUseLighting;
 }
 
-int ParticleSystem::RGBAToInt( ruVector3 color, int alpha ) {
-    return D3DCOLOR_ARGB( alpha, (int)color.x, (int)color.y, (int)color.z );
-}
 
 void ParticleSystem::ResurrectParticle( Particle & p ) {
     if( mType ==  ruParticleSystem::Type::Box ) {
@@ -199,8 +194,8 @@ ParticleSystem::ParticleSystem( int theParticleCount ) {
     mAliveParticleCount = theParticleCount;
 	mMaxParticleCount = theParticleCount;
 	OnResetDevice();
-    mFaces = new ParticleFace[ theParticleCount * 2 ];
-    mVertices = new ParticleVertex[ theParticleCount * 4 ];
+    mFaces = new Triangle[ theParticleCount * 2 ];
+    mVertices = new Vertex[ theParticleCount * 4 ];
     for( int i = 0; i < theParticleCount; i++ ) {
         mParticles.push_back( Particle());
     }
@@ -240,8 +235,8 @@ void ParticleSystem::OnLostDevice() {
 }
 
 void ParticleSystem::OnResetDevice() {
-	pD3D->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( ParticleVertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
-	pD3D->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( ParticleFace ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
+	pD3D->CreateVertexBuffer( mMaxParticleCount * 4 * sizeof( Vertex ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
+	pD3D->CreateIndexBuffer( mMaxParticleCount * 2 * sizeof( Triangle ), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
 }
 
 ruVector3 ParticleSystem::GetSpeedDeviationMin() {

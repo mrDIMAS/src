@@ -34,5 +34,5 @@ protected:
 public:
     
     virtual ~GUIRect();
-    void GetSixVertices( Vertex2D * vertices );
+    void GetSixVertices( Vertex * vertices );
 };

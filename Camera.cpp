@@ -99,18 +99,24 @@ Camera::Camera( float fov ) {
 }
 
 void Camera::EnterDepthHack( float depth ) {
-    if( !mInDepthHack ) {
-        mDepthHackMatrix = mProjection;
-    }
-    mInDepthHack = true;
-    mProjection._43 -= depth;
-    CalculateInverseViewProjection();
+	depth = fabs( depth );
+
+	if( depth > 0.001 ) {
+		if( !mInDepthHack ) {
+			mDepthHackMatrix = mProjection;
+		}
+		mInDepthHack = true;
+		mProjection._43 -= depth;
+		CalculateInverseViewProjection();
+	}
 }
 
 void Camera::LeaveDepthHack() {
-    mInDepthHack = false;
-    mProjection = mDepthHackMatrix;
-    CalculateInverseViewProjection();
+	if( mInDepthHack ) {
+		mInDepthHack = false;
+		mProjection = mDepthHackMatrix;
+		CalculateInverseViewProjection();
+	}
 }
 
 // this function builds path of camera by creating points in regular distance between them

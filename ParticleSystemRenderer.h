@@ -29,7 +29,6 @@ private:
     unique_ptr<PixelShader> mPixelShader;
     unique_ptr<VertexShader> mVertexShader;
 	unique_ptr<VertexShader> mVertexShaderLighting;
-    COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
 public:
     ParticleSystemRenderer();
     ~ParticleSystemRenderer();

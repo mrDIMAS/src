@@ -63,10 +63,8 @@ int main( int argc, char * argv[] ) {
 		ruEngine::ShowCursor();
 
 		while( g_running ) {
-			//ruEngine::SetHDREnabled( true );
-			//ruEngine::SetParallaxEnabled( true );
 			ruEngine::RenderWorld( );
-
+			 
 			double dt = dtTimer->GetTimeInSeconds() - gameClock;
 			while( dt >= gFixedTick ) {
 				dt -= gFixedTick;

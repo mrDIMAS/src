@@ -29,20 +29,12 @@ class SceneNode;
 
 class Mesh : public RendererComponent {
 public:
-    class Triangle {
-    public:
-        unsigned short mA;
-        unsigned short mB;
-        unsigned short mC;
 
-        Triangle( unsigned short vA, unsigned short vB, unsigned short vC );
-    };
 
 	class Bone {
 	public:
 		int mMatrixID; // number of this bone in list of bones of a mesh
 		weak_ptr<SceneNode> mNode;
-		D3DXMATRIX mMatrix;
 		Bone( weak_ptr<SceneNode> node, int matrixID );
 		Bone( );
 	};
@@ -60,33 +52,31 @@ public:
 		int mBoneCount;
 	};
 private:
-	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
-    COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
-    shared_ptr<Texture> mDiffuseTexture;
-    shared_ptr<Texture> mNormalTexture;
-	shared_ptr<Texture> mHeightTexture; // for parallax mapping
-    vector<Vertex> mVertices;
-    vector<Triangle> mTriangles;
-    vector<BoneGroup> mBoneTable;
+	vector<BoneGroup> mBoneTable;
 	vector<Bone*> mBones;
     // mesh can be shared between multiple nodes
 	vector<weak_ptr<SceneNode>> mOwnerList;
     AABB mAABB;
-	unique_ptr<Octree> mOctree;
-	bool mSkinned;
-    float mOpacity;
-	static IDirect3DVertexDeclaration9 * msVertexDeclaration;
-	static IDirect3DVertexDeclaration9 * msVertexDeclarationSkin;
-	typedef unordered_map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
-	static MeshMap msMeshList;
+	bool mSkinned;    
 public:
-	static MeshMap & GetMeshMap();
+	// Data for renderer
+	vector<Vertex> mVertices;
+	vector<Triangle> mTriangles;
+	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
+	COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
+	shared_ptr<Texture> mDiffuseTexture;
+	shared_ptr<Texture> mNormalTexture;
+	shared_ptr<Texture> mHeightTexture;
+	
+	float mOpacity;
+public:
 	Bone * AddBone( weak_ptr<SceneNode> node );
 	vector<Bone*> & GetBones();
 	void OnResetDevice();
 	void OnLostDevice();    
-    static void Register( shared_ptr<Mesh> mesh );
-	static void CleanUp();
+	void CalculateAABB() {
+		mAABB = AABB( mVertices );
+	}
     explicit Mesh();
     virtual ~Mesh();
 	void LinkTo( weak_ptr<SceneNode> owner );
@@ -98,8 +88,6 @@ public:
     shared_ptr<Texture> & GetDiffuseTexture();
     shared_ptr<Texture> & GetNormalTexture();
 	shared_ptr<Texture> & GetHeightTexture();
-    void Render();
-	void RenderEx( IDirect3DIndexBuffer9 * ib, int faceCount );
 	AABB GetBoundingBox( ) const;
 	vector<Vertex> & GetVertices();
 	vector<Triangle> & GetTriangles();

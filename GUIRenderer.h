@@ -27,19 +27,6 @@
 #include "GUIText.h"
 #include "GUIButton.h"
 
-class TextVertex {
-private:
-    ruVector3 mPosition;
-    ruVector2 mTexCoord;
-    DWORD mColor;
-public:
-	void Set( float posX, float posY, ruVector2 & texCoord, DWORD color );
-};
-
-struct TextQuad {
-    TextVertex mVertices[ 4 ];
-};
-
 class Face {
 private:
 	unsigned short mIndex[6];
@@ -50,7 +37,6 @@ public:
 class GUIRenderer : public RendererComponent {
 private:
     COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
-    COMPtr<IDirect3DVertexDeclaration9> mVertexDeclaration;
     int mSizeOfRectBytes;
     D3DXMATRIX mOrthoMatrix;
     void RenderRect( const shared_ptr<GUIRect> & r );

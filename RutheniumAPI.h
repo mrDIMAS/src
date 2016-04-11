@@ -319,6 +319,7 @@ public:
 
 	ruVector4( float _x, float _y, float _z, float _w ) : x( _x ), y( _y ), z( _z ), w( _w ) { };
 	ruVector4( ) : x( 0.0f ), y( 0.0f ), z( 0.0f ), w( 0.0f ) { };
+	ruVector4( const ruVector3 & vec3, float _w ) : x( vec3.x ), y( vec3.y ), z( vec3.z ), w( _w ) { };
 };
 
 class ruQuaternion {

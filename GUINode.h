@@ -41,7 +41,6 @@ protected:
 	bool mLastMouseInside;
     ruVector3 mColor;
     shared_ptr<Texture> mpTexture;
-    int mColorPacked;
 	vector<shared_ptr<GUINode>> mChildList;
 	weak_ptr<GUINode> mParent;
 	unordered_map<ruGUIAction, ruEvent> mEventList;
@@ -52,10 +51,8 @@ protected:
 	virtual void OnMouseLeave();	
 public:
 	void CalculateTransform();
-	int GetPackedColor();
 	void DoActions();
     virtual ~GUINode();
-    void PackColor();   
     
     float GetX();
     float GetY();

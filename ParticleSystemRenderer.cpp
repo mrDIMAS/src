@@ -29,22 +29,13 @@
 #include "SpotLight.h"
 
 ParticleSystemRenderer::ParticleSystemRenderer() {
-    mVertexShader = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/particle.vso" )));
-    mPixelShader = std::move( unique_ptr<PixelShader>( new PixelShader( "data/shaders/particle.pso" )));
-	mVertexShaderLighting = std::move( unique_ptr<VertexShader>( new VertexShader( "data/shaders/particleLighting.vso" )));
-
-    D3DVERTEXELEMENT9 vdElem[ ] = {
-        { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-        { 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-        { 0, 20, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-        D3DDECL_END()
-    };
-
-    pD3D->CreateVertexDeclaration( vdElem, &mVertexDeclaration );
+    mVertexShader = unique_ptr<VertexShader>( new VertexShader( "data/shaders/particle.vso" ));
+    mPixelShader = unique_ptr<PixelShader>( new PixelShader( "data/shaders/particle.pso" ));
+	mVertexShaderLighting = unique_ptr<VertexShader>( new VertexShader( "data/shaders/particleLighting.vso" ));
 }
 
 ParticleSystemRenderer::~ParticleSystemRenderer() {
-    mVertexDeclaration.Reset();
+
 }
 
 void ParticleSystemRenderer::Render() {
@@ -55,8 +46,6 @@ void ParticleSystemRenderer::Render() {
 	static vector<weak_ptr<Light>> lightList;
 
     mPixelShader->Bind();
-
-    pD3D->SetVertexDeclaration( mVertexDeclaration );
     mVertexShader->Bind();
 
 	auto & particleSystems = SceneFactory::GetParticleSystemList();
@@ -82,8 +71,7 @@ void ParticleSystemRenderer::Render() {
 
 				D3DXMATRIX mWVP;
 				D3DXMatrixMultiply( &mWVP, &particleEmitter->mWorldTransform, &camera->mViewProjection );
-
-
+				
 				pD3D->SetVertexShaderConstantF( 0, &mWVP.m[0][0], 4 );
 				pD3D->SetVertexShaderConstantF( 4, &particleEmitter->mWorldTransform.m[0][0], 4 );
 				

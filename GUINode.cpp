@@ -32,16 +32,10 @@ void GUINode::SetAlpha( int alpha ) {
 			pChild->SetAlpha( alpha );
 		}
 	}
-    PackColor();
 }
 
 void GUINode::SetColor( ruVector3 color ) {
-    mColor = color;
-    PackColor();
-}
-
-void GUINode::PackColor() {
-    mColorPacked = D3DCOLOR_ARGB( mAlpha, (int)mColor.x, (int)mColor.y, (int)mColor.z );
+    mColor = color / 255.0f;
 }
 
 GUINode::GUINode() :     
@@ -125,10 +119,6 @@ void GUINode::SetPosition( float x, float y ) {
     mX = x * pEngine->GetGUIWidthScaleFactor();
     mY = y * pEngine->GetGUIHeightScaleFactor();
 	CalculateTransform();
-}
-
-int GUINode::GetPackedColor() {
-    return mColorPacked;
 }
 
 void GUINode::Attach( const shared_ptr<ruGUINode> & parent )

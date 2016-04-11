@@ -42,13 +42,13 @@ GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, share
     SetAlpha( theAlpha );
 }
 
-void GUIRect::GetSixVertices( Vertex2D * vertices ) {
-	vertices[ 0 ] = Vertex2D( mGlobalX, mGlobalY, 0, 0, 0, mColorPacked );
-	vertices[ 1 ] = Vertex2D( mGlobalX + mWidth, mGlobalY, 0, 1, 0, mColorPacked );
-	vertices[ 2 ] = Vertex2D( mGlobalX, mGlobalY + mHeight, 0, 0, 1, mColorPacked );
-	vertices[ 3 ] = Vertex2D( mGlobalX + mWidth, mGlobalY, 0, 1, 0, mColorPacked );
-	vertices[ 4 ] = Vertex2D( mGlobalX + mWidth, mGlobalY + mHeight, 0, 1, 1, mColorPacked );
-	vertices[ 5 ] = Vertex2D( mGlobalX, mGlobalY + mHeight, 0, 0, 1, mColorPacked );
+void GUIRect::GetSixVertices( Vertex * vertices ) {
+	vertices[ 0 ] = Vertex( ruVector3( mGlobalX, mGlobalY, 0 ), ruVector2( 0, 0 ), ruVector4( mColor, mAlpha / 255.0f ));
+	vertices[ 1 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY, 0 ), ruVector2( 1, 0 ), ruVector4( mColor, mAlpha / 255.0f ) );
+	vertices[ 2 ] = Vertex( ruVector3( mGlobalX, mGlobalY + mHeight, 0 ), ruVector2( 0, 1 ), ruVector4( mColor, mAlpha / 255.0f ) );
+	vertices[ 3 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY, 0 ), ruVector2( 1, 0 ), ruVector4( mColor, mAlpha / 255.0f ) );
+	vertices[ 4 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY + mHeight, 0 ), ruVector2( 1, 1 ), ruVector4( mColor, mAlpha / 255.0f ) );
+	vertices[ 5 ] = Vertex( ruVector3( mGlobalX, mGlobalY + mHeight, 0 ), ruVector2( 0, 1 ), ruVector4( mColor, mAlpha / 255.0f ) );
 }
 
 shared_ptr<ruRect> ruRect::Create( float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3 theColor, int theAlpha ) {
