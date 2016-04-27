@@ -23,7 +23,7 @@
 class Mesh;
 class Camera;
 
-class SceneNode : public virtual ruSceneNode, public RendererComponent, public std::enable_shared_from_this<SceneNode> {
+class SceneNode : public virtual ruSceneNode, public std::enable_shared_from_this<SceneNode> {
 protected:
 	friend class SceneFactory;
 	explicit SceneNode( );
@@ -48,6 +48,7 @@ protected:
     bool mFrozen;
     bool mVisible;
 	bool mIsBone;
+
 	bool mCollisionEnabled;
 	ruVector2 mTexCoordFlow;
     ruContact mContactList[ BODY_MAX_CONTACTS ];
@@ -60,22 +61,16 @@ protected:
 	btTransform mGlobalTransform;
 	btTransform mLocalTransform;
 public:
+		bool mTwoSidedLighting;
 	static void UpdateContacts( );
 	static shared_ptr<SceneNode> FindByName( const string & name );    
 	static shared_ptr<SceneNode> LoadScene( const string & file );
 	static shared_ptr<SceneNode> Find( const shared_ptr<SceneNode> parent, string childName );
 
-	virtual void OnLostDevice();
-	virtual void OnResetDevice();
-
     // Methods
     virtual ~SceneNode( );
-	virtual void SetTexCoordFlow( const ruVector2 & flow ) {
-		mTexCoordFlow = flow;
-	}
-	virtual ruVector2 GetTexCoordFlow( ) const {
-		return mTexCoordFlow;
-	}
+	virtual void SetTexCoordFlow( const ruVector2 & flow );
+	virtual ruVector2 GetTexCoordFlow( ) const;
 	void AddMesh( const shared_ptr<Mesh> & mesh );
 	virtual ruVector3 GetRotationAxis( );
 	virtual float GetRotationAngle( );
@@ -160,12 +155,8 @@ public:
 	virtual D3DXMATRIX GetWorldMatrix();
 	virtual void MakeBone();
 	virtual int GetMeshCount() const;
-	virtual void SetCollisionEnabled( bool state ) {
-		mCollisionEnabled = state;
-	}
-	virtual bool IsCollisionEnabled( ) const {
-		return mCollisionEnabled;
-	}
+	virtual void SetCollisionEnabled( bool state );
+	virtual bool IsCollisionEnabled( ) const;
 	virtual btTransform GetLocalTransform();
 	virtual btTransform GetInverseBindTransform();
 	virtual btTransform GetRelativeTransform();

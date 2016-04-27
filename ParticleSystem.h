@@ -69,7 +69,6 @@ public:
 	COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
 
 public:
-
     ParticleSystem( int theParticleCount );
     ~ParticleSystem();
 	void OnResetDevice();
@@ -80,8 +79,6 @@ public:
     void ResurrectParticle( Particle & p );
     bool IsLightAffects( );
     void Update( );
-    void Bind();
-    void Render();
 	virtual int GetAliveParticles();
 	virtual bool IsEnabled();
 	virtual void SetEnabled( bool state );

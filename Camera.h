@@ -60,6 +60,7 @@ public:
     D3DXMATRIX mProjection;
     D3DXMATRIX mView;
     D3DXMATRIX mViewProjection;
+	D3DXMATRIX mInverseView;
     D3DXMATRIX invViewProjection;
     D3DXMATRIX mDepthHackMatrix;
     Frustum mFrustum;
@@ -76,6 +77,7 @@ public:
     void CalculateProjectionMatrix();
     void CalculateInverseViewProjection();
     void Update();
+	// Modify projection matrix to add depth offset, applied only of depth > 0.001
     void EnterDepthHack( float depth );
     void LeaveDepthHack( );
 	unique_ptr<PathPoint> & GetNearestPathPoint();

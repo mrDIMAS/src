@@ -24,26 +24,30 @@
 
 #include "SceneNode.h"
 
-ruAnimation::ruAnimation() {
-    mLooped = false;
-    mBeginFrame = 0;
-    mEndFrame = 0;
-    mCurrentFrame = 0;
-    mDuration = 0.0f;
-    mInterpolator = 0.0f;
-    mNextFrame = 0;
-	mEnabled = false;
+ruAnimation::ruAnimation() : 
+	mLooped( false ),
+	mBeginFrame( 0 ),
+	mEndFrame( 0 ),
+	mCurrentFrame( 0 ),
+	mDuration( 0.0f ),
+	mInterpolator( 0.0f ),
+	mNextFrame( 0 ),
+	mEnabled( false )
+{
+
 }
 
-ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped ) {
-    mCurrentFrame = theBeginFrame;
-    mNextFrame = mCurrentFrame + 1;
-    mBeginFrame = theBeginFrame;
-    mEndFrame = theEndFrame;
-    mDuration = theDuration;
-    mLooped = theLooped;
-	mEnabled = false;
-    mInterpolator = 0.0f;
+ruAnimation::ruAnimation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped ) : 
+	mCurrentFrame( theBeginFrame ),
+	mNextFrame( theBeginFrame + 1 ),
+	mBeginFrame( theBeginFrame ),
+	mEndFrame( theEndFrame ),	
+	mDuration( theDuration ),
+	mLooped( theLooped ),
+	mEnabled( false ),
+	mInterpolator( 0.0f )
+{
+
 }
 
 ruAnimation::~ruAnimation() {
@@ -135,33 +139,43 @@ void ruAnimation::SetFrameInterval( int begin, int end ) {
 int ruAnimation::GetCurrentFrame() const {
 	return mCurrentFrame;
 }
+
 int ruAnimation::GetEndFrame() const {
 	return mEndFrame;
 }
+
 int ruAnimation::GetBeginFrame() const {
 	return mBeginFrame;
 }
+
 int ruAnimation::GetNextFrame() const {
 	return mNextFrame;
 }
+
 void ruAnimation::SetName( const string & newName ) {
 	mName = newName;
 }
+
 float ruAnimation::GetInterpolator() const {
 	return mInterpolator;
 }
+
 string ruAnimation::GetName( ) const {
 	return mName;
 }
+
 void ruAnimation::SetDuration( float duration ) {
 	mDuration = duration;
 }
+
 float ruAnimation::GetDuration( ) const {
 	return mDuration;
 }
+
 void ruAnimation::SetEnabled( bool state ) {
 	mEnabled = state;
 }
+
 bool ruAnimation::IsEnabled() const {
 	return mEnabled;
 }

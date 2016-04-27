@@ -21,8 +21,7 @@
 
 #pragma once
 
-
-#include "GUIRenderer.h"
+#include "GUIRect.h"
 
 class Cursor : public GUIRect {
 public:

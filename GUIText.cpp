@@ -20,34 +20,65 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-
+#include "Renderer.h"
 #include "GUIText.h"
 #include "GUIFactory.h"
 
-GUIText::GUIText( const string & theText, float theX, float theY, float theWidth,
-                  float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign,  const shared_ptr<BitmapFont> & theFont ) {
-
+GUIText::GUIText( const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign,  const shared_ptr<BitmapFont> & theFont ) :
+	mFont( theFont ),
+	mTextAlign( theTextAlign )    
+{
 	SetPosition( theX, theY );
 	SetSize( theWidth, theHeight );
-    mText = theText;
-    mFont = theFont;
-    mTextAlign = theTextAlign;
+    SetText( theText );
     SetColor( theColor );
     SetAlpha( theAlpha );
-    mVisible = true;
+	mVisible = true;
+}
+
+void GUIText::BreakOnLines(){
+	mLines.clear();
+	// break on lines, align to left corner of rectangle [mWidth; mHeight]
+	int lastNotAlpha = -1;
+	float stringWidth = 0.0f;
+	int prevSubStringLocation = 0;
+	float y = 0.0f;
+	for( int i = 0; i < mText.size(); ++i ) {
+		unsigned char symbol = mText[i];
+		if( isdigit( symbol ) || ispunct( symbol ) || isspace( symbol )) {
+			lastNotAlpha = i;
+		}
+		stringWidth += mFont->mCharsMetrics[ symbol ].advanceX;
+		if( stringWidth > mWidth || i == ( mText.size() - 1 ) || symbol == '\n' ) {
+			if( lastNotAlpha < 0 ) {
+				mLines.push_back( GUITextLine( 0.0f, y, mText.substr( prevSubStringLocation, i - prevSubStringLocation + 1 )));
+				prevSubStringLocation = i;
+			} else {
+				mLines.push_back( GUITextLine( 0.0f, y, mText.substr( prevSubStringLocation, lastNotAlpha - prevSubStringLocation + 1 )));
+				i = lastNotAlpha + 1;
+				prevSubStringLocation = i;	
+			}							
+			stringWidth = 0;
+			lastNotAlpha = -1;
+			y += mFont->mGlyphSize;
+		}
+	}
+	// do alignment
+	if( mTextAlign == ruTextAlignment::Center ) {
+		for( auto & line : mLines ) {
+			float width = 0.0f;
+			for( int i = 0; i < line.mSubstring.size(); ++i ) {
+				unsigned char symbol = line.mSubstring[i];
+				width += mFont->mCharsMetrics[ symbol ].advanceX;
+			}
+			line.mX = (mWidth - width) * 0.5f;
+			line.mY += ( mHeight - mLines.size() * mFont->mGlyphSize ) * 0.5f;
+		}
+	}
 }
 
 GUIText::~GUIText() {
 
-}
-
-RECT GUIText::GetBoundingRect() {
-	CalculateTransform();
-    mRect.left = mGlobalX;
-    mRect.top = mGlobalY;
-    mRect.right = mGlobalX + mWidth;
-    mRect.bottom = mGlobalY + mHeight;
-    return mRect;
 }
 
 shared_ptr<BitmapFont> GUIText::GetFont() {
@@ -64,6 +95,7 @@ ruTextAlignment GUIText::GetTextAlignment() {
 
 void GUIText::SetText( const string & text ) {
 	mText = text;
+	BreakOnLines();
 }
 
 shared_ptr<ruText> ruText::Create( const string & text, int x, int y, int w, int h, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha /*= 255 */ ) {

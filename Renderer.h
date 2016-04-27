@@ -25,11 +25,9 @@
 #include "Timer.h"
 #include "BitmapFont.h"
 #include "Mesh.h"
-#include "Shader.h"
+#include "GUIRect.h"
+#include "Camera.h"
 
-class ParticleSystemRenderer;
-class TextRenderer;
-class GUIRenderer;
 class Cursor;
 
 class Videomode {
@@ -45,33 +43,24 @@ public:
 	}
 };
 
-typedef unordered_map< IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
+typedef unordered_map<IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
 
-class Engine {
+class Renderer {
 private:
 	HWND mWindowHandle;
 
-	shared_ptr<ParticleSystemRenderer> mpParticleSystemRenderer;
-	shared_ptr<GUIRenderer> mpGUIRenderer;
-	shared_ptr<TextRenderer> mpTextRenderer;
 	bool mUsePointLightShadows;
 	bool mUseSpotLightShadows;
 	bool mRunning;	
 	bool mAnisotropicFiltering;
 	float mResWidth;
 	float mResHeight;
-	int mDIPCount;
+	
 	D3DPRESENT_PARAMETERS mPresentParameters;
-	int mTextureChangeCount;
+
 	string mTextureStoragePath;
 	ruVector3 mAmbientColor;
-	
-	Engine( const Engine & other );
-	void operator = ( const Engine & other );
-	void UpdateMessagePump( );
 
-	void CreatePhysics( );
-	int CreateRenderWindow( int width, int height, int fullscreen );	
 	bool mPaused;
 	bool mChangeVideomode;
 	int mNativeResolutionWidth;
@@ -82,21 +71,25 @@ private:
 	shared_ptr<Cursor> mCursor;
 
 	MeshMap mDeferredMeshMap;
-	MeshMap mForwardMeshMap;
 
-	void PrepareMeshMaps();
 	void RenderMesh( const shared_ptr<Mesh> & mesh );
+
+	// Shader Stuff
+	DWORD * ReadEntireFile( const char * fileName );
+	void LoadPixelShader( COMPtr<IDirect3DPixelShader9> & pixelShader, const char * fileName );
+	void LoadVertexShader( COMPtr<IDirect3DVertexShader9> & vertexShader, const char * fileName );
 
 	//**************************************
 	// Forward Rendering Stuff
-	shared_ptr<PixelShader> mTransparentPixelShader;
-	shared_ptr<VertexShader> mTransparentVertexShader;
+	COMPtr<IDirect3DPixelShader9> mDeferredBlending;
 
 	//**************************************
 	// Deferred Rendering Stuff
 
-	unique_ptr<PixelShader> mAmbientPixelShader;
-	unique_ptr<PixelShader> mFXAAPixelShader;
+	COMPtr<IDirect3DPixelShader9> mAmbientPixelShader;
+	COMPtr<IDirect3DPixelShader9> mFXAAPixelShader;
+
+	COMPtr<IDirect3DPixelShader9> mDeferredLightShader;
 
 	// G-Buffer Stuff
 	COMPtr<IDirect3DTexture9> mDepthMap;
@@ -119,25 +112,21 @@ private:
 	COMPtr<ID3DXMesh> mBoundingStar;
 	COMPtr<ID3DXMesh> mBoundingCone;
 
-	// Standard GBuffer shader
-	unique_ptr<VertexShader> mGBufferVertexShader;
-	unique_ptr<PixelShader> mGBufferPixelShader;
+	// GBuffer shaders
+	COMPtr<IDirect3DVertexShader9> mGBufferVertexShader;
+	COMPtr<IDirect3DPixelShader9> mGBufferPixelShader;
 
-	// Standard GBuffer shader with skinning
-	unique_ptr<VertexShader> mGBufferVertexShaderSkin;
-	unique_ptr<PixelShader> mGBufferPixelShaderSkin;
-
-	// Parallax occlusion mapping shaders
-	unique_ptr<VertexShader> mGBufferVertexShaderPOM;
-	unique_ptr<PixelShader> mGBufferPixelShaderPOM;
+	// Particle shaders
+	COMPtr<IDirect3DPixelShader9> mParticleSystemPixelShader;
+	COMPtr<IDirect3DVertexShader9> mParticleSystemVertexShader;
 
 	// HDR Stuff
 	static const int mHDRDownSampleCount = 6;
 
-	unique_ptr<PixelShader> mToneMapShader;
-	unique_ptr<PixelShader> mDownScalePixelShader;
-	unique_ptr<PixelShader> mAdaptationPixelShader;
-	unique_ptr<PixelShader> mScaleScenePixelShader;
+	COMPtr<IDirect3DPixelShader9> mToneMapShader;
+	COMPtr<IDirect3DPixelShader9> mDownScalePixelShader;
+	COMPtr<IDirect3DPixelShader9> mAdaptationPixelShader;
+	COMPtr<IDirect3DPixelShader9> mScaleScenePixelShader;
 	COMPtr<IDirect3DTexture9> mScaledScene;
 	COMPtr<IDirect3DSurface9> mScaledSceneSurf;
 	COMPtr<IDirect3DTexture9> mDownSampTex[ mHDRDownSampleCount ];
@@ -145,69 +134,96 @@ private:
 	COMPtr<IDirect3DTexture9> mAdaptedLuminanceLast;
 	COMPtr<IDirect3DTexture9> mAdaptedLuminanceCurrent;
 
-	// Skybox shaders
-	unique_ptr<VertexShader> mSkyboxVertexShader;
-	unique_ptr<PixelShader> mSkyboxPixelShader;
+	// Bloom stuff
+	COMPtr<IDirect3DTexture9> mBloomTexture;
+	COMPtr<IDirect3DSurface9> mBloomTextureSurface;
+	COMPtr<IDirect3DTexture9> mBloomBlurredTexture;
+	COMPtr<IDirect3DSurface9> mBloomBlurredSurface;
 
-	// Point light pixel shaders
-	unique_ptr<PixelShader> mPointLightPixelShader;
-	unique_ptr<PixelShader> mPointLightPixelShaderTexProj;
+	COMPtr<IDirect3DPixelShader9> mBloomPixelShader;
+	COMPtr<IDirect3DPixelShader9> mGaussianBlurShader;
+	ruVector2 mBloomDX;
+	ruVector2 mBloomDY;
 
-	// Spot light pixel shaders
-	unique_ptr<PixelShader> mSpotLightPixelShader;
-	unique_ptr<PixelShader> mSpotLightPixelShaderShadows;
+	// Shadow cubemap
+	COMPtr<IDirect3DCubeTexture9> mCubeShadowMap;
 
 	// Spot light shadow map
 	COMPtr<IDirect3DTexture9> mShadowMap;
 	COMPtr<IDirect3DSurface9> mShadowMapSurface;
 	COMPtr<IDirect3DSurface9> mDefaultDepthStencil;
 	COMPtr<IDirect3DSurface9> mDepthStencilSurface;
-	unique_ptr<PixelShader> mSpotLightShadowMapPixelShader;
-	unique_ptr<VertexShader> mSpotLightShadowMapVertexShader;
+
+	// Shadow map shaders
+	COMPtr<IDirect3DPixelShader9> mShadowMapPixelShader;
+	COMPtr<IDirect3DVertexShader9> mShadowMapVertexShader;
+
 
 	// Quad
 	D3DXMATRIX mOrthoProjectionMatrix;
 	COMPtr<IDirect3DVertexBuffer9> mQuadVertexBuffer;
-	unique_ptr<VertexShader> mQuadVertexShader;
+	COMPtr<IDirect3DVertexShader9> mQuadVertexShader;
 
-	void RenderFullscreenQuad() {
-		mQuadVertexShader->Bind();
-		pD3D->SetVertexShaderConstantF( 0, &mOrthoProjectionMatrix.m[0][0], 4 );		
-		pD3D->SetStreamSource( 0, mQuadVertexBuffer, 0, sizeof( Vertex ));
-		
-		pD3D->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 2 );
-	}
+	void RenderFullscreenQuad();
+
+	// Skybox 
+	COMPtr<IDirect3DVertexBuffer9> mSkyboxVertexBuffer;
+	COMPtr<IDirect3DIndexBuffer9> mSkyboxIndexBuffer;
+	COMPtr<IDirect3DVertexShader9> mSkyboxVertexShader;
+	COMPtr<IDirect3DPixelShader9> mSkyboxPixelShader;
 
 	// Common vertex declaration
 	COMPtr<IDirect3DVertexDeclaration9> msVertexDeclaration;
+
+	// GUI Stuff
+	COMPtr<IDirect3DVertexBuffer9> mRectVertexBuffer;
+	COMPtr<IDirect3DVertexShader9> mGUIVertexShader;
+	COMPtr<IDirect3DPixelShader9> mGUIPixelShader;
+	COMPtr<IDirect3DVertexBuffer9> mTextVertexBuffer;
+	COMPtr<IDirect3DIndexBuffer9> mTextIndexBuffer;
+	int mTextMaxChars;
+
+	void RenderRect( const shared_ptr<GUIRect> & r );
+
+	// Default textures
+	COMPtr<IDirect3DCubeTexture9> mWhiteCubeMap;
+	COMPtr<IDirect3DTexture9> mDefaultNormalMap;
+	COMPtr<IDirect3DTexture9> mWhiteMap;
 
 	// D3D9
 	COMPtr<IDirect3D9> mpDirect3D;
 	COMPtr<IDirect3DDevice9> mpDevice;
 	COMPtr<IDirect3DSurface9> mpBackBuffer;	
 		
+	// Rendering statistics
+	int mDIPCount;
+	int mTextureChangeCount;
+	int mShadersChangeCount;
+	int mRenderedTriangleCount;
+
+	// Effects control
 	bool mHDREnabled;
 	bool mParallaxEnabled;
 	bool mFXAAEnabled;
 public:
-	explicit Engine();
-	virtual ~Engine();
+	explicit Renderer( int width, int height, int fullscreen, char vSync );
+	virtual ~Renderer();
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();	
-	void Initialize( int width, int height, int fullscreen, char vSync );	
     void RenderWorld( );
+	void UpdateWorld( );
 	void Reset();
-	bool IsTextureFormatOk( D3DFORMAT TextureFormat );
-	void RegisterDIP();
 	float GetResolutionWidth();
 	float GetResolutionHeight();
 	int GetDIPCount();
+	int GetRenderedTriangles() const {
+		return mRenderedTriangleCount;
+	}
 	void ChangeVideomode( int width, int height, bool fullscreen, bool vsync );
 	bool IsAnisotropicFilteringEnabled();
 	void SetAnisotropicTextureFiltration( bool state );
 	void SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
 	void SetSpotLightShadowMapSize( int size );
-	shared_ptr<TextRenderer> & GetTextRenderer();
 	void SetPointLightShadowsEnabled( bool state );
 	void SetSpotLightShadowsEnabled( bool state );
 	bool IsPointLightShadowsEnabled();
@@ -216,10 +232,10 @@ public:
 	void SetAmbientColor( ruVector3 ambColor );
 	void SetCursor( shared_ptr<ruTexture> texture, int w, int h );
 	void SetCursorVisible( bool state );
-	bool IsNonPowerOfTwoTexturesSupport();
 	void Shutdown();
 	shared_ptr<Cursor> & GetCursor();
 	int GetTextureChangeCount();
+	int GetShaderChangeCount();
 	string GetTextureStoragePath();
 	void SetTextureStoragePath( const string & path );
 	float GetGUIWidthScaleFactor( ) const;

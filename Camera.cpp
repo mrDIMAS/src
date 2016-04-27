@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "SceneNode.h"
 #include "AABB.h"
 #include "Camera.h"
@@ -48,6 +48,8 @@ void Camera::Update() {
     D3DXVECTOR3 lv ( look.x(), look.y(), look.z() );
     D3DXVECTOR3 uv (   up.x(),   up.y(),   up.z() );
     D3DXMatrixLookAtRH ( &mView, &ep, &lv, &uv );
+
+	D3DXMatrixInverse( &mInverseView, nullptr, &mView );
 
     CalculateProjectionMatrix();
     CalculateInverseViewProjection();

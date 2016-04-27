@@ -20,7 +20,7 @@
 *******************************************************************************/
 #include "Precompiled.h"
 #include "RutheniumAPI.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "Cursor.h"
 #include "Camera.h"
 #include "SceneNode.h"
@@ -28,25 +28,30 @@
 #include "SceneFactory.h"
 
 void ruEngine::Create( int width, int height, int fullscreen, char vSync ) {
-	pEngine = unique_ptr<Engine>( new Engine( ));
-	pEngine->Initialize( width, height, fullscreen, vSync ) ;
+	pEngine = unique_ptr<Renderer>( new Renderer( width, height, fullscreen, vSync ));
 }
+
 void ruEngine::Free( ) {
 	pEngine->Shutdown();
 	pfSystemDestroy();
 }
+
 void ruEngine::RenderWorld( ) {
 	pEngine->RenderWorld();
 }
+
 int ruEngine::GetResolutionWidth( ) {
 	return pEngine->GetResolutionWidth();
 }
+
 int ruEngine::GetResolutionHeight( ) {
 	return pEngine->GetResolutionHeight();
 }
+
 void ruEngine::HideCursor( ) {
 	pEngine->SetCursorVisible( false );
 }
+
 void ruEngine::ShowCursor( ) {
 	pEngine->SetCursorVisible( true );
 }
@@ -69,6 +74,14 @@ int ruEngine::GetTextureUsedPerFrame( ) {
 	return pEngine->GetTextureChangeCount();
 }
 
+int ruEngine::GetShaderCountChangedPerFrame( ) {
+	return pEngine->GetShaderChangeCount();
+}
+
+int ruEngine::GetRenderedTriangles() {
+	return pEngine->GetRenderedTriangles();
+}
+
 void ruEngine::SetAmbientColor( ruVector3 color ) {
 	pEngine->SetAmbientColor( color );
 }
@@ -83,35 +96,7 @@ void ruEngine::EnableShadows( bool state ) {
 }
 
 void ruEngine::UpdateWorld() {
-	// build view and projection matrices, frustum, also attach sound listener to camera
-	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
-	if( camera ) {
-		camera->Update();
-	}
-
-	auto & nodes = SceneFactory::GetNodeList();
-
-	for( auto & pWeak : nodes ) {
-		shared_ptr<SceneNode> & node = pWeak.lock();
-		if( node ) {
-			node->CalculateGlobalTransform();
-			// update all sounds attached to node, and physical interaction sounds( roll, hit )
-			node->UpdateSounds();
-			if( !node->IsSkinned() ) {
-				node->PerformAnimation();
-			}
-		}
-	}
-
-	// skinned animation is based on transforms of other nodes, so skin meshes in the end of all
-	for( auto & pWeak : nodes ) {
-		shared_ptr<SceneNode> & node = pWeak.lock();
-		if( node ) {
-			if( node->IsSkinned() ) {
-				node->PerformAnimation();
-			}
-		} 
-	}
+	pEngine->UpdateWorld();
 }
 
 void ruEngine::SetAnisotropicTextureFiltration( bool state ) {
@@ -156,4 +141,17 @@ void ruEngine::SetParallaxEnabled( bool state ) {
 
 bool ruEngine::IsParallaxEnabled() {
 	return pEngine->IsParallaxEnabled();
+}
+
+
+void ruEngine::SetPointLightShadowMapSize( int size ) {
+	
+}
+
+void ruEngine::EnablePointLightShadows( bool state ) {
+	pEngine->SetPointLightShadowsEnabled( state );
+}
+
+bool ruEngine::IsPointLightShadowsEnabled() {
+	return pEngine->IsPointLightShadowsEnabled();
 }

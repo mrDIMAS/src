@@ -39,18 +39,17 @@ struct BGRA8Pixel {
 };
 
 class BitmapFont : public RendererComponent, public ruFont {
-private:
+private:		
+	string mSourceFile;	
+	void Create( );
+public:
+	// Data for the renderer
 	COMPtr<IDirect3DTexture9> mAtlas;
 	vector< CharMetrics > mCharsMetrics;
-	string mSourceFile;
 	int mGlyphSize;
-	void Create( );
 public:
     explicit BitmapFont( const string & file, int size );
     virtual ~BitmapFont( );
-	int GetGlyphSize();
-	void BindAtlasToLevel( int level );
-	CharMetrics * GetCharacterMetrics( int charNum );
 	void OnResetDevice();
 	void OnLostDevice();
 };

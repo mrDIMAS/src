@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "BitmapFont.h"
 #include "Utility.h"
 
@@ -34,14 +34,6 @@ BitmapFont::~BitmapFont() {
 	mAtlas.Reset();	
 }
 
-void BitmapFont::BindAtlasToLevel( int level ) {
-	pD3D->SetTexture( level, mAtlas );
-}
-
-int BitmapFont::GetGlyphSize() {
-	return mGlyphSize;
-}
-
 void BitmapFont::OnLostDevice() {
 	mCharsMetrics.clear();
 	mAtlas.Reset();
@@ -51,17 +43,7 @@ void BitmapFont::OnResetDevice() {
 	Create();
 }
 
-CharMetrics * BitmapFont::GetCharacterMetrics( int charNum )
-{
-	if( charNum > 0 && charNum < 256 ) {
-		return &mCharsMetrics[charNum];
-	} else {
-		return nullptr;
-	}
-}
-
-void BitmapFont::Create()
-{
+void BitmapFont::Create() {
 	int pow2Size = CeilPow2(mGlyphSize);
 	int atlasWidth = pow2Size * 16;
 	int atlasHeight = pow2Size * 16;

@@ -38,7 +38,7 @@ Flashlight::Flashlight() {
 	mIdleAnim = ruAnimation( 0, 19, 5 );
 
 	mFire = ruParticleSystem::Create( 60 );
-	mFire->Attach( mModel->FindChild( "FirePlace" ));
+	mFire->Attach( mModel->FindChild( "FirePlace" ) );
 	mFire->SetType( ruParticleSystem::Type::Stream );
 	mFire->SetSpeedDeviation( ruVector3( -0.00001f, 0.001f, -0.00001f ), ruVector3( 0.000012f, 0.0015f, 0.000012f ));
 	mFire->SetTexture( ruTexture::Request( "data/textures/particles/p1.png" ));

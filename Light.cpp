@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "Light.h"
 #include "SceneNode.h"
 #include "Utility.h"

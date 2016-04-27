@@ -19,7 +19,7 @@
 *                                                                              *
 *******************************************************************************/
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "Texture.h"
 #include "Utility.h"
 
@@ -49,7 +49,11 @@ shared_ptr<Texture> Texture::Request( string file ) {
     return std::move( pTexture );
 }
 
-Texture::Texture() :  mHeight( 0 ), mWidth( 0 ), mColorDepth( 0 ) {
+Texture::Texture() : 
+	mHeight( 0 ), 
+	mWidth( 0 ), 
+	mColorDepth( 0 ) 
+{
 	mResetPriority = RendererComponent::ResetPriority::High;
 }
 

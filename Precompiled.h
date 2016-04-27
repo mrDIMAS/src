@@ -89,7 +89,6 @@ public:
 		mInterface = nullptr;
 	}
 
-	// for Direct3DCreate9
 	void Set( Interface * iface ) {
 		mInterface = iface;
 	}
@@ -126,139 +125,86 @@ public:
 	}
 };
 
+class Keyboard {
+public:
+	bool mKeysDown[256];
+	bool mKeysUp[256];
+	bool mKeysHit[256];
+
+	Keyboard() {
+		for( int i = 0; i < 256; ++i ) {
+			mKeysDown[i] = mKeysUp[i] = mKeysHit[i] = false;
+		}
+	}
+
+	void KeyDown( int keyId ) {
+		if( mKeysDown[ keyId ] ) {
+			mKeysHit[ keyId ] = false;
+		} else {
+			mKeysHit[ keyId ] = true;
+		}		
+		mKeysDown[ keyId ] = true;
+		mKeysUp[ keyId ] = false;		
+	}
+
+	void KeyUp( int keyId ) {
+		mKeysDown[ keyId ] = false;
+		mKeysUp[ keyId ] = true;
+		mKeysHit[ keyId ] = false;
+	}
+};
+
+class Mouse {
+public:
+	int mX;
+	int mY;
+	int mWheel;
+
+	bool mButtonsDown[3];
+	bool mButtonsUp[3];
+	bool mButtonsHit[3];
+
+	Mouse() : mX( 0 ), mY( 0 ), mWheel( 0 ) {
+		for( int i = 0; i < 3; ++i ) {
+			mButtonsDown[i] = mButtonsUp[i] = mButtonsHit[i] = false;
+		}
+	}
+
+	void Move( int x, int y ) {
+		mX = x;
+		mY = y;
+	}
+
+	void ButtonDown( ruInput::MouseButton button ) {
+		int buttonId = (int)button;
+		if( mButtonsDown[ buttonId ] ) {
+			mButtonsHit[ buttonId ] = false;
+		} else {
+			mButtonsHit[ buttonId ] = true;
+		}		
+		mButtonsDown[ buttonId ] = true;
+		mButtonsUp[ buttonId ] = false;
+	}
+
+	void ButtonUp( ruInput::MouseButton button ) {
+		int buttonId = (int)button;
+		mButtonsHit[ buttonId ] = false;
+		mButtonsDown[ buttonId ] = false;
+		mButtonsUp[ buttonId ] = true;
+	}
+
+	void Wheel( int speed ) {
+		mWheel += speed;
+	}
+};
+
 using namespace std;
 
+extern Mouse mouse;
+extern Keyboard keyboard;
 extern IDirect3DDevice9 * pD3D;
-extern unique_ptr<class Engine> pEngine;
+extern unique_ptr<class Renderer> pEngine;
 
-struct GPURegister {
-	float a, b, c, d;
 
-	void Set( float v1 ) {
-		a = v1;
-		b = 0.0f;
-		c = 0.0f;
-		d = 0.0f;
-	}
 
-	void Set( float v1, float v2 ) {
-		a = v1;
-		b = v2;
-		c = 0.0f;
-		d = 0.0f;
-	}
 
-	void Set( float v1, float v2, float v3 ) {
-		a = v1;
-		b = v2;
-		c = v3;
-		d = 0.0f;
-	}
-
-	void Set( float v1, float v2, float v3, float v4 ) {
-		a = v1;
-		b = v2;
-		c = v3;
-		d = v4;
-	}
-};
-
-class GPURegisterStack {
-public:
-	GPURegister mRegisters[256];
-	int mRegisterCount;
-
-	GPURegisterStack() : mRegisterCount( 0 ) {
-
-	}
-
-	void Clear( ) {
-		mRegisterCount = 0;
-	}
-
-	void PushMatrix( const D3DXMATRIX & m ) {
-		mRegisters[mRegisterCount++].Set( m._11, m._12, m._13, m._14 );
-		mRegisters[mRegisterCount++].Set( m._21, m._22, m._23, m._24 );
-		mRegisters[mRegisterCount++].Set( m._31, m._32, m._33, m._34 );
-		mRegisters[mRegisterCount++].Set( m._41, m._42, m._43, m._44 );
-	}
-
-	void PushVector( const ruVector3 & v ) {
-		mRegisters[mRegisterCount++].Set( v.x, v.y, v.z );
-	}
-
-	void PushVector( const ruVector2 & v ) {
-		mRegisters[mRegisterCount++].Set( v.x, v.y );
-	}
-
-	void PushFloat( float v1 ) {
-		mRegisters[mRegisterCount++].Set( v1 );
-	}
-
-	void PushFloat( float v1, float v2 ) {
-		mRegisters[mRegisterCount++].Set( v1, v2 );
-	}
-
-	void PushFloat( float v1, float v2, float v3 ) {
-		mRegisters[mRegisterCount++].Set( v1, v2, v3 );
-	}
-
-	void PushFloat( float v1, float v2, float v3, float v4 ) {
-		mRegisters[mRegisterCount++].Set( v1, v2, v3, v4 );
-	}
-
-	const float * GetPointer( ) const {
-		return &mRegisters[0].a;
-	}
-};
-
-// Temporary solution, based on D3DX math. Must be changed to something else
-class Matrix {
-public:
-	union {
-		struct {
-			float _11, _12, _13, _14;
-			float _21, _22, _23, _24;
-			float _31, _32, _33, _34;
-			float _41, _42, _43, _44;
-
-		};
-		float m[4][4];
-	};
-
-	Matrix() {
-		
-	}
-
-	static Matrix Scaling( const ruVector3 & scale ) {
-		Matrix scaleMatrix;
-		D3DXMatrixScaling( (D3DXMATRIX*)&scaleMatrix, scale.x, scale.y, scale.z );
-		return scaleMatrix;
-	}
-
-	static Matrix Translation( const ruVector3 & offset ) {
-		Matrix translation;
-		D3DXMatrixTranslation( (D3DXMATRIX*)&translation, offset.x, offset.y, offset.z );
-		return translation;
-	}
-
-	static Matrix Identity() {
-		Matrix identity;
-		D3DXMatrixIdentity( (D3DXMATRIX*)&identity );
-		return identity;
-	}
-
-	void operator = ( const Matrix & other ) {
-		*this = other;
-	}
-
-	void operator = ( const D3DXMATRIX & other ) {
-		memcpy( m, other.m, sizeof( *this ));
-	}
-
-	Matrix operator * ( const Matrix & other ) const {
-		Matrix m;
-		D3DXMatrixMultiply( (D3DXMATRIX*)&m, (D3DXMATRIX*)this, (D3DXMATRIX*)&other );
-		return m;
-	}
-};

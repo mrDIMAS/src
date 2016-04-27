@@ -139,7 +139,7 @@ void LevelArrival::DoScenario() {
 	}
 
 	if( !mStages[ "LiftCrashed" ] ) {
-		ruEngine::SetAmbientColor( ruVector3( 0.115, 0.115, 0.115 ));
+		ruEngine::SetAmbientColor( ruVector3( 0.1, 0.1, 0.1 ));
 		PlayAmbientSounds();
 		if( pPlayer->IsInsideZone( mLiftStopZone )) {
 			mLift->SetPaused( true );

@@ -22,7 +22,6 @@
 #include "Precompiled.h"
 #include "Texture.h"
 #include "GUIRect.h"
-#include "GUIRenderer.h"
 #include "GUIFactory.h"
 
 GUIRect::~GUIRect() {

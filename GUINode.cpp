@@ -23,7 +23,7 @@
 #include "Texture.h"
 #include "GUINode.h"
 #include "GUIFactory.h"
-#include "Engine.h"
+#include "Renderer.h"
 
 void GUINode::SetAlpha( int alpha ) {
     mAlpha = alpha;
@@ -128,7 +128,8 @@ void GUINode::Attach( const shared_ptr<ruGUINode> & parent )
 	mParent = parentNode;
 }
 
-void GUINode::CalculateTransform() {
+void GUINode::CalculateTransform
+	() {
 	mGlobalX = 0.0f;
 	mGlobalY = 0.0f;
 	if( mParent.use_count() ) {

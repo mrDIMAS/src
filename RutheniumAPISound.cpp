@@ -20,7 +20,7 @@
 *******************************************************************************/
 #include "Precompiled.h"
 #include "SceneNode.h"
-#include "Engine.h"
+#include "Renderer.h"
 
 vector<weak_ptr<ruSound>> gSoundList;
 

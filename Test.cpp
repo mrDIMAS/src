@@ -96,11 +96,8 @@ void main( ) {
 
     int perfTime=0;
 
-    
-    
-
     ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
-    shared_ptr<ruText> fpsText = ruText::Create( "Test text", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
+    shared_ptr<ruText> fpsText = ruText::Create( "Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake!", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
 
 	shared_ptr<ruRect> testrect = ruRect::Create( 100, 100, 200, 200, ruTexture::Request( "data/gui/inventory/items/detonator.png" ));
 	shared_ptr<ruButton> testButton = ruButton::Create( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
@@ -109,7 +106,8 @@ void main( ) {
 	testButton2->Attach( testrect );
 
 	ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
-	ruEngine::EnableSpotLightShadows( true );
+	ruEngine::EnableSpotLightShadows( false );
+	ruEngine::EnablePointLightShadows( true );
 	ruEngine::SetHDREnabled( false );
 	ruEngine::SetFXAAEnabled( false );
 	ruEngine::SetParallaxEnabled( true );
@@ -129,7 +127,7 @@ void main( ) {
 		ruPointLight::Get( i )->SetGreyscaleFactor( 1.0f );
 	}
 
-	//ruEngine::SetAmbientColor( ruVector3( 1, 1, 1 ));
+	ruEngine::SetAmbientColor( ruVector3( .1, .1, .1 ));
 
     while( !ruInput::IsKeyDown( ruInput::Key::Esc )) {
         //idleAnim.Update();
@@ -178,6 +176,8 @@ void main( ) {
 			shared_ptr<ruSceneNode> newCube = ruSceneNode::Duplicate( cube );
 			//newCube->Attach( camera );
 			newCube->SetPosition( ruVector3( 0, 0, 1 ));
+
+			ruEngine::EnableSpotLightShadows( !ruEngine::IsSpotLightShadowsEnabled() );
 		}
 
         if( ruInput::IsKeyDown( ruInput::Key::W )) {
@@ -217,15 +217,16 @@ void main( ) {
             counter = 0;
         }
 
-        char buf[ 128 ];
-        sprintf( buf, "DIPs: %d TC: %d FPS: %d Available Vid Mem, Mb: %i HDR: %i\n", ruEngine::GetDIPs(), ruEngine::GetTextureUsedPerFrame(), fps, ruEngine::GetAvailableTextureMemory() / ( 1024 * 1024 ), (int)ruEngine::IsHDREnabled()  );
-        fpsText->SetText( buf );
-        
-        if( testButton->IsPressed() ) {
-        	fpsText->SetVisible( true );
-        } else {
-        	fpsText->SetVisible( false );
-        }
+        fpsText->SetText( 
+			StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() <<
+			"\nTC: " << ruEngine::GetTextureUsedPerFrame() <<
+			"\nFPS: " << fps <<
+			"\nSC: " << ruEngine::GetShaderCountChangedPerFrame() <<
+			"\nRT: " << ruEngine::GetRenderedTriangles()
+		);
+
+       	fpsText->SetVisible( true );
+
 
         perfTimer->Restart();
         ruEngine::RenderWorld( ); // fixed FPS

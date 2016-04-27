@@ -36,6 +36,7 @@ private:
 	template<typename Type> 
 	static void RemoveUnreferenced( vector<weak_ptr<Type>> & objList );
 public:
+	// All 'Get***' Methods guarantee to return weak_ptr's to existing objects 
 	static vector<weak_ptr<SceneNode>> & GetNodeList();
 	static vector<weak_ptr<SpotLight>> & GetSpotLightList();
 	static vector<weak_ptr<PointLight>> & GetPointLightList();

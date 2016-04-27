@@ -29,7 +29,7 @@
 #include "Mesh.h"
 #include "Texture.h"
 #include "Vertex.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "SceneFactory.h"
 
 void SceneNode::AutoName() {
@@ -37,10 +37,23 @@ void SceneNode::AutoName() {
 	mName = StringBuilder( "Unnamed" ) << uniqueNum++;
 }
 
-SceneNode::SceneNode( ) : mStatic( false ),  mInFrustum( false ), mTotalFrameCount( 0 ),
-						  mIsSkinned( false ), mVisible( true ), mContactCount( 0 ), mTexCoordFlow( 0.0f, 0.0f ),
-						  mFrozen( false ), mIsBone( false ), mDepthHack( 0.0f ), mCollisionEnabled( true ),
-						  mAlbedo( 0.0f ), mCurrentAnimation( nullptr ), mBlurAmount( 0.0f )  {
+SceneNode::SceneNode( ) :
+	mStatic( false ),  
+	mInFrustum( false ), 
+	mTotalFrameCount( 0 ),						  
+	mIsSkinned( false ), 
+	mVisible( true ), 
+	mContactCount( 0 ), 
+	mTexCoordFlow( 0.0f, 0.0f ),
+	mFrozen( false ), 
+	mIsBone( false ), 
+	mDepthHack( 0.0f ), 
+	mCollisionEnabled( true ),
+	mAlbedo( 0.0f ), 
+	mCurrentAnimation( nullptr ), 
+	mBlurAmount( 0.0f ) ,
+	mTwoSidedLighting( false )
+{
 	AutoName();    
     mLocalTransform = btTransform( btQuaternion( 0, 0, 0 ), btVector3( 0, 0, 0 ));
     mGlobalTransform = mLocalTransform;
@@ -286,7 +299,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
             node->mLocalTransform = *node->mKeyframeList[ 0 ];
         }
 
-        node->mTotalFrameCount = framesCount - 1; // -1,  because numeration started from zero
+        node->mTotalFrameCount = framesCount - 1; 
 
         for( int i = 0; i < meshCount; i++ ) {
             shared_ptr<Mesh> & mesh = make_shared<Mesh>();
@@ -299,7 +312,6 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
             ruVector3 aabbMax = reader.GetBareVector();
             ruVector3 aabbCenter = reader.GetBareVector(); // odd
             float aabbRadius = reader.GetFloat(); // odd
-            //mesh->aabb = AABB( aabbMin, aabbMax );
 
             string diffuse = reader.GetString();
             string normal = reader.GetString();
@@ -325,13 +337,13 @@ shared_ptr<SceneNode> SceneNode::LoadScene( const string & file ) {
                 mesh->AddTriangle( Triangle( a, b, c ));
             }
 
-            mesh->SetDiffuseTexture( Texture::Request( pEngine->GetTextureStoragePath() + diffuse ));
+            mesh->mDiffuseTexture = Texture::Request( pEngine->GetTextureStoragePath() + diffuse );
 			if( mesh->GetOpacity() > 0.95f ) {
-				mesh->SetNormalTexture( Texture::Request( pEngine->GetTextureStoragePath() + normal ));
+				mesh->mNormalTexture = Texture::Request( pEngine->GetTextureStoragePath() + normal );
 				// try to load height map
 				string height = diffuse.substr( 0, diffuse.find_first_of( '.' )) + "_height" + diffuse.substr( diffuse.find_first_of( '.' ));
 				if( FileExist( pEngine->GetTextureStoragePath() + height )) {
-					mesh->SetHeightTexture( Texture::Request( pEngine->GetTextureStoragePath() + height ));
+					mesh->mHeightTexture = Texture::Request( pEngine->GetTextureStoragePath() + height );
 				}
 			}
             node->AddMesh( mesh );
@@ -550,8 +562,8 @@ void SceneNode::UpdateContacts() {
 				nodeA->mContactList[ j ].impulse = pt.m_appliedImpulse;
 				nodeA->mContactList[ j ].body = nodeB;
 				if( obAIndex >= 0 ) {
-					if( nodeA->mMeshList[obAIndex]->GetDiffuseTexture() ) {
-						nodeA->mContactList[ j ].textureName = nodeA->mMeshList[obAIndex]->GetDiffuseTexture()->GetName();
+					if( nodeA->mMeshList[obAIndex]->mDiffuseTexture ) {
+						nodeA->mContactList[ j ].textureName = nodeA->mMeshList[obAIndex]->mDiffuseTexture->GetName();
 					}
 				}
 
@@ -561,8 +573,8 @@ void SceneNode::UpdateContacts() {
                 nodeB->mContactList[ j ].impulse = pt.m_appliedImpulse;				
 				nodeB->mContactList[ j ].body = nodeA;
 				if( obBIndex >= 0 ) {
-					if( nodeB->mMeshList[obBIndex]->GetDiffuseTexture() ) {
-						nodeB->mContactList[ j ].textureName = nodeB->mMeshList[obBIndex]->GetDiffuseTexture()->GetName();
+					if( nodeB->mMeshList[obBIndex]->mDiffuseTexture ) {
+						nodeB->mContactList[ j ].textureName = nodeB->mMeshList[obBIndex]->mDiffuseTexture->GetName();
 					}
 				}
 
@@ -656,17 +668,6 @@ void SceneNode::ApplyProperties() {
             mAlbedo = atof( value.c_str() );
         }
 
-		/*
-        if ( pname == "octree" ) {
-            if ( value == "1" ) {
-                for( auto mesh : mMeshList ) {
-                    if( !mesh->mOctree ) {
-                        // mesh->octree = new Octree( mesh, 4096 );
-                    }
-                }
-            }
-        }
-		*/
         if ( pname == "visible" ) {
             mVisible = atoi( value.c_str());
         }
@@ -683,6 +684,10 @@ void SceneNode::ApplyProperties() {
 			if( !IsStatic() ) {
 				SetMass( atof( value.c_str()) );            
 			}
+		}
+
+		if( pname == "twoSidedLighting" ) {
+			mTwoSidedLighting = atoi( value.c_str() );
 		}
 
         if ( pname == "friction" ) {
@@ -1047,14 +1052,6 @@ void SceneNode::AddForce( ruVector3 force ) {
 	}
 }
 
-void SceneNode::OnResetDevice() {
-
-}
-
-void SceneNode::OnLostDevice() {
-
-}
-
 void SceneNode::SetLocalPosition( ruVector3 pos ) {
 	mLocalTransform.setOrigin( btVector3( pos.x, pos.y, pos.z ));
 	for( auto & body : mBodyList ) {
@@ -1092,7 +1089,7 @@ shared_ptr<ruTexture> SceneNode::GetTexture( int n ) {
 	if( n < 0 || n >= mMeshList.size() ) {
 		return nullptr;
 	} else {
-		return mMeshList[n]->GetDiffuseTexture();
+		return mMeshList[n]->mDiffuseTexture;
 	}
 }
 
@@ -1135,7 +1132,7 @@ void SceneNode::CheckFrustum( Camera * pCamera )
 {
 	mInFrustum = false;
 	for( auto & mesh : mMeshList ) {
-		mInFrustum |= pCamera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), GetPosition() );
+		mInFrustum |= pCamera->mFrustum.IsAABBInside( mesh->GetBoundingBox(), GetPosition(), GetWorldMatrix() );
 	}
 }
 
@@ -1217,6 +1214,26 @@ shared_ptr<Mesh> SceneNode::GetMesh( int n )
 	} catch( std::out_of_range ) {
 		return nullptr;
 	}
+}
+
+bool SceneNode::IsCollisionEnabled() const
+{
+	return mCollisionEnabled;
+}
+
+void SceneNode::SetCollisionEnabled( bool state )
+{
+	mCollisionEnabled = state;
+}
+
+ruVector2 SceneNode::GetTexCoordFlow() const
+{
+	return mTexCoordFlow;
+}
+
+void SceneNode::SetTexCoordFlow( const ruVector2 & flow )
+{
+	mTexCoordFlow = flow;
 }
 
 shared_ptr<ruSceneNode> ruSceneNode::Create( ) {

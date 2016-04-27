@@ -210,6 +210,12 @@ public:
 		z /= v.z;
 	}
 
+	void operator /= ( float a ) {
+		x /= a;
+		y /= a;
+		z /= a;
+	}
+
 	void operator += ( const ruVector3 & v ) {
 		x += v.x;
 		y += v.y;
@@ -306,6 +312,11 @@ public:
     };
 
     ruVector2( float _x, float _y ) : x( _x ), y( _y ) { };
+
+	void operator += ( const ruVector2 & v ) {
+		x += v.x;
+		y += v.y;
+	}
 };
 
 class ruVector4 {
@@ -336,11 +347,31 @@ public:
 };
 
 static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2 ) {
-    return ruQuaternion(  q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
-                          q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
-                          q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
-                          q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
+    return ruQuaternion(  
+		q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,                         
+		q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,                         
+		q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
+        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z  );
 }
+
+class ruPlane {
+public:
+	ruVector3 normal;
+	float distance;
+
+	ruPlane() {}
+	ruPlane( const ruVector3 & planeNormal, float planeDistance ) : normal( planeNormal ), distance( planeDistance ) { }
+	ruPlane( float a, float b, float c, float d ) : normal( a, b, c ), distance( d ) { }
+	float Dot( const ruVector3 & point ) const {
+		return normal.Dot( point ) + distance;
+	}
+	ruPlane Normalize() {
+		float d = normal.Length();
+		normal /= d;
+		distance /= d;
+		return *this;
+	}
+};
 
 #define BODY_MAX_CONTACTS ( 16 )
 
@@ -547,7 +578,8 @@ enum class ruGUIAction : int {
 };
 
 enum class ruTextAlignment : int {
-	Left, Center
+	Left, 
+	Center
 };
 
 class ruFont {
@@ -576,6 +608,7 @@ public:
 	virtual void SetVisible( bool visible ) = 0;
 	virtual bool IsVisible() = 0;
 	virtual ruVector2 GetPosition() = 0;
+	virtual ruVector2 GetGlobalPosition() = 0;
 	virtual ruVector2 GetSize() = 0;
 	virtual ruVector3 GetColor() = 0;
 	virtual void SetTexture( const shared_ptr<ruTexture> & pTexture ) = 0;
@@ -622,6 +655,8 @@ public:
 	static void SetCursorSettings( shared_ptr<ruTexture> texture, int w, int h );
 	static int GetDIPs( );
 	static int GetTextureUsedPerFrame( );
+	static int GetShaderCountChangedPerFrame( );
+	static int GetRenderedTriangles();
 	static void SetAmbientColor( ruVector3 color );
 	static int GetAvailableTextureMemory();
 	static void EnableShadows( bool state );
@@ -645,6 +680,10 @@ public:
 	static void SetSpotLightShadowMapSize( int size );
 	static void EnableSpotLightShadows( bool state );
 	static bool IsSpotLightShadowsEnabled();
+
+	static void SetPointLightShadowMapSize( int size );
+	static void EnablePointLightShadows( bool state );
+	static bool IsPointLightShadowsEnabled();
 
 	static int GetMaxAnisotropy();
 };
@@ -935,7 +974,6 @@ public:
 		Left,
 		Right,
 		Middle,
-		Wheel,
 	};
 
 	static void Init( HWND window );

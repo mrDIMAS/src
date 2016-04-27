@@ -20,14 +20,10 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "Skybox.h"
 #include "Texture.h"
 #include "Vertex.h"
-
-Skybox::~Skybox() {
-    OnLostDevice();
-}
 
 Skybox::Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back ) {
 	mTextures[0] = forward;
@@ -35,59 +31,4 @@ Skybox::Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Tex
 	mTextures[2] = right;
 	mTextures[3] = left;
 	mTextures[4] = up;
-	OnResetDevice();
-}
-
-void Skybox::Render( ) {
-    pD3D->SetIndices( mIndexBuffer );
-	pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
-	for( int i = 0; i < 5; i++ ) {
-		pD3D->SetTexture( 0, mTextures[i]->GetInterface() );
-		pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2 );
-		pEngine->RegisterDIP();
-	}
-}
-
-void Skybox::OnLostDevice() {
-	mVertexBuffer.Reset();
-	mIndexBuffer.Reset();
-}
-
-void Skybox::OnResetDevice() {	
-	void * data = nullptr;
-
-	float size = 1024.0f;
-	Vertex fv[ 20 ]; 
-	fv[0] = Vertex( ruVector3( -size,  size, -size ), ruVector2( 0.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( size,  size, -size ), ruVector2( 1.0f, 0.0f  ));
-	fv[0] = Vertex( ruVector3( size, -size, -size ), ruVector2( 1.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( -size, -size, -size ), ruVector2( 0.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( size,  size,  size ), ruVector2( 0.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( -size,  size,  size ), ruVector2( 1.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( -size, -size,  size ), ruVector2( 1.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( size, -size,  size ), ruVector2( 0.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( size,  size, -size ), ruVector2( 0.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( size,  size,  size ), ruVector2( 1.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( size, -size,  size ), ruVector2( 1.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( size, -size, -size ), ruVector2( 0.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( -size,  size,  size ), ruVector2( 0.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( -size,  size, -size ), ruVector2( 1.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( -size, -size, -size ), ruVector2( 1.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( -size, -size,  size ), ruVector2( 0.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( -size,  size,  size ), ruVector2( 0.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( size,  size,  size ), ruVector2( 1.0f, 0.0f ));
-	fv[0] = Vertex( ruVector3( size,  size, -size ), ruVector2( 1.0f, 1.0f ));
-	fv[0] = Vertex( ruVector3( -size,  size, -size ), ruVector2( 0.0f, 1.0f ));
-
-	unsigned short indices [] = { 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19 };
-
-	pD3D->CreateVertexBuffer( sizeof( fv ), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );	
-	mVertexBuffer->Lock( 0, 0, &data, 0 );
-	memcpy( data, fv, sizeof( fv ));
-	mVertexBuffer->Unlock();
-	
-	pD3D->CreateIndexBuffer( sizeof( indices ), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );
-	mIndexBuffer->Lock( 0, 0, &data, 0 );
-	memcpy( data, indices, sizeof( indices ) );
-	mIndexBuffer->Unlock();
 }

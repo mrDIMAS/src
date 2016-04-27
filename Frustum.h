@@ -26,11 +26,11 @@
 
 class Frustum {
 private:
-    D3DXPLANE planes[ 6 ];
+    ruPlane mPlanes[ 6 ];
 public:
     explicit Frustum();
     void Build( D3DXMATRIX viewProjection );
     bool IsPointInside( const ruVector3 & point );
-    bool IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset );
+    bool IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset, const D3DXMATRIX & worldMatrix );
 	bool IsSphereInside( const ruVector3 & center, const float & radius );
 };

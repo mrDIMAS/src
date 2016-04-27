@@ -20,7 +20,7 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "CubeTexture.h"
 
 map< string, CubeTexture*> CubeTexture::all;

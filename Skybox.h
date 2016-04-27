@@ -21,17 +21,8 @@
 
 #pragma once
 
-
-
-class Skybox : public RendererComponent {
-private:
-	shared_ptr<Texture> mTextures[5];
-	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
-	COMPtr<IDirect3DIndexBuffer9> mIndexBuffer;
+class Skybox {
 public:
-    explicit Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back );
-    virtual ~Skybox();
-    void Render( );
-	void OnResetDevice();
-	void OnLostDevice();
+	shared_ptr<Texture> mTextures[5];
+    Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back );
 };

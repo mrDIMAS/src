@@ -23,7 +23,7 @@
 #include "RutheniumAPI.h"
 #include "SceneNode.h"
 #include "Camera.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "SceneFactory.h"
 
 shared_ptr<ruSceneNode> ruPhysics::CastRay( ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint ) {
@@ -82,7 +82,7 @@ ruRayCastResultEx ruPhysics::CastRayEx( ruVector3 begin, ruVector3 end ) {
 					if( index >= 0 ) {
 						shared_ptr<Mesh> & mesh = node->GetMesh( index );
 						if( mesh ) {
-							result.textureName = mesh->GetDiffuseTexture()->GetName();
+							result.textureName = mesh->mDiffuseTexture->GetName();
 						}
 					}
 				}

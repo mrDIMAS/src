@@ -30,7 +30,7 @@ class SceneNode;
 class Mesh : public RendererComponent {
 public:
 
-
+	// Grim code ahead
 	class Bone {
 	public:
 		int mMatrixID; // number of this bone in list of bones of a mesh
@@ -56,10 +56,11 @@ private:
 	vector<Bone*> mBones;
     // mesh can be shared between multiple nodes
 	vector<weak_ptr<SceneNode>> mOwnerList;
-    AABB mAABB;
+    
 	bool mSkinned;    
 public:
 	// Data for renderer
+	AABB mAABB;
 	vector<Vertex> mVertices;
 	vector<Triangle> mTriangles;
 	COMPtr<IDirect3DVertexBuffer9> mVertexBuffer;
@@ -74,9 +75,7 @@ public:
 	vector<Bone*> & GetBones();
 	void OnResetDevice();
 	void OnLostDevice();    
-	void CalculateAABB() {
-		mAABB = AABB( mVertices );
-	}
+	void CalculateAABB();
     explicit Mesh();
     virtual ~Mesh();
 	void LinkTo( weak_ptr<SceneNode> owner );
@@ -85,17 +84,11 @@ public:
     void CreateVertexBuffer();
     void CreateIndexBuffer( vector< Triangle > & idc );
     void CreateHardwareBuffers();
-    shared_ptr<Texture> & GetDiffuseTexture();
-    shared_ptr<Texture> & GetNormalTexture();
-	shared_ptr<Texture> & GetHeightTexture();
 	AABB GetBoundingBox( ) const;
 	vector<Vertex> & GetVertices();
 	vector<Triangle> & GetTriangles();
 	bool IsSkinned() const;
 	void AddBoneGroup( const BoneGroup & bg );
-	void SetDiffuseTexture( const shared_ptr<Texture>& diffuseTexture );
-	void SetNormalTexture( const shared_ptr<Texture> & normalTexture );
-	void SetHeightTexture( const shared_ptr<Texture> & heightTexture );
 	void AddTriangle( const Triangle & triangle );
 	void SetOpacity( float opacity );
 	float GetOpacity( ) const;

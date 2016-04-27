@@ -20,32 +20,17 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "ParticleSystem.h"
 #include "Camera.h"
 #include "Texture.h"
 #include "Utility.h"
 #include "SceneFactory.h"
 
-
-
 ParticleSystem::~ParticleSystem() {
 	OnLostDevice();
     delete mVertices;
     delete mFaces;
-}
-
-void ParticleSystem::Render() {
-    pEngine->RegisterDIP();
-    pD3D->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, mAliveParticleCount * 4, 0, mAliveParticleCount * 2 );
-}
-
-void ParticleSystem::Bind() {
-    if( mTexture ) {
-		pD3D->SetTexture( 0, mTexture->GetInterface() );
-    }
-    pD3D->SetStreamSource( 0, mVertexBuffer, 0, sizeof( Vertex ));
-    pD3D->SetIndices( mIndexBuffer );
 }
 
 void ParticleSystem::Update() {
@@ -56,44 +41,27 @@ void ParticleSystem::Update() {
 
     mAliveParticleCount = 0;
 
-    mGlobalTransform.getBasis().setEulerYPR( 0, 0, 0 );
-    mWorldTransform = GetWorldMatrix();
-
-	shared_ptr<Camera> & camera = Camera::msCurrentCamera.lock();
-	D3DXMATRIX view;
-	if( camera ) {
-		view = camera->mView;
-	} else {
-		D3DXMatrixIdentity( &view );
-	}
-    ruVector3 rightVect = ruVector3( view._11, view._21, view._31 ).Normalize();
-    ruVector3 upVect = ruVector3( view._12, view._22, view._32 ).Normalize();
-
-    ruVector3 leftTop = upVect - rightVect;
-    ruVector3 rightTop = upVect + rightVect;
-    ruVector3 rightBottom = rightVect - upVect;
-    ruVector3 leftBottom = -( rightVect + upVect );
-
     int vertexNum = 0, faceNum = 0;
 
     for( auto & p : mParticles ) {
         p.mPosition += p.mSpeed;
 
-        float insideCoeff = 1.0f;
+        float inside = 1.0f;
         if( mType == ruParticleSystem::Type::Box ) {
-            insideCoeff = ( p.mPosition ).Length2() / ( mBoundingBoxMax - mBoundingBoxMin ).Length2();
+            inside = ( p.mPosition ).Length2() / ( mBoundingBoxMax - mBoundingBoxMin ).Length2();
         } else {
-            insideCoeff = ( p.mPosition ).Length2() / mBoundingRadius;
+            inside = ( p.mPosition ).Length2() / mBoundingRadius;
         }
-        if( insideCoeff > 1.0f ) {
-            insideCoeff = 1.0f;
+
+        if( inside > 1.0f ) {
+            inside = 1.0f;
         }
-        p.mColor = mColorBegin.Lerp( mColorEnd, insideCoeff );
-		float fakeOpacity = 255.0f * ( 1.0f - insideCoeff );
+
+        p.mColor = mColorBegin.Lerp( mColorEnd, inside );
+		float fakeOpacity = 255.0f * ( 1.0f - inside );
         p.mOpacity = fakeOpacity + mAlphaOffset;
         p.mSize += mScaleFactor;
-
-		
+				
         if( p.mOpacity <= 1.0f  ) {
             if( mAutoResurrectDeadParticles ) {
                 ResurrectParticle( p );
@@ -103,25 +71,37 @@ void ParticleSystem::Update() {
 			short v2 = vertexNum + 2;
 			short v3 = vertexNum + 3;
 
-            mVertices[ vertexNum ].mPosition = p.mPosition + leftTop * p.mSize;
+            mVertices[ vertexNum ].mPosition = p.mPosition;
 			mVertices[ vertexNum ].mTexCoord.x = 0.0f;
 			mVertices[ vertexNum ].mTexCoord.y = 0.0f; 
 			mVertices[ vertexNum ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
+			mVertices[ vertexNum ].mBoneWeights.x = -1.0f;
+			mVertices[ vertexNum ].mBoneWeights.y = -1.0f;
+			mVertices[ vertexNum ].mBoneWeights.z = p.mSize;
 
-            mVertices[ v1 ].mPosition = p.mPosition + rightTop * p.mSize;
+            mVertices[ v1 ].mPosition = p.mPosition;
 			mVertices[ v1 ].mTexCoord.x = 1.0f;
 			mVertices[ v1 ].mTexCoord.y = 0.0f;
 			mVertices[ v1 ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
+			mVertices[ v1 ].mBoneWeights.x = -1.0f;
+			mVertices[ v1 ].mBoneWeights.y = 1.0f;
+			mVertices[ v1 ].mBoneWeights.z = p.mSize;
 
-            mVertices[ v2 ].mPosition = p.mPosition + rightBottom * p.mSize;
+            mVertices[ v2 ].mPosition = p.mPosition;
 			mVertices[ v2 ].mTexCoord.x = 1.0f;
 			mVertices[ v2 ].mTexCoord.y = 1.0f;
 			mVertices[ v2 ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
+			mVertices[ v2 ].mBoneWeights.x = 1.0f;
+			mVertices[ v2 ].mBoneWeights.y = 1.0f;
+			mVertices[ v2 ].mBoneWeights.z = p.mSize;
 
-            mVertices[ v3 ].mPosition = p.mPosition + leftBottom * p.mSize;
+            mVertices[ v3 ].mPosition = p.mPosition;
 			mVertices[ v3 ].mTexCoord.x = 0.0f;
 			mVertices[ v3 ].mTexCoord.y = 1.0f;
 			mVertices[ v3 ].mBoneIndices = ruVector4( p.mColor / 255.0f, p.mOpacity / 255.0f );
+			mVertices[ v3 ].mBoneWeights.x = 1.0f;
+			mVertices[ v3 ].mBoneWeights.y = -1.0f;
+			mVertices[ v3 ].mBoneWeights.z = p.mSize;
 
             // indices
             mFaces[ faceNum ].mA = vertexNum;
@@ -153,7 +133,6 @@ void ParticleSystem::Update() {
 bool ParticleSystem::IsLightAffects() {
     return mUseLighting;
 }
-
 
 void ParticleSystem::ResurrectParticle( Particle & p ) {
     if( mType ==  ruParticleSystem::Type::Box ) {
@@ -190,42 +169,33 @@ void ParticleSystem::ResurrectParticles() {
     }
 }
 
-ParticleSystem::ParticleSystem( int theParticleCount ) {
-    mAliveParticleCount = theParticleCount;
-	mMaxParticleCount = theParticleCount;
+ParticleSystem::ParticleSystem( int theParticleCount ) :
+	mAliveParticleCount( theParticleCount ),
+	mMaxParticleCount( theParticleCount ),
+	mType( ruParticleSystem::Type::Box ),
+	mColorBegin( 0, 0, 0 ),
+	mColorEnd( 255, 255, 255 ),
+	mSpeedDeviationMin( -1, -1, -1 ),
+	mSpeedDeviationMax( 1, 1, 1 ),
+	mBoundingBoxMin( 100, 100, 100 ),
+	mBoundingBoxMax( -100, -100, -100 ),
+	mParticleThickness( 1.0f ),
+	mBoundingRadius( 1.0f ),
+	mPointSize( 1.0f ),
+	mScaleFactor(  0.0f ),
+	mAlphaOffset( 0.0f ),
+	mAutoResurrectDeadParticles( true ),
+	mUseLighting( false ),
+	mEnabled( true ),
+	mTexture( nullptr ),
+	mFirstTimeUpdate( false )
+{
 	OnResetDevice();
     mFaces = new Triangle[ theParticleCount * 2 ];
     mVertices = new Vertex[ theParticleCount * 4 ];
     for( int i = 0; i < theParticleCount; i++ ) {
         mParticles.push_back( Particle());
     }
-	mType =  ruParticleSystem::Type::Box;
-
-	mColorBegin = ruVector3( 0, 0, 0 );
-	mColorEnd = ruVector3( 255, 255, 255 );
-
-	mSpeedDeviationMin = ruVector3( -1, -1, -1 );
-	mSpeedDeviationMax = ruVector3( 1, 1, 1 );
-
-	mBoundingBoxMin = ruVector3( 100, 100, 100 );
-	mBoundingBoxMax = ruVector3( -100, -100, -100 );
-
-	mParticleThickness = 1.0f;
-	mBoundingRadius = 1.0f;
-	mPointSize = 1.0f;
-	mScaleFactor = 0.0f;
-
-	mDepthHack = 0.0f;
-	mAlphaOffset = 0.0f;
-
-	mAutoResurrectDeadParticles = true;
-	mUseLighting = false;
-
-	mEnabled = true;
-
-	mTexture = nullptr;
-    mFirstTimeUpdate = false;
-
     ResurrectParticles();
 }
 
@@ -358,13 +328,23 @@ float ParticleSystem::GetAlphaOffset() {
 	return mAlphaOffset;
 }
 
-Particle::Particle() : mPosition( 0, 0, 0 ), mSpeed( 0, 0, 0 ), mColor( 255, 255, 255 ),
-	mOpacity( 255 ), mSize( 1.0f ) {
+Particle::Particle() : 
+	mPosition( 0, 0, 0 ), 
+	mSpeed( 0, 0, 0 ), 
+	mColor( 255, 255, 255 ),
+	mOpacity( 255 ), 
+	mSize( 1.0f ) 
+{
 
 }
 
 Particle::Particle( const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize ) :
-	mPosition( thePosition ), mSpeed( theSpeed ), mColor( theColor ), mOpacity( theTranslucency ), mSize( theSize ) {
+	mPosition( thePosition ), 
+	mSpeed( theSpeed ), 
+	mColor( theColor ), 
+	mOpacity( theTranslucency ), 
+	mSize( theSize ) 
+{
 
 }
 

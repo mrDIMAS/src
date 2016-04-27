@@ -23,6 +23,20 @@
 
 #include "GUINode.h"
 
+class GUITextLine {
+public:
+	float mX, mY;
+	string mSubstring;
+
+	GUITextLine( float x, float y, const string & substring ) :
+		mX( x ),
+		mY( y ),
+		mSubstring( substring )
+	{
+		
+	}
+};
+
 class GUIText : public GUINode, public ruText {
 protected:
 	friend class GUIFactory;
@@ -30,13 +44,18 @@ protected:
     shared_ptr<BitmapFont> mFont;
     string mText;
     ruTextAlignment mTextAlign;
-    RECT mRect;
+	
+
+	void BreakOnLines();
+public:
+	// Data for renderer
+	vector<GUITextLine> mLines;
 public:
     virtual ~GUIText( );
-    RECT GetBoundingRect();
     ruTextAlignment GetTextAlignment();
     string & GetText();
     shared_ptr<BitmapFont> GetFont();
+
 
     virtual void SetText( const string & text );
 };

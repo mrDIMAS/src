@@ -20,9 +20,8 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "Cursor.h"
-#include "GUIRenderer.h"
 
 void Cursor::Hide() {
     mVisible = false;

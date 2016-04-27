@@ -62,6 +62,8 @@ int main( int argc, char * argv[] ) {
 		shared_ptr<ruText> fpsText = ruText::Create( "FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left, 100 );
 		ruEngine::ShowCursor();
 
+		ruEngine::EnablePointLightShadows( true );
+
 		while( g_running ) {
 			ruEngine::RenderWorld( );
 			 
@@ -103,7 +105,14 @@ int main( int argc, char * argv[] ) {
 					InteractiveObject::UpdateAll();
 				}
 			
-				fpsText->SetText( StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() << "\nTCs: " << ruEngine::GetTextureUsedPerFrame() << "\nFPS: " << fpsCounter.fps );
+				fpsText->SetText( 
+					StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() << 
+					"\nTCC: " << ruEngine::GetTextureUsedPerFrame() << 
+					"\nFPS: " << fpsCounter.fps <<
+					"\nSCC: " << ruEngine::GetShaderCountChangedPerFrame() <<
+					"\nRTC: " << ruEngine::GetRenderedTriangles()
+				);
+
 				fpsText->SetVisible( g_showFPS );
 				// recalculate transforms of scene nodes
 				ruEngine::UpdateWorld();

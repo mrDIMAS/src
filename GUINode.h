@@ -68,6 +68,10 @@ public:
     virtual shared_ptr<ruTexture> GetTexture( );
     virtual void SetTexture( const shared_ptr<ruTexture> & pTexture );    
     virtual ruVector2 GetPosition( );
+	virtual ruVector2 GetGlobalPosition() {
+		CalculateTransform();
+		return ruVector2( mGlobalX, mGlobalY );
+	}
     virtual ruVector2 GetSize( );
     virtual ruVector3 GetColor();
     virtual int GetAlpha();

@@ -20,12 +20,11 @@
 *******************************************************************************/
 
 #include "Precompiled.h"
-#include "Engine.h"
+#include "Renderer.h"
 #include "Mesh.h"
 #include "Texture.h"
 #include "Vertex.h"
 #include "SceneNode.h"
-
 
 Mesh::Mesh() : 
 	mHeightTexture( nullptr ), 
@@ -76,8 +75,6 @@ void Mesh::CreateVertexBuffer() {
 			data = &mVertices[0];
 		}
 		
-
-		// dont care about FVF, set it to simple D3DFVF_XYZ
 		pD3D->CreateVertexBuffer( sizeBytes, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_DEFAULT, &mVertexBuffer, 0 );
 		
 		void * vertexData = 0;
@@ -107,7 +104,7 @@ Mesh::Bone * Mesh::AddBone( weak_ptr<SceneNode> node ) {
 
 void Mesh::CreateIndexBuffer( vector< Triangle > & triangles ) {
 	if( triangles.size() ) {
-		int sizeBytes = triangles.size() * 3 * sizeof( unsigned short );
+		int sizeBytes = triangles.size() * sizeof( Triangle );
 		pD3D->CreateIndexBuffer( sizeBytes,D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0 );		
 		void * indexData = 0;
 		mIndexBuffer->Lock( 0, 0, &indexData, 0 );
@@ -134,16 +131,13 @@ void Mesh::CreateHardwareBuffers() {
     CreateIndexBuffer( mTriangles );
 }
 
-shared_ptr<Texture> & Mesh::GetDiffuseTexture() {
-    return mDiffuseTexture;
-}
-
-shared_ptr<Texture> & Mesh::GetNormalTexture() {
-    return mNormalTexture;
-}
-
 void Mesh::OnLostDevice() {
 		
+}
+
+void Mesh::CalculateAABB()
+{
+	mAABB = AABB( mVertices );
 }
 
 void Mesh::OnResetDevice() {
@@ -198,24 +192,6 @@ void Mesh::SetOpacity( float opacity ) {
 void Mesh::AddTriangle( const Triangle & triangle ) {
 	mTriangles.push_back( triangle );
 }
-
-void Mesh::SetHeightTexture( const shared_ptr<Texture> & heightTexture ) {
-	mHeightTexture = heightTexture;
-}
-
-void Mesh::SetNormalTexture( const shared_ptr<Texture> & normalTexture ) {
-	mNormalTexture = normalTexture;
-}
-
-void Mesh::SetDiffuseTexture( const shared_ptr<Texture>& diffuseTexture ) {
-	mDiffuseTexture = diffuseTexture;
-}
-
-shared_ptr<Texture> & Mesh::GetHeightTexture(){
-	return mHeightTexture;
-}
-
-
 
 Mesh::Bone::Bone() : mMatrixID( 0 ) {
 

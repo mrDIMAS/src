@@ -23,18 +23,25 @@
 
 #include "AABB.h"
 
-bool AABB::IsTriangleInside( const ruVector3 & v1, const ruVector3 & v2, const ruVector3 & v3 ) {
-    return IsPointInside( v1 ) || IsPointInside( v2 ) || IsPointInside( v3 );
+void AABB::BuildPoints()
+{
+	mPoints[0] = ruVector3( mMin.x, mMin.y, mMin.z );
+	mPoints[1] = ruVector3( mMin.x, mMin.y, mMax.z );
+	mPoints[2] = ruVector3( mMax.x, mMin.y, mMax.z );
+	mPoints[3] = ruVector3( mMax.x, mMin.y, mMin.z );
+	mPoints[4] = ruVector3( mMin.x, mMax.y, mMin.z );
+	mPoints[5] = ruVector3( mMin.x, mMax.y, mMax.z );
+	mPoints[6] = ruVector3( mMax.x, mMax.y, mMax.z );
+	mPoints[7] = ruVector3( mMax.x, mMax.y, mMin.z );
 }
 
-bool AABB::IsPointInside( const ruVector3 & v ) {
-    return  v.x >= mMin.x && v.x <= mMax.x &&
-            v.y >= mMin.y && v.y <= mMax.y &&
-            v.z >= mMin.z && v.z <= mMax.z ;
+float AABB::Squared( float x )
+{
+	return x * x;
 }
 
 AABB::AABB( const ruVector3 & min, const ruVector3 & max ) : mMin( min ), mMax( max ) {
-    mCenter = ( mMin + mMax ) / 2;
+	BuildPoints();
 }
 
 AABB::AABB() {
@@ -54,21 +61,40 @@ AABB::AABB( const vector< Vertex > & vertices ) {
 		if( v.z > mMax.z ) mMax.z = v.z;
 		if( v.z < mMin.z ) mMin.z = v.z;
     }
-	
-	mCenter = ( mMin + mMax ) / 2;
 
-	// find max metrics
-	float maxSize = 0;
-	ruVector3 size = mMax - mMin;
-	if( size.x > maxSize ) maxSize = size.x;
-	if ( size.y > maxSize ) maxSize = size.y;
-	if ( size.z > maxSize ) maxSize = size.z;
+	BuildPoints();
+}
 
-	// make cube from aabb
-	ruVector3 halfSize( maxSize / 2, maxSize / 2, maxSize / 2 );
-	mFrustumMin = mCenter - halfSize;
-	mFrustumMax = mCenter + halfSize;
+bool AABB::IsIntersectSphere( const ruVector3 & aabbOffset, const ruVector3 & position, float radius )
+{
+	float r2 = radius * radius;
+	float dmin = 0;
 
-	//mFrustumMin = mMax;
-	//mFrustumMax = mMin;
+	ruVector3 max = mMax + aabbOffset;
+	ruVector3 min = mMin + aabbOffset;
+
+	if( position.x < min.x ) {
+		dmin += Squared( position.x - min.x );
+	} else if( position.x > max.x ) {
+		dmin += Squared( position.x - max.x );
+	}
+
+	if( position.y < min.y ) {
+		dmin += Squared( position.y - min.y );
+	} else if( position.y > max.y ) {
+		dmin += Squared( position.y - max.y );
+	}
+
+	if( position.z < min.z ) {
+		dmin += Squared( position.z - min.z );
+	} else if( position.z > max.z ) {
+		dmin += Squared( position.z - max.z );
+	}
+
+	bool sphereInside = 
+		(position.x >= min.x) && (position.x <= max.x) &&
+		(position.y >= min.y) && (position.y <= max.y) &&
+		(position.z >= min.z) && (position.z <= max.z);
+
+	return dmin <= r2 || sphereInside;
 }
