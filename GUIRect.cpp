@@ -22,34 +22,32 @@
 #include "Precompiled.h"
 #include "Texture.h"
 #include "GUIRect.h"
-#include "GUIFactory.h"
+#include "GUIScene.h"
 
 GUIRect::~GUIRect() {
 
 }
 
-GUIRect::GUIRect() {
+GUIRect::GUIRect() : GUINode(shared_ptr<GUIScene>(nullptr)) {
 
 }
 
-GUIRect::GUIRect( float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha ) {
-	SetPosition( theX, theY );
-	SetSize( theWidth, theHeight );
-    mpTexture = theTexture;
-    mVisible = true;
-    SetColor( theColor );
-    SetAlpha( theAlpha );
+GUIRect::GUIRect(const weak_ptr<GUIScene> & scene, float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha) :
+	GUINode(scene) {
+	SetPosition(theX, theY);
+	SetSize(theWidth, theHeight);
+	mpTexture = theTexture;
+	mVisible = true;
+	SetColor(theColor);
+	SetAlpha(theAlpha);
 }
 
-void GUIRect::GetSixVertices( Vertex * vertices ) {
-	vertices[ 0 ] = Vertex( ruVector3( mGlobalX, mGlobalY, 0 ), ruVector2( 0, 0 ), ruVector4( mColor, mAlpha / 255.0f ));
-	vertices[ 1 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY, 0 ), ruVector2( 1, 0 ), ruVector4( mColor, mAlpha / 255.0f ) );
-	vertices[ 2 ] = Vertex( ruVector3( mGlobalX, mGlobalY + mHeight, 0 ), ruVector2( 0, 1 ), ruVector4( mColor, mAlpha / 255.0f ) );
-	vertices[ 3 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY, 0 ), ruVector2( 1, 0 ), ruVector4( mColor, mAlpha / 255.0f ) );
-	vertices[ 4 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY + mHeight, 0 ), ruVector2( 1, 1 ), ruVector4( mColor, mAlpha / 255.0f ) );
-	vertices[ 5 ] = Vertex( ruVector3( mGlobalX, mGlobalY + mHeight, 0 ), ruVector2( 0, 1 ), ruVector4( mColor, mAlpha / 255.0f ) );
+void GUIRect::GetSixVertices(Vertex * vertices) {
+	float alpha = (mScene.expired() || mIndependentAlpha) ? mAlpha / 255.0f : mScene.lock()->GetOpacity() * mAlpha / 255.0f;
+	vertices[0] = Vertex(ruVector3(mGlobalX, mGlobalY, 0), ruVector2(0, 0), ruVector4(mColor, alpha));
+	vertices[1] = Vertex(ruVector3(mGlobalX + mWidth, mGlobalY, 0), ruVector2(1, 0), ruVector4(mColor, alpha));
+	vertices[2] = Vertex(ruVector3(mGlobalX, mGlobalY + mHeight, 0), ruVector2(0, 1), ruVector4(mColor, alpha));
+	vertices[3] = Vertex(ruVector3(mGlobalX + mWidth, mGlobalY, 0), ruVector2(1, 0), ruVector4(mColor, alpha));
+	vertices[4] = Vertex(ruVector3(mGlobalX + mWidth, mGlobalY + mHeight, 0), ruVector2(1, 1), ruVector4(mColor, alpha));
+	vertices[5] = Vertex(ruVector3(mGlobalX, mGlobalY + mHeight, 0), ruVector2(0, 1), ruVector4(mColor, alpha));
 }
-
-shared_ptr<ruRect> ruRect::Create( float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3 theColor, int theAlpha ) {
-	return GUIFactory::CreateRect( theX, theY, theWidth, theHeight, std::dynamic_pointer_cast<Texture>( theTexture ), theColor, theAlpha );
-};

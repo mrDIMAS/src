@@ -2,6 +2,7 @@
 #include "Syringe.h"
 #include "Player.h"
 #include "Item.h"
+#include "Level.h"
 
 Syringe::Syringe( ) : mDozeCount( 2 ) {
 	mModel = ruSceneNode::LoadFromFile( "data/models/hands_syringe/hands_syringe.scene" );
@@ -32,7 +33,8 @@ void Syringe::Proxy_Hide() {
 }
 
 void Syringe::Proxy_HealPlayer() {
-	pPlayer->Heal( 80 );
+	auto & player = Level::Current()->GetPlayer();
+	player->Heal( 80 );
 }
 
 void Syringe::Update() {

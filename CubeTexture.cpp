@@ -25,42 +25,40 @@
 
 map< string, CubeTexture*> CubeTexture::all;
 
-CubeTexture * CubeTexture::Request( string fn ) {
-    auto existing = all.find( fn );
-    if( existing != all.end() ) {
-        return existing->second;
-    } else {
-        CubeTexture * newCubeTexture = new CubeTexture( fn );
-        all[ fn ] = newCubeTexture;
-        return newCubeTexture;
-    }
+CubeTexture * CubeTexture::Request(string fn) {
+	auto existing = all.find(fn);
+	if (existing != all.end()) {
+		return existing->second;
+	} else {
+		CubeTexture * newCubeTexture = new CubeTexture(fn);
+		all[fn] = newCubeTexture;
+		return newCubeTexture;
+	}
 }
 
-CubeTexture::CubeTexture( string fn ) {
+CubeTexture::CubeTexture(string fn) {
 	mSourceName = fn;
 	Load();
 }
 
 CubeTexture::~CubeTexture() {
-    OnLostDevice();
+	OnLostDevice();
 }
 
-void CubeTexture::OnLostDevice(){
+void CubeTexture::OnLostDevice() {
 	mCubeTexture.Reset();
 }
 
-void CubeTexture::OnResetDevice()
-{
+void CubeTexture::OnResetDevice() {
 	Load();
 }
 
-void CubeTexture::Load()
-{
-	D3DXCreateCubeTextureFromFileA( pD3D, mSourceName.c_str(), &mCubeTexture );
+void CubeTexture::Load() {
+	D3DXCreateCubeTextureFromFileA(pD3D, mSourceName.c_str(), &mCubeTexture);
 }
 
-ruCubeTexture * ruCubeTexture::Request( const string & file ) {
-	return CubeTexture::Request( file );
+ruCubeTexture * ruCubeTexture::Request(const string & file) {
+	return CubeTexture::Request(file);
 }
 
 ruCubeTexture::~ruCubeTexture() {

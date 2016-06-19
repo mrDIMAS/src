@@ -10,7 +10,7 @@ private:
 	void SelectCheckTexture();
 	void OnChange();
 public:
-    explicit RadioButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
+    explicit RadioButton(const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
     void Update(  );
     bool IsChecked( );
     void SetEnabled( bool state );

@@ -7,15 +7,15 @@
 
 class LevelSewers : public Level {
 private:
-	unique_ptr<Keypad> mKeypad1;
+	shared_ptr<Keypad> mKeypad1;
 	shared_ptr<Door> mDoorToControl;
 
-	unique_ptr<Keypad> mKeypad2;
+	shared_ptr<Keypad> mKeypad2;
 	shared_ptr<Door> mDoorToCode;
 
-	unique_ptr<Gate> mGate1;
-	unique_ptr<Gate> mGate2;
-	unique_ptr<Gate> mGateToLift;
+	shared_ptr<Gate> mGate1;
+	shared_ptr<Gate> mGate2;
+	shared_ptr<Gate> mGateToLift;
 
 	shared_ptr<ruSceneNode> mZoneKnocks;
 	shared_ptr<ruSound> mKnocksSound;
@@ -28,22 +28,22 @@ private:
 	shared_ptr<ruSceneNode> mEnemySpawnPosition;
 	float mWaterFlow;
 
-	void OnPlayerEnterSpawnEnemyZone() 	{
-		if( !mStages[ "EnemySpawned" ] ) {
+	void OnPlayerEnterSpawnEnemyZone() {
+		if (!mStages["EnemySpawned"]) {
 			CreateEnemy();
-			mStages[ "EnemySpawned" ] = true;			
+			mStages["EnemySpawned"] = true;
 		}
 	}
 public:
-	LevelSewers( );
-	~LevelSewers( );
+	LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer);
+	~LevelSewers();
 
 	virtual void DoScenario();
 	virtual void Show();
 	virtual void Hide();
 
-	virtual void OnSerialize( SaveFile & out ) final;
-	virtual void OnDeserialize( SaveFile & in ) final;
+	virtual void OnSerialize(SaveFile & out) final;
+	virtual void OnDeserialize(SaveFile & in) final;
 
 	void CreateEnemy();
 };

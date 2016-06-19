@@ -5,56 +5,45 @@
 #include "Valve.h"
 #include "Enemy.h"
 #include "ItemPlace.h"
-#include "Fan.h"
+#include "Ventilator.h"
 #include "Sparks.h"
 #include "SteamStream.h"
 #include "Keypad.h"
 
 class LevelResearchFacility : public Level {
 private:
-	void Proxy_GiveCrowbar() {
-		pPlayer->AddItem( Item::Type::Crowbar );
-	}
+	void Proxy_GiveCrowbar();
+	void Proxy_GiveFe2O3();
+	void Proxy_GiveAl();
+	void Proxy_GiveFuse();
 
-	void Proxy_GiveFe2O3() {
-		pPlayer->AddItem( Item::Type::FerrumOxide );
-	}
-
-	void Proxy_GiveAl() {
-		pPlayer->AddItem( Item::Type::AluminumPowder );
-	}
-
-	void Proxy_GiveFuse() {
-		pPlayer->AddItem( Item::Type::Fuse );
-	}
-
-    shared_ptr<Lift> mLift1;
+	shared_ptr<Lift> mLift1;
 	shared_ptr<Lift> mLift2;
-    unique_ptr<Sparks> mpPowerSparks;
-    shared_ptr<Valve> mpSteamValve;
-    unique_ptr<SteamStream> mpExtemeSteam;
-    shared_ptr<Fan> mpFan1;
-    shared_ptr<Fan> mpFan2;
+	unique_ptr<Sparks> mpPowerSparks;
+	shared_ptr<Valve> mpSteamValve;
+	unique_ptr<SteamStream> mpExtemeSteam;
+	shared_ptr<Ventilator> mpFan1;
+	shared_ptr<Ventilator> mpFan2;
 
-    shared_ptr<ruSound> mLeverSound;
+	shared_ptr<ruSound> mLeverSound;
 	shared_ptr<ruSound> mBurnSound;
-    shared_ptr<ruSound> mSteamHissSound;
+	shared_ptr<ruSound> mSteamHissSound;
 
-    shared_ptr<ruParticleSystem > mSteamPS;
+	shared_ptr<ruParticleSystem > mSteamPS;
 	shared_ptr<ruParticleSystem > mThermitePS;
-    shared_ptr<ruSceneNode> mExtremeSteamBlock;
-    shared_ptr<ruSceneNode> mZoneExtremeSteamHurt;
-    shared_ptr<ruSceneNode> fuseModel[3];
-    shared_ptr<ruSceneNode> powerLever;
-    shared_ptr<ruSceneNode> mPowerLeverOffModel;
-    shared_ptr<ruSceneNode> mPowerLeverOnModel;
-    shared_ptr<ruPointLight>mPowerLamp;
-    shared_ptr<ruSceneNode> mPowerLeverSnd;
-    shared_ptr<ruSceneNode> mSmallSteamPosition;
-	
+	shared_ptr<ruSceneNode> mExtremeSteamBlock;
+	shared_ptr<ruSceneNode> mZoneExtremeSteamHurt;
+	shared_ptr<ruSceneNode> fuseModel[3];
+	shared_ptr<ruSceneNode> powerLever;
+	shared_ptr<ruSceneNode> mPowerLeverOffModel;
+	shared_ptr<ruSceneNode> mPowerLeverOnModel;
+	shared_ptr<ruPointLight>mPowerLamp;
+	shared_ptr<ruSceneNode> mPowerLeverSnd;
+	shared_ptr<ruSceneNode> mSmallSteamPosition;
+
 	ruAnimation mMeshAnimation;
 	ruAnimation mMeshLockAnimation;
-	
+
 	shared_ptr<ruSceneNode> mDoorUnderFloor;
 	shared_ptr<ruSceneNode> mZoneNewLevelLoad;
 
@@ -66,26 +55,26 @@ private:
 	shared_ptr<Zone> mZoneRemovePathBlockingMesh;
 	shared_ptr<Zone> mZoneNeedCrowbar;
 
-	unique_ptr<Keypad> mKeypad1;
+	shared_ptr<Keypad> mKeypad1;
 	shared_ptr<Door> mKeypad1DoorToUnlock;
 
-	unique_ptr<Keypad> mKeypad2;
+	shared_ptr<Keypad> mKeypad2;
 	shared_ptr<Door> mKeypad2DoorToUnlock;
 
-	unique_ptr<Keypad> mKeypad3;
+	shared_ptr<Keypad> mKeypad3;
 	shared_ptr<Door> mKeypad3DoorToUnlock;
 
-	unique_ptr<Keypad> mLabKeypad;
+	shared_ptr<Keypad> mLabKeypad;
 	shared_ptr<Door> mLabDoorToUnlock;
 
-	unique_ptr<Keypad> mColliderKeypad;
+	shared_ptr<Keypad> mColliderKeypad;
 	shared_ptr<Door> mColliderDoorToUnlock;
 
 	shared_ptr<Door> mLockedDoor;
 
-    shared_ptr<ItemPlace> mFusePlaceList[3];
-    int fuseInsertedCount;
-    bool mPowerOn;
+	shared_ptr<ItemPlace> mFusePlaceList[3];
+	int fuseInsertedCount;
+	bool mPowerOn;
 
 	shared_ptr<ruSceneNode> mThermiteSmall;
 	shared_ptr<ruSceneNode> mThermiteBig;
@@ -96,8 +85,8 @@ private:
 	shared_ptr<ruSceneNode> mRadioHurtZone;
 	ItemPlace * mThermiteItemPlace;
 
-    void CreatePowerUpSequence();
-    void UpdatePowerupSequence();
+	void CreatePowerUpSequence();
+	void UpdatePowerupSequence();
 	void UpdateThermiteSequence();
 	void CreateEnemy();
 
@@ -110,13 +99,13 @@ private:
 	void OnPlayerEnterNeedPassThroughMeshZone();
 	void OnCrowbarPickup();
 public:
-    explicit LevelResearchFacility();
-    virtual ~LevelResearchFacility();
-    virtual void DoScenario() final;
-    virtual void Hide() final;
-    virtual void Show() final;
-    virtual void OnSerialize( SaveFile & out ) final;
-    virtual void OnDeserialize( SaveFile & in ) final;
+	explicit LevelResearchFacility(const unique_ptr<PlayerTransfer> & playerTransfer);
+	virtual ~LevelResearchFacility();
+	virtual void DoScenario() final;
+	virtual void Hide() final;
+	virtual void Show() final;
+	virtual void OnSerialize(SaveFile & out) final;
+	virtual void OnDeserialize(SaveFile & in) final;
 };
 
 

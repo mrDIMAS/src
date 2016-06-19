@@ -15,7 +15,7 @@ private:
     shared_ptr<ruTimer> mTimer;
     shared_ptr<ruText> mGUIText;
 public:
-    explicit Tip();
+    explicit Tip(const shared_ptr<ruGUIScene> & scene);
 	virtual ~Tip();
 	void SetVisible( bool state );
     void SetNewText( string text );

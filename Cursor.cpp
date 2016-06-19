@@ -24,14 +24,14 @@
 #include "Cursor.h"
 
 void Cursor::Hide() {
-    mVisible = false;
-    ShowCursor( FALSE );
-    pD3D->ShowCursor( FALSE );
+	mVisible = false;
+	ShowCursor(FALSE);
+	pD3D->ShowCursor(FALSE);
 }
 
 void Cursor::Show() {
-    mVisible = true;
-    ShowCursor( FALSE );
-    pD3D->ShowCursor( FALSE );
+	mVisible = true;
+	ShowCursor(FALSE);
+	pD3D->ShowCursor(FALSE);
 }
 

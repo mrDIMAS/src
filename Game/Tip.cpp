@@ -39,12 +39,12 @@ void Tip::SetNewText( string text ) {
     mY.Set( mY.GetMin());
 }
 
-Tip::Tip() : mAlpha( 255.0f, 0.0f, 255.0f ) {
+Tip::Tip(const shared_ptr<ruGUIScene> & scene) : mAlpha( 255.0f, 0.0f, 255.0f ) {
     mTimer = ruTimer::Create();
     mWidth = 256;
     mHeight = 32;
     mX = ruVirtualScreenWidth / 2 - mWidth / 2;
-    mGUIText = ruText::Create( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center, mAlpha );
+    mGUIText = scene->CreateText( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center, mAlpha );
 	SetNewText( " " );
 }
 

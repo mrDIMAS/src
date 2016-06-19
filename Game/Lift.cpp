@@ -1,18 +1,21 @@
 #include "Precompiled.h"
-
+#include "Level.h"
 #include "Lift.h"
 #include "Player.h"
 #include "Utils.h"
 
 Lift::Lift( shared_ptr<ruSceneNode> base ) : mPaused( false ), mBaseNode( base ), mArrived( true ), mEngineSoundEnabled( true ), mSpeedMultiplier( 1.0f ) {
-
+	mMotorSound = ruSound::Load3D( "data/sounds/motor_idle.ogg");
+	mMotorSound->Attach( mBaseNode );
+	mMotorSound->SetRolloffFactor( 30 );
+	mMotorSound->SetRoomRolloffFactor( 30 );
 }
 
 void Lift::Update() {
-    if( mBaseNode && mDoorBackLeftNode && mDoorBackRightNode && mDoorFrontLeftNode && mDoorFrontRightNode && mSourceNode && mDestNode && mControlPanel && mTargetNode ) {
+    if( mBaseNode && mSourceNode && mDestNode && mControlPanel && mTargetNode ) {
 
         ruVector3 directionVector = mTargetNode->GetPosition() - mBaseNode->GetPosition();
-        ruVector3 speedVector = directionVector.Normalized() * 1.2 * g_dt;
+        ruVector3 speedVector = directionVector.Normalized() * 0.02f;
         float distSqr = directionVector.Length2();
 
         if( distSqr < 0.025f ) {
@@ -51,10 +54,11 @@ void Lift::Update() {
 			}
         }
         // player interaction( TODO: must be moved to player class )
-        if( pPlayer->mNearestPickedNode == mControlPanel ) {
-            pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "liftUpDown" ) );
+		auto & player = Level::Current()->GetPlayer();
+        if(player->mNearestPickedNode == mControlPanel ) {
+			player->SetActionText( StringBuilder() << ruInput::GetKeyName(player->mKeyUse ) << player->mLocalization.GetString( "liftUpDown" ) );
 
-            if( ruInput::IsKeyHit( pPlayer->mKeyUse )) {
+            if( ruInput::IsKeyHit(player->mKeyUse )) {
                 if( mArrived ) {
 					if( IsAllDoorsClosed() ) {
 						SetDoorsLocked( true );
@@ -74,29 +78,18 @@ void Lift::Update() {
     }
 }
 
-void Lift::SetBackDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor ) {
-    mDoorBackLeftNode = leftDoor;
-    mDoorBackRightNode = rightDoor;
-	mDoorBackLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackLeftNode, -90, 0 ));
+void Lift::SetBackDoors( const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor ) {
+	mDoorBackLeft = leftDoor;
 	mDoorBackLeft->SetTurnDirection( Door::TurnDirection::Clockwise );
-	mDoorBackRight = unique_ptr<LiftDoor>( new LiftDoor( mDoorBackRightNode, -90, 0 ));
+	mDoorBackRight = rightDoor;
 	mDoorBackRight->SetTurnDirection( Door::TurnDirection::Counterclockwise );
 }
 
-void Lift::SetFrontDoors( shared_ptr<ruSceneNode> leftDoor, shared_ptr<ruSceneNode> rightDoor ) {
-    mDoorFrontLeftNode = leftDoor;
-    mDoorFrontRightNode = rightDoor;
-	mDoorFrontLeft = unique_ptr<LiftDoor>( new LiftDoor( mDoorFrontLeftNode, 90, 0 ));
+void Lift::SetFrontDoors( const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor ) {
+	mDoorFrontLeft = leftDoor;
 	mDoorFrontLeft->SetTurnDirection( Door::TurnDirection::Counterclockwise );
-	mDoorFrontRight = unique_ptr<LiftDoor>( new LiftDoor( mDoorFrontRightNode, 90, 0 ));
+	mDoorFrontRight = rightDoor;
 	mDoorFrontRight->SetTurnDirection( Door::TurnDirection::Clockwise );
-}
-
-void Lift::SetMotorSound( shared_ptr<ruSound> motorSound ) {
-    mMotorSound = motorSound;
-    mMotorSound->Attach( mBaseNode );
-	mMotorSound->SetRolloffFactor( 30 );
-	mMotorSound->SetRoomRolloffFactor( 30 );
 }
 
 void Lift::SetSourcePoint( shared_ptr<ruSceneNode> sourceNode ) {

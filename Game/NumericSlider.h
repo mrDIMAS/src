@@ -15,7 +15,7 @@ private:
 	void OnIncreaseClick();
 	void OnDecreaseClick();
 public:
-    explicit Slider( float x, float y, float minimum, float maximum, float step,  shared_ptr<ruTexture> buttonImage, const string & text );
+    explicit Slider( const shared_ptr<ruGUIScene> & scene, float x, float y, float minimum, float maximum, float step,  shared_ptr<ruTexture> buttonImage, const string & text );
     float GetValue();
     void SetValue( float value );
     ~Slider();

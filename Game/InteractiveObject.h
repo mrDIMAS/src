@@ -2,6 +2,7 @@
 
 #include "Game.h"
 
+// Represent fullbright flashing object
 class InteractiveObject {
 private:
 	float mFlashAlbedo;
@@ -13,15 +14,11 @@ private:
 public:
     shared_ptr<ruSceneNode> mObject;
 	ruEvent OnInteract;
-    static vector< InteractiveObject* > msObjectList;
     explicit InteractiveObject( shared_ptr<ruSceneNode> object );
 	explicit InteractiveObject();
     virtual ~InteractiveObject();
     void UpdateFlashing();
     virtual void Update();
-    static void UpdateAll();
-    static void DeleteAll();
 	void SetPickDescription( const string & pd );
 	string GetPickDescription() const;
-	static InteractiveObject * FindByObject( shared_ptr<ruSceneNode> node );
 };

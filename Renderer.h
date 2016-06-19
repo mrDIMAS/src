@@ -147,6 +147,7 @@ private:
 
 	// Shadow cubemap
 	COMPtr<IDirect3DCubeTexture9> mCubeShadowMap;
+	COMPtr<IDirect3DSurface9> mCubeDepthStencilSurface;
 
 	// Spot light shadow map
 	COMPtr<IDirect3DTexture9> mShadowMap;
@@ -183,7 +184,7 @@ private:
 	COMPtr<IDirect3DIndexBuffer9> mTextIndexBuffer;
 	int mTextMaxChars;
 
-	void RenderRect( const shared_ptr<GUIRect> & r );
+	void RenderRect( const shared_ptr<GUIRect> &  );
 
 	// Default textures
 	COMPtr<IDirect3DCubeTexture9> mWhiteCubeMap;
@@ -191,8 +192,8 @@ private:
 	COMPtr<IDirect3DTexture9> mWhiteMap;
 
 	// D3D9
-	COMPtr<IDirect3D9> mpDirect3D;
-	COMPtr<IDirect3DDevice9> mpDevice;
+	COMPtr<IDirect3D9Ex> mpDirect3D;
+	COMPtr<IDirect3DDevice9Ex> mpDevice;
 	COMPtr<IDirect3DSurface9> mpBackBuffer;	
 		
 	// Rendering statistics

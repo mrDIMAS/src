@@ -126,6 +126,7 @@ Edge::Edge() {
     mDistToDestVertex = Infinite;
 }
 
+// move this on regexp
 void Path::BuildPath( shared_ptr<ruSceneNode> scene, string pathBaseName ) {
     vector<shared_ptr<ruSceneNode>> pointNodes;
     for( int i = 0; i < scene->GetCountChildren(); i++ ) {

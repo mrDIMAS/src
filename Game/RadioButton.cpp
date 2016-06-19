@@ -8,13 +8,13 @@ void RadioButton::Update(  ) {
 
 }
 
-RadioButton::RadioButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text  ) {
+RadioButton::RadioButton(const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text  ) {
     mOn = false;
     int textHeight = 16;
     float buttonWidth = 110;
     float buttonHeight = 32;
-    mGUIButton = ruButton::Create( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
-	mCheck = ruRect::Create( buttonWidth + 10, 6, 20, 20, ruTexture::Request( "data/gui/menu/checkbox_checked.tga" ), pGUIProp->mForeColor );
+    mGUIButton = scene->CreateButton( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+	mCheck = scene->CreateRect( buttonWidth + 10, 6, 20, 20, ruTexture::Request( "data/gui/menu/checkbox_checked.tga" ), pGUIProp->mForeColor );
 	mCheck->Attach( mGUIButton );
 	mGUIButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
 }

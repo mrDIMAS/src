@@ -53,15 +53,15 @@ void WaitKeyButton::SetSelected( ruInput::Key i ) {
 	}
 }
 
-WaitKeyButton::WaitKeyButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text ) {
+WaitKeyButton::WaitKeyButton(const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text ) {
     int textHeight = 16;
     float buttonWidth = 60;
     float buttonHeight = 32;
     mDesc = " ";
 	mAnimCounter = 0;
     mGrabKey = false;
-    mGUIButton = ruButton::Create( x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
-    mGUIText = ruText::Create( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIButton = scene->CreateButton( x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIText = scene->CreateText( text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
 	WaitKeyButton::msWaitKeyList.push_back( this );
 }
 

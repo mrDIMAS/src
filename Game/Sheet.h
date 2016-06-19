@@ -3,6 +3,9 @@
 #include "InteractiveObject.h"
 
 class Sheet : public InteractiveObject {
+protected:
+	friend class Level;
+	explicit Sheet( const shared_ptr<ruGUIScene> & scene, const shared_ptr<ruSceneNode> & object, const string & desc, const string & text );
 private:
     string mText;
     string mDescription;
@@ -11,7 +14,6 @@ private:
     shared_ptr<ruText> mGUIText;
 	shared_ptr<ruSound> mPaperFlipSound;
 public:
-    explicit Sheet( shared_ptr<ruSceneNode> object, string desc, string text );
     virtual ~Sheet();
 	void Update();
     void SetText( const string & text );
@@ -19,7 +21,5 @@ public:
     void SetDescription( const string & description );
     const string & GetDescription( ) const;
     void SetVisible( bool state );
-    static Sheet * GetSheetPointerByNode( shared_ptr<ruSceneNode> o );
-    static vector<Sheet*> msSheetList;    
     static shared_ptr<ruFont> msSheetFont;
 };

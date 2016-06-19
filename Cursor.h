@@ -25,8 +25,11 @@
 
 class Cursor : public GUIRect {
 public:
-    explicit Cursor( int w, int h, shared_ptr<Texture> texture ) : GUIRect( 0, 0, w, h, texture, ruVector3( 255, 255, 255 ), 255 ) {
-
+    explicit Cursor( int w, int h, shared_ptr<Texture> texture ) {
+		//: GUIRect(0, 0, w, h, texture, ruVector3(255, 255, 255), 255)
+		SetPosition(0, 0);
+		SetSize(w, h);
+		SetTexture(texture);
     }
 
     void Show();

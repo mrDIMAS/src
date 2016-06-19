@@ -48,30 +48,33 @@ protected:
     bool mFrozen;
     bool mVisible;
 	bool mIsBone;
-
 	bool mCollisionEnabled;
 	ruVector2 mTexCoordFlow;
     ruContact mContactList[ BODY_MAX_CONTACTS ];
     int mContactCount;
     int mTotalFrameCount;
 	void AutoName();
+
 	// Objects of Bullet Physics does not fit into STL smartpointers, so bad
 	vector<btRigidBody*> mBodyList;
 	vector<btTriangleMesh*> mTrimeshList;
 	btTransform mGlobalTransform;
 	btTransform mLocalTransform;
 public:
-		bool mTwoSidedLighting;
+	bool mTwoSidedLighting;
 	static void UpdateContacts( );
 	static shared_ptr<SceneNode> FindByName( const string & name );    
 	static shared_ptr<SceneNode> LoadScene( const string & file );
 	static shared_ptr<SceneNode> Find( const shared_ptr<SceneNode> parent, string childName );
 
-    // Methods
+	// Internal methods
+	void AddMesh(const shared_ptr<Mesh> & mesh);
+	static shared_ptr<SceneNode> FindChildInNode(shared_ptr<SceneNode> node, const string & name);
+
+    // API Methods
     virtual ~SceneNode( );
 	virtual void SetTexCoordFlow( const ruVector2 & flow );
 	virtual ruVector2 GetTexCoordFlow( ) const;
-	void AddMesh( const shared_ptr<Mesh> & mesh );
 	virtual ruVector3 GetRotationAxis( );
 	virtual float GetRotationAngle( );
     virtual void SetAnimation( ruAnimation * newAnim, bool dontAffectChilds = false );
@@ -163,5 +166,4 @@ public:
 	virtual void CheckFrustum( Camera * pCamera );
 	virtual shared_ptr<ruSceneNode> FindChild( const string & name );
 	virtual shared_ptr<Mesh> GetMesh( int n );
-	static shared_ptr<SceneNode> FindChildInNode( shared_ptr<SceneNode> node, const string & name );
 };

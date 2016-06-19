@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "LevelCutsceneIntro.h"
 
-LevelCutsceneIntro::LevelCutsceneIntro() : mEnginePitch( 1.0f, 0.65f, 1.25f ) {
+LevelCutsceneIntro::LevelCutsceneIntro(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 	mTypeNum = LevelName::LCSIntro;
 
 	LoadSceneFromFile( "data/maps/release/intro/intro.scene" );
@@ -37,7 +37,7 @@ LevelCutsceneIntro::LevelCutsceneIntro() : mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 	mCameraPivot3 = GetUniqueObject( "Camera3" );
 	mCameraPivot4 = GetUniqueObject( "Camera4" );
 
-	mCamera = new GameCamera;
+	mCamera = new GameCamera( nullptr );
 	mCamera->mCamera->Attach( mCameraPivot );
 	mCamera->mCamera->SetSkybox (
 		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
@@ -57,10 +57,6 @@ LevelCutsceneIntro::~LevelCutsceneIntro()
 }
 
 void LevelCutsceneIntro::DoScenario() {
-	if( Level::msCurLevelID != LevelName::LCSIntro ) {
-		return;
-	}
-
 	mCamera->MakeCurrent();
 	mUAZAnim.Update();
 	mDeerAnim.Update();

@@ -24,62 +24,66 @@
 #include "BitmapFont.h"
 
 class Texture;
+class GUIScene;
 
 class GUINode : public virtual ruGUINode, public std::enable_shared_from_this<GUINode> {
 protected:
-	friend class GUIFactory;
-	explicit GUINode();
+	friend class GUIScene;
+	explicit GUINode(const weak_ptr<GUIScene> & scene);
+	weak_ptr<GUIScene> mScene;
 	float mGlobalX;
 	float mGlobalY;
-    float mX;
-    float mY;
-    float mWidth;
-    float mHeight;
-    int mAlpha;
-    bool mVisible;
-	bool mControlChildAlpha;
+	float mX;
+	float mY;
+	float mWidth;
+	float mHeight;
+	int mAlpha;
+	int mLayer;
+	bool mVisible;
 	bool mLastMouseInside;
-    ruVector3 mColor;
-    shared_ptr<Texture> mpTexture;
+	ruVector3 mColor;
+	shared_ptr<Texture> mpTexture;
 	vector<shared_ptr<GUINode>> mChildList;
 	weak_ptr<GUINode> mParent;
 	unordered_map<ruGUIAction, ruEvent> mEventList;
-	bool IsGotAction( ruGUIAction act );
-		
+	bool IsGotAction(ruGUIAction act);
+	bool mIndependentAlpha;
 	virtual void OnClick();
 	virtual void OnMouseEnter();
-	virtual void OnMouseLeave();	
+	virtual void OnMouseLeave();
+
 public:
 	void CalculateTransform();
 	void DoActions();
-    virtual ~GUINode();
-    
-    float GetX();
-    float GetY();
-    float GetWidth();
-    float GetHeight();
+	virtual ~GUINode();
+
+	float GetX();
+	float GetY();
+	float GetWidth();
+	float GetHeight();
 	shared_ptr<GUINode> GetParent();
 	bool GotParent();
-	virtual void SetColor( ruVector3 color );
-	virtual void SetAlpha( int alpha );
-    virtual void SetSize( float w, float h );
-    virtual void SetVisible( bool visible );
-    virtual bool IsVisible();
-    virtual shared_ptr<ruTexture> GetTexture( );
-    virtual void SetTexture( const shared_ptr<ruTexture> & pTexture );    
-    virtual ruVector2 GetPosition( );
-	virtual ruVector2 GetGlobalPosition() {
-		CalculateTransform();
-		return ruVector2( mGlobalX, mGlobalY );
-	}
-    virtual ruVector2 GetSize( );
-    virtual ruVector3 GetColor();
-    virtual int GetAlpha();
+	virtual void SetColor(ruVector3 color);
+	virtual void SetAlpha(int alpha);
+	virtual void SetSize(float w, float h);
+	virtual void SetVisible(bool visible);
+	virtual bool IsVisible();
+	virtual shared_ptr<ruTexture> GetTexture();
+	virtual void SetTexture(const shared_ptr<ruTexture> & pTexture);
+	virtual ruVector2 GetPosition();
+	virtual ruVector2 GetGlobalPosition();
+	virtual void SetIndependentAlpha(bool useIndependent);
+	virtual bool IsIndependentAlpha() const;
+	virtual ruVector2 GetSize();
+	virtual ruVector3 GetColor();
+	virtual int GetAlpha();
 	virtual bool IsMouseInside();
-	virtual void Attach( const shared_ptr<ruGUINode> & parent );
-	virtual void SetPosition( float x, float y );
-	virtual void SetChildAlphaControl( bool control );
-	virtual void AddAction( ruGUIAction act, const ruDelegate & delegat );
-	virtual void RemoveAction( ruGUIAction act );
+	virtual void Attach(const shared_ptr<ruGUINode> & parent);
+	virtual void SetPosition(float x, float y);
+	virtual void AddAction(ruGUIAction act, const ruDelegate & delegat);
+	virtual void RemoveAction(ruGUIAction act);
 	virtual void RemoveAllActions();
+	virtual weak_ptr<class ruGUIScene> GetScene();
+	virtual void SetLayer(int layer);
+	virtual int GetLayer() const;
 };

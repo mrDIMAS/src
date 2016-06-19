@@ -27,7 +27,7 @@ int ScrollList::GetCurrentValue() {
     return mCurrentValue;
 }
 
-ScrollList::ScrollList( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text ) {
+ScrollList::ScrollList(const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text ) {
     mCurrentValue = 0;
 
     float buttonWidth = 32;
@@ -36,10 +36,10 @@ ScrollList::ScrollList( float x, float y, shared_ptr<ruTexture> buttonImage, con
     int textHeight = 16;
     int captionWidth = 100;
 
-    mGUIText = ruText::Create( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
-    mGUIValueText = ruText::Create( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
-    mGUIIncreaseButton = ruButton::Create( x + captionWidth + 4.5f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
-    mGUIDecreaseButton = ruButton::Create( x + captionWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIText = scene->CreateText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIValueText = scene->CreateText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIIncreaseButton = scene->CreateButton( x + captionWidth + 4.5f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIDecreaseButton = scene->CreateButton( x + captionWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 }
 
 void ScrollList::SetCurrentValue( int value ) {

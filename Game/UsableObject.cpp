@@ -2,7 +2,7 @@
 #include "UsableObject.h"
 #include "Player.h"
 #include "BareHands.h"
-
+#include "Level.h"
 
 UsableObject::UsableObject() : mToNext( false ), mToPrev( false ), mAppear( false ), mPrev( nullptr ), mNext( nullptr ) {
 
@@ -42,12 +42,13 @@ void UsableObject::Appear() {
 void UsableObject::SwitchIfAble() {
 	if( mToNext || mToPrev ) {
 		mModel->Hide();
+		auto & player = Level::Current()->GetPlayer();
 		if( mToPrev ) {
-			pPlayer->mCurrentUsableObject = mPrev;
+			player->mCurrentUsableObject = mPrev;
 		} else {
-			pPlayer->mCurrentUsableObject = mNext;
+			player->mCurrentUsableObject = mNext;
 		}
-		pPlayer->mCurrentUsableObject->Appear();
+		player->mCurrentUsableObject->Appear();
 		mToNext = false;
 		mToPrev = false;
 	}

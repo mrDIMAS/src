@@ -39,8 +39,8 @@ public:
 
 class GUIText : public GUINode, public ruText {
 protected:
-	friend class GUIFactory;
-	explicit GUIText( const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
+	friend class GUIScene;
+	explicit GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
     shared_ptr<BitmapFont> mFont;
     string mText;
     ruTextAlignment mTextAlign;

@@ -22,117 +22,129 @@
 #include "Precompiled.h"
 #include "Texture.h"
 #include "GUINode.h"
-#include "GUIFactory.h"
 #include "Renderer.h"
+#include "GUIScene.h"
 
-void GUINode::SetAlpha( int alpha ) {
-    mAlpha = alpha;
-	if( mControlChildAlpha ) {
-		for( auto & pChild : mChildList ) {
-			pChild->SetAlpha( alpha );
-		}
+void GUINode::SetAlpha(int alpha) {
+	mAlpha = alpha;
+	if (mAlpha > 255) {
+		mAlpha = 255;
+	}
+	if (mAlpha < 0.0f) {
+		mAlpha = 0.0f;
 	}
 }
 
-void GUINode::SetColor( ruVector3 color ) {
-    mColor = color / 255.0f;
+void GUINode::SetColor(ruVector3 color) {
+	mColor = color / 255.0f;
 }
 
-GUINode::GUINode() :     
-	mX( 0 ),
-	mY( 0 ),
-	mWidth( 0 ),
-	mHeight( 0 ),
-	mVisible( true ),
-	mGlobalX( 0.0f ),
-	mGlobalY( 0.0f ),
-	mControlChildAlpha( false ),
-	mLastMouseInside( false )
-{
-    SetColor( ruVector3( 255, 255, 255 ));
-    SetAlpha( 255 );
+GUINode::GUINode(const weak_ptr<GUIScene> & scene) :
+	mScene(scene),
+	mX(0),
+	mY(0),
+	mWidth(0),
+	mHeight(0),
+	mVisible(true),
+	mGlobalX(0.0f),
+	mGlobalY(0.0f),
+	mLastMouseInside(false),
+	mLayer(0) {
+	SetColor(ruVector3(255, 255, 255));
+	SetAlpha(255);
 }
 
 GUINode::~GUINode() {
 
 }
 
-void GUINode::SetTexture( const shared_ptr<ruTexture> & pTexture ) {
-    mpTexture = std::dynamic_pointer_cast<Texture>( pTexture );
+void GUINode::SetTexture(const shared_ptr<ruTexture> & pTexture) {
+	mpTexture = std::dynamic_pointer_cast<Texture>(pTexture);
 }
 
 shared_ptr<ruTexture> GUINode::GetTexture() {
-    return mpTexture;
+	return mpTexture;
 }
 
 bool GUINode::IsVisible() {
 	bool visibility = mVisible;
-	if( mParent.use_count() ) {
+	if (mParent.use_count()) {
 		shared_ptr<GUINode> & pParent = mParent.lock();
 		visibility &= pParent->IsVisible();
 	}
-    return visibility;
+	return visibility;
 }
 
-void GUINode::SetVisible( bool visible ) {
-    mVisible = visible;
+void GUINode::SetVisible(bool visible) {
+	mVisible = visible;
 }
 
-void GUINode::SetSize( float w, float h ) {
-    mWidth = w * pEngine->GetGUIWidthScaleFactor();
-    mHeight = h * pEngine->GetGUIHeightScaleFactor();
+void GUINode::SetSize(float w, float h) {
+	mWidth = w * pEngine->GetGUIWidthScaleFactor();
+	mHeight = h * pEngine->GetGUIHeightScaleFactor();
 }
 
 float GUINode::GetHeight() {
-    return mHeight / pEngine->GetGUIHeightScaleFactor();
+	return mHeight / pEngine->GetGUIHeightScaleFactor();
 }
 
 float GUINode::GetWidth() {
-    return mWidth / pEngine->GetGUIWidthScaleFactor();
+	return mWidth / pEngine->GetGUIWidthScaleFactor();
 }
 
 float GUINode::GetY() {
-    return mY / pEngine->GetGUIHeightScaleFactor();
+	return mY / pEngine->GetGUIHeightScaleFactor();
 }
 
 float GUINode::GetX() {
-    return mX / pEngine->GetGUIWidthScaleFactor();
+	return mX / pEngine->GetGUIWidthScaleFactor();
 }
 
 int GUINode::GetAlpha() {
-    return mAlpha;
+	return mAlpha;
 }
 
 ruVector3 GUINode::GetColor() {
-    return mColor;
+	return mColor;
 }
 
 ruVector2 GUINode::GetSize() {
-    return ruVector2( mWidth / pEngine->GetGUIWidthScaleFactor(), mHeight / pEngine->GetGUIHeightScaleFactor() );
+	return ruVector2(mWidth / pEngine->GetGUIWidthScaleFactor(), mHeight / pEngine->GetGUIHeightScaleFactor());
 }
 
 ruVector2 GUINode::GetPosition() {
-    return ruVector2( GetX(), GetY() );
+	return ruVector2(GetX(), GetY());
 }
 
-void GUINode::SetPosition( float x, float y ) {
-    mX = x * pEngine->GetGUIWidthScaleFactor();
-    mY = y * pEngine->GetGUIHeightScaleFactor();
+inline ruVector2 GUINode::GetGlobalPosition() {
+	CalculateTransform();
+	return ruVector2(mGlobalX, mGlobalY);
+}
+
+inline void GUINode::SetIndependentAlpha(bool useIndependent) {
+	mIndependentAlpha = useIndependent;
+}
+
+inline bool GUINode::IsIndependentAlpha() const {
+	return mIndependentAlpha;
+}
+
+void GUINode::SetPosition(float x, float y) {
+	mX = x * pEngine->GetGUIWidthScaleFactor();
+	mY = y * pEngine->GetGUIHeightScaleFactor();
 	CalculateTransform();
 }
 
-void GUINode::Attach( const shared_ptr<ruGUINode> & parent )
-{
-	shared_ptr<GUINode> & parentNode = std::dynamic_pointer_cast<GUINode>( parent );
-	parentNode->mChildList.push_back( shared_from_this() );
+void GUINode::Attach(const shared_ptr<ruGUINode> & parent) {
+	shared_ptr<GUINode> & parentNode = std::dynamic_pointer_cast<GUINode>(parent);
+	parentNode->mChildList.push_back(shared_from_this());
 	mParent = parentNode;
 }
 
-void GUINode::CalculateTransform
-	() {
+void GUINode::CalculateTransform() {
 	mGlobalX = 0.0f;
 	mGlobalY = 0.0f;
-	if( mParent.use_count() ) {
+	if (mParent.use_count()) {
 		shared_ptr<GUINode> & pParent = mParent.lock();
 		pParent->CalculateTransform();
 		mGlobalX = mX + pParent->mGlobalX;
@@ -143,12 +155,12 @@ void GUINode::CalculateTransform
 	}
 }
 
-void GUINode::AddAction( ruGUIAction act, const ruDelegate & delegat ) {
-	mEventList[ act ].AddListener( delegat );
+void GUINode::AddAction(ruGUIAction act, const ruDelegate & delegat) {
+	mEventList[act].AddListener(delegat);
 }
 
-bool GUINode::IsGotAction( ruGUIAction act ) {
-	auto iter = mEventList.find( act );
+bool GUINode::IsGotAction(ruGUIAction act) {
+	auto iter = mEventList.find(act);
 	return iter != mEventList.end();
 }
 
@@ -156,40 +168,40 @@ bool GUINode::IsMouseInside() {
 	CalculateTransform();
 	int mouseX = ruInput::GetMouseX();
 	int mouseY = ruInput::GetMouseY();
-	return mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && 
-		   mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight );
+	return mouseX > mGlobalX && mouseX < (mGlobalX + mWidth) &&
+		mouseY > mGlobalY && mouseY < (mGlobalY + mHeight);
 }
 
 void GUINode::OnMouseEnter() {
-	if( IsGotAction( ruGUIAction::OnMouseEnter )) {
-		mEventList[ ruGUIAction::OnMouseEnter ].DoActions();
+	if (IsGotAction(ruGUIAction::OnMouseEnter)) {
+		mEventList[ruGUIAction::OnMouseEnter].DoActions();
 	}
 }
 
 void GUINode::OnMouseLeave() {
-	if( IsGotAction( ruGUIAction::OnMouseLeave )) {
-		mEventList[ ruGUIAction::OnMouseLeave ].DoActions();
+	if (IsGotAction(ruGUIAction::OnMouseLeave)) {
+		mEventList[ruGUIAction::OnMouseLeave].DoActions();
 	}
 }
 
 void GUINode::DoActions() {
-	if( IsMouseInside() ) {
-		if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
+	if (IsMouseInside()) {
+		if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
 			OnClick();
 		}
-		if( !mLastMouseInside ) {
+		if (!mLastMouseInside) {
 			OnMouseEnter();
-		} 
+		}
 	} else {
-		if( mLastMouseInside ) {
+		if (mLastMouseInside) {
 			OnMouseLeave();
 		}
 	}
 }
 
 void GUINode::OnClick() {
-	if( IsGotAction( ruGUIAction::OnClick )) {
-		mEventList[ ruGUIAction::OnClick ].DoActions();
+	if (IsGotAction(ruGUIAction::OnClick)) {
+		mEventList[ruGUIAction::OnClick].DoActions();
 	}
 }
 
@@ -197,21 +209,30 @@ void GUINode::RemoveAllActions() {
 	mEventList.clear();
 }
 
-void GUINode::RemoveAction( ruGUIAction act ) {
-	mEventList.erase( act );
+inline weak_ptr<class ruGUIScene> GUINode::GetScene() {
+	return mScene;
 }
 
-void GUINode::SetChildAlphaControl( bool control ) {
-	mControlChildAlpha = control;
+inline void GUINode::SetLayer(int layer) {
+	mLayer = layer;
+	if (!mScene.expired()) { // so intrusive
+		mScene.lock()->SortNodes();
+	}
 }
 
-bool GUINode::GotParent()
-{
+inline int GUINode::GetLayer() const {
+	return mLayer;
+}
+
+void GUINode::RemoveAction(ruGUIAction act) {
+	mEventList.erase(act);
+}
+
+bool GUINode::GotParent() {
 	return mParent.use_count() > 0;
 }
 
-shared_ptr<GUINode> GUINode::GetParent()
-{
+shared_ptr<GUINode> GUINode::GetParent() {
 	return mParent.lock();
 }
 

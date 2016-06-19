@@ -1,10 +1,9 @@
 #include "Precompiled.h"
-
+#include "Level.h"
 #include "Item.h"
 #include "Player.h"
 #include "Weapon.h"
 
-vector<Item*> Item::msItemList;
 Parser Item::msLocalization;
 
 Item::Item( Type type ) {
@@ -13,7 +12,6 @@ Item::Item( Type type ) {
 	}
 	mMorphType = Type::Unknown;
 	mCombinePair = Type::Unknown;
-	msItemList.push_back( this );
 	mType = type;
 	mSingleInstance = false;
 	mContent = 1.0f;
@@ -115,10 +113,7 @@ Item::Item( Type type ) {
 }
 
 Item::~Item() {
-	auto iter = find( msItemList.begin(), msItemList.end(), this );
-	if( iter != msItemList.end() ) {
-		msItemList.erase( iter );
-	}
+
 }
 
 const string & Item::GetName() const {
@@ -151,22 +146,25 @@ Item::Type Item::GetType() const {
 
 bool Item::Combine( Item::Type combinerType ) {
     if( mCombinePair == combinerType  ) {
+		auto & player = Level::Current()->GetPlayer();
+
         // player flashlight charge
 		if( mType == Type::FuelCanister && combinerType == Type::Lighter ||
 			mType == Type::Lighter && combinerType == Type::FuelCanister ) {
-			if( pPlayer->GetFlashLight() ) {
-				pPlayer->GetFlashLight()->Fuel();
-				pPlayer->GetInventory()->RemoveItem( Item::Type::FuelCanister, 1 );
+			if(player->GetFlashLight() ) {
+				player->GetFlashLight()->Fuel();
+				player->GetInventory()->RemoveItem( Item::Type::FuelCanister, 1 );
 				return true;
 			}
 		}
+
 		// pistol reloading
 		if( mType == Type::Pistol && combinerType == Type::Bullet ||
 			mType == Type::Bullet && combinerType == Type::Pistol ) {	
-			if( pPlayer->GetWeapon() ) {
-				bool bulletLoaded = pPlayer->GetWeapon()->LoadBullet();
+			if(player->GetWeapon() ) {
+				bool bulletLoaded = player->GetWeapon()->LoadBullet();
 				if( bulletLoaded ) {
-					pPlayer->GetInventory()->RemoveItem( Item::Type::Bullet, 1 );
+					player->GetInventory()->RemoveItem( Item::Type::Bullet, 1 );
 					return true;
 				}					
 			}

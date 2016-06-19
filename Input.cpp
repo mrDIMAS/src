@@ -21,7 +21,7 @@
 
 #include "Precompiled.h"
 #include "GUIButton.h"
-#include "GUIFactory.h"
+#include "GUIScene.h"
 
 LPDIRECTINPUT8 pInput;
 LPDIRECTINPUTDEVICE8 pKeyboard;
@@ -235,20 +235,19 @@ void ruInput::Update( ) {
         mouseY = windowRect.bottom;
     }
 
-    //SetCursorPos( windowOffsetX + windowRect.left + mouseX, windowOffsetY + windowRect.top + mouseY );
-
     memcpy( g_lastKeys, g_keys, sizeof( g_lastKeys ));
     memcpy( g_mousePressed, mouseData.rgbButtons, sizeof( g_mousePressed ));
 
-	auto & buttons = GUIFactory::GetButtonList();
-    for( auto & bWeak : buttons ) {
-		shared_ptr<GUIButton> & pButton = bWeak.lock();
-		if( pButton ) {
-			if( pButton->IsVisible() ) {
+	auto & guiSceneList = GUIScene::GetSceneList();
+	for (auto weakScene : guiSceneList) {
+		auto scene = weakScene.lock();
+		auto & buttons = scene->GetButtonList();
+		for (auto & pButton : buttons) {
+			if (pButton->IsVisible()) {
 				pButton->Update();
-			}
-        }
-    }
+			}			
+		}
+	}
 };
 
 void ruInput::Init( HWND window ) {

@@ -7,6 +7,7 @@
 
 class Inventory {
 private:
+	shared_ptr<ruGUIScene> mScene;
 	// item-count map
 	map<Item,int> mItemMap;
     shared_ptr<ruTexture> mBackgroundTexture;

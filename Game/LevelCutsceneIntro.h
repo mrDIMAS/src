@@ -21,7 +21,7 @@ private:
 	ruVector3 mLastUAZPosition;
 	SmoothFloat mEnginePitch;
 public:
-	LevelCutsceneIntro();
+	LevelCutsceneIntro(const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelCutsceneIntro();
 	virtual void DoScenario();
 	void OnSerialize( SaveFile & out );

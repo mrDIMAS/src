@@ -53,9 +53,7 @@ public:
     float GetMass() const;
     float GetVolume() const;
     void SetVolume(float val);
-	//void PickUp();
 	static string GetNameByType( Type type );
-    static vector<Item*> msItemList;
 };
 
 inline bool operator < (const Item & a, const Item & b ) {

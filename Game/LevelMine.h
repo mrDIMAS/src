@@ -8,24 +8,12 @@
 
 class LevelMine : public Level {
 private:
-	void Proxy_GiveExplosives() {
-		pPlayer->AddItem( Item::Type::Explosives );
-	}
-	void Proxy_GiveDetonator( ) {
-		pPlayer->AddItem( Item::Type::Detonator );
-	}
-	void Proxy_GiveWires( ) {
-		pPlayer->AddItem( Item::Type::Wires );
-	}
-	void Proxy_GivePistol( ) {
-		pPlayer->AddUsableObject( new Weapon );
-	}
-	void Proxy_GiveFuel( ) {
-		pPlayer->AddItem( Item::Type::FuelCanister );
-	}
-	void Proxy_GiveSyringe( ) {
-		pPlayer->AddUsableObject( new Syringe );
-	}
+	void Proxy_GiveExplosives();
+	void Proxy_GiveDetonator();
+	void Proxy_GiveWires();
+	void Proxy_GivePistol();
+	void Proxy_GiveFuel();
+	void Proxy_GiveSyringe();
     void UpdateExplodeSequence();
     void CleanUpExplodeArea();
     void CreateItems();
@@ -44,7 +32,7 @@ private:
     shared_ptr<ruSceneNode> mExplosivesDummy[4];
     shared_ptr<ruSceneNode> mRock[3];
     shared_ptr<ruSceneNode> mExplosionFlashPosition;
-    shared_ptr<ruPointLight>mExplosionFlashLight;
+    shared_ptr<ruPointLight> mExplosionFlashLight;
     shared_ptr<ruParticleSystem > mExplosionDustParticleSystem;
 	shared_ptr<ruSceneNode> mLiftButton;
 
@@ -65,10 +53,8 @@ private:
     float mBeepSoundTiming;
 
     unique_ptr<LightAnimator> mExplosionFlashAnimator;
-
-    
 public:
-    explicit LevelMine( );
+    explicit LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer);
     virtual ~LevelMine();
     virtual void DoScenario() final;
     virtual void Show() final;

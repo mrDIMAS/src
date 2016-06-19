@@ -1,12 +1,14 @@
 #include "Precompiled.h"
 #include "Zone.h"
+#include "Level.h"
 
 Zone::Zone( shared_ptr<ruSceneNode> object ) : mObject( object ), mType( Type::OneShot ), mPlayerInside( false ), mActive( true ) {
 }
 
 void Zone::Update() {
 	if( mActive ) {
-		if( pPlayer->IsInsideZone( mObject ) ) {
+		auto & player = Level::Current()->GetPlayer();
+		if(player->IsInsideZone( mObject ) ) {
 			if( !mPlayerInside ) {
 				OnPlayerEnter.DoActions();				
 			}

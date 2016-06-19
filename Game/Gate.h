@@ -12,6 +12,8 @@ public:
 		Closed,
 	};
 private:
+	friend class Level;
+	explicit Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2);
 
 	State mState;
 	shared_ptr<ruSceneNode> mGate;
@@ -20,71 +22,24 @@ private:
 	shared_ptr<ruSound> mBeginSound;
 	shared_ptr<ruSound> mIdleSound;
 	shared_ptr<ruSound> mEndSound;
-	shared_ptr<ruSound> mButtonSound;	
+	shared_ptr<ruSound> mButtonSound;
 
 	ruAnimation mOpenAnim;
 	ruAnimation mCloseAnim;
 	ruAnimation mButtonPushAnim[4];
 
-	void Proxy_ButtonPush() {
-		mButtonSound->Play();
-	}
-
-	void Proxy_BeginGateClosing() {
-		mGate->SetAnimation( &mCloseAnim );
-		
-		mCloseAnim.Rewind();
-		mCloseAnim.SetEnabled( true );
-	}
-
-	void Proxy_BeginGateOpening() {
-		mGate->SetAnimation( &mOpenAnim );
-		mOpenAnim.Rewind();
-		mOpenAnim.SetEnabled( true );
-	}
-
-	void Proxy_Opening() {
-		mBeginSound->Play();
-		mState = State::Opening;
-	}
-
-	void Proxy_Opened() {
-		mEndSound->Play();
-		mState = State::Opened;
-		mIdleSound->Stop();
-	}
-
-	void Proxy_Idle() {
-		mIdleSound->Play();
-	}
-
-	void Proxy_Closed() {
-		mEndSound->Play();
-		mState = State::Closed;
-		mIdleSound->Stop();
-	}
-
-	void Proxy_Closing() {
-		mBeginSound->Play();
-		mState = State::Closing;
-	}
+	void Proxy_ButtonPush();
+	void Proxy_BeginGateClosing();
+	void Proxy_BeginGateOpening();
+	void Proxy_Opening();
+	void Proxy_Opened();
+	void Proxy_Idle();
+	void Proxy_Closed();
+	void Proxy_Closing();
 public:
-	static vector<Gate*> msGateList;
-	explicit Gate( shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2  );
-	~Gate() {
-		auto iter = find( msGateList.begin(), msGateList.end(), this );
-		if( iter != msGateList.end() ) {
-			msGateList.erase( iter );
-		}
-	}
+	~Gate();
 	void Update();
-	void Open() {
-		Proxy_BeginGateOpening();
-	}
-	shared_ptr<ruSceneNode> GetNode() const {
-		return mGate;
-	}
-	State GetState() const {
-		return mState;
-	}
+	void Open();
+	shared_ptr<ruSceneNode> GetNode() const;
+	State GetState() const;
 };

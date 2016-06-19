@@ -4,11 +4,11 @@
 
 class FPSCounter {
 public:
-    shared_ptr<ruTimer> timer;
-    int frameCounter;
-    int fps;
+	shared_ptr<ruTimer> timer;
+	int frameCounter;
+	int fps;
 
-    FPSCounter();
+	FPSCounter();
 
-    void RegisterFrame();
+	void RegisterFrame();
 };

@@ -25,12 +25,12 @@ private:
         LoadGame,
     };
 
+	shared_ptr<ruGUIScene> mGUIScene;
     shared_ptr<ruSceneNode> mScene;
     bool mVisible;
     shared_ptr<ruTexture> mButtonImage;
     shared_ptr<ruTexture> mSmallButtonImage;
     int mDistBetweenButtons;
-	int mMainButtonsAlpha;
     string mLoadSaveGameName;
 	string mSaveGameSlotName;
 
@@ -45,7 +45,7 @@ private:
     unique_ptr<RadioButton> mpFXAAButton;
 	unique_ptr<RadioButton> mpParallaxButton;
     unique_ptr<RadioButton> mpFPSButton;
-    unique_ptr<RadioButton> mpSpotShadowsButton;
+    unique_ptr<RadioButton> mpShadowsButton;
     unique_ptr<RadioButton> mpHDRButton;
     unique_ptr<ScrollList> mpTextureFiltering;
 

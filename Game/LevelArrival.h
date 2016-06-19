@@ -37,7 +37,7 @@ public:
 
 	shared_ptr<Lift> mLift;
 
-    LevelArrival( );
+    LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer);
     ~LevelArrival( );
 
     virtual void DoScenario();

@@ -16,7 +16,7 @@ private:
     string mText;
     shared_ptr<ruText> mGoalText;
 public:
-    explicit Goal();
+    explicit Goal(const shared_ptr<ruGUIScene> & scene);
     virtual ~Goal();
     void SetText( string t );
     void AnimateAndRender();

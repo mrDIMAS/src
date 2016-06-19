@@ -40,7 +40,7 @@ private:
 	}
 public:
     
-    explicit GUIButton( int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha );
+    explicit GUIButton( const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha );
     virtual ~GUIButton();
     void Update(); // must be called inside ruInputUpdate
   

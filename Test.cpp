@@ -97,13 +97,22 @@ void main( ) {
     int perfTime=0;
 
     ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
-    shared_ptr<ruText> fpsText = ruText::Create( "Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake!", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
 
-	shared_ptr<ruRect> testrect = ruRect::Create( 100, 100, 200, 200, ruTexture::Request( "data/gui/inventory/items/detonator.png" ));
-	shared_ptr<ruButton> testButton = ruButton::Create( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
-	shared_ptr<ruButton> testButton2 = ruButton::Create( 0, 100, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
+	shared_ptr<ruGUIScene> guiScene = ruGUIScene::Create();
+
+	guiScene->SetOpacity(0.5f);
+
+    shared_ptr<ruText> fpsText = guiScene->CreateText( "Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake!", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
+	//shared_ptr<ruText> fpsText = guiScene->CreateText("The Mine", 0, 0, 100, 100, font, ruVector3(255, 255, 255), ruTextAlignment::Left, 150);
+
+	shared_ptr<ruRect> testrect = guiScene->CreateRect( 100, 100, 200, 200, ruTexture::Request( "data/gui/inventory/items/detonator.png" ));
+	shared_ptr<ruButton> testButton = guiScene->CreateButton( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
+	shared_ptr<ruButton> testButton2 = guiScene->CreateButton( 0, 100, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
 	testButton->Attach( testrect );
 	testButton2->Attach( testrect );
+
+	shared_ptr<ruGUIScene> anotherGUIScene = ruGUIScene::Create();
+	shared_ptr<ruButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
 
 	ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
 	ruEngine::EnableSpotLightShadows( false );
@@ -217,6 +226,7 @@ void main( ) {
             counter = 0;
         }
 
+		/*
         fpsText->SetText( 
 			StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() <<
 			"\nTC: " << ruEngine::GetTextureUsedPerFrame() <<
@@ -224,7 +234,7 @@ void main( ) {
 			"\nSC: " << ruEngine::GetShaderCountChangedPerFrame() <<
 			"\nRT: " << ruEngine::GetRenderedTriangles()
 		);
-
+		*/
        	fpsText->SetVisible( true );
 
 

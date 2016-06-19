@@ -14,7 +14,7 @@ private:
     shared_ptr<ruButton> mGUIButton;
 public:
 	static vector<WaitKeyButton*> msWaitKeyList;
-    explicit WaitKeyButton( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
+    explicit WaitKeyButton( const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
 	~WaitKeyButton();
     ruInput::Key GetSelectedKey();
     void SetSelected( ruInput::Key i );

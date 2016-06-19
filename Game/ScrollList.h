@@ -11,7 +11,7 @@ private:
     shared_ptr<ruText> mGUIText;
     shared_ptr<ruText> mGUIValueText;
 public:
-    explicit ScrollList( float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
+    explicit ScrollList( const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text );
     virtual ~ScrollList();
     void SetCurrentValue( int value );
     int GetCurrentValue();

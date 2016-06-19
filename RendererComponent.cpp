@@ -25,15 +25,15 @@
 vector<RendererComponent*> RendererComponent::msComponentList;
 
 RendererComponent::~RendererComponent() {
-	if( msComponentList.size() ) {
-		auto iter = find( msComponentList.begin(), msComponentList.end(), this );
-		if( iter != msComponentList.end() ) {
-			msComponentList.erase( iter );
+	if (msComponentList.size()) {
+		auto iter = find(msComponentList.begin(), msComponentList.end(), this);
+		if (iter != msComponentList.end()) {
+			msComponentList.erase(iter);
 		}
 	}
 }
 
 RendererComponent::RendererComponent() {
 	mResetPriority = ResetPriority::Low;
-	msComponentList.push_back( this );
+	msComponentList.push_back(this);
 }

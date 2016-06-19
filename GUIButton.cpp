@@ -22,7 +22,7 @@
 #include "Precompiled.h"
 #include "Texture.h"
 #include "GUIButton.h"
-#include "GUIFactory.h"
+#include "GUIScene.h"
 
 void GUIButton::Update() {
 	if( IsVisible() ) {
@@ -74,9 +74,9 @@ void GUIButton::Update() {
 	}
 }
 
-GUIButton::GUIButton( int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha )
-    : GUIRect( x, y, w, h, texture, color, alpha ) {
-    mpText = GUIFactory::CreateText( text, 0, 0, w, h, color, alpha, textAlign, font );
+GUIButton::GUIButton(const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha )
+    : GUIRect( scene, x, y, w, h, texture, color, alpha ) {
+    mpText = dynamic_pointer_cast<GUIText>( mScene.lock()->CreateText( text, 0, 0, w, h, font, color, textAlign, alpha ));
     mPicked = false;
     mLeftPressed = false;
     mRightPressed = false;
@@ -102,7 +102,6 @@ bool GUIButton::IsPressed() {
 bool GUIButton::IsPicked() {
     return mPicked;
 }
-
 
 bool GUIButton::IsHit() const {
     return mLeftHit;
@@ -133,9 +132,4 @@ void GUIButton::SetAlpha( int alpha )
 void GUIButton::SetActive( bool state )
 {
 	mActive = state;
-}
-
-shared_ptr<ruButton> ruButton::Create( int x, int y, int w, int h, const shared_ptr<ruTexture> & texture, const string & text, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha /*= 255 */  )
-{
-	return GUIFactory::CreateButton( x, y, w, h, std::dynamic_pointer_cast<Texture>( texture ), text, std::dynamic_pointer_cast<BitmapFont>( font ), color, textAlign, alpha );
 }

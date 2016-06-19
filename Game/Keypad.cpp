@@ -1,40 +1,46 @@
 #include "Precompiled.h"
-
+#include "Level.h"
 #include "Keypad.h"
 
-void Keypad::Update()
-{
-	for( int i = 0; i < 10; i++ ) {
-		if( pPlayer->mNearestPickedNode == mKeys[i] ) {
-			if( !mKeyState[i] ) {
-				pPlayer->SetActionText( StringBuilder() << i << pPlayer->mLocalization.GetString( "pressButton" ) );
-				if( ruInput::IsKeyHit( pPlayer->mKeyUse ) ) {
-					mCurrentCode += to_string( i );
+void Keypad::Update() {
+	auto & player = Level::Current()->GetPlayer();
+	for (int i = 0; i < 10; i++) {
+		if (player->mNearestPickedNode == mKeys[i]) {
+			if (!mKeyState[i]) {
+				player->SetActionText(StringBuilder() << i << player->mLocalization.GetString("pressButton"));
+				if (ruInput::IsKeyHit(player->mKeyUse)) {
+					mCurrentCode += to_string(i);
 					mKeyState[i] = true;
 					mButtonPushSound->Play();
-					if( mCurrentCode.size() == 4 ) {
-						if( mCurrentCode == mCodeToUnlock ) {
-							mDoorToUnlock->SetLocked( false );
-							mDoorToUnlock->Open();								
-						} 
-						Reset();						
-					} else {
-						mKeys[i]->SetPosition( mKeysInitialPosition[i] + mKeysPressedOffsets[i] );
+					if (mCurrentCode.size() == 4) {
+						if (mCurrentCode == mCodeToUnlock) {
+							if (mDoorToUnlock.use_count()) {
+								mDoorToUnlock.lock()->SetLocked(false);
+								mDoorToUnlock.lock()->Open();
+							}
+						}
+						Reset();
+					}
+					else {
+						mKeys[i]->SetPosition(mKeysInitialPosition[i] + mKeysPressedOffsets[i]);
 					}
 				}
 			}
 		}
 	}
 
-	if( pPlayer->mNearestPickedNode == mKeyCancel ) {
-		pPlayer->SetActionText( pPlayer->mLocalization.GetString( "resetButtons" ) );
-		if( ruInput::IsKeyHit( pPlayer->mKeyUse ) ) {
+	if (player->mNearestPickedNode == mKeyCancel) {
+		player->SetActionText(player->mLocalization.GetString("resetButtons"));
+		if (ruInput::IsKeyHit(player->mKeyUse)) {
 			Reset();
 		}
 	}
 }
 
-Keypad::Keypad( shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, shared_ptr<ruSceneNode> key1, shared_ptr<ruSceneNode> key2, shared_ptr<ruSceneNode> key3, shared_ptr<ruSceneNode> key4, shared_ptr<ruSceneNode> key5, shared_ptr<ruSceneNode> key6, shared_ptr<ruSceneNode> key7, shared_ptr<ruSceneNode> key8, shared_ptr<ruSceneNode> key9, shared_ptr<ruSceneNode> keyCancel, Door * doorToUnlock, string codeToUnlock )
+Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, shared_ptr<ruSceneNode> key1, shared_ptr<ruSceneNode> key2,
+	shared_ptr<ruSceneNode> key3, shared_ptr<ruSceneNode> key4, shared_ptr<ruSceneNode> key5, shared_ptr<ruSceneNode> key6,
+	shared_ptr<ruSceneNode> key7, shared_ptr<ruSceneNode> key8, shared_ptr<ruSceneNode> key9, shared_ptr<ruSceneNode> keyCancel,
+	weak_ptr<Door> doorToUnlock, string codeToUnlock)
 {
 	mKeypad = keypad;
 	mKeys[0] = key0;
@@ -52,7 +58,7 @@ Keypad::Keypad( shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sh
 	mDoorToUnlock = doorToUnlock;
 	mCodeToUnlock = codeToUnlock;
 
-	for( int i = 0; i < 10; i++ ) {
+	for (int i = 0; i < 10; i++) {
 		mKeysInitialPosition[i] = mKeys[i]->GetPosition();
 		ruVector3 min = mKeys[i]->GetAABBMin();
 		ruVector3 max = mKeys[i]->GetAABBMax();
@@ -61,23 +67,25 @@ Keypad::Keypad( shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sh
 		mKeysPressedOffsets[i] = right * (size / 2);
 	}
 
-	mDoorToUnlock->SetLocked( true );
+	if (mDoorToUnlock.use_count()) {
+		mDoorToUnlock.lock()->SetLocked(true);
+	}
 
-	mButtonPushSound = ruSound::Load3D( "data/sounds/button_push.ogg" );
-	mButtonPopSound = ruSound::Load3D( "data/sounds/button_pop.ogg" );
+	mButtonPushSound = ruSound::Load3D("data/sounds/button_push.ogg");
+	mButtonPopSound = ruSound::Load3D("data/sounds/button_pop.ogg");
 
-	mButtonPushSound->SetPosition( mKeypad->GetPosition() );
-	mButtonPopSound->SetPosition( mKeypad->GetPosition() );
+	mButtonPushSound->SetPosition(mKeypad->GetPosition());
+	mButtonPopSound->SetPosition(mKeypad->GetPosition());
 
 	Reset();
 }
 
 void Keypad::Reset()
 {
-	for( int i = 0; i < 10; i++ ) {
+	for (int i = 0; i < 10; i++) {
 		mKeyState[i] = false;
 		mCurrentCode.clear();
-		mKeys[i]->SetPosition( mKeysInitialPosition[i] );
+		mKeys[i]->SetPosition(mKeysInitialPosition[i]);
 	}
 	mButtonPopSound->Play();
 }

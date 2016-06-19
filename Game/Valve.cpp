@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Level.h"
 #include "Valve.h"
 #include "Player.h"
 #include "Utils.h"
@@ -23,9 +23,10 @@ void Valve::Reset() {
 void Valve::Update() {
 	mTurnSound->Pause();
     if( !mDone ) {	
-		if( pPlayer->mNearestPickedNode == mObject ) {
-			pPlayer->SetActionText( StringBuilder() << ruInput::GetKeyName( pPlayer->mKeyUse ) << pPlayer->mLocalization.GetString( "turnObject" ));
-			if( ruInput::IsKeyDown( pPlayer->mKeyUse )) {
+		auto & player = Level::Current()->GetPlayer();
+		if(player->mNearestPickedNode == mObject ) {
+			player->SetActionText( StringBuilder() << ruInput::GetKeyName(player->mKeyUse ) << player->mLocalization.GetString( "turnObject" ));
+			if( ruInput::IsKeyDown(player->mKeyUse )) {
 				mTurnSound->Play();
 				mAngle += 5;
 				OnTurn.DoActions();
@@ -52,5 +53,6 @@ bool Valve::IsDone()
 
 bool Valve::IsPickedByPlayer()
 {
-	return pPlayer->mNearestPickedNode == mObject;
+	auto & player = Level::Current()->GetPlayer();
+	return player->mNearestPickedNode == mObject;
 }

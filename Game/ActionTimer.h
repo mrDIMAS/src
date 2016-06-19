@@ -20,14 +20,14 @@ private:
 public:
 	ruEvent OnIdle;
 	ruEvent OnBegin;
-	ruEvent OnEnd;		
+	ruEvent OnEnd;
 	// don't forget to Activate timer
-	explicit ActionTimer( float timeInterval, bool selfDelete );
+	explicit ActionTimer(float timeInterval, bool selfDelete);
 	~ActionTimer();
 	void Activate();
 	// useful to control time-critical actions, returns float in interval [0; 1]
 	float GetPercentage();
 	static void UpdateAll();
-	void Serialize( SaveFile & out );
-	void Deserialize( SaveFile & in );
+	void Serialize(SaveFile & out);
+	void Deserialize(SaveFile & in);
 };

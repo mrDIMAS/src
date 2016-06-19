@@ -3,7 +3,7 @@
 #include "NumericSlider.h"
 #include "GUIProperties.h"
 
-Slider::Slider( float x, float y, float minimum, float maximum, float step, shared_ptr<ruTexture> buttonImage, const string & text ) {
+Slider::Slider(const shared_ptr<ruGUIScene> & scene, float x, float y, float minimum, float maximum, float step, shared_ptr<ruTexture> buttonImage, const string & text ) {
     float buttonWidth = 32;
     float buttonHeight = 32;
 
@@ -17,18 +17,18 @@ Slider::Slider( float x, float y, float minimum, float maximum, float step, shar
 
     mfStep = step;
 
-    mGUIText = ruText::Create( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
-    mGUIValueText = ruText::Create( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIText = scene->CreateText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
+    mGUIValueText = scene->CreateText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 
-    mGUIIncreaseButton = ruButton::Create( x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIIncreaseButton = scene->CreateButton( x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 	mGUIIncreaseButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnIncreaseClick ));
 
-    mGUIDecreaseButton = ruButton::Create( x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIDecreaseButton = scene->CreateButton( x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 	mGUIDecreaseButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &Slider::OnDecreaseClick ));
 }
 
 int Slider::GetWidth() {
-	return 4 * 32 + 100 + 32; // HARD code :)
+	return 4 * 32 + 100 + 32; // hardcodin' this shit
 }
 
 int Slider::GetHeight() {

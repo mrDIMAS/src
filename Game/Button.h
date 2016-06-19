@@ -11,6 +11,6 @@ private:
 	bool mPush;
 public:
 	ruEvent OnPush;
-	explicit Button( shared_ptr<ruSceneNode> node, const ruVector3 & axis, shared_ptr<ruSound> pushSound, shared_ptr<ruSound> popSound );
+	explicit Button(shared_ptr<ruSceneNode> node, const ruVector3 & axis, shared_ptr<ruSound> pushSound, shared_ptr<ruSound> popSound);
 	void Update();
 };

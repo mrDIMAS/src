@@ -24,7 +24,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define DIRECTINPUT_VERSION 0x0800
-#include <vld.h>
+//#include <vld.h>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -65,15 +65,14 @@
 #   pragma comment(lib, "BulletDynamics_debug")
 #   pragma comment(lib, "LinearMath_debug")
 #   pragma comment(lib, "FreeType253MT_D")
-#	pragma comment( lib, "../external/ProjectF/ProjectF_debug")
 #else
 #   pragma comment(lib, "BulletCollision")
 #   pragma comment(lib, "BulletDynamics")
 #   pragma comment(lib, "LinearMath")
 #   pragma comment(lib, "FreeType253MT")
-#	pragma comment( lib, "../external/ProjectF/ProjectF")
 #endif
 
+#pragma comment( lib, "../external/ProjectF/ProjectF")
 
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
@@ -202,7 +201,7 @@ using namespace std;
 
 extern Mouse mouse;
 extern Keyboard keyboard;
-extern IDirect3DDevice9 * pD3D;
+extern IDirect3DDevice9Ex * pD3D;
 extern unique_ptr<class Renderer> pEngine;
 
 

@@ -2,7 +2,7 @@
 #include "BareHands.h"
 
 void BareHands::Update() {
-	if( mAppear ) {
+	if (mAppear) {
 		mModel->Show();
 		mAppear = false;
 	}
@@ -13,10 +13,10 @@ BareHands::BareHands() {
 	mModel = ruSceneNode::Create();
 }
 
-void BareHands::OnDeserialize( SaveFile & in ) {
+void BareHands::OnDeserialize(SaveFile & in) {
 
 }
 
-void BareHands::OnSerialize( SaveFile & out ) {
+void BareHands::OnSerialize(SaveFile & out) {
 
 }

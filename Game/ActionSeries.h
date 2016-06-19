@@ -19,11 +19,11 @@ public:
 	explicit ActionSeries();
 	~ActionSeries();
 	void IdleActionDummy();
-	void SetEnabled( bool state );
+	void SetEnabled(bool state);
 	void Rewind();
-	void AddAction( float length, const ruDelegate & action );
-	void AddSpace( float length );
+	void AddAction(float length, const ruDelegate & action);
+	void AddSpace(float length);
 	void Perform();
-	void Deserialize( SaveFile & in );
-	void Serialize( SaveFile & out );
+	void Deserialize(SaveFile & in);
+	void Serialize(SaveFile & out);
 };

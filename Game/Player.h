@@ -8,7 +8,7 @@
 #include "GameCamera.h"
 #include "Flashlight.h"
 #include "Goal.h"
-#include "Way.h"
+#include "Ladder.h"
 #include "SaveFile.h"
 #include "Parser.h"
 #include "SmoothFloat.h"
@@ -19,6 +19,9 @@
 #include "Syringe.h"
 
 class Player : public Actor {
+private:
+	friend class Level;
+	explicit Player();
 public:
     void LoadSounds();
     void CreateCamera();
@@ -44,10 +47,6 @@ public:
 	shared_ptr<ruPointLight>mFakeLight;
 
     shared_ptr<ruTexture> mStatusBar;
-
-	shared_ptr<ruRect> mGUICursorPickUp;
-	shared_ptr<ruRect> mGUICursorPut;
-	shared_ptr<ruRect> mGUICrosshair;
 
     SmoothFloat mPitch;
     SmoothFloat mYaw;
@@ -81,7 +80,7 @@ public:
 	float mCameraTrembleTime;
 	ruVector3 mCameraTrembleOffset;
 
-    Way * mpCurrentWay;
+    weak_ptr<Ladder> mLadder;
 
     shared_ptr<ruSound> mLighterCloseSound;
     shared_ptr<ruSound> mLighterOpenSound;
@@ -102,14 +101,13 @@ public:
     bool mDead;
     bool mObjectiveDone;
     bool mMoved;
-    bool mSmoothCamera;
     bool mStealthMode;
     bool mRunning;
 	bool mInAir;
 	bool mFlashlightLocked;
 	bool mLandedSoundEmitted;
 
-    Inventory mInventory;
+    unique_ptr<Inventory> mInventory;
 
     ruInput::Key mKeyMoveForward;
     ruInput::Key mKeyMoveBackward;
@@ -124,13 +122,18 @@ public:
     ruInput::Key mKeyLookLeft;
     ruInput::Key mKeyLookRight;
 
-    Goal mGoal; 
+    unique_ptr<Goal> mGoal; 
+	unique_ptr<Tip> mTip;
 
-    Tip mTip;
+    weak_ptr<Sheet> mSheetInHands;
 
-    Sheet * mpSheetInHands;
+	shared_ptr<ruGUIScene> mGUIScene;
 
     shared_ptr<ruText> mGUIActionText;
+
+	shared_ptr<ruRect> mGUICursorPickUp;
+	shared_ptr<ruRect> mGUICursorPut;
+	shared_ptr<ruRect> mGUICrosshair;
 
     static const int mGUISegmentCount = 20;
     shared_ptr<ruRect> mGUIHealthBarSegment[mGUISegmentCount];
@@ -154,7 +157,6 @@ public:
 	void EmitStepSound();
 
 public:
-    explicit Player();
     virtual ~Player();
 	void Step( ruVector3 direction, float speed );
     void FreeHands();
@@ -183,7 +185,7 @@ public:
     void DoFright();
     void ComputeStealth();
 	virtual void SetPosition( ruVector3 position );
-    Inventory * GetInventory();
+	unique_ptr<Inventory> & GetInventory();
     Flashlight * GetFlashLight();
 	Weapon * GetWeapon();
     Parser * GetLocalization();
@@ -194,4 +196,5 @@ public:
     void SetHUDVisible( bool state );
 	virtual void ManageEnvironmentDamaging() final;
 	void DumpUsableObjects( vector<UsableObject*> & otherPlace );
+	void Interact();
 };

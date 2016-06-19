@@ -8,11 +8,12 @@ private:
     float mTextAlpha;
     float mTextAlphaTo;
     bool mShowIntro;
+	shared_ptr<ruGUIScene> mGUIScene;
     shared_ptr<ruText> mGUIText;
     shared_ptr<ruText> mGUISkipText;
 	shared_ptr<ruRect> mGUIBackground;
 public:
-    explicit LevelIntroduction();
+    explicit LevelIntroduction(const unique_ptr<PlayerTransfer> & playerTransfer);
     virtual ~LevelIntroduction();
     virtual void DoScenario() final;
     virtual void Show() final;

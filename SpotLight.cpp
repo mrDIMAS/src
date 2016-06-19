@@ -25,41 +25,41 @@
 
 shared_ptr<Texture> SpotLight::msDefaultSpotTexture;
 
-bool SpotLight::IsSeePoint( const ruVector3 & point ) {
-	bool inFrustum = mFrustum.IsPointInside( point );
-	if( inFrustum ) {
-		return ( ruVector3( mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < mRadius * mRadius * 4;
+bool SpotLight::IsSeePoint(const ruVector3 & point) {
+	bool inFrustum = mFrustum.IsPointInside(point);
+	if (inFrustum) {
+		return (ruVector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
 	}
 	return false;
 }
 
 void SpotLight::BuildSpotProjectionMatrixAndFrustum() {
 	ruVector3 position = GetPosition();
-	btVector3 bEye = btVector3( position.x, position.y, position.z );
-	btVector3 bLookAt = bEye + mGlobalTransform.getBasis() * btVector3( 0, -1, 0 );
-	btVector3 bUp = mGlobalTransform.getBasis() * btVector3( 1, 0, 0 );
+	btVector3 bEye = btVector3(position.x, position.y, position.z);
+	btVector3 bLookAt = bEye + mGlobalTransform.getBasis() * btVector3(0, -1, 0);
+	btVector3 bUp = mGlobalTransform.getBasis() * btVector3(1, 0, 0);
 
-	D3DXVECTOR3 dxEye( bEye.x(), bEye.y(), bEye.z() );
-	D3DXVECTOR3 dxLookAt( bLookAt.x(), bLookAt.y(), bLookAt.z() );
-	D3DXVECTOR3 dxUp( bUp.x(), bUp.y(), bUp.z() );
+	D3DXVECTOR3 dxEye(bEye.x(), bEye.y(), bEye.z());
+	D3DXVECTOR3 dxLookAt(bLookAt.x(), bLookAt.y(), bLookAt.z());
+	D3DXVECTOR3 dxUp(bUp.x(), bUp.y(), bUp.z());
 
 	D3DXMATRIX mView, mProj;
-	D3DXMatrixLookAtRH( &mView, &dxEye, &dxLookAt, &dxUp );
-	D3DXMatrixPerspectiveFovRH( &mProj, mOuterAngle * SIMD_PI / 180.0f, 1.0f, 0.1f, 1000.0f );
-	D3DXMatrixMultiply( &mSpotViewProjectionMatrix, &mView, &mProj );
-	mFrustum.Build( mSpotViewProjectionMatrix );
+	D3DXMatrixLookAtRH(&mView, &dxEye, &dxLookAt, &dxUp);
+	D3DXMatrixPerspectiveFovRH(&mProj, mOuterAngle * SIMD_PI / 180.0f, 1.0f, 0.1f, 1000.0f);
+	D3DXMatrixMultiply(&mSpotViewProjectionMatrix, &mView, &mProj);
+	mFrustum.Build(mSpotViewProjectionMatrix);
 }
 
-void SpotLight::SetSpotTexture( shared_ptr<ruTexture> texture ) {
-	mSpotTexture = std::dynamic_pointer_cast<Texture>( texture );
+void SpotLight::SetSpotTexture(shared_ptr<ruTexture> texture) {
+	mSpotTexture = std::dynamic_pointer_cast<Texture>(texture);
 }
 
-void SpotLight::SetConeAngles( float theInner, float theOuter ) {
+void SpotLight::SetConeAngles(float theInner, float theOuter) {
 	mInnerAngle = theInner;
 	mOuterAngle = theOuter;
 
-	mCosHalfInnerAngle = cosf( ( mInnerAngle / 2 ) * SIMD_PI / 180.0f );
-	mCosHalfOuterAngle = cosf( ( mOuterAngle / 2 ) * SIMD_PI / 180.0f );
+	mCosHalfInnerAngle = cosf((mInnerAngle / 2) * SIMD_PI / 180.0f);
+	mCosHalfOuterAngle = cosf((mOuterAngle / 2) * SIMD_PI / 180.0f);
 }
 
 float SpotLight::GetCosHalfOuterAngle() {
@@ -84,17 +84,17 @@ SpotLight::~SpotLight() {
 
 SpotLight::SpotLight() {
 	mSpotTexture = nullptr;
-	if( msDefaultSpotTexture ) {
+	if (msDefaultSpotTexture) {
 		mSpotTexture = msDefaultSpotTexture;
 	}
-	SetConeAngles( 45.0f, 80.0f );
+	SetConeAngles(45.0f, 80.0f);
 }
 
 Frustum & SpotLight::GetFrustum() {
 	return mFrustum;
 }
 
-shared_ptr<Texture> SpotLight::GetSpotTexture(){
+shared_ptr<Texture> SpotLight::GetSpotTexture() {
 	return mSpotTexture;
 }
 
@@ -110,10 +110,10 @@ int ruSpotLight::GetCount() {
 	return SceneFactory::GetSpotLightList().size();
 }
 
-shared_ptr<ruSpotLight> ruSpotLight::Get( int n ) {
+shared_ptr<ruSpotLight> ruSpotLight::Get(int n) {
 	return SceneFactory::GetSpotLightList()[n].lock();
 }
 
-void ruSpotLight::SetSpotDefaultTexture( shared_ptr<ruTexture> defaultSpotTexture ) {
-	SpotLight::msDefaultSpotTexture = std::dynamic_pointer_cast<Texture>( defaultSpotTexture );
+void ruSpotLight::SetSpotDefaultTexture(shared_ptr<ruTexture> defaultSpotTexture) {
+	SpotLight::msDefaultSpotTexture = std::dynamic_pointer_cast<Texture>(defaultSpotTexture);
 }

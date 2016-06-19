@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-
+#include "Level.h"
 #include "Way.h"
 #include "Player.h"
 
@@ -28,21 +28,22 @@ Way::~Way() {
 void Way::Enter() {
     mInside = false;
     mEntering = true;
-    if( ( pPlayer->GetCurrentPosition() - mBegin->GetPosition()).Length2() < ( pPlayer->GetCurrentPosition() - mEnd->GetPosition()).Length2() ) {
+	auto & player = Level::Current()->GetPlayer();
+    if( (player->GetCurrentPosition() - mBegin->GetPosition()).Length2() < (player->GetCurrentPosition() - mEnd->GetPosition()).Length2() ) {
         mTarget = mBegin;
     } else {
         mTarget = mEnd;
     }
-    pPlayer->Freeze();
-    pPlayer->mpCurrentWay = this;
+	player->Freeze();
 }
 
 void Way::DoEntering() {
     if( mEntering ) {
-        ruVector3 direction = mTarget->GetPosition() - pPlayer->GetCurrentPosition();
+		auto & player = Level::Current()->GetPlayer();
+        ruVector3 direction = mTarget->GetPosition() - player->GetCurrentPosition();
         float distance = direction.Length();
         direction.Normalize();
-        pPlayer->Move( direction, 1.1f );
+		player->Move( direction, 1.1f );
         if( distance < 0.25f ) {
             mEntering = false;
             mInside = true;
@@ -51,7 +52,7 @@ void Way::DoEntering() {
             } else {
                 mTarget = mEnd;
             }
-            pPlayer->StopInstant();
+			player->StopInstant();
         }
     }
 }
@@ -65,7 +66,8 @@ shared_ptr<ruSceneNode> Way::GetTarget() {
 }
 
 bool Way::IsEnterPicked() {
-    return pPlayer->mNearestPickedNode == mEnterZone;
+	auto & player = Level::Current()->GetPlayer();
+    return player->mNearestPickedNode == mEnterZone;
 }
 
 bool Way::IsPlayerInside() {
