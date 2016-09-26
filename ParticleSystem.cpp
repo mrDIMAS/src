@@ -29,8 +29,8 @@
 
 ParticleSystem::~ParticleSystem() {
 	OnLostDevice();
-	delete mVertices;
-	delete mFaces;
+	delete [] mVertices;
+	delete [] mFaces;
 }
 
 void ParticleSystem::Update() {

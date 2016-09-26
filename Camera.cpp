@@ -69,6 +69,48 @@ void Camera::SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruText
 	}
 }
 
+void Camera::SetFrameBrightness(float brightness) {
+	mFrameBrightness = brightness;
+	if (mFrameBrightness > 100.0f) {
+		mFrameBrightness = 100.0f;
+	}
+	if (mFrameBrightness < 0.0f) {
+		mFrameBrightness = 0.0f;
+	}
+}
+
+float Camera::GetFrameBrightness() const {
+	return mFrameBrightness;
+}
+
+void Camera::SetFrameColor(const ruVector3 & color) {
+	mFrameColor = color;
+
+	if (mFrameColor.x > 255.0f) {
+		mFrameColor.x = 255.0f;
+	}
+	if (mFrameColor.y > 255.0f) {
+		mFrameColor.y = 255.0f;
+	}
+	if (mFrameColor.z > 255.0f) {
+		mFrameColor.z = 255.0f;
+	}
+
+	if (mFrameColor.x < 0.0f) {
+		mFrameColor.x = 0.0f;
+	}
+	if (mFrameColor.y < 0.0f) {
+		mFrameColor.y = 0.0f;
+	}
+	if (mFrameColor.z < 0.0f) {
+		mFrameColor.z = 0.0f;
+	}
+}
+
+ruVector3 Camera::GetFrameColor() const {
+	return mFrameColor;
+}
+
 void Camera::CalculateInverseViewProjection() {
 	D3DXMatrixMultiply(&mViewProjection, &mView, &mProjection);
 	D3DXMatrixInverse(&invViewProjection, 0, &mViewProjection);
@@ -84,14 +126,15 @@ Camera::~Camera() {
 
 }
 
-Camera::Camera(float fov) {
-	this->mFov = fov;
-	mNearZ = 0.025f;
-	mFarZ = 6000.0f;
-	mSkybox = nullptr;
-	mInDepthHack = false;
-	mPathNewPointDelta = 5.0f;
-
+Camera::Camera(float fov) :
+	mFrameBrightness(100.0f),
+	mNearZ(0.025f),
+	mFarZ(6000.0f),
+	mFov(fov),
+	mInDepthHack(false),
+	mPathNewPointDelta(5.0f),
+	mFrameColor(255.0f, 255.0f, 255.0f)
+{
 	// path must contain at least one point, add new one located in camera's position 
 	mNearestPathPointIndex = 0;
 	mPath.push_back(std::move(unique_ptr<PathPoint>(new PathPoint(GetPosition()))));

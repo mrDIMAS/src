@@ -47,16 +47,10 @@ void Weapon::SetProjectileCount(int projCount) {
 	mProjectileCount = projCount;
 }
 
-void Weapon::OnDeserialize(SaveFile & in) {
-	mProjectileCount = in.ReadInteger();
-	mShotInterval = in.ReadInteger();
-	mShotFlashIntensity = in.ReadFloat();
-}
-
-void Weapon::OnSerialize(SaveFile & out) {
-	out.WriteInteger(mProjectileCount);
-	out.WriteInteger(mShotInterval);
-	out.WriteFloat(mShotFlashIntensity);
+void Weapon::OnSerialize(SaveFile & s) {
+	s & mProjectileCount;
+	s & mShotInterval;
+	s & mShotFlashIntensity;
 }
 
 void Weapon::Update() {

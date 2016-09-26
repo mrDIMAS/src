@@ -25,7 +25,7 @@ void Valve::Update() {
     if( !mDone ) {	
 		auto & player = Level::Current()->GetPlayer();
 		if(player->mNearestPickedNode == mObject ) {
-			player->SetActionText( StringBuilder() << ruInput::GetKeyName(player->mKeyUse ) << player->mLocalization.GetString( "turnObject" ));
+			player->GetHUD()->SetAction(player->mKeyUse, player->mLocalization.GetString( "turnObject" ));
 			if( ruInput::IsKeyDown(player->mKeyUse )) {
 				mTurnSound->Play();
 				mAngle += 5;

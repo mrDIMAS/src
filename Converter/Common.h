@@ -9,5 +9,6 @@
 #include <algorithm>
 #include <math.h>
 #include <iomanip>
+#include <memory>
 
 using namespace std;

@@ -10,14 +10,14 @@
 #include "SaveLoader.h"
 #include "Utils.h"
 
-Menu * pMainMenu = 0;
+unique_ptr<Menu> pMainMenu;
 bool g_continueGame = false;
 
 Menu::Menu() {
-	mLocalization.ParseFile(localizationPath + "menu.loc");
+	mLocalization.ParseFile(gLocalizationPath + "menu.loc");
 
 	// load background scene
-	mScene = ruSceneNode::LoadFromFile("data/maps/menu/menu.scene");
+	mScene = ruSceneNode::LoadFromFile("data/maps/menu.scene");
 
 	// create gui scene
 	mGUIScene = ruGUIScene::Create();
@@ -217,6 +217,10 @@ Menu::Menu() {
 			int yOffset = (aTabHeight - 1.5 * mDistBetweenButtons) / 2;
 			int xOffset = aTabWidth / 6.5;
 
+			mFOVSlider = unique_ptr<Slider>(new Slider(mGUIScene, xOffset, yOffset - 0.5f * mDistBetweenButtons, 55, 90, 1.0f, ruTexture::Request("data/gui/menu/smallbutton.tga"), mLocalization.GetString("fov")));
+			mFOVSlider->AttachTo(mGUIOptionsCommonCanvas);
+			mFOVSlider->SetChangeAction(ruDelegate::Bind(this, &Menu::OnFovChanged));
+
 			mpMasterVolume = unique_ptr<Slider>(new Slider(mGUIScene, xOffset, yOffset, 0, 100, 2.5f, ruTexture::Request("data/gui/menu/smallbutton.tga"), mLocalization.GetString("masterVolume")));
 			mpMasterVolume->AttachTo(mGUIOptionsCommonCanvas);
 			mpMasterVolume->SetChangeAction(ruDelegate::Bind(this, &Menu::OnSoundVolumeChange));
@@ -339,7 +343,7 @@ void Menu::DoExitGame() {
 			}
 		}
 	}
-	g_running = false;
+	gRunning = false;
 	WriteConfig();
 }
 
@@ -401,18 +405,28 @@ void Menu::OnSaveClick() {
 }
 
 void Menu::OnMouseSensivityChange() {
-	mouseSens = mpMouseSensivity->GetValue() / 100.0f;
+	gMouseSens = mpMouseSensivity->GetValue() / 100.0f;
 }
 
 void Menu::OnMusicVolumeChange() {
 	mMusic->SetVolume(mpMusicVolume->GetValue() / 100.0f);
-	g_musicVolume = mpMusicVolume->GetValue() / 100.0f;
+	gMusicVolume = mpMusicVolume->GetValue() / 100.0f;
 	if (Level::Current()) {
-		Level::Current()->mMusic->SetVolume(g_musicVolume);
+		Level::Current()->mMusic->SetVolume(gMusicVolume);
 	}
 }
 void Menu::OnSoundVolumeChange() {
 	ruSound::SetMasterVolume(mpMasterVolume->GetValue() / 100.0f);
+}
+
+void Menu::OnFovChanged() {
+	if (Level::Current()) {
+		if (Level::Current()->GetPlayer()) {
+			Level::Current()->GetPlayer()->mFov.SetMin(mFOVSlider->GetValue());
+			Level::Current()->GetPlayer()->mFov.SetMax(mFOVSlider->GetValue() + 5);
+			Level::Current()->GetPlayer()->mFov.Set(mFOVSlider->GetValue());
+		}
+	}
 }
 
 void Menu::DoSaveCurrentGame() {
@@ -435,6 +449,16 @@ void Menu::Update() {
 	SyncPlayerControls();
 
 	if (mVisible) {
+
+		// destroy current level if player died
+		if (Level::Current()) {
+			if (Level::Current()->GetPlayer()) {
+				if (Level::Current()->GetPlayer()->IsDead()) {
+					Level::DestroyCurrent();
+				}
+			}
+		}
+
 		ifstream f("quickSave.save");
 		if (f.good()) {
 			mGUIContinueGameButton->SetActive(true);
@@ -571,7 +595,7 @@ void Menu::Update() {
 		}
 
 		// Apply graphics settings
-		g_showFPS = mpFPSButton->IsChecked();
+		gShowFPS = mpFPSButton->IsChecked();
 		if (mpTextureFiltering->GetCurrentValue() == 0) {
 			ruEngine::SetAnisotropicTextureFiltration(false);
 		} else {
@@ -630,7 +654,7 @@ void Menu::LoadTextures() {
 }
 
 void Menu::CreateCamera() {
-	mpCamera = unique_ptr<GameCamera>(new GameCamera( mGUIScene ));
+	mpCamera = unique_ptr<GameCamera>(new GameCamera(mGUIScene));
 	mCameraFadeActionDone = false;
 	mCameraInitialPosition = mScene->FindChild("Camera")->GetPosition();
 	mCameraAnimationNewOffset = ruVector3(0.5, 0.5, 0.5);
@@ -650,7 +674,7 @@ void Menu::LoadConfig() {
 		mpMasterVolume->SetValue(config.GetNumber("masterVolume"));
 
 		mpMusicVolume->SetValue(config.GetNumber("musicVolume"));
-		g_musicVolume = mpMusicVolume->GetValue();
+		gMusicVolume = mpMusicVolume->GetValue();
 
 		mpMouseSensivity->SetValue(config.GetNumber("mouseSens"));
 		mpFXAAButton->SetEnabled(config.GetNumber("fxaaEnabled") != 0);
@@ -666,10 +690,10 @@ void Menu::LoadConfig() {
 		mpUseKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyUse"))));
 
 		mpQuickSaveKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyQuickSave"))));
-		g_keyQuickSave = mpQuickSaveKey->GetSelectedKey();
+		gKeyQuickSave = mpQuickSaveKey->GetSelectedKey();
 
 		mpQuickLoadKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyQuickLoad"))));
-		g_keyQuickLoad = mpQuickLoadKey->GetSelectedKey();
+		gKeyQuickLoad = mpQuickLoadKey->GetSelectedKey();
 
 		mpStealthKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyStealth"))));
 
@@ -693,7 +717,9 @@ void Menu::LoadConfig() {
 		mpLookRightKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyLookRight"))));
 
 		mpFPSButton->SetEnabled(config.GetNumber("showFPS") != 0.0f);
-		g_showFPS = mpFPSButton->IsChecked();
+		gShowFPS = mpFPSButton->IsChecked();
+
+		mFOVSlider->SetValue(config.GetNumber("fov"));
 	}
 }
 
@@ -713,6 +739,10 @@ void Menu::SyncPlayerControls() {
 			player->mKeyStealth = mpStealthKey->GetSelectedKey();
 			player->mKeyLookLeft = mpLookLeftKey->GetSelectedKey();
 			player->mKeyLookRight = mpLookRightKey->GetSelectedKey();
+
+			player->mFov.SetMin(mFOVSlider->GetValue());
+			player->mFov.SetMax(mFOVSlider->GetValue() + 5);
+			player->mFov.Set(mFOVSlider->GetValue());
 		}
 	}
 }
@@ -742,6 +772,7 @@ void Menu::WriteConfig() {
 	WriteInteger(config, "keyLookRight", static_cast<int>(mpLookRightKey->GetSelectedKey()));
 	WriteInteger(config, "showFPS", mpFPSButton->IsChecked() ? 1 : 0);
 	WriteInteger(config, "parallax", mpParallaxButton->IsChecked() ? 1 : 0);
+	WriteFloat(config, "fov", mFOVSlider->GetValue());
 	config.close();
 }
 

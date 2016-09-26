@@ -36,7 +36,7 @@ public:
 	int mHeight;
 	int mRefreshRate;
 
-	Videomode( int width, int height, int refreshRate ) {
+	Videomode(int width, int height, int refreshRate) {
 		mWidth = width;
 		mHeight = height;
 		mRefreshRate = refreshRate;
@@ -51,11 +51,11 @@ private:
 
 	bool mUsePointLightShadows;
 	bool mUseSpotLightShadows;
-	bool mRunning;	
+	bool mRunning;
 	bool mAnisotropicFiltering;
 	float mResWidth;
 	float mResHeight;
-	
+
 	D3DPRESENT_PARAMETERS mPresentParameters;
 
 	string mTextureStoragePath;
@@ -67,17 +67,17 @@ private:
 	int mNativeResolutionHeight;
 	void SetDefaults();
 	vector<Videomode> mVideomodeList;
-	
+
 	shared_ptr<Cursor> mCursor;
 
 	MeshMap mDeferredMeshMap;
 
-	void RenderMesh( const shared_ptr<Mesh> & mesh );
+	void RenderMesh(const shared_ptr<Mesh> & mesh);
 
 	// Shader Stuff
-	DWORD * ReadEntireFile( const char * fileName );
-	void LoadPixelShader( COMPtr<IDirect3DPixelShader9> & pixelShader, const char * fileName );
-	void LoadVertexShader( COMPtr<IDirect3DVertexShader9> & vertexShader, const char * fileName );
+	DWORD * ReadEntireFile(const char * fileName);
+	void LoadPixelShader(COMPtr<IDirect3DPixelShader9> & pixelShader, const char * fileName);
+	void LoadVertexShader(COMPtr<IDirect3DVertexShader9> & vertexShader, const char * fileName);
 
 	//**************************************
 	// Forward Rendering Stuff
@@ -129,8 +129,8 @@ private:
 	COMPtr<IDirect3DPixelShader9> mScaleScenePixelShader;
 	COMPtr<IDirect3DTexture9> mScaledScene;
 	COMPtr<IDirect3DSurface9> mScaledSceneSurf;
-	COMPtr<IDirect3DTexture9> mDownSampTex[ mHDRDownSampleCount ];
-	COMPtr<IDirect3DSurface9> mDownSampSurf[ mHDRDownSampleCount ];
+	COMPtr<IDirect3DTexture9> mDownSampTex[mHDRDownSampleCount];
+	COMPtr<IDirect3DSurface9> mDownSampSurf[mHDRDownSampleCount];
 	COMPtr<IDirect3DTexture9> mAdaptedLuminanceLast;
 	COMPtr<IDirect3DTexture9> mAdaptedLuminanceCurrent;
 
@@ -146,8 +146,20 @@ private:
 	ruVector2 mBloomDY;
 
 	// Shadow cubemap
-	COMPtr<IDirect3DCubeTexture9> mCubeShadowMap;
+	//COMPtr<IDirect3DCubeTexture9> mCubeShadowMap;
 	COMPtr<IDirect3DSurface9> mCubeDepthStencilSurface;
+
+	// Shadowmap cache: 
+	//	- 1024: [0;4]   (4 total) - R16F - 12     Mbytes total
+	//  - 512:  [4;8]   (4 total) - R16F - 3      Mbytes total
+	//  - 256:  [8;12]  (4 total) - R16F - 0.75   Mbytes total
+	//  - 128:  [12;16] (4 total) - R16F - 0.1875 Mbytes total
+	//  - 64:   [16;24] (8 total) - R16F - 0.0468 Mbytes total
+	//  - 32:   [24;32] (8 total) - R16F - 0.0234 Mbytes total
+	//--------------------------------------------------------
+	// Total memory consumption: ~16 Mbytes
+	constexpr static int mShadowMapCacheSize = 32;
+	COMPtr<IDirect3DCubeTexture9> mCubeShadowMapCache[32];
 
 	// Spot light shadow map
 	COMPtr<IDirect3DTexture9> mShadowMap;
@@ -158,12 +170,14 @@ private:
 	// Shadow map shaders
 	COMPtr<IDirect3DPixelShader9> mShadowMapPixelShader;
 	COMPtr<IDirect3DVertexShader9> mShadowMapVertexShader;
-
-
+	
 	// Quad
 	D3DXMATRIX mOrthoProjectionMatrix;
 	COMPtr<IDirect3DVertexBuffer9> mQuadVertexBuffer;
 	COMPtr<IDirect3DVertexShader9> mQuadVertexShader;
+
+	// SSAO Stuff
+	COMPtr<IDirect3DPixelShader9> mSSAOPixelShader;
 
 	void RenderFullscreenQuad();
 
@@ -172,6 +186,13 @@ private:
 	COMPtr<IDirect3DIndexBuffer9> mSkyboxIndexBuffer;
 	COMPtr<IDirect3DVertexShader9> mSkyboxVertexShader;
 	COMPtr<IDirect3DPixelShader9> mSkyboxPixelShader;
+
+	// Light flare stuff
+	COMPtr<IDirect3DVertexShader9> mFlareVertexShader;
+	COMPtr<IDirect3DPixelShader9> mFlarePixelShader;
+	COMPtr<IDirect3DVertexBuffer9> mFlareVertexBuffer;
+	COMPtr<IDirect3DIndexBuffer9> mFlareIndexBuffer;
+	COMPtr<IDirect3DTexture9> mFlareTexture;
 
 	// Common vertex declaration
 	COMPtr<IDirect3DVertexDeclaration9> msVertexDeclaration;
@@ -184,7 +205,7 @@ private:
 	COMPtr<IDirect3DIndexBuffer9> mTextIndexBuffer;
 	int mTextMaxChars;
 
-	void RenderRect( const shared_ptr<GUIRect> &  );
+	void RenderRect(const shared_ptr<GUIRect> &);
 
 	// Default textures
 	COMPtr<IDirect3DCubeTexture9> mWhiteCubeMap;
@@ -194,8 +215,8 @@ private:
 	// D3D9
 	COMPtr<IDirect3D9Ex> mpDirect3D;
 	COMPtr<IDirect3DDevice9Ex> mpDevice;
-	COMPtr<IDirect3DSurface9> mpBackBuffer;	
-		
+	COMPtr<IDirect3DSurface9> mpBackBuffer;
+
 	// Rendering statistics
 	int mDIPCount;
 	int mTextureChangeCount;
@@ -206,13 +227,14 @@ private:
 	bool mHDREnabled;
 	bool mParallaxEnabled;
 	bool mFXAAEnabled;
+	bool mSSAOEnabled;
 public:
-	explicit Renderer( int width, int height, int fullscreen, char vSync );
+	explicit Renderer(int width, int height, int fullscreen, char vSync);
 	virtual ~Renderer();
 	virtual void OnLostDevice();
-	virtual void OnResetDevice();	
-    void RenderWorld( );
-	void UpdateWorld( );
+	virtual void OnResetDevice();
+	void RenderWorld();
+	void UpdateWorld();
 	void Reset();
 	float GetResolutionWidth();
 	float GetResolutionHeight();
@@ -220,33 +242,39 @@ public:
 	int GetRenderedTriangles() const {
 		return mRenderedTriangleCount;
 	}
-	void ChangeVideomode( int width, int height, bool fullscreen, bool vsync );
+	void ChangeVideomode(int width, int height, bool fullscreen, bool vsync);
 	bool IsAnisotropicFilteringEnabled();
-	void SetAnisotropicTextureFiltration( bool state );
-	void SetGenericSamplersFiltration( D3DTEXTUREFILTERTYPE filter, bool disableMips );
-	void SetSpotLightShadowMapSize( int size );
-	void SetPointLightShadowsEnabled( bool state );
-	void SetSpotLightShadowsEnabled( bool state );
+	void SetAnisotropicTextureFiltration(bool state);
+	void SetGenericSamplersFiltration(D3DTEXTUREFILTERTYPE filter, bool disableMips);
+	void SetSpotLightShadowMapSize(int size);
+	void SetPointLightShadowsEnabled(bool state);
+	void SetSpotLightShadowsEnabled(bool state);
 	bool IsPointLightShadowsEnabled();
 	bool IsSpotLightShadowsEnabled();
 	ruVector3 GetAmbientColor();
-	void SetAmbientColor( ruVector3 ambColor );
-	void SetCursor( shared_ptr<ruTexture> texture, int w, int h );
-	void SetCursorVisible( bool state );
+	void SetAmbientColor(ruVector3 ambColor);
+	void SetCursor(shared_ptr<ruTexture> texture, int w, int h);
+	void SetCursorVisible(bool state);
 	void Shutdown();
 	shared_ptr<Cursor> & GetCursor();
 	int GetTextureChangeCount();
 	int GetShaderChangeCount();
 	string GetTextureStoragePath();
-	void SetTextureStoragePath( const string & path );
-	float GetGUIWidthScaleFactor( ) const;
-	float GetGUIHeightScaleFactor( ) const;
+	void SetTextureStoragePath(const string & path);
+	float GetGUIWidthScaleFactor() const;
+	float GetGUIHeightScaleFactor() const;
 	// Effects control methods
 	bool IsFXAAEnabled();
-	void SetFXAAEnabled( bool state );
+	void SetFXAAEnabled(bool state);
 	bool IsHDREnabled();
-	void SetHDREnabled( bool state );
+	void SetHDREnabled(bool state);
 	bool IsParallaxEnabled();
-	void SetParallaxEnabled( bool state );
-	void AddMesh( const shared_ptr<Mesh> & mesh );
+	void SetParallaxEnabled(bool state);
+	void SetSSAOEnabled(bool state) {
+		mSSAOEnabled = state;
+	}
+	bool IsSSAOEnabled() const {
+		return mSSAOEnabled;
+	}
+	void AddMesh(const shared_ptr<Mesh> & mesh);
 };

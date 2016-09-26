@@ -30,7 +30,6 @@ private:
     string mName;
     Type mType;
     Type mCombinePair;
-    Type mMorphType;
     float mVolume;
     float mMass;
     float mContent;

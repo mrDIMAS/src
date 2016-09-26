@@ -23,6 +23,7 @@ private:
 	bool mPaused;
 	bool mEngineSoundEnabled;
 	float mSpeedMultiplier;
+	bool mLocked;
 public:
 
     virtual ~Lift( );
@@ -38,6 +39,11 @@ public:
 	void SetPaused( bool state );
 	void SetEngineSoundEnabled( bool state );
 	void SetSpeedMultiplier( float mult );
-	void Deserialize( SaveFile & in );
 	void Serialize( SaveFile & out );
+	void SetLocked(bool state) {
+		mLocked = state;
+	}
+	bool IsLocked() const {
+		return mLocked;
+	}
 };

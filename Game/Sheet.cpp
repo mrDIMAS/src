@@ -9,7 +9,7 @@ Sheet::Sheet(const shared_ptr<ruGUIScene> & scene, const shared_ptr<ruSceneNode>
 
     mPaperFlipSound = ruSound::Load2D( "data/sounds/paperflip.ogg" );
     if( !msSheetFont ) {
-        msSheetFont = ruFont::LoadFromFile( 16, "data/fonts/font1.otf" );
+        msSheetFont = ruFont::LoadFromFile( 16, "data/fonts/font5.ttf" );
     }
     int cx = ruVirtualScreenWidth / 2;
     int cy = ruVirtualScreenHeight / 2;

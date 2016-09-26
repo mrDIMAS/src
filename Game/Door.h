@@ -45,5 +45,4 @@ public:
 	void Close();
 	virtual void Update();
 	void Serialize(SaveFile & out);
-	void Deserialize(SaveFile & in);
 };

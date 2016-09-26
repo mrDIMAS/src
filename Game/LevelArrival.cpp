@@ -12,7 +12,7 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	LoadLocalization("arrival.loc");
 
 	// Load main scene
-	LoadSceneFromFile("data/maps/release/arrival/arrival.scene");
+	LoadSceneFromFile("data/maps/arrival.scene");
 
 	//////////////////////////////////////////////////////////////////////////
 	// Find and create all sheets
@@ -34,12 +34,14 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	mTutorialZone4 = GetUniqueObject("TutorialZone4");
 	mTutorialZone5 = GetUniqueObject("TutorialZone5");
 	mTutorialZone6 = GetUniqueObject("TutorialZone6");
+	mTutorialZone7 = GetUniqueObject("TutorialZone7");
+	mTutorialZone8 = GetUniqueObject("TutorialZone8");
 
 	mHalt = GetUniqueObject("Halt");
 
 	//////////////////////////////////////////////////////////////////////////
 	// Player noticements
-	mPlayer->SetObjective(mLocalization.GetString("objective1"));
+	mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective1"));
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition() + ruVector3(0, 1, 0));
 
@@ -71,6 +73,8 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient5.ogg"));
 	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient6.ogg"));
 
+	AddSound(mWoodHitSound = ruSound::Load2D("data/sounds/woodhit.ogg"));
+
 	mPlayer->mpCamera->mCamera->SetSkybox(
 		ruTexture::Request("data/textures/skyboxes/night3/nightsky_u.jpg"),
 		ruTexture::Request("data/textures/skyboxes/night3/nightsky_l.jpg"),
@@ -81,11 +85,40 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 
 	mStages["LiftCrashed"] = false;
 
+	// add light switches
+	vector<shared_ptr<ruLight>> lights;
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("ClockHouseLight1")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("ClockHouseLight2")));
+	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch1"), lights, false)));
+	
+	lights.clear();
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("EntranceLight1")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("EntranceLight2")));
+	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch2"), lights, false)));
+
+	lights.clear();
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight1")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight2")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight3")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight4")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight5")));
+	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch3"), lights, false)));
+
+	lights.clear();
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("MineLight1")));
+	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("MineLight2")));
+	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch4"), lights, false)));
+
 	// every action series disabled by default
 	mLiftCrashSeries.AddAction(0.0f, ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_PowerDown));
 	mLiftCrashSeries.AddAction(mPowerDownSound->GetLength(), ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_AfterPowerDown));
 	mLiftCrashSeries.AddAction(mMetalStressSound->GetLength(), ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_AfterFirstStressSound));
 	mLiftCrashSeries.AddAction(mLiftFallSound->GetLength(), ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_AfterFalldown));
+
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Lighter), make_shared<InteractiveObject>(GetUniqueObject("Zippo")), ruDelegate::Bind(this, &LevelArrival::Proxy_AddLighther));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Crowbar), make_shared<InteractiveObject>(GetUniqueObject("Crowbar")), ruDelegate::Bind(this, &LevelArrival::Proxy_AddCrowbar));
+
+	AddDoor("MetalDoor1", 90.0f);
 
 	DoneInitialization();
 }
@@ -108,26 +141,50 @@ void LevelArrival::DoScenario() {
 	mLift->Update();
 
 	if (mPlayer->IsInsideZone(mTutorialZone1)) {
-		mPlayer->SetActionText(mLocalization.GetString("tutorialControls"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls"));
 	}
 	if (mPlayer->IsInsideZone(mTutorialZone2)) {
-		mPlayer->SetActionText(mLocalization.GetString("tutorialControls2"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls2"));
 	}
 	if (mPlayer->IsInsideZone(mTutorialZone3)) {
-		mPlayer->SetActionText(mLocalization.GetString("tutorialControls3"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls3"));
 	}
 	if (mPlayer->IsInsideZone(mTutorialZone4)) {
-		mPlayer->SetActionText(mLocalization.GetString("tutorialControls4"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls4"));
 	}
 	if (mPlayer->IsInsideZone(mTutorialZone5)) {
-		mPlayer->SetActionText(mLocalization.GetString("tutorialControls5"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls5"));
 	}
 	if (mPlayer->IsInsideZone(mTutorialZone6)) {
-		mPlayer->SetActionText(mLocalization.GetString("tutorialControls6"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls6"));
+	}
+	if (mPlayer->IsInsideZone(mTutorialZone7)) {
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls7"));
+	}
+	if (mPlayer->IsInsideZone(mTutorialZone8)) {
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls8"));
+	}
+
+	auto itemForUse = mPlayer->GetInventory()->GetItemSelectedForUse();
+	if (itemForUse) {
+		if (ruInput::IsKeyHit(mPlayer->mKeyUse)) {
+			if (itemForUse->GetType() == Item::Type::Crowbar) {
+				auto planks = ruSceneNode::GetTaggedObjects("WoodenPlank");
+				for (auto plank : planks) {
+					if (plank->IsFrozen()) {
+						if (mPlayer->mNearestPickedNode == plank) {
+							plank->Unfreeze();
+							mWoodHitSound->SetPosition(plank->GetPosition());
+							mWoodHitSound->Play();
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if (!mStages["LiftCrashed"]) {
-		ruEngine::SetAmbientColor(ruVector3(0.1, 0.1, 0.1));
+		ruEngine::SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
 		PlayAmbientSounds();
 		if (mPlayer->IsInsideZone(mLiftStopZone)) {
 			mLift->SetPaused(true);
@@ -135,8 +192,7 @@ void LevelArrival::DoScenario() {
 			mStages["LiftCrashed"] = true;
 			mLiftCrashSeries.SetEnabled(true);
 		}
-	}
-	else {
+	} else {
 		// fully dark
 		mPlayer->TurnOffFakeLight();
 		ruEngine::SetAmbientColor(ruVector3(0.0, 0.0, 0.0));
@@ -151,12 +207,8 @@ void LevelArrival::DoScenario() {
 	}
 }
 
-void LevelArrival::OnDeserialize(SaveFile & in) {
-	mLiftCrashSeries.Deserialize(in);
-}
-
-void LevelArrival::OnSerialize(SaveFile & out) {
-	mLiftCrashSeries.Serialize(out);
+void LevelArrival::OnSerialize(SaveFile & s) {
+	mLiftCrashSeries.Serialize(s);
 }
 
 // ACTIONS
@@ -186,4 +238,12 @@ void LevelArrival::ActLiftCrash_AfterFalldown() {
 	mChangeLevel = true;
 	mPlayer->LockFlashlight(false);
 	mPlayer->SetHealth(20);
+}
+
+void LevelArrival::Proxy_AddLighther() {
+	mPlayer->AddUsableObject(new Flashlight);
+}
+
+void LevelArrival::Proxy_AddCrowbar() {
+	mPlayer->AddItem(Item::Type::Crowbar);
 }

@@ -57,7 +57,7 @@ void Gate::Update() {
 
 	if (player->mNearestPickedNode == mButtonOpen[0] || player->mNearestPickedNode == mButtonOpen[1]) {
 		if (!(mState == State::Closing || mState == State::Opening)) {
-			player->SetActionText("Открыть");
+			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("openGateway"));
 			if (ruInput::IsKeyHit(player->mKeyUse)) {
 				mButtonSound->SetPosition(player->mNearestPickedNode->GetPosition());
 				if (mState != State::Opened) {
@@ -69,7 +69,7 @@ void Gate::Update() {
 	}
 	if (player->mNearestPickedNode == mButtonClose[0] || player->mNearestPickedNode == mButtonClose[1]) {
 		if (!(mState == State::Closing || mState == State::Opening)) {
-			player->SetActionText("Закрыть");
+			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("closeGateway"));
 			if (ruInput::IsKeyHit(player->mKeyUse)) {
 				mButtonSound->SetPosition(player->mNearestPickedNode->GetPosition());
 				if (mState != State::Closed) {

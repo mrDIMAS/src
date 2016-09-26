@@ -34,6 +34,8 @@ public:
 		
 	~PointLight();
 	void SetPointTexture( ruCubeTexture * cubeTexture );
-	virtual bool IsSeePoint( const ruVector3 & point );
 	CubeTexture * GetPointTexture();
+
+	// API Methods
+	virtual bool IsSeePoint(const ruVector3 & point) override final;
 };

@@ -2,23 +2,6 @@
 
 #include "Tip.h"
 
-/*
-void Tip::Deserialize( SaveFile & in ) {
-    mAlpha.Deserialize( in );
-    in.ReadInteger( mX );
-    mY.Deserialize( in );
-    in.ReadInteger( mWidth );
-    in.ReadInteger( mHeight );
-}
-
-void Tip::Serialize( SaveFile & out ) {
-    mAlpha.Serialize( out );
-    out.WriteInteger( mX );
-    mY.Serialize( out );
-    out.WriteInteger( mWidth );
-    out.WriteInteger( mHeight );
-}
-*/
 void Tip::AnimateAndDraw() {
     mGUIText->SetPosition( mX, mY );
 	mGUIText->SetAlpha( mAlpha );
@@ -44,7 +27,7 @@ Tip::Tip(const shared_ptr<ruGUIScene> & scene) : mAlpha( 255.0f, 0.0f, 255.0f ) 
     mWidth = 256;
     mHeight = 32;
     mX = ruVirtualScreenWidth / 2 - mWidth / 2;
-    mGUIText = scene->CreateText( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, ruVector3( 255, 0, 0 ), ruTextAlignment::Center, mAlpha );
+    mGUIText = scene->CreateText( " ", 0, 0, mWidth, mHeight, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center, mAlpha );
 	SetNewText( " " );
 }
 

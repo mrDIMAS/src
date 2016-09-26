@@ -25,8 +25,10 @@ protected:
 	float mShakeCoeff;
 	bool mVisible;
 	virtual void OnSerialize( SaveFile & out ) final;
-	virtual void OnDeserialize( SaveFile & in ) final;
 public:
+	virtual void OnPickupSame() final {
+		LoadBullet();
+	}
 	bool IsVisible();
 	explicit Weapon();
 	~Weapon() {

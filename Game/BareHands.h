@@ -11,5 +11,8 @@ public:
 	virtual Item::Type GetItemType() final {
 		return Item::Type::Unknown;
 	}
+	virtual void OnPickupSame() final {
+		// nothing to do
+	}
 	virtual void Update() final;
 };

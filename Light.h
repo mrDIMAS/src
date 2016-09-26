@@ -32,12 +32,13 @@
 
 class Light : public virtual ruLight, public SceneNode {
 public:
-	COMPtr<IDirect3DQuery9> pQuery;
+	COMPtr<IDirect3DQuery9> pOcclusionQuery;
 	bool mQueryDone;
     float mRadius;
-	int mInFrustum;
+	bool mInFrustum;
+	bool mNeedRecomputeShadowMap;
+	int mShadowMapIndex;
     ruVector3 mColor;
-	float mGreyScaleFactor;
     static vector<Light*> msLightList;
 public:
 	virtual void OnLostDevice();
@@ -45,14 +46,23 @@ public:
     explicit Light();
     virtual ~Light();
 
-    virtual void SetColor( const ruVector3 & theColor );
-    virtual ruVector3 GetColor() const;
+	void SetShadowMapIndex(int idx) {
+		if (idx != mShadowMapIndex) {
+			mNeedRecomputeShadowMap = true;
+		}
+		mShadowMapIndex = idx;
+	}
 
-    virtual void SetRange( float radius );
-    virtual float GetRange() const;
+	int GetShadowMapIndex() const {
+		return mShadowMapIndex;
+	}
 
-	virtual void SetGreyscaleFactor( float greyScaleFactor );
-	virtual float GetGrayscaleFactor() const;
+	// API Methods
+    virtual void SetColor( const ruVector3 & theColor ) override;
+    virtual ruVector3 GetColor() const override;
+
+    virtual void SetRange( float radius ) override;
+    virtual float GetRange() const override;
 
 	virtual bool IsSeePoint( const ruVector3 & point ) = 0;	
 };

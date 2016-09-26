@@ -7,7 +7,7 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 
 	LoadLocalization("sewers.loc");
 
-	LoadSceneFromFile("data/maps/release/sewers/sewers.scene");
+	LoadSceneFromFile("data/maps/sewers.scene");
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
 
@@ -30,6 +30,7 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 
 	AddSheet("Note1", mLocalization.GetString("note1Desc"), mLocalization.GetString("note1"));
 	AddSheet("Note2", mLocalization.GetString("note2Desc"), mLocalization.GetString("note2"));
+	AddSheet("Note3", mLocalization.GetString("note3Desc"), mLocalization.GetString("note3"));
 
 	AddDoor("Door1", 90.0f);
 	AddDoor("Door2", 90.0f);
@@ -53,10 +54,18 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 	AddZone(mZoneEnemySpawn = make_shared<Zone>(GetUniqueObject("EnemySpawnZone")));
 	mZoneEnemySpawn->OnPlayerEnter.AddListener(ruDelegate::Bind(this, &LevelSewers::OnPlayerEnterSpawnEnemyZone));
 
+	mZoneDropWaterLevel = make_shared<Zone>(GetUniqueObject("ZoneDropWaterLevel"));
+	mZoneDropWaterLevel->OnPlayerEnter.AddListener(ruDelegate::Bind(this, &LevelSewers::OnPlayerEnterDropWaterLevelZone));
+
 	mWater = GetUniqueObject("Water");
 
 	mStages["KnocksDone"] = false;
 	mStages["EnemySpawned"] = false;
+
+	mPassLightGreen = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightGreen"));
+	mPassLightRed = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightRed"));
+
+	mLift1 = AddLift("Lift1", "Lift1Screen", "Lift1Source", "Lift1Dest", "Lift1FrontDoor1", "Lift1FrontDoor2", "Lift1BackDoor1", "Lift1BackDoor2");
 
 	std::regex rx("VerticalWater?([[:digit:]]+)");
 	for (int i = 0; i < mScene->GetCountChildren(); i++) {
@@ -126,6 +135,8 @@ void LevelSewers::DoScenario() {
 		mEnemy->Think();
 	}
 
+	mLift1->Update();
+
 	ruEngine::SetAmbientColor(ruVector3(9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f));
 	mGate1->Update();
 	mGate2->Update();
@@ -135,6 +146,8 @@ void LevelSewers::DoScenario() {
 		if (mPlayer->IsInsideZone(mZoneKnocks)) {
 			mKnocksSound->Play();
 			mStages["KnocksDone"] = true;
+
+			mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveFindCodeToPump"));
 		}
 	}
 }
@@ -147,17 +160,17 @@ void LevelSewers::Hide() {
 	Level::Hide();
 }
 
-void LevelSewers::OnDeserialize(SaveFile & in) {
-	if (in.ReadBoolean()) {
-		CreateEnemy();
-		mEnemy->SetPosition(in.ReadVector3());
-	}
-}
-
-void LevelSewers::OnSerialize(SaveFile & out) {
-	out.WriteBoolean(mEnemy != nullptr);
-	if (mEnemy) {
-		out.WriteVector3(mEnemy->GetBody()->GetPosition());
+void LevelSewers::OnSerialize(SaveFile & s) {
+	auto enemyPresented = mEnemy != nullptr;
+	s & enemyPresented;
+	
+	if (enemyPresented) {
+		if (s.IsLoading()) {
+			CreateEnemy();
+		}
+		auto epos = mEnemy->GetBody()->GetPosition();
+		s & epos;
+		mEnemy->GetBody()->SetPosition(epos);
 	}
 }
 

@@ -50,41 +50,26 @@ Player::Player() :
 	mKeyLookLeft(ruInput::Key::Q),
 	mKeyLookRight(ruInput::Key::E),
 	mInAir(false),
+	mDeadRotation(0.0f),
+	mDestDeadRotation(0.0f),
 	mNodeInHands(nullptr) {
-	mLocalization.ParseFile(localizationPath + "player.loc");
+	mLocalization.ParseFile(gLocalizationPath + "player.loc");
 
-	mGUIScene = ruGUIScene::Create();
-	mTip = unique_ptr<Tip>(new Tip(mGUIScene));
-	mGoal = unique_ptr<Goal>(new Goal(mGUIScene));
+	mHUD = unique_ptr<HUD>(new HUD());
+
 	mInventory = unique_ptr<Inventory>(new Inventory());
+	
 
-	mouseSens = 0.5f;
+	gMouseSens = 0.5f;
 
 	mLastHealth = mHealth;
 
-	LoadGUIElements();
 	CreateCamera();
 	LoadSounds();
-	CompleteObjective();
 
 	mBody->SetName("Player");
 
-	mGUIActionText = mGUIScene->CreateText("Action text", ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center);
 
-	float scale = 2;
-	int w = 512.0f / scale;
-	int h = 256.0f / scale;
-	mGUIBackground = mGUIScene->CreateRect(0, ruVirtualScreenHeight - h, w, h, mStatusBar, pGUIProp->mBackColor);
-	for (int i = 0; i < mGUISegmentCount; i++) {
-		mGUIStaminaBarSegment[i] = mGUIScene->CreateRect(44 + i * (8 + 2), ruVirtualScreenHeight - 3 * 15, 8, 16, ruTexture::Request("data/gui/fatigue.png"), pGUIProp->mForeColor);
-		mGUIStaminaBarSegment[i]->SetLayer(1);
-		mGUIHealthBarSegment[i] = mGUIScene->CreateRect(44 + i * (8 + 2), ruVirtualScreenHeight - 4 * 26, 8, 16, ruTexture::Request("data/gui/life.png"), pGUIProp->mForeColor);
-		mGUIHealthBarSegment[i]->SetLayer(1);
-	}
-
-	mGUIYouDiedFont = ruFont::LoadFromFile(40, "data/fonts/font1.otf");
-	mGUIYouDied = mGUIScene->CreateText(mLocalization.GetString("youDied"), (ruVirtualScreenWidth - 300) / 2, ruVirtualScreenHeight / 2, 300, 50, mGUIYouDiedFont, ruVector3(255, 0, 0), ruTextAlignment::Center, 255);
-	mGUIYouDied->SetVisible(false);
 
 	// hack
 	pMainMenu->SyncPlayerControls();
@@ -116,7 +101,6 @@ Player::Player() :
 	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/mud.smat", mpCamera->mCamera)));
 
 	AddUsableObject(new BareHands);
-	AddUsableObject(new Flashlight);
 }
 
 Player::~Player() {
@@ -127,22 +111,8 @@ Player::~Player() {
 }
 
 void Player::DrawStatusBar() {
-	int segCount = mStamina / 5;
-	for (int i = 0; i < mGUISegmentCount; i++) {
-		if (i < segCount) {
-			mGUIStaminaBarSegment[i]->SetVisible(true);
-		} else {
-			mGUIStaminaBarSegment[i]->SetVisible(false);
-		}
-	}
-	segCount = mHealth / 5;
-	for (int i = 0; i < mGUISegmentCount; i++) {
-		if (i < segCount) {
-			mGUIHealthBarSegment[i]->SetVisible(true);
-		} else {
-			mGUIHealthBarSegment[i]->SetVisible(false);
-		}
-	}
+	mHUD->SetHealth(mHealth);
+	mHUD->SetStamina(mStamina);
 }
 
 bool Player::IsCanJump() {
@@ -169,8 +139,13 @@ bool Player::UseStamina(float required) {
 }
 
 void Player::Damage(float dmg, bool headJitter) {
+	if (mDead) {
+		return;
+	}
+
 	Actor::Damage(dmg);
-	mDamageBackgroundAlpha = 60;
+	mHUD->ShowDamage();
+	
 	if (headJitter) {
 		mPitch.SetTarget(mPitch.GetTarget() + frandom(20, 40));
 		mYaw.SetTarget(mYaw.GetTarget() + frandom(-40, 40));
@@ -181,16 +156,14 @@ void Player::Damage(float dmg, bool headJitter) {
 	}
 	if (mHealth <= 0.0f) {
 		if (!mDead) {
-			mBody->SetAngularFactor(ruVector3(1.0f, 1.0f, 1.0f));
-			mBody->SetFriction(1.0f);
-			mBody->SetAnisotropicFriction(ruVector3(1.0f, 1.0f, 1.0f));
-			mBody->Move(ruVector3(1.0f, 1.0f, 1.0f));
+			mBody->Freeze();
+			mDestDeadRotation = -90;
 		}
 		mDeadSound = ruSound::Load2D("data/sounds/dead.ogg");
 		mDeadSound->Play();
 		mDead = true;
-		mpCamera->FadePercent(0);
-		mpCamera->SetFadeColor(ruVector3(70.0f, 0.0f, 0.0f));
+		mpCamera->FadePercent(70);
+		mpCamera->mCamera->SetFrameColor(ruVector3(70, 0, 0));
 	}
 }
 
@@ -207,24 +180,9 @@ void Player::UpdateInventory() {
 	}
 }
 
-void Player::SetObjective(string text) {
-	string objectiveText = mLocalization.GetString("currentObjective");
-	objectiveText += text;
-
-	mGoal->SetText(objectiveText);
-
-	mObjectiveDone = false;
-}
-
-void Player::CompleteObjective() {
-	SetObjective(mLocalization.GetString("objectiveUnknown"));
-
-	mObjectiveDone = true;
-}
-
 void Player::UpdateMouseLook() {
 	if (!mInventory->IsOpened()) {
-		float mouseSpeed = mouseSens / 2.0f;
+		float mouseSpeed = gMouseSens / 2.0f;
 		mPitch.SetTarget(mPitch.GetTarget() + ruInput::GetMouseYSpeed() * mouseSpeed);
 		mYaw.SetTarget(mYaw.GetTarget() - ruInput::GetMouseXSpeed() * mouseSpeed);
 	}
@@ -419,30 +377,8 @@ void Player::UpdateMoving() {
 	UpdateCameraShake();
 }
 
-void ComputeGreyScaleFactor(shared_ptr<ruLight>light, ruVector3 pos) {
-	if (light->IsSeePoint(pos)) {
-		float factor = (pos - light->GetPosition()).Length() / (1.25f * light->GetRange());
-		if (factor > 1.0f) factor = 1.0f;
-		if (factor < 0.0f) factor = 0.0f;
-		light->SetGreyscaleFactor(factor);
-	} else {
-		light->SetGreyscaleFactor(1.0f);
-	}
-}
 
 void Player::ComputeStealth() {
-	for (int i = 0; i < ruPointLight::GetCount(); i++) {
-		shared_ptr<ruLight>light = ruPointLight::Get(i);
-		if (!(light == mFakeLight)) {
-			ComputeGreyScaleFactor(light, mBody->GetPosition());
-		}
-	}
-	for (int i = 0; i < ruSpotLight::GetCount(); i++) {
-		shared_ptr<ruLight>light = ruSpotLight::Get(i);
-		ComputeGreyScaleFactor(light, mBody->GetPosition());
-	}
-	mFakeLight->SetGreyscaleFactor(1.0f);
-
 	mInLight = false;
 
 	for (int i = 0; i < ruPointLight::GetCount(); i++) {
@@ -497,23 +433,25 @@ void Player::ComputeStealth() {
 		mStealthFactor += mRunning ? 0.25f : 0.0f;
 	}
 
-	int alpha = (255 * ((mStealthFactor > 1.05f) ? 1.0f : (mStealthFactor + 0.05f)));
-	if (alpha > 255) {
-		alpha = 255;
+	int stealth = (100 * ((mStealthFactor > 1.05f) ? 1.0f : (mStealthFactor + 0.05f)));
+	if (stealth > 100) {
+		stealth = 100;
 	}
-	ruVector3 color = (mStealthFactor < 1.05f) ? ruVector3(255, 255, 255) : ruVector3(255, 0, 0);
-	mGUIStealthSign->SetAlpha(alpha);
-	mGUIStealthSign->SetColor(color);
+	mHUD->SetStealth(stealth);
 }
 
 
 void Player::Update() {
-	mGUIActionText->SetVisible(false);
-	mpCamera->Update();
-	mDamageBackgroundAlpha--;
-	if (mDamageBackgroundAlpha < 0) {
-		mDamageBackgroundAlpha = 0;
+	if (mDead) {
+		mpCamera->mCamera->SetRotation(ruQuaternion(ruVector3(1, 0, 0), 0)); // HAAAAX!!
+		mBody->SetLocalRotation(ruQuaternion(ruVector3(1, 0, 0), mDeadRotation));
+		mDeadRotation += (mDestDeadRotation - mDeadRotation) * 0.1f;
 	}
+
+	
+	mpCamera->Update();
+
+	mHUD->Update();
 
 	if (GetFlashLight()) {
 		if (GetFlashLight()->IsOn()) {
@@ -525,27 +463,22 @@ void Player::Update() {
 		mFakeLight->Show();
 	}
 
-	mGUIDamageBackground->SetAlpha(mDamageBackgroundAlpha);
+	
 	if (!pMainMenu->IsVisible()) {
-		mGoal->AnimateAndRender();
 		DrawStatusBar();
 		if (!mDead) {
-			mGUIYouDied->SetVisible(false);
-			mGUIStealthSign->SetVisible(mStealthMode);
-			UpdateFright();
-			mTip->AnimateAndDraw();
+			mHUD->SetDead(false);
+			mHUD->SetCursor(mNearestPickedNode != nullptr, IsObjectHasNormalMass(mNearestPickedNode), mNodeInHands != nullptr, mInventory->IsOpened());
+			UpdateFright(); 			
 			UpdateMouseLook();
-			Interact();
+			Interact(); 
 			UpdateMoving();
 			ComputeStealth();
 			UpdatePicking();
 			UpdateItemsHandling();
-			ManageEnvironmentDamaging();
 			UpdateInventory();
-			DrawSheetInHands();
-			UpdateCursor();
+			DrawSheetInHands();			
 			UpdateUsableObjects();
-
 			if (mLadder.expired()) { // prevent damaging from ladders
 				if (!IsCanJump() && !mInAir) { // in air
 					mAirPosition = mBody->GetPosition();
@@ -566,34 +499,16 @@ void Player::Update() {
 				mAutoSaveTimer->Restart();
 			}
 		} else {
-			mGUIYouDied->SetVisible(true);
+			mHUD->SetDead(true);
 		}
 
+		// after finishing playing death sound, show menu and destroy current level
 		if (mDeadSound) {
 			if (!mDeadSound->IsPlaying()) {
-				pMainMenu->Show();
+				pMainMenu->Show();				
 			}
 		}
-
-	} else {
-		if (mDeadSound) {
-			mDeadSound->Pause();
-		}
-		mGUIYouDied->SetVisible(false);
 	}
-}
-
-void Player::LoadGUIElements() {
-	mItemPickupSound = ruSound::Load2D("data/sounds/menuhit.ogg");
-	mStatusBar = ruTexture::Request("data/gui/statusbar.tga");
-
-	mGUICursorPickUp = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request("data/gui/up.tga"));
-	mGUICursorPut = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request("data/gui/down.tga"));
-	mGUICrosshair = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request("data/gui/crosshair.tga"));
-	mGUIStealthSign = mGUIScene->CreateRect(ruVirtualScreenWidth / 2 - 32, 200, 64, 32, ruTexture::Request("data/textures/effects/eye.png"));
-
-	mDamageBackgroundAlpha = 0;
-	mGUIDamageBackground = mGUIScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/effects/damageBackground.tga"), ruVector3(200, 0, 0), mDamageBackgroundAlpha);
 }
 
 void Player::CreateCamera() {
@@ -602,7 +517,7 @@ void Player::CreateCamera() {
 	mHead = ruSceneNode::Create();
 	mHead->Attach(mBody);
 	mHead->SetPosition(ruVector3(0, -2.0f, 0.0f));
-	mpCamera = unique_ptr<GameCamera>(new GameCamera(mGUIScene, mFov));
+	mpCamera = unique_ptr<GameCamera>(new GameCamera(mHUD->GetScene(), mFov));
 	mpCamera->mCamera->Attach(mHead);
 	mCameraOffset = ruVector3(0, mHeadHeight, 0);
 	mCameraShakeOffset = ruVector3(0, mHeadHeight, 0);
@@ -708,39 +623,13 @@ void Player::UpdateCameraShake() {
 void Player::DrawSheetInHands() {
 	if (!mSheetInHands.expired()) {
 		auto sheet = mSheetInHands.lock();
-		SetActionText(StringBuilder() << sheet->GetDescription() << mLocalization.GetString("sheetOpen"));
+		mHUD->SetAction(ruInput::Key::None, StringBuilder() << sheet->GetDescription() << mLocalization.GetString("sheetOpen"));
 		if (ruInput::IsMouseHit(ruInput::MouseButton::Right) || (sheet->mObject->GetPosition() - mBody->GetPosition()).Length2() > 2) {
 			CloseCurrentSheet();
 		}
 	}
 }
 
-void Player::UpdateCursor() {
-	if (mInventory->IsOpened()) {
-		mGUICursorPut->SetVisible(false);
-		mGUICrosshair->SetVisible(false);
-		mGUICursorPickUp->SetVisible(false);
-	} else {
-		if (mNearestPickedNode) {
-			if (IsObjectHasNormalMass(mNearestPickedNode)) {
-				mGUICursorPickUp->SetVisible(true);
-				mGUICrosshair->SetVisible(false);
-			} else {
-				mGUICursorPut->SetVisible(false);
-				mGUICrosshair->SetVisible(true);
-			}
-		} else {
-			mGUICursorPickUp->SetVisible(false);
-			if (mNodeInHands) {
-				mGUICursorPut->SetVisible(true);
-				mGUICrosshair->SetVisible(false);
-			} else {
-				mGUICursorPut->SetVisible(false);
-				mGUICrosshair->SetVisible(true);
-			}
-		}
-	}
-}
 
 void Player::UpdateItemsHandling() {
 	if (!mInventory->IsOpened()) {
@@ -752,6 +641,10 @@ void Player::UpdateItemsHandling() {
 					if (sheet) {
 						mSheetInHands = sheet;
 						sheet->SetVisible(true);
+
+
+						// add note to readed
+						mInventory->AddReadedNote(sheet->GetDescription(), sheet->GetText());
 					}
 				} else {
 					CloseCurrentSheet();
@@ -800,7 +693,7 @@ void Player::UpdatePicking() {
 
 	mNearestPickedNode = nullptr;
 
-	// discard picked node if it is node of enemy
+	// discard picked node if it is node of enemy - so funny when picking enemy as an object lol :)
 	if (Level::Current()) {
 		auto & enemy = Level::Current()->GetEnemy();
 		if (enemy) {
@@ -823,14 +716,12 @@ void Player::UpdatePicking() {
 			mNearestPickedNode = mPickedNode;
 			string pickedObjectDesc;
 			if (pIO) {
-				pickedObjectDesc = StringBuilder() << pIO->GetPickDescription() << "- [" << ruInput::GetKeyName(mKeyUse).c_str() << "] " << mLocalization.GetString("itemPick");
-				SetActionText(pickedObjectDesc);
+				mHUD->SetAction(mKeyUse, StringBuilder() << pIO->GetPickDescription() << " - " << mLocalization.GetString("itemPick"));
 			} else if (pSheet) {
-				pickedObjectDesc = StringBuilder() << pSheet->GetDescription() << "- [" << ruInput::GetKeyName(mKeyUse) << "] " << mLocalization.GetString("sheetPick");
-				SetActionText(pickedObjectDesc);
+				mHUD->SetAction(mKeyUse, StringBuilder() << pIO->GetPickDescription() << " - " << mLocalization.GetString("sheetPick"));
 			} else {
 				if (IsObjectHasNormalMass(mPickedNode) && !mPickedNode->IsFrozen()) {
-					SetActionText(mLocalization.GetString("objectPick"));
+					mHUD->SetAction(ruInput::Key::None, mLocalization.GetString("objectPick"));
 				}
 			}
 
@@ -855,180 +746,98 @@ bool Player::IsUseButtonHit() {
 }
 
 bool Player::IsObjectHasNormalMass(shared_ptr<ruSceneNode> node) {
-	return node->GetMass() > 0 && node->GetMass() < 40;
+	return node ? (node->GetMass() > 0 && node->GetMass() < 40) : false;
 }
 
-void Player::Resurrect() {
-	mHealth = 100.0f;
-	mDead = false;
-	mpCamera->SetFadeColor(ruVector3(255, 255, 255));
-	mBody->SetAngularFactor(ruVector3(0, 0, 0));
-	mBody->SetRotation(ruQuaternion(0, 0, 0));
-}
+void Player::Serialize(SaveFile & s) {
+	int usableObjectCount = mUsableObjectList.size();
+	s & usableObjectCount;
 
-void Player::Deserialize(SaveFile & in) {
-	int count = in.ReadInteger();
-	for (int i = 0; i < count; i++) {
-		AddUsableObject(UsableObject::Deserialize(in));
-	}
-	int currentUO = in.ReadInteger();
-	mCurrentUsableObject = mUsableObjectList[currentUO];
-	mCurrentUsableObject->Appear();
-
-	mBody->SetLocalPosition(in.ReadVector3());
-
-	in.ReadFloat(mRunCameraShakeCoeff);
-
-	mPitch.Deserialize(in);
-	mYaw.Deserialize(in);
-	in.ReadVector3(mSpeed);
-	in.ReadVector3(mSpeedTo);
-	in.ReadVector3(mGravity);
-	in.ReadVector3(mJumpTo);
-
-	mLadder = Level::Current()->FindLadder(in.ReadString());
-	if (mLadder.use_count()) {
-		mBody->Freeze();
-	}
-
-	in.ReadBoolean(mLanded);
-	in.ReadFloat(mStamina);
-	in.ReadFloat(mHealth);
-	in.ReadFloat(mMaxHealth);
-	in.ReadFloat(mMaxStamina);
-	in.ReadFloat(mRunSpeedMult);
-	mFov.Deserialize(in);
-	in.ReadFloat(mCameraBobCoeff);
-
-	in.ReadVector3(mCameraOffset);
-	in.ReadVector3(mCameraShakeOffset);
-
-	in.ReadFloat(mHeadHeight);
-
-	in.ReadBoolean(mObjectThrown);
-	in.ReadBoolean(mDead);
-
-	in.ReadVector3(mFrameColor);
-
-	in.ReadBoolean(mMoved);
-
-	in.ReadBoolean(mMoved);
-	in.ReadBoolean(mObjectiveDone);
-
-	mBreathVolume.Deserialize(in);
-	mHeartBeatVolume.Deserialize(in);
-	mHeartBeatPitch.Deserialize(in);
-	mBreathPitch.Deserialize(in);
-
-	mSheetInHands = Level::Current()->FindSheet(in.ReadString());
-
-	mKeyMoveForward = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyMoveBackward = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyStrafeLeft = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyStrafeRight = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyJump = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyFlashLight = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyRun = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyInventory = static_cast<ruInput::Key>(in.ReadInteger());
-	mKeyUse = static_cast<ruInput::Key>(in.ReadInteger());
-
-	mStealthMode = in.ReadBoolean();
-
-	in.ReadBoolean(mFlashlightLocked);
-
-	in.ReadFloat(mLastHealth);
-
-	mpCamera->FadePercent(100);
-	mpCamera->SetFadeColor(ruVector3(255, 255, 255));
-	mBody->SetFriction(0);
-
-	mCrouch = in.ReadBoolean();
-
-	mBody->SetCollisionEnabled(in.ReadBoolean());
-
-	mInventory->Deserialize(in);
-}
-
-void Player::Serialize(SaveFile & out) {
-	out.WriteInteger(static_cast<int>(mUsableObjectList.size()));
-	for (auto uo : mUsableObjectList) {
-		uo->Serialize(out);
-	}
-	int currentUO_N = -1;
+	int currentUsableObject = -1;
 	int i = 0;
 	for (auto uo : mUsableObjectList) {
 		if (uo == mCurrentUsableObject) {
-			currentUO_N = i;
+			currentUsableObject = i;
 		}
 		i++;
 	}
-	out.WriteInteger(currentUO_N);
+	s & currentUsableObject;
 
-	out.WriteVector3(mBody->GetPosition());
-	mBody->SetAngularFactor(ruVector3(0, 0, 0));
+	if (s.IsLoading()) {
+		for (int i = 0; i < usableObjectCount; i++) {
+			AddUsableObject(UsableObject::Deserialize(s));
+		}
+		mCurrentUsableObject = mUsableObjectList[currentUsableObject];
+		mCurrentUsableObject->Appear();
+	} else {
+		for (auto uo : mUsableObjectList) {
+			uo->Serialize(s);
+		}
+	}
 
-	out.WriteFloat(mRunCameraShakeCoeff);
-	mPitch.Serialize(out);
-	mYaw.Serialize(out);
-	out.WriteVector3(mSpeed);
-	out.WriteVector3(mSpeedTo);
-	out.WriteVector3(mGravity);
-	out.WriteVector3(mJumpTo);
+	ruVector3 position = mBody->GetPosition();
+	string ladderName = mLadder.expired() ? "undefinedWay" : mLadder.lock()->GetEnterZone()->GetName();
+	string sheetName = mSheetInHands.expired() ? "undefinedSheet" : mSheetInHands.lock()->mObject->GetName();
+	bool collisionEnabled = mBody->IsCollisionEnabled();
 
-	out.WriteString(mLadder.expired() ? "undefinedWay" : mLadder.lock()->GetEnterZone()->GetName());
+	s & ladderName;
+	s & sheetName;
+	s & collisionEnabled;
+	s & position;
+	s & mRunCameraShakeCoeff;
+	s & mSpeed;
+	s & mSpeedTo;
+	s & mGravity;
+	s & mJumpTo;
+	s & mLanded;
+	s & mStamina;
+	s & mHealth;
+	s & mMaxHealth;
+	s & mMaxStamina;
+	s & mRunSpeedMult;	
+	s & mCameraBobCoeff;
+	s & mCameraOffset;
+	s & mCameraShakeOffset;
+	s & mHeadHeight;
+	s & mObjectThrown;
+	s & mDead;
+	s & mFrameColor;
+	s & mMoved;
+	s & mKeyMoveForward;
+	s & mKeyMoveBackward;
+	s & mKeyStrafeLeft;
+	s & mKeyStrafeRight;
+	s & mKeyJump;
+	s & mKeyFlashLight;
+	s & mKeyRun;
+	s & mKeyInventory;
+	s & mKeyUse;
+	s & mStealthMode;
+	s & mFlashlightLocked;
+	s & mLastHealth;
+	s & mCrouch;
+	mPitch.Serialize(s);
+	mYaw.Serialize(s);
+	mBreathVolume.Serialize(s);
+	mHeartBeatVolume.Serialize(s);
+	mHeartBeatPitch.Serialize(s);
+	mBreathPitch.Serialize(s);
+	mFov.Serialize(s);
+	mInventory->Serialize(s);
 
-	out.WriteBoolean(mLanded);
-	out.WriteFloat(mStamina);
-	out.WriteFloat(mHealth);
-	out.WriteFloat(mMaxHealth);
-	out.WriteFloat(mMaxStamina);
-	out.WriteFloat(mRunSpeedMult);
-	mFov.Serialize(out);
-	out.WriteFloat(mCameraBobCoeff);
+	if (s.IsLoading()) {
+		mBody->SetCollisionEnabled(collisionEnabled);
+		mBody->SetFriction(0);
+		mBody->SetPosition(position);
+		mBody->SetAngularFactor(ruVector3(0, 0, 0));
 
-	out.WriteVector3(mCameraOffset);
-	out.WriteVector3(mCameraShakeOffset);
+		mLadder = Level::Current()->FindLadder(ladderName);
+		if (mLadder.use_count()) {
+			mBody->Freeze();
+		}
 
-	out.WriteFloat(mHeadHeight);
-
-	out.WriteBoolean(mObjectThrown);
-	out.WriteBoolean(mDead);
-
-	out.WriteVector3(mFrameColor);
-
-	out.WriteBoolean(mMoved);
-
-	out.WriteBoolean(mMoved);
-	out.WriteBoolean(mObjectiveDone);
-
-	mBreathVolume.Serialize(out);
-	mHeartBeatVolume.Serialize(out);
-	mHeartBeatPitch.Serialize(out);
-	mBreathPitch.Serialize(out);
-
-	out.WriteString(mSheetInHands.use_count() ? mSheetInHands.lock()->mObject->GetName() : "undefinedSheet");
-
-	out.WriteInteger(static_cast<int>(mKeyMoveForward));
-	out.WriteInteger(static_cast<int>(mKeyMoveBackward));
-	out.WriteInteger(static_cast<int>(mKeyStrafeLeft));
-	out.WriteInteger(static_cast<int>(mKeyStrafeRight));
-	out.WriteInteger(static_cast<int>(mKeyJump));
-	out.WriteInteger(static_cast<int>(mKeyFlashLight));
-	out.WriteInteger(static_cast<int>(mKeyRun));
-	out.WriteInteger(static_cast<int>(mKeyInventory));
-	out.WriteInteger(static_cast<int>(mKeyUse));
-
-	out.WriteBoolean(mStealthMode);
-
-	out.WriteBoolean(mFlashlightLocked);
-
-	out.WriteFloat(mLastHealth);
-
-	out.WriteBoolean(mCrouch);
-
-	out.WriteBoolean(mBody->IsCollisionEnabled());
-
-	mInventory->Serialize(out);
+		mSheetInHands = Level::Current()->FindSheet(sheetName);
+	}
 }
 
 void Player::CloseCurrentSheet() {
@@ -1036,10 +845,6 @@ void Player::CloseCurrentSheet() {
 		mSheetInHands.lock()->SetVisible(false);
 		mSheetInHands.reset();
 	}
-}
-
-void Player::SetTip(const string & text) {
-	mTip->SetNewText(text);
 }
 
 Parser * Player::GetLocalization() {
@@ -1068,30 +873,11 @@ unique_ptr<Inventory> & Player::GetInventory() {
 	return mInventory;
 }
 
-void Player::SetActionText(const string & text) {
-	mGUIActionText->SetText(text);
-	mGUIActionText->SetVisible(true);
-}
-
 void Player::SetHUDVisible(bool state) {
-	mGUIScene->SetVisible(state);
+	mHUD->SetVisible(state);
 	if (!state) {
 		mInventory->SetVisible(state);
 	}
-}
-
-void Player::ManageEnvironmentDamaging() {
-	/*
-	for( int i = 0; i < ruGetContactCount( mBody ); i++ ) {
-		ruContact contact = ruGetContact( mBody, i );
-		if( contact.body.IsValid()) {
-			if( !(contact.body == mNodeInHands)) {
-				if( ruGetNodeLinearVelocity( contact.body ).Length2() >= 2.0f ) {
-					Damage( contact.impulse / 5 );
-				}
-			}
-		}
-	}*/
 }
 
 void Player::UpdateUsableObjects() {
@@ -1148,15 +934,9 @@ bool Player::AddUsableObject(UsableObject * usObj) {
 			break;
 		}
 	}
-	if (alreadyGotObjectOfThisType) {
-		if (dynamic_cast<Weapon*>(existingUsableObject)) {
-			dynamic_cast<Weapon*>(existingUsableObject)->LoadBullet();
-		}
-
-		if (dynamic_cast<Syringe*>(existingUsableObject)) {
-			dynamic_cast<Syringe*>(existingUsableObject)->AddDoze();
-		}
-
+	if (alreadyGotObjectOfThisType) {		
+		existingUsableObject->OnPickupSame();
+	
 		delete usObj;
 
 		// object is not added
@@ -1199,7 +979,7 @@ inline void Player::Interact() {
 	for (auto ladder : Level::Current()->GetLadderList()) {
 		if (!ladder->IsPlayerInside()) {
 			if (ladder->IsEnterPicked()) {
-				SetActionText(StringBuilder() << ruInput::GetKeyName(mKeyUse) << mLocalization.GetString("crawlIn"));
+				mHUD->SetAction(mKeyUse, mLocalization.GetString("crawlIn"));
 				if (IsUseButtonHit()) {
 					ladder->Enter();
 					mLadder = ladder;
@@ -1212,12 +992,12 @@ inline void Player::Interact() {
 		pDoor->Update();
 		if (mNearestPickedNode == pDoor->GetNode()) {
 			if (!pDoor->IsLocked()) {
-				SetActionText(StringBuilder() << ruInput::GetKeyName(mKeyUse) << mLocalization.GetString("openClose"));
+				mHUD->SetAction(mKeyUse, mLocalization.GetString("openClose"));
 				if (IsUseButtonHit()) {
 					pDoor->SwitchState();
 				}
 			} else {
-				SetActionText(mLocalization.GetString("doorLocked"));
+				mHUD->SetAction(ruInput::Key::None, mLocalization.GetString("doorLocked"));
 			}
 		}
 	}

@@ -98,6 +98,5 @@ public:
 	void CreateAnimations();
 	void Think();
 	void Serialize(SaveFile & out);
-	void Deserialize(SaveFile & in);
 	virtual void Damage(float dmg) final;
 };

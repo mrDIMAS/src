@@ -30,13 +30,11 @@ private:
     shared_ptr<ruSceneNode> mDetonatorModels[4];
     shared_ptr<ruSceneNode> mExplosivesModels[4];
     shared_ptr<ruSceneNode> mExplosivesDummy[4];
-    shared_ptr<ruSceneNode> mRock[3];
     shared_ptr<ruSceneNode> mExplosionFlashPosition;
     shared_ptr<ruPointLight> mExplosionFlashLight;
     shared_ptr<ruParticleSystem > mExplosionDustParticleSystem;
 	shared_ptr<ruSceneNode> mLiftButton;
-
-    ruVector3 mRockPosition[3];
+	shared_ptr<ruSceneNode> mExplodedWall;
 
     shared_ptr<ItemPlace> mDetonatorPlace[4];
 
@@ -60,5 +58,4 @@ public:
     virtual void Show() final;
     virtual void Hide() final;
     virtual void OnSerialize( SaveFile & out ) final;
-    virtual void OnDeserialize( SaveFile & in ) final;
 };

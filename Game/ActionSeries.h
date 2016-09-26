@@ -24,6 +24,5 @@ public:
 	void AddAction(float length, const ruDelegate & action);
 	void AddSpace(float length);
 	void Perform();
-	void Deserialize(SaveFile & in);
 	void Serialize(SaveFile & out);
 };

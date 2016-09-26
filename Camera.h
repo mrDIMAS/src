@@ -30,7 +30,7 @@ class PointLight;
 
 // to efficienty light management (exclude invisible lights from render chain) we create path of a camera 
 // that contains special points. These points contains list of light, that can 'be seen' from this point.
-// List of visible lights is filled by occlusion queries inside the render chain (DeferredRenderer)
+// List of visible lights is filled by occlusion queries inside the render chain 
 class PathPoint {
 private:
 	ruVector3 mPoint;
@@ -56,6 +56,8 @@ public:
 	float mFov;
     float mNearZ;
     float mFarZ;
+	float mFrameBrightness;
+	ruVector3 mFrameColor;
 
     D3DXMATRIX mProjection;
     D3DXMATRIX mView;
@@ -83,7 +85,13 @@ public:
 	unique_ptr<PathPoint> & GetNearestPathPoint();
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-	virtual void SetFOV( float fov );
-	virtual void SetActive();
-	virtual void SetSkybox( const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back );
+
+	// API Methods
+	virtual void SetFOV(float fov) override;
+	virtual void SetActive() override;
+	virtual void SetSkybox( const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back ) override;
+	virtual void SetFrameBrightness(float brightness) override;
+	virtual float GetFrameBrightness() const override;
+	virtual void SetFrameColor(const ruVector3 & color) override;
+	virtual ruVector3 GetFrameColor() const override;
 };

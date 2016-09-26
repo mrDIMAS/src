@@ -9,9 +9,11 @@ void Goal::AnimateAndRender() {
 
     mAlpha = mAlpha + ( 100 - mAlpha ) * 0.05f;
 
+	// pulse 
     if( mAlpha <= 101 ) {
         mAlpha = 255.0f;
     }
+
 	mGoalText->SetAlpha( mAlpha );
     mGoalText->SetPosition( 40, mCurrentY );
 }

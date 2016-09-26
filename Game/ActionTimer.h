@@ -29,5 +29,4 @@ public:
 	float GetPercentage();
 	static void UpdateAll();
 	void Serialize(SaveFile & out);
-	void Deserialize(SaveFile & in);
 };

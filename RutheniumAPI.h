@@ -40,7 +40,7 @@ public:
 
 	};
 
-	virtual void Call() = 0;
+	virtual void Call() = 0; 
 };
 
 template< class T, class M > class ruContainer : public ruIContainer {
@@ -290,15 +290,15 @@ public:
 	}
 };
 
-static inline ruVector3 operator * (const float & f, const ruVector3 & v) {
+static ruVector3 operator * (const float & f, const ruVector3 & v) {
 	return ruVector3(v.x * f, v.y * f, v.z * f);
 }
 
-static inline ruVector3 operator - (const ruVector3 & v) {
+static ruVector3 operator - (const ruVector3 & v) {
 	return ruVector3(-v.x, -v.y, -v.z);
 }
 
-static inline float Lerp(const float & from, const float & to, const float & t) {
+static float Lerp(const float & from, const float & to, const float & t) {
 	return from + (to - from) * t;
 }
 
@@ -346,7 +346,7 @@ public:
 	ruQuaternion(const ruVector3 & axis, float angle);
 };
 
-static inline ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2) {
+static ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2) {
 	return ruQuaternion(
 		q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
 		q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
@@ -423,7 +423,7 @@ public:
 };
 
 enum class BodyType : int {
-	None, Sphere, Cylinder, Box, Trimesh, Convex
+	None, Sphere, Cylinder, Box, Trimesh, Convex, Capsule
 };
 
 class ruTexture {
@@ -485,6 +485,11 @@ public:
 	virtual shared_ptr<ruTexture> GetTexture(int n) = 0;
 	virtual void Unfreeze() = 0;
 	virtual void SetConvexBody() = 0;
+	virtual void SetBoxBody() = 0;
+	virtual void SetSphereBody() = 0;
+	virtual void SetCylinderBody() = 0;
+	virtual bool IsStatic() = 0;
+	virtual bool IsDynamic() = 0;
 	virtual void SetCapsuleBody(float height, float radius) = 0;
 	virtual void SetAngularFactor(ruVector3 fact) = 0;
 	virtual void SetTrimeshBody() = 0;
@@ -511,10 +516,14 @@ public:
 	virtual shared_ptr<ruSceneNode> GetParent() = 0;
 	virtual int GetTextureCount() = 0;
 	virtual bool IsSkinned() const = 0;
+	virtual string GetTag() const = 0;
+	virtual void SetTag(const string & tag) = 0;
 	virtual float GetDepthHack() const = 0;
 	virtual float GetAlbedo() const = 0;
 	virtual bool IsBone() const = 0;
 	virtual int GetMeshCount() const = 0;
+	virtual void SetShadowCastEnabled(bool state) = 0;
+	virtual bool IsShadowCastEnabled() const = 0;
 	virtual void SetCollisionEnabled(bool state) = 0;
 	virtual bool IsCollisionEnabled() const = 0;
 	virtual void SetTexCoordFlow(const ruVector2 & flow) = 0;
@@ -526,6 +535,7 @@ public:
 	static shared_ptr<ruSceneNode> Duplicate(shared_ptr<ruSceneNode> source);
 	static int GetWorldObjectsCount();
 	static shared_ptr<ruSceneNode> GetWorldObject(int i);
+	static vector<shared_ptr<ruSceneNode>> GetTaggedObjects(const string & tag);
 };
 
 struct ruContact {
@@ -743,9 +753,6 @@ public:
 	virtual void SetColor(const ruVector3 & clr) = 0;
 	virtual ruVector3 GetColor() const = 0;
 
-	virtual void SetGreyscaleFactor(float factor) = 0;
-	virtual float GetGrayscaleFactor() const = 0;
-
 	virtual bool IsSeePoint(const ruVector3 & point) = 0;
 };
 
@@ -778,6 +785,10 @@ public:
 	virtual void SetActive() = 0;
 	virtual void SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back) = 0;
 	virtual void SetFOV(float fov) = 0;
+	virtual void SetFrameBrightness(float brightness) = 0; // in percent - 100% means fullbright. Range is [0; 100]
+	virtual float GetFrameBrightness() const = 0;
+	virtual void SetFrameColor(const ruVector3 & color) = 0; // in RGB. Range is [0; 255]
+	virtual ruVector3 GetFrameColor() const = 0;
 };
 
 class ruTimer {
@@ -851,6 +862,7 @@ public:
 class ruInput {
 public:
 	enum class Key : int {
+		None = 0,
 		Esc = 1,
 		Num1,
 		Num2,

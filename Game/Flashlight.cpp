@@ -139,71 +139,47 @@ void Flashlight::Proxy_Close() {
 	mOffSound->Play();
 }
 
-void Flashlight::DeserializeAnimation(SaveFile & in, ruAnimation & anim) {
-	anim.SetCurrentFrame(in.ReadInteger());
-	anim.SetEnabled(in.ReadBoolean());
-}
+void Flashlight::OnSerialize(SaveFile & s) {
+	s & mMaxCharge;
+	s & mCharge;
+	s & mOnRange;
+	s & mRealRange;
+	s & mRangeDest;
+	s & mOn;
+	s & mCloseAnim;
+	s & mIdleAnim;
+	s & mOpenAnim;
 
-void Flashlight::SerializeAnimation(SaveFile & out, ruAnimation & anim) {
-	out.WriteInteger(anim.GetCurrentFrame());
-	out.WriteBoolean(anim.IsEnabled());
-}
-
-void Flashlight::OnDeserialize(SaveFile & in) {
-	in.ReadFloat(mMaxCharge);
-	in.ReadFloat(mCharge);
-	in.ReadFloat(mOnRange);
-	in.ReadFloat(mRealRange);
-	in.ReadFloat(mRangeDest);
-	in.ReadBoolean(mOn);
 	if (mOn) {
 		SwitchOn();
 	} else {
 		SwitchOff();
 	}
 
-	DeserializeAnimation(in, mCloseAnim);
-	DeserializeAnimation(in, mIdleAnim);
-	DeserializeAnimation(in, mOpenAnim);
+	int currentAnimation = -1;
 
-	int currentAnim = in.ReadInteger();
-	if (currentAnim == 0) {
+	if (mModel->GetCurrentAnimation() == &mCloseAnim) {
+		currentAnimation = 0;
+	} else if (mModel->GetCurrentAnimation() == &mIdleAnim) {
+		currentAnimation = 1;
+	} else if (mModel->GetCurrentAnimation() == &mOpenAnim) {
+		currentAnimation = 2;
+	}
+
+	s & currentAnimation;
+
+	if (currentAnimation == 0) {
 		mModel->SetAnimation(&mCloseAnim);
 	}
-	if (currentAnim == 1) {
+	if (currentAnimation == 1) {
 		mModel->SetAnimation(&mIdleAnim);
 	}
-	if (currentAnim == 2) {
+	if (currentAnimation == 2) {
 		mModel->SetAnimation(&mOpenAnim);
 	}
 }
 
-void Flashlight::OnSerialize(SaveFile & out) {
-	out.WriteFloat(mMaxCharge);
-	out.WriteFloat(mCharge);
-	out.WriteFloat(mOnRange);
-	out.WriteFloat(mRealRange);
-	out.WriteFloat(mRangeDest);
-	out.WriteBoolean(mOn);
-
-	SerializeAnimation(out, mCloseAnim);
-	SerializeAnimation(out, mIdleAnim);
-	SerializeAnimation(out, mOpenAnim);
-
-	if (mModel->GetCurrentAnimation() == &mCloseAnim) {
-		out.WriteInteger(0);
-	} else if (mModel->GetCurrentAnimation() == &mIdleAnim) {
-		out.WriteInteger(1);
-	} else if (mModel->GetCurrentAnimation() == &mOpenAnim) {
-		out.WriteInteger(2);
-	} else {
-		out.WriteInteger(-1);
-	}
-}
-
 void Flashlight::Update() {
-	mLight->SetGreyscaleFactor(0.0f);
-
 	if (mAppear) {
 		SwitchOn();
 		mAppear = false;

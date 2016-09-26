@@ -3,45 +3,48 @@
 #include "Inventory.h"
 #include "GUIProperties.h"
 #include "Player.h"
+#include "Level.h"
 
-
-Inventory::Inventory() {
-	mLocalization.ParseFile(localizationPath + "inventory.loc");
+Inventory::Inventory() :
+	mOpen(false),
+	mpSelectedItem(nullptr),
+	mpCombineItemFirst(nullptr),
+	mpCombineItemSecond(nullptr),
+	mpItemForUse(nullptr)
+{
+	mLocalization.ParseFile(gLocalizationPath + "inventory.loc");
 
 	mScene = ruGUIScene::Create();
 
 	mBackgroundTexture = ruTexture::Request("data/gui/inventory/back.tga");
 	mCellTexture = ruTexture::Request("data/gui/inventory/item.tga");
 	mButtonTexture = ruTexture::Request("data/gui/inventory/button.tga");
-
-	mOpen = false;
-	mpSelectedItem = nullptr;
-
-	mFont = ruFont::LoadFromFile(14, "data/fonts/font1.otf");
-
-	mpCombineItemFirst = nullptr;
-	mpCombineItemSecond = nullptr;
-
-	mpItemForUse = nullptr;
-
+	mFont = ruFont::LoadFromFile(14, "data/fonts/font5.ttf");
 	mPickSound = ruSound::Load2D("data/sounds/menupick.ogg");
 
 	int screenCenterX = ruVirtualScreenWidth / 2;
 	int screenCenterY = ruVirtualScreenHeight / 2;
 
-	mGUIRectItemForUse = mScene->CreateRect(screenCenterX, screenCenterY, 64, 64, nullptr, pGUIProp->mForeColor, 255);
+	
 
 	float distMult = 1.1f;
 	int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
 	int cellSpaceY = distMult * mCellHeight / (float)mCellCountHeight;
 	int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX - 64;
 	int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY - 64;
+
+
 	// background
 	int backGroundSpace = 20;
 	int backgroundX = coordX - backGroundSpace;
 	int backgroundY = coordY - backGroundSpace;
 	int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX + 128;
 	int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY + 128;
+
+	mPageItems = mScene->CreateButton(backgroundX, backgroundY - 32, 120, 32, ruTexture::Request("data/gui/inventory/button2.png"), mLocalization.GetString("pageItems"), mFont, pGUIProp->mForeColor);
+	mPageNotes = mScene->CreateButton(backgroundX + 120, backgroundY - 32, 120, 32, ruTexture::Request("data/gui/inventory/button2.png"), mLocalization.GetString("pageNotes"), mFont, pGUIProp->mForeColor);
+
+
 	mGUICanvas = mScene->CreateRect(backgroundX, backgroundY, backgroundW, backgroundH, mBackgroundTexture, pGUIProp->mBackColor);
 	int combineH = 128;
 	int combineY = backgroundY + backgroundH - 128;
@@ -50,7 +53,7 @@ Inventory::Inventory() {
 	// item actions
 	int actionsW = 128;
 	int actionsX = backgroundX + backgroundW - 128;
-	//mGUIActions = ruCreateGUIRect( actionsX, backgroundY, actionsW, backgroundH + combineH, mBackgroundTexture );
+
 	//  actions buttons
 	int buttonSpace = 10;
 	int buttonsX = actionsX + buttonSpace;
@@ -99,10 +102,6 @@ void Inventory::SetVisible(bool state) {
 	mScene->SetVisible(state);
 }
 
-bool Inventory::IsMouseInside(int x, int y, int w, int h) {
-	return ruInput::GetMouseX() > x && ruInput::GetMouseX() < (x + w) && ruInput::GetMouseY() > y && ruInput::GetMouseY() < (y + h);
-}
-
 void Inventory::DoCombine() {
 	if (mpCombineItemFirst->Combine(mpCombineItemSecond->GetType())) { // combine successfull
 		mpCombineItemFirst = nullptr;
@@ -119,10 +118,10 @@ void Inventory::Update() {
 	if (mpItemForUse) {
 		ruEngine::HideCursor();
 		SetVisible(false);
-		mGUIRectItemForUse->SetTexture(mpItemForUse->GetPictogram());
-		mGUIRectItemForUse->SetVisible(true);
+		Level::Current()->GetPlayer()->GetHUD()->ShowUsedItem(mpItemForUse);
 
 		if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
+			Level::Current()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr);
 			mpItemForUse = nullptr;
 			mpSelectedItem = nullptr;
 			SetVisible(true);
@@ -132,7 +131,7 @@ void Inventory::Update() {
 		}
 		return;
 	} else {
-		mGUIRectItemForUse->SetVisible(false);
+		Level::Current()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr); // HAAAAX!!!!
 	}
 
 	if (!mOpen) {
@@ -142,72 +141,53 @@ void Inventory::Update() {
 
 	ruEngine::ShowCursor();
 
-	float distMult = 1.1f;
-	int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
-	int cellSpaceY = distMult * mCellHeight / (float)mCellCountHeight;
-	int coordX = screenCenterX - 0.5f * (float)mCellCountWidth * (float)mCellWidth - cellSpaceX - 64;
-	int coordY = screenCenterY - 0.5f * (float)mCellCountHeight * (float)mCellHeight - cellSpaceY - 64;
-	// draw background
-	int backGroundSpace = 20;
-	int backgroundX = coordX - backGroundSpace;
-	int backgroundY = coordY - backGroundSpace;
-	int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX;
-	int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY;
-	// draw item actions
-	int actionsX = backgroundX + backgroundW;
-	// draw actions buttons
-	int buttonSpace = 10;
-	int buttonsX = actionsX + buttonSpace;
-	int buttonY = backgroundY + 2 * buttonSpace;
-	int buttonH = 30;
-
-	bool canCombine = (mpCombineItemFirst != 0 && mpCombineItemSecond != 0);
 	int useAlpha = mpSelectedItem ? 255 : 60;
-
 	mGUIButtonUse->SetAlpha(useAlpha);
 	mGUIButtonUse->GetText()->SetAlpha(useAlpha);
+
+	bool canCombine = (mpCombineItemFirst != nullptr && mpCombineItemSecond != nullptr);
+
 	int combineAlpha = canCombine ? 255 : 60;
 	mGUIButtonCombine->SetAlpha(combineAlpha);
 	mGUIButtonCombine->GetText()->SetAlpha(combineAlpha);
 
 	// draw combine items
-	int combineBoxY = buttonY + 3.6f * buttonH;
 	ruVector3 combineColor1 = pGUIProp->mForeColor;
 	ruVector3 combineColor2 = pGUIProp->mForeColor;
 	int combineBoxSpacing = 5;
-	buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
 
 	mGUIFirstCombineItem->SetTexture(nullptr);
 	mGUISecondCombineItem->SetTexture(nullptr);
 
+	// show first combining item
 	if (mpCombineItemFirst) {
 		mGUIFirstCombineItem->SetVisible(true);
 		mGUIFirstCombineItem->SetTexture(mpCombineItemFirst->GetPictogram());
-		if (IsMouseInside(buttonsX, combineBoxY, mCellWidth, mCellHeight)) {
+		if (mGUIFirstCombineItem->IsMouseInside()) {
 			combineColor1 = ruVector3(255, 0, 0);
 			if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
-				mpCombineItemFirst = 0;
+				mpCombineItemFirst = nullptr;
 			}
 		}
 	} else {
 		mGUIFirstCombineItem->SetVisible(false);
 	};
+	mGUIFirstCombineItemCell->SetColor(combineColor1);
 
+	// show second combining item
 	if (mpCombineItemSecond) {
 		mGUISecondCombineItem->SetVisible(true);
 		mGUISecondCombineItem->SetTexture(mpCombineItemSecond->GetPictogram());
-		if (IsMouseInside(buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight)) {
+		if (mGUISecondCombineItem->IsMouseInside()) {
 			combineColor2 = ruVector3(255, 0, 0);
 			if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
-				mpCombineItemSecond = 0;
+				mpCombineItemSecond = nullptr;
 			}
 		}
 	} else {
 		mGUISecondCombineItem->SetVisible(false);
 	}
-
 	mGUISecondCombineItemCell->SetColor(combineColor2);
-	mGUIFirstCombineItemCell->SetColor(combineColor1);
 
 	// do combine
 	if (mGUIButtonCombine->IsHit()) {
@@ -230,18 +210,17 @@ void Inventory::Update() {
 	mGUIItemVolume->SetVisible(false);
 	mGUIItemMass->SetVisible(false);
 
-	// draw cells and item image
+
 	bool combinePick = true;
 	for (int cw = 0; cw < mCellCountWidth; cw++) {
-		for (int ch = 0; ch < mCellCountHeight; ch++) {
-			Item * pPicked = 0;
+		for (int ch = 0; ch < mCellCountHeight; ch++) {			
 			ruVector3 color = pGUIProp->mForeColor;
-			int alpha = 180;
-			// get item for draw
+
 			int itemNum = cw * mCellCountHeight + ch;
-			Item * pItem = nullptr;
+			
 			int i = 0;
-			//cout << mItemMap.size() << endl;
+
+			Item * pItem = nullptr;
 			int curItemCount = 0;
 			for (auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
 				if (i == itemNum) {
@@ -254,7 +233,6 @@ void Inventory::Update() {
 			if (pItem) {
 				if (mpSelectedItem == pItem) {
 					color = ruVector3(0, 200, 0);
-					alpha = 255;
 				}
 				mGUIItemCountText[cw][ch]->SetText(StringBuilder() << curItemCount);
 				if (pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
@@ -266,36 +244,32 @@ void Inventory::Update() {
 				mGUIItemCountText[cw][ch]->SetVisible(false);
 			}
 
-			bool pressed = false;
-			int cellX = coordX + distMult * mCellWidth * cw;
-			int cellY = coordY + distMult * mCellHeight * ch;
-
+			Item * pPicked = nullptr;
 			if (mGUIItemCell[cw][ch]->IsMouseInside()) {
 				color = ruVector3(255, 0, 0);
-				alpha = 255;
 				if (pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
 					pPicked = pItem;
 					if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
-						pressed = true;
 						mpSelectedItem = pItem;
 					}
 				}
 			}
+
 			mGUIItemCell[cw][ch]->SetColor(color);
 			if (pPicked) {
 				if (ruInput::IsMouseHit(ruInput::MouseButton::Right) && combinePick) {
-					if (mpCombineItemFirst == 0) {
+					if (mpCombineItemFirst == nullptr) {
 						if (pPicked != mpCombineItemFirst) {
 							mpCombineItemFirst = pPicked;
 						}
-					} else if (mpCombineItemSecond == 0) {
+					} else if (mpCombineItemSecond == nullptr) {
 						if (pPicked != mpCombineItemSecond) {
 							mpCombineItemSecond = pPicked;
 						}
 					}
 
 					combinePick = false;
-					mpSelectedItem = 0;
+					mpSelectedItem = nullptr;
 				}
 			}
 			if (pItem) {
@@ -349,22 +323,49 @@ bool Inventory::IsOpened() const {
 	return mOpen;
 }
 
-void Inventory::Deserialize(SaveFile & in) {
-	int count = in.ReadInteger();
-	for (int i = 0; i < count; i++) {
-		Item::Type type = static_cast<Item::Type>(in.ReadInteger());
-		mItemMap[Item(type)] = in.ReadInteger();
-	}
-}
+// grim code ahead
+void Inventory::Serialize(SaveFile & s) {
+	int count = mItemMap.size();
+	s & count;
+	if (s.IsLoading()) {
+		for (int i = 0; i < count; ++i) {
+			int value;
+			int type;
 
-void Inventory::Serialize(SaveFile & out) {
-	out.WriteInteger(mItemMap.size());
-	for (auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
-		// write item type
-		out.WriteInteger(static_cast<int>(itemCountPair->first.GetType()));
-		// write count of this items
-		out.WriteInteger(static_cast<int>(itemCountPair->second));
+			s & type;
+			s & value;
+
+			mItemMap[Item((Item::Type)type)] = value;
+		}
+	} else {
+		for (auto p : mItemMap) {
+			auto key = (int)p.first.GetType();
+			auto value = p.second;
+
+			s & key;
+			s & value;
+		}
 	}
+
+	/*
+	// serialize readed notes
+	count = mReadedNotes.size();
+	s & count;
+	for (int i = 0; i < count; ++i) {
+		string desc, text;
+
+		if (s.IsLoading()) {
+			s & desc;
+			s & text;
+			mReadedNotes.push_back(pair<string, string>(desc, text));
+		} else {
+			desc = mReadedNotes[i].first;
+			text = mReadedNotes[i].second;
+
+			s & desc;
+			s & text;
+		}
+	}*/
 }
 
 void Inventory::AddItem(Item::Type type) {
@@ -380,7 +381,6 @@ void Inventory::AddItem(Item::Type type) {
 		}
 		if (!found) {
 			mItemMap[Item(type)] = 1;
-			cout << "Added item!" << mItemMap.size() << endl;
 		}
 	}
 }

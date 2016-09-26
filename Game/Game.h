@@ -10,17 +10,17 @@ enum LevelName {
 	L4Sewers,
 };
 
-extern float mouseSens;
+extern float gMouseSens;
 
-extern class Menu * pMainMenu;
-extern class GUIProperties * pGUIProp;
-extern bool g_running;
-extern string localizationPath;
-extern bool g_showFPS;
+extern unique_ptr<class Menu> pMainMenu;
+extern unique_ptr<class GUIProperties> pGUIProp;
+extern bool gRunning;
+extern string gLocalizationPath;
+extern bool gShowFPS;
 extern int g_initialLevel;
 extern bool g_continueGame;
-extern ruInput::Key g_keyQuickSave;
-extern ruInput::Key g_keyQuickLoad;
-extern float g_musicVolume;
+extern ruInput::Key gKeyQuickSave;
+extern ruInput::Key gKeyQuickLoad;
+extern float gMusicVolume;
 
 

@@ -27,18 +27,19 @@
 
 vector<Light*> Light::msLightList;
 
-Light::Light() : mGreyScaleFactor( 0.0f ) {
-    mColor = ruVector3( 1.0f, 1.0f, 1.0f );
-    mRadius = 1.0f;    
-	mQueryDone = true;
-	OnResetDevice();
-	mInFrustum = false;
+Light::Light() :
+	mColor(1.0f, 1.0f, 1.0f),
+	mRadius(1.0f),
+	mQueryDone(true),
+	mInFrustum(false),
+	mShadowMapIndex(0),
+	mNeedRecomputeShadowMap(true)
+{
+	OnResetDevice();	
 }
 
 void Light::SetColor( const ruVector3 & theColor ) {
-    mColor.x = theColor.x / 255.0f;
-    mColor.y = theColor.y / 255.0f;
-    mColor.z = theColor.z / 255.0f;
+    mColor = theColor / 255.0f;
 }
 
 ruVector3 Light::GetColor() const {
@@ -54,24 +55,16 @@ float Light::GetRange() const {
 }
 
 Light::~Light() {
-	pQuery.Reset();
+	pOcclusionQuery.Reset();
 }
 
 void Light::OnResetDevice() {
-	pD3D->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pQuery );
+	pD3D->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pOcclusionQuery );
 	mQueryDone = true;
 }
 
 void Light::OnLostDevice() {
-	pQuery->Release();
-}
-
-void Light::SetGreyscaleFactor( float greyScaleFactor ) {
-	mGreyScaleFactor = greyScaleFactor;
-}
-
-float Light::GetGrayscaleFactor() const {
-	return mGreyScaleFactor;
+	pOcclusionQuery->Release();
 }
 
 ruLight::~ruLight() {

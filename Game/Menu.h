@@ -39,6 +39,7 @@ private:
     shared_ptr<ruSound> mMusic;
     Parser mLocalization;
 
+	unique_ptr<Slider> mFOVSlider;
     unique_ptr<Slider> mpMasterVolume;
     unique_ptr<Slider> mpMusicVolume;
     unique_ptr<Slider> mpMouseSensivity;
@@ -134,6 +135,7 @@ private:
 	void OnMouseSensivityChange();
 	void OnMusicVolumeChange();
 	void OnSoundVolumeChange();
+	void OnFovChanged();
 
 	bool mCameraFadeActionDone;
 	ruDelegate mCameraFadeDoneAction;

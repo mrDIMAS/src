@@ -17,4 +17,14 @@ public:
     bool IsPickedByPlayer() const;
     void SetPlaceType( Item::Type _itemTypeCanBePlaced );
     Item::Type GetPlaceType() const;
+	void Serialize(SaveFile & s) {
+		auto canBePlaced = (int)mItemTypeCanBePlaced;
+		auto placed = (int)mItemPlaced;
+
+		s & canBePlaced;
+		s & placed;
+
+		mItemTypeCanBePlaced = (Item::Type)canBePlaced;
+		mItemPlaced = (Item::Type)placed;
+	}
 };

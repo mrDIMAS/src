@@ -96,17 +96,10 @@ void Syringe::Update() {
 	}
 }
 
-void Syringe::OnDeserialize( SaveFile & in ) {
-	mDozeCount = in.ReadInteger();
+void Syringe::OnSerialize( SaveFile & s ) {
+	s & mDozeCount;
 }
 
-void Syringe::OnSerialize( SaveFile & out ) {
-	out.WriteInteger( mDozeCount );
-}
-
-void Syringe::AddDoze() {
-	mDozeCount++;
-}
 
 void Syringe::Proxy_Use() {
 	if( mNext ) {

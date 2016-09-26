@@ -10,14 +10,14 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 
 	LoadLocalization("mine.loc");
 
-	LoadSceneFromFile("data/maps/release/mine/mine.scene");
+	LoadSceneFromFile("data/maps/mine.scene");
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
 
 	ruVector3 placePos = GetUniqueObject("PlayerPosition")->GetPosition();
 	ruVector3 playerPos = mPlayer->GetCurrentPosition();
 
-	mPlayer->SetObjective(mLocalization.GetString("objective1"));
+	mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective1"));
 
 	AddSheet("Note1", mLocalization.GetString("note1Desc"), mLocalization.GetString("note1"));
 	AddSheet("Note2", mLocalization.GetString("note2Desc"), mLocalization.GetString("note2"));
@@ -25,6 +25,8 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	AddSheet("Note4", mLocalization.GetString("note4Desc"), mLocalization.GetString("note4"));
 	AddSheet("Note5", mLocalization.GetString("note5Desc"), mLocalization.GetString("note5"));
 	AddSheet("Note6", mLocalization.GetString("note6Desc"), mLocalization.GetString("note6"));
+	AddSheet("Note7", mLocalization.GetString("note7Desc"), mLocalization.GetString("note7"));
+	AddSheet("Note8", mLocalization.GetString("note8Desc"), mLocalization.GetString("note8"));
 
 	mStoneFallZone = GetUniqueObject("StoneFallZone");
 
@@ -50,7 +52,6 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 
 	mExplosionFlashAnimator = 0;
 
-	//AddItem( new Item( GetUniqueObject( "Pistol" ), Item::Type::Pistol ));
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Pistol), make_shared<InteractiveObject>(GetUniqueObject("Pistol")), ruDelegate::Bind(this, &LevelMine::Proxy_GivePistol));
 
 	AutoCreateBulletsByNamePattern("Bullet?([[:digit:]]+)");
@@ -60,8 +61,6 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	AddItemPlace(mDetonatorPlace[1] = make_shared<ItemPlace>(GetUniqueObject("DetonatorPlace2"), Item::Type::Explosives));
 	AddItemPlace(mDetonatorPlace[2] = make_shared<ItemPlace>(GetUniqueObject("DetonatorPlace3"), Item::Type::Explosives));
 	AddItemPlace(mDetonatorPlace[3] = make_shared<ItemPlace>(GetUniqueObject("DetonatorPlace4"), Item::Type::Explosives));
-
-
 
 	mWireModels[0] = GetUniqueObject("WireModel1");
 	mWireModels[1] = GetUniqueObject("WireModel2");
@@ -96,6 +95,15 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 
 	AddLadder("LadderBegin", "LadderEnd", "LadderEnter", "LadderBeginLeavePoint", "LadderEndLeavePoint");
 	AddDoor("Door1", 90);
+	AddDoor("Door3", 90);
+	AddDoor("DoorToAdministration", 90);
+	AddDoor("Door6", 90);
+	AddDoor("DoorToDirectorsOffice", 90);
+	AddDoor("DoorToResearchFacility", 90);	
+
+	AddKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", AddDoor("StorageDoor", 90), "7854");
+	AddKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", AddDoor("DoorToResearchFacility", 90), "1689");
+	AddKeypad("Keypad3", "Keypad3Key0", "Keypad3Key1", "Keypad3Key2", "Keypad3Key3", "Keypad3Key4", "Keypad3Key5", "Keypad3Key6", "Keypad3Key7", "Keypad3Key8", "Keypad3Key9", "Keypad3KeyCancel", AddDoor("DoorMedical", 90), "9632");		
 
 	mMusic->Play();
 
@@ -119,6 +127,8 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	BuildPath(pathToRoom, "PathToRoom");
 	Path pathUpperRightTwo;
 	BuildPath(pathUpperRightTwo, "PathUpperRightTwo");
+	Path pathLeft;
+	BuildPath(pathLeft, "PathLeft");
 
 	// cross-path edges
 	path.mVertexList[17]->AddEdge(pathOnUpperLevel.mVertexList[0]);
@@ -126,6 +136,7 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	pathOnUpperLevel.mVertexList[8]->AddEdge(pathUpperLeft.mVertexList[0]);
 	path.mVertexList[18]->AddEdge(pathToRoom.mVertexList[0]);
 	pathOnUpperLevel.mVertexList[12]->AddEdge(pathUpperRightTwo.mVertexList[0]);
+	path.mVertexList[13]->AddEdge(pathLeft.mVertexList[0]);
 
 	// concatenate all paths
 	vector<GraphVertex*> allPaths;
@@ -135,6 +146,7 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	allPaths.insert(allPaths.end(), pathUpperLeft.mVertexList.begin(), pathUpperLeft.mVertexList.end());
 	allPaths.insert(allPaths.end(), pathToRoom.mVertexList.begin(), pathToRoom.mVertexList.end());
 	allPaths.insert(allPaths.end(), pathUpperRightTwo.mVertexList.begin(), pathUpperRightTwo.mVertexList.end());
+	allPaths.insert(allPaths.end(), pathLeft.mVertexList.begin(), pathLeft.mVertexList.end());
 
 	vector< GraphVertex* > patrolPoints;
 	patrolPoints.push_back(path.mVertexList.front());
@@ -155,21 +167,19 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	patrolPoints.push_back(pathToRoom.mVertexList.front());
 	patrolPoints.push_back(pathToRoom.mVertexList.back());
 
+	patrolPoints.push_back(pathLeft.mVertexList.front());
+	patrolPoints.push_back(pathLeft.mVertexList.back());
+
 	mEnemy = unique_ptr<Enemy>(new Enemy(allPaths, patrolPoints));
 	mEnemy->SetPosition(GetUniqueObject("EnemyPosition")->GetPosition());
-
-	mRock[0] = GetUniqueObject("Rock1");
-	mRock[1] = GetUniqueObject("Rock2");
-	mRock[2] = GetUniqueObject("Rock3");
-
+	
 	mExplosivesDummy[0] = GetUniqueObject("ExplosivesModel5");
 	mExplosivesDummy[1] = GetUniqueObject("ExplosivesModel6");
 	mExplosivesDummy[2] = GetUniqueObject("ExplosivesModel7");
 	mExplosivesDummy[3] = GetUniqueObject("ExplosivesModel8");
 
-	mRockPosition[0] = GetUniqueObject("Rock1Pos")->GetPosition();
-	mRockPosition[1] = GetUniqueObject("Rock2Pos")->GetPosition();
-	mRockPosition[2] = GetUniqueObject("Rock3Pos")->GetPosition();
+	mExplodedWall = GetUniqueObject("ConcreteWallExploded");
+	mExplodedWall->Hide();
 
 	mExplosionFlashPosition = GetUniqueObject("ExplosionFlash");
 
@@ -208,13 +218,13 @@ void LevelMine::DoScenario() {
 	}
 
 	if (mPlayer->mNearestPickedNode == mLiftButton) {
-		mPlayer->SetActionText(mLocalization.GetString("brokenLift"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("brokenLift"));
 	}
 
 	if (!mStages["FindObjectObjectiveSet"]) {
 		if (!mStages["FoundObjectsForExplosion"]) {
 			if (mPlayer->IsInsideZone(mFindItemsZone)) {
-				mPlayer->SetObjective(mLocalization.GetString("objective2"));
+				mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective2"));
 
 				mStages["FindObjectObjectiveSet"] = true;
 			}
@@ -230,10 +240,10 @@ void LevelMine::DoScenario() {
 
 	if (!mStages["ConcreteWallExp"]) {
 		if (mPlayer->mNearestPickedNode == mDetonator) {
-			mPlayer->SetActionText(mLocalization.GetString("detonator"));
+			mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mLocalization.GetString("detonator"));
 
 			if (ruInput::IsKeyHit(mPlayer->mKeyUse) && mReadyExplosivesCount >= 4 && !mDetonatorActivated) {
-				mDetonatorActivated = 1;
+				mDetonatorActivated = true;
 
 				mExplosionTimer->Restart();;
 			}
@@ -241,7 +251,7 @@ void LevelMine::DoScenario() {
 
 		if (mDetonatorActivated) {
 			if (mExplosionTimer->GetElapsedTimeInSeconds() >= 10.0f) {
-				mDetonatorActivated = 0;
+				mDetonatorActivated = false;
 
 				mExplosionSound->Play();
 
@@ -255,9 +265,7 @@ void LevelMine::DoScenario() {
 
 				ruVector3 vec = (mConcreteWall->GetPosition() - mPlayer->GetCurrentPosition()).Normalize() * 20;
 
-				for (int iRock = 0; iRock < 3; iRock++) {
-					mRock[iRock]->SetPosition(mRockPosition[iRock]);
-				}
+				mExplodedWall->Show();
 
 				mExplosionFlashLight = ruPointLight::Create();
 				mExplosionFlashLight->Attach(mExplosionFlashPosition);
@@ -270,16 +278,15 @@ void LevelMine::DoScenario() {
 				mExplosionDustParticleSystem->SetPosition(mExplosivesDummy[0]->GetPosition() - ruVector3(0, 2.5, 0));
 				mExplosionDustParticleSystem->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
 				mExplosionDustParticleSystem->SetType(ruParticleSystem::Type::Box);
-				mExplosionDustParticleSystem->SetLightingEnabled(true);
+				mExplosionDustParticleSystem->SetLightingEnabled(false);
 				mExplosionDustParticleSystem->SetAutoResurrection(false);
-				mExplosionDustParticleSystem->SetPointSize(1.1f);
-				mExplosionDustParticleSystem->SetSpeedDeviation(ruVector3(-0.0005, 0.0, -0.0005), ruVector3(0.0005, 0.005, 0.0005));
-				mExplosionDustParticleSystem->SetBoundingBox(ruVector3(-2, 0, -4), ruVector3(2, 4, 4));
-				mExplosionDustParticleSystem->SetColorRange(ruVector3(20, 20, 20), ruVector3(40, 40, 40));
+				mExplosionDustParticleSystem->SetPointSize(0.8f);
+				mExplosionDustParticleSystem->SetSpeedDeviation(ruVector3(-0.0008, 0.0, -0.0008), ruVector3(0.0008, 0.005, 0.0008));
+				mExplosionDustParticleSystem->SetBoundingBox(ruVector3(-1, 0, -3), ruVector3(1, 3, 3));
+				mExplosionDustParticleSystem->SetColorRange(ruVector3(130, 130, 130), ruVector3(150, 150, 150));
 
 				if (mPlayer->IsInsideZone(mDeathZone)) {
 					mPlayer->Damage(1000);
-					mPlayer->Move(vec, 1);
 				}
 			}
 
@@ -336,7 +343,7 @@ void LevelMine::UpdateExplodeSequence() {
 			}
 
 			if (mReadyExplosivesCount >= 4) {
-				mPlayer->SetObjective(mLocalization.GetString("objective4"));
+				mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective4"));
 			}
 		}
 	}
@@ -349,7 +356,7 @@ void LevelMine::UpdateExplodeSequence() {
 		totalNeededObjects += mPlayer->GetInventory()->GetItemCount(Item::Type::Detonator);
 		if (totalNeededObjects >= 12) {
 			mStages["FindObjectObjectiveSet"] = true;
-			mPlayer->SetObjective(mLocalization.GetString("objective3"));
+			mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective3"));
 		}
 	}
 
@@ -358,7 +365,7 @@ void LevelMine::UpdateExplodeSequence() {
 			shared_ptr<ItemPlace> dp = mDetonatorPlace[i];
 
 			if (dp->IsPickedByPlayer()) {
-				mPlayer->SetActionText(StringBuilder() << ruInput::GetKeyName(mPlayer->mKeyUse) << mPlayer->mLocalization.GetString("putItem"));
+				mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->mLocalization.GetString("putItem"));
 			}
 		}
 
@@ -377,12 +384,10 @@ void LevelMine::UpdateExplodeSequence() {
 						if (dp->GetPlaceType() == Item::Type::Explosives) {
 							mExplosivesModels[i]->Show();
 							dp->SetPlaceType(Item::Type::Detonator);
-						}
-						else if (dp->GetPlaceType() == Item::Type::Detonator) {
+						} else if (dp->GetPlaceType() == Item::Type::Detonator) {
 							mDetonatorModels[i]->Show();
 							dp->SetPlaceType(Item::Type::Wires);
-						}
-						else if (dp->GetPlaceType() == Item::Type::Wires) {
+						} else if (dp->GetPlaceType() == Item::Type::Wires) {
 							mWireModels[i]->Show();
 							dp->SetPlaceType(Item::Type::Unknown);
 						}
@@ -427,16 +432,11 @@ void LevelMine::CreateItems() {
 	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel3")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveFuel));
 
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Syringe), make_shared<InteractiveObject>(GetUniqueObject("Syringe")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveSyringe));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Syringe), make_shared<InteractiveObject>(GetUniqueObject("Syringe2")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveSyringe));
 }
 
-void LevelMine::OnDeserialize(SaveFile & in) {
-	in.ReadBoolean(mDetonatorActivated);
-	in.ReadFloat(mBeepSoundTiming);
-	mEnemy->Deserialize(in);
-}
-
-void LevelMine::OnSerialize(SaveFile & out) {
-	out.WriteBoolean(mDetonatorActivated);
-	out.WriteFloat(mBeepSoundTiming);
-	mEnemy->Serialize(out);
+void LevelMine::OnSerialize(SaveFile & s) {
+	s & mDetonatorActivated;
+	s & mBeepSoundTiming;
+	mEnemy->Serialize(s);
 }

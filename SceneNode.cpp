@@ -52,7 +52,10 @@ SceneNode::SceneNode() :
 	mAlbedo(0.0f),
 	mCurrentAnimation(nullptr),
 	mBlurAmount(0.0f),
-	mTwoSidedLighting(false) {
+	mTwoSidedLighting(false),
+	mIsMoving(false),
+	mShadowCastEnabled(true)
+{
 	AutoName();
 	mLocalTransform = btTransform(btQuaternion(0, 0, 0), btVector3(0, 0, 0));
 	mGlobalTransform = mLocalTransform;
@@ -208,6 +211,14 @@ btTransform & SceneNode::CalculateGlobalTransform() {
 			mGlobalTransform = mLocalTransform;
 		}
 	}
+	if ((mLastPosition - GetPosition()).Length2() < 0.0001) {
+		mIsMoving = false;
+	} else {
+		mIsMoving = true;
+	}
+
+	mLastPosition = GetPosition();
+
 	return mGlobalTransform;
 }
 
@@ -665,10 +676,21 @@ void SceneNode::ApplyProperties() {
 
 		if (pname == "albedo") {
 			mAlbedo = atof(value.c_str());
+			if (mAlbedo > 0.9) {
+				SetShadowCastEnabled(false); // HAAAX 
+			}
 		}
 
 		if (pname == "visible") {
 			mVisible = atoi(value.c_str());
+		}
+
+		if (pname == "tag") {
+			SetTag(value);
+		}
+
+		if (pname == "shadowCast") {
+			SetShadowCastEnabled(atoi(value.c_str()));
 		}
 
 		if (pname == "frozen") {
@@ -995,6 +1017,9 @@ BodyType SceneNode::GetBodyType() const {
 		if (dynamic_cast<btBoxShape*>(shape)) {
 			bodyType = BodyType::Box;
 		}
+		if (dynamic_cast<btCapsuleShape*>(shape)) {
+			bodyType = BodyType::Capsule;
+		}
 	}
 	return bodyType;
 }
@@ -1192,6 +1217,14 @@ bool SceneNode::IsSkinned() const {
 	return mIsSkinned;
 }
 
+string SceneNode::GetTag() const {
+	return mTag;
+}
+
+void SceneNode::SetTag(const string & tag) {
+	mTag = tag;
+}
+
 shared_ptr<Mesh> SceneNode::GetMesh(int n) {
 	try {
 		return mMeshList.at(n);
@@ -1242,4 +1275,17 @@ shared_ptr<ruSceneNode> ruSceneNode::GetWorldObject(int i) {
 
 ruSceneNode::~ruSceneNode() {
 
+}
+
+vector<shared_ptr<ruSceneNode>> ruSceneNode::GetTaggedObjects(const string & tag) {
+	auto nodes = SceneFactory::GetNodeList();
+	vector<shared_ptr<ruSceneNode>> tagged;
+	for (auto weakNode : nodes) {
+		auto node = weakNode.lock();
+
+		if (node->GetTag() == tag) {
+			tagged.push_back(node);
+		}
+	}
+	return tagged;
 }

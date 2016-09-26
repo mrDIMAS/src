@@ -3,40 +3,38 @@
 #include "Common.h"
 #include "Vertex.h"
 
-struct Material
-{
-  string diffuse;
-  string normal;
-  float opacity;
+struct Material {
+	string diffuse;
+	string normal;
+	float opacity;
 };
 
-struct BoneWeight
-{
-  float weight;
-  int id;
+struct BoneWeight {
+	float weight;
+	int id;
 };
 
-struct Weight
-{
-  BoneWeight bones[ 4 ];
-  int boneCount;
+struct Weight {
+	BoneWeight bones[4];
+	int boneCount;
 };
 
-class Mesh
-{
+class Mesh {
 public:
+	vector< Vertex > vertices;
+	vector< unsigned short > indices;
+	vector< Weight > weights;
+	Vector3 min, max, center;
+	float radius;
+	Material mat;
 
-  vector< Vertex > vertices;
-  vector< unsigned short > indices;
-  vector< Weight > weights;
-  Vector3 min, max, center;
-  float radius;
-  Material mat;
+	Mesh();
+	~Mesh() {
 
-  Mesh();
-  void AddVertex( const Vertex & v, const Weight & w );
-  void AddVertex( const Vertex & v );
-  void CalculateAABB( );
-  void CalculateNormals( );
-  void CalculateTangent(  );
+	}
+	void AddVertex(const Vertex & v, const Weight & w);
+	void AddVertex(const Vertex & v);
+	void CalculateAABB();
+	void CalculateNormals();
+	void CalculateTangent();
 };

@@ -49,27 +49,19 @@ ActionSeries::~ActionSeries() {
 	}
 }
 
-void ActionSeries::Serialize(SaveFile & out) {
-	out.WriteBoolean(mEnabled);
-	out.WriteFloat(mCounter);
-	out.WriteFloat(mLastActionTime);
+void ActionSeries::Serialize(SaveFile & s) {
+	s & mEnabled;
+	s & mCounter;
+	s & mLastActionTime;
 	for (auto timePointPair : mActions) {
-		out.WriteBoolean(timePointPair.second->mDone);
-	}
-}
-
-void ActionSeries::Deserialize(SaveFile & in) {
-	mEnabled = in.ReadBoolean();
-	mCounter = in.ReadFloat();
-	mLastActionTime = in.ReadFloat();
-	for (auto timePointPair : mActions) {
-		timePointPair.second->mDone = in.ReadBoolean();
-		if (timePointPair.second->mDone) {
-			timePointPair.second->Do();
+		s & timePointPair.second->mDone;
+		if (s.IsLoading()) {
+			if (timePointPair.second->mDone) {
+				timePointPair.second->Do();
+			}
 		}
 	}
 }
-
 
 void ActionSeries::TimePoint::Do() {
 	mActions.DoActions();

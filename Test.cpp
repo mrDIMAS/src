@@ -31,16 +31,6 @@ using namespace std;
 
 /* shared_ptr\<.*\> .* */
 void main( ) {
-    ruVector3 v1( 10, 20, 30 );
-    ruVector3 v2( 30, 20, 10 );
-
-    ruVector3 v3 = v1 - v2;
-
-    v3 = v1 + v2;
-    v3 *= ruVector3( 10, 10, 10 );
-
-    v3 = 10 * v1 ;
-
     ruEngine::Create( 0, 0, 0, 0 );
 
     ruPointLight::SetPointDefaultTexture( ruCubeTexture::Request( "data/textures/generic/pointCube.dds" ));
@@ -50,9 +40,6 @@ void main( ) {
 	cameraPivot->SetCapsuleBody( 6, 2 );
 	cameraPivot->SetAngularFactor( ruVector3( 0, 0, 0 ));
     cameraPivot->SetPosition( ruVector3( 0, 5, 0 ));
-
-    //shared_ptr<ruCamera> testCamera = ruCamera::Create( 90 );
-    //testCamera->SetPosition( ruVector3( 10, 50, -100 ));
 
     shared_ptr<ruCamera> camera = ruCamera::Create( 60 );
     camera->Attach( cameraPivot );
@@ -75,9 +62,9 @@ void main( ) {
     float pitch = 0, yaw = 0;
     int cameraNum = 0;
 
-    shared_ptr<ruFont> font = ruFont::LoadFromFile( 12, "data/fonts/font1.otf" );
-    shared_ptr<ruFont> font2 = ruFont::LoadFromFile( 16, "data/fonts/font1.otf" );
-    shared_ptr<ruFont> font3 = ruFont::LoadFromFile( 20, "data/fonts/font1.otf" );
+    shared_ptr<ruFont> font = ruFont::LoadFromFile( 12, "data/fonts/font5.ttf" );
+    shared_ptr<ruFont> font2 = ruFont::LoadFromFile( 16, "data/fonts/font5.ttf" );
+    shared_ptr<ruFont> font3 = ruFont::LoadFromFile( 20, "data/fonts/font5.ttf" );
 
     int counter = 0;
     int fps = 0;
@@ -99,14 +86,14 @@ void main( ) {
     ruEngine::SetCursorSettings( ruTexture::Request( "data/gui/cursor.tga" ), 32, 32 );
 
 	shared_ptr<ruGUIScene> guiScene = ruGUIScene::Create();
-
+	 
 	guiScene->SetOpacity(0.5f);
 
-    shared_ptr<ruText> fpsText = guiScene->CreateText( "Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake!", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
+    shared_ptr<ruText> fpsText = guiScene->CreateText( u8"Русский текст тоже рисуется! Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake! ", 0, 0, 100, 100, font, ruVector3( 255, 255, 255 ), ruTextAlignment::Left, 150 );
 	//shared_ptr<ruText> fpsText = guiScene->CreateText("The Mine", 0, 0, 100, 100, font, ruVector3(255, 255, 255), ruTextAlignment::Left, 150);
 
 	shared_ptr<ruRect> testrect = guiScene->CreateRect( 100, 100, 200, 200, ruTexture::Request( "data/gui/inventory/items/detonator.png" ));
-	shared_ptr<ruButton> testButton = guiScene->CreateButton( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
+	shared_ptr<ruButton> testButton = guiScene->CreateButton( 10, 30, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), u8"Русский", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
 	shared_ptr<ruButton> testButton2 = guiScene->CreateButton( 0, 100, 128, 32, ruTexture::Request( "data/gui/menu/button.tga" ), "Test", font, ruVector3( 255, 255, 255 ), ruTextAlignment::Center );
 	testButton->Attach( testrect );
 	testButton2->Attach( testrect );
@@ -115,8 +102,8 @@ void main( ) {
 	shared_ptr<ruButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
 
 	ruEngine::SetAmbientColor( ruVector3( 0.05, 0.05, 0.05 ));
-	ruEngine::EnableSpotLightShadows( false );
-	ruEngine::EnablePointLightShadows( true );
+	ruEngine::EnableSpotLightShadows( true );
+	ruEngine::EnablePointLightShadows( false );
 	ruEngine::SetHDREnabled( false );
 	ruEngine::SetFXAAEnabled( false );
 	ruEngine::SetParallaxEnabled( true );
@@ -131,10 +118,6 @@ void main( ) {
 	anim.SetEnabled( true );
 	ripper->SetAnimation( &anim );
 	ripper->SetBlurAmount( 1.0f );
-
-	for( int i = 0; i < ruPointLight::GetCount(); i++ ) {
-		ruPointLight::Get( i )->SetGreyscaleFactor( 1.0f );
-	}
 
 	ruEngine::SetAmbientColor( ruVector3( .1, .1, .1 ));
 

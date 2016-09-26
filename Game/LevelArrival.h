@@ -11,6 +11,11 @@ private:
 	void ActLiftCrash_AfterFirstStressSound();
 	void ActLiftCrash_AfterFalldown();
 	bool mChangeLevel;
+
+	void Proxy_AddLighther();
+	void Proxy_AddCrowbar();
+
+	shared_ptr<ruSound> mWoodHitSound;
 public:
     // Sounds
     shared_ptr<ruSound> mWindSound;
@@ -27,6 +32,8 @@ public:
 	shared_ptr<ruSceneNode> mTutorialZone4;
 	shared_ptr<ruSceneNode> mTutorialZone5;
 	shared_ptr<ruSceneNode> mTutorialZone6;
+	shared_ptr<ruSceneNode> mTutorialZone7;
+	shared_ptr<ruSceneNode> mTutorialZone8;
 
     // Entities
 	shared_ptr<ruSceneNode> mHalt;
@@ -44,5 +51,4 @@ public:
     virtual void Show();
     virtual void Hide();
     virtual void OnSerialize( SaveFile & out ) final;
-    virtual void OnDeserialize( SaveFile & in ) final;
 };

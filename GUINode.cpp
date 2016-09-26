@@ -116,16 +116,16 @@ ruVector2 GUINode::GetPosition() {
 	return ruVector2(GetX(), GetY());
 }
 
-inline ruVector2 GUINode::GetGlobalPosition() {
+ruVector2 GUINode::GetGlobalPosition() {
 	CalculateTransform();
 	return ruVector2(mGlobalX, mGlobalY);
 }
 
-inline void GUINode::SetIndependentAlpha(bool useIndependent) {
+void GUINode::SetIndependentAlpha(bool useIndependent) {
 	mIndependentAlpha = useIndependent;
 }
 
-inline bool GUINode::IsIndependentAlpha() const {
+bool GUINode::IsIndependentAlpha() const {
 	return mIndependentAlpha;
 }
 
@@ -209,18 +209,18 @@ void GUINode::RemoveAllActions() {
 	mEventList.clear();
 }
 
-inline weak_ptr<class ruGUIScene> GUINode::GetScene() {
+weak_ptr<class ruGUIScene> GUINode::GetScene() {
 	return mScene;
 }
 
-inline void GUINode::SetLayer(int layer) {
+void GUINode::SetLayer(int layer) {
 	mLayer = layer;
 	if (!mScene.expired()) { // so intrusive
 		mScene.lock()->SortNodes();
 	}
 }
 
-inline int GUINode::GetLayer() const {
+int GUINode::GetLayer() const {
 	return mLayer;
 }
 

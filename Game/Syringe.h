@@ -16,11 +16,12 @@ private:
 	void Proxy_Use();
 	int mDozeCount;
 	virtual void OnSerialize( SaveFile & out ) final;
-	virtual void OnDeserialize( SaveFile & in ) final;
 public:
+	virtual void OnPickupSame() final {
+		mDozeCount++;
+	}
 	explicit Syringe( );
 	~Syringe( );
 	virtual void Update() final;
 	virtual Item::Type GetItemType( ) final;
-	void AddDoze();
 };

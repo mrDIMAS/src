@@ -34,9 +34,6 @@ private:
 	ruAnimation mCloseAnim;
 	ruAnimation mIdleAnim;
 
-	static void SerializeAnimation(SaveFile & out, ruAnimation & anim);
-	static void DeserializeAnimation(SaveFile & in, ruAnimation & anim);
-
 	bool mOn;
 
 	void Proxy_Close();
@@ -45,9 +42,11 @@ private:
 	void Proxy_Show();
 	void Proxy_Open();
 
-	virtual void OnSerialize(SaveFile & out) final;
-	virtual void OnDeserialize(SaveFile & in) final;
+	virtual void OnSerialize(SaveFile & s) final;
 public:
+	virtual void OnPickupSame() final {
+		// nothing to do
+	}
 	explicit Flashlight();
 	~Flashlight();
 	bool GotCharge();
@@ -63,4 +62,5 @@ public:
 	virtual Item::Type GetItemType() final {
 		return Item::Type::Lighter;
 	}
+
 };

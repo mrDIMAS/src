@@ -81,6 +81,9 @@ void WaitKeyButton::AttachTo( const shared_ptr<ruGUINode> & node )
 }
 
 WaitKeyButton::~WaitKeyButton() {
-	msWaitKeyList.erase( find( msWaitKeyList.begin(), msWaitKeyList.end(), this ));
+	auto existing = find(msWaitKeyList.begin(), msWaitKeyList.end(), this);
+	if (existing != msWaitKeyList.end()) {
+		msWaitKeyList.erase(existing);
+	}
 }
 

@@ -5,6 +5,8 @@
 #include "Parser.h"
 #include "SaveFile.h"
 
+
+
 class Inventory {
 private:
 	shared_ptr<ruGUIScene> mScene;
@@ -25,7 +27,7 @@ private:
     shared_ptr<ruSound> mPickSound;
     shared_ptr<ruFont> mFont;
     Parser mLocalization;
-    shared_ptr<ruRect> mGUIRectItemForUse;
+    
     shared_ptr<ruRect> mGUICanvas;
     shared_ptr<ruText> mGUIDescription;
     shared_ptr<ruButton> mGUIButtonUse;
@@ -43,6 +45,10 @@ private:
     shared_ptr<ruText> mGUIItemContent;
     shared_ptr<ruText> mGUIItemContentType;
     shared_ptr<ruText> mGUIItemVolume;
+	shared_ptr<ruButton> mPageItems;
+	shared_ptr<ruButton> mPageNotes;
+
+	vector<pair<string, string>> mReadedNotes;
 public:
 	void SetItems( map<Item,int> & items );
     bool IsOpened() const;
@@ -50,7 +56,6 @@ public:
     explicit Inventory();
     virtual ~Inventory();
     void Update();
-    bool IsMouseInside( int x, int y, int w, int h );
     void DoCombine();
     void RemoveItem( Item::Type type, int count );
     Item * GetItemSelectedForUse( );
@@ -58,7 +63,13 @@ public:
     void AddItem( Item::Type type );
     int GetItemCount( Item::Type type );
     void Serialize( SaveFile & out );
-    void Deserialize( SaveFile & in );
     void SetVisible( bool state );
 	void GetItems( map<Item,int> & itemMap );
+
+	void AddReadedNote(const string & desc, const string & text) {
+		auto existing = find(mReadedNotes.begin(), mReadedNotes.end(), pair<string,string>(desc, text));
+		if (existing == mReadedNotes.end()) {
+			mReadedNotes.push_back(pair<string, string>(desc, text));
+		}
+	}
 };

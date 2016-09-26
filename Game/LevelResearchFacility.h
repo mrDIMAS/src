@@ -75,6 +75,7 @@ private:
 	shared_ptr<ItemPlace> mFusePlaceList[3];
 	int fuseInsertedCount;
 	bool mPowerOn;
+	bool mSteamDisabled;
 
 	shared_ptr<ruSceneNode> mThermiteSmall;
 	shared_ptr<ruSceneNode> mThermiteBig;
@@ -105,7 +106,6 @@ public:
 	virtual void Hide() final;
 	virtual void Show() final;
 	virtual void OnSerialize(SaveFile & out) final;
-	virtual void OnDeserialize(SaveFile & in) final;
 };
 
 

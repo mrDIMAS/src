@@ -19,7 +19,11 @@ unique_ptr<LoadingScreen> Level::msLoadingScreen;
 int g_initialLevel;
 int Level::msCurLevelID = 0;
 
-Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) {
+Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) : 
+	mChaseMusicStopInterval(0),
+	mChaseMusicVolume(1.0f),
+	mDestChaseMusicVolume(1.0f)
+{
 	mInitializationComplete = false;
 	mTypeNum = 0; //undefined
 
@@ -39,6 +43,8 @@ Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) {
 			}
 		}
 	}
+
+	mChaseMusic = ruSound::LoadMusic("data/music/chase.ogg");
 }
 
 Level::~Level() {
@@ -48,7 +54,7 @@ Level::~Level() {
 }
 
 void Level::LoadLocalization(string fn) {
-	mLocalization.ParseFile(localizationPath + fn);
+	mLocalization.ParseFile(gLocalizationPath + fn);
 }
 
 void Level::Hide() {
@@ -89,7 +95,7 @@ void Level::Change(int levelId, bool continueFromSave) {
 
 	if (msCurrent) {
 		if (msCurrent->mPlayer) {
-			playerTransfer = unique_ptr<PlayerTransfer>(new PlayerTransfer);
+			playerTransfer = make_unique<PlayerTransfer>();
 			if (lastLevel != levelId) {
 				msCurrent->mPlayer->DumpUsableObjects(playerTransfer->mUsableObjects);
 			}
@@ -109,22 +115,22 @@ void Level::Change(int levelId, bool continueFromSave) {
 	// load new level and restore player state
 	switch (Level::msCurLevelID) {
 	case LevelName::LCSIntro:
-		msCurrent = unique_ptr<Level>(new LevelCutsceneIntro(playerTransfer));
+		msCurrent = make_unique<LevelCutsceneIntro>(playerTransfer);
 		break;
 	case LevelName::L0Introduction:
-		msCurrent = unique_ptr<Level>(new LevelIntroduction(playerTransfer));
+		msCurrent = make_unique<LevelIntroduction>(playerTransfer);
 		break;
 	case LevelName::L1Arrival:
-		msCurrent = unique_ptr<Level>(new LevelArrival(playerTransfer));
+		msCurrent = make_unique<LevelArrival>(playerTransfer);
 		break;
 	case LevelName::L2Mine:
-		msCurrent = unique_ptr<Level>(new LevelMine(playerTransfer));
+		msCurrent = make_unique<LevelMine>(playerTransfer);
 		break;
 	case LevelName::L3ResearchFacility:
-		msCurrent = unique_ptr<Level>(new LevelResearchFacility(playerTransfer));
+		msCurrent = make_unique<LevelResearchFacility>(playerTransfer);
 		break;
 	case LevelName::L4Sewers:
-		msCurrent = unique_ptr<Level>(new LevelSewers(playerTransfer));
+		msCurrent = make_unique<LevelSewers>(playerTransfer);
 		break;
 	default:
 		throw runtime_error("Unable to load level with bad id!");
@@ -135,7 +141,9 @@ void Level::Change(int levelId, bool continueFromSave) {
 		SaveLoader("lastGame.save").RestoreWorldState();
 	}
 
-	msCurrent->mPlayer->SetTip("Loaded");
+	if (msCurrent->mPlayer) {
+		msCurrent->mPlayer->GetHUD()->SetTip("Loaded");
+	}
 
 	lastLevel = levelId;
 
@@ -148,8 +156,8 @@ shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & controlP
 	lift->SetControlPanel(GetUniqueObject(controlPanel));
 	lift->SetDestinationPoint(GetUniqueObject(destNode));
 	lift->SetSourcePoint(GetUniqueObject(sourceNode));
-	lift->SetBackDoors(AddDoor(doorBackLeft, -90), AddDoor(mDoorBackRight, -90));
-	lift->SetFrontDoors(AddDoor(doorFrontLeft, 90), AddDoor(doorFrontRight, 90));
+	lift->SetFrontDoors(AddDoor(doorBackLeft, 90), AddDoor(mDoorBackRight, 90));
+	lift->SetBackDoors(AddDoor(doorFrontLeft, 90), AddDoor(doorFrontRight, 90));
 
 	mLiftList.push_back(lift);
 
@@ -209,7 +217,7 @@ shared_ptr<Door> Level::FindDoor(const string & name) {
 }
 
 shared_ptr<Sheet> Level::AddSheet(const string & nodeName, const string & desc, const string & text) {
-	shared_ptr<Sheet> sheet(new Sheet(mPlayer->mGUIScene, GetUniqueObject(nodeName), desc, text));
+	shared_ptr<Sheet> sheet(new Sheet(mPlayer->GetHUD()->GetScene(), GetUniqueObject(nodeName), desc, text)); // HAAAX!!
 	mInteractiveObjectList.push_back(sheet);
 	mSheetList.push_back(sheet);
 	return sheet;
@@ -245,136 +253,80 @@ shared_ptr<Keypad> Level::AddKeypad(const string & keypad, const string & key0, 
 	return k;
 }
 
-void Level::Deserialize(SaveFile & in) {
-	mPlayer->Deserialize(in);
+void Level::Purge() {
+	msCurrent.reset();
+}
 
-	int childCount = in.ReadInteger();
+void Level::Serialize(SaveFile & s) {
+	mPlayer->Serialize(s);
+
+	mPlayer->GetHUD()->SetTip("Saved");
+
+	// serialize all scene nodes
+	int childCount = mScene->GetCountChildren();
+	s & childCount;
 	for (int i = 0; i < childCount; i++) {
-		string name = in.ReadString();
-		shared_ptr<ruSceneNode> node = mScene->FindChild(name);
-		ruVector3 pos = in.ReadVector3();
-		ruQuaternion quat = in.ReadQuaternion();
-		bool visible = in.ReadBoolean();
-		bool isLight = in.ReadBoolean();
-		float litRange = 0.0f;
-		if (isLight) {
-			litRange = in.ReadFloat();
-		}
-		if (node) {
-			node->SetLocalPosition(pos);
-			node->SetLocalRotation(quat);
+		shared_ptr<ruSceneNode> node = mScene->GetChild(i);
+		shared_ptr<ruLight> light = std::dynamic_pointer_cast<ruLight>(node);
+
+		auto position = node->GetLocalPosition();
+		auto rotation = node->GetLocalRotation();
+		auto visible = node->IsVisible();
+		auto name = node->GetName();
+		auto isLight = light != nullptr;
+		auto lightRange = light ? light->GetRange() : 0.0f;
+
+		s & name;
+		s & position;
+		s & rotation;
+		s & visible;		
+		s & isLight;
+		s & lightRange;
+		
+		// apply values on load
+		if (s.IsLoading()) {
+			node->SetLocalPosition(position);
+			node->SetLocalRotation(rotation);
 			if (visible) {
 				node->Show();
 			} else {
 				node->Hide();
 			}
 			if (isLight) {
-				std::dynamic_pointer_cast<ruLight>(node)->SetRange(litRange);
+				std::dynamic_pointer_cast<ruLight>(node)->SetRange(lightRange);
 			}
 		}
 	}
-	int countStages = in.ReadInteger();
-	for (int i = 0; i < countStages; i++) {
-		string stageName = in.ReadString();
-		bool stageState = in.ReadBoolean();
-		mStages[stageName] = stageState;
-	}
-	int doorCount = in.ReadInteger();
-	for (int i = 0; i < doorCount; i++) {
-		string name = in.ReadString();
-		shared_ptr<Door> pDoor;
-		for (auto door : mDoorList) {
-			if (door->mDoorNode->GetName() == name) {
-				pDoor = door;
-				break;
-			}
-		}
-		if (pDoor) {
-			pDoor->Deserialize(in);
-		}
+
+	// serialize doors
+	for (auto door : mDoorList) {
+		door->Serialize(s);
 	}
 
-	for (auto pLift : mLiftList) {
-		pLift->Deserialize(in);
+	// serialize lifts
+	for (auto lift : mLiftList) {
+		lift->Serialize(s);
 	}
 
-	int wayCount = in.ReadInteger();
-	for (int i = 0; i < wayCount; i++) {
-		auto ladder = FindLadder(in.ReadString());
-		ladder->Deserialize(in);
+	// serialize ladders
+	for (auto ladder : mLadderList) {
+		ladder->Serialize(s);
 	}
 
-	// deserialize item places
-	int countItemPlaces = in.ReadInteger();
-
-	for (int i = 0; i < countItemPlaces; i++) {
-		string ipName = in.ReadString();
-		Item::Type placedItem = static_cast<Item::Type>(in.ReadInteger());
-		Item::Type placeType = static_cast<Item::Type>(in.ReadInteger());
-
-		auto pItemPlace = FindItemPlace(ipName);
-
-		if (pItemPlace) {
-			pItemPlace->mItemPlaced = placedItem;
-			pItemPlace->mItemTypeCanBePlaced = placeType;
-		}
+	// serialize item places
+	for (auto itemPlace : mItemPlaceList) {
+		itemPlace->Serialize(s);
 	}
 
-	OnDeserialize(in);
-}
-
-void Level::Purge() {
-	msCurrent.reset();
-}
-
-void Level::Serialize(SaveFile & out) {
-	mPlayer->Serialize(out);
-
-	mPlayer->SetTip("Saved");
-
-	int childCount = mScene->GetCountChildren();
-	out.WriteInteger(childCount);
-	for (int i = 0; i < childCount; i++) {
-		shared_ptr<ruSceneNode> node = mScene->GetChild(i);
-		out.WriteString(node->GetName());
-		out.WriteVector3(node->GetLocalPosition());
-		out.WriteQuaternion(node->GetLocalRotation());
-		out.WriteBoolean(node->IsVisible());
-		shared_ptr<ruLight>light = std::dynamic_pointer_cast<ruLight>(node);
-		out.WriteBoolean(light != nullptr);
-		if (light) {
-			out.WriteFloat(light->GetRange());
-		}
-	}
-	out.WriteInteger(mStages.size());
-	for (auto stage : mStages) {
-		out.WriteString(stage.first);
-		out.WriteBoolean(stage.second);
+	// serialize light switches
+	for (auto lswitch : mLightSwitchList) {
+		lswitch->Serialize(s);
 	}
 
-	out.WriteInteger(mDoorList.size());
-	for (auto pDoor : mDoorList) {
-		out.WriteString(pDoor->mDoorNode->GetName());
-		pDoor->Serialize(out);
-	}
+	// serialize stages
+	s & mStages;
 
-	for (auto pLift : mLiftList) {
-		pLift->Serialize(out);
-	}
-
-	out.WriteInteger(mLadderList.size());
-	for (auto pWay : mLadderList) {
-		pWay->Serialize(out);
-	}
-
-	out.WriteInteger(mItemPlaceList.size());
-	for (auto pItemPlace : mItemPlaceList) {
-		out.WriteString(pItemPlace->mObject->GetName());
-		out.WriteInteger(static_cast<int>(pItemPlace->mItemPlaced));
-		out.WriteInteger(static_cast<int>(pItemPlace->GetPlaceType()));
-	}
-
-	OnSerialize(out);
+	OnSerialize(s);
 }
 
 void Level::AddSound(shared_ptr<ruSound> sound) {
@@ -472,6 +424,22 @@ void Level::UpdateGenericObjectsIdle() {
 	for (auto pButton : mButtonList) {
 		pButton->Update();
 	}
+	for (auto lswitch : mLightSwitchList) {
+		lswitch->Update();
+	}
+
+	--mChaseMusicStopInterval;
+	if (mChaseMusicStopInterval < 0) {
+		mDestChaseMusicVolume = 0.0f;
+	}
+
+	if (mChaseMusicVolume < 0.0f) {
+		mChaseMusicVolume = 0.0f;
+	}
+
+	mChaseMusicVolume += (mDestChaseMusicVolume - mChaseMusicVolume) * 0.02f;
+
+	mChaseMusic->SetVolume(mChaseMusicVolume);
 }
 
 void Level::AutoCreateLampsByNamePattern(const string & namePattern, string buzzSound) {
@@ -521,6 +489,17 @@ void Level::AddButton(Button * button) {
 	mButtonList.push_back(button);
 }
 
+
+// when enemy detects player, enemy should call this method
+
+void Level::PlayChaseMusic() {
+	if (!mChaseMusic->IsPlaying()) {
+		mChaseMusic->Play();
+	}
+	mDestChaseMusicVolume = 1.0f;
+	mChaseMusicStopInterval = 60 * 10; // 10 seconds (60 fps)
+}
+
 unique_ptr<Enemy> & Level::GetEnemy() {
 	return mEnemy;
 }
@@ -538,16 +517,6 @@ shared_ptr<InteractiveObject> Level::FindInteractiveObject(const string & name) 
 		}
 	}
 	return shared_ptr<InteractiveObject>(nullptr);
-}
-
-void Level::DeserializeAnimation(SaveFile & in, ruAnimation & anim) {
-	anim.SetCurrentFrame(in.ReadInteger());
-	anim.SetEnabled(in.ReadBoolean());
-}
-
-void Level::SerializeAnimation(SaveFile & out, ruAnimation & anim) {
-	out.WriteInteger(anim.GetCurrentFrame());
-	out.WriteBoolean(anim.IsEnabled());
 }
 
 void Level::Proxy_GiveBullet() {

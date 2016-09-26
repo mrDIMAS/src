@@ -24,109 +24,56 @@
 #include "BitmapFont.h"
 #include "Utility.h"
 
+
+
 BitmapFont::BitmapFont(const string & file, int size) {
-	mGlyphSize = size * pEngine->GetGUIWidthScaleFactor();
-	mSourceFile = file;
-	Create();
+	ifstream pFile("data/fonts/symbols.txt", ios_base::binary | ios_base::in);
+	if (!pFile.good()) {
+		Log::Error("Failed to load symbols.txt from data/fonts. Add this file and restart");
+	}
+	pFile.seekg(0, ios_base::end);
+	size_t fSize = pFile.tellg();
+	pFile.seekg(0, ios_base::beg);
+	char * symbolSet = new char[fSize];
+	pFile.read(reinterpret_cast<char*>(symbolSet), fSize);
+
+	if (gft_font_create(file.c_str(), size * pEngine->GetGUIWidthScaleFactor(), GFT_DEFAULT, symbolSet, &mFont) != GFT_NO_ERROR) {
+		Log::Error(StringBuilder("Failed to create font '") << file << "'!");
+	}
+
+	delete[] symbolSet;
+	
+	gft_rgba_pixel_t * pixels;
+	int atlasWidth, atlasHeight;
+	gft_font_get_width(mFont, &atlasWidth);
+	gft_font_get_height(mFont, &atlasHeight);
+	gft_font_get_atlas_pixels(mFont, &pixels);
+
+	pD3D->CreateTexture(atlasWidth, atlasHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mAtlas, nullptr);
+
+	IDirect3DSurface9 * surface;
+	D3DLOCKED_RECT lockedRect;
+	mAtlas->GetSurfaceLevel(0, &surface);	
+	surface->LockRect(&lockedRect, nullptr, 0);
+
+	memcpy(lockedRect.pBits, pixels, atlasWidth * atlasHeight * sizeof(A8R8G8B8Pixel));
+
+	surface->UnlockRect();
+	surface->Release();
 }
 
 BitmapFont::~BitmapFont() {
+	gft_font_free(mFont);
+
 	mAtlas.Reset();
 }
 
 void BitmapFont::OnLostDevice() {
-	mCharsMetrics.clear();
 	mAtlas.Reset();
 }
 
 void BitmapFont::OnResetDevice() {
-	Create();
-}
 
-void BitmapFont::Create() {
-	int pow2Size = CeilPow2(mGlyphSize);
-	int atlasWidth = pow2Size * 16;
-	int atlasHeight = pow2Size * 16;
-	float scale = static_cast<float>(mGlyphSize) / static_cast<float>(pow2Size);
-	FT_Library ftLibrary;
-	if (FT_Init_FreeType(&ftLibrary)) {
-		throw std::runtime_error("Unable to initialize FreeType 2.53");
-	}
-	FT_Face face;
-	// load new font face
-	if (FT_New_Face(ftLibrary, mSourceFile.c_str(), 0, &face)) {
-		Log::Error(StringBuilder("Failed to load") << mSourceFile << "font!");
-	}
-	if (FT_Set_Pixel_Sizes(face, 0, pow2Size)) {
-		Log::Error(StringBuilder("Failed to FT_Set_Pixel_Sizes!"));
-	}
-	if (FT_Select_Charmap(face, FT_ENCODING_UNICODE)) {
-		Log::Error(StringBuilder("Failed to FT_Select_Charmap!"));
-	}
-	// create atlas texture
-	pD3D->CreateTexture(atlasWidth, atlasHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mAtlas, nullptr);
-	IDirect3DSurface9 * atlasSurface = nullptr;
-	mAtlas->GetSurfaceLevel(0, &atlasSurface);
-	D3DLOCKED_RECT lockedRect;
-	RECT rect = { 0, 0, atlasWidth, atlasHeight };
-	atlasSurface->LockRect(&lockedRect, &rect, 0);
-	// render
-	int subRectRow = 0;
-	int subRectCol = 0;
-	float tcStep = 1.0f / 16.0f;
-	float tcX = 0.0f;
-	float tcY = 0.0f;
-	int charIndexOffset = 0;
-	for (int i = 0; i < 256; i++) {
-		int charIndex = i;
-		if (i >= 177) {
-			charIndex = 1024;
-			charIndexOffset++;
-		}
-		if (FT_Load_Glyph(face, FT_Get_Char_Index(face, charIndex + charIndexOffset), FT_LOAD_DEFAULT)) {
-			Log::Error(StringBuilder("Failed to FT_Load_Glyph!"));
-		}
-		if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) {
-			Log::Error(StringBuilder("Failed to FT_Load_Glyph!"));
-		}
-		int memOffsetBytes = subRectRow * lockedRect.Pitch * pow2Size + subRectCol * pow2Size * sizeof(BGRA8Pixel);
-		BGRA8Pixel * subRectPixel = reinterpret_cast<BGRA8Pixel*>(reinterpret_cast<char*>(lockedRect.pBits) + memOffsetBytes);
-		FT_Bitmap * bitmap = &(face->glyph->bitmap);
-		// grab char metrics for rendering
-		CharMetrics cm;
-		cm.advanceX = static_cast<float>(face->glyph->advance.x >> 6) * scale;
-		cm.advanceY = static_cast<float>(face->glyph->advance.y >> 6) * scale;
-		cm.texCoords[0] = ruVector2(tcX, tcY);
-		cm.texCoords[1] = ruVector2(tcX + tcStep, tcY);
-		cm.texCoords[2] = ruVector2(tcX + tcStep, tcY + tcStep);
-		cm.texCoords[3] = ruVector2(tcX, tcY + tcStep);
-		cm.bitmapTop = static_cast<float>(face->glyph->bitmap_top) * scale;
-		cm.bitmapLeft = static_cast<float>(face->glyph->bitmap_left) * scale;
-		mCharsMetrics.push_back(cm);
-		// read glyph bitmap into the atlas
-		for (int row = 0; row < bitmap->rows; row++) {
-			for (int col = 0; col < bitmap->width; col++) {
-				BGRA8Pixel * pixel = subRectPixel + row * atlasWidth + col;
-				pixel->a = bitmap->buffer[row * bitmap->width + col];
-				pixel->r = 255;
-				pixel->g = 255;
-				pixel->b = 255;
-			}
-		}
-
-		tcX += tcStep;
-		subRectCol++;
-		if (subRectCol >= 16) {
-			tcX = 0.0f;
-			tcY += tcStep;
-			subRectCol = 0;
-			subRectRow++;
-		}
-	}
-	atlasSurface->UnlockRect();
-	FT_Done_Face(face);
-	atlasSurface->Release();
-	FT_Done_FreeType(ftLibrary);
 }
 
 shared_ptr<ruFont> ruFont::LoadFromFile(int size, const string & name) {

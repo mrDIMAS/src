@@ -65,7 +65,7 @@ public:
 };
 
 template<typename Type>
-inline void GUIScene::RemoveUnreferenced(vector<weak_ptr<Type>>& objList) {
+void GUIScene::RemoveUnreferenced(vector<weak_ptr<Type>>& objList) {
 	for (auto iter = objList.begin(); iter != objList.end(); ) {
 		if ((*iter).use_count()) {
 			++iter;

@@ -7,7 +7,7 @@
 void Button::Update() {
 	auto & player = Level::Current()->GetPlayer();
 	if (player->mNearestPickedNode == mNode) {
-		player->SetActionText(StringBuilder() << ruInput::GetKeyName(player->mKeyUse) << "Запустить генератор");
+		player->GetHUD()->SetAction(player->mKeyUse, "Запустить генератор"); // WAT?????
 		if (ruInput::IsKeyHit(player->mKeyUse)) {
 			OnPush.DoActions();
 			mPushSound->Play();

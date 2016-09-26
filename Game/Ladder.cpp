@@ -99,25 +99,6 @@ shared_ptr<ruSceneNode> Ladder::GetEnterZone() {
 	return mEnterZone;
 }
 
-void Ladder::Deserialize(SaveFile & in) {
-	mInside = in.ReadBoolean();
-	mEntering = in.ReadBoolean();
-	mLeave = in.ReadBoolean();
-	int targetNum = in.ReadInteger();
-	if (targetNum == 0) {
-		mTarget = mBegin;
-	}
-	if (targetNum == 1) {
-		mTarget = mEnd;
-	}
-	if (targetNum == 2) {
-		mTarget = mBeginLeavePoint;
-	}
-	if (targetNum == 3) {
-		mTarget = mEndLeavePoint;
-	}
-}
-
 void Ladder::LeaveInstantly()
 {
 	mInside = false;
@@ -125,11 +106,11 @@ void Ladder::LeaveInstantly()
 	mEntering = false;
 }
 
-void Ladder::Serialize(SaveFile & out) {
-	out.WriteString(mEnterZone->GetName());
-	out.WriteBoolean(mInside);
-	out.WriteBoolean(mEntering);
-	out.WriteBoolean(mLeave);
+void Ladder::Serialize(SaveFile & s) {
+	s & mInside;
+	s & mEntering;
+	s & mLeave;
+
 	int targetNum = 0;
 	if (mTarget == mBegin) {
 		targetNum = 0;
@@ -143,7 +124,23 @@ void Ladder::Serialize(SaveFile & out) {
 	if (mTarget == mEndLeavePoint) {
 		targetNum = 3;
 	}
-	out.WriteInteger(targetNum);
+
+	s & targetNum;
+
+	if (s.IsLoading()) {
+		if (targetNum == 0) {
+			mTarget = mBegin;
+		}
+		if (targetNum == 1) {
+			mTarget = mEnd;
+		}
+		if (targetNum == 2) {
+			mTarget = mBeginLeavePoint;
+		}
+		if (targetNum == 3) {
+			mTarget = mEndLeavePoint;
+		}
+	}
 }
 
 void Ladder::SetDirection(Direction direction)

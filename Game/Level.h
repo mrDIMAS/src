@@ -21,6 +21,7 @@
 #include "Enemy.h"
 #include "Gate.h"
 #include "Keypad.h"
+#include "LightSwitch.h"
 
 // Used to transfer player state through levels
 struct PlayerTransfer {
@@ -43,9 +44,9 @@ public:
 		int y = (ruVirtualScreenHeight - h) / 2;
 		mScene = ruGUIScene::Create();
 		mScene->SetVisible(false);
-		mGUIFont = ruFont::LoadFromFile(32, "data/fonts/font1.otf");
-		mGUILoadingText = mScene->CreateText("Загрузка...", x, y, w, h, mGUIFont, ruVector3(0, 0, 0), ruTextAlignment::Center);
-		mGUILoadingText->SetLayer(0xFF);
+		mGUIFont = ruFont::LoadFromFile(32, "data/fonts/font5.ttf");
+		mGUILoadingText = mScene->CreateText(u8"Загрузка...", x, y, w, h, mGUIFont, ruVector3(0, 0, 0), ruTextAlignment::Center);
+		mGUILoadingText->SetLayer(0xFF); // topmost
 		mGUILoadingBackground = mScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/gui/loadingscreen.tga"), pGUIProp->mBackColor);
 	}
 
@@ -72,13 +73,16 @@ private:
 	vector<shared_ptr<Zone>> mZoneList;
 	vector<shared_ptr<Gate>> mGateList;
 	vector<shared_ptr<Keypad>> mKeypadList;
+	vector<shared_ptr<LightSwitch>> mLightSwitchList;
 	vector<weak_ptr<ruSound>> mSounds;
 	vector<Button*> mButtonList;
 	vector<shared_ptr<InteractiveObject>> mInteractiveObjectList;
 	virtual void OnSerialize(SaveFile & out) = 0;
-	virtual void OnDeserialize(SaveFile & in) = 0;
 	AmbientSoundSet mAmbSoundSet;
 	bool mInitializationComplete;
+	int mChaseMusicStopInterval;
+	float mChaseMusicVolume;
+	float mDestChaseMusicVolume;
 protected:
 	shared_ptr<ruSceneNode> mScene;
 	Parser mLocalization;
@@ -92,10 +96,16 @@ public:
 
 	int mTypeNum;
 	shared_ptr<ruSound> mMusic;
+	shared_ptr<ruSound> mChaseMusic;
+	// when enemy detects player, enemy should call this method
+	void PlayChaseMusic();
 	unordered_map<string, bool > mStages;
 	unique_ptr<Enemy> & GetEnemy();
 	unique_ptr<Player> & GetPlayer() {
 		return mPlayer;
+	}
+	static void DestroyCurrent() {
+		msCurrent.reset();
 	}
 	void AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction);
 	shared_ptr<InteractiveObject> FindInteractiveObject(const string & name);
@@ -114,6 +124,9 @@ public:
 	shared_ptr<Ladder> AddLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint);
 	shared_ptr<Ladder> FindLadder(const string & name);
 	const vector<shared_ptr<Ladder>> & GetLadderList() const;
+	void AddLightSwitch(const shared_ptr<LightSwitch> & lswitch) {
+		mLightSwitchList.push_back(lswitch);
+	}
 	void AddValve(const shared_ptr<Valve> & valve);
 	shared_ptr<Lift> AddLift(const string & baseNode, const string & controlPanel, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight);
 	void AddLamp(const shared_ptr<Lamp> & lamp);
@@ -141,7 +154,6 @@ public:
 	static unique_ptr<Level> & Current();
 	static void Purge();
 	virtual void Serialize(SaveFile & out) final;
-	virtual void Deserialize(SaveFile & in) final;
-	void SerializeAnimation(SaveFile & out, ruAnimation & anim);
-	void DeserializeAnimation(SaveFile & in, ruAnimation & anim);
+	//virtual void Deserialize(SaveFile & in) final;
+
 };

@@ -40,6 +40,7 @@ void UsableObject::Appear() {
 }
 
 void UsableObject::SwitchIfAble() {
+	// this method is a dirty hack!
 	if( mToNext || mToPrev ) {
 		mModel->Hide();
 		auto & player = Level::Current()->GetPlayer();
@@ -54,9 +55,10 @@ void UsableObject::SwitchIfAble() {
 	}
 }
 
-UsableObject * UsableObject::Deserialize( SaveFile & in ) {
+UsableObject * UsableObject::Deserialize( SaveFile & s ) {
 	UsableObject * uo = nullptr;
-	string typeName = in.ReadString();
+	string typeName;
+	s & typeName;
 	if( typeName == typeid( Flashlight ).name() ) {
 		uo = new Flashlight;			
 	} else if( typeName == typeid( Weapon ).name()) {
@@ -67,12 +69,13 @@ UsableObject * UsableObject::Deserialize( SaveFile & in ) {
 		uo = new BareHands;
 	}
 	if( uo ) {
-		uo->OnDeserialize( in );
+		uo->OnSerialize(s);
 	}
 	return uo;
 }
 
-void UsableObject::Serialize( SaveFile & out ) {
-	out.WriteString( typeid( *this ).name() );
-	OnSerialize( out );
+void UsableObject::Serialize( SaveFile & s ) {
+	string name = typeid(*this).name();
+	s & name;
+	OnSerialize( s );
 }

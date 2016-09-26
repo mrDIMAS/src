@@ -46,8 +46,10 @@ public:
 	void SetConeAngles( float theInner, float theOuter );
 	void SetSpotTexture( shared_ptr<ruTexture> texture );
 	void BuildSpotProjectionMatrixAndFrustum();
-	virtual bool IsSeePoint( const ruVector3 & point );
 	D3DXMATRIX GetViewProjectionMatrix();
 	shared_ptr<Texture> GetSpotTexture( );
 	Frustum & GetFrustum( );
+
+	// API Methods
+	virtual bool IsSeePoint(const ruVector3 & point) override final;
 };

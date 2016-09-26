@@ -13,8 +13,8 @@ protected:
 	bool mAppear;
 	void SwitchIfAble();
 	virtual void OnSerialize( SaveFile & out ) = 0;
-	virtual void OnDeserialize( SaveFile & in ) = 0;
 public:
+	virtual void OnPickupSame() = 0; // when the player pickup the object that it has already got
 	explicit UsableObject();
 	virtual ~UsableObject();
 	shared_ptr<ruSceneNode> GetModel();

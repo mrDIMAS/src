@@ -29,5 +29,4 @@ public:
         mValue = f;
     }
     void Serialize( SaveFile & out );
-    void Deserialize( SaveFile & in );
 };

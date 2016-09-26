@@ -23,14 +23,6 @@
 
 #include "fterrors.h"
 
-struct CharMetrics {
-	int advanceX;
-	int advanceY;
-	int bitmapTop;
-	int bitmapLeft;
-	ruVector2 texCoords[4]; // texture coords in atlas
-};
-
 struct BGRA8Pixel {
 	unsigned char b;
 	unsigned char g;
@@ -39,14 +31,10 @@ struct BGRA8Pixel {
 };
 
 class BitmapFont : public RendererComponent, public ruFont {
-private:		
-	string mSourceFile;	
-	void Create( );
 public:
 	// Data for the renderer
 	COMPtr<IDirect3DTexture9> mAtlas;
-	vector< CharMetrics > mCharsMetrics;
-	int mGlyphSize;
+	gft_font_t * mFont;
 public:
     explicit BitmapFont( const string & file, int size );
     virtual ~BitmapFont( );

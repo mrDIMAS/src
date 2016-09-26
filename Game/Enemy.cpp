@@ -67,7 +67,7 @@ Enemy::Enemy(vector<GraphVertex*> & path, vector<GraphVertex*> & patrol) : Actor
 	}
 }
 
-
+// grim code ahead
 void Enemy::Think() {
 	if (pMainMenu->IsVisible() || mHealth <= 0.0f) {
 		mScreamSound->Pause();
@@ -170,7 +170,7 @@ void Enemy::Think() {
 
 	if (mPlayerDetected) {
 		enemyDetectPlayer = true;
-		if (mPlayerInSightTimer->GetElapsedTimeInSeconds() > 2.5f) {
+		if (mPlayerInSightTimer->GetElapsedTimeInSeconds() > 10.0f) {
 			mPlayerDetected = false;
 		}
 	}
@@ -186,6 +186,7 @@ void Enemy::Think() {
 		mBreathSound->Pause();
 		mScreamSound->Play(true);
 		mRunSpeed = 2.8f;
+		Level::Current()->PlayChaseMusic();
 	} else {
 		mMoveType = MoveType::GoToDestination;
 		mDoPatrol = true;
@@ -459,18 +460,15 @@ void Enemy::FindBodyparts() {
 	mHead = mModel->FindChild("Head");
 }
 
-void Enemy::Serialize(SaveFile & out) {
-	out.WriteVector3(mDeathPosition);
-	out.WriteVector3(mBody->GetPosition());
-	out.WriteBoolean(mDead);
-	out.WriteFloat(mHealth);
-}
+void Enemy::Serialize(SaveFile & s) {
+	ruVector3 position = mBody->GetPosition();
 
-void Enemy::Deserialize(SaveFile & in) {
-	mDeathPosition = in.ReadVector3();
-	mBody->SetPosition(in.ReadVector3());
-	mDead = in.ReadBoolean();
-	mHealth = in.ReadFloat();
+	s & mDeathPosition;
+	s & position;
+	s & mDead;
+	s & mHealth;
+
+	mBody->SetPosition(position);
 }
 
 Enemy::~Enemy() {

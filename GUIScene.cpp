@@ -25,15 +25,15 @@
 
 vector<weak_ptr<GUIScene>> GUIScene::msSceneList;
 
-inline bool GUIScene::IsVisible() const {
+bool GUIScene::IsVisible() const {
 	return mVisible;
 }
 
-inline void GUIScene::SetVisible(bool visible) {
+void GUIScene::SetVisible(bool visible) {
 	mVisible = visible;
 }
 
-inline void GUIScene::SetOpacity(float opacity) {
+void GUIScene::SetOpacity(float opacity) {
 	mOpacity = opacity;
 	if (mOpacity < 0.0f) {
 		mOpacity = 0.0f;
@@ -43,23 +43,23 @@ inline void GUIScene::SetOpacity(float opacity) {
 	}
 }
 
-inline float GUIScene::GetOpacity() const {
+float GUIScene::GetOpacity() const {
 	return mOpacity;
 }
 
-inline void GUIScene::SortNodes() {
+void GUIScene::SortNodes() {
 	sort(mNodeList.begin(), mNodeList.end(), LayerSorter);
 }
 
-inline bool GUIScene::LayerSorter(const shared_ptr<GUINode>& node1, const shared_ptr<GUINode>& node2) {
+bool GUIScene::LayerSorter(const shared_ptr<GUINode>& node1, const shared_ptr<GUINode>& node2) {
 	return node1->GetLayer() < node2->GetLayer();
 }
 
-inline GUIScene::GUIScene() : mVisible(true), mOpacity(1.0f) {
+GUIScene::GUIScene() : mVisible(true), mOpacity(1.0f) {
 
 }
 
-inline GUIScene::~GUIScene() {
+GUIScene::~GUIScene() {
 
 }
 
@@ -78,7 +78,7 @@ vector<shared_ptr<GUINode>>& GUIScene::GetNodeList() {
 	return mNodeList;
 }
 
-inline shared_ptr<ruGUINode> GUIScene::CreateNode() {
+shared_ptr<ruGUINode> GUIScene::CreateNode() {
 	shared_ptr<GUINode> node(new GUINode(shared_from_this()));
 	mNodeList.push_back(node);
 	SortNodes();
@@ -89,7 +89,7 @@ vector<shared_ptr<GUIText>>& GUIScene::GetTextList() {
 	return mTextList;
 }
 
-inline shared_ptr<ruText> GUIScene::CreateText(const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruFont>& theFont, ruVector3 theColor, ruTextAlignment theTextAlign, int theAlpha) {
+shared_ptr<ruText> GUIScene::CreateText(const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruFont>& theFont, ruVector3 theColor, ruTextAlignment theTextAlign, int theAlpha) {
 	shared_ptr<GUIText> text(new GUIText(shared_from_this(), theText, theX, theY, theWidth, theHeight, theColor, theAlpha, theTextAlign, dynamic_pointer_cast<BitmapFont>(theFont)));
 	mNodeList.push_back(text);
 	mTextList.push_back(text);
@@ -97,7 +97,7 @@ inline shared_ptr<ruText> GUIScene::CreateText(const string & theText, float the
 	return text;
 }
 
-inline shared_ptr<ruRect> GUIScene::CreateRect(float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture>& theTexture, ruVector3 theColor, int theAlpha) {
+shared_ptr<ruRect> GUIScene::CreateRect(float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture>& theTexture, ruVector3 theColor, int theAlpha) {
 	shared_ptr<GUIRect> rect(new GUIRect(shared_from_this(), theX, theY, theWidth, theHeight, dynamic_pointer_cast<Texture>(theTexture), theColor, theAlpha));
 	mNodeList.push_back(rect);
 	mRectList.push_back(rect);
@@ -113,7 +113,7 @@ vector<shared_ptr<GUIRect>>& GUIScene::GetRectList() {
 	return mRectList;
 }
 
-inline shared_ptr<ruButton> GUIScene::CreateButton(int x, int y, int w, int h, const shared_ptr<ruTexture>& texture, const string & text, const shared_ptr<ruFont>& font, ruVector3 color, ruTextAlignment textAlign, int alpha) {
+shared_ptr<ruButton> GUIScene::CreateButton(int x, int y, int w, int h, const shared_ptr<ruTexture>& texture, const string & text, const shared_ptr<ruFont>& font, ruVector3 color, ruTextAlignment textAlign, int alpha) {
 	shared_ptr<GUIButton> button(new GUIButton(shared_from_this(), x, y, w, h, dynamic_pointer_cast<Texture>(texture), text, dynamic_pointer_cast<BitmapFont>(font), color, textAlign, alpha));
 	button->GetText()->Attach(button);
 	mNodeList.push_back(button);

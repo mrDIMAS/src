@@ -6,30 +6,29 @@
 
 Parser Item::msLocalization;
 
-Item::Item( Type type ) {
+Item::Item( Type type ) : 
+	mCombinePair(Type::Unknown),
+	mType(type),
+	mSingleInstance(false),
+	mContent(1.0f),
+	mMass(1.0f),
+	mVolume(1.0f)
+{
 	if( !msLocalization.IsParsed() ) {
-		msLocalization.ParseFile( localizationPath + "items.loc" );
+		msLocalization.ParseFile( gLocalizationPath + "items.loc" );
 	}
-	mMorphType = Type::Unknown;
-	mCombinePair = Type::Unknown;
-	mType = type;
-	mSingleInstance = false;
-	mContent = 1.0f;
-	mMass = 1.0f;
-	mVolume = 1.0f;
+
 	if( mType == Type::Detonator ) {
 		mDesc = msLocalization.GetString( "detonatorDesc" );
 		mName = GetNameByType( mType );
 		mPic = ruTexture::Request( "data/gui/inventory/items/detonator.png" );
 		mCombinePair = Type::Unknown;
-		mMorphType = Type::Unknown;
 		mContentTypeDesc = msLocalization.GetString( "detonatorContentType" );
 	} else if( mType == Type::FuelCanister ) {
 		mDesc = msLocalization.GetString( "fuelDesc" );
 		mName = GetNameByType( mType );
 		mPic = ruTexture::Request( "data/gui/inventory/items/fuel.png" );
 		mCombinePair = Type::Lighter;
-		mMorphType = Type::Lighter;
 		mVolume = mContent;
 		mContentTypeDesc = msLocalization.GetString( "fuelContentType" );
 	} else if( mType == Type::Wires ) {
@@ -37,7 +36,6 @@ Item::Item( Type type ) {
 		mName = GetNameByType( mType );
 		mPic = ruTexture::Request( "data/gui/inventory/items/wires.png" );
 		mCombinePair = Type::Unknown;
-		mMorphType = Type::Unknown;
 		mContentTypeDesc = msLocalization.GetString( "wiresContentType" );
 	} else if( mType == Type::Explosives ) {
 		mDesc = msLocalization.GetString( "explosivesDesc" );
@@ -72,7 +70,6 @@ Item::Item( Type type ) {
 		mPic = ruTexture::Request( "data/gui/inventory/items/lighter.png" );
 		mCombinePair = Type::FuelCanister;
 		mSingleInstance = true;
-		mMorphType = Type::Lighter;
 		mMass = 0.4f;
 		mVolume = 0.6;
 		mContentTypeDesc = msLocalization.GetString( "flashlightContentType" );
@@ -199,34 +196,36 @@ const string & Item::GetContentType() const {
 
 std::string Item::GetNameByType( Type type ) {
 	if( !msLocalization.IsParsed() ) {
-		msLocalization.ParseFile( localizationPath + "items.loc" );
+		msLocalization.ParseFile( gLocalizationPath + "items.loc" );
 	}
-	if( type == Type::Detonator ) {
-		return msLocalization.GetString( "detonatorName" );
-	} else if( type == Type::FuelCanister ) {
-		return msLocalization.GetString( "fuelName" );
-	} else if( type == Type::Wires ) {
-		return msLocalization.GetString( "wiresName" );
-	} else if( type == Type::Explosives ) {
-		return msLocalization.GetString( "explosivesName" );
-	} else if( type == Type::Crowbar ) {
-		return msLocalization.GetString( "crowbarName" );
-	} else if( type == Type::Pistol ) {
-		return msLocalization.GetString( "pistolName" );
-	} else if( type == Type::Bullet ) {
-		return msLocalization.GetString( "bulletName" );
-	} else if( type == Type::Lighter ) {
-		return msLocalization.GetString( "flashlightName" );
-	} else if( type == Type::Fuse ) {
-		return msLocalization.GetString( "fuseName" );
-	} else if( type == Type::Syringe ) {
-		return msLocalization.GetString( "syringeName" );
-	} else if( type == Type::Beaker ) {
-		return msLocalization.GetString( "beakerName" );
-	} else if( type == Type::FerrumOxide ) {
-		return msLocalization.GetString( "fe2o3Name" );
-	} else if( type == Type::AluminumPowder ) {
-		return msLocalization.GetString( "aluminumName" );
-	}
-	return "(name is not set)";
+	switch (type) {
+	case Type::Detonator:
+		return msLocalization.GetString("detonatorName");
+	case Type::FuelCanister:
+		return msLocalization.GetString("fuelName");
+	case Type::Wires:
+		return msLocalization.GetString("wiresName");
+	case Type::Explosives:
+		return msLocalization.GetString("explosivesName");
+	case Type::Crowbar:
+		return msLocalization.GetString("crowbarName");
+	case Type::Pistol:
+		return msLocalization.GetString("pistolName");
+	case Type::Bullet:
+		return msLocalization.GetString("bulletName");
+	case Type::Lighter:
+		return msLocalization.GetString("flashlightName");
+	case Type::Fuse:
+		return msLocalization.GetString("fuseName");
+	case Type::Syringe:
+		return msLocalization.GetString("syringeName");
+	case Type::Beaker:
+		return msLocalization.GetString("beakerName");
+	case Type::FerrumOxide:
+		return msLocalization.GetString("fe2o3Name");
+	case Type::AluminumPowder:
+		return msLocalization.GetString("aluminumName");
+	default:
+		return "(name is not set)";
+	}	
 }

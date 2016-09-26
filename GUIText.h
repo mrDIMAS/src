@@ -26,9 +26,9 @@
 class GUITextLine {
 public:
 	float mX, mY;
-	string mSubstring;
-
-	GUITextLine( float x, float y, const string & substring ) :
+	u32string mSubstring;
+		
+	GUITextLine( float x, float y, const u32string & substring ) :
 		mX( x ),
 		mY( y ),
 		mSubstring( substring )
@@ -42,7 +42,9 @@ protected:
 	friend class GUIScene;
 	explicit GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
     shared_ptr<BitmapFont> mFont;
-    string mText;
+	u32string mTextUTF32; 
+	string mTextUTF8;
+
     ruTextAlignment mTextAlign;
 	
 

@@ -8,9 +8,11 @@
 LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer) {
 	mpPowerSparks = nullptr;
 
+	mSteamDisabled = false;
+
 	mTypeNum = 4;
 
-	LoadSceneFromFile("data/maps/release/researchFacility/rf.scene");
+	LoadSceneFromFile("data/maps/researchfacility.scene");
 	LoadLocalization("rf.loc");
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
@@ -110,7 +112,6 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	AddDoor("Door19", 90.0f);
 	AddDoor("Door20", 90.0f);
 	AddDoor("Door21", 90.0f);
-	AddDoor("Door22", 90.0f);
 	AddDoor("EasterEggDoor", 90.0f);
 	mKeypad3DoorToUnlock = AddDoor("Door4", 90.0f);
 	mKeypad1DoorToUnlock = AddDoor("Door5", 90.0f);
@@ -242,14 +243,16 @@ void LevelResearchFacility::DoScenario() {
 	mMeshLockAnimation.Update();
 
 	ruEngine::SetAmbientColor(ruVector3(10.0f / 255.0f, 10.0f / 255.0f, 10.0f / 255.0f));
-	//ruEngine::SetAmbientColor( ruVector3( 0,0,0 ));
-	mLift1->Update();
-	if (mPowerOn) {
 
+	if (mPowerOn) {
 		mpFan1->DoTurn();
 		mpFan2->DoTurn();
+		mLift1->SetLocked(false);
+	} else {
+		mLift1->SetLocked(true);
 	}
 
+	mLift1->Update();
 	mLift2->Update();
 
 	if (mEnemy) {
@@ -261,7 +264,7 @@ void LevelResearchFacility::DoScenario() {
 			if (mPlayer->mNearestPickedNode == mDoorUnderFloor) {
 				if (mPlayer->GetInventory()->GetItemSelectedForUse()) {
 					if (mPlayer->GetInventory()->GetItemSelectedForUse()->GetType() == Item::Type::Crowbar) {
-						mPlayer->SetActionText(StringBuilder() << ruInput::GetKeyName(mPlayer->mKeyUse) << mPlayer->GetLocalization()->GetString("openDoor"));
+						mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->GetLocalization()->GetString("openDoor"));
 						if (ruInput::IsKeyHit(mPlayer->mKeyUse)) {
 							mPlayer->GetInventory()->ResetSelectedForUse();
 							mDoorUnderFloor->SetRotation(ruQuaternion(0, 0, -110));
@@ -275,6 +278,7 @@ void LevelResearchFacility::DoScenario() {
 
 	if (mPlayer->IsInsideZone(mRadioHurtZone)) {
 		mPlayer->Damage(0.05, false);
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mPlayer->GetLocalization()->GetString("radioactive"));
 	}
 
 	mpSteamValve->Update();
@@ -305,13 +309,17 @@ void LevelResearchFacility::DoScenario() {
 		}
 	}
 
-	if (mpSteamValve->IsDone()) {
+	if (mSteamDisabled) {
 		mExtremeSteamBlock->SetPosition(ruVector3(1000, 1000, 1000));
-	}
-	else {
+		mSteamPS.reset();
+	} else {
 		if (mPlayer->IsInsideZone(mZoneExtremeSteamHurt)) {
 			mPlayer->Damage(0.6);
 		}
+	}
+
+	if (mpSteamValve->IsDone()) {		
+		mSteamDisabled = true;
 	}
 
 	if (mPlayer->IsInsideZone(mZoneNewLevelLoad)) {
@@ -361,7 +369,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 					}
 				}
 			}
-			player->SetActionText(StringBuilder() << ruInput::GetKeyName(player->mKeyUse) << player->GetLocalization()->GetString("placeReactive"));
+			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("placeReactive"));
 		}
 	}
 }
@@ -384,7 +392,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 		for (int iFuse = 0; iFuse < 3; iFuse++) {
 			shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFuse];
 			if (pFuse->IsPickedByPlayer()) {
-				player->SetActionText(StringBuilder() << ruInput::GetKeyName(player->mKeyUse) << player->GetLocalization()->GetString("insertFuse"));
+				player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("insertFuse"));
 			}
 		}
 
@@ -406,9 +414,11 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
 	if (fuseInsertedCount >= 3) {
 		if (player->mNearestPickedNode == powerLever) {
-			player->SetActionText(StringBuilder() << ruInput::GetKeyName(player->mKeyUse) << player->mLocalization.GetString("powerUp"));
+			player->GetHUD()->SetAction(player->mKeyUse, player->mLocalization.GetString("powerUp"));
 
 			if (ruInput::IsKeyHit(player->mKeyUse) && !mPowerOn) {
+				
+
 				mPowerLamp->SetColor(ruVector3(0, 255, 0));
 
 				mLeverSound->Play();
@@ -419,6 +429,8 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 				mPowerLeverOffModel->Hide();
 
 				mPowerOn = true;
+
+				player->GetHUD()->SetObjective(mLocalization.GetString("objectiveTryToFindExit"));
 			}
 		}
 	}
@@ -462,29 +474,27 @@ void LevelResearchFacility::CreatePowerUpSequence() {
 	mPowerOn = false;
 }
 
-void LevelResearchFacility::OnDeserialize(SaveFile & in) {
-	if (in.ReadBoolean()) {
-		CreateEnemy();
-		mEnemy->SetPosition(in.ReadVector3());
+void LevelResearchFacility::OnSerialize(SaveFile & s) {
+	auto enemyPresented = mEnemy != nullptr;
+	s & enemyPresented;
+
+	if (enemyPresented) {
+		if (s.IsLoading()) {
+			CreateEnemy();
+		}
+		auto epos = mEnemy->GetBody()->GetPosition();
+		s & epos;
+		mEnemy->GetBody()->SetPosition(epos);
 	}
-	DeserializeAnimation(in, mMeshAnimation);
-	DeserializeAnimation(in, mMeshLockAnimation);
+	s & mMeshAnimation;
+	s & mMeshLockAnimation;
+	s & mSteamDisabled;
 }
 
-void LevelResearchFacility::OnSerialize(SaveFile & out) {
-	out.WriteBoolean(mEnemy != nullptr);
-	if (mEnemy) {
-		out.WriteVector3(mEnemy->GetBody()->GetPosition());
-	}
-	SerializeAnimation(out, mMeshAnimation);
-	SerializeAnimation(out, mMeshLockAnimation);
-}
-
-void LevelResearchFacility::OnCrowbarPickup()
-{
+void LevelResearchFacility::OnCrowbarPickup() {
 	if (!mStages["EnterObjectiveNeedOpenDoorOntoFloor"]) {
 		auto & player = Level::Current()->GetPlayer();
-		player->SetObjective(mLocalization.GetString("objectiveNeedOpenDoorOntoFloor"));
+		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedOpenDoorOntoFloor"));
 		mStages["EnterObjectiveNeedOpenDoorOntoFloor"] = true;
 	}
 }
@@ -493,7 +503,7 @@ void LevelResearchFacility::OnPlayerEnterNeedCrowbarZone()
 {
 	if (!mStages["EnterObjectiveNeedCrowbar"]) {
 		auto & player = Level::Current()->GetPlayer();
-		player->SetObjective(mLocalization.GetString("objectiveNeedCrowbar"));
+		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedCrowbar"));
 		mStages["EnterObjectiveNeedCrowbar"] = true;
 	}
 }
@@ -510,7 +520,7 @@ void LevelResearchFacility::OnPlayerEnterExaminePlaceZone()
 {
 	if (!mStages["EnterObjectiveExaminePlace"]) {
 		auto & player = Level::Current()->GetPlayer();
-		player->SetObjective(mLocalization.GetString("objectiveExaminePlace"));
+		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveExaminePlace"));
 		mStages["EnterObjectiveExaminePlace"] = true;
 	}
 }
@@ -519,7 +529,7 @@ void LevelResearchFacility::OnPlayerEnterRestorePowerZone()
 {
 	if (!mStages["EnterObjectiveRestorePowerZone"]) {
 		auto & player = Level::Current()->GetPlayer();
-		player->SetObjective(mLocalization.GetString("objectiveRestorePower"));
+		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveRestorePower"));
 		mStages["EnterObjectiveRestorePowerZone"] = true;
 	}
 }
@@ -555,7 +565,7 @@ void LevelResearchFacility::OnPlayerEnterNeedPassThroughMeshZone()
 {
 	if (!mStages["NeedPassThroughMesh"]) {
 		auto & player = Level::Current()->GetPlayer();
-		player->SetObjective(mLocalization.GetString("objectiveNeedPassThroughMesh"));
+		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedPassThroughMesh"));
 		mStages["NeedPassThroughMesh"] = true;
 	}
 }

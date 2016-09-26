@@ -109,22 +109,19 @@ void Door::Open() {
 	}
 }
 
-void Door::Deserialize(SaveFile & in) {
-	in.ReadFloat(mMaxAngle);
-	in.ReadFloat(mOffsetAngle);
-	in.ReadFloat(mCurrentAngle);
-	mTurnDirection = (TurnDirection)in.ReadInteger();
-	mState = (State)in.ReadInteger();
-	in.ReadBoolean(mLocked);
-}
+void Door::Serialize(SaveFile & s) {
+	int turnDirection = (int)mTurnDirection;
+	int state = (int)mState;
 
-void Door::Serialize(SaveFile & out) {
-	out.WriteFloat(mMaxAngle);
-	out.WriteFloat(mOffsetAngle);
-	out.WriteFloat(mCurrentAngle);
-	out.WriteInteger((int)mTurnDirection);
-	out.WriteInteger((int)mState);
-	out.WriteBoolean(mLocked);
+	s & mMaxAngle;
+	s & mOffsetAngle;
+	s & mCurrentAngle;
+	s & turnDirection;
+	s & state;
+	s & mLocked;
+
+	mTurnDirection = (TurnDirection)turnDirection;
+	mState = (State)state;
 }
 
 void Door::SetLocked(bool state) {

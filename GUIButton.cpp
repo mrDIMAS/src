@@ -77,6 +77,7 @@ void GUIButton::Update() {
 GUIButton::GUIButton(const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha )
     : GUIRect( scene, x, y, w, h, texture, color, alpha ) {
     mpText = dynamic_pointer_cast<GUIText>( mScene.lock()->CreateText( text, 0, 0, w, h, font, color, textAlign, alpha ));
+	mpText->SetLayer(0xFF);
     mPicked = false;
     mLeftPressed = false;
     mRightPressed = false;

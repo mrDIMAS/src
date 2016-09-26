@@ -27,7 +27,13 @@ InteractiveObject::InteractiveObject( shared_ptr<ruSceneNode> object ) : mIntera
     mObject->Freeze();         
 }
 
-InteractiveObject::InteractiveObject() : mInteractCountLeft( 1 ), mFlashAlbedo( 0.0f ), mFlashAlbedoTo( 0.0f ), mFlashSpeed( 0.0f ), mFlashDirection( false ) {
+InteractiveObject::InteractiveObject() : 
+	mInteractCountLeft( 1 ), 
+	mFlashAlbedo( 0.0f ), 
+	mFlashAlbedoTo( 0.0f ), 
+	mFlashSpeed( 0.0f ), 
+	mFlashDirection( false ) 
+{
 }
 
 InteractiveObject::~InteractiveObject() {

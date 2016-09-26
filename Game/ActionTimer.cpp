@@ -61,20 +61,11 @@ float ActionTimer::GetPercentage() {
 	return mTimeCounter / mTimeInterval;
 }
 
-void ActionTimer::Deserialize(SaveFile & in) {
-	in.ReadBoolean(mActive);
-	in.ReadFloat(mTimeInterval);
-	in.ReadFloat(mTimeCounter);
-	in.ReadBoolean(mSelfDelete);
-	in.ReadBoolean(mStoragePointerErased);
-	in.ReadBoolean(mCanBeSelfDeleted);
-}
-
-void ActionTimer::Serialize(SaveFile & out) {
-	out.WriteBoolean(mActive);
-	out.WriteFloat(mTimeInterval);
-	out.WriteFloat(mTimeCounter);
-	out.WriteBoolean(mSelfDelete);
-	out.WriteBoolean(mStoragePointerErased);
-	out.WriteBoolean(mCanBeSelfDeleted);
+void ActionTimer::Serialize(SaveFile & s) {
+	s & mActive;
+	s & mTimeInterval;
+	s & mTimeCounter;
+	s & mSelfDelete;
+	s & mStoragePointerErased;
+	s & mCanBeSelfDeleted;
 }

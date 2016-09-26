@@ -8,7 +8,7 @@
 
 void SaveWriter::SaveWorldState() {	
     if( Level::Current() ) {
-		WriteInteger( Level::Current()->mTypeNum );
+		*this & Level::Current()->mTypeNum;
         Level::Current()->Serialize( *this );
     }
 }

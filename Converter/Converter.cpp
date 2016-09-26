@@ -6,112 +6,118 @@
 #include "Reader.h"
 #include "Mesh.h"
 
-struct Keyframe
-{
+
+struct Keyframe {
 	Vector3 pos;
 	Vector4 rot;
 
-	Keyframe( Vector3 _pos, Vector4 _rot )
-	{
+	Keyframe(Vector3 _pos, Vector4 _rot) {
 		pos = _pos;
 		rot = _rot;
 	}
 };
 
-struct Object
-{
-	string name;
-	string props;
-	int animated;
-	vector<Keyframe> keyframes;
-	Vector3 pos;
-	Vector4 rot;
-	vector<Material> materials;
-	vector<Mesh*> meshes;
-	int skinned;
-	vector<string> bones;
-	vector< Vector3 > vertexCoords;
-	vector< Vector2 > texCoords;
-	vector< Vector2 > secondTexCoords;
+class Object {
+public:
+	Object() {
+
+	}
+
+	~Object() {
+
+	}
+
+	string mName;
+	string mProperties;
+	int mAnimated;
+	Vector3 mPosition;
+	Vector4 mRotation;
+	int mSkinned;
+	vector<Keyframe> mKeyframes;
+	vector<Material> mMaterials;
+	vector<shared_ptr<Mesh>> mMeshes;
+	vector<string> mBones;
+	vector<Vector3> mVertexCoords;
+	vector<Vector2> mTexCoords;
+	vector<Vector2> mSecondTexCoords;
 };
 
-struct Light
-{
-	Vector3 color;
-	float inner, outer;
-	float radius;
-	Vector3 pos;
-	Vector4 rot;
-	string name;
-	float brightness;
-	int type;
+class Light {
+public:
+	Vector3 mColor;
+	float mInner, mOuter;
+	float mRadius;
+	Vector3 mPosition;
+	Vector4 mRotation;
+	string mName;
+	float mBrightness;
+	int mType;
 };
 
-class Multimesh
-{
+class Multimesh {
 private:
 	void AddNewSubMesh() {
-		currentMesh = new Mesh;
-		currentMesh->mat = material;
-		currentMesh->vertices.reserve( 65535 );
-		currentMesh->indices.reserve( 65535 );
-		meshes.push_back( currentMesh );
+		auto mesh = make_shared<Mesh>();
+		mesh->mat = material;
+		meshes.push_back(mesh);
 	}
 public:
-	vector< Mesh* > meshes;
-	Mesh * currentMesh;
+	vector<shared_ptr<Mesh>> meshes;
 	Material material;
 
-	Multimesh( Material mat ) 	{		
+	Multimesh(Material mat) {
 		material = mat;
 		AddNewSubMesh();
 	}
 
-	void AddVertex( const Vertex & v, const Weight & w ) {
-		currentMesh->AddVertex( v, w );
+	~Multimesh() {
 
-		if( currentMesh->indices.size() >= 65535 ) {
+	}
+
+	void AddVertex(const Vertex & v, const Weight & w) {
+		meshes.back()->AddVertex(v, w);
+
+		if (meshes.back()->indices.size() >= 65535) {
 			AddNewSubMesh();
 		}
 	}
 
-	void AddVertex( const Vertex & v ) {
-		currentMesh->AddVertex( v );
+	void AddVertex(const Vertex & v) {
+		meshes.back()->AddVertex(v);
 
-		if( currentMesh->indices.size() >= 65535 ) {
+		if (meshes.back()->indices.size() >= 65535) {
 			AddNewSubMesh();
 		}
 	}
 };
 
 
-int main( int argc, char * argv[] )
-{
+int main(int argc, char * argv[]) {
 	cout << "**********************************************************************" << endl;
-	cout << "Ruthenium Scene Converter. (C) mrDIMAS 2014-2016. All rights reserved." << endl;
+	cout << "Ruthenium Scene Converter. (C) mrDIMAS 2014-2017. All rights reserved." << endl;
 	cout << "**********************************************************************" << endl << endl;
 #ifndef _DEBUG
-	if( argc < 2 ) {
+	if (argc < 2) {
 		cout << "You must pass at least filename to convert!" << endl;
 		getch();
 		return 0;
 	}
 
-	string filename = argv[ 1 ];
+	string filename = argv[1];
 #else
-	string filename = "C:/Mine/release/data/maps/release/arrival/arrival.scene";
+	string filename = "C:/Mine/release/data/maps/mine.scene";
 #endif
 	cout << "Reading " << filename << endl;
 
 	Reader reader;
 
-	vector<Object*> objects;
+	vector<shared_ptr<Object>> objects;
 	vector<Light> lights;
 	map< string, string > hierarchy;
 
 	int framesCount;
 
-	if( reader.ReadFile( filename )) {
+	if (reader.ReadFile(filename)) {
 		cout << "Reading header" << endl;
 
 		framesCount = reader.GetInteger();
@@ -126,10 +132,10 @@ int main( int argc, char * argv[] )
 
 		cout << "Conversion started..." << endl;
 
-		for ( int objNum = 0; objNum < numMeshes; objNum++ ) {
-			Object * object = new Object;
+		for (int objNum = 0; objNum < numMeshes; objNum++) {
+			auto object = make_shared<Object>();
 
-			object->props = reader.GetString();
+			object->mProperties = reader.GetString();
 
 			int vertexCount = reader.GetInteger();
 			int textureCoordCount = reader.GetInteger();
@@ -137,8 +143,8 @@ int main( int argc, char * argv[] )
 			int isSkinned = reader.GetInteger();
 			int hasAnimation = reader.GetInteger();
 
-			object->name = reader.GetString();
-			object->animated = hasAnimation;
+			object->mName = reader.GetString();
+			object->mAnimated = hasAnimation;
 
 #ifdef _DEBUG
 			cout << "Reading object " << object->name << endl;
@@ -146,28 +152,28 @@ int main( int argc, char * argv[] )
 			cout << "   Texture coords count: " << textureCoordCount << endl;
 			cout << "   Face count: " << faceCount << endl;
 			cout << "   Is skinned: " << isSkinned << endl;
-			cout << "   Animated: " << hasAnimation << endl ;
+			cout << "   Animated: " << hasAnimation << endl;
 #endif
 
-			if( hasAnimation ) {
+			if (hasAnimation) {
 				// read keyframes
-				for ( int frameNum = 0; frameNum < framesCount; frameNum++ ) {
+				for (int frameNum = 0; frameNum < framesCount; frameNum++) {
 					Vector3 pos = reader.GetVector();
 					Vector4 rot = reader.GetQuaternion();
 
-					object->keyframes.push_back( Keyframe( pos, rot ) );
+					object->mKeyframes.push_back(Keyframe(pos, rot));
 				}
 			} else {
-				object->pos = reader.GetVector();
-				object->rot = reader.GetQuaternion();
+				object->mPosition = reader.GetVector();
+				object->mRotation = reader.GetQuaternion();
 			}
 
-			vector<Multimesh*> meshes;
+			vector<shared_ptr<Multimesh>> meshes;
 
 			// create materials
 			int numMaterials = reader.GetInteger();
 
-			for ( int matID = 0; matID < numMaterials; matID++ ) {
+			for (int matID = 0; matID < numMaterials; matID++) {
 				Material mat;
 
 				string diffuse = reader.GetString();
@@ -176,77 +182,77 @@ int main( int argc, char * argv[] )
 				mat.diffuse = diffuse;
 				mat.opacity = opacity;
 
-				if( diffuse.size() ) {
-					diffuse.insert( diffuse.find_last_of( '.' ), "_normal" );
+				if (diffuse.size()) {
+					diffuse.insert(diffuse.find_last_of('.'), "_normal");
 
 					mat.normal = diffuse;
 				}
 
-				object->materials.push_back( mat );
-				meshes.push_back( new Multimesh( mat ) );
+				object->mMaterials.push_back(mat);
+				meshes.push_back(make_shared<Multimesh>(mat));
 			}
 
 			// read vertices
-			object->vertexCoords.reserve( vertexCount );
-			for ( int i = 0; i < vertexCount; ++i ) {
-				object->vertexCoords.push_back( reader.GetVector() );
+			object->mVertexCoords.reserve(vertexCount);
+			for (int i = 0; i < vertexCount; ++i) {
+				object->mVertexCoords.push_back(reader.GetVector());
 			}
 
 			vector< Weight > weights;
-			weights.reserve( vertexCount );
+			weights.reserve(vertexCount);
 
 			// read bones
-			if( isSkinned ) {
+			if (isSkinned) {
 				// read weights for each vertex
-				for( int i = 0; i < vertexCount; i++ ) {
+				for (int i = 0; i < vertexCount; i++) {
 					Weight weigth;
 
 					weigth.boneCount = reader.GetInteger();
 
-					for( int k = 0; k < weigth.boneCount; k++ ) { 
-						weigth.bones[ k ].id = reader.GetInteger();
-						weigth.bones[ k ].weight = reader.GetFloat();
+					for (int k = 0; k < weigth.boneCount; k++) {
+						weigth.bones[k].id = reader.GetInteger();
+						weigth.bones[k].weight = reader.GetFloat();
 					}
 
-					weights.push_back( weigth );
+					weights.push_back(weigth);
 				}
 			}
 
 			int numMaps = reader.GetInteger();
 			int numMapChannels = reader.GetInteger();
 
-			if( numMapChannels == 1 ) {
+			if (numMapChannels == 1) {
 				// read texture coords
-				object->texCoords.reserve( textureCoordCount );
-				for ( int i = 0; i < textureCoordCount; ++i ) {
-					object->texCoords.push_back ( reader.GetBareVector2() );
+				object->mTexCoords.reserve(textureCoordCount);
+				for (int i = 0; i < textureCoordCount; ++i) {
+					object->mTexCoords.push_back(reader.GetBareVector2());
 				}
 				// read texture coords
-				object->secondTexCoords.reserve( textureCoordCount );
-				for ( int i = 0; i < textureCoordCount; ++i ) {
-					object->secondTexCoords.push_back ( object->texCoords[ i ] );
-				}
-			}
-
-			if( numMapChannels == 2 ) {
-				// read texture coords
-				object->texCoords.reserve( textureCoordCount );
-				for ( int i = 0; i < textureCoordCount; ++i ) {
-					object->texCoords.push_back ( reader.GetBareVector2() );
-				}
-				// read texture coords
-				object->secondTexCoords.reserve( textureCoordCount );
-				for ( int i = 0; i < textureCoordCount; ++i ) {
-					object->secondTexCoords.push_back ( reader.GetBareVector2() );
+				object->mSecondTexCoords.reserve(textureCoordCount);
+				for (int i = 0; i < textureCoordCount; ++i) {
+					object->mSecondTexCoords.push_back(object->mTexCoords[i]);
 				}
 			}
 
-			if( object->texCoords.size() == 0 ) {
-				object->texCoords.push_back( Vector2( 0, 0 ));
+			if (numMapChannels == 2) {
+				// read texture coords
+				object->mTexCoords.reserve(textureCoordCount);
+				for (int i = 0; i < textureCoordCount; ++i) {
+					object->mTexCoords.push_back(reader.GetBareVector2());
+				}
+				// read texture coords
+				object->mSecondTexCoords.reserve(textureCoordCount);
+				for (int i = 0; i < textureCoordCount; ++i) {
+					object->mSecondTexCoords.push_back(reader.GetBareVector2());
+				}
+			}
+
+			if (object->mTexCoords.size() == 0) {
+				object->mTexCoords.push_back(Vector2(0, 0));
 			}
 
 			// read faces and construct meshes
-			for ( int i = 0; i < faceCount; ++i ) {
+			for (int i = 0; i < faceCount; ++i) {
 				int fa = reader.GetInteger();
 				int fb = reader.GetInteger();
 				int fc = reader.GetInteger();
@@ -261,144 +267,131 @@ int main( int argc, char * argv[] )
 				Vector3 bNormal = reader.GetVector();
 				Vector3 cNormal = reader.GetVector();
 
-				if( faceMaterialID >= numMaterials ) {
+				if (faceMaterialID >= numMaterials) {
 					continue;
 				}
 
-				Multimesh * currentMultimesh = meshes[ faceMaterialID ];
+				auto currentMultimesh = meshes[faceMaterialID];
 
-				if( isSkinned ) {
-					if( textureCoordCount ) {
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fa ], &object->texCoords[ ta ], &object->secondTexCoords[ ta ], aNormal ), weights[ fa ] );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fb ], &object->texCoords[ tb ], &object->secondTexCoords[ tb ], bNormal), weights[ fb ] );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fc ], &object->texCoords[ tc ], &object->secondTexCoords[ tc ], cNormal), weights[ fc ] );
-					} else {	
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fa ], &object->texCoords[ 0 ], &object->secondTexCoords[ ta ], aNormal ), weights[ fa ] );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fb ], &object->texCoords[ 0 ], &object->secondTexCoords[ tb ], bNormal ), weights[ fb ] );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fc ], &object->texCoords[ 0 ], &object->secondTexCoords[ tc ], cNormal ), weights[ fc ] );
+				if (isSkinned) {
+					if (textureCoordCount) {
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fa], &object->mTexCoords[ta], &object->mSecondTexCoords[ta], aNormal), weights[fa]);
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fb], &object->mTexCoords[tb], &object->mSecondTexCoords[tb], bNormal), weights[fb]);
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fc], &object->mTexCoords[tc], &object->mSecondTexCoords[tc], cNormal), weights[fc]);
+					} else {
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fa], &object->mTexCoords[0], &object->mSecondTexCoords[ta], aNormal), weights[fa]);
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fb], &object->mTexCoords[0], &object->mSecondTexCoords[tb], bNormal), weights[fb]);
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fc], &object->mTexCoords[0], &object->mSecondTexCoords[tc], cNormal), weights[fc]);
 					}
 				} else {
-					if( textureCoordCount )	{
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fa ], &object->texCoords[ ta ], &object->secondTexCoords[ ta ], aNormal ) );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fb ], &object->texCoords[ tb ], &object->secondTexCoords[ tb ], bNormal ) );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fc ], &object->texCoords[ tc ], &object->secondTexCoords[ tc ], cNormal ) );
+					if (textureCoordCount) {
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fa], &object->mTexCoords[ta], &object->mSecondTexCoords[ta], aNormal));
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fb], &object->mTexCoords[tb], &object->mSecondTexCoords[tb], bNormal));
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fc], &object->mTexCoords[tc], &object->mSecondTexCoords[tc], cNormal));
 					} else {
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fa ], &object->texCoords[ 0 ], &object->texCoords[ 0 ], aNormal ) );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fb ], &object->texCoords[ 0 ], &object->texCoords[ 0 ], bNormal ) );
-						currentMultimesh->AddVertex( Vertex( &object->vertexCoords[ fc ], &object->texCoords[ 0 ], &object->texCoords[ 0 ], cNormal ) );
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fa], &object->mTexCoords[0], &object->mTexCoords[0], aNormal));
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fb], &object->mTexCoords[0], &object->mTexCoords[0], bNormal));
+						currentMultimesh->AddVertex(Vertex(&object->mVertexCoords[fc], &object->mTexCoords[0], &object->mTexCoords[0], cNormal));
 					}
 				}
 
 			}
 
-			for( auto it = meshes.begin(); it != meshes.end(); ++it ) {
-				for( int k = 0; k < (*it)->meshes.size(); k++ ) {
-					object->meshes.push_back( (*it)->meshes[ k ]);
+			for (auto multimesh : meshes) {
+				for (auto & mesh : multimesh->meshes) {
+					object->mMeshes.push_back(std::move(mesh));
 				}
 			}
 
-			for( size_t i = 0; i < object->meshes.size(); i++ ) {
-				Mesh * mesh = object->meshes[i];   
-				//mesh->CalculateNormals();
+			for (auto mesh : object->mMeshes) {
 				mesh->CalculateTangent();
 				mesh->CalculateAABB();
 			}
 
-			object->skinned = isSkinned;
+			object->mSkinned = isSkinned;
 
-			objects.push_back( object );
+			objects.push_back(object);
 		}
 
 		// read lights
-		for ( int objNum = 0; objNum < numLights; objNum++ ) {
+		for (int objNum = 0; objNum < numLights; objNum++) {
 			Light light;
-			light.name = reader.GetString();
-			light.type = reader.GetInteger();
 
-			// this helps avoid undefined behaviour
-			light.color.x = reader.GetInteger();
-			light.color.y = reader.GetInteger();
-			light.color.z = reader.GetInteger();
+			light.mName = reader.GetString();
+			light.mType = reader.GetInteger();
+			light.mColor.x = reader.GetInteger();
+			light.mColor.y = reader.GetInteger();
+			light.mColor.z = reader.GetInteger();
+			light.mRadius = reader.GetFloat();
+			light.mBrightness = reader.GetFloat();
+			light.mPosition = reader.GetVector();
 
-			light.radius = reader.GetFloat();
-
-			light.brightness = reader.GetFloat();
-
-			light.pos = reader.GetVector();
-
-			if( light.type == 1 ) // free spot
-			{
-				light.inner = reader.GetFloat();
-				light.outer = reader.GetFloat();
-
-				light.rot = reader.GetQuaternion();
+			if (light.mType == 1) { // spot
+				light.mInner = reader.GetFloat();
+				light.mOuter = reader.GetFloat();
+				light.mRotation = reader.GetQuaternion();
 			}
-			lights.push_back( light );
-		}   
+			lights.push_back(light);
+		}
 
 		// read hierarchy
-		for ( int objNum = 0; objNum < numObjects; objNum++ )
-		{
+		for (int objNum = 0; objNum < numObjects; objNum++) {
 			string objectName = reader.GetString();
 			string parentName = reader.GetString();
 
-			hierarchy[ objectName ] = parentName;
+			hierarchy[objectName] = parentName;
 		}
 	}
 
-
-
 	// now write computed data
-	Writer writer( filename );
+	Writer writer(filename);
 
-	writer.WriteInteger( objects.size() + lights.size() );
-	writer.WriteInteger( objects.size() );
-	writer.WriteInteger( lights.size() );
-	writer.WriteInteger( framesCount );
+	writer.WriteInteger(objects.size() + lights.size());
+	writer.WriteInteger(objects.size());
+	writer.WriteInteger(lights.size());
+	writer.WriteInteger(framesCount);
 
 	cout << endl << "Convertion done!" << endl << endl;
 	cout << "Writing computed data..." << endl;
 	cout << "   Total objects: " << objects.size() + lights.size() << endl;
-	cout << "   Total mesh-objects: " << objects.size()  << endl;
+	cout << "   Total mesh-objects: " << objects.size() << endl;
 	cout << "   Total lights: " << lights.size() << endl;
 	cout << "   Total frames: " << framesCount << endl;
 
-	for( int i = 0; i < objects.size(); i++ ) {
-		Object * obj = objects[ i ];
-
+	for (auto obj : objects) {
 #ifdef _DEBUG
 		cout << "Write object: " << obj->name << endl;
 		cout << "   Mesh count: " << obj->meshes.size() << endl;
 #endif
 
-		writer.WriteVector( obj->pos );
-		writer.WriteQuaternion( obj->rot );
-		writer.WriteInteger( obj->animated );
-		writer.WriteInteger( obj->skinned );    
-		writer.WriteInteger( obj->meshes.size() );
-		writer.WriteInteger( obj->keyframes.size() );
+		writer.WriteVector(obj->mPosition);
+		writer.WriteQuaternion(obj->mRotation);
+		writer.WriteInteger(obj->mAnimated);
+		writer.WriteInteger(obj->mSkinned);
+		writer.WriteInteger(obj->mMeshes.size());
+		writer.WriteInteger(obj->mKeyframes.size());
 
-		writer.WriteString( obj->props );
-		writer.WriteString( obj->name );
+		writer.WriteString(obj->mProperties);
+		writer.WriteString(obj->mName);
 
-		for( int keyFrameNum = 0; keyFrameNum < obj->keyframes.size(); keyFrameNum++ ) {
-			Keyframe & kf = obj->keyframes[ keyFrameNum ];
-			writer.WriteVector( kf.pos );
-			writer.WriteQuaternion( kf.rot );
+		for (int keyFrameNum = 0; keyFrameNum < obj->mKeyframes.size(); keyFrameNum++) {
+			Keyframe & kf = obj->mKeyframes[keyFrameNum];
+			writer.WriteVector(kf.pos);
+			writer.WriteQuaternion(kf.rot);
 		}
 
-		for( int meshNum = 0; meshNum < obj->meshes.size(); meshNum++ ) {
-			Mesh * mesh = obj->meshes[ meshNum ];
+		for (int meshNum = 0; meshNum < obj->mMeshes.size(); meshNum++) {
+			auto & mesh = obj->mMeshes[meshNum];
 
-			writer.WriteInteger( mesh->vertices.size() );
-			writer.WriteInteger( mesh->indices.size() );
-			writer.WriteVector( mesh->min );
-			writer.WriteVector( mesh->max );
-			writer.WriteVector( mesh->center );
-			writer.WriteFloat( mesh->radius );
-			writer.WriteString( mesh->mat.diffuse );
-			writer.WriteString( mesh->mat.normal );
-			writer.WriteFloat( mesh->mat.opacity );
+			writer.WriteInteger(mesh->vertices.size());
+			writer.WriteInteger(mesh->indices.size());
+			writer.WriteVector(mesh->min);
+			writer.WriteVector(mesh->max);
+			writer.WriteVector(mesh->center);
+			writer.WriteFloat(mesh->radius);
+			writer.WriteString(mesh->mat.diffuse);
+			writer.WriteString(mesh->mat.normal);
+			writer.WriteFloat(mesh->mat.opacity);
 
 #ifdef _DEBUG
 			cout << "   Write mesh: " << meshNum << endl;
@@ -409,63 +402,55 @@ int main( int argc, char * argv[] )
 			cout << "       Normal: " << mesh->mat.normal << endl;
 #endif
 
-			for( int vertexNum = 0; vertexNum < mesh->vertices.size(); vertexNum++ ) {
-				Vertex & v = mesh->vertices[ vertexNum ];
+			for (int vertexNum = 0; vertexNum < mesh->vertices.size(); vertexNum++) {
+				Vertex & v = mesh->vertices[vertexNum];
 
-				writer.WriteVector( *v.pos );
-				writer.WriteVector( v.nor );
-				writer.WriteVector2( *v.tex );
-				writer.WriteVector2( *v.secondTex );
-				writer.WriteVector( v.tan );
+				writer.WriteVector(*v.pos);
+				writer.WriteVector(v.nor);
+				writer.WriteVector2(*v.tex);
+				writer.WriteVector2(*v.secondTex);
+				writer.WriteVector(v.tan);
 			}
 
-			for( int indexNum = 0; indexNum < mesh->indices.size(); indexNum++ ) {
-				writer.WriteShort( mesh->indices[ indexNum ]);
+			for (int indexNum = 0; indexNum < mesh->indices.size(); indexNum++) {
+				writer.WriteShort(mesh->indices[indexNum]);
 			}
 
-			if( obj->skinned ) {
-				for( int weightNum = 0; weightNum < mesh->weights.size(); weightNum++ ) {
-					Weight & w = mesh->weights[ weightNum ];
+			if (obj->mSkinned) {
+				for (int weightNum = 0; weightNum < mesh->weights.size(); weightNum++) {
+					Weight & w = mesh->weights[weightNum];
 
-					writer.WriteInteger( w.boneCount );
+					writer.WriteInteger(w.boneCount);
 
-					for( int k = 0; k < w.boneCount; k++ )
-					{
-						writer.WriteInteger( w.bones[ k ].id );
-						writer.WriteFloat( w.bones[ k ].weight );
+					for (int k = 0; k < w.boneCount; k++) {
+						writer.WriteInteger(w.bones[k].id);
+						writer.WriteFloat(w.bones[k].weight);
 					}
 				}
 			}
 		}
 	}
 
-	for( int i = 0; i < lights.size(); i++ ) {
-		Light & light = lights[ i ];
+	for (int i = 0; i < lights.size(); i++) {
+		Light & light = lights[i];
 
-		writer.WriteString( light.name  );
-		writer.WriteInteger( light.type );
-		writer.WriteVector( light.color ); 
-		writer.WriteFloat( light.radius );
-		writer.WriteFloat( light.brightness );
-		writer.WriteVector( light.pos );
+		writer.WriteString(light.mName);
+		writer.WriteInteger(light.mType);
+		writer.WriteVector(light.mColor);
+		writer.WriteFloat(light.mRadius);
+		writer.WriteFloat(light.mBrightness);
+		writer.WriteVector(light.mPosition);
 
-		if( light.type == 1 ) { // free spot
-			writer.WriteFloat( light.inner );
-			writer.WriteFloat( light.outer );
-			writer.WriteQuaternion( light.rot );
+		if (light.mType == 1) { // free spot
+			writer.WriteFloat(light.mInner);
+			writer.WriteFloat(light.mOuter);
+			writer.WriteQuaternion(light.mRotation);
 		}
 	}
 
-	for( auto it = hierarchy.begin(); it != hierarchy.end(); ++it ) {
-		writer.WriteString( it->first );
-		writer.WriteString( it->second );
-	}
-
-	for( int i = 0; i < objects.size(); i++ ) {
-		Object * object = objects[ i ];
-		for( int k = 0; k < object->meshes.size(); k++ ) {
-			delete object->meshes[ k ];
-		}
+	for (auto it = hierarchy.begin(); it != hierarchy.end(); ++it) {
+		writer.WriteString(it->first);
+		writer.WriteString(it->second);
 	}
 
 	cout << "Complete!" << endl;

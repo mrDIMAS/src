@@ -32,6 +32,5 @@ public:
 	void SetDirection( Direction direction );
 	void DoLeave();
 	void Serialize( SaveFile & out );
-	void Deserialize( SaveFile & in );
 	void LeaveInstantly();
 };

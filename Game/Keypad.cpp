@@ -7,7 +7,7 @@ void Keypad::Update() {
 	for (int i = 0; i < 10; i++) {
 		if (player->mNearestPickedNode == mKeys[i]) {
 			if (!mKeyState[i]) {
-				player->SetActionText(StringBuilder() << i << player->mLocalization.GetString("pressButton"));
+				player->GetHUD()->SetAction(player->mKeyUse, StringBuilder() << player->mLocalization.GetString("pressButton") << " " << i);
 				if (ruInput::IsKeyHit(player->mKeyUse)) {
 					mCurrentCode += to_string(i);
 					mKeyState[i] = true;
@@ -30,7 +30,7 @@ void Keypad::Update() {
 	}
 
 	if (player->mNearestPickedNode == mKeyCancel) {
-		player->SetActionText(player->mLocalization.GetString("resetButtons"));
+		player->GetHUD()->SetAction(player->mKeyUse, player->mLocalization.GetString("resetButtons"));
 		if (ruInput::IsKeyHit(player->mKeyUse)) {
 			Reset();
 		}

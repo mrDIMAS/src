@@ -7,16 +7,15 @@
 #include "Sheet.h"
 #include "GameCamera.h"
 #include "Flashlight.h"
-#include "Goal.h"
 #include "Ladder.h"
 #include "SaveFile.h"
 #include "Parser.h"
 #include "SmoothFloat.h"
-#include "Tip.h"
 #include "Actor.h"
 #include "Weapon.h"
 #include "SoundMaterial.h"
 #include "Syringe.h"
+#include "HUD.h"
 
 class Player : public Actor {
 private:
@@ -25,12 +24,10 @@ private:
 public:
     void LoadSounds();
     void CreateCamera();
-    void LoadGUIElements();
     void UpdateJumping();
     void UpdateCameraShake();
     void UpdatePicking();
     void UpdateItemsHandling();
-    void UpdateCursor();
     void DrawSheetInHands();
     void CloseCurrentSheet();
     void UpdateFright();
@@ -44,9 +41,7 @@ public:
     shared_ptr<ruSceneNode> mNodeInHands;
     shared_ptr<ruSceneNode> mNearestPickedNode;
     shared_ptr<ruSceneNode> mPickedNode;
-	shared_ptr<ruPointLight>mFakeLight;
-
-    shared_ptr<ruTexture> mStatusBar;
+	shared_ptr<ruPointLight> mFakeLight;
 
     SmoothFloat mPitch;
     SmoothFloat mYaw;
@@ -67,6 +62,8 @@ public:
     float mStealthFactor;
 	float mStepLength;
 	float mLastHealth;
+	float mDeadRotation;
+	float mDestDeadRotation;
 
     ruVector3 mSpeed;
     ruVector3 mSpeedTo;
@@ -84,7 +81,6 @@ public:
 
     shared_ptr<ruSound> mLighterCloseSound;
     shared_ptr<ruSound> mLighterOpenSound;
-    shared_ptr<ruSound> mItemPickupSound;
     shared_ptr<ruSound> mHeartBeatSound;
     shared_ptr<ruSound> mBreathSound;
 
@@ -99,7 +95,6 @@ public:
     bool mObjectThrown;
     bool mLanded;
     bool mDead;
-    bool mObjectiveDone;
     bool mMoved;
     bool mStealthMode;
     bool mRunning;
@@ -122,28 +117,11 @@ public:
     ruInput::Key mKeyLookLeft;
     ruInput::Key mKeyLookRight;
 
-    unique_ptr<Goal> mGoal; 
-	unique_ptr<Tip> mTip;
+	
 
     weak_ptr<Sheet> mSheetInHands;
+	unique_ptr<HUD> mHUD;
 
-	shared_ptr<ruGUIScene> mGUIScene;
-
-    shared_ptr<ruText> mGUIActionText;
-
-	shared_ptr<ruRect> mGUICursorPickUp;
-	shared_ptr<ruRect> mGUICursorPut;
-	shared_ptr<ruRect> mGUICrosshair;
-
-    static const int mGUISegmentCount = 20;
-    shared_ptr<ruRect> mGUIHealthBarSegment[mGUISegmentCount];
-    shared_ptr<ruRect> mGUIStaminaBarSegment[mGUISegmentCount];
-    shared_ptr<ruRect> mGUIBackground;
-	shared_ptr<ruRect> mGUIStealthSign;
-	shared_ptr<ruText> mGUIYouDied;
-	shared_ptr<ruFont> mGUIYouDiedFont;
-	shared_ptr<ruRect> mGUIDamageBackground;
-	int mDamageBackgroundAlpha;
 
 	shared_ptr<ruSound> mDeadSound;
 	ruVector3 mAirPosition;
@@ -176,25 +154,21 @@ public:
     void UpdateMoving();
 	void UpdateUsableObjects();
     void DrawStatusBar();
-    void SetObjective( string text );
-    void CompleteObjective();
     bool IsUseButtonHit();
     bool IsObjectHasNormalMass( shared_ptr<ruSceneNode> node );
 	bool IsDead();
-	void Resurrect();
-    void DoFright();
+	void DoFright();
     void ComputeStealth();
 	virtual void SetPosition( ruVector3 position );
 	unique_ptr<Inventory> & GetInventory();
     Flashlight * GetFlashLight();
 	Weapon * GetWeapon();
     Parser * GetLocalization();
-    void SetTip( const string & text );
     virtual void Serialize( SaveFile & out ) final;
-    virtual void Deserialize( SaveFile & in ) final;
-    void SetActionText( const string & text );
     void SetHUDVisible( bool state );
-	virtual void ManageEnvironmentDamaging() final;
 	void DumpUsableObjects( vector<UsableObject*> & otherPlace );
 	void Interact();
+	unique_ptr<HUD> & GetHUD() {
+		return mHUD;
+	}
 };

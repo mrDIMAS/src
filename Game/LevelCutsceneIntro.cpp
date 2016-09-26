@@ -4,7 +4,7 @@
 LevelCutsceneIntro::LevelCutsceneIntro(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mEnginePitch( 1.0f, 0.65f, 1.25f ) {
 	mTypeNum = LevelName::LCSIntro;
 
-	LoadSceneFromFile( "data/maps/release/intro/intro.scene" );
+	LoadSceneFromFile( "data/maps/intro.scene" );
 	mUAZ = GetUniqueObject( "UAZ" );
 	mLastUAZPosition = mUAZ->GetPosition();
 
@@ -37,7 +37,7 @@ LevelCutsceneIntro::LevelCutsceneIntro(const unique_ptr<PlayerTransfer> & player
 	mCameraPivot3 = GetUniqueObject( "Camera3" );
 	mCameraPivot4 = GetUniqueObject( "Camera4" );
 
-	mCamera = new GameCamera( nullptr );
+	mCamera = new GameCamera(nullptr);
 	mCamera->mCamera->Attach( mCameraPivot );
 	mCamera->mCamera->SetSkybox (
 		ruTexture::Request( "data/textures/skyboxes/night3/nightsky_u.jpg" ),
@@ -61,7 +61,7 @@ void LevelCutsceneIntro::DoScenario() {
 	mUAZAnim.Update();
 	mDeerAnim.Update();
 	mCameraAnim1.Update();
-	ruEngine::SetAmbientColor( ruVector3( 0.25, 0.25, 0.25 ));
+	ruEngine::SetAmbientColor( ruVector3( 0.095, 0.095, 0.15 ));
 
 	if( mUAZ->IsInsideNode( mChangeCameraZone1 )) {
 		mCamera->mCamera->Attach( mCameraPivot2 );

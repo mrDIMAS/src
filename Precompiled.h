@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 *                               Ruthenium Engine                               *
 *            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
@@ -23,6 +23,7 @@
 #define INITGUID
 #define _CRT_SECURE_NO_WARNINGS
 
+
 #define DIRECTINPUT_VERSION 0x0800
 //#include <vld.h>
 #include <iostream>
@@ -46,6 +47,7 @@
 #include <dinput.h>
 #include <fstream>
 #include <memory>
+#include "gamefonttool.h"
 
 #include FT_FREETYPE_H
 
@@ -65,14 +67,17 @@
 #   pragma comment(lib, "BulletDynamics_debug")
 #   pragma comment(lib, "LinearMath_debug")
 #   pragma comment(lib, "FreeType253MT_D")
+#	pragma comment( lib, "../external/ProjectF/ProjectF_debug")
 #else
 #   pragma comment(lib, "BulletCollision")
 #   pragma comment(lib, "BulletDynamics")
 #   pragma comment(lib, "LinearMath")
 #   pragma comment(lib, "FreeType253MT")
+#	pragma comment( lib, "../external/ProjectF/ProjectF")
 #endif
 
-#pragma comment( lib, "../external/ProjectF/ProjectF")
+#pragma comment( lib, "../external/gft/libgamefonttool")
+
 
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
@@ -105,11 +110,11 @@ public:
 		}
 	}
 
-	inline Interface ** operator & () {
+	Interface ** operator & () {
 		return &mInterface;
 	}
 
-	inline Interface * operator -> () {
+	Interface * operator -> () {
 		return mInterface;
 	}
 
@@ -122,6 +127,15 @@ public:
 		mInterface = iface;
 		return mInterface;
 	}
+};
+
+struct A8R8G8B8Pixel {
+	uint8_t a;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+
+	A8R8G8B8Pixel(uint8_t _a, uint8_t _r, uint8_t _g, uint8_t _b) : a(_a), r(_r), g(_g), b(_b) {};
 };
 
 class Keyboard {

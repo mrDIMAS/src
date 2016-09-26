@@ -25,6 +25,7 @@ void Log::Write( const string & message ) {
 	static ofstream output( "ruthenium.log" );
 	cout << message << endl;
 	output << message << endl;
+	output.flush();
 }
 
 void Log::Error( const string & message ) {

@@ -2,18 +2,11 @@
 
 #include "SmoothFloat.h"
 
-void SmoothFloat::Deserialize( SaveFile & in ) {
-    mValue = in.ReadFloat();
-    mChase = in.ReadFloat();
-    mMin = in.ReadFloat();
-    mMax = in.ReadFloat();
-}
-
-void SmoothFloat::Serialize( SaveFile & out ) {
-    out.WriteFloat( mValue );
-    out.WriteFloat( mChase );
-    out.WriteFloat( mMin );
-    out.WriteFloat( mMax );
+void SmoothFloat::Serialize( SaveFile & s ) {
+    s & mValue;
+	s & mChase;
+	s & mMin;
+	s & mMax;
 }
 
 SmoothFloat::operator const float() {
