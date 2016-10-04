@@ -21,16 +21,7 @@
 
 #pragma once
 
-#include "fterrors.h"
-
-struct BGRA8Pixel {
-	unsigned char b;
-	unsigned char g;
-	unsigned char r;
-	unsigned char a;
-};
-
-class BitmapFont : public RendererComponent, public ruFont {
+class BitmapFont : public ruFont {
 public:
 	// Data for the renderer
 	COMPtr<IDirect3DTexture9> mAtlas;
@@ -38,6 +29,4 @@ public:
 public:
     explicit BitmapFont( const string & file, int size );
     virtual ~BitmapFont( );
-	void OnResetDevice();
-	void OnLostDevice();
 };

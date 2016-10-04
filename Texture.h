@@ -21,7 +21,7 @@
 
 #pragma once
 
-class Texture : public ruTexture, public RendererComponent {
+class Texture : public ruTexture {
 private:    
     COMPtr<IDirect3DTexture9> mTexture;
     int mHeight;

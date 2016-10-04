@@ -113,7 +113,11 @@ void GUIText::SetText(const string & text) {
 
 	// convert utf8 to utf 32 
 	gft_symbol_t utf32buffer[16384] = { 0 }; // should be enough - !!! AWARE FIXED SIZE !!!
-	gft_utf8_to_utf32(mTextUTF8.c_str(), utf32buffer, 16384);
+
+	if (gft_utf8_to_utf32(mTextUTF8.c_str(), utf32buffer, 16384)) {
+		Log::Error("Unable to convert UTF8-string to UTF32-string. Buffer overflow!");
+	}
+
 	mTextUTF32 = (char32_t*)utf32buffer;	
 
 	unsigned char * cc = (unsigned char *)mTextUTF8.c_str();

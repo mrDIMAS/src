@@ -42,15 +42,7 @@ CubeTexture::CubeTexture(string fn) {
 }
 
 CubeTexture::~CubeTexture() {
-	OnLostDevice();
-}
 
-void CubeTexture::OnLostDevice() {
-	mCubeTexture.Reset();
-}
-
-void CubeTexture::OnResetDevice() {
-	Load();
 }
 
 void CubeTexture::Load() {

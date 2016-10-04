@@ -8,8 +8,18 @@
 
 void SaveWriter::SaveWorldState() {	
     if( Level::Current() ) {
+		bool visible = Level::Current()->IsVisible();
+
+		if (!visible) {
+			Level::Current()->Show();
+		}
+
 		*this & Level::Current()->mTypeNum;
         Level::Current()->Serialize( *this );
+
+		if (!visible) {
+			Level::Current()->Hide();
+		}
     }
 }
 

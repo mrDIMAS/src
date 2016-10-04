@@ -144,6 +144,9 @@ public:
 	virtual void DoScenario() = 0;
 	virtual void Hide();
 	virtual void Show();
+	virtual bool IsVisible() {
+		return mScene->IsVisible();
+	}
 	void DoneInitialization();
 	void BuildPath(Path & path, const string & nodeBaseName);
 	void CreateBlankScene();

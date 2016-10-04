@@ -36,10 +36,7 @@ Mesh::Mesh() :
 }
 
 Mesh::~Mesh() {
-	OnLostDevice();
-	for (auto pBone : mBones) {
-		delete pBone;
-	}
+
 }
 
 void Mesh::LinkTo(weak_ptr<SceneNode> owner) {
@@ -83,8 +80,8 @@ void Mesh::CreateVertexBuffer() {
 	}
 }
 
-Mesh::Bone * Mesh::AddBone(weak_ptr<SceneNode> node) {
-	Mesh::Bone * bone = nullptr;
+shared_ptr<Mesh::Bone> Mesh::AddBone(weak_ptr<SceneNode> node) {
+	shared_ptr<Bone> bone;
 	for (auto & pBone : mBones) {
 		if (pBone->mNode.lock() == node.lock()) {
 			bone = pBone;
@@ -95,7 +92,7 @@ Mesh::Bone * Mesh::AddBone(weak_ptr<SceneNode> node) {
 		if (node.use_count()) {
 			node.lock()->MakeBone();
 		}
-		bone = new Bone(node, mBones.size());
+		bone = make_shared<Bone>(node, mBones.size());
 		mBones.push_back(bone);
 	}
 	return bone;
@@ -130,19 +127,11 @@ void Mesh::CreateHardwareBuffers() {
 	CreateIndexBuffer(mTriangles);
 }
 
-void Mesh::OnLostDevice() {
-
-}
-
 void Mesh::CalculateAABB() {
 	mAABB = AABB(mVertices);
 }
 
-void Mesh::OnResetDevice() {
-
-}
-
-vector<Mesh::Bone*> & Mesh::GetBones() {
+vector<shared_ptr<Mesh::Bone>> & Mesh::GetBones() {
 	return mBones;
 }
 

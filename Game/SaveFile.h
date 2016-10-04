@@ -5,13 +5,13 @@
 class SaveFile {
 private:
 	template<typename T>
-	void Handle(T & v) {
-		if (mSave) {
-			mStream << v << endl;
-		} else {
-			mStream >> v;
-			mStream.ignore(1); // ingore \n
-		}
+	void Write(T v) {
+		mStream.write((char*)&v, sizeof(v));
+	}
+
+	template<typename T>
+	void Read(T & v) {
+		mStream.read((char*)&v, sizeof(v));
 	}
 
     fstream mStream;
@@ -29,50 +29,77 @@ public:
 	}
 
 	void operator & (int & v) {
-		Handle(v);
+		if (mSave) {
+			Write(v);
+		} else {
+			Read(v);
+		}
 	}
 
 	void operator & (float & v) {
-		Handle(v);
+		if (mSave) {
+			Write(v);
+		} else {
+			Read(v);
+		}
 	}
 
 	void operator & (bool & v) {
-		Handle(v);
+		if (mSave) {
+			Write(v);
+		} else {
+			Read(v);
+		}
 	}
 
 	void operator & (ruInput::Key & v) {
 		int vi = (int)v;
-		Handle(vi);
+		if (mSave) {
+			Write(v);
+		} else {
+			Read(v);
+		}
 		v = (ruInput::Key)vi;
 	}
 
-	void operator & (string & v) {
+	void operator & (string & str) {
 		if (mSave) {
-			mStream << v << endl;
+			for (auto symbol : str) {
+				Write(symbol);
+			}
+			Write('\0');
 		} else {
-			getline(mStream, v);
+			while (!mStream.eof()) {
+				char symbol;
+				Read(symbol);
+				if (symbol == '\0') {
+					break;
+				} else {
+					str.push_back(symbol);
+				}
+			}
 		}
 	}
 
 	void operator & (ruQuaternion & v) {
-		Handle(v.x);
-		Handle(v.y);
-		Handle(v.z);
-		Handle(v.w);
+		*this & v.x;
+		*this & v.y;
+		*this & v.z;
+		*this & v.w;
 	}
 
 	void operator & (ruVector3 & v) {
-		Handle(v.x);
-		Handle(v.y);
-		Handle(v.z);
+		*this & v.x;
+		*this & v.y;
+		*this & v.z;
 	}
 
 	void operator & (ruAnimation & a) {
 		auto currentFrame = a.GetCurrentFrame();
 		auto enabled = a.IsEnabled();
 
-		Handle(currentFrame);
-		Handle(enabled);
+		*this & currentFrame;
+		*this & enabled;
 		
 		a.SetCurrentFrame(currentFrame);
 		a.SetEnabled(enabled);
@@ -81,7 +108,7 @@ public:
 	template<typename K, typename V>
 	void operator & (std::unordered_map<K, V> & m) {
 		int s = m.size();
-		Handle(s);
+	    *this & s;
 		if (IsLoading()) {
 			for (int i = 0; i < s; ++i) {
 				K key;

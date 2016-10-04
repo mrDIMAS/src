@@ -41,7 +41,7 @@ GameCamera::GameCamera(const shared_ptr<ruGUIScene> & scene, float fov) {
 		mFullscreenQuad = scene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/generic/black.jpg"), fadeColor, quadAlpha);
 		mFullscreenQuad->SetAlpha(0);
 		mFullscreenQuad->SetIndependentAlpha(true);
-		mFullscreenQuad->SetLayer(0xFF); // top most
+		mFullscreenQuad->SetLayer(0xFFFF); // top most
 	}
 }
 

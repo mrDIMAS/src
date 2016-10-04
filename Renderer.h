@@ -231,11 +231,8 @@ private:
 public:
 	explicit Renderer(int width, int height, int fullscreen, char vSync);
 	virtual ~Renderer();
-	virtual void OnLostDevice();
-	virtual void OnResetDevice();
 	void RenderWorld();
 	void UpdateWorld();
-	void Reset();
 	float GetResolutionWidth();
 	float GetResolutionHeight();
 	int GetDIPCount();

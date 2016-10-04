@@ -21,7 +21,7 @@
 
 #pragma once
 
-class CubeTexture : public ruCubeTexture, public RendererComponent {
+class CubeTexture : public ruCubeTexture {
 private:
 	string mSourceName;
 	void Load();
@@ -31,6 +31,4 @@ public:
     virtual ~CubeTexture();
     static CubeTexture * Request( string fn );
     static map< string, CubeTexture*> all;
-	void OnResetDevice();
-	void OnLostDevice();
 };

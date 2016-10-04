@@ -4,11 +4,14 @@
 #include "Item.h"
 #include "Parser.h"
 #include "SaveFile.h"
-
+#include "ScrollList.h"
 
 
 class Inventory {
 private:
+	enum class Tab : int {
+		Items, Notes
+	};
 	shared_ptr<ruGUIScene> mScene;
 	// item-count map
 	map<Item,int> mItemMap;
@@ -28,26 +31,39 @@ private:
     shared_ptr<ruFont> mFont;
     Parser mLocalization;
     
-    shared_ptr<ruRect> mGUICanvas;
-    shared_ptr<ruText> mGUIDescription;
-    shared_ptr<ruButton> mGUIButtonUse;
-    shared_ptr<ruButton> mGUIButtonCombine;
-    shared_ptr<ruRect> mGUIFirstCombineItem;
-    shared_ptr<ruRect> mGUISecondCombineItem;
-    shared_ptr<ruRect> mGUIFirstCombineItemCell;
-    shared_ptr<ruRect> mGUISecondCombineItemCell;
-    shared_ptr<ruText> mGUICharacteristics;
-    shared_ptr<ruRect> mGUIItem[mCellCountWidth][mCellCountHeight];
-    shared_ptr<ruRect> mGUIItemCell[mCellCountWidth][mCellCountHeight];
-	shared_ptr<ruText> mGUIItemCountText[mCellCountWidth][mCellCountHeight];
-    shared_ptr<ruText> mGUIItemDescription;
-    shared_ptr<ruText> mGUIItemMass;
-    shared_ptr<ruText> mGUIItemContent;
-    shared_ptr<ruText> mGUIItemContentType;
-    shared_ptr<ruText> mGUIItemVolume;
+	shared_ptr<ruText> mItemDescriptionText;
+    shared_ptr<ruRect> mItemsBackground;
+    shared_ptr<ruText> mItemDescription;
+    shared_ptr<ruButton> mUseButton;
+    shared_ptr<ruButton> mCombineButton;
+    shared_ptr<ruRect> mFirstCombineItem;
+    shared_ptr<ruRect> mSecondCombineItem;
+    shared_ptr<ruRect> mFirstCombineItemCell;
+    shared_ptr<ruRect> mSecondCombineItemCell;
+    shared_ptr<ruText> mItemCharacteristics;
+    shared_ptr<ruRect> mItem[mCellCountWidth][mCellCountHeight];
+    shared_ptr<ruRect> mItemCell[mCellCountWidth][mCellCountHeight];
+	shared_ptr<ruText> mItemCountText[mCellCountWidth][mCellCountHeight];
+    shared_ptr<ruText> mItemMass;
+    shared_ptr<ruText> mItemContent;
+    shared_ptr<ruText> mItemContentType;
+    shared_ptr<ruText> mItemVolume;
 	shared_ptr<ruButton> mPageItems;
 	shared_ptr<ruButton> mPageNotes;
 
+	shared_ptr<ruRect> mNotesBackground;
+	unique_ptr<ScrollList> mNotesList;
+	shared_ptr<ruText> mNoteText;
+
+	void OnPageItemsClick() {
+		mTab = Tab::Items;
+	}
+
+	void OnPageNotesClick() {
+		mTab = Tab::Notes;
+	}
+
+	Tab mTab;
 	vector<pair<string, string>> mReadedNotes;
 public:
 	void SetItems( map<Item,int> & items );
@@ -69,6 +85,7 @@ public:
 	void AddReadedNote(const string & desc, const string & text) {
 		auto existing = find(mReadedNotes.begin(), mReadedNotes.end(), pair<string,string>(desc, text));
 		if (existing == mReadedNotes.end()) {
+			mNotesList->AddValue(desc);
 			mReadedNotes.push_back(pair<string, string>(desc, text));
 		}
 	}

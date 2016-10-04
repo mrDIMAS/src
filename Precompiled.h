@@ -53,7 +53,6 @@
 
 #include "RutheniumAPI.h"
 #include "Log.h"
-#include "RendererComponent.h"
 
 #define DEG2RAD ( 3.14159f / 180.0f )
 
@@ -78,11 +77,12 @@
 
 #pragma comment( lib, "../external/gft/libgamefonttool")
 
-
 #pragma comment( lib, "d3d9" )
 #pragma comment( lib, "d3dx9" )
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "dxguid.lib" )
+
+#define D3DCALL(func) if(FAILED(func)) Log::Error(StringBuilder() << "Failed " << #func );
 
 template<typename Interface>
 class COMPtr {

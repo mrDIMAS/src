@@ -278,7 +278,7 @@ void LevelResearchFacility::DoScenario() {
 
 	if (mPlayer->IsInsideZone(mRadioHurtZone)) {
 		mPlayer->Damage(0.05, false);
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mPlayer->GetLocalization()->GetString("radioactive"));
+		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("radioactive"));
 	}
 
 	mpSteamValve->Update();

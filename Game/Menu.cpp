@@ -13,6 +13,27 @@
 unique_ptr<Menu> pMainMenu;
 bool g_continueGame = false;
 
+string GetFileCreationDate(const string & pFileName) {
+	stringstream ss;
+	WIN32_FILE_ATTRIBUTE_DATA wfad;
+	SYSTEMTIME st;
+	SYSTEMTIME localTime;
+
+	GetFileAttributesExA(pFileName.c_str(), GetFileExInfoStandard, &wfad);
+	FileTimeToSystemTime(&wfad.ftLastWriteTime, &st);
+
+	SystemTimeToTzSpecificLocalTime(nullptr, &st, &localTime);
+
+	ss << setfill('0') << setw(2) << localTime.wDay << '/' << 
+		setfill('0') << setw(2) << localTime.wMonth << '/' << 
+		setw(4) << localTime.wYear << " - " << 
+		setfill('0') << setw(2) << localTime.wHour << ":" <<
+		setfill('0') << setw(2) << localTime.wMinute << ":" << 
+		setfill('0') << setw(2) << localTime.wSecond;
+
+	return ss.str();
+}
+
 Menu::Menu() {
 	mLocalization.ParseFile(gLocalizationPath + "menu.loc");
 
@@ -191,9 +212,13 @@ Menu::Menu() {
 		{
 			float y = 10;
 			for (int i = 0; i < mSaveLoadSlotCount; i++) {
-				mGUISaveGameSlot[i] = mGUIScene->CreateButton((aTabWidth - buttonWidth) / 2, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
+				mGUISaveGameSlot[i] = mGUIScene->CreateButton(20, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 				mGUISaveGameSlot[i]->Attach(mGUISaveGameCanvas);
 				mGUISaveGameSlot[i]->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnSaveClick));
+
+				mGUISaveGameFileTime[i] = mGUIScene->CreateText(" ", buttonWidth + 30, y, 160, buttonHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+				mGUISaveGameFileTime[i]->Attach(mGUISaveGameCanvas);
+
 				y += 1.1f * buttonHeight;
 			}
 		}
@@ -203,9 +228,12 @@ Menu::Menu() {
 		{
 			float y = 10;
 			for (int i = 0; i < mSaveLoadSlotCount; i++) {
-				mGUILoadGameSlot[i] = mGUIScene->CreateButton((aTabWidth - buttonWidth) / 2, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
+				mGUILoadGameSlot[i] = mGUIScene->CreateButton(20, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 				mGUILoadGameSlot[i]->Attach(mGUILoadGameCanvas);
 				mGUILoadGameSlot[i]->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnLoadSaveClick));
+
+				mGUILoadGameFileTime[i] = mGUIScene->CreateText(" ", buttonWidth + 30, y, 160, buttonHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left);\
+				mGUILoadGameFileTime[i]->Attach(mGUILoadGameCanvas);
 				y += 1.1f * buttonHeight;
 			}
 		}
@@ -390,7 +418,7 @@ void Menu::StartLoadFromSave() {
 }
 
 void Menu::OnLoadSaveClick() {
-	mpModalWindow->Ask(mLocalization.GetString("youSelect") + mLoadSaveGameName + "." + mLocalization.GetString("loadSaveQuestion"));
+	mpModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect") << mLoadSaveGameName << "." << mLocalization.GetString("loadSaveQuestion"));
 	mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::StartLoadFromSave));
 }
 
@@ -400,7 +428,7 @@ void Menu::DoLoadFromSave() {
 }
 
 void Menu::OnSaveClick() {
-	mpModalWindow->Ask(mLocalization.GetString("youSelect") + mSaveGameSlotName + "." + mLocalization.GetString("rewriteSaveQuestion"));
+	mpModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect")  << mSaveGameSlotName << "." << mLocalization.GetString("rewriteSaveQuestion"));
 	mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::DoSaveCurrentGame));
 }
 
@@ -415,6 +443,7 @@ void Menu::OnMusicVolumeChange() {
 		Level::Current()->mMusic->SetVolume(gMusicVolume);
 	}
 }
+
 void Menu::OnSoundVolumeChange() {
 	ruSound::SetMasterVolume(mpMasterVolume->GetValue() / 100.0f);
 }
@@ -526,24 +555,31 @@ void Menu::Update() {
 				mGUILoadGameSlot[i]->SetActive(false);
 			}
 			for (int i = 0; i < count; i++) {
+				mLoadSaveGameName = nameList[i];
 				// activate button associated with file
 				mGUILoadGameSlot[i]->SetActive(true);
 				mGUILoadGameSlot[i]->GetText()->SetText(nameList[i]);
-				if (mGUILoadGameSlot[i]->IsHit()) {
-					mLoadSaveGameName = nameList[i];
+				mGUILoadGameFileTime[i]->SetText(GetFileCreationDate(nameList[i]));
+				if (mGUILoadGameSlot[i]->IsHit()) {					
 					SetPage(Page::Main, false);
+					
 				}
 			}
 		} else {
 			mGUILoadGameCanvas->SetVisible(false);
 		}
 
+		mGUISaveGameButton->SetActive(Level::Current() != nullptr);
+		
+
 		if (mPage == Page::SaveGame) {
 			mGUISaveGameCanvas->SetVisible(true);
 
 			vector< string > nameList;
 			GetFilesWithExtension("*.save", nameList);
-			for (int iName = nameList.size() - 1; iName < 6; iName++) {
+
+			
+			for (int iName = nameList.size() > 0 ? nameList.size() - 1 : 0; iName < mSaveLoadSlotCount; iName++) {
 				string saveName = "Slot";
 				saveName += ((char)iName + (char)'0');
 				saveName += ".save";
@@ -555,8 +591,11 @@ void Menu::Update() {
 			}
 			for (int iName = 0; iName < count; iName++) {
 				mGUISaveGameSlot[iName]->GetText()->SetText(nameList[iName]);
+				mGUISaveGameFileTime[iName]->SetText(GetFileCreationDate(nameList[iName]));
+				mSaveGameSlotName = nameList[iName];
 				if (mGUISaveGameSlot[iName]->IsHit()) {
-					mSaveGameSlotName = nameList[iName];
+					
+					SetPage(Page::Main, false);
 				}
 			}
 		} else {

@@ -100,9 +100,11 @@ private:
 
 	unique_ptr<ModalWindow> mpModalWindow;
 
-    static const int mSaveLoadSlotCount = 7;
+	constexpr static int mSaveLoadSlotCount = 7;
     shared_ptr<ruButton> mGUISaveGameSlot[mSaveLoadSlotCount];
     shared_ptr<ruButton> mGUILoadGameSlot[mSaveLoadSlotCount];
+	shared_ptr<ruText> mGUILoadGameFileTime[mSaveLoadSlotCount];
+	shared_ptr<ruText> mGUISaveGameFileTime[mSaveLoadSlotCount];
 
     void SetPage( Page page, bool hideModalWindow = true );
     void SetOptionsPageVisible( bool state );

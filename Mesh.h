@@ -27,9 +27,8 @@ class Octree;
 class Texture;
 class SceneNode;
 
-class Mesh : public RendererComponent {
+class Mesh {
 public:
-
 	// Grim code ahead
 	class Bone {
 	public:
@@ -43,7 +42,7 @@ public:
 	public:
 		float mWeight;
 		int mID; // id of the scene node represents bone in scene
-		Bone * mRealBone;
+		shared_ptr<Bone> mRealBone;
 	};
 
 	class BoneGroup {
@@ -53,7 +52,7 @@ public:
 	};
 private:
 	vector<BoneGroup> mBoneTable;
-	vector<Bone*> mBones;
+	vector<shared_ptr<Bone>> mBones;
     // mesh can be shared between multiple nodes
 	vector<weak_ptr<SceneNode>> mOwnerList;
     
@@ -71,10 +70,8 @@ public:
 	
 	float mOpacity;
 public:
-	Bone * AddBone( weak_ptr<SceneNode> node );
-	vector<Bone*> & GetBones();
-	void OnResetDevice();
-	void OnLostDevice();    
+	shared_ptr<Bone> AddBone( weak_ptr<SceneNode> node );
+	vector<shared_ptr<Bone>> & GetBones();
 	void CalculateAABB();
     explicit Mesh();
     virtual ~Mesh();

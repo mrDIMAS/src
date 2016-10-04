@@ -1,3 +1,4 @@
+
 /*******************************************************************************
 *                               Ruthenium Engine                               *
 *            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
@@ -27,10 +28,12 @@
 
 
 BitmapFont::BitmapFont(const string & file, int size) {
+	// check for available symbols
 	ifstream pFile("data/fonts/symbols.txt", ios_base::binary | ios_base::in);
 	if (!pFile.good()) {
-		Log::Error("Failed to load symbols.txt from data/fonts. Add this file and restart");
+		Log::Error("Failed to load symbols.txt from data/fonts. Add this file and restart! symbols.txt must be in UTF8");
 	}
+
 	pFile.seekg(0, ios_base::end);
 	size_t fSize = pFile.tellg();
 	pFile.seekg(0, ios_base::beg);
@@ -49,7 +52,7 @@ BitmapFont::BitmapFont(const string & file, int size) {
 	gft_font_get_height(mFont, &atlasHeight);
 	gft_font_get_atlas_pixels(mFont, &pixels);
 
-	pD3D->CreateTexture(atlasWidth, atlasHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mAtlas, nullptr);
+	D3DCALL(pD3D->CreateTexture(atlasWidth, atlasHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mAtlas, nullptr));
 
 	IDirect3DSurface9 * surface;
 	D3DLOCKED_RECT lockedRect;
@@ -68,13 +71,6 @@ BitmapFont::~BitmapFont() {
 	mAtlas.Reset();
 }
 
-void BitmapFont::OnLostDevice() {
-	mAtlas.Reset();
-}
-
-void BitmapFont::OnResetDevice() {
-
-}
 
 shared_ptr<ruFont> ruFont::LoadFromFile(int size, const string & name) {
 	return shared_ptr<BitmapFont>(new BitmapFont(name, size));

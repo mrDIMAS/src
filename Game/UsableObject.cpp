@@ -4,7 +4,7 @@
 #include "BareHands.h"
 #include "Level.h"
 
-UsableObject::UsableObject() : mToNext( false ), mToPrev( false ), mAppear( false ), mPrev( nullptr ), mNext( nullptr ) {
+UsableObject::UsableObject() : mToNext(false), mToPrev(false), mAppear(false), mPrev(nullptr), mNext(nullptr) {
 
 }
 
@@ -17,20 +17,20 @@ shared_ptr<ruSceneNode> UsableObject::GetModel() {
 }
 
 void UsableObject::Prev() {
-	if( mPrev ) {
+	if (mPrev) {
 		mToNext = false;
-		mToPrev = true;
+		mToPrev = true; 
 	}
 }
 
 void UsableObject::Next() {
-	if( mNext ) {
+	if (mNext) {
 		mToNext = true;
 		mToPrev = false;
 	}
 }
 
-void UsableObject::Link( UsableObject * other ) {
+void UsableObject::Link(UsableObject * other) {
 	mNext = other;
 	other->mPrev = this;
 }
@@ -41,10 +41,10 @@ void UsableObject::Appear() {
 
 void UsableObject::SwitchIfAble() {
 	// this method is a dirty hack!
-	if( mToNext || mToPrev ) {
+	if (mToNext || mToPrev) {
 		mModel->Hide();
 		auto & player = Level::Current()->GetPlayer();
-		if( mToPrev ) {
+		if (mToPrev) {
 			player->mCurrentUsableObject = mPrev;
 		} else {
 			player->mCurrentUsableObject = mNext;
@@ -55,27 +55,27 @@ void UsableObject::SwitchIfAble() {
 	}
 }
 
-UsableObject * UsableObject::Deserialize( SaveFile & s ) {
+UsableObject * UsableObject::Deserialize(SaveFile & s) {
 	UsableObject * uo = nullptr;
 	string typeName;
 	s & typeName;
-	if( typeName == typeid( Flashlight ).name() ) {
-		uo = new Flashlight;			
-	} else if( typeName == typeid( Weapon ).name()) {
+	if (typeName == typeid(Flashlight).name()) {
+		uo = new Flashlight;
+	} else if (typeName == typeid(Weapon).name()) {
 		uo = new Weapon;
-	} else if( typeName == typeid( Syringe ).name()) {
+	} else if (typeName == typeid(Syringe).name()) {
 		uo = new Syringe;
-	} else if( typeName == typeid( BareHands ).name()) {
+	} else if (typeName == typeid(BareHands).name()) {
 		uo = new BareHands;
 	}
-	if( uo ) {
+	if (uo) {
 		uo->OnSerialize(s);
 	}
 	return uo;
 }
 
-void UsableObject::Serialize( SaveFile & s ) {
+void UsableObject::Serialize(SaveFile & s) {
 	string name = typeid(*this).name();
 	s & name;
-	OnSerialize( s );
+	OnSerialize(s);
 }

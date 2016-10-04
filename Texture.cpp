@@ -54,7 +54,7 @@ Texture::Texture() :
 	mWidth( 0 ), 
 	mColorDepth( 0 ) 
 {
-	mResetPriority = RendererComponent::ResetPriority::High;
+
 }
 
 Texture::~Texture( ) {

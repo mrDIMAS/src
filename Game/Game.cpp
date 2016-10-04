@@ -87,9 +87,7 @@ int main(int argc, char * argv[]) {
 					}
 					if (ruInput::IsKeyHit(gKeyQuickLoad)) {
 						if (IsFileExists("quickSave.save")) {
-							SaveLoader("quickSave.save").RestoreWorldState();
-
-							Game_UpdateClock();
+							SaveLoader("quickSave.save").RestoreWorldState();							
 						}
 					}
 					if (Level::Current()) {
