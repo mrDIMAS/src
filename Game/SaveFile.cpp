@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "SaveFile.h"
+#include "SmoothFloat.h"
 
 SaveFile::~SaveFile() {
     mStream.flush();
@@ -14,4 +15,92 @@ SaveFile::SaveFile( const string & fileName, bool save ) : mSave(save) {
 	}
 }
 
+bool SaveFile::IsSaving() const {
+	return mSave;
+}
 
+bool SaveFile::IsLoading() const {
+	return !mSave;
+}
+
+void SaveFile::operator & (int & v) {
+	if (mSave) {
+		Write(v);
+	} else {
+		Read(v);
+	}
+}
+
+void SaveFile::operator & (float & v) {
+	if (mSave) {
+		Write(v);
+	} else {
+		Read(v);
+	}
+}
+
+void SaveFile::operator & (bool & v) {
+	if (mSave) {
+		Write(v);
+	} else {
+		Read(v);
+	}
+}
+
+void SaveFile::operator & (ruInput::Key & v) {
+	int vi = (int)v;
+	if (mSave) {
+		Write(v);
+	} else {
+		Read(v);
+	}
+	v = (ruInput::Key)vi;
+}
+
+void SaveFile::operator & (string & str) {
+	if (mSave) {
+		for (auto symbol : str) {
+			Write(symbol);
+		}
+		Write('\0');
+	} else {
+		str.clear();
+		while (!mStream.eof()) {
+			char symbol;
+			Read(symbol);
+			if (symbol == '\0') {
+				break;
+			} else {
+				str.push_back(symbol);
+			}
+		}
+	}
+}
+
+void SaveFile::operator & (ruQuaternion & v) {
+	*this & v.x;
+	*this & v.y;
+	*this & v.z;
+	*this & v.w;
+}
+
+void SaveFile::operator & (ruVector3 & v) {
+	*this & v.x;
+	*this & v.y;
+	*this & v.z;
+}
+
+void SaveFile::operator & (ruAnimation & a) {
+	auto currentFrame = a.GetCurrentFrame();
+	auto enabled = a.IsEnabled();
+
+	*this & currentFrame;
+	*this & enabled;
+
+	a.SetCurrentFrame(currentFrame);
+	a.SetEnabled(enabled);
+}
+
+void SaveFile::operator & (SmoothFloat & s) {
+	s.Serialize(*this);
+}

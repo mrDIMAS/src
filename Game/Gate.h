@@ -27,19 +27,11 @@ private:
 	ruAnimation mOpenAnim;
 	ruAnimation mCloseAnim;
 	ruAnimation mButtonPushAnim[4];
-
-	void Proxy_ButtonPush();
-	void Proxy_BeginGateClosing();
-	void Proxy_BeginGateOpening();
-	void Proxy_Opening();
-	void Proxy_Opened();
-	void Proxy_Idle();
-	void Proxy_Closed();
-	void Proxy_Closing();
 public:
 	~Gate();
 	void Update();
 	void Open();
+	void Close();
 	shared_ptr<ruSceneNode> GetNode() const;
 	State GetState() const;
 };

@@ -80,10 +80,10 @@ shared_ptr<SceneNode> SceneFactory::CreateSceneNodeDuplicate( shared_ptr<SceneNo
 	}
 
 	// copy childs
-	for( auto & pChild : source->mChildList ) {
+	for( auto & pChild : source->mChildren ) {
 		shared_ptr<SceneNode> & pNewChild = SceneFactory::CreateSceneNodeDuplicate( pChild );
 		pNewChild->mParent = duplicate;
-		duplicate->mChildList.push_back( pNewChild );	
+		duplicate->mChildren.push_back( pNewChild );	
 	}
 	return std::move( duplicate );
 }

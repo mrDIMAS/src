@@ -37,7 +37,7 @@ ScrollList::ScrollList(const shared_ptr<ruGUIScene> & scene, float x, float y, s
     int captionWidth = 100;
 
     mGUIText = scene->CreateText( text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left );
-    mGUIValueText = scene->CreateText( "Value", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
+    mGUIValueText = scene->CreateText( " ", x + captionWidth + buttonWidth * 1.25f, y  + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
     mGUIIncreaseButton = scene->CreateButton( x + captionWidth + 4.5f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
     mGUIDecreaseButton = scene->CreateButton( x + captionWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 }

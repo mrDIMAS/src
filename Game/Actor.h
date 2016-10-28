@@ -25,8 +25,6 @@ public:
 	void StopInstant();
 	void Freeze();
 	void Unfreeze();
-	void Crouch(bool state);
-	void UpdateCrouch();
 	bool IsCrouch();
 	bool IsVisibleFromPoint(ruVector3 begin);
 	void SetBodyVisible(bool state);
@@ -35,5 +33,8 @@ public:
 	ruVector3 GetLookDirection();
 	float DistanceTo(const shared_ptr<ruSceneNode> & obj) {
 		return (obj->GetPosition() - mBody->GetPosition()).Length();
+	}
+	shared_ptr<ruSceneNode> GetBody() {
+		return mBody;
 	}
 };

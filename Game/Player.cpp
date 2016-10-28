@@ -6,19 +6,11 @@
 #include "utils.h"
 #include "Enemy.h"
 #include "SaveWriter.h"
-#include "BareHands.h"
 #include "Level.h"
-
-
-
-extern double gFixedTick;
 
 Player::Player() :
 	Actor(0.7f, 0.2f),
-	mStepLength(0.0f),
-	mCameraTrembleTime(0.0f),
 	mFlashlightLocked(false),
-	mCurrentUsableObject(nullptr),
 	mLandedSoundEmitted(true),
 	mMaxStamina(100.0f),
 	mStamina(100.0f),
@@ -27,49 +19,147 @@ Player::Player() :
 	mObjectThrown(false),
 	mPitch(0.0f, -89.9f, 89.9f),
 	mYaw(0.0f),
-	mHeadAngle(0.0f, -12.50f, 12.50f),
 	mDead(false),
 	mLanded(false),
 	mStealthMode(false),
 	mWhispersSoundVolume(0.0f),
 	mWhispersSoundVolumeTo(0.0f),
-	mCameraShakeOffset(0, mHeadHeight, 0),
-	mRunCameraShakeCoeff(1.0f),
-	mCameraBobCoeff(0),
 	mFrameColor(1.0f, 1.0f, 1.0f),
 	mKeyMoveForward(ruInput::Key::W),
 	mKeyMoveBackward(ruInput::Key::S),
 	mKeyStrafeLeft(ruInput::Key::A),
 	mKeyStrafeRight(ruInput::Key::D),
 	mKeyJump(ruInput::Key::Space),
-	mKeyFlashLight(ruInput::Key::F),
 	mKeyRun(ruInput::Key::LeftShift),
 	mKeyInventory(ruInput::Key::Tab),
 	mKeyUse(ruInput::Key::R),
 	mKeyStealth(ruInput::Key::C),
 	mKeyLookLeft(ruInput::Key::Q),
 	mKeyLookRight(ruInput::Key::E),
+	mKeyFlashlightHotkey(ruInput::Key::F),
 	mInAir(false),
 	mDeadRotation(0.0f),
 	mDestDeadRotation(0.0f),
-	mNodeInHands(nullptr) {
+	mNodeInHands(nullptr),
+	mYawWalkOffset(0.0, -30, 30),
+	mHealthRegenTimer(0),
+	mFlashlightEnabled(true)
+{
 	mLocalization.ParseFile(gLocalizationPath + "player.loc");
-
 	mHUD = unique_ptr<HUD>(new HUD());
-
 	mInventory = unique_ptr<Inventory>(new Inventory());
-	
-
 	gMouseSens = 0.5f;
-
 	mLastHealth = mHealth;
 
-	CreateCamera();
-	LoadSounds();
+	// load model and configure animations
+	mBodyModel = ruSceneNode::LoadFromFile("data/models/character/character.scene");
+	mBodyModel->Attach(mBody);
+
+	// find bodyparts - names are standard for MakeHuman
+	mCameraPivot = mBodyModel->FindChild("Camera");
+
+	mNeck = mBodyModel->FindChild("neck_01");
+	mNeck->SetAnimationOverride(true);
+
+	mBodyModelRoot = mBodyModel->FindChild("Root");
+	mFlashlight = dynamic_pointer_cast<ruSpotLight>(mBodyModel->FindChild("Fspot001"));
+	mFlashlightSwitchSound = ruSound::Load2D("data/sounds/flashlight_switch.ogg");
+
+	// fill left arm
+	{
+		const char * leftArm[] = { "clavicle_l", "upperarm_l", "lowerarm_l", "hand_l", "thumb_01_l", "thumb_02_l",
+			"thumb_03_l", "index_01_l", "index_02_l", "index_03_l", "middle_01_l", "middle_02_l", "middle_03_l", "ring_01_l",
+			"ring_02_l", "ring_03_l", "pinky_01_l", "pinky_02_l","pinky_03_l" };
+		for (auto name : leftArm) {
+			mLeftArm.push_back(mBodyModel->FindChild(name));
+		}
+	}
+
+	// fill right arm
+	{
+		const char * rightArm[] = { "clavicle_r", "upperarm_r", "lowerarm_r", "hand_r", "thumb_01_r", "thumb_02_r",
+			"thumb_03_r", "index_01_r", "index_02_r", "index_03_r", "middle_01_r", "middle_02_r", "middle_03_r", "ring_01_r",
+			"ring_02_r", "ring_03_r", "pinky_01_r", "pinky_02_r","pinky_03_r" };
+		for (auto name : rightArm) {
+			mRightArm.push_back(mBodyModel->FindChild(name));
+		}
+	}
+
+	// fill left leg
+	{
+		const char * leftLeg[] = { "thigh_l", "calf_l", "foot_l", "ball_l" };
+		for (auto name : leftLeg) {
+			mLeftLeg.push_back(mBodyModel->FindChild(name));
+		}
+	}
+
+	// fill right leg
+	{
+		const char * rightLeg[] = { "thigh_r", "calf_r", "foot_r", "ball_r" };
+		for (auto name : rightLeg) {
+			mRightLeg.push_back(mBodyModel->FindChild(name));
+		}
+	}
+
+	// fill spine
+	{
+		const char * spine[] = { "spine_01", "spine_02", "spine_03" };
+		for (auto name : spine) {
+			mSpine.push_back(mBodyModel->FindChild(name));
+		}
+	}
+
+
+	// configure animations
+	mWalkAnimation = ruAnimation(0, 60, 0.9f, false);
+	mWalkAnimation.AddFrameListener(10, [this] { EmitStepSound(); });
+	mWalkAnimation.AddFrameListener(40, [this] { EmitStepSound(); });
+
+	mRunAnimation = ruAnimation(231, 269, 0.4, false);
+	mRunAnimation.AddFrameListener(241, [this] { EmitStepSound(); });
+	mRunAnimation.AddFrameListener(261, [this] { EmitStepSound(); });
+
+	mStayAnimation = ruAnimation(121, 129, 1, true);
+	mStayAnimation.SetEnabled(true);
+
+	mCrouchAnimation = ruAnimation(82, 90, 0.9, false);
+	mCrouchWalkAnimation = ruAnimation(91, 120, 1, true);
+	mPushDoorAnimation = ruAnimation(151, 160, 0.7, false);
+	mPickUpAnimation = ruAnimation(131, 150, 0.7, false);
+	mJumpAnimation = ruAnimation(160, 180, 1, false);
+	mLookRightAnimation = ruAnimation(61, 70, 1, false);
+	mLookLeftAnimation = ruAnimation(71, 80, 1, false);
+	mLadderCrawlInAnimation = ruAnimation(180, 200, 1, false);
+
+	mSwitchFlashlightAnimation = ruAnimation(280, 300, 0.7, false);
+	mSwitchFlashlightAnimation.AddFrameListener(290, [this] { SwitchFlashlight(); });
+
+	mLadderCrawlAnimation = ruAnimation(200, 230, 0.68, false);
+	mLadderCrawlAnimation.AddFrameListener(201, [this] { LadderEmitStepSound(); });
+	mLadderCrawlAnimation.AddFrameListener(210, [this] { LadderEmitStepSound(); });
+	mLadderCrawlAnimation.AddFrameListener(229, [this] { LadderEmitStepSound(); });
+	mLadderClimbDelta = (mBodyModelRoot->GetKeyFrame(mLadderCrawlAnimation.GetEndFrame()).mPosition - mBodyModelRoot->GetKeyFrame(mLadderCrawlAnimation.GetBeginFrame()).mPosition).Length();
+
+	// create camera
+	mpCamera = make_unique<GameCamera>(mHUD->GetScene(), mFov);
+	mpCamera->mCamera->Attach(mCameraPivot);
+
+	// pick
+	mPickPoint = ruSceneNode::Create();
+	mPickPoint->Attach(mpCamera->mCamera);
+	mPickPoint->SetPosition(ruVector3(0, 0, 0.1));
+
+	mItemPoint = ruSceneNode::Create();
+	mItemPoint->Attach(mpCamera->mCamera);
+	mItemPoint->SetPosition(ruVector3(0, 0, 1.0f));
+
+	// fake light
+	mFakeLight = ruPointLight::Create();
+	mFakeLight->Attach(mpCamera->mCamera);
+	mFakeLight->SetRange(2);
+	mFakeLight->SetColor(ruVector3(25, 25, 25));
 
 	mBody->SetName("Player");
-
-
 
 	// hack
 	pMainMenu->SyncPlayerControls();
@@ -83,31 +173,25 @@ Player::Player() :
 	mWhispersSound = ruSound::Load2D("data/sounds/whispers.ogg");
 	mWhispersSound->SetVolume(0.085f);
 	mWhispersSound->SetLoop(true);
-	//mWhispersSound->Play();
 
 	for (auto & ps : mPainSound) {
 		ps->SetVolume(0.7);
 	}
 
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/stone.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/metal.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/wood.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/gravel.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/muddyrock.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/rock.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/grass.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/soil.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/chain.smat", mpCamera->mCamera)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/mud.smat", mpCamera->mCamera)));
-
-	AddUsableObject(new BareHands);
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/stone.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/metal.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/wood.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/gravel.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/muddyrock.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/rock.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/grass.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/soil.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/chain.smat", mpCamera->mCamera));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/mud.smat", mpCamera->mCamera));
 }
 
 Player::~Player() {
-	for (auto uo : mUsableObjectList) {
-		delete uo;
-	}
-	mUsableObjectList.clear();
+
 }
 
 void Player::DrawStatusBar() {
@@ -143,9 +227,11 @@ void Player::Damage(float dmg, bool headJitter) {
 		return;
 	}
 
+	mHealthRegenTimer = 300; // in frames 
+
 	Actor::Damage(dmg);
 	mHUD->ShowDamage();
-	
+
 	if (headJitter) {
 		mPitch.SetTarget(mPitch.GetTarget() + frandom(20, 40));
 		mYaw.SetTarget(mYaw.GetTarget() + frandom(-40, 40));
@@ -172,30 +258,39 @@ void Player::AddItem(Item::Type type) {
 }
 
 void Player::UpdateInventory() {
-	if (mSheetInHands.expired()) {
-		if (ruInput::IsKeyHit(mKeyInventory)) {
-			mInventory->Open(!mInventory->IsOpened());
-		}
-		mInventory->Update();
+	if (ruInput::IsKeyHit(mKeyInventory)) {
+		mInventory->Open(!mInventory->IsOpened());
 	}
+	mInventory->Update();
 }
 
 void Player::UpdateMouseLook() {
 	if (!mInventory->IsOpened()) {
 		float mouseSpeed = gMouseSens / 2.0f;
 		mPitch.SetTarget(mPitch.GetTarget() + ruInput::GetMouseYSpeed() * mouseSpeed);
-		mYaw.SetTarget(mYaw.GetTarget() - ruInput::GetMouseXSpeed() * mouseSpeed);
+		if (mLadder.expired()) {
+			mYaw.SetTarget(mYaw.GetTarget() - ruInput::GetMouseXSpeed() * mouseSpeed);
+		}
 	}
-
 
 	mPitch.ChaseTarget(0.233f);
 	mYaw.ChaseTarget(0.233f);
 
+	mpCamera->mCamera->SetLocalRotation(ruQuaternion(ruVector3(0, 1, 0), -mYawWalkOffset));
+	mNeck->SetLocalRotation(ruQuaternion(ruVector3(1, 0, 0), mPitch));
 
-	mpCamera->mCamera->SetRotation(ruQuaternion(ruVector3(1, 0, 0), mPitch));
+	// lock yaw rotation when climbing on ladders, and also orient player to face ladder
+	if (!mLadder.expired()) {
+		auto ladder = mLadder.lock();
+		if (ladder->mStatus == Ladder::Status::ActorClimbInBottom || ladder->mStatus == Ladder::Status::ActorClimbInTop) {
+			ruVector3 delta = (ladder->mEnterZone->GetPosition() - mBody->GetPosition()).Normalize();
+			mYaw.SetTarget(atan2(delta.x, delta.z) * 180.0f / M_PI);
+		}
+	}
+
 	mBody->SetRotation(ruQuaternion(ruVector3(0, 1, 0), mYaw));
 
-	mHeadAngle.SetTarget(0.0f);
+	// look left
 	if (ruInput::IsKeyDown(mKeyLookLeft)) {
 		ruVector3 rayBegin = mBody->GetPosition() + ruVector3(mBodyWidth / 2, 0, 0);
 		ruVector3 rayEnd = rayBegin + mBody->GetRightVector() * 10.0f;
@@ -209,10 +304,19 @@ void Player::UpdateMouseLook() {
 			}
 		}
 		if (canLookLeft) {
-			mHeadAngle.SetTarget(mHeadAngle.GetMin());
+			mLookLeftAnimation.SetEnabled(true);
+			SetSpineAnimation(&mLookLeftAnimation);
+			if (mLookLeftAnimation.GetCurrentFrame() == mLookLeftAnimation.GetEndFrame()) {
+				mLookLeftAnimation.SetInterpolator(0.0f);
+			}
+		} else {
+			mLookLeftAnimation.SetDirection(ruAnimation::Direction::Reverse);
 		}
+	} else {
+		mLookLeftAnimation.SetDirection(ruAnimation::Direction::Reverse);
 	}
 
+	// look right
 	if (ruInput::IsKeyDown(mKeyLookRight)) {
 		ruVector3 rayBegin = mBody->GetPosition() - ruVector3(mBodyWidth / 2.0f, 0.0f, 0.0f);
 		ruVector3 rayEnd = rayBegin - mBody->GetRightVector() * 10.0f;
@@ -226,11 +330,18 @@ void Player::UpdateMouseLook() {
 			}
 		}
 		if (canLookRight) {
-			mHeadAngle.SetTarget(mHeadAngle.GetMax());
+			mLookRightAnimation.SetDirection(ruAnimation::Direction::Forward);
+			mLookRightAnimation.SetEnabled(true);
+			SetSpineAnimation(&mLookRightAnimation);
+			if (mLookRightAnimation.GetCurrentFrame() == mLookRightAnimation.GetEndFrame()) {
+				mLookRightAnimation.SetInterpolator(0.0f);
+			}
+		} else {
+			mLookRightAnimation.SetDirection(ruAnimation::Direction::Reverse);
 		}
+	} else {
+		mLookRightAnimation.SetDirection(ruAnimation::Direction::Reverse);
 	}
-	mHeadAngle.ChaseTarget(0.28f);
-	mHead->SetRotation(ruQuaternion(ruVector3(0.0f, 0.0f, 1.0f), mHeadAngle));
 }
 
 void Player::UpdateJumping() {
@@ -242,6 +353,9 @@ void Player::UpdateJumping() {
 			mJumpTo = ruVector3(0.0f, 350.0f, 0.0f);
 			mLanded = false;
 			mLandedSoundEmitted = false;
+
+			mJumpAnimation.SetEnabled(true);
+			SetBodyAnimation(&mJumpAnimation);
 		}
 	}
 
@@ -253,9 +367,6 @@ void Player::UpdateJumping() {
 
 	if (!mLandedSoundEmitted) {
 		if (IsCanJump() && mLanded) {
-			// two feet
-			EmitStepSound();
-			EmitStepSound();
 			mLandedSoundEmitted = true;
 		}
 	}
@@ -269,62 +380,126 @@ void Player::UpdateJumping() {
 }
 
 void Player::UpdateMoving() {
-
+	mYawWalkOffset.SetTarget(0.0f);
 
 	if (!mLadder.expired()) {
+		// ladder climbing
 		auto ladder = mLadder.lock();
 
+		// stealth can't be done on ladders
 		mStealthMode = false;
-		ladder->DoEntering();
-		mAirPosition = mBody->GetPosition();
-		Crouch(false);
-		mRunning = false;
-		if (ladder->IsPlayerInside()) {
-			mMoved = false;
-			if (ruInput::IsKeyDown(mKeyMoveForward)) {
-				ladder->SetDirection(Ladder::Direction::Forward);
-				mMoved = true;
-			}
-			if (ruInput::IsKeyDown(mKeyMoveBackward)) {
-				ladder->SetDirection(Ladder::Direction::Backward);
-				mMoved = true;
-			}
-			if (mMoved) {
-				ladder->DoPlayerCrawling();
-				if (!ladder->IsPlayerInside()) {
-					mLadder.reset();
-				}
-			} else {
-				StopInstant();
-			}
-		}
-		if (ruInput::IsKeyHit(mKeyJump)) {
-			ladder->LeaveInstantly();
-			mLadder.reset();
-			Unfreeze();
-			mBody->SetVelocity(ruVector3(-mBody->GetLookVector()));
-		}
-	} else {
-		ruVector3 look = mBody->GetLookVector();
-		ruVector3 right = mBody->GetRightVector();
 
+		// stand up
+		Crouch(false);
+
+		mAirPosition = mBody->GetPosition();
+		mRunning = false;
+
+		// when climbing on ladder, model is moving and physical body is sticked to it
+		mBodyModel->Detach();
+		mBodyModel->SetRotation(ruQuaternion(ruVector3(0, 1, 0), mYaw));
+		mBody->SetPosition(mBodyModel->GetPosition());
+
+		if (ladder->mStatus == Ladder::Status::ActorClimbInBottom || ladder->mStatus == Ladder::Status::ActorClimbInTop) {
+			// hold player in position
+			if (ladder->mStatus == Ladder::Status::ActorClimbInBottom) {
+				mBodyModel->SetPosition(ladder->mBegin->GetPosition());
+			} else if (ladder->mStatus == Ladder::Status::ActorClimbInTop) {
+				mBodyModel->SetPosition(ladder->mEnd->GetPosition());
+			}
+
+			// if animation disabled, then player just climbed-in
+			if (!mLadderCrawlInAnimation.IsEnabled()) {
+				ladder->mStatus = Ladder::Status::ActorStand;
+			}
+		}
+
+		// step is allowed only when player is just standing on the ladder
+		if (ladder->mStatus == Ladder::Status::ActorStand) {
+			float dBegin = ladder->mBegin->GetPosition().Distance(mBodyModel->GetPosition());
+			float dEnd = ladder->mEnd->GetPosition().Distance(mBodyModel->GetPosition());
+
+			if (dBegin < mLadderClimbDelta && ruInput::IsKeyDown(mKeyMoveBackward)) {
+				// climb off on bottom
+				ladder->mStatus = Ladder::Status::ActorClimbOffBottom;
+			} else if (dEnd < mLadderClimbDelta && ruInput::IsKeyDown(mKeyMoveForward)) {
+				// climb off on top
+				ladder->mStatus = Ladder::Status::ActorClimbOffTop;
+			} else if (ruInput::IsKeyDown(mKeyMoveForward)) {
+				// step up
+				ladder->mStatus = Ladder::Status::ActorClimbingUp;
+				mLadderCrawlAnimation.SetDirection(ruAnimation::Direction::Forward);
+				mLadderCrawlAnimation.SetEnabled(true);
+				mBodyModel->SetPosition(mBodyModel->GetPosition() + ruVector3(0, 1, 0) * mLadderClimbDelta);
+				SetBodyAnimation(&mLadderCrawlAnimation);
+			} else if (ruInput::IsKeyDown(mKeyMoveBackward)) {
+				// step down
+				ladder->mStatus = Ladder::Status::ActorClimbingDown;
+				mLadderCrawlAnimation.SetDirection(ruAnimation::Direction::Reverse);
+				mLadderCrawlAnimation.SetEnabled(true);
+				mBodyModel->SetPosition(mBodyModel->GetPosition() - ruVector3(0, 1, 0) * mLadderClimbDelta);
+				SetBodyAnimation(&mLadderCrawlAnimation);
+			}
+		}
+
+		if (!mLadderCrawlAnimation.IsEnabled() && (ladder->mStatus == Ladder::Status::ActorClimbingUp || ladder->mStatus == Ladder::Status::ActorClimbingDown)) {
+			ladder->mStatus = Ladder::Status::ActorStand;
+		}
+
+		if (ruInput::IsKeyHit(mKeyJump) || ladder->mStatus == Ladder::Status::ActorClimbOffBottom || ladder->mStatus == Ladder::Status::ActorClimbOffTop) {
+			// return control to physics
+			Unfreeze();
+
+			// move on specific position when climb off
+			if (ladder->mStatus == Ladder::Status::ActorClimbOffBottom) {
+				SetPosition(ladder->mBeginLeavePoint->GetPosition());
+			} else if (ladder->mStatus == Ladder::Status::ActorClimbOffTop) {
+				SetPosition(ladder->mEndLeavePoint->GetPosition());
+			}
+
+			// free ladder
+			ladder->mStatus = Ladder::Status::Free;
+			mLadder.reset();
+
+			// jump back
+			if (ruInput::IsKeyHit(mKeyJump)) {
+				mBody->SetVelocity(ruVector3(-mBody->GetLookVector()));
+			}
+		}
+
+	} else {
+		// ordinary movement
 		mSpeedTo = ruVector3(0, 0, 0);
 
 		bool moveBack = false;
+		bool isMoving = false;
 
 		if (ruInput::IsKeyDown(mKeyMoveForward)) {
-			mSpeedTo = mSpeedTo + look;
+			mSpeedTo = mSpeedTo + mBody->GetLookVector();
+			isMoving = true;
 		}
 		if (ruInput::IsKeyDown(mKeyMoveBackward)) {
-			mSpeedTo = mSpeedTo - look;
+			mSpeedTo = mSpeedTo - mBody->GetLookVector();
 			moveBack = true;
+			isMoving = true;
 		}
 		if (ruInput::IsKeyDown(mKeyStrafeLeft)) {
-			mSpeedTo = mSpeedTo + right;
+			mSpeedTo = mSpeedTo + mBody->GetRightVector();
+			isMoving = true;
+			// body rotation offset when strafing
+			mYawWalkOffset.SetTarget(mYawWalkOffset.GetMax());
 		}
 		if (ruInput::IsKeyDown(mKeyStrafeRight)) {
-			mSpeedTo = mSpeedTo - right;
+			mSpeedTo = mSpeedTo - mBody->GetRightVector();
+			isMoving = true;
+			// body rotation offset when strafing
+			mYawWalkOffset.SetTarget(mYawWalkOffset.GetMin());
 		}
+
+		mYawWalkOffset.ChaseTarget(0.07f);
+		mBodyModel->SetRotation(ruQuaternion(ruVector3(0, 1, 0), mYawWalkOffset));
+
+
 
 		mMoved = mSpeedTo.Length2() > 0;
 
@@ -334,25 +509,54 @@ void Player::UpdateMoving() {
 
 		UpdateJumping();
 
-		mRunCameraShakeCoeff = 1.0f;
 		mFov.SetTarget(mFov.GetMin());
 
+		// running and stamina management
 		mRunning = false;
 		if (!IsCrouch() && ruInput::IsKeyDown(mKeyRun) && mMoved && !mNodeInHands) {
 			if (mStamina > 0) {
 				mSpeedTo = mSpeedTo * mRunSpeedMult;
 				mStamina -= 0.1333f;
 				mFov.SetTarget(mFov.GetMax());
-				mRunCameraShakeCoeff = 1.425f;
 				mRunning = true;
 			}
 		} else {
 			if (mStamina < mMaxStamina) {
-				if (mInLight) {
-					mStamina += 0.2666f;
+				mStamina += 0.2666f;				
+			}
+		}
+
+		// manage basic animations
+		if (isMoving) {
+			if (mCrouch) {
+				if (!mCrouchAnimation.IsEnabled()) {
+					SetBodyAnimation(&mCrouchWalkAnimation);
+				}
+			} else {
+				if (mRunning) {
+					SetBodyAnimation(&mRunAnimation);
+				} else {
+					SetBodyAnimation(&mWalkAnimation);
+				}
+			}
+		} else {
+			if (mCrouch) {
+				SetBodyAnimation(&mCrouchAnimation);
+			} else {
+				if (!mCrouchAnimation.IsEnabled()) {
+					SetBodyAnimation(&mStayAnimation);
 				}
 			}
 		}
+
+		mWalkAnimation.SetEnabled(isMoving && !mRunning);
+		mCrouchWalkAnimation.SetEnabled(true);
+		mRunAnimation.SetEnabled(isMoving && mRunning);
+
+		// set animation playback direction according to actual speed of player
+		mWalkAnimation.SetDirection(moveBack ? ruAnimation::Direction::Reverse : ruAnimation::Direction::Forward);
+		mCrouchWalkAnimation.SetDirection(moveBack ? ruAnimation::Direction::Reverse : ruAnimation::Direction::Forward);
+		mRunAnimation.SetDirection(moveBack ? ruAnimation::Direction::Reverse : ruAnimation::Direction::Forward);
 
 		if (moveBack) {
 			mSpeedTo = mSpeedTo * 0.4f;
@@ -363,7 +567,18 @@ void Player::UpdateMoving() {
 			mStealthMode = IsCrouch();
 		}
 
-		UpdateCrouch();
+		// crouch
+		if (mCrouch) {
+			mCrouchMultiplier -= 0.025f;
+			if (mCrouchMultiplier < 0.5f) {
+				mCrouchMultiplier = 0.5f;
+			}
+		} else {
+			mCrouchMultiplier += 0.025f;
+			if (mCrouchMultiplier > 1.0f) {
+				mCrouchMultiplier = 1.0f;
+			}
+		}		
 
 		mSpeedTo = mSpeedTo * (mStealthMode ? 0.4f : 1.0f);
 
@@ -372,15 +587,53 @@ void Player::UpdateMoving() {
 
 		mSpeed = mSpeed.Lerp(mSpeedTo + mGravity, 0.1666f);
 		Step(mSpeed * ruVector3(100, 1, 100), 0.01666f);
+
+		if (mBodyModel->GetParent() == nullptr) {
+			mBodyModel->Attach(mBody);
+		}
+
+		mBody->SetLocalScale(ruVector3(1.0f, mCrouchMultiplier, 1.0f));
+		mBodyModel->SetPosition(ruVector3(0, -1.f * mCrouchMultiplier, -0.1));
 	}
 
-	UpdateCameraShake();
+	// update animations
+	mWalkAnimation.Update();
+	mStayAnimation.Update();
+	mCrouchWalkAnimation.Update();
+	mCrouchAnimation.Update();
+	mPushDoorAnimation.Update();
+	mPickUpAnimation.Update();
+	mJumpAnimation.Update();
+	mLookLeftAnimation.Update();
+	mLookRightAnimation.Update();
+	mLadderCrawlInAnimation.Update();
+	mLadderCrawlAnimation.Update();
+	mRunAnimation.Update();
+	mSwitchFlashlightAnimation.Update();
 }
 
+void Player::Crouch(bool state) {
+	mCrouch = state;
+
+	mCrouchAnimation.SetEnabled(true);
+	mCrouchAnimation.SetDirection(mCrouch ? ruAnimation::Direction::Forward : ruAnimation::Direction::Reverse);
+
+	// stand up only if we can
+	ruVector3 pickPoint;
+	ruVector3 rayBegin = mBody->GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
+	ruVector3 rayEnd = mBody->GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
+	shared_ptr<ruSceneNode> upCast = ruPhysics::CastRay(rayBegin, rayEnd, &pickPoint);
+	if (upCast) {
+		if (!mCrouch) {
+			mCrouch = true;
+		}
+	}
+}
 
 void Player::ComputeStealth() {
 	mInLight = false;
 
+	// check if player inside any point light
 	for (int i = 0; i < ruPointLight::GetCount(); i++) {
 		if (!(ruPointLight::Get(i) == mFakeLight)) {
 			if (ruPointLight::Get(i)->IsSeePoint(mBody->GetPosition())) {
@@ -390,6 +643,7 @@ void Player::ComputeStealth() {
 		}
 	}
 
+	// check if player inside any spot light's cone
 	if (!mInLight) {
 		for (int i = 0; i < ruSpotLight::GetCount(); i++) {
 			if (ruSpotLight::Get(i)->IsSeePoint(mBody->GetPosition())) {
@@ -399,10 +653,8 @@ void Player::ComputeStealth() {
 		}
 	}
 
-	if (GetFlashLight()) {
-		if (GetFlashLight()->IsOn()) {
-			mInLight = true;
-		}
+	if (mFlashlightEnabled) {
+		mInLight = true;
 	}
 
 	mWhispersSound->Play();
@@ -448,37 +700,39 @@ void Player::Update() {
 		mDeadRotation += (mDestDeadRotation - mDeadRotation) * 0.1f;
 	}
 
-	
 	mpCamera->Update();
-
 	mHUD->Update();
 
-	if (GetFlashLight()) {
-		if (GetFlashLight()->IsOn()) {
-			mFakeLight->Hide();
-		} else {
-			mFakeLight->Show();
-		}
-	} else {
-		mFakeLight->Show();
-	}
-
-	
 	if (!pMainMenu->IsVisible()) {
 		DrawStatusBar();
 		if (!mDead) {
 			mHUD->SetDead(false);
 			mHUD->SetCursor(mNearestPickedNode != nullptr, IsObjectHasNormalMass(mNearestPickedNode), mNodeInHands != nullptr, mInventory->IsOpened());
-			UpdateFright(); 			
+
+			--mHealthRegenTimer;
+			if (mHealthRegenTimer <= 0) {
+				Heal(0.05f);
+				mHealthRegenTimer = 0;
+			}
+
+			if (ruInput::IsKeyHit(mKeyFlashlightHotkey)) {
+				mSwitchFlashlightAnimation.SetEnabled(true);
+				SetBodyAnimation(&mSwitchFlashlightAnimation);
+			}
+
+			if (mFlashlightEnabled) {
+				mFlashlight->Show();
+			} else {
+				mFlashlight->Hide();				
+			}			
+
 			UpdateMouseLook();
-			Interact(); 
+			Interact();
 			UpdateMoving();
 			ComputeStealth();
 			UpdatePicking();
 			UpdateItemsHandling();
 			UpdateInventory();
-			DrawSheetInHands();			
-			UpdateUsableObjects();
 			if (mLadder.expired()) { // prevent damaging from ladders
 				if (!IsCanJump() && !mInAir) { // in air
 					mAirPosition = mBody->GetPosition();
@@ -505,154 +759,13 @@ void Player::Update() {
 		// after finishing playing death sound, show menu and destroy current level
 		if (mDeadSound) {
 			if (!mDeadSound->IsPlaying()) {
-				pMainMenu->Show();				
+				pMainMenu->Show();
 			}
 		}
 	}
 }
-
-void Player::CreateCamera() {
-	mHeadHeight = 2.1;
-
-	mHead = ruSceneNode::Create();
-	mHead->Attach(mBody);
-	mHead->SetPosition(ruVector3(0, -2.0f, 0.0f));
-	mpCamera = unique_ptr<GameCamera>(new GameCamera(mHUD->GetScene(), mFov));
-	mpCamera->mCamera->Attach(mHead);
-	mCameraOffset = ruVector3(0, mHeadHeight, 0);
-	mCameraShakeOffset = ruVector3(0, mHeadHeight, 0);
-
-	// Pick
-	mPickPoint = ruSceneNode::Create();
-	mPickPoint->Attach(mpCamera->mCamera);
-	mPickPoint->SetPosition(ruVector3(0, 0, 0.1));
-
-	mItemPoint = ruSceneNode::Create();
-	mItemPoint->Attach(mpCamera->mCamera);
-	mItemPoint->SetPosition(ruVector3(0, 0, 1.0f));
-
-	mFakeLight = ruPointLight::Create();
-	mFakeLight->Attach(mpCamera->mCamera);
-	mFakeLight->SetRange(2);
-	mFakeLight->SetColor(ruVector3(25, 25, 25));
-}
-
-void Player::LoadSounds() {
-	mLighterCloseSound = ruSound::Load3D("data/sounds/lighter_close.ogg");
-	mLighterOpenSound = ruSound::Load3D("data/sounds/lighter_open.ogg");
-
-	mLighterCloseSound->Attach(mpCamera->mCamera);
-	mLighterOpenSound->Attach(mpCamera->mCamera);
-
-	mHeartBeatSound = ruSound::Load2D("data/sounds/heart.ogg");
-	mBreathSound = ruSound::Load2D("data/sounds/breath.ogg");
-
-	mHeartBeatSound->SetReferenceDistance(100.0f);
-	mBreathSound->SetReferenceDistance(100.0f);
-
-	mBreathVolume = SmoothFloat(0.1f);
-	mHeartBeatVolume = SmoothFloat(0.15f);
-	mHeartBeatPitch = SmoothFloat(1.0f);
-	mBreathPitch = SmoothFloat(1.0f);
-}
-
-void Player::DoFright() {
-	mBreathVolume.SetTarget(0.1f);
-	mBreathVolume.Set(0.25f);
-	mHeartBeatVolume.SetTarget(0.15f);
-	mHeartBeatVolume.Set(0.45f);
-	mHeartBeatPitch.Set(2.0f);
-	mHeartBeatPitch.SetTarget(1.0f);
-	mBreathPitch.Set(1.5f);
-	mBreathPitch.SetTarget(1.0f);
-}
-
-void Player::UpdateFright() {
-	mBreathVolume.ChaseTarget(0.075f);
-	mHeartBeatVolume.ChaseTarget(0.075f);
-	mHeartBeatPitch.ChaseTarget(0.0025f);
-	mBreathPitch.ChaseTarget(0.0025f);
-}
-
-void Player::UpdateCameraShake() {
-	static int stepPlayed = 0;
-
-	if (mMoved) {
-		const float mBodyWidthDelta = mBodyWidth / 60.0f;
-		mStepLength += mRunning ? mBodyWidthDelta * 2.0f : mBodyWidthDelta;
-
-
-		mCameraBobCoeff += 0.19f * mRunCameraShakeCoeff;
-
-		float yOffset = 0.045f * sinf(mCameraBobCoeff) * (mRunCameraShakeCoeff * mRunCameraShakeCoeff);
-		float xOffset = 0.045f * cosf(mCameraBobCoeff / 2) * (mRunCameraShakeCoeff * mRunCameraShakeCoeff);
-
-		if (mStepLength > mBodyWidth / 2.0f) {
-			if (!mLadder.expired()) {
-				auto ladder = mLadder.lock();
-				if (ladder->GetEnterZone()->GetTextureCount() > 0) {
-					for (auto & sMat : mSoundMaterialList) {
-						shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(ladder->GetEnterZone()->GetTexture(0)->GetName());
-						if (snd) {
-							snd->Play(true);
-						}
-					}
-				}
-			} else {
-				EmitStepSound();
-			}
-			mStepLength = 0.0f;
-		}
-
-		mCameraShakeOffset = ruVector3(xOffset, yOffset + mHeadHeight, 0.0f);
-	} else {
-		mCameraBobCoeff = 0.0f;
-	}
-
-	if (mCameraTrembleTime > 0) {
-		const float trembleVol = 0.085;
-		mCameraTrembleOffset = ruVector3(frandom(-trembleVol, trembleVol), frandom(-trembleVol, trembleVol), frandom(-trembleVol, trembleVol));
-		mCameraTrembleTime -= gFixedTick;
-	} else {
-		mCameraTrembleOffset = ruVector3(0.0f, 0.0f, 0.0f);
-	}
-	mCameraOffset = mCameraOffset.Lerp(mCameraShakeOffset, 0.25f) + mCameraTrembleOffset;
-	mpCamera->mCamera->SetPosition(mCameraOffset);
-}
-
-void Player::DrawSheetInHands() {
-	if (!mSheetInHands.expired()) {
-		auto sheet = mSheetInHands.lock();
-		mHUD->SetAction(ruInput::Key::None, StringBuilder() << sheet->GetDescription() << mLocalization.GetString("sheetOpen"));
-		if (ruInput::IsMouseHit(ruInput::MouseButton::Right) || (sheet->mObject->GetPosition() - mBody->GetPosition()).Length2() > 2) {
-			CloseCurrentSheet();
-		}
-	}
-}
-
 
 void Player::UpdateItemsHandling() {
-	if (!mInventory->IsOpened()) {
-		if (mNearestPickedNode) {
-			if (IsUseButtonHit()) {
-				auto sheet = Level::Current()->FindSheet(mNearestPickedNode->GetName());
-
-				if (mSheetInHands.expired()) {
-					if (sheet) {
-						mSheetInHands = sheet;
-						sheet->SetVisible(true);
-
-
-						// add note to readed
-						mInventory->AddReadedNote(sheet->GetDescription(), sheet->GetText());
-					}
-				} else {
-					CloseCurrentSheet();
-				}
-			}
-		}
-	}
-
 	if (mNodeInHands) {
 		if (mPitch < 70) {
 			ruVector3 ppPos = mItemPoint->GetPosition();
@@ -710,15 +823,11 @@ void Player::UpdatePicking() {
 		ruVector3 dir = ppPos - pickPosition;
 
 		auto pIO = Level::Current()->FindInteractiveObject(mPickedNode->GetName());
-		auto pSheet = Level::Current()->FindSheet(mPickedNode->GetName());
-
 		if (dir.Length2() < 1.5f) {
 			mNearestPickedNode = mPickedNode;
 			string pickedObjectDesc;
 			if (pIO) {
 				mHUD->SetAction(mKeyUse, StringBuilder() << pIO->GetPickDescription() << " - " << mLocalization.GetString("itemPick"));
-			} else if (pSheet) {
-				mHUD->SetAction(mKeyUse, StringBuilder() << pIO->GetPickDescription() << " - " << mLocalization.GetString("sheetPick"));
 			} else {
 				if (IsObjectHasNormalMass(mPickedNode) && !mPickedNode->IsFrozen()) {
 					mHUD->SetAction(ruInput::Key::None, mLocalization.GetString("objectPick"));
@@ -750,41 +859,13 @@ bool Player::IsObjectHasNormalMass(shared_ptr<ruSceneNode> node) {
 }
 
 void Player::Serialize(SaveFile & s) {
-	int usableObjectCount = mUsableObjectList.size();
-	s & usableObjectCount;
-
-	int currentUsableObject = -1;
-	int i = 0;
-	for (auto uo : mUsableObjectList) {
-		if (uo == mCurrentUsableObject) {
-			currentUsableObject = i;
-		}
-		i++;
-	}
-	s & currentUsableObject;
-
-	if (s.IsLoading()) {
-		for (int i = 0; i < usableObjectCount; i++) {
-			AddUsableObject(UsableObject::Deserialize(s));
-		}
-		mCurrentUsableObject = mUsableObjectList[currentUsableObject];
-		mCurrentUsableObject->Appear();
-	} else {
-		for (auto uo : mUsableObjectList) {
-			uo->Serialize(s);
-		}
-	}
-
 	ruVector3 position = mBody->GetPosition();
-	string ladderName = mLadder.expired() ? "undefinedWay" : mLadder.lock()->GetEnterZone()->GetName();
-	string sheetName = mSheetInHands.expired() ? "undefinedSheet" : mSheetInHands.lock()->mObject->GetName();
+	string ladderName = mLadder.expired() ? "undefinedWay" : mLadder.lock()->mEnterZone->GetName();
 	bool collisionEnabled = mBody->IsCollisionEnabled();
 
 	s & ladderName;
-	s & sheetName;
 	s & collisionEnabled;
 	s & position;
-	s & mRunCameraShakeCoeff;
 	s & mSpeed;
 	s & mSpeedTo;
 	s & mGravity;
@@ -794,11 +875,7 @@ void Player::Serialize(SaveFile & s) {
 	s & mHealth;
 	s & mMaxHealth;
 	s & mMaxStamina;
-	s & mRunSpeedMult;	
-	s & mCameraBobCoeff;
-	s & mCameraOffset;
-	s & mCameraShakeOffset;
-	s & mHeadHeight;
+	s & mRunSpeedMult;
 	s & mObjectThrown;
 	s & mDead;
 	s & mFrameColor;
@@ -808,7 +885,7 @@ void Player::Serialize(SaveFile & s) {
 	s & mKeyStrafeLeft;
 	s & mKeyStrafeRight;
 	s & mKeyJump;
-	s & mKeyFlashLight;
+	s & mKeyFlashlightHotkey;
 	s & mKeyRun;
 	s & mKeyInventory;
 	s & mKeyUse;
@@ -816,13 +893,28 @@ void Player::Serialize(SaveFile & s) {
 	s & mFlashlightLocked;
 	s & mLastHealth;
 	s & mCrouch;
-	mPitch.Serialize(s);
-	mYaw.Serialize(s);
-	mBreathVolume.Serialize(s);
-	mHeartBeatVolume.Serialize(s);
-	mHeartBeatPitch.Serialize(s);
-	mBreathPitch.Serialize(s);
-	mFov.Serialize(s);
+	s & mPitch;
+	s & mYaw;
+	s & mFov;
+	s & mHealthRegenTimer;
+	s & mFlashlightEnabled;
+
+	// serialize animations
+	s & mWalkAnimation;
+	s & mCrouchAnimation;
+	s & mCrouchWalkAnimation;
+	s & mRunAnimation;
+	s & mStayAnimation;
+	s & mGrabAnimation;
+	s & mPushDoorAnimation;
+	s & mPickUpAnimation;
+	s & mJumpAnimation;
+	s & mLookRightAnimation;
+	s & mLookLeftAnimation;
+	s & mLadderCrawlInAnimation;
+	s & mLadderCrawlAnimation;
+	s & mSwitchFlashlightAnimation;
+
 	mInventory->Serialize(s);
 
 	if (s.IsLoading()) {
@@ -832,18 +924,11 @@ void Player::Serialize(SaveFile & s) {
 		mBody->SetAngularFactor(ruVector3(0, 0, 0));
 
 		mLadder = Level::Current()->FindLadder(ladderName);
-		if (mLadder.use_count()) {
-			mBody->Freeze();
+		if (!mLadder.expired()) {
+			mBodyModel->Detach();
+			mBodyModel->SetPosition(position);
+			Freeze();
 		}
-
-		mSheetInHands = Level::Current()->FindSheet(sheetName);
-	}
-}
-
-void Player::CloseCurrentSheet() {
-	if (!mSheetInHands.expired()) {
-		mSheetInHands.lock()->SetVisible(false);
-		mSheetInHands.reset();
 	}
 }
 
@@ -851,23 +936,6 @@ Parser * Player::GetLocalization() {
 	return &mLocalization;
 }
 
-Flashlight * Player::GetFlashLight() {
-	for (auto uo : mUsableObjectList) {
-		if (typeid(*uo) == typeid(Flashlight)) {
-			return dynamic_cast<Flashlight*>(uo);
-		}
-	}
-	return nullptr;
-}
-
-Weapon * Player::GetWeapon() {
-	for (auto uo : mUsableObjectList) {
-		if (typeid(*uo) == typeid(Weapon)) {
-			return dynamic_cast<Weapon*>(uo);
-		}
-	}
-	return nullptr;
-}
 
 unique_ptr<Inventory> & Player::GetInventory() {
 	return mInventory;
@@ -880,21 +948,6 @@ void Player::SetHUDVisible(bool state) {
 	}
 }
 
-void Player::UpdateUsableObjects() {
-	if (mCurrentUsableObject) {
-		for (auto & usableObject : mUsableObjectList) {
-			usableObject->GetModel()->Hide();
-		}
-		mCurrentUsableObject->GetModel()->Show();
-		if (ruInput::GetMouseWheelSpeed() < 0) {
-			mCurrentUsableObject->Prev();
-		} else if (ruInput::GetMouseWheelSpeed() > 0) {
-			mCurrentUsableObject->Next();
-		}
-		mCurrentUsableObject->Update();
-	}
-}
-
 bool Player::IsDead() {
 	return mHealth <= 0.0f;
 }
@@ -902,10 +955,6 @@ bool Player::IsDead() {
 void Player::SetPosition(ruVector3 position) {
 	Actor::SetPosition(position);
 	mAirPosition = mBody->GetPosition(); // prevent death from 'accidental' landing :)
-}
-
-void Player::TrembleCamera(float time) {
-	mCameraTrembleTime = time;
 }
 
 void Player::TurnOffFakeLight() {
@@ -924,76 +973,44 @@ void Player::LockFlashlight(bool state) {
 	mFlashlightLocked = state;
 }
 
-bool Player::AddUsableObject(UsableObject * usObj) {
-	bool alreadyGotObjectOfThisType = false;
-	UsableObject * existingUsableObject = nullptr;
-	for (auto uo : mUsableObjectList) {
-		if (typeid(*uo) == typeid(*usObj)) {
-			alreadyGotObjectOfThisType = true;
-			existingUsableObject = uo;
-			break;
-		}
-	}
-	if (alreadyGotObjectOfThisType) {		
-		existingUsableObject->OnPickupSame();
-	
-		delete usObj;
-
-		// object is not added
-		return false;
-	} else {
-		if (mCurrentUsableObject == nullptr) {
-			mCurrentUsableObject = usObj;
-		}
-
-		// attach to camera
-		usObj->GetModel()->Attach(mpCamera->mCamera);
-
-
-		// register in inventory
-		mInventory->AddItem(usObj->GetItemType());
-
-		// link last object with new for correct switching
-		if (mUsableObjectList.size() > 0) {
-			mUsableObjectList.at(mUsableObjectList.size() - 1)->Link(usObj);
-		}
-
-		// add it to list
-		mUsableObjectList.push_back(usObj);
-
-		// object added
-		return true;
-	}
-}
-
-void Player::DumpUsableObjects(vector<UsableObject*> & otherPlace) {
-	// this method is useful to transfer usable objects between levels
-	for (auto uo : mUsableObjectList) {
-		uo->GetModel()->Detach();
-	}
-	otherPlace = mUsableObjectList;
-	mUsableObjectList.clear();
-}
-
 inline void Player::Interact() {
+	// interact with ladders
 	for (auto ladder : Level::Current()->GetLadderList()) {
-		if (!ladder->IsPlayerInside()) {
-			if (ladder->IsEnterPicked()) {
+		// can climb-in only on free ladders
+		if (ladder->mStatus == Ladder::Status::Free) {
+			if (mNearestPickedNode == ladder->mEnterZone) {
 				mHUD->SetAction(mKeyUse, mLocalization.GetString("crawlIn"));
 				if (IsUseButtonHit()) {
-					ladder->Enter();
+					// select which way to climb-in
+					if (ladder->mBegin->GetPosition().Distance(mBody->GetPosition()) < ladder->mEnd->GetPosition().Distance(mBody->GetPosition())) {
+						ladder->mStatus = Ladder::Status::ActorClimbInBottom;
+					} else {
+						ladder->mStatus = Ladder::Status::ActorClimbInTop;
+					}
+
+					// enable climb-in animation
+					mLadderCrawlInAnimation.SetEnabled(true);
+					SetBodyAnimation(&mLadderCrawlInAnimation);
+
+					// freeze physical body, to manual control of position
+					Freeze();
 					mLadder = ladder;
 				}
 			}
 		}
 	}
 
+
+	// interact with doors
 	for (auto pDoor : Level::Current()->GetDoorList()) {
 		pDoor->Update();
 		if (mNearestPickedNode == pDoor->GetNode()) {
 			if (!pDoor->IsLocked()) {
 				mHUD->SetAction(mKeyUse, mLocalization.GetString("openClose"));
 				if (IsUseButtonHit()) {
+					mPushDoorAnimation.SetEnabled(true); // <<<< Animation
+					SetLeftArmAnimation(&mPushDoorAnimation);
+
 					pDoor->SwitchState();
 				}
 			} else {
@@ -1018,14 +1035,101 @@ void Player::Step(ruVector3 direction, float speed) {
 }
 
 void Player::EmitStepSound() {
-	ruRayCastResultEx result = ruPhysics::CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
-	if (result.valid) {
-		for (auto & sMat : mSoundMaterialList) {
-			shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
-			if (snd) {
-				snd->Play(true);
+	if (mMoved) {
+		ruRayCastResultEx result = ruPhysics::CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
+		if (result.valid) {
+			for (auto & sMat : mSoundMaterialList) {
+				shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
+				if (snd) {
+					snd->Play(false);
+				}
 			}
 		}
 	}
 }
 
+void Player::SetLeftLegAnimation(ruAnimation * anim) {
+	for (auto bp : mLeftLeg) {
+		bp->SetAnimation(anim, true);
+	}
+}
+
+void Player::SetRightLegAnimation(ruAnimation * anim) {
+	for (auto bp : mRightLeg) {
+		bp->SetAnimation(anim, true);
+	}
+}
+
+void Player::SetLeftArmAnimation(ruAnimation * anim) {
+	for (auto bp : mLeftArm) {
+		bp->SetAnimation(anim, true);
+	}
+}
+
+void Player::SetRightArmAnimation(ruAnimation * anim) {
+	for (auto bp : mRightArm) {
+		bp->SetAnimation(anim, true);
+	}
+}
+
+void Player::SetSpineAnimation(ruAnimation * anim) {
+	for (auto bp : mSpine) {
+		bp->SetAnimation(anim, true);
+	}
+}
+
+void Player::SetLegsAnimation(ruAnimation * anim) {
+	SetLeftLegAnimation(anim);
+	SetRightLegAnimation(anim);
+}
+
+void Player::SetArmsAnimation(ruAnimation * anim) {
+	SetLeftArmAnimation(anim);
+	SetRightArmAnimation(anim);
+}
+
+void Player::SetBodyAnimation(ruAnimation * anim) {
+	// do partial animation
+	if (mPushDoorAnimation.IsEnabled()) {
+		SetLeftArmAnimation(&mPushDoorAnimation);
+		SetRightArmAnimation(anim);
+		SetLegsAnimation(anim);
+		SetSpineAnimation(anim);
+	} else if (mPickUpAnimation.IsEnabled()) {
+		SetLeftArmAnimation(&mPickUpAnimation);
+		SetRightArmAnimation(anim);
+		SetLegsAnimation(anim);
+		SetSpineAnimation(anim);
+	} else if (mSwitchFlashlightAnimation.IsEnabled()) {
+		SetLeftArmAnimation(&mSwitchFlashlightAnimation);
+		SetRightArmAnimation(anim);
+		SetLegsAnimation(anim);
+		SetSpineAnimation(anim);
+	} else if (mLookLeftAnimation.IsEnabled()) {
+		SetSpineAnimation(&mLookLeftAnimation);
+		SetLegsAnimation(anim);
+		SetArmsAnimation(anim);
+	} else if (mLookRightAnimation.IsEnabled()) {
+		SetSpineAnimation(&mLookRightAnimation);
+		SetLegsAnimation(anim);
+		SetArmsAnimation(anim);
+	} else if (mJumpAnimation.IsEnabled()) {
+		mBodyModel->SetAnimation(&mJumpAnimation);
+	} else {
+		mBodyModel->SetAnimation(anim);
+	}
+}
+
+void Player::LadderEmitStepSound() {
+	if (!mLadder.expired()) {
+		auto ladder = mLadder.lock();
+		if (ladder->mEnterZone->GetTextureCount() > 0) {
+			for (auto & sMat : mSoundMaterialList) {
+				shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(ladder->mEnterZone->GetTexture(0)->GetName());
+				if (snd) {
+					snd->Play(true);
+				}
+			}
+		}
+	}
+}

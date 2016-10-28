@@ -49,6 +49,7 @@ private:
     unique_ptr<RadioButton> mpShadowsButton;
     unique_ptr<RadioButton> mpHDRButton;
     unique_ptr<ScrollList> mpTextureFiltering;
+	
 
     // Keys
     unique_ptr<WaitKeyButton> mpMoveForwardKey;

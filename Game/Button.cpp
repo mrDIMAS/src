@@ -7,29 +7,26 @@
 void Button::Update() {
 	auto & player = Level::Current()->GetPlayer();
 	if (player->mNearestPickedNode == mNode) {
-		player->GetHUD()->SetAction(player->mKeyUse, "Запустить генератор"); // WAT?????
-		if (ruInput::IsKeyHit(player->mKeyUse)) {
-			OnPush.DoActions();
-			mPushSound->Play();
-			mPush = true;
-		}
-		if (ruInput::IsKeyDown(player->mKeyUse)) {
-			mNode->SetPosition(mInitialPosition - mAxis * mSize / 2.0f);
+		player->GetHUD()->SetAction(player->mKeyUse, mText);
+		if (ruInput::IsKeyHit(player->mKeyUse) && !mPushAnimation.IsEnabled()) {
+			mPushAnimation.SetEnabled(true);
 		}
 	}
-	if (!ruInput::IsKeyDown(player->mKeyUse)) {
-		mNode->SetPosition(mInitialPosition);
-	}
-	if (mPush) {
-		mPopSound->Play();
-		mPush = false;
-	}
+
+	mPushAnimation.Update();
 }
 
-Button::Button(shared_ptr<ruSceneNode> node, const ruVector3 & axis, shared_ptr<ruSound> pushSound, shared_ptr<ruSound> popSound)
-	: mNode(node), mAxis(axis), mPush(false), mPushSound(pushSound), mPopSound(popSound) {
-	mInitialPosition = mNode->GetPosition();
-	mSize = (mNode->GetAABBMax() - mNode->GetAABBMin()).Abs();
+Button::Button(const shared_ptr<ruSceneNode> & node, const string & text, const ruDelegate & onPush) :
+	mNode(node),  
+	mText(text)
+{
+	mPushSound = ruSound::Load3D("data/sounds/button.ogg");
 	mPushSound->Attach(mNode);
-	mPopSound->Attach(mNode);
+
+	mPushAnimation = ruAnimation(0, mNode->GetTotalAnimationFrameCount() - 1, 0.8f, false);
+	mPushAnimation.AddFrameListener(mNode->GetTotalAnimationFrameCount() / 2, [this] { OnPush(); mPushSound->Play(); });
+
+	mNode->SetAnimation(&mPushAnimation);
+
+	OnPush += onPush;
 }

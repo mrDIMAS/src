@@ -43,8 +43,6 @@ private:
 	bool mPlayerDetected;
 	shared_ptr<ruTimer> mPlayerInSightTimer;
 
-	float mLastStepLength;
-	float mStepLength;
 
 	MoveType mMoveType;
 
@@ -73,10 +71,18 @@ private:
 	shared_ptr<ruSound> mFadeAwaySound;
 	bool mDead;
 
-	void Proxy_HitPlayer();
+	void HitPlayer();
 	// called from animation frames
-	void Proxy_EmitStepSound();
+	void EmitStepSound();
 	void FillByNamePattern(vector< shared_ptr<ruSceneNode> > & container, const string & pattern);
+
+	void Listen() {
+		auto sound = ruSound::PlayCallback.Caller;
+
+		if (sound->GetPosition().Distance(mBody->GetPosition()) < 16.0f) {
+
+		}
+	}
 public:
 	int GetVertexIndexNearestTo(ruVector3 position);
 	shared_ptr<ruSceneNode> GetBody();
@@ -98,5 +104,6 @@ public:
 	void CreateAnimations();
 	void Think();
 	void Serialize(SaveFile & out);
-	virtual void Damage(float dmg) final;
+	virtual void Damage(float dmg) override final;
+	void LookAt(const ruVector3 & lookAt);
 };

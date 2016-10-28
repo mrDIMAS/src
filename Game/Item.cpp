@@ -2,7 +2,6 @@
 #include "Level.h"
 #include "Item.h"
 #include "Player.h"
-#include "Weapon.h"
 
 Parser Item::msLocalization;
 
@@ -51,19 +50,6 @@ Item::Item( Type type ) :
 		mCombinePair = Type::Unknown;
 		mMass = 6.0f;
 		mContentTypeDesc = msLocalization.GetString( "crowbarContentType" );
-	} else if( mType == Type::Pistol ) {
-		mDesc = msLocalization.GetString( "pistolDesc" );
-		mName = GetNameByType( mType );
-		mPic = ruTexture::Request( "data/gui/inventory/items/pistol.png" );
-		mCombinePair = Type::Bullet;
-		mSingleInstance = true;
-		mMass = 4.0f;
-	} else if( mType == Type::Bullet ) {
-		mDesc = msLocalization.GetString( "bulletDesc" );
-		mName = GetNameByType( mType );
-		mPic = ruTexture::Request( "data/gui/inventory/items/bullet.png" );
-		mCombinePair = Type::Pistol;
-		mMass = 0.12f;
 	} else if( mType == Type::Lighter ) {
 		mDesc = msLocalization.GetString( "flashlightDesc" );
 		mName = GetNameByType( mType );
@@ -80,14 +66,6 @@ Item::Item( Type type ) :
 		mCombinePair = Type::Unknown;
 		mMass = 5.0f;
 		mContentTypeDesc = msLocalization.GetString( "fuseContentType" );
-	} else if( mType == Type::Syringe ) {
-		mDesc = msLocalization.GetString( "syringeDesc" );
-		mName = GetNameByType( mType );
-		mPic = ruTexture::Request( "data/gui/inventory/items/item_syringe.png" );
-		mSingleInstance = true;
-		mCombinePair = Type::Unknown;
-		mMass = 0.12f;
-		mContentTypeDesc = msLocalization.GetString( "syringeContentType" );
 	} else if( mType == Type::Beaker ) {
 		mDesc = msLocalization.GetString( "beakerDesc" );
 		mName = GetNameByType( mType );
@@ -142,31 +120,6 @@ Item::Type Item::GetType() const {
 }
 
 bool Item::Combine( Item::Type combinerType ) {
-    if( mCombinePair == combinerType  ) {
-		auto & player = Level::Current()->GetPlayer();
-
-        // player flashlight charge
-		if( mType == Type::FuelCanister && combinerType == Type::Lighter ||
-			mType == Type::Lighter && combinerType == Type::FuelCanister ) {
-			if(player->GetFlashLight() ) {
-				player->GetFlashLight()->Fuel();
-				player->GetInventory()->RemoveItem( Item::Type::FuelCanister, 1 );
-				return true;
-			}
-		}
-
-		// pistol reloading
-		if( mType == Type::Pistol && combinerType == Type::Bullet ||
-			mType == Type::Bullet && combinerType == Type::Pistol ) {	
-			if(player->GetWeapon() ) {
-				bool bulletLoaded = player->GetWeapon()->LoadBullet();
-				if( bulletLoaded ) {
-					player->GetInventory()->RemoveItem( Item::Type::Bullet, 1 );
-					return true;
-				}					
-			}
-		}        
-    }
     return false;
 }
 
@@ -209,16 +162,12 @@ std::string Item::GetNameByType( Type type ) {
 		return msLocalization.GetString("explosivesName");
 	case Type::Crowbar:
 		return msLocalization.GetString("crowbarName");
-	case Type::Pistol:
-		return msLocalization.GetString("pistolName");
 	case Type::Bullet:
 		return msLocalization.GetString("bulletName");
 	case Type::Lighter:
 		return msLocalization.GetString("flashlightName");
 	case Type::Fuse:
 		return msLocalization.GetString("fuseName");
-	case Type::Syringe:
-		return msLocalization.GetString("syringeName");
 	case Type::Beaker:
 		return msLocalization.GetString("beakerName");
 	case Type::FerrumOxide:

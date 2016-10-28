@@ -46,13 +46,12 @@ void GUIText::BreakOnLines() {
 	
 	int stepX = 0, stepY = 0;
 	int gWidth = 0, height = 0;
-	gft_texcoord_t texCoords[4];
 
 	size_t length = mTextUTF32.length();
 	for (int i = 0; i < length; ++i) {
 		char32_t symbol = mTextUTF32[i];
 
-		gft_glyph_get_width(mFont->mFont, symbol, &gWidth);
+		gft_glyph_get_caret_step_x(mFont->mFont, symbol, &gWidth);
 		gft_glyph_get_caret_step_y(mFont->mFont, symbol, &stepY);
 
 		if (symbol > 0 && symbol < 255) {
@@ -83,7 +82,7 @@ void GUIText::BreakOnLines() {
 			float width = 0.0f;
 			for (int i = 0; i < line.mSubstring.size(); ++i) {
 				char32_t symbol = line.mSubstring[i];
-				gft_glyph_get_width(mFont->mFont, symbol, &gWidth);
+				gft_glyph_get_caret_step_x(mFont->mFont, symbol, &gWidth);
 				width += gWidth;
 			}
 			line.mX = (mWidth - width) * 0.5f;

@@ -36,10 +36,10 @@ Inventory::Inventory() :
 	// Tab buttons 
 	{
 		mPageItems = mScene->CreateButton(backgroundX, backgroundY - 32, 120, 32, ruTexture::Request("data/gui/inventory/button2.png"), mLocalization.GetString("pageItems"), mFont, pGUIProp->mForeColor);
-		mPageItems->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Inventory::OnPageItemsClick));
+		mPageItems->AddAction(ruGUIAction::OnClick, [this] { OnPageItemsClick(); });
 
 		mPageNotes = mScene->CreateButton(backgroundX + 120, backgroundY - 32, 120, 32, ruTexture::Request("data/gui/inventory/button2.png"), mLocalization.GetString("pageNotes"), mFont, pGUIProp->mForeColor);
-		mPageNotes->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Inventory::OnPageNotesClick));
+		mPageNotes->AddAction(ruGUIAction::OnClick, [this] { OnPageNotesClick(); });
 	}
 
 	// background
@@ -108,7 +108,7 @@ Inventory::Inventory() :
 	}
 
 	int offset = combineBoxY + 2.2f * mCellHeight;
-	mItemDescription = mScene->CreateText("Desc",  2 * itemSpacing, descriptionY + 2.5 * itemSpacing, backgroundW - 2 * itemSpacing - 128, combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3(200, 200, 200), ruTextAlignment::Left, 255);
+	mItemDescription = mScene->CreateText("Desc",  2 * itemSpacing, descriptionY + 5 * itemSpacing, backgroundW - 2 * itemSpacing - 128, combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3(200, 200, 200), ruTextAlignment::Left, 255);
 	mItemDescription->Attach(mItemsBackground);
 
 	// characteristics of item
@@ -133,7 +133,7 @@ Inventory::Inventory() :
 		mNotesList = unique_ptr<ScrollList>(new ScrollList(mScene, 80, 20, ruTexture::Request("data/gui/menu/button.tga"), " " ));
 		mNotesList->AttachTo(mNotesBackground);
 
-		mNoteText = mScene->CreateText("(nothing)", 30, 60, backgroundW - 60, backgroundH - 90, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+		mNoteText = mScene->CreateText(" ", 30, 60, backgroundW - 60, backgroundH - 90, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
 		mNoteText->Attach(mNotesBackground);
 	}
 
@@ -162,9 +162,15 @@ void Inventory::Update() {
 	if (mTab == Tab::Items) {
 		mItemsBackground->SetVisible(true);
 		mNotesBackground->SetVisible(false);
+
+		mPageItems->SetSize(mPageItems->GetSize().x, 40);
+		mPageNotes->SetSize(mPageNotes->GetSize().x, 32);
 	} else {
 		mNotesBackground->SetVisible(true);
 		mItemsBackground->SetVisible(false);
+
+		mPageNotes->SetSize(mPageNotes->GetSize().x, 40);
+		mPageItems->SetSize(mPageItems->GetSize().x, 32);
 	}
 
 	if (mReadedNotes.size() > 0) {
@@ -419,6 +425,9 @@ void Inventory::Serialize(SaveFile & s) {
 			s & text;
 			
 			AddReadedNote(desc, text);
+
+			mTab = Tab::Items;
+			SetVisible(false);
 		} else {
 			desc = mReadedNotes[i].first;
 			text = mReadedNotes[i].second;
@@ -427,6 +436,8 @@ void Inventory::Serialize(SaveFile & s) {
 			s & text;
 		}
 	}
+
+
 }
 
 void Inventory::AddItem(Item::Type type) {

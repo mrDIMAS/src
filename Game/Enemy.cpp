@@ -5,16 +5,20 @@
 #include "Door.h"
 #include "Level.h"
 
-Enemy::Enemy(vector<GraphVertex*> & path, vector<GraphVertex*> & patrol) : Actor(0.5f, 0.25f), mHitDistance(1.3) {
+Enemy::Enemy(vector<GraphVertex*> & path, vector<GraphVertex*> & patrol) :
+	Actor(0.5f, 0.25f),
+	mHitDistance(1.3),
+	mCurrentPatrolPoint(0),
+	mAngleTo(0.0f),
+	mAngle(0.0f),
+	mRunSpeed(1.5f),
+	mMoveType(MoveType::GoToDestination),
+	mDestinationWaypointNum(0),
+	mLastDestinationIndex(-1),
+	mPlayerDetected(false),
+	mDead(false) {
 	mPathfinder.SetVertices(path);
 	mPatrolPointList = patrol;
-	mCurrentPatrolPoint = 0;
-
-	mHead = nullptr;
-	mBloodSpray = nullptr;
-
-	mStepLength = 0.0f;
-	mLastStepLength = 0.0f;
 
 	mModel = ruSceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
 	mModel->Attach(mBody);
@@ -22,41 +26,26 @@ Enemy::Enemy(vector<GraphVertex*> & path, vector<GraphVertex*> & patrol) : Actor
 	mModel->SetBlurAmount(1.0f);
 
 	FindBodyparts();
-
-	mAngleTo = 0.0f;
-	mAngle = 0.0f;
-
 	CreateSounds();
-
 	CreateAnimations();
 
-	mRunSpeed = 1.5f;
-
-	mMoveType = MoveType::GoToDestination;
-
-	mDestinationWaypointNum = 0;
-	mLastDestinationIndex = -1;
-	mPlayerDetected = false;
 	mPlayerInSightTimer = ruTimer::Create();
-
-	mDead = false;
+	mResurrectTimer = ruTimer::Create();
+	mPathCheckTimer = ruTimer::Create();
 
 	mFadeAwaySound = ruSound::Load2D("data/sounds/fadeaway.ogg");
 	mFadeAwaySound->SetVolume(1.0f);
-	mResurrectTimer = ruTimer::Create();
 
-	mPathCheckTimer = ruTimer::Create();
-
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/stone.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/metal.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/wood.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/gravel.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/muddyrock.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/rock.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/grass.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/soil.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/chain.smat", mBody)));
-	mSoundMaterialList.push_back(unique_ptr<SoundMaterial>(new SoundMaterial("data/materials/mud.smat", mBody)));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/stone.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/metal.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/wood.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/gravel.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/muddyrock.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/rock.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/grass.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/soil.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/chain.smat", mBody));
+	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/mud.smat", mBody));
 	for (auto & pMat : mSoundMaterialList) {
 		for (auto & pSound : pMat->GetSoundList()) {
 			pSound->SetVolume(0.75f);
@@ -65,6 +54,9 @@ Enemy::Enemy(vector<GraphVertex*> & path, vector<GraphVertex*> & patrol) : Actor
 			pSound->SetReferenceDistance(5);
 		}
 	}
+
+	// set callback to let enemy 'hear' sounds and properly react to it
+	ruSound::PlayCallback.PlayEvent += [this] { Listen(); };
 }
 
 // grim code ahead
@@ -96,7 +88,7 @@ void Enemy::Think() {
 		}
 	}
 
-	bool reachPoint = (mDestinationWaypointNum - mCurrentWaypointNum) < 0;
+
 
 	if (mDoPatrol) {
 		mMoveType = MoveType::GoToDestination;
@@ -116,33 +108,27 @@ void Enemy::Think() {
 	float distanceToTarget = direction.Length();
 	direction.Normalize();
 
-	mAngleTo = atan2f(direction.x, direction.z) - M_PI / 2;
-	mAngleTo = (mAngleTo > 0 ? mAngleTo : (2 * M_PI + mAngleTo)) * 360 / (2 * M_PI);
-
-
-
-	mBody->SetRotation(ruQuaternion(0, mAngle, 0));
+	LookAt(mTarget);
 
 	bool move = true;
-	bool playerTooFar = mTargetIsPlayer && distanceToTarget > 10.0f;
+
 	ruVector3 toPlayer = player->mpCamera->mCamera->GetPosition() - (mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f);
 	bool playerInView = player->IsVisibleFromPoint(mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f);
 	float angleToPlayer = abs(toPlayer.Angle(direction) * 180.0f / M_PI);
 
 	bool enemyDetectPlayer = false;
 	if (playerInView) {
-		Flashlight * flashLight = player->GetFlashLight();
-		if (flashLight) {
-			if (flashLight->IsOn()) {
-				// if we light up enemy, he detects player
-				if (flashLight->IsBeamContainsPoint(mBody->GetPosition())) {
-					if (!mPlayerDetected) {
-						mPlayerInSightTimer->Restart();
-						mPlayerDetected = true;
-					}
+		if (player->mFlashlightEnabled) {
+			// if we light up enemy, he detects player
+			if (player->mFlashlight->IsSeePoint(mBody->GetPosition())) {
+				if (!mPlayerDetected) {
+					mPlayerInSightTimer->Restart();
+					mPlayerDetected = true;
 				}
 			}
 		}
+
+
 		float detectDistance = player->mStealthFactor * 10.0f;
 		// player right in front of enemy
 		if ((distanceToPlayer < detectDistance) && (angleToPlayer < 45)) {
@@ -151,6 +137,7 @@ void Enemy::Think() {
 				mPlayerDetected = true;
 			}
 		}
+
 		// enemy doesn't see player, but can hear he, if he moved
 		if ((player->mStealthFactor >= 0.3f && player->mMoved && (distanceToPlayer < 5.0f))) {
 			if (!mPlayerDetected) {
@@ -178,7 +165,7 @@ void Enemy::Think() {
 
 
 	// DEBUG
-	// enemyDetectPlayer = false;
+	enemyDetectPlayer = false;
 
 	if (enemyDetectPlayer) {
 		mMoveType = MoveType::ChasePlayer;
@@ -195,12 +182,8 @@ void Enemy::Think() {
 		mScreamSound->Pause();
 	}
 
-	if (enemyDetectPlayer) {
-		mAngle = mAngleTo;
-	} else {
-		mAngle += (mAngleTo - mAngle) * 0.05f;
-	}
 	if (mMoveType == MoveType::ChasePlayer) {
+		bool playerTooFar = mTargetIsPlayer && distanceToTarget > 10.0f;
 		if (playerTooFar || player->mDead) {
 			mDoPatrol = true;
 			mMoveType = MoveType::GoToDestination;
@@ -224,15 +207,15 @@ void Enemy::Think() {
 	} else if (mMoveType == MoveType::GoToDestination) {
 		GraphVertex * destNearestVertex = mPathfinder.GetVertexNearestTo(mDestination, &mCurrentDestinationIndex);
 		GraphVertex * enemyNearestVertex = mPathfinder.GetVertexNearestTo(mBody->GetPosition());
-		if (mCurrentDestinationIndex != mLastDestinationIndex) { // means player has moved to another waypoint
+
+		// means player has moved to another waypoint
+		if (mCurrentDestinationIndex != mLastDestinationIndex) {
 			mPathfinder.BuildPath(enemyNearestVertex, destNearestVertex, mCurrentPath);
 			mDestinationWaypointNum = GetVertexIndexNearestTo(mCurrentPath.back()->mPosition);
 			mCurrentWaypointNum = GetVertexIndexNearestTo(mCurrentPath.front()->mPosition);
 			// go back
 			if (mCurrentWaypointNum > mDestinationWaypointNum) {
-				int temp = mCurrentWaypointNum;
-				mCurrentWaypointNum = mDestinationWaypointNum;
-				mDestinationWaypointNum = temp;
+				std::swap(mCurrentWaypointNum, mDestinationWaypointNum);
 			}
 
 			mLastDestinationIndex = mCurrentDestinationIndex;
@@ -241,7 +224,7 @@ void Enemy::Think() {
 		SetRunAnimation();
 	}
 
-	const float doorCheckDistance = 8.0f;
+	const float doorCheckDistance = 7.0f;
 	// check doors
 	bool allDoorsAreOpen = true;
 	for (auto pDoor : Level::Current()->GetDoorList()) {
@@ -267,8 +250,8 @@ void Enemy::Think() {
 		}
 	}
 
-	if (move && !reachPoint && allDoorsAreOpen) {
-		mStepLength += 0.1f;
+	bool reachDestination = (mDestinationWaypointNum - mCurrentWaypointNum) < 0;
+	if (move && !reachDestination && allDoorsAreOpen) {
 		ruVector3 gravity;
 		if (direction.y > 0.1) {
 			gravity = ruVector3(0, 0, 0);
@@ -283,14 +266,15 @@ void Enemy::Think() {
 		StopInstant();
 	}
 
+	// wait while all doors nearby (exculuding locked) becomes open
 	if (!allDoorsAreOpen) {
 		StopInstant();
 		SetIdleAnimation();
 	}
 
 
-	if (mPathCheckTimer->GetElapsedTimeInSeconds() > 2.5f) {
-		// got obstacle (door), can't get throuh it, try next patrol point
+	if (mPathCheckTimer->GetElapsedTimeInSeconds() > 2.0f) {
+		// got obstacle (locked door, solid object and etc.), can't get throuh it, try next patrol point
 		if ((mModel->GetPosition() - mLastCheckPosition).Length2() < 0.055) {
 			SetNextPatrolPoint();
 		}
@@ -323,7 +307,6 @@ void Enemy::SetWalkAnimation() {
 	mWalkAnimation.SetEnabled(true);
 	mAttackAnimation.SetEnabled(false);
 }
-
 
 void Enemy::SetStayAndAttackAnimation() {
 	SetCommonAnimation(&mIdleAnimation);
@@ -372,15 +355,15 @@ void Enemy::SetLegsAnimation(ruAnimation *pAnim) {
 
 void Enemy::CreateAnimations() {
 	mRunAnimation = ruAnimation(0, 33, 0.8, true);
-	mRunAnimation.AddFrameListener(5, ruDelegate::Bind(this, &Enemy::Proxy_EmitStepSound));
-	mRunAnimation.AddFrameListener(23, ruDelegate::Bind(this, &Enemy::Proxy_EmitStepSound));
+	mRunAnimation.AddFrameListener(5, [this] {EmitStepSound(); });
+	mRunAnimation.AddFrameListener(23, [this] {EmitStepSound(); });
 
 	mAttackAnimation = ruAnimation(34, 48, 0.78, true);
-	mAttackAnimation.AddFrameListener(44, ruDelegate::Bind(this, &Enemy::Proxy_HitPlayer));
+	mAttackAnimation.AddFrameListener(44, [this] { HitPlayer(); });
 
 	mWalkAnimation = ruAnimation(49, 76, 1, true);
-	mWalkAnimation.AddFrameListener(51, ruDelegate::Bind(this, &Enemy::Proxy_EmitStepSound));
-	mWalkAnimation.AddFrameListener(67, ruDelegate::Bind(this, &Enemy::Proxy_EmitStepSound));
+	mWalkAnimation.AddFrameListener(51, [this] {EmitStepSound(); });
+	mWalkAnimation.AddFrameListener(67, [this] {EmitStepSound(); });
 
 	mIdleAnimation = ruAnimation(77, 85, 1.5, true);
 }
@@ -417,11 +400,14 @@ int Enemy::GetVertexIndexNearestTo(ruVector3 position) {
 	return nearestIndex;
 }
 
-inline void Enemy::Proxy_HitPlayer() {
+inline void Enemy::HitPlayer() {
 	auto & player = Level::Current()->GetPlayer();
 	float distanceToPlayer = (player->GetCurrentPosition() - mBody->GetPosition()).Length();
 	if (distanceToPlayer < mHitDistance) {
+
+		//DEBUG <<<<<<<<<<<<<<<<<<<<<<<<<<<
 		player->Damage(20);
+
 		mHitFleshWithAxeSound->Play(true);
 	}
 }
@@ -429,7 +415,7 @@ inline void Enemy::Proxy_HitPlayer() {
 
 // called from animation frames
 
-inline void Enemy::Proxy_EmitStepSound() {
+inline void Enemy::EmitStepSound() {
 	ruRayCastResultEx result = ruPhysics::CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
 	if (result.valid) {
 		for (auto & sMat : mSoundMaterialList) {
@@ -503,6 +489,36 @@ void Enemy::Damage(float dmg) {
 		mBody->Hide();
 		mBody->Freeze();
 	}
+}
+
+void Enemy::LookAt(const ruVector3 & lookAt) {
+	ruVector3 delta = (lookAt - mBody->GetPosition()).Normalize();
+
+	mAngleTo = atan2(delta.x, delta.z) * 180.0f / M_PI;
+
+	mAngleTo = mAngleTo > 0 ? mAngleTo : (360.0f + mAngleTo);
+	mAngle = mAngle > 0 ? mAngle : (360.0f + mAngle);
+
+	mAngleTo = fmod(mAngleTo, 360.0f);
+	mAngle = fmod(mAngle, 360.0f);
+
+	if ((int)mAngleTo != (int)mAngle) {
+		float change = 0;
+		float diff = mAngle - mAngleTo;
+		if (diff < 0) {
+			change = 1;
+		} else {
+			change = -1;
+		}
+
+		if (fabs(diff) > 180) {
+			change = -change;
+		}
+
+		mAngle += change * 2;
+	}
+
+	mBody->SetRotation(ruQuaternion(ruVector3(0, 1, 0), mAngle - 90.0f));
 }
 
 void Enemy::SetNextPatrolPoint() {

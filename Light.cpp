@@ -33,7 +33,8 @@ Light::Light() :
 	mQueryDone(true),
 	mInFrustum(false),
 	mShadowMapIndex(0),
-	mNeedRecomputeShadowMap(true)
+	mNeedRecomputeShadowMap(true),
+	mDrawFlare(true)
 {
 	OnResetDevice();	
 }

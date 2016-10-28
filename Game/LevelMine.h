@@ -8,15 +8,36 @@
 
 class LevelMine : public Level {
 private:
-	void Proxy_GiveExplosives();
-	void Proxy_GiveDetonator();
-	void Proxy_GiveWires();
-	void Proxy_GivePistol();
-	void Proxy_GiveFuel();
-	void Proxy_GiveSyringe();
     void UpdateExplodeSequence();
     void CleanUpExplodeArea();
     void CreateItems();
+
+	// COPY-PASTE! ARGH!
+	void Proxy_ReadNote1() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note1Desc"), mLocalization.GetString("note1"));
+	}
+	void Proxy_ReadNote2() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note2Desc"), mLocalization.GetString("note2"));
+	}
+	void Proxy_ReadNote3() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note3Desc"), mLocalization.GetString("note3"));
+	}
+	void Proxy_ReadNote4() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note4Desc"), mLocalization.GetString("note4"));
+	}
+	void Proxy_ReadNote5() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note5Desc"), mLocalization.GetString("note5"));
+	}
+	void Proxy_ReadNote6() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note6Desc"), mLocalization.GetString("note6"));
+	}
+	void Proxy_ReadNote7() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note7Desc"), mLocalization.GetString("note7"));
+	}
+	void Proxy_ReadNote8() {
+		mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note8Desc"), mLocalization.GetString("note8"));
+	}
+
 
     shared_ptr<ruSceneNode> mScreamerZone;
     shared_ptr<ruSceneNode> mScreamerZone2;

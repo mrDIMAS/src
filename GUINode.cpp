@@ -156,7 +156,7 @@ void GUINode::CalculateTransform() {
 }
 
 void GUINode::AddAction(ruGUIAction act, const ruDelegate & delegat) {
-	mEventList[act].AddListener(delegat);
+	mEventList[act] += delegat;
 }
 
 bool GUINode::IsGotAction(ruGUIAction act) {
@@ -174,13 +174,13 @@ bool GUINode::IsMouseInside() {
 
 void GUINode::OnMouseEnter() {
 	if (IsGotAction(ruGUIAction::OnMouseEnter)) {
-		mEventList[ruGUIAction::OnMouseEnter].DoActions();
+		mEventList[ruGUIAction::OnMouseEnter]();
 	}
 }
 
 void GUINode::OnMouseLeave() {
 	if (IsGotAction(ruGUIAction::OnMouseLeave)) {
-		mEventList[ruGUIAction::OnMouseLeave].DoActions();
+		mEventList[ruGUIAction::OnMouseLeave]();
 	}
 }
 
@@ -201,7 +201,7 @@ void GUINode::DoActions() {
 
 void GUINode::OnClick() {
 	if (IsGotAction(ruGUIAction::OnClick)) {
-		mEventList[ruGUIAction::OnClick].DoActions();
+		mEventList[ruGUIAction::OnClick]();
 	}
 }
 

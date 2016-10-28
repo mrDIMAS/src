@@ -45,15 +45,21 @@ void InteractiveObject::Update() {
 		auto & player = Level::Current()->GetPlayer();
 		if( player->mNearestPickedNode == mObject ) {
 			if( ruInput::IsKeyHit(player->mKeyUse )) {
+				
+				player->mPickUpAnimation.SetEnabled(true);
+				player->SetBodyAnimation(&player->mPickUpAnimation);
+
 				mInteractCountLeft--;
-				OnInteract.DoActions();
-				OnInteract.RemoveAllListeners();
+				OnInteract();
+				OnInteract.Clear();
 			}
 		}
 	} else {
 		mObject->Hide();
 		mObject->SetPosition( ruVector3( -666.666, -666.666, -666.666 ));
 	}
+
+	UpdateFlashing();
 }
 
 std::string InteractiveObject::GetPickDescription() const

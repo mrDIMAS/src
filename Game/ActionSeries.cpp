@@ -21,13 +21,13 @@ void ActionSeries::Perform() {
 }
 
 void ActionSeries::AddSpace(float length) {
-	AddAction(length, ruDelegate::Bind(this, &ActionSeries::IdleActionDummy));
+	AddAction(length, [this] { IdleActionDummy(); });
 }
 
 void ActionSeries::AddAction(float length, const ruDelegate & action) {
 	mLastActionTime += length;
 	mActions[mLastActionTime] = new TimePoint();
-	mActions[mLastActionTime]->mActions.AddListener(action);
+	mActions[mLastActionTime]->mActions += action;
 	mActions[mLastActionTime]->mDone = false;
 }
 
@@ -64,7 +64,7 @@ void ActionSeries::Serialize(SaveFile & s) {
 }
 
 void ActionSeries::TimePoint::Do() {
-	mActions.DoActions();
+	mActions();
 	mDone = true;
 }
 

@@ -23,13 +23,14 @@
 #include "Renderer.h"
 
 vector<weak_ptr<ruSound>> gSoundList;
+PlaybackCallback ruSound::PlayCallback;
 
 SoundData GetSoundData( const string & fn, bool streamed ) {
 	return pfDataLoad( fn.c_str(), streamed );
 }
 
-ruSound::ruSound() {
-	pfHandle = -1;
+ruSound::ruSound() : mIs3D(false), pfHandle(-1) {
+
 }
 
 ruSound::~ruSound() {
@@ -42,6 +43,7 @@ shared_ptr<ruSound> ruSound::Load2D( const string & file ) {
 	shared_ptr<ruSound> & handle = make_shared<ruSound>();
 	handle->pfHandle = pfCreateSound( GetSoundData( file, false ), false );
 	gSoundList.push_back( handle );
+	handle->mIs3D = false;
 	return std::move( handle );
 }
 
@@ -49,6 +51,7 @@ shared_ptr<ruSound> ruSound::Load3D( const string & file ) {
 	shared_ptr<ruSound> & handle = make_shared<ruSound>();
 	handle->pfHandle = pfCreateSound( GetSoundData( file, false ), true );
 	gSoundList.push_back( handle );
+	handle->mIs3D = true;
 	return std::move( handle );
 }
 
@@ -67,6 +70,16 @@ void ruSound::Stop() {
 	pfStopSound( pfHandle );
 }
 
+bool ruSound::Is3D() const {
+	return mIs3D;
+}
+
+ruVector3 ruSound::GetPosition() const {
+	ruVector3 p;
+	pfGetSoundPosition(pfHandle, (float*)&p);
+	return p;
+}
+
 void ruSound::Attach( const shared_ptr<ruSceneNode> & node ) {
 	shared_ptr<SceneNode> & sceneNode = std::dynamic_pointer_cast<SceneNode>( node );
 	if( sceneNode ) {
@@ -75,6 +88,8 @@ void ruSound::Attach( const shared_ptr<ruSceneNode> & node ) {
 }
 
 void ruSound::Play( int oneshot ) {
+	PlayCallback.PlayEvent();
+	PlayCallback.Caller = shared_from_this();
 	pfPlaySound( pfHandle, oneshot );
 }
 

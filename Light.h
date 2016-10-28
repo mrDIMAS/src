@@ -38,6 +38,7 @@ public:
 	bool mInFrustum;
 	bool mNeedRecomputeShadowMap;
 	int mShadowMapIndex;
+	bool mDrawFlare;
     ruVector3 mColor;
     static vector<Light*> msLightList;
 public:
@@ -65,4 +66,11 @@ public:
     virtual float GetRange() const override;
 
 	virtual bool IsSeePoint( const ruVector3 & point ) = 0;	
+
+	virtual void SetDrawFlare(bool state) override {
+		mDrawFlare = state;
+	}
+	virtual bool IsDrawFlare() const override {
+		return mDrawFlare;
+	}
 };

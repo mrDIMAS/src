@@ -2,7 +2,7 @@
 #include "LevelCutsceneIntro.h"
 
 LevelCutsceneIntro::LevelCutsceneIntro(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mEnginePitch( 1.0f, 0.65f, 1.25f ) {
-	mTypeNum = LevelName::LCSIntro;
+	mName = LevelName::CutSceneIntro;
 
 	LoadSceneFromFile( "data/maps/intro.scene" );
 	mUAZ = GetUniqueObject( "UAZ" );
@@ -82,7 +82,7 @@ void LevelCutsceneIntro::DoScenario() {
 	mEngineLoop->SetPitch(mEnginePitch);
 
 	if( mUAZ->IsInsideNode( mNewLevelLoadZone )) {
-		Level::Change( LevelName::L1Arrival );
+		Level::Change( LevelName::Arrival );
 	}
 }
 

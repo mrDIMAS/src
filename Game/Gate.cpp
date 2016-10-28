@@ -2,49 +2,6 @@
 #include "Gate.h"
 #include "Level.h"
 
-void Gate::Proxy_ButtonPush() {
-	mButtonSound->Play();
-}
-
-void Gate::Proxy_BeginGateClosing() {
-	mGate->SetAnimation(&mCloseAnim);
-
-	mCloseAnim.Rewind();
-	mCloseAnim.SetEnabled(true);
-}
-
-void Gate::Proxy_BeginGateOpening() {
-	mGate->SetAnimation(&mOpenAnim);
-	mOpenAnim.Rewind();
-	mOpenAnim.SetEnabled(true);
-}
-
-void Gate::Proxy_Opening() {
-	mBeginSound->Play();
-	mState = State::Opening;
-}
-
-void Gate::Proxy_Opened() {
-	mEndSound->Play();
-	mState = State::Opened;
-	mIdleSound->Stop();
-}
-
-void Gate::Proxy_Idle() {
-	mIdleSound->Play();
-}
-
-void Gate::Proxy_Closed() {
-	mEndSound->Play();
-	mState = State::Closed;
-	mIdleSound->Stop();
-}
-
-void Gate::Proxy_Closing() {
-	mBeginSound->Play();
-	mState = State::Closing;
-}
-
 void Gate::Update() {
 	mOpenAnim.Update();
 	mCloseAnim.Update();
@@ -82,7 +39,15 @@ void Gate::Update() {
 }
 
 void Gate::Open() {
-	Proxy_BeginGateOpening();
+	mGate->SetAnimation(&mOpenAnim);
+	mOpenAnim.Rewind();
+	mOpenAnim.SetEnabled(true);
+}
+
+void Gate::Close() {
+	mGate->SetAnimation(&mCloseAnim);
+	mCloseAnim.Rewind();
+	mCloseAnim.SetEnabled(true);
 }
 
 shared_ptr<ruSceneNode> Gate::GetNode() const {
@@ -99,35 +64,35 @@ Gate::Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, sha
 	int frameCount = mGate->GetTotalAnimationFrameCount();
 
 	mOpenAnim = ruAnimation(0, frameCount / 2, 3);
-	mOpenAnim.AddFrameListener(0, ruDelegate::Bind(this, &Gate::Proxy_Opening));
-	mOpenAnim.AddFrameListener(2, ruDelegate::Bind(this, &Gate::Proxy_Idle));
-	mOpenAnim.AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_Opened));
+	mOpenAnim.AddFrameListener(0, [this] { mBeginSound->Play(); mState = State::Opening; });
+	mOpenAnim.AddFrameListener(2, [this] { mIdleSound->Play(); });
+	mOpenAnim.AddFrameListener(frameCount / 2, [this] { mEndSound->Play(); mState = State::Opened; mIdleSound->Stop(); });
 
 	mCloseAnim = ruAnimation(frameCount / 2, frameCount, 3);
-	mCloseAnim.AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_Closing));
-	mCloseAnim.AddFrameListener(frameCount / 2 + 2, ruDelegate::Bind(this, &Gate::Proxy_Idle));
-	mCloseAnim.AddFrameListener(frameCount - 2, ruDelegate::Bind(this, &Gate::Proxy_Closed));
+	mCloseAnim.AddFrameListener(frameCount / 2, [this] {mBeginSound->Play(); mState = State::Closing; });
+	mCloseAnim.AddFrameListener(frameCount / 2 + 2, [this] { mIdleSound->Play(); });
+	mCloseAnim.AddFrameListener(frameCount - 2, [this] { mEndSound->Play();	mState = State::Closed;	mIdleSound->Stop(); });
 
 	for (int i = 0; i < 4; i++) {
 		mButtonPushAnim[i] = ruAnimation(0, frameCount, 0.1);
-		mButtonPushAnim[i].AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_ButtonPush));
+		mButtonPushAnim[i].AddFrameListener(frameCount / 2, [this] { mButtonSound->Play(); });
 	}
 
 	mButtonClose[0] = buttonClose;
 	mButtonClose[0]->SetAnimation(&mButtonPushAnim[0]);
-	mButtonPushAnim[0].AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_BeginGateClosing));
+	mButtonPushAnim[0].AddFrameListener(frameCount / 2, [this] { Close(); });
 
 	mButtonOpen[0] = buttonOpen;
 	mButtonOpen[0]->SetAnimation(&mButtonPushAnim[1]);
-	mButtonPushAnim[1].AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_BeginGateOpening));
+	mButtonPushAnim[1].AddFrameListener(frameCount / 2, [this] { Open(); });
 
 	mButtonClose[1] = buttonClose2;
 	mButtonClose[1]->SetAnimation(&mButtonPushAnim[2]);
-	mButtonPushAnim[2].AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_BeginGateClosing));
+	mButtonPushAnim[2].AddFrameListener(frameCount / 2, [this] { Close(); });
 
 	mButtonOpen[1] = buttonOpen2;
 	mButtonOpen[1]->SetAnimation(&mButtonPushAnim[3]);
-	mButtonPushAnim[3].AddFrameListener(frameCount / 2, ruDelegate::Bind(this, &Gate::Proxy_BeginGateOpening));
+	mButtonPushAnim[3].AddFrameListener(frameCount / 2, [this] { Open(); });
 
 	mState = State::Closed;
 

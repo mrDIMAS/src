@@ -12,9 +12,6 @@ private:
 	void ActLiftCrash_AfterFalldown();
 	bool mChangeLevel;
 
-	void Proxy_AddLighther();
-	void Proxy_AddCrowbar();
-
 	shared_ptr<ruSound> mWoodHitSound;
 public:
     // Sounds

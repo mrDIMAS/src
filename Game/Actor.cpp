@@ -74,36 +74,7 @@ bool Actor::IsVisibleFromPoint(ruVector3 begin) {
 	return ruPhysics::CastRay(begin, GetCurrentPosition(), nullptr) == mBody;
 }
 
-void Actor::Crouch(bool state) {
-	mCrouch = state;
 
-	// stand up only if we can
-	ruVector3 pickPoint;
-	ruVector3 rayBegin = mBody->GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
-	ruVector3 rayEnd = mBody->GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
-	shared_ptr<ruSceneNode> upCast = ruPhysics::CastRay(rayBegin, rayEnd, &pickPoint);
-	if (upCast) {
-		if (!mCrouch) {
-			mCrouch = true;
-		}
-	}
-}
-
-void Actor::UpdateCrouch() {
-	if (mCrouch) {
-		mCrouchMultiplier -= 0.025f;
-		if (mCrouchMultiplier < 0.5f) {
-			mCrouchMultiplier = 0.5f;
-		}
-	} else {
-		mCrouchMultiplier += 0.025f;
-		if (mCrouchMultiplier > 1.0f) {
-			mCrouchMultiplier = 1.0f;
-		}
-	}
-
-	mBody->SetLocalScale(ruVector3(1.0f, mCrouchMultiplier, 1.0f));
-}
 
 bool Actor::IsCrouch() {
 	return mCrouch;

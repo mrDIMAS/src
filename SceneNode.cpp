@@ -51,10 +51,16 @@ SceneNode::SceneNode() :
 	mCollisionEnabled(true),
 	mAlbedo(0.0f),
 	mCurrentAnimation(nullptr),
+	mLastAnimation(nullptr),
+	mTransitionAnimation(nullptr),
 	mBlurAmount(0.0f),
 	mTwoSidedLighting(false),
 	mIsMoving(false),
-	mShadowCastEnabled(true)
+	mShadowCastEnabled(true),
+	mVegetation(false),
+	mAnimationOverride(false),
+	mTransitionFrames(10), 
+	mCurrentTransitionFrame(0)
 {
 	AutoName();
 	mLocalTransform = btTransform(btQuaternion(0, 0, 0), btVector3(0, 0, 0));
@@ -175,7 +181,7 @@ void SceneNode::Attach(const shared_ptr<ruSceneNode> & parent) {
 	shared_ptr<SceneNode> & pParent = std::dynamic_pointer_cast<SceneNode>(parent);
 
 	mParent = pParent;
-	pParent->mChildList.push_back(shared_from_this());
+	pParent->mChildren.push_back(shared_from_this());
 
 	// for correct attaching, we must recalculate local transform of this node
 	pParent->CalculateGlobalTransform();
@@ -260,7 +266,7 @@ ruVector3 SceneNode::GetAABBMax() {
 }
 
 shared_ptr<SceneNode> SceneNode::Find(const shared_ptr<SceneNode> parent, string childName) {
-	for (auto & child : parent->mChildList) {
+	for (auto & child : parent->mChildren) {
 		if (child->mName == childName) {
 			return child;
 		}
@@ -381,19 +387,19 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 		}
 
 		node->mParent = scene;
-		scene->mChildList.push_back(node);
+		scene->mChildren.push_back(node);
 
 		node->mScene = scene;
 		node->ApplyProperties();
 	}
 
 	// remap bone id's to real scene nodes 
-	for (auto & child : scene->mChildList) {
+	for (auto & child : scene->mChildren) {
 		if (child->mIsSkinned) {
 			for (auto pMesh : child->mMeshList) {
 				for (auto & w : pMesh->GetBoneTable()) {
 					for (int i = 0; i < w.mBoneCount; ++i) {
-						shared_ptr<SceneNode> & bone = scene->mChildList[w.mBone[i].mID];
+						shared_ptr<SceneNode> & bone = scene->mChildren[w.mBone[i].mID];
 						if (bone) {
 							w.mBone[i].mRealBone = pMesh->AddBone(bone);
 						}
@@ -420,7 +426,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 		light->mLocalTransform.setOrigin(reader.GetVector());
 		light->mScene = scene;
 		light->mParent = scene;
-		scene->mChildList.push_back(light);
+		scene->mChildren.push_back(light);
 		if (type > 0) {
 			shared_ptr<SpotLight> & spot = std::dynamic_pointer_cast<SpotLight>(light);
 			float in = reader.GetFloat();
@@ -430,7 +436,7 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 		}
 	}
 
-	for (auto child : scene->mChildList) {
+	for (auto child : scene->mChildren) {
 		string objectName = reader.GetString();
 		string parentName = reader.GetString();
 
@@ -438,12 +444,12 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 		shared_ptr<SceneNode> & parent = Find(scene, parentName);
 
 		if (parent) {
-			parent->mChildList.push_back(object);
+			parent->mChildren.push_back(object);
 			object->mParent = parent;
 		}
 	}
 
-	for (auto & node : scene->mChildList) {
+	for (auto & node : scene->mChildren) {
 		node->mInverseBindTransform = node->CalculateGlobalTransform().inverse();
 	}
 
@@ -453,11 +459,37 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 void SceneNode::PerformAnimation() {
 	if (!mIsSkinned) {
 		if (mCurrentAnimation) {
-			if (mKeyframeList.size()) {
-				unique_ptr<btTransform> & currentFrameTransform = mKeyframeList[mCurrentAnimation->GetCurrentFrame()];
-				unique_ptr<btTransform> & nextFrameTransform = mKeyframeList[mCurrentAnimation->GetNextFrame()];
-				mLocalTransform.setRotation(currentFrameTransform->getRotation().slerp(nextFrameTransform->getRotation(), mCurrentAnimation->GetInterpolator()));
-				mLocalTransform.setOrigin(currentFrameTransform->getOrigin().lerp(nextFrameTransform->getOrigin(), mCurrentAnimation->GetInterpolator()));
+			if (mKeyframeList.size() && !mAnimationOverride) {
+				/*
+				if (current < 0 || current >= mKeyframeList.size()) {
+					throw runtime_error(StringBuilder("Current key frame index is out of range! Node: ") << mName << ", index: " << current << ", range is [0;" << mKeyframeList.size() << "]");
+				}
+				if (next < 0 || next >= mKeyframeList.size()) {
+					throw runtime_error(StringBuilder("Next key frame index is out of range! Node: ") << mName << ", index: " << next << ", range is [0;" << mKeyframeList.size() << "]");
+				}*/
+
+
+				if (mTransitionAnimation) {
+					// do transition					
+					float t = (float)mCurrentTransitionFrame / (float)mTransitionFrames;
+					 
+					auto lastRotation = mKeyframeList[mTransitionAnimation->GetCurrentFrame()]->getRotation().slerp(mKeyframeList[mTransitionAnimation->GetNextFrame()]->getRotation(), mTransitionAnimation->GetInterpolator());
+					auto lastPosition = mKeyframeList[mTransitionAnimation->GetCurrentFrame()]->getOrigin().lerp(mKeyframeList[mTransitionAnimation->GetNextFrame()]->getOrigin(), mTransitionAnimation->GetInterpolator());
+
+					auto currRotation = mKeyframeList[mCurrentAnimation->GetCurrentFrame()]->getRotation().slerp(mKeyframeList[mCurrentAnimation->GetNextFrame()]->getRotation(), mCurrentAnimation->GetInterpolator());
+					auto currPosition = mKeyframeList[mCurrentAnimation->GetCurrentFrame()]->getOrigin().lerp(mKeyframeList[mCurrentAnimation->GetNextFrame()]->getOrigin(), mCurrentAnimation->GetInterpolator());
+
+					mLocalTransform.setRotation(lastRotation.slerp(currRotation, t));
+					mLocalTransform.setOrigin(lastPosition.lerp(currPosition, t));
+
+					if (mCurrentTransitionFrame == mTransitionFrames) {
+						mTransitionAnimation = nullptr;
+					}
+					++mCurrentTransitionFrame;
+				} else {
+					mLocalTransform.setRotation(mKeyframeList[mCurrentAnimation->GetCurrentFrame()]->getRotation().slerp(mKeyframeList[mCurrentAnimation->GetNextFrame()]->getRotation(), mCurrentAnimation->GetInterpolator()));
+					mLocalTransform.setOrigin(mKeyframeList[mCurrentAnimation->GetCurrentFrame()]->getOrigin().lerp(mKeyframeList[mCurrentAnimation->GetNextFrame()]->getOrigin(), mCurrentAnimation->GetInterpolator()));
+				}
 			}
 		}
 	};
@@ -608,11 +640,7 @@ void SceneNode::UpdateContacts() {
 					if (vol > 1.0f) {
 						vol = 1.0f;
 					}
-					float pc = pt.m_appliedImpulse / 30.0f;
-					if (pc > 0.7f) {
-						pc = 0.7f;
-					}
-					float pitch = 1.0f; //0.6f + pc;
+					float pitch = 1.0f; 
 
 					if (nodeA->mHitSound) {
 						if (nodeA->mHitSound->pfHandle) {
@@ -681,12 +709,23 @@ void SceneNode::ApplyProperties() {
 			}
 		}
 
+		if (pname == "vegetation") {
+			SetVegetation(atoi(value.c_str()));
+		}
+
 		if (pname == "visible") {
 			mVisible = atoi(value.c_str());
 		}
 
 		if (pname == "tag") {
 			SetTag(value);
+		}
+
+		if (pname == "drawFlare") {
+			auto light = dynamic_pointer_cast<Light>(shared_from_this());
+			if (light) {
+				light->SetDrawFlare(atoi(value.c_str()));
+			}
 		}
 
 		if (pname == "shadowCast") {
@@ -766,7 +805,7 @@ bool SceneNode::IsInsideNode(shared_ptr<ruSceneNode> n) {
 		}
 	}
 
-	for (auto & child : node->mChildList) {
+	for (auto & child : node->mChildren) {
 		result += child->IsInsideNode(shared_from_this());
 	}
 
@@ -774,11 +813,11 @@ bool SceneNode::IsInsideNode(shared_ptr<ruSceneNode> n) {
 }
 
 shared_ptr<ruSceneNode> SceneNode::GetChild(int i) {
-	return mChildList[i];
+	return mChildren[i];
 }
 
 int SceneNode::GetCountChildren() {
-	return mChildList.size();
+	return mChildren.size();
 }
 
 shared_ptr<SceneNode> SceneNode::FindByName(const string & name) {
@@ -802,7 +841,7 @@ void SceneNode::SetFriction(float friction) {
 
 void SceneNode::SetDepthHack(float depthHack) {
 	mDepthHack = depthHack;
-	for (auto & node : mChildList) {
+	for (auto & node : mChildren) {
 		if (node) {
 			node->SetDepthHack(depthHack);
 		}
@@ -913,7 +952,7 @@ shared_ptr<SceneNode> SceneNode::FindChildInNode(shared_ptr<SceneNode> node, con
 	if (node->GetName() == name) {
 		return node;
 	}
-	for (auto & child : node->mChildList) {
+	for (auto & child : node->mChildren) {
 		shared_ptr<SceneNode> & lookup = FindChildInNode(child, name);
 		if (lookup) {
 			return lookup;
@@ -990,9 +1029,32 @@ void SceneNode::SetBody(btRigidBody * theBody) {
 }
 
 void SceneNode::SetAnimation(ruAnimation * newAnim, bool dontAffectChilds) {
-	mCurrentAnimation = newAnim;
+	if (newAnim) {
+		/*
+		if (newAnim->GetBeginFrame() < 0 || newAnim->GetBeginFrame() >= mKeyframeList.size()) {
+			Log::Write(StringBuilder("WARNING! Unable to set animation. Begin frame index is out of range! Node: ") << mName << ", index: " << newAnim->GetBeginFrame() << ", range is [0;" << mKeyframeList.size() << "]");
+			return;
+		}
+		if (newAnim->GetEndFrame() < 0 || newAnim->GetEndFrame() >= mKeyframeList.size()) {
+			Log::Write(StringBuilder("WARNING! Unable to set animation. End frame index is out of range! Node: ") << mName << ", index: " << newAnim->GetEndFrame() << ", range is [0;" << mKeyframeList.size() << "]");
+			return;
+		}*/
+
+		if (newAnim->GetBeginFrame() >= 0 && newAnim->GetBeginFrame() < mKeyframeList.size() &&
+			newAnim->GetEndFrame() >= 0 && newAnim->GetEndFrame() < mKeyframeList.size()) {
+			if (mCurrentAnimation != mLastAnimation) {				
+				mTransitionAnimation = mLastAnimation;
+				mCurrentTransitionFrame = 0;
+				mLastAnimation = newAnim;
+			}			
+			mCurrentAnimation = newAnim;			
+		}
+	}
+
+	
+
 	if (!dontAffectChilds) {
-		for (auto & child : mChildList) {
+		for (auto & child : mChildren) {
 			child->SetAnimation(newAnim, false);
 		}
 	}
@@ -1124,7 +1186,7 @@ float SceneNode::GetBlurAmount() {
 
 void SceneNode::SetBlurAmount(float blurAmount) {
 	mBlurAmount = blurAmount;
-	for (auto child : mChildList) {
+	for (auto child : mChildren) {
 		child->SetBlurAmount(blurAmount);
 	}
 }

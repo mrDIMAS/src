@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
 		float resH = config.GetNumber("resH");
 		int fullscreen = config.GetNumber("fullscreen");
 		char vSync = config.GetNumber("vSync");
-		g_initialLevel = config.GetNumber("levelNum");
+		g_initialLevel = (LevelName)((int)config.GetNumber("levelNum")); // <<<< AWARE CAST
 		gShowFPS = config.GetNumber("debugInfo") != 0.0f;
 		gLocalizationPath = config.GetString("languagePath");
 
@@ -80,7 +80,6 @@ int main(int argc, char * argv[]) {
 				pMainMenu->Update();
 
 				if (!pMainMenu->IsVisible()) {
-					ActionTimer::UpdateAll();
 					if (ruInput::IsKeyHit(gKeyQuickSave)) {
 						SaveWriter("quickSave.save").SaveWorldState();
 
@@ -91,7 +90,7 @@ int main(int argc, char * argv[]) {
 						}
 					}
 					if (Level::Current()) {
-						Level::Current()->UpdateGenericObjectsIdle();
+						Level::Current()->GenericUpdate();
 						Level::Current()->DoScenario();
 					}
 				}
@@ -122,7 +121,11 @@ int main(int argc, char * argv[]) {
 
 	} catch (std::exception & err) {
 		// something went wrong
-		MessageBoxA(0, err.what(), "Exception caugth!", MB_OK | MB_ICONERROR);
+		MessageBoxA(0, err.what(), "Exception caught!", MB_OK | MB_ICONERROR);
+		return EXIT_FAILURE;
+	} catch (...) {
+		// something went srsly wrong
+		MessageBoxA(0, "Unknown exception", "Exception caught!", MB_OK | MB_ICONERROR);
 		return EXIT_FAILURE;
 	}
 

@@ -29,6 +29,7 @@
 #include <iostream>
 using namespace std;
 
+
 /* shared_ptr\<.*\> .* */
 void main( ) {
 	try {
@@ -103,39 +104,55 @@ void main( ) {
 		shared_ptr<ruButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
 
 		ruEngine::SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
-		ruEngine::EnableSpotLightShadows(true);
-		ruEngine::EnablePointLightShadows(false);
-		ruEngine::SetHDREnabled(true);
+		ruEngine::EnableSpotLightShadows(false);
+		ruEngine::EnablePointLightShadows(true);
+		ruEngine::SetHDREnabled(false);
 		ruEngine::SetFXAAEnabled(false);
-		ruEngine::SetParallaxEnabled(true);
+		ruEngine::SetParallaxEnabled(false);
 
 		shared_ptr<ruSceneNode> cube = ruSceneNode::LoadFromFile("data/cube.scene");
 
 		shared_ptr<ruSound> snd = ruSound::LoadMusic("data/music/rf.ogg");
 		snd->SetVolume(0.1);
 
+		
 		shared_ptr<ruSceneNode> ripper = ruSceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
-		ruAnimation anim = ruAnimation(0, 85, 8, true);
+		ruAnimation anim = ruAnimation(0, 85, 3, true);
 		anim.SetEnabled(true);
 		ripper->SetAnimation(&anim);
 		ripper->SetBlurAmount(1.0f);
 
+		auto dummyTest = ruSceneNode::LoadFromFile("data/models/character/character.scene");
+		auto dummyAnim = ruAnimation(82, 90, 0.9, true);
+		dummyAnim.SetDirection(ruAnimation::Direction::Reverse);
+		dummyAnim.SetEnabled(true);
+		dummyTest->SetAnimation(&dummyAnim);
+		dummyTest->SetPosition(ruVector3(1, 0, -3));
+
 		ruEngine::SetAmbientColor(ruVector3(.1, .1, .1));
+
+		auto bone008 = node->FindByName("Bone011");
+		auto bone001 = node->FindByName("Bone004");
+		bone001->Detach();
 
 		while (!ruInput::IsKeyDown(ruInput::Key::Esc)) {
 			//idleAnim.Update();
 			ruInput::Update();
 
 			anim.Update();
+			dummyAnim.Update();
+
+			
+
 			if (ruInput::IsMouseHit(ruInput::MouseButton::Right)) {
 				ruEngine::SetHDREnabled(!ruEngine::IsHDREnabled());
 			}
 
 			if (ruInput::IsKeyHit(ruInput::Key::T)) {
-				ruEngine::ChangeVideomode(2560, 1440, 0, 1);
+				ruEngine::ChangeVideomode(2560, 1440, 1, 1);
 			}
 			if (ruInput::IsKeyHit(ruInput::Key::Y)) {
-				ruEngine::ChangeVideomode(1920, 1080, 0, 1);
+				ruEngine::ChangeVideomode(1920, 1080, 1, 1);
 			}
 			ruVector3 speed;
 
@@ -203,22 +220,22 @@ void main( ) {
 			//ripper.SetPosition( cameraPivot.GetPosition() );
 
 			counter++;
-
 			if (timer->GetElapsedTimeInSeconds() >= 1.0f) {
+				
 				timer->Restart();
 				fps = counter;
 				counter = 0;
 			}
 
-			/*
+			
 			fpsText->SetText(
 				StringBuilder( "DIPs: " ) << ruEngine::GetDIPs() <<
 				"\nTC: " << ruEngine::GetTextureUsedPerFrame() <<
 				"\nFPS: " << fps <<
 				"\nSC: " << ruEngine::GetShaderCountChangedPerFrame() <<
-				"\nRT: " << ruEngine::GetRenderedTriangles()
-			);
-			*/
+				"\nRT: " << ruEngine::GetRenderedTriangles() 
+ 			);
+			
 			fpsText->SetVisible(true);
 
 

@@ -15,8 +15,8 @@ ModalWindow::ModalWindow(const shared_ptr<ruGUIScene> & scene, int x, int y, int
 	mNoButton->Attach(mCanvas);
 	mText->Attach(mCanvas);
 
-	mYesButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &ModalWindow::Close));
-	mNoButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &ModalWindow::Close));
+	mYesButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
+	mNoButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
 
 	Close();
 }
@@ -33,13 +33,13 @@ void ModalWindow::AttachTo(shared_ptr<ruGUINode> node) {
 void ModalWindow::SetYesAction(const ruDelegate & yesAction) {
 	mYesButton->RemoveAllActions();
 	mYesButton->AddAction(ruGUIAction::OnClick, yesAction);
-	mYesButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &ModalWindow::Close));
+	mYesButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
 }
 
 void ModalWindow::SetNoAction(const ruDelegate & noAction) {
 	mNoButton->RemoveAllActions();
 	mNoButton->AddAction(ruGUIAction::OnClick, noAction);
-	mNoButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &ModalWindow::Close));
+	mNoButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
 }
 
 void ModalWindow::Close() {

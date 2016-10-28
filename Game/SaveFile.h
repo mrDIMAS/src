@@ -20,90 +20,17 @@ public:
     SaveFile( const string & fileName, bool save );
     ~SaveFile();
 
-	bool IsSaving() const {
-		return mSave;
-	}
-
-	bool IsLoading() const {
-		return !mSave;
-	}
-
-	void operator & (int & v) {
-		if (mSave) {
-			Write(v);
-		} else {
-			Read(v);
-		}
-	}
-
-	void operator & (float & v) {
-		if (mSave) {
-			Write(v);
-		} else {
-			Read(v);
-		}
-	}
-
-	void operator & (bool & v) {
-		if (mSave) {
-			Write(v);
-		} else {
-			Read(v);
-		}
-	}
-
-	void operator & (ruInput::Key & v) {
-		int vi = (int)v;
-		if (mSave) {
-			Write(v);
-		} else {
-			Read(v);
-		}
-		v = (ruInput::Key)vi;
-	}
-
-	void operator & (string & str) {
-		if (mSave) {
-			for (auto symbol : str) {
-				Write(symbol);
-			}
-			Write('\0');
-		} else {
-			while (!mStream.eof()) {
-				char symbol;
-				Read(symbol);
-				if (symbol == '\0') {
-					break;
-				} else {
-					str.push_back(symbol);
-				}
-			}
-		}
-	}
-
-	void operator & (ruQuaternion & v) {
-		*this & v.x;
-		*this & v.y;
-		*this & v.z;
-		*this & v.w;
-	}
-
-	void operator & (ruVector3 & v) {
-		*this & v.x;
-		*this & v.y;
-		*this & v.z;
-	}
-
-	void operator & (ruAnimation & a) {
-		auto currentFrame = a.GetCurrentFrame();
-		auto enabled = a.IsEnabled();
-
-		*this & currentFrame;
-		*this & enabled;
-		
-		a.SetCurrentFrame(currentFrame);
-		a.SetEnabled(enabled);
-	}
+	bool IsSaving() const;
+	bool IsLoading() const;
+	void operator & (int & v);
+	void operator & (float & v);
+	void operator & (bool & v);
+	void operator & (ruInput::Key & v);
+	void operator & (string & str);
+	void operator & (ruQuaternion & v);
+	void operator & (ruVector3 & v);
+	void operator & (ruAnimation & a);
+	void operator & (class SmoothFloat & s);
 
 	template<typename K, typename V>
 	void operator & (std::unordered_map<K, V> & m) {

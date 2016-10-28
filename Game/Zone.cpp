@@ -10,17 +10,17 @@ void Zone::Update() {
 		auto & player = Level::Current()->GetPlayer();
 		if(player->IsInsideZone( mObject ) ) {
 			if( !mPlayerInside ) {
-				OnPlayerEnter.DoActions();				
+				OnPlayerEnter();				
 			}
 			if( mType != Type::OneShot ) {
-				OnPlayerInside.DoActions();
+				OnPlayerInside();
 			} else {
 				mActive = false;
 			}
 			mPlayerInside = true;
 		} else {
 			if( mPlayerInside ) {
-				OnPlayerLeave.DoActions();
+				OnPlayerLeave();
 			}
 		}
 	}

@@ -24,11 +24,11 @@ string GetFileCreationDate(const string & pFileName) {
 
 	SystemTimeToTzSpecificLocalTime(nullptr, &st, &localTime);
 
-	ss << setfill('0') << setw(2) << localTime.wDay << '/' << 
-		setfill('0') << setw(2) << localTime.wMonth << '/' << 
-		setw(4) << localTime.wYear << " - " << 
+	ss << setfill('0') << setw(2) << localTime.wDay << '/' <<
+		setfill('0') << setw(2) << localTime.wMonth << '/' <<
+		setw(4) << localTime.wYear << " - " <<
 		setfill('0') << setw(2) << localTime.wHour << ":" <<
-		setfill('0') << setw(2) << localTime.wMinute << ":" << 
+		setfill('0') << setw(2) << localTime.wMinute << ":" <<
 		setfill('0') << setw(2) << localTime.wSecond;
 
 	return ss.str();
@@ -61,16 +61,17 @@ Menu::Menu() {
 	// Setup
 	mGUICanvas = mGUIScene->CreateRect(0, 0, 0, 0, nullptr);
 	{
+		// Main 
 		mGUIMainButtonsCanvas = mGUIScene->CreateRect(20, ruVirtualScreenHeight - 4.0 * mDistBetweenButtons, buttonWidth + 2 * buttonXOffset, buttonHeight * 8, tabTexture, pGUIProp->mBackColor);
 		mGUIMainButtonsCanvas->Attach(mGUICanvas);
 		{
 			mGUIContinueGameButton = mGUIScene->CreateButton(buttonXOffset, 5, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("continueButton"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIContinueGameButton->Attach(mGUIMainButtonsCanvas);
-			mGUIContinueGameButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnContinueGameClick));
+			mGUIContinueGameButton->AddAction(ruGUIAction::OnClick, [this] { OnContinueGameClick(); });
 
 			mGUIStartButton = mGUIScene->CreateButton(buttonXOffset, 5 + 0.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("startButton"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIStartButton->Attach(mGUIMainButtonsCanvas);
-			mGUIStartButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnStartNewGameClick));
+			mGUIStartButton->AddAction(ruGUIAction::OnClick, [this] { OnStartNewGameClick(); });
 
 			mGUISaveGameButton = mGUIScene->CreateButton(buttonXOffset, 5 + 1.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("saveButton"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUISaveGameButton->Attach(mGUIMainButtonsCanvas);
@@ -80,30 +81,34 @@ Menu::Menu() {
 
 			mGUIOptionsButton = mGUIScene->CreateButton(buttonXOffset, 5 + 2.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("optionsButton"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIOptionsButton->Attach(mGUIMainButtonsCanvas);
-			mGUIOptionsButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnOptionsClick));
+			mGUIOptionsButton->AddAction(ruGUIAction::OnClick, [this] { OnOptionsClick(); });
 
 			mGUIAuthorsButton = mGUIScene->CreateButton(buttonXOffset, 5 + 2.5f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("authorsButton"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIAuthorsButton->Attach(mGUIMainButtonsCanvas);
 
 			mGUIExitButton = mGUIScene->CreateButton(buttonXOffset, 5 + 3.0f * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("exitButton"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIExitButton->Attach(mGUIMainButtonsCanvas);
-			mGUIExitButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnExitGameClick));
+			mGUIExitButton->AddAction(ruGUIAction::OnClick, [this] { OnExitGameClick(); });
 		}
 
 		int aTabX = 200;
 		int aTabY = ruVirtualScreenHeight - 4.0 * mDistBetweenButtons;
-		int aTabWidth = buttonWidth * 3;
+		int aTabWidth = buttonWidth * 4;
 		int aTabHeight = buttonHeight * 8;
 
+		// Modal window
 		mpModalWindow = unique_ptr<ModalWindow>(new ModalWindow(mGUIScene, aTabX, aTabY, aTabWidth, aTabHeight, ruTexture::Request("data/gui/menu/tab.tga"), mButtonImage, pGUIProp->mBackColor));
 		mpModalWindow->AttachTo(mGUICanvas);
 
+		// Page title
 		mGUIWindowText = mGUIScene->CreateText(" ", aTabX, aTabY - 17, aTabWidth, 32, pGUIProp->mFont, ruVector3(255, 255, 255), ruTextAlignment::Left);
 		mGUIWindowText->Attach(mGUICanvas);
 
+		// Product name
 		mGUICaption = mGUIScene->CreateText("The Mine", 20, aTabY - 17, aTabWidth * 1.5f, 32, pGUIProp->mFont, ruVector3(255, 255, 255), ruTextAlignment::Left);
 		mGUICaption->Attach(mGUICanvas);
 
+		// Options
 		mGUIOptionsCanvas = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUIOptionsCanvas->Attach(mGUICanvas);
 		{
@@ -111,21 +116,23 @@ Menu::Menu() {
 
 			mGUIOptionsCommonButton = mGUIScene->CreateButton((aTabWidth - buttonWidth) / 2, yOffset, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("commonSettings"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIOptionsCommonButton->Attach(mGUIOptionsCanvas);
-			mGUIOptionsCommonButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnOptionsCommonClick));
+			mGUIOptionsCommonButton->AddAction(ruGUIAction::OnClick, [this] { OnOptionsCommonClick(); });
 
 			mGUIOptionsControlsButton = mGUIScene->CreateButton((aTabWidth - buttonWidth) / 2, yOffset + 0.5 * mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("controls"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIOptionsControlsButton->Attach(mGUIOptionsCanvas);
-			mGUIOptionsControlsButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnOptionsControlsClick));
+			mGUIOptionsControlsButton->AddAction(ruGUIAction::OnClick, [this] { OnOptionsControlsClick(); });
 
 			mGUIOptionsGraphicsButton = mGUIScene->CreateButton((aTabWidth - buttonWidth) / 2, yOffset + mDistBetweenButtons, buttonWidth, buttonHeight, mButtonImage, mLocalization.GetString("graphics"), pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 			mGUIOptionsGraphicsButton->Attach(mGUIOptionsCanvas);
-			mGUIOptionsGraphicsButton->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnOptionsGraphicsClick));
+			mGUIOptionsGraphicsButton->AddAction(ruGUIAction::OnClick, [this] { OnOptionsGraphicsClick(); });
 		}
 
+		// Options: Keys
 		mGUIOptionsKeysCanvas = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUIOptionsCanvas->Attach(mGUICanvas);
 		mGUIOptionsKeysCanvas->SetVisible(false);
 		{
+			// First column
 			float x = 40, y = 10;
 			mpMoveForwardKey = unique_ptr<WaitKeyButton>(new WaitKeyButton(mGUIScene, x, y, mSmallButtonImage, mLocalization.GetString("forward")));
 			mpMoveForwardKey->AttachTo(mGUIOptionsKeysCanvas);
@@ -147,6 +154,7 @@ Menu::Menu() {
 			y += 32 * 1.1f;
 			mpRunKey = unique_ptr<WaitKeyButton>(new WaitKeyButton(mGUIScene, x, y, mSmallButtonImage, mLocalization.GetString("run")));
 			mpRunKey->AttachTo(mGUIOptionsKeysCanvas);
+
 			// Second column
 			x += 150;
 			y = 10;
@@ -172,6 +180,7 @@ Menu::Menu() {
 			mpLookRightKey->AttachTo(mGUIOptionsKeysCanvas);
 		}
 
+		// Options: Graphics
 		mGUIOptionsGraphicsCanvas = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUIOptionsGraphicsCanvas->Attach(mGUICanvas);
 		mGUIOptionsGraphicsCanvas->SetVisible(false);
@@ -188,11 +197,11 @@ Menu::Menu() {
 
 			mpHDRButton = unique_ptr<RadioButton>(new RadioButton(mGUIScene, x, y + 1.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString("hdr")));
 			mpHDRButton->AttachTo(mGUIOptionsGraphicsCanvas);
-			mpHDRButton->SetChangeAction(ruDelegate::Bind(this, &Menu::OnHDRButtonClick));
+			mpHDRButton->SetChangeAction([this] { OnHDRButtonClick(); });
 
 			mpParallaxButton = unique_ptr<RadioButton>(new RadioButton(mGUIScene, x, y + 2.0 * mDistBetweenButtons, mButtonImage, mLocalization.GetString("parallax")));
 			mpParallaxButton->AttachTo(mGUIOptionsGraphicsCanvas);
-			mpParallaxButton->SetChangeAction(ruDelegate::Bind(this, &Menu::OnParallaxButtonClick));
+			mpParallaxButton->SetChangeAction([this] { OnParallaxButtonClick(); });
 
 			mpTextureFiltering = unique_ptr<ScrollList>(new ScrollList(mGUIScene, x, y + 2.5 * mDistBetweenButtons, mButtonImage, mLocalization.GetString("filtering")));
 			mpTextureFiltering->AttachTo(mGUIOptionsGraphicsCanvas);
@@ -200,6 +209,7 @@ Menu::Menu() {
 			mpTextureFiltering->AddValue(mLocalization.GetString("anisotropic"));
 		}
 
+		// Authors
 		mGUIAuthorsBackground = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUIAuthorsBackground->Attach(mGUICanvas);
 		{
@@ -207,6 +217,7 @@ Menu::Menu() {
 			mGUIAuthorsText->Attach(mGUIAuthorsBackground);
 		}
 
+		// Save Game
 		mGUISaveGameCanvas = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUISaveGameCanvas->Attach(mGUICanvas);
 		{
@@ -214,7 +225,7 @@ Menu::Menu() {
 			for (int i = 0; i < mSaveLoadSlotCount; i++) {
 				mGUISaveGameSlot[i] = mGUIScene->CreateButton(20, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 				mGUISaveGameSlot[i]->Attach(mGUISaveGameCanvas);
-				mGUISaveGameSlot[i]->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnSaveClick));
+				mGUISaveGameSlot[i]->AddAction(ruGUIAction::OnClick, [this] { OnSaveClick(); });
 
 				mGUISaveGameFileTime[i] = mGUIScene->CreateText(" ", buttonWidth + 30, y, 160, buttonHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
 				mGUISaveGameFileTime[i]->Attach(mGUISaveGameCanvas);
@@ -223,6 +234,7 @@ Menu::Menu() {
 			}
 		}
 
+		// Load Game
 		mGUILoadGameCanvas = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUILoadGameCanvas->Attach(mGUICanvas);
 		{
@@ -230,14 +242,15 @@ Menu::Menu() {
 			for (int i = 0; i < mSaveLoadSlotCount; i++) {
 				mGUILoadGameSlot[i] = mGUIScene->CreateButton(20, y, buttonWidth, buttonHeight, mButtonImage, "Empty slot", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
 				mGUILoadGameSlot[i]->Attach(mGUILoadGameCanvas);
-				mGUILoadGameSlot[i]->AddAction(ruGUIAction::OnClick, ruDelegate::Bind(this, &Menu::OnLoadSaveClick));
+				mGUILoadGameSlot[i]->AddAction(ruGUIAction::OnClick, [this] { OnLoadSaveClick(); });
 
-				mGUILoadGameFileTime[i] = mGUIScene->CreateText(" ", buttonWidth + 30, y, 160, buttonHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left);\
-				mGUILoadGameFileTime[i]->Attach(mGUILoadGameCanvas);
+				mGUILoadGameFileTime[i] = mGUIScene->CreateText(" ", buttonWidth + 30, y, 160, buttonHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left); \
+					mGUILoadGameFileTime[i]->Attach(mGUILoadGameCanvas);
 				y += 1.1f * buttonHeight;
 			}
 		}
 
+		// Options: Common
 		mGUIOptionsCommonCanvas = mGUIScene->CreateRect(aTabX, aTabY, aTabWidth, aTabHeight, tabTexture, pGUIProp->mBackColor);
 		mGUIOptionsCommonCanvas->Attach(mGUICanvas);
 		mGUIOptionsCommonCanvas->SetVisible(false);
@@ -247,19 +260,19 @@ Menu::Menu() {
 
 			mFOVSlider = unique_ptr<Slider>(new Slider(mGUIScene, xOffset, yOffset - 0.5f * mDistBetweenButtons, 55, 90, 1.0f, ruTexture::Request("data/gui/menu/smallbutton.tga"), mLocalization.GetString("fov")));
 			mFOVSlider->AttachTo(mGUIOptionsCommonCanvas);
-			mFOVSlider->SetChangeAction(ruDelegate::Bind(this, &Menu::OnFovChanged));
+			mFOVSlider->SetChangeAction([this] { OnFovChanged(); });
 
 			mpMasterVolume = unique_ptr<Slider>(new Slider(mGUIScene, xOffset, yOffset, 0, 100, 2.5f, ruTexture::Request("data/gui/menu/smallbutton.tga"), mLocalization.GetString("masterVolume")));
 			mpMasterVolume->AttachTo(mGUIOptionsCommonCanvas);
-			mpMasterVolume->SetChangeAction(ruDelegate::Bind(this, &Menu::OnSoundVolumeChange));
+			mpMasterVolume->SetChangeAction([this] { OnSoundVolumeChange(); });
 
 			mpMusicVolume = unique_ptr<Slider>(new Slider(mGUIScene, xOffset, yOffset + 0.5f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request("data/gui/menu/smallbutton.tga"), mLocalization.GetString("musicVolume")));
 			mpMusicVolume->AttachTo(mGUIOptionsCommonCanvas);
-			mpMusicVolume->SetChangeAction(ruDelegate::Bind(this, &Menu::OnMusicVolumeChange));
+			mpMusicVolume->SetChangeAction([this] { OnMusicVolumeChange(); });
 
 			mpMouseSensivity = unique_ptr<Slider>(new Slider(mGUIScene, xOffset, yOffset + 1.0f * mDistBetweenButtons, 0, 100, 2.5f, ruTexture::Request("data/gui/menu/smallbutton.tga"), mLocalization.GetString("mouseSens")));
 			mpMouseSensivity->AttachTo(mGUIOptionsCommonCanvas);
-			mpMouseSensivity->SetChangeAction(ruDelegate::Bind(this, &Menu::OnMouseSensivityChange));
+			mpMouseSensivity->SetChangeAction([this] { OnMouseSensivityChange(); });
 		}
 	}
 
@@ -313,7 +326,7 @@ void Menu::Hide() {
 			player->mpCamera->MakeCurrent();
 			player->SetBodyVisible(true);
 			player->SetHUDVisible(true);
-		}		
+		}
 	}
 	mVisible = false;
 	mPage = Page::Main;
@@ -325,31 +338,31 @@ void Menu::Hide() {
 void Menu::OnStartNewGameClick() {
 	SetPage(Page::Main);
 	mpModalWindow->Ask(mLocalization.GetString("newGameQuestion"));
-	mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::StartNewGame));
+	mpModalWindow->SetYesAction([this] { StartNewGame(); });
 
 }
 
 void Menu::OnExitGameClick() {
 	SetPage(Page::Main);
 	mpModalWindow->Ask(mLocalization.GetString("endGameQuestion"));
-	mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::StartExitGame));
+	mpModalWindow->SetYesAction([this] { StartExitGame(); });
 }
 
 void Menu::StartNewGame() {
-	CameraStartFadeOut(ruDelegate::Bind(this, &Menu::DoStartNewGame));
+	CameraStartFadeOut([this] { DoStartNewGame(); });
 }
 
 void Menu::StartExitGame() {
-	CameraStartFadeOut(ruDelegate::Bind(this, &Menu::DoExitGame));
+	CameraStartFadeOut([this] { DoExitGame(); });
 }
 
 void Menu::OnContinueGameClick() {
 	SetPage(Page::Main);
 	if (!Level::Current()) {
 		mpModalWindow->Ask(mLocalization.GetString("continueLastGameQuestion"));
-		mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::StartContinueGameFromLast));
+		mpModalWindow->SetYesAction([this] { StartContinueGameFromLast(); });
 	} else {
-		CameraStartFadeOut(ruDelegate::Bind(this, &Menu::DoContinueGameCurrent));
+		CameraStartFadeOut([this] { DoContinueGameCurrent(); });
 	}
 }
 
@@ -392,7 +405,7 @@ void Menu::OnOptionsControlsClick() {
 }
 
 void Menu::StartContinueGameFromLast() {
-	CameraStartFadeOut(ruDelegate::Bind(this, &Menu::DoContinueGameFromLast));
+	CameraStartFadeOut([this] { DoContinueGameFromLast(); });
 }
 
 void Menu::DoContinueGameFromLast() {
@@ -407,19 +420,21 @@ void Menu::UpdateCamera() {
 	}
 	if (mpCamera->FadeComplete()) {
 		if (!mCameraFadeActionDone) {
-			mCameraFadeDoneAction.Call();
+			if (mCameraFadeDoneAction) {
+				mCameraFadeDoneAction();
+			}
 			mCameraFadeActionDone = true;
 		}
 	}
 }
 
 void Menu::StartLoadFromSave() {
-	CameraStartFadeOut(ruDelegate::Bind(this, &Menu::DoLoadFromSave));
+	CameraStartFadeOut([this] { DoLoadFromSave(); });
 }
 
 void Menu::OnLoadSaveClick() {
 	mpModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect") << mLoadSaveGameName << "." << mLocalization.GetString("loadSaveQuestion"));
-	mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::StartLoadFromSave));
+	mpModalWindow->SetYesAction([this] { StartLoadFromSave(); });
 }
 
 void Menu::DoLoadFromSave() {
@@ -428,8 +443,8 @@ void Menu::DoLoadFromSave() {
 }
 
 void Menu::OnSaveClick() {
-	mpModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect")  << mSaveGameSlotName << "." << mLocalization.GetString("rewriteSaveQuestion"));
-	mpModalWindow->SetYesAction(ruDelegate::Bind(this, &Menu::DoSaveCurrentGame));
+	mpModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect") << mSaveGameSlotName << "." << mLocalization.GetString("rewriteSaveQuestion"));
+	mpModalWindow->SetYesAction([this] { DoSaveCurrentGame(); });
 }
 
 void Menu::OnMouseSensivityChange() {
@@ -502,7 +517,7 @@ void Menu::Update() {
 
 		if (ruInput::IsKeyHit(ruInput::Key::Esc)) {
 			if (Level::Current()) {
-				CameraStartFadeOut(ruDelegate::Bind(this, &Menu::DoContinueGameCurrent));
+				CameraStartFadeOut([this] { DoContinueGameCurrent(); });
 			}
 		}
 
@@ -560,9 +575,9 @@ void Menu::Update() {
 				mGUILoadGameSlot[i]->SetActive(true);
 				mGUILoadGameSlot[i]->GetText()->SetText(nameList[i]);
 				mGUILoadGameFileTime[i]->SetText(GetFileCreationDate(nameList[i]));
-				if (mGUILoadGameSlot[i]->IsHit()) {					
+				if (mGUILoadGameSlot[i]->IsHit()) {
 					SetPage(Page::Main, false);
-					
+
 				}
 			}
 		} else {
@@ -570,7 +585,7 @@ void Menu::Update() {
 		}
 
 		mGUISaveGameButton->SetActive(Level::Current() != nullptr);
-		
+
 
 		if (mPage == Page::SaveGame) {
 			mGUISaveGameCanvas->SetVisible(true);
@@ -578,7 +593,7 @@ void Menu::Update() {
 			vector< string > nameList;
 			GetFilesWithExtension("*.save", nameList);
 
-			
+
 			for (int iName = nameList.size() > 0 ? nameList.size() - 1 : 0; iName < mSaveLoadSlotCount; iName++) {
 				string saveName = "Slot";
 				saveName += ((char)iName + (char)'0');
@@ -594,7 +609,7 @@ void Menu::Update() {
 				mGUISaveGameFileTime[iName]->SetText(GetFileCreationDate(nameList[iName]));
 				mSaveGameSlotName = nameList[iName];
 				if (mGUISaveGameSlot[iName]->IsHit()) {
-					
+
 					SetPage(Page::Main, false);
 				}
 			}
@@ -725,6 +740,7 @@ void Menu::LoadConfig() {
 		mpJumpKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyJump"))));
 		mpRunKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyRun"))));
 		mpFlashLightKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyFlashLight"))));
+
 		mpInventoryKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyInventory"))));
 		mpUseKey->SetSelected(static_cast<ruInput::Key>(static_cast<int>(config.GetNumber("keyUse"))));
 
@@ -772,7 +788,7 @@ void Menu::SyncPlayerControls() {
 			player->mKeyStrafeRight = mpStrafeRightKey->GetSelectedKey();
 			player->mKeyJump = mpJumpKey->GetSelectedKey();
 			player->mKeyRun = mpRunKey->GetSelectedKey();
-			player->mKeyFlashLight = mpFlashLightKey->GetSelectedKey();
+			player->mKeyFlashlightHotkey = mpFlashLightKey->GetSelectedKey();
 			player->mKeyInventory = mpInventoryKey->GetSelectedKey();
 			player->mKeyUse = mpUseKey->GetSelectedKey();
 			player->mKeyStealth = mpStealthKey->GetSelectedKey();

@@ -3,14 +3,14 @@
 class Button {
 private:
 	shared_ptr<ruSceneNode> mNode;
-	ruVector3 mInitialPosition;
-	ruVector3 mSize;
-	ruVector3 mAxis;
 	shared_ptr<ruSound> mPushSound;
-	shared_ptr<ruSound> mPopSound;
-	bool mPush;
+	string mText;
+	ruAnimation mPushAnimation;
+	void Proxy_DoPushActions() {
+
+	}
 public:
-	ruEvent OnPush;
-	explicit Button(shared_ptr<ruSceneNode> node, const ruVector3 & axis, shared_ptr<ruSound> pushSound, shared_ptr<ruSound> popSound);
+	ruEvent OnPush; // in the middle of push animation
+	Button(const shared_ptr<ruSceneNode> & node, const string & text, const ruDelegate & onPush);
 	void Update();
 };

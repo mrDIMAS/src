@@ -31,84 +31,27 @@
 #include <iomanip>
 #include <memory>
 #include <unordered_map>
+#include <functional>
 
 using namespace std;
 
-class ruIContainer {
-public:
-	virtual ~ruIContainer() {
-
-	};
-
-	virtual void Call() = 0; 
-};
-
-template< class T, class M > class ruContainer : public ruIContainer {
-private:
-	T * mClass;
-	M mMethod;
-public:
-	explicit ruContainer(T * theClass, M  theMethod) : mClass(theClass), mMethod(theMethod) {
-
-	};
-
-	virtual void Call() {
-		(mClass->*mMethod)();
-	}
-};
-
-class ruDelegate {
-private:
-	ruIContainer * mContainer;
-public:
-	ruDelegate() : mContainer(nullptr) {
-
-	};
-	~ruDelegate() {
-		if (mContainer) {
-			delete mContainer;
-		}
-	}
-	ruDelegate(const ruDelegate & other) {
-		mContainer = other.mContainer;
-		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
-	}
-	template< class T, class M > static ruDelegate Bind(T * theClass, M  theMethod) {
-		ruDelegate delegat;
-		delegat.mContainer = new ruContainer< T, M >(theClass, theMethod);
-		return delegat;
-	}
-	void Call() {
-		if (mContainer) {
-			mContainer->Call();
-		}
-	}
-	void operator = (const ruDelegate & other) {
-		mContainer = other.mContainer;
-		(const_cast<ruDelegate&>(other)).mContainer = nullptr;
-	}
-};
+typedef function<void()> ruDelegate;
 
 class ruEvent {
 private:
-	vector<ruDelegate> mListenerList;
+	vector<ruDelegate> Actions;
 public:
-	void AddListener(const ruDelegate & delegat) {
-		mListenerList.push_back(delegat);
+	void operator()() {
+		for (auto & f : Actions) f();
 	}
 
-	void RemoveAllListeners() {
-		mListenerList.clear();
+	ruEvent & operator += (const ruDelegate & fn) {
+		Actions.push_back(fn);
+		return *this;
 	}
 
-	int GetActionCount() {
-		return mListenerList.size();
-	}
-
-	void DoActions() {
-		for (auto iter = mListenerList.begin(); iter != mListenerList.end(); iter++) {
-			iter->Call();
-		}
+	void Clear() {
+		Actions.clear();
 	}
 };
 
@@ -288,6 +231,14 @@ public:
 	ruVector3 Lerp(const ruVector3 & v, float t) const {
 		return ruVector3(x + (v.x - x) * t, y + (v.y - y) * t, z + (v.z - z) * t);
 	}
+
+	ruVector3 Project(const ruVector3 & planeNormal) const {
+		return (*this) - (planeNormal * (*this).Dot(planeNormal)) / planeNormal.Length2();
+	}
+
+	float Distance(const ruVector3 & v) const {
+		return (*this - v).Length();
+	}
 };
 
 static ruVector3 operator * (const float & f, const ruVector3 & v) {
@@ -344,6 +295,20 @@ public:
 	ruQuaternion(float x, float y, float z, float w);
 	ruQuaternion(float pitch, float yaw, float roll);
 	ruQuaternion(const ruVector3 & axis, float angle);
+
+	static ruQuaternion LookAt(const ruVector3 & sourcePoint, const ruVector3 & destPoint) {
+		ruVector3 forwardVector = (destPoint - sourcePoint).Normalize();
+		float dot = ruVector3(0, 0, 1).Dot(forwardVector);
+		if (abs(dot - (-1.0f)) < 0.000001f) {
+			return ruQuaternion(0, 1, 0, 3.1415926535897932f);
+		}
+		if (abs(dot - (1.0f)) < 0.000001f) {
+			return ruQuaternion();
+		}
+		float rotAngle = acos(dot) * 180.0f / 3.14159;
+		ruVector3 rotAxis = ruVector3(0, 0, 1).Cross(forwardVector).Normalize();
+		return ruQuaternion(rotAxis, rotAngle);
+	}
 };
 
 static ruQuaternion operator *  (const ruQuaternion& q1, const ruQuaternion & q2) {
@@ -379,6 +344,11 @@ struct ruContact;
 
 // Animation
 class ruAnimation {
+public:
+	enum class Direction {
+		Forward,
+		Reverse
+	};
 private:
 	int mBeginFrame;
 	int mEndFrame;
@@ -389,21 +359,22 @@ private:
 	bool mLooped;
 	bool mEnabled;
 	string mName;
+	Direction mDirection;
 
 	class AnimationEvent {
 	public:
-		bool mState;
+		bool mDone;
 		ruEvent Event;
-		AnimationEvent() : mState(false) {}
+		AnimationEvent() : mDone(false) {}
 	};
 
 	// list of actions, which must be done on n-th frame 
 	unordered_map<int, AnimationEvent> mFrameListenerList;
+	void DoFramesActions();
 public:
 	ruAnimation();
 	ruAnimation(int theBeginFrame, int theEndFrame, float theDuration, bool theLooped = false);
 	virtual ~ruAnimation();
-
 	void SetFrameInterval(int begin, int end);
 	void SetCurrentFrame(int frame);
 	int GetCurrentFrame() const;
@@ -411,6 +382,7 @@ public:
 	int GetBeginFrame() const;
 	int GetNextFrame() const;
 	void SetName(const string & newName);
+	void SetInterpolator(float interpolator);
 	float GetInterpolator() const;
 	string GetName() const;
 	void SetDuration(float duration);
@@ -418,8 +390,11 @@ public:
 	void SetEnabled(bool state);
 	bool IsEnabled() const;
 	void AddFrameListener(int frameNum, const ruDelegate & action);
+	void RemoveFrameListeners(int frameNum);
 	void Rewind();
 	void Update(float dt = 1.0f / 60.0f);
+	Direction GetDirection() const;
+	void SetDirection(const Direction & direction);
 };
 
 enum class BodyType : int {
@@ -443,12 +418,18 @@ public:
 	static ruCubeTexture * Request(const string & file);
 };
 
+struct ruKeyFrame {
+	ruVector3 mPosition;
+	ruQuaternion mRotation;
+};
+
 class ruSceneNode {
 public:
 	virtual ~ruSceneNode();
 	virtual void SetBlurAmount(float blurAmount) = 0;
 	virtual float GetBlurAmount() = 0;
 	virtual string GetProperty(string propName) = 0;
+	virtual ruKeyFrame GetKeyFrame(int n) const = 0;
 	virtual void Hide() = 0;
 	virtual void Show() = 0;
 	virtual bool IsVisible() = 0;
@@ -527,7 +508,11 @@ public:
 	virtual void SetCollisionEnabled(bool state) = 0;
 	virtual bool IsCollisionEnabled() const = 0;
 	virtual void SetTexCoordFlow(const ruVector2 & flow) = 0;
+	virtual void SetVegetation(bool state) = 0;
+	virtual bool IsVegetation() const = 0;
 	virtual ruVector2 GetTexCoordFlow() const = 0;
+	virtual void SetAnimationOverride(bool state) = 0;
+	virtual bool IsAnimationOverride() const = 0;
 	virtual shared_ptr<ruSceneNode> FindChild(const string & name) = 0;
 	static shared_ptr<ruSceneNode> Create();
 	static shared_ptr<ruSceneNode> LoadFromFile(const string & file);
@@ -549,12 +534,21 @@ struct ruContact {
 	}
 };
 
+struct PlaybackCallback {
+	ruEvent PlayEvent;
+	shared_ptr<class ruSound> Caller;
+};
+
 class ruSound : public std::enable_shared_from_this<ruSound> {
+private:
+	bool mIs3D;
 public:
 	int pfHandle;
 
 	explicit ruSound();
 	virtual ~ruSound();
+
+	static PlaybackCallback PlayCallback;
 
 	static shared_ptr<ruSound> Load2D(const string & file);
 	static shared_ptr<ruSound> Load3D(const string & file);
@@ -580,7 +574,9 @@ public:
 	void SetLoop(bool state);
 	float GetPlaybackPosition();
 	void Stop();
+	bool Is3D() const;
 	void SetPlaybackPosition(float timeSeconds);
+	ruVector3 GetPosition() const;
 };
 
 enum class ruGUIAction : int {
@@ -754,6 +750,9 @@ public:
 	virtual ruVector3 GetColor() const = 0;
 
 	virtual bool IsSeePoint(const ruVector3 & point) = 0;
+
+	virtual void SetDrawFlare(bool state) = 0;
+	virtual bool IsDrawFlare() const = 0;
 };
 
 class ruSpotLight : public virtual ruLight {

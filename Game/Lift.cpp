@@ -4,7 +4,14 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift(shared_ptr<ruSceneNode> base) : mPaused(false), mBaseNode(base), mArrived(true), mEngineSoundEnabled(true), mSpeedMultiplier(1.0f), mLocked(false) {
+Lift::Lift(shared_ptr<ruSceneNode> base) :
+	mPaused(false),
+	mBaseNode(base),
+	mArrived(true),
+	mEngineSoundEnabled(true),
+	mSpeedMultiplier(1.0f),
+	mLocked(false)
+{
 	mMotorSound = ruSound::Load3D("data/sounds/motor_idle.ogg");
 	mMotorSound->Attach(mBaseNode);
 	mMotorSound->SetRolloffFactor(30);
@@ -12,7 +19,7 @@ Lift::Lift(shared_ptr<ruSceneNode> base) : mPaused(false), mBaseNode(base), mArr
 }
 
 void Lift::Update() {
-	if (mBaseNode && mSourceNode && mDestNode && mControlPanel && mTargetNode) {
+	if (mBaseNode && mSourceNode && mDestNode && mTargetNode) {
 
 		ruVector3 directionVector = mTargetNode->GetPosition() - mBaseNode->GetPosition();
 		ruVector3 speedVector = directionVector.Normalized() * 0.02f;
@@ -53,30 +60,6 @@ void Lift::Update() {
 				mMotorSound->Pause();
 			}
 		}
-		// player interaction( TODO: must be moved to player class )
-		auto & player = Level::Current()->GetPlayer();
-		if (player->mNearestPickedNode == mControlPanel) {
-			if (mLocked) {
-				player->GetHUD()->SetAction(ruInput::Key::None, player->mLocalization.GetString("liftLocked"));
-			} else {
-				player->GetHUD()->SetAction(player->mKeyUse, player->mLocalization.GetString("liftUpDown"));
-			}
-
-			if (ruInput::IsKeyHit(player->mKeyUse) && !mLocked) {
-				if (mArrived) {
-					if (IsAllDoorsClosed()) {
-						SetDoorsLocked(true);
-						if (mTargetNode == mSourceNode) {
-							mTargetNode = mDestNode;
-						} else {
-							mTargetNode = mSourceNode;
-						}
-					}
-				}
-
-				mArrived = false;
-			}
-		}
 	} else {
 		throw std::runtime_error("Lift objects are set improperly!");
 	}
@@ -103,10 +86,6 @@ void Lift::SetSourcePoint(shared_ptr<ruSceneNode> sourceNode) {
 
 void Lift::SetDestinationPoint(shared_ptr<ruSceneNode> destNode) {
 	mDestNode = destNode;
-}
-
-void Lift::SetControlPanel(shared_ptr<ruSceneNode> panel) {
-	mControlPanel = panel;
 }
 
 Lift::~Lift() {

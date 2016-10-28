@@ -31,6 +31,8 @@
 weak_ptr<Camera> Camera::msCurrentCamera;
 
 void Camera::Update() {
+	CalculateGlobalTransform();
+
 	btVector3 eye = mGlobalTransform.getOrigin();
 	btVector3 look = eye + mGlobalTransform.getBasis().getColumn(2);
 	btVector3 up = mGlobalTransform.getBasis().getColumn(1);

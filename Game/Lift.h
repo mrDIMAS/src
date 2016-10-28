@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "Door.h"
 #include "SaveFile.h"
+#include "Button.h"
 
 class Lift {
 private:
@@ -10,7 +11,6 @@ private:
 	explicit Lift( shared_ptr<ruSceneNode> base );
 
     shared_ptr<ruSceneNode> mBaseNode;
-    shared_ptr<ruSceneNode> mControlPanel;
     shared_ptr<ruSceneNode> mSourceNode;
     shared_ptr<ruSceneNode> mDestNode;
     shared_ptr<ruSceneNode> mTargetNode;
@@ -25,9 +25,7 @@ private:
 	float mSpeedMultiplier;
 	bool mLocked;
 public:
-
     virtual ~Lift( );
-    void SetControlPanel( shared_ptr<ruSceneNode> panel );
     void SetDestinationPoint( shared_ptr<ruSceneNode> destNode );
     void SetSourcePoint( shared_ptr<ruSceneNode> sourceNode );
     void SetFrontDoors( const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor );
@@ -45,5 +43,27 @@ public:
 	}
 	bool IsLocked() const {
 		return mLocked;
+	}
+	void GoDown() {
+		if (!mLocked) {
+			if (mArrived) {
+				if (IsAllDoorsClosed()) {
+					SetDoorsLocked(true);
+					mTargetNode = mDestNode;
+				}
+			}
+			mArrived = false;
+		}
+	}
+	void GoUp() {
+		if (!mLocked) {
+			if (mArrived) {
+				if (IsAllDoorsClosed()) {
+					SetDoorsLocked(true);
+					mTargetNode = mSourceNode;					
+				}
+			}
+			mArrived = false;
+		}
 	}
 };

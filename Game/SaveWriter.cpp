@@ -14,7 +14,10 @@ void SaveWriter::SaveWorldState() {
 			Level::Current()->Show();
 		}
 
-		*this & Level::Current()->mTypeNum;
+		// oh, those casts...
+		int name = (int)Level::Current()->mName;
+		*this & name;
+
         Level::Current()->Serialize( *this );
 
 		if (!visible) {

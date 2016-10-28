@@ -12,11 +12,6 @@
 
 class LevelResearchFacility : public Level {
 private:
-	void Proxy_GiveCrowbar();
-	void Proxy_GiveFe2O3();
-	void Proxy_GiveAl();
-	void Proxy_GiveFuse();
-
 	shared_ptr<Lift> mLift1;
 	shared_ptr<Lift> mLift2;
 	unique_ptr<Sparks> mpPowerSparks;
@@ -46,14 +41,6 @@ private:
 
 	shared_ptr<ruSceneNode> mDoorUnderFloor;
 	shared_ptr<ruSceneNode> mZoneNewLevelLoad;
-
-	shared_ptr<Zone> mZoneObjectiveNeedPassThroughMesh;
-	shared_ptr<Zone> mZoneEnemySpawn;
-	shared_ptr<Zone> mZoneSteamActivate;
-	shared_ptr<Zone> mZoneObjectiveRestorePower;
-	shared_ptr<Zone> mZoneExaminePlace;
-	shared_ptr<Zone> mZoneRemovePathBlockingMesh;
-	shared_ptr<Zone> mZoneNeedCrowbar;
 
 	shared_ptr<Keypad> mKeypad1;
 	shared_ptr<Door> mKeypad1DoorToUnlock;
@@ -99,6 +86,12 @@ private:
 	void OnPlayerEnterSpawnEnemyZone();
 	void OnPlayerEnterNeedPassThroughMeshZone();
 	void OnCrowbarPickup();
+	void OnPlayerEnterDisableSteamZone() {
+		if (!mStages["EnterDisableSteamZone"]) {
+			mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveDisableSteam"));
+			mStages["EnterDisableSteamZone"] = true;
+		}
+	}
 public:
 	explicit LevelResearchFacility(const unique_ptr<PlayerTransfer> & playerTransfer);
 	virtual ~LevelResearchFacility();

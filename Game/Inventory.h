@@ -86,7 +86,10 @@ public:
 		auto existing = find(mReadedNotes.begin(), mReadedNotes.end(), pair<string,string>(desc, text));
 		if (existing == mReadedNotes.end()) {
 			mNotesList->AddValue(desc);
+			mNotesList->SetCurrentValue(mNotesList->GetValueCount() - 1);
 			mReadedNotes.push_back(pair<string, string>(desc, text));
 		}
+		mTab = Tab::Notes;
+		SetVisible(true);
 	}
 };

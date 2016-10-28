@@ -45,7 +45,7 @@ void GUIButton::Update() {
 
 				if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
 					if( IsGotAction( ruGUIAction::OnClick )) {
-						mEventList[ ruGUIAction::OnClick ].DoActions();
+						mEventList[ ruGUIAction::OnClick ]();
 					}
 
 					mLeftHit = true;

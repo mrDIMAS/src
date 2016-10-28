@@ -10,7 +10,7 @@ void SaveLoader::RestoreWorldState() {
 	*this & levNum;
 
     // load level
-    Level::Change( levNum );
+    Level::Change( (LevelName)levNum );
 
     // deserialize it's objects
     if( Level::Current() ) {

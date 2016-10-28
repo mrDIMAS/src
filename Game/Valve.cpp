@@ -29,10 +29,10 @@ void Valve::Update() {
 			if( ruInput::IsKeyDown(player->mKeyUse )) {
 				mTurnSound->Play();
 				mAngle += 5;
-				OnTurn.DoActions();
+				OnTurn();
 				if( mAngle >= 360 * mTurnCount ) {
 					mDone = true;
-					OnTurnDone.DoActions();
+					OnTurnDone();
 				}
 				mObject->SetRotation( ruQuaternion( mTurnAxis, mAngle ));
 			} 

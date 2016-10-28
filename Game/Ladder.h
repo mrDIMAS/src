@@ -4,33 +4,25 @@
 #include "SaveFile.h"
 
 class Ladder {
-protected:
+public:
+	enum class Status {
+		Free,
+		ActorStand,
+		ActorClimbInTop,
+		ActorClimbInBottom,
+		ActorClimbingUp,
+		ActorClimbingDown,
+		ActorClimbOffTop,
+		ActorClimbOffBottom
+	};
 	shared_ptr<ruSceneNode> mBegin;
 	shared_ptr<ruSceneNode> mEnd;
 	shared_ptr<ruSceneNode> mEnterZone;
-	shared_ptr<ruSceneNode> mTarget;
 	shared_ptr<ruSceneNode> mBeginLeavePoint;
 	shared_ptr<ruSceneNode> mEndLeavePoint;
-	bool mInside;
-	bool mEntering;
-	bool mLeave;
+	Status mStatus;
 public:
-	enum class Direction {
-		Forward  = 1,
-		Backward = 2,
-	};
-	Ladder( shared_ptr<ruSceneNode> hBegin, shared_ptr<ruSceneNode> hEnd, shared_ptr<ruSceneNode> hEnterZone, shared_ptr<ruSceneNode> hBeginLeavePoint, shared_ptr<ruSceneNode> hEndLeavePoint );
+	Ladder(const shared_ptr<ruSceneNode> & hBegin, const shared_ptr<ruSceneNode> & hEnd, const shared_ptr<ruSceneNode> & hEnterZone, const shared_ptr<ruSceneNode> & hBeginLeavePoint, const shared_ptr<ruSceneNode> & hEndLeavePoint);
 	virtual ~Ladder();
-	bool IsEntering();
-	bool IsPlayerInside();
-	bool IsEnterPicked();
-	shared_ptr<ruSceneNode> GetEnterZone();
-	shared_ptr<ruSceneNode> GetTarget();
-	void DoEntering();
-	void Enter();
-	void DoPlayerCrawling();
-	void SetDirection( Direction direction );
-	void DoLeave();
-	void Serialize( SaveFile & out );
-	void LeaveInstantly();
+	void Serialize(SaveFile & out);
 };

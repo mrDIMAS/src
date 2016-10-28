@@ -6,9 +6,11 @@
 #include "Utils.h"
 
 LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer) {
-	mTypeNum = 3;
+	mName = LevelName::Mine;
 
 	LoadLocalization("mine.loc");
+
+	mPlayer->mYaw.SetTarget(180.0f);
 
 	LoadSceneFromFile("data/maps/mine.scene");
 
@@ -19,14 +21,14 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 
 	mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective1"));
 
-	AddSheet("Note1", mLocalization.GetString("note1Desc"), mLocalization.GetString("note1"));
-	AddSheet("Note2", mLocalization.GetString("note2Desc"), mLocalization.GetString("note2"));
-	AddSheet("Note3", mLocalization.GetString("note3Desc"), mLocalization.GetString("note3"));
-	AddSheet("Note4", mLocalization.GetString("note4Desc"), mLocalization.GetString("note4"));
-	AddSheet("Note5", mLocalization.GetString("note5Desc"), mLocalization.GetString("note5"));
-	AddSheet("Note6", mLocalization.GetString("note6Desc"), mLocalization.GetString("note6"));
-	AddSheet("Note7", mLocalization.GetString("note7Desc"), mLocalization.GetString("note7"));
-	AddSheet("Note8", mLocalization.GetString("note8Desc"), mLocalization.GetString("note8"));
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note1")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note1Desc"), mLocalization.GetString("note1")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note2")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note2Desc"), mLocalization.GetString("note2")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note3")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note3Desc"), mLocalization.GetString("note3")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note4")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note4Desc"), mLocalization.GetString("note4")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note5")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note5Desc"), mLocalization.GetString("note5")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note6")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note6Desc"), mLocalization.GetString("note6")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note7")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note7Desc"), mLocalization.GetString("note7")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note8")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note8Desc"), mLocalization.GetString("note8")); });
 
 	mStoneFallZone = GetUniqueObject("StoneFallZone");
 
@@ -51,8 +53,6 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	mDetonatorActivated = 0;
 
 	mExplosionFlashAnimator = 0;
-
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Pistol), make_shared<InteractiveObject>(GetUniqueObject("Pistol")), ruDelegate::Bind(this, &LevelMine::Proxy_GivePistol));
 
 	AutoCreateBulletsByNamePattern("Bullet?([[:digit:]]+)");
 
@@ -107,9 +107,6 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 
 	mMusic->Play();
 
-	mStages["EnterRockFallZoneWallExp"] = false;
-	mStages["EnterScreamerDone"] = false;
-	mStages["EnterScreamer2Done"] = false;
 	mStages["ConcreteWallExp"] = false;
 	mStages["FindObjectObjectiveSet"] = false;
 	mStages["FoundObjectsForExplosion"] = false;
@@ -209,14 +206,6 @@ void LevelMine::DoScenario() {
 
 	PlayAmbientSounds();
 
-	if (!mStages["EnterRockFallZoneWallExp"]) {
-		if (mPlayer->IsInsideZone(mStoneFallZone)) {
-			ruSceneNode::FindByName("StoneFall")->Unfreeze();
-
-			mStages["EnterRockFallZoneWallExp"] = true;
-		}
-	}
-
 	if (mPlayer->mNearestPickedNode == mLiftButton) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("brokenLift"));
 	}
@@ -245,7 +234,7 @@ void LevelMine::DoScenario() {
 			if (ruInput::IsKeyHit(mPlayer->mKeyUse) && mReadyExplosivesCount >= 4 && !mDetonatorActivated) {
 				mDetonatorActivated = true;
 
-				mExplosionTimer->Restart();;
+				mExplosionTimer->Restart();
 			}
 		}
 
@@ -299,7 +288,7 @@ void LevelMine::DoScenario() {
 	}
 
 	if (mPlayer->IsInsideZone(mNewLevelZone)) {
-		Level::Change(LevelName::L3ResearchFacility);
+		Level::Change(LevelName::ResearchFacility);
 
 		return;
 	}
@@ -307,29 +296,6 @@ void LevelMine::DoScenario() {
 	UpdateExplodeSequence();
 }
 
-inline void LevelMine::Proxy_GiveExplosives() {
-	mPlayer->AddItem(Item::Type::Explosives);
-}
-
-inline void LevelMine::Proxy_GiveDetonator() {
-	mPlayer->AddItem(Item::Type::Detonator);
-}
-
-inline void LevelMine::Proxy_GiveWires() {
-	mPlayer->AddItem(Item::Type::Wires);
-}
-
-inline void LevelMine::Proxy_GivePistol() {
-	mPlayer->AddUsableObject(new Weapon);
-}
-
-inline void LevelMine::Proxy_GiveFuel() {
-	mPlayer->AddItem(Item::Type::FuelCanister);
-}
-
-inline void LevelMine::Proxy_GiveSyringe() {
-	mPlayer->AddUsableObject(new Syringe);
-}
 
 void LevelMine::UpdateExplodeSequence() {
 	if (mReadyExplosivesCount < 4) {
@@ -410,29 +376,26 @@ void LevelMine::CleanUpExplodeArea() {
 
 void LevelMine::CreateItems() {
 	// Create explosives
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives1")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveExplosives));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives2")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveExplosives));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives3")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveExplosives));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives4")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveExplosives));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives1")), [this] { mPlayer->AddItem(Item::Type::Explosives); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives2")), [this] { mPlayer->AddItem(Item::Type::Explosives); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives3")), [this] { mPlayer->AddItem(Item::Type::Explosives); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives4")), [this] { mPlayer->AddItem(Item::Type::Explosives); });
 
 	// Create detonators
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator1")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveDetonator));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator2")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveDetonator));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator3")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveDetonator));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator4")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveDetonator));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator1")), [this] { mPlayer->AddItem(Item::Type::Detonator); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator2")), [this] { mPlayer->AddItem(Item::Type::Detonator); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator3")), [this] { mPlayer->AddItem(Item::Type::Detonator); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Detonator), make_shared<InteractiveObject>(GetUniqueObject("Detonator4")), [this] { mPlayer->AddItem(Item::Type::Detonator); });
 
 	// Create wires
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire1")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveWires));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire2")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveWires));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire3")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveWires));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire4")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveWires));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire1")), [this] { mPlayer->AddItem(Item::Type::Wires); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire2")), [this] { mPlayer->AddItem(Item::Type::Wires); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire3")), [this] { mPlayer->AddItem(Item::Type::Wires); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire4")), [this] { mPlayer->AddItem(Item::Type::Wires); });
 
-	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel1")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveFuel));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel2")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveFuel));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel3")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveFuel));
-
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Syringe), make_shared<InteractiveObject>(GetUniqueObject("Syringe")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveSyringe));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Syringe), make_shared<InteractiveObject>(GetUniqueObject("Syringe2")), ruDelegate::Bind(this, &LevelMine::Proxy_GiveSyringe));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel1")), [this] { mPlayer->AddItem(Item::Type::FuelCanister); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel2")), [this] { mPlayer->AddItem(Item::Type::FuelCanister); });
+	AddInteractiveObject(Item::GetNameByType(Item::Type::FuelCanister), make_shared<InteractiveObject>(GetUniqueObject("Fuel3")), [this] { mPlayer->AddItem(Item::Type::FuelCanister); });
 }
 
 void LevelMine::OnSerialize(SaveFile & s) {

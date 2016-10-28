@@ -16,7 +16,7 @@ RadioButton::RadioButton(const shared_ptr<ruGUIScene> & scene, float x, float y,
     mGUIButton = scene->CreateButton( x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center );
 	mCheck = scene->CreateRect( buttonWidth + 10, 6, 20, 20, ruTexture::Request( "data/gui/menu/checkbox_checked.tga" ), pGUIProp->mForeColor );
 	mCheck->Attach( mGUIButton );
-	mGUIButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
+	mGUIButton->AddAction(ruGUIAction::OnClick, [this] { OnChange(); });
 }
 
 void RadioButton::SetEnabled( bool state ) {
@@ -30,7 +30,7 @@ bool RadioButton::IsChecked() {
 
 void RadioButton::SetChangeAction( const ruDelegate & delegat ) {
 	mGUIButton->RemoveAllActions();
-	mGUIButton->AddAction( ruGUIAction::OnClick, ruDelegate::Bind( this, &RadioButton::OnChange ));
+	mGUIButton->AddAction(ruGUIAction::OnClick, [this] { OnChange(); });
 	mGUIButton->AddAction( ruGUIAction::OnClick, delegat );
 }
 

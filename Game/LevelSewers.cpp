@@ -3,7 +3,7 @@
 #include "LevelSewers.h"
 
 LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mWaterFlow(0.0f), mVerticalWaterFlow(0.0f) {
-	mTypeNum = 5;
+	mName = LevelName::Sewers;
 
 	LoadLocalization("sewers.loc");
 
@@ -28,9 +28,9 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 
 	ruSound::SetAudioReverb(10);
 
-	AddSheet("Note1", mLocalization.GetString("note1Desc"), mLocalization.GetString("note1"));
-	AddSheet("Note2", mLocalization.GetString("note2Desc"), mLocalization.GetString("note2"));
-	AddSheet("Note3", mLocalization.GetString("note3Desc"), mLocalization.GetString("note3"));
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note1")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note1Desc"), mLocalization.GetString("note1")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note2")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note2Desc"), mLocalization.GetString("note2")); });
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note3")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note3Desc"), mLocalization.GetString("note3")); });
 
 	AddDoor("Door1", 90.0f);
 	AddDoor("Door2", 90.0f);
@@ -42,6 +42,8 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 	AddDoor("Door008", 90.0f);
 	AddDoor("Door009", 90.0f);
 	AddDoor("Door010", 90.0f);
+	AddDoor("Door012", 90.0f);
+	AddDoor("Door013", 90.0f);
 
 	mDoorToControl = AddDoor("DoorToControl", 90.0f);
 	mKeypad1 = AddKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", mDoorToControl, "9632");
@@ -52,21 +54,35 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 	mEnemySpawnPosition = GetUniqueObject("EnemySpawnPosition");
 
 	AddZone(mZoneEnemySpawn = make_shared<Zone>(GetUniqueObject("EnemySpawnZone")));
-	mZoneEnemySpawn->OnPlayerEnter.AddListener(ruDelegate::Bind(this, &LevelSewers::OnPlayerEnterSpawnEnemyZone));
+	mZoneEnemySpawn->OnPlayerEnter += [this] { OnPlayerEnterSpawnEnemyZone(); };
 
 	mZoneDropWaterLevel = make_shared<Zone>(GetUniqueObject("ZoneDropWaterLevel"));
-	mZoneDropWaterLevel->OnPlayerEnter.AddListener(ruDelegate::Bind(this, &LevelSewers::OnPlayerEnterDropWaterLevelZone));
+	mZoneDropWaterLevel->OnPlayerEnter += [this] { OnPlayerEnterDrainWaterLevelZone(); };
 
 	mWater = GetUniqueObject("Water");
 
 	mStages["KnocksDone"] = false;
 	mStages["EnemySpawned"] = false;
+	mStages["WaterDrained"] = false;
 
 	mPassLightGreen = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightGreen"));
 	mPassLightRed = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightRed"));
 
-	mLift1 = AddLift("Lift1", "Lift1Screen", "Lift1Source", "Lift1Dest", "Lift1FrontDoor1", "Lift1FrontDoor2", "Lift1BackDoor1", "Lift1BackDoor2");
+	mPumpLight[0] = dynamic_pointer_cast<ruLight>(GetUniqueObject("PumpLight1"));
+	mPumpLight[1] = dynamic_pointer_cast<ruLight>(GetUniqueObject("PumpLight2"));
+	mPumpLight[2] = dynamic_pointer_cast<ruLight>(GetUniqueObject("PumpLight3"));
 
+	{
+		mLift1 = AddLift("Lift1", "Lift1Source", "Lift1Dest", "Lift1FrontDoor1", "Lift1FrontDoor2", "Lift1BackDoor1", "Lift1BackDoor2");
+		// add go up button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1GoUp"), "Go up", [this] { mLift1->GoUp(); }));
+		// add go down button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1GoDown"), "Go down", [this] { mLift1->GoDown(); }));
+		// add call up button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1CallUp"), "Call up", [this] { mLift1->GoUp(); }));
+		// add call down button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1CallDown"), "Call down", [this] { mLift1->GoDown(); }));
+	}
 	std::regex rx("VerticalWater?([[:digit:]]+)");
 	for (int i = 0; i < mScene->GetCountChildren(); i++) {
 		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
@@ -75,21 +91,31 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 		}
 	}
 
+	for (int i = 0; i < 3; ++i) {
+		AddSound(mWaterPumpSound[i] = ruSound::Load3D("data/sounds/waterpump.ogg"));
+		mWaterPumpSound[i]->Attach(GetUniqueObject(StringBuilder("WaterPumpSound") << i + 1));
+		mWaterPumpSound[i]->Play();
+		mWaterPumpSound[i]->SetLoop(true);
+	}
+
+	mZoneNextLevel = GetUniqueObject("ZoneNextLevel");
+
 	DoneInitialization();
 }
 
-void LevelSewers::CreateEnemy()
-{
+void LevelSewers::CreateEnemy() {
 	// create paths
 	Path wayNorth; BuildPath(wayNorth, "WayNorth");
 	Path wayWest; BuildPath(wayWest, "WayWest");
 	Path waySouthWest; BuildPath(waySouthWest, "WaySouthWest");
 	Path wayBasement; BuildPath(wayBasement, "WayBasement");
+	Path wayPump; BuildPath(wayBasement, "WayPump");
 
 	// add edges
 	wayNorth.mVertexList[0]->AddEdge(wayWest.mVertexList[0]);
 	wayNorth.mVertexList[0]->AddEdge(waySouthWest.mVertexList[0]);
 	wayBasement.mVertexList[0]->AddEdge(waySouthWest.mVertexList.back());
+	wayPump.mVertexList[0]->AddEdge(wayBasement.mVertexList.back());
 
 	// concatenate paths
 	vector<GraphVertex*> allPaths;
@@ -97,6 +123,7 @@ void LevelSewers::CreateEnemy()
 	allPaths.insert(allPaths.end(), wayWest.mVertexList.begin(), wayWest.mVertexList.end());
 	allPaths.insert(allPaths.end(), waySouthWest.mVertexList.begin(), waySouthWest.mVertexList.end());
 	allPaths.insert(allPaths.end(), wayBasement.mVertexList.begin(), wayBasement.mVertexList.end());
+	allPaths.insert(allPaths.end(), wayPump.mVertexList.begin(), wayPump.mVertexList.end());
 
 	// create patrol paths
 	vector< GraphVertex* > patrolPoints;
@@ -113,16 +140,19 @@ void LevelSewers::CreateEnemy()
 	patrolPoints.push_back(wayBasement.mVertexList.front());
 	patrolPoints.push_back(wayBasement.mVertexList.back());
 
+	patrolPoints.push_back(wayPump.mVertexList.front());
+	patrolPoints.push_back(wayPump.mVertexList.back());
+
 	mEnemy = unique_ptr<Enemy>(new Enemy(allPaths, patrolPoints));
 	mEnemy->SetPosition(mEnemySpawnPosition->GetPosition());
 }
-
 
 LevelSewers::~LevelSewers() {
 
 }
 
 void LevelSewers::DoScenario() {
+	// animate water flow
 	mWater->SetTexCoordFlow(ruVector2(0.0, -mWaterFlow));
 	mWaterFlow += 0.00025f;
 
@@ -131,8 +161,18 @@ void LevelSewers::DoScenario() {
 		pVW->SetTexCoordFlow(ruVector2(0.0f, mVerticalWaterFlow));
 	}
 
+	// update enemy, if present
 	if (mEnemy) {
 		mEnemy->Think();
+	}
+
+	// indicate, that water is drained or not
+	if (mStages["WaterDrained"]) {
+		mPassLightGreen->Show();
+		mPassLightRed->Hide();
+	} else {
+		mPassLightGreen->Hide();
+		mPassLightRed->Show();
 	}
 
 	mLift1->Update();
@@ -150,6 +190,10 @@ void LevelSewers::DoScenario() {
 			mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveFindCodeToPump"));
 		}
 	}
+
+	if (mPlayer->IsInsideZone(mZoneNextLevel)) {
+		Level::Change(LevelName::Forest);
+	}
 }
 
 void LevelSewers::Show() {
@@ -163,7 +207,7 @@ void LevelSewers::Hide() {
 void LevelSewers::OnSerialize(SaveFile & s) {
 	auto enemyPresented = mEnemy != nullptr;
 	s & enemyPresented;
-	
+
 	if (enemyPresented) {
 		if (s.IsLoading()) {
 			CreateEnemy();

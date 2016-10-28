@@ -2,7 +2,6 @@
 
 #include "Game.h"
 #include "Item.h"
-#include "Sheet.h"
 #include "Door.h"
 #include "Ladder.h"
 #include "ItemPlace.h"
@@ -15,7 +14,6 @@
 #include "PathFinder.h"
 #include "Lamp.h"
 #include "Zone.h"
-#include "ActionTimer.h"
 #include "ActionSeries.h"
 #include "Button.h"
 #include "Enemy.h"
@@ -27,7 +25,6 @@
 struct PlayerTransfer {
 	float mHealth;
 	map<Item, int> mItems;
-	vector<UsableObject*> mUsableObjects;
 };
 
 class LoadingScreen {
@@ -37,7 +34,7 @@ private:
 	shared_ptr<ruRect> mGUILoadingBackground;
 	shared_ptr<ruFont> mGUIFont;
 public:
-	LoadingScreen() {		
+	LoadingScreen(const string & loadingText) {		
 		int w = 200;
 		int h = 32;
 		int x = (ruVirtualScreenWidth - w) / 2;
@@ -45,7 +42,7 @@ public:
 		mScene = ruGUIScene::Create();
 		mScene->SetVisible(false);
 		mGUIFont = ruFont::LoadFromFile(32, "data/fonts/font5.ttf");
-		mGUILoadingText = mScene->CreateText(u8"Загрузка...", x, y, w, h, mGUIFont, ruVector3(0, 0, 0), ruTextAlignment::Center);
+		mGUILoadingText = mScene->CreateText(loadingText, x, y, w, h, mGUIFont, ruVector3(0, 0, 0), ruTextAlignment::Center);
 		mGUILoadingText->SetLayer(0xFF); // topmost
 		mGUILoadingBackground = mScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/gui/loadingscreen.tga"), pGUIProp->mBackColor);
 	}
@@ -60,10 +57,8 @@ public:
 
 class Level {
 private:
-	void Proxy_GiveBullet();
 	static unique_ptr<LoadingScreen> msLoadingScreen;
 	static unique_ptr<Level> msCurrent;
-	vector<shared_ptr<Sheet>> mSheetList;
 	vector<shared_ptr<Door>> mDoorList;
 	vector<shared_ptr<Ladder>> mLadderList;
 	vector<shared_ptr<ItemPlace>> mItemPlaceList;
@@ -75,7 +70,7 @@ private:
 	vector<shared_ptr<Keypad>> mKeypadList;
 	vector<shared_ptr<LightSwitch>> mLightSwitchList;
 	vector<weak_ptr<ruSound>> mSounds;
-	vector<Button*> mButtonList;
+	vector<shared_ptr<Button>> mButtonList;
 	vector<shared_ptr<InteractiveObject>> mInteractiveObjectList;
 	virtual void OnSerialize(SaveFile & out) = 0;
 	AmbientSoundSet mAmbSoundSet;
@@ -94,7 +89,7 @@ public:
 	explicit Level(const unique_ptr<PlayerTransfer> & playerTransfer);
 	virtual ~Level();
 
-	int mTypeNum;
+	LevelName mName;
 	shared_ptr<ruSound> mMusic;
 	shared_ptr<ruSound> mChaseMusic;
 	// when enemy detects player, enemy should call this method
@@ -114,8 +109,6 @@ public:
 	shared_ptr<Keypad> AddKeypad(const string & keypad, const string & key0, const string & key1, const string & key2, const string & key3,
 		const string & key4, const string & key5, const string & key6, const string & key7, const string & key8, const string & key9,
 		const string & keyCancel, weak_ptr<Door> doorToUnlock, const string & codeToUnlock);
-	shared_ptr<Sheet> AddSheet(const string & nodeName, const string & desc, const string & text);
-	shared_ptr<Sheet> FindSheet(const string & name);
 	shared_ptr<Door> AddDoor(const string & nodeName, float fMaxAngle);
 	shared_ptr<Door> FindDoor(const string & name);
 	const vector<shared_ptr<Door>> & GetDoorList() const;
@@ -128,10 +121,10 @@ public:
 		mLightSwitchList.push_back(lswitch);
 	}
 	void AddValve(const shared_ptr<Valve> & valve);
-	shared_ptr<Lift> AddLift(const string & baseNode, const string & controlPanel, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight);
+	shared_ptr<Lift> AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight);
 	void AddLamp(const shared_ptr<Lamp> & lamp);
 	void AddZone(const shared_ptr<Zone> & zone);
-	void AddButton(Button * button);
+	void AddButton(const shared_ptr<Button> & button);
 	void AutoCreateLampsByNamePattern(const string & namePattern, string buzzSound);
 	void AutoCreateBulletsByNamePattern(const string & namePattern);
 	void AutoCreateDoorsByNamePattern(const string & namePattern);
@@ -139,7 +132,7 @@ public:
 	void LoadLocalization(string fn);
 	void AddAmbientSound(shared_ptr<ruSound> sound);
 	void PlayAmbientSounds();
-	void UpdateGenericObjectsIdle();
+	void GenericUpdate();
 	void LoadSceneFromFile(const string & file);
 	virtual void DoScenario() = 0;
 	virtual void Hide();
@@ -151,8 +144,8 @@ public:
 	void BuildPath(Path & path, const string & nodeBaseName);
 	void CreateBlankScene();
 	shared_ptr<ruSceneNode> GetUniqueObject(const string & name);
-	static int msCurLevelID;
-	static void Change(int levelId, bool continueFromSave = false);
+	static LevelName msCurLevelID;
+	static void Change(LevelName name, bool continueFromSave = false);
 	static void CreateLoadingScreen();
 	static unique_ptr<Level> & Current();
 	static void Purge();

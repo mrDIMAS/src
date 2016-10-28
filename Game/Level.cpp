@@ -11,13 +11,14 @@
 #include "SaveWriter.h"
 #include "LevelSewers.h"
 #include "LevelCutsceneIntro.h"
+#include "LevelForest.h"
 
 unique_ptr<Level> Level::msCurrent;
 
 unique_ptr<LoadingScreen> Level::msLoadingScreen;
 
-int g_initialLevel;
-int Level::msCurLevelID = 0;
+LevelName g_initialLevel = LevelName::Undefined;
+LevelName Level::msCurLevelID = LevelName::Undefined;
 
 Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	mChaseMusicStopInterval(0),
@@ -25,19 +26,16 @@ Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) :
 	mDestChaseMusicVolume(1.0f)
 {
 	mInitializationComplete = false;
-	mTypeNum = 0; //undefined
+	mName = LevelName::Undefined;
 
 	 // create player
-	if (Level::msCurLevelID != LevelName::L0Introduction && Level::msCurLevelID != LevelName::LCSIntro) {
+	if (Level::msCurLevelID != LevelName::Introduction && Level::msCurLevelID != LevelName::CutSceneIntro) {
 		mPlayer = unique_ptr<Player>(new Player);
 
 		// restore state
 		if (playerTransfer) {
 			mPlayer->SetHealth(playerTransfer->mHealth);
 
-			for (auto uo : playerTransfer->mUsableObjects) {
-				mPlayer->AddUsableObject(uo);
-			}
 			if (playerTransfer->mItems.size()) {
 				mPlayer->GetInventory()->SetItems(playerTransfer->mItems);
 			}
@@ -48,9 +46,7 @@ Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) :
 }
 
 Level::~Level() {
-	for (auto pButton : mButtonList) {
-		delete pButton;
-	}
+
 }
 
 void Level::LoadLocalization(string fn) {
@@ -85,20 +81,17 @@ void Level::Show() {
 	}
 }
 
-void Level::Change(int levelId, bool continueFromSave) {
-	static int lastLevel = 0;
+void Level::Change(LevelName name, bool continueFromSave) {
+	static LevelName lastLevel = LevelName::Undefined;
 
-	Level::msCurLevelID = levelId;
+	Level::msCurLevelID = name;
 
-	// save player state
+	// save player state - grim stuff
 	unique_ptr<PlayerTransfer> playerTransfer;
 
 	if (msCurrent) {
 		if (msCurrent->mPlayer) {
 			playerTransfer = make_unique<PlayerTransfer>();
-			if (lastLevel != levelId) {
-				msCurrent->mPlayer->DumpUsableObjects(playerTransfer->mUsableObjects);
-			}
 			msCurrent->mPlayer->GetInventory()->GetItems(playerTransfer->mItems);
 			playerTransfer->mHealth = msCurrent->mPlayer->GetHealth();
 		}
@@ -114,23 +107,26 @@ void Level::Change(int levelId, bool continueFromSave) {
 
 	// load new level and restore player state
 	switch (Level::msCurLevelID) {
-	case LevelName::LCSIntro:
+	case LevelName::CutSceneIntro:
 		msCurrent = make_unique<LevelCutsceneIntro>(playerTransfer);
 		break;
-	case LevelName::L0Introduction:
+	case LevelName::Introduction:
 		msCurrent = make_unique<LevelIntroduction>(playerTransfer);
 		break;
-	case LevelName::L1Arrival:
+	case LevelName::Arrival:
 		msCurrent = make_unique<LevelArrival>(playerTransfer);
 		break;
-	case LevelName::L2Mine:
+	case LevelName::Mine:
 		msCurrent = make_unique<LevelMine>(playerTransfer);
 		break;
-	case LevelName::L3ResearchFacility:
+	case LevelName::ResearchFacility:
 		msCurrent = make_unique<LevelResearchFacility>(playerTransfer);
 		break;
-	case LevelName::L4Sewers:
+	case LevelName::Sewers:
 		msCurrent = make_unique<LevelSewers>(playerTransfer);
+		break;
+	case LevelName::Forest:
+		msCurrent = make_unique<LevelForest>(playerTransfer);
 		break;
 	default:
 		throw runtime_error("Unable to load level with bad id!");
@@ -142,18 +138,17 @@ void Level::Change(int levelId, bool continueFromSave) {
 	}
 
 	if (msCurrent->mPlayer) {
-		msCurrent->mPlayer->GetHUD()->SetTip("Loaded");
+		msCurrent->mPlayer->GetHUD()->SetTip(msCurrent->mPlayer->GetLocalization()->GetString("loaded"));
 	}
 
-	lastLevel = levelId;
+	lastLevel = name;
 
 	Game_UpdateClock();
 }
 
-shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & controlPanel, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight) {
+shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight) {
 	shared_ptr<Lift> lift(new Lift(GetUniqueObject(baseNode)));
 
-	lift->SetControlPanel(GetUniqueObject(controlPanel));
 	lift->SetDestinationPoint(GetUniqueObject(destNode));
 	lift->SetSourcePoint(GetUniqueObject(sourceNode));
 	lift->SetFrontDoors(AddDoor(doorBackLeft, 90), AddDoor(mDoorBackRight, 90));
@@ -194,7 +189,7 @@ shared_ptr<Ladder> Level::AddLadder(const string & hBegin, const string & hEnd, 
 
 shared_ptr<Ladder> Level::FindLadder(const string & name) {
 	for (auto & ladder : mLadderList) {
-		if (ladder->GetEnterZone()->GetName() == name) {
+		if (ladder->mEnterZone->GetName() == name) {
 			return ladder;
 		}
 	}
@@ -214,22 +209,6 @@ shared_ptr<Door> Level::FindDoor(const string & name) {
 		}
 	}
 	return shared_ptr<Door>(nullptr);
-}
-
-shared_ptr<Sheet> Level::AddSheet(const string & nodeName, const string & desc, const string & text) {
-	shared_ptr<Sheet> sheet(new Sheet(mPlayer->GetHUD()->GetScene(), GetUniqueObject(nodeName), desc, text)); // HAAAX!!
-	mInteractiveObjectList.push_back(sheet);
-	mSheetList.push_back(sheet);
-	return sheet;
-}
-
-shared_ptr<Sheet> Level::FindSheet(const string & name) {
-	for (auto & sheet : mSheetList) {
-		if (sheet->mObject->GetName() == name) {
-			return sheet;
-		}
-	}
-	return shared_ptr<Sheet>(nullptr);
 }
 
 void Level::AddItemPlace(const shared_ptr<ItemPlace> & pItemPlace) {
@@ -260,7 +239,7 @@ void Level::Purge() {
 void Level::Serialize(SaveFile & s) {
 	mPlayer->Serialize(s);
 
-	mPlayer->GetHUD()->SetTip("Saved");
+	mPlayer->GetHUD()->SetTip(msCurrent->mPlayer->GetLocalization()->GetString("saved"));
 
 	// serialize all scene nodes
 	int childCount = mScene->GetCountChildren();
@@ -297,35 +276,28 @@ void Level::Serialize(SaveFile & s) {
 			}
 		}
 	}
-
 	// serialize doors
 	for (auto door : mDoorList) {
 		door->Serialize(s);
 	}
-
 	// serialize lifts
 	for (auto lift : mLiftList) {
 		lift->Serialize(s);
 	}
-
 	// serialize ladders
 	for (auto ladder : mLadderList) {
 		ladder->Serialize(s);
 	}
-
 	// serialize item places
 	for (auto itemPlace : mItemPlaceList) {
 		itemPlace->Serialize(s);
 	}
-
 	// serialize light switches
 	for (auto lswitch : mLightSwitchList) {
 		lswitch->Serialize(s);
 	}
-
 	// serialize stages
 	s & mStages;
-
 	OnSerialize(s);
 }
 
@@ -386,7 +358,9 @@ void Level::DoneInitialization() {
 }
 
 void Level::CreateLoadingScreen() {
-	msLoadingScreen = unique_ptr<LoadingScreen>(new LoadingScreen());
+	Parser loc;
+	loc.ParseFile(gLocalizationPath + "menu.loc");
+	msLoadingScreen = unique_ptr<LoadingScreen>(new LoadingScreen(loc.GetString("loading")));
 }
 
 unique_ptr<Level> & Level::Current() {
@@ -397,24 +371,17 @@ void Level::AddLamp(const shared_ptr<Lamp> & lamp) {
 	mLampList.push_back(lamp);
 }
 
-void Level::UpdateGenericObjectsIdle() {
+void Level::GenericUpdate() {
 	if (mPlayer) {
 		mPlayer->Update();
 	}
 
-	if (mMusic) {
-		mMusic->SetVolume(pMainMenu->GetMusicVolume());
-	}
-
 	for (auto io : mInteractiveObjectList) {
 		io->Update();
-		io->UpdateFlashing();
 	}
-
 	for (auto kp : mKeypadList) {
 		kp->Update();
 	}
-
 	for (auto pLamp : mLampList) {
 		pLamp->Update();
 	}
@@ -428,6 +395,11 @@ void Level::UpdateGenericObjectsIdle() {
 		lswitch->Update();
 	}
 
+
+	if (mMusic) {
+		mMusic->SetVolume(pMainMenu->GetMusicVolume());
+	}
+
 	--mChaseMusicStopInterval;
 	if (mChaseMusicStopInterval < 0) {
 		mDestChaseMusicVolume = 0.0f;
@@ -438,7 +410,6 @@ void Level::UpdateGenericObjectsIdle() {
 	}
 
 	mChaseMusicVolume += (mDestChaseMusicVolume - mChaseMusicVolume) * 0.02f;
-
 	mChaseMusic->SetVolume(mChaseMusicVolume);
 }
 
@@ -457,7 +428,7 @@ void Level::AutoCreateBulletsByNamePattern(const string & namePattern) {
 	for (int i = 0; i < mScene->GetCountChildren(); i++) {
 		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
 		if (regex_match(child->GetName(), rx)) {
-			AddInteractiveObject(Item::GetNameByType(Item::Type::Bullet), make_shared<InteractiveObject>(child), ruDelegate::Bind(this, &Level::Proxy_GiveBullet));
+			AddInteractiveObject(Item::GetNameByType(Item::Type::Bullet), make_shared<InteractiveObject>(child), [this] { mPlayer->AddItem(Item::Type::Bullet); });
 		}
 	}
 }
@@ -485,7 +456,7 @@ void Level::AddZone(const shared_ptr<Zone> & zone) {
 	mZoneList.push_back(zone);
 }
 
-void Level::AddButton(Button * button) {
+void Level::AddButton(const shared_ptr<Button> & button) {
 	mButtonList.push_back(button);
 }
 
@@ -505,7 +476,7 @@ unique_ptr<Enemy> & Level::GetEnemy() {
 }
 
 void Level::AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction) {
-	io->OnInteract.AddListener(interactAction);
+	io->OnInteract += interactAction;
 	io->SetPickDescription(desc);
 	mInteractiveObjectList.push_back(io);
 }
@@ -517,8 +488,4 @@ shared_ptr<InteractiveObject> Level::FindInteractiveObject(const string & name) 
 		}
 	}
 	return shared_ptr<InteractiveObject>(nullptr);
-}
-
-void Level::Proxy_GiveBullet() {
-	mPlayer->AddItem(Item::Type::Bullet);
 }

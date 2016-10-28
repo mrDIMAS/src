@@ -307,13 +307,14 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 
 	// Check passed resolution
 	bool passedResolutionValid = false;
-	for (int i = 0; i < mpDirect3D->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8); i++) {
-		D3DDISPLAYMODE mode;
+	D3DDISPLAYMODE mode;
+	for (int i = 0; i < mpDirect3D->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8); i++) {		
 		mpDirect3D->EnumAdapterModes(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, i, &mode);
 		Log::Write(StringBuilder("Videomode: ") << mode.Width << " x " << mode.Height << " x 32 @ " << mode.RefreshRate);
 		mVideomodeList.push_back(Videomode(mode.Width, mode.Height, mode.RefreshRate));
 		if (mode.Width == width && mode.Height == height) {
 			passedResolutionValid = true;
+			break;
 		}
 	}
 
@@ -353,12 +354,12 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		mPresentParameters.BackBufferFormat = D3DFMT_X8R8G8B8;
 		mPresentParameters.SwapEffect = D3DSWAPEFFECT_FLIPEX;
 		mPresentParameters.Windowed = FALSE;
-		mPresentParameters.FullScreen_RefreshRateInHz = displayMode.RefreshRate;
+		mPresentParameters.FullScreen_RefreshRateInHz = mode.RefreshRate;
 
 		displayMode.Height = mPresentParameters.BackBufferHeight;
 		displayMode.Width = mPresentParameters.BackBufferWidth;		
 		displayMode.Format = mPresentParameters.BackBufferFormat;
-
+		displayMode.RefreshRate = mode.RefreshRate;
 	} else {
 		mPresentParameters.BackBufferFormat = displayMode.Format;
 		mPresentParameters.SwapEffect = D3DSWAPEFFECT_FLIPEX;
@@ -776,13 +777,15 @@ void Renderer::RenderWorld() {
 	for (auto texGroupPairIter = mDeferredMeshMap.begin(); texGroupPairIter != mDeferredMeshMap.end(); ) {
 		auto & texGroupPair = *texGroupPairIter;
 
-		bool textureFound = false;
-		for (auto textureGroup : Texture::msTextureList) {
-			auto texture = textureGroup.second.lock();
-			if (texture) {
-				if (texture->GetInterface() == texGroupPair.first) {
-					textureFound = true;
-					break;
+		bool textureFound = texGroupPair.first == mWhiteMap;
+		if (!textureFound) {
+			for (auto textureGroup : Texture::msTextureList) {
+				auto texture = textureGroup.second.lock();
+				if (texture) {
+					if (texture->GetInterface() == texGroupPair.first) {
+						textureFound = true;
+						break;
+					}
 				}
 			}
 		}
@@ -867,7 +870,7 @@ void Renderer::RenderWorld() {
 			continue;
 		}
 
-		pD3D->SetTexture(0, pDiffuseTexture);
+		D3DCALL(pD3D->SetTexture(0, pDiffuseTexture));
 		++mTextureChangeCount;
 
 		for (auto weakMesh : texGroupPair.second) {
@@ -881,18 +884,20 @@ void Renderer::RenderWorld() {
 			}
 
 			if (pMesh->mHeightTexture) {
-				pD3D->SetTexture(2, pMesh->mHeightTexture->GetInterface());
+				D3DCALL(pD3D->SetTexture(2, pMesh->mHeightTexture->GetInterface()));
+				++mTextureChangeCount;
 			}
 
 			// prevent overhead with normal texture
 			if (pMesh->mNormalTexture) {
 				if (pMesh->mNormalTexture->GetInterface() != pNormalTexture) {
-					pD3D->SetTexture(1, pMesh->mNormalTexture->GetInterface());
+					D3DCALL(pD3D->SetTexture(1, pMesh->mNormalTexture->GetInterface()));
 					++mTextureChangeCount;
 					pNormalTexture = pMesh->mNormalTexture->GetInterface();
 				}
 			} else {
-				pD3D->SetTexture(1, mDefaultNormalMap);
+				D3DCALL(pD3D->SetTexture(1, mDefaultNormalMap));
+				++mTextureChangeCount;
 			}
 
 			// render mesh
@@ -904,9 +909,9 @@ void Renderer::RenderWorld() {
 				bool visible = pOwner->IsBone() ? false : pOwner->IsVisible();
 
 				if (pOwner->mTwoSidedLighting) {
-					pD3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+					D3DCALL(pD3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));
 				} else {
-					pD3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+					D3DCALL(pD3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW));
 				}
 
 				if (visible && (pOwner->IsInFrustum() || pOwner->IsSkinned())) {
@@ -922,32 +927,38 @@ void Renderer::RenderWorld() {
 					// Load pixel shader constants
 					gpuBoolRegisterStack.Clear();
 					gpuBoolRegisterStack.Push((IsParallaxEnabled() && pMesh->mHeightTexture) ? TRUE : FALSE);
-					pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+					D3DCALL(pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount));
 
 					gpuFloatRegisterStack.Clear();
 					gpuFloatRegisterStack.PushFloat(pOwner->GetAlbedo());
 					gpuFloatRegisterStack.PushFloat(pMesh->GetOpacity());
 					gpuFloatRegisterStack.PushFloat(camera->GetFrameBrightness() / 100.0f);
 					gpuFloatRegisterStack.PushVector(camera->GetFrameColor() / 255.0f);
-					pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+					D3DCALL(pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
 					// Load vertex shader constants
 					gpuBoolRegisterStack.Clear();
 					gpuBoolRegisterStack.Push(pMesh->IsSkinned() ? TRUE : FALSE);
-					pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+					gpuBoolRegisterStack.Push(pOwner->IsVegetation() ? TRUE : FALSE);
+					D3DCALL(pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount));
+
+					static float vegetationAnimator = 0.0f;
+					vegetationAnimator += 0.0001f;
+					//vegetationAnimator = fmod(vegetationAnimator, 3.14159f);
+					
 
 					gpuFloatRegisterStack.Clear();
 					gpuFloatRegisterStack.PushMatrix(world);
 					gpuFloatRegisterStack.PushMatrix(world * camera->mViewProjection);
 					gpuFloatRegisterStack.PushVector(camera->GetPosition());
-					gpuFloatRegisterStack.PushVector(pOwner->GetTexCoordFlow());
+					gpuFloatRegisterStack.PushFloat(pOwner->GetTexCoordFlow().x, pOwner->GetTexCoordFlow().y, vegetationAnimator);
 					for (auto bone : pMesh->GetBones()) {
 						shared_ptr<SceneNode> boneNode = bone->mNode.lock();
 						if (boneNode) {
 							gpuFloatRegisterStack.PushMatrix(TransformToMatrix(boneNode->GetRelativeTransform() * pOwner->GetLocalTransform()));
 						}
 					}
-					pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+					D3DCALL(pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
 					RenderMesh(pMesh);
 
@@ -968,12 +979,12 @@ void Renderer::RenderWorld() {
 	// Render Target layout: 
 	//	0 - backbuffer, hdr buffer or temp color buffer
 
-	pD3D->SetTexture(0, nullptr);
-	pD3D->SetTexture(1, nullptr);
-	pD3D->SetTexture(2, nullptr);
+	D3DCALL(pD3D->SetTexture(0, nullptr));
+	D3DCALL(pD3D->SetTexture(1, nullptr));
+	D3DCALL(pD3D->SetTexture(2, nullptr));
 	mTextureChangeCount += 3;
 
-	pD3D->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, FALSE);
+	D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, FALSE));
 
 	// select render target 
 	IDirect3DSurface9 * renderTarget = mFrameSurface[0];
@@ -983,26 +994,26 @@ void Renderer::RenderWorld() {
 		renderTarget = mHDRFrameSurface;
 	}
 
-	pD3D->SetRenderTarget(0, renderTarget);
-	pD3D->SetRenderTarget(1, nullptr);
-	pD3D->SetRenderTarget(2, nullptr);
+	D3DCALL(pD3D->SetRenderTarget(0, renderTarget));
+	D3DCALL(pD3D->SetRenderTarget(1, nullptr));
+	D3DCALL(pD3D->SetRenderTarget(2, nullptr));
 
-	pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+	D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
 
-	pD3D->SetRenderState(D3DRS_ZENABLE, TRUE);
-	pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	pD3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-	pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE);
+	D3DCALL(pD3D->SetRenderState(D3DRS_ZENABLE, TRUE));
+	D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE));
+	D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
+	D3DCALL(pD3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));
+	D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE));
 
-	pD3D->SetPixelShader(mSkyboxPixelShader);
-	pD3D->SetVertexShader(mSkyboxVertexShader);
+	D3DCALL(pD3D->SetPixelShader(mSkyboxPixelShader));
+	D3DCALL(pD3D->SetVertexShader(mSkyboxVertexShader));
 	mShadersChangeCount += 2;
 
 	// Render Skybox
 	// make sure that we do not see any seams across egdes
-	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
+	D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
 
 	if (camera->mSkybox) {
 		D3DXMATRIX wvp;
@@ -1010,26 +1021,26 @@ void Renderer::RenderWorld() {
 
 		gpuFloatRegisterStack.Clear();
 		gpuFloatRegisterStack.PushMatrix(wvp * camera->mViewProjection);
-		pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+		D3DCALL(pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
-		pD3D->SetIndices(mSkyboxIndexBuffer);
-		pD3D->SetStreamSource(0, mSkyboxVertexBuffer, 0, sizeof(Vertex));
+		D3DCALL(pD3D->SetIndices(mSkyboxIndexBuffer));
+		D3DCALL(pD3D->SetStreamSource(0, mSkyboxVertexBuffer, 0, sizeof(Vertex)));
 		for (int i = 0; i < 5; i++) {
-			pD3D->SetTexture(0, camera->mSkybox->mTextures[i]->GetInterface());
+			D3DCALL(pD3D->SetTexture(0, camera->mSkybox->mTextures[i]->GetInterface()));
 			++mTextureChangeCount;
 
-			pD3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2);
+			D3DCALL(pD3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 20, i * 6, 2));
 			++mDIPCount;
 			mRenderedTriangleCount += 2;
 		}
 	}
 
 	// enable wrap for diffuse textures
-	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
+	D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP));
+	D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP));
 
 	// Begin light occlusion queries
-	pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0x00000000);
+	D3DCALL(pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0x00000000));
 
 	auto & pointLights = SceneFactory::GetPointLightList();
 	for (auto & lWeak : pointLights) {
@@ -1044,16 +1055,16 @@ void Renderer::RenderWorld() {
 						}
 					}
 					if (!found) {
-						pLight->pOcclusionQuery->Issue(D3DISSUE_BEGIN);
+						D3DCALL(pLight->pOcclusionQuery->Issue(D3DISSUE_BEGIN));
 
 						gpuFloatRegisterStack.Clear();
 						gpuFloatRegisterStack.PushMatrix(SetUniformScaleTranslationMatrix(1.25f * pLight->mRadius, pLight->GetPosition()) * camera->mViewProjection);
-						pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+						D3DCALL(pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
-						mBoundingStar->DrawSubset(0);
-						pD3D->SetVertexDeclaration(msVertexDeclaration);
+						D3DCALL(mBoundingStar->DrawSubset(0));
+						D3DCALL(pD3D->SetVertexDeclaration(msVertexDeclaration));
 
-						pLight->pOcclusionQuery->Issue(D3DISSUE_END);
+						D3DCALL(pLight->pOcclusionQuery->Issue(D3DISSUE_END));
 					}
 
 					pLight->mInFrustum = true;
@@ -1094,38 +1105,36 @@ void Renderer::RenderWorld() {
 		}
 	}
 
-	pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+	D3DCALL(pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF));
 
 	float hdrLightIntensity = mHDREnabled ? 5.5f : 1.5f;
 
 	// Bind G-Buffer Textures
-	pD3D->SetTexture(0, mDepthMap);
-	pD3D->SetTexture(1, mNormalMap);
-	pD3D->SetTexture(2, mDiffuseMap);
+	D3DCALL(pD3D->SetTexture(0, mDepthMap));
+	D3DCALL(pD3D->SetTexture(1, mNormalMap));
+	D3DCALL(pD3D->SetTexture(2, mDiffuseMap));
 	mTextureChangeCount += 3;
 
 	// Light passes rendered with additive blending
-	pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	pD3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-	pD3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+	D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE));
+	D3DCALL(pD3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE));
+	D3DCALL(pD3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE));
 
 	// Apply ambient lighting
-	pD3D->SetPixelShader(mAmbientPixelShader);
+	D3DCALL(pD3D->SetPixelShader(mAmbientPixelShader));
 	++mShadersChangeCount;
 
 	gpuFloatRegisterStack.Clear();
-	gpuFloatRegisterStack.PushVector(mAmbientColor * (mHDREnabled ? hdrLightIntensity : 1.0f));
-	pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+	gpuFloatRegisterStack.PushVector(mAmbientColor * (mHDREnabled ? hdrLightIntensity / 2 : 1.0f));
+	D3DCALL(pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
 	RenderFullscreenQuad();
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Render point lights
-	pD3D->SetRenderState(D3DRS_STENCILENABLE, TRUE);
+	D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, TRUE));
 
-
-
-	pD3D->SetPixelShader(mDeferredLightShader);
+	D3DCALL(pD3D->SetPixelShader(mDeferredLightShader));
 	++mShadersChangeCount;
 
 	// sort list of visible light in order to increse distance to camera
@@ -1153,8 +1162,10 @@ void Renderer::RenderWorld() {
 		for (auto weakNode : nodes) {
 			auto node = weakNode.lock();
 
+			bool animated = node->GetCurrentAnimation() ? node->GetCurrentAnimation()->IsEnabled() : false;
+
 			if ((pLight->GetPosition() - node->GetPosition()).Length2() < pLight->GetRange() * pLight->GetRange()) {
-				if ( node->IsMoving()) {
+				if ( node->IsMoving() || animated) {
 					pLight->mNeedRecomputeShadowMap = true;
 					break;
 				}
@@ -1176,9 +1187,9 @@ void Renderer::RenderWorld() {
 
 							// Render shadow cube map
 							if (pLight->mNeedRecomputeShadowMap) {
-								pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE);
-								pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-								pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+								D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE));
+								D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
+								D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
 
 								static CameraDirection directions[6] = {
 									{ ruVector3(1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
@@ -1189,8 +1200,8 @@ void Renderer::RenderWorld() {
 									{ ruVector3(0.0f,  0.0f, -1.0f), ruVector3(0.0f, 1.0f,  0.0f) }
 								};
 
-								pD3D->SetPixelShader(mShadowMapPixelShader);
-								pD3D->SetVertexShader(mShadowMapVertexShader);
+								D3DCALL(pD3D->SetPixelShader(mShadowMapPixelShader));
+								D3DCALL(pD3D->SetVertexShader(mShadowMapVertexShader));
 								mShadersChangeCount += 2;
 
 								D3DXMATRIX projectionMatrix;
@@ -1198,11 +1209,11 @@ void Renderer::RenderWorld() {
 
 								for (int face = 0; face < 6; ++face) {
 									IDirect3DSurface9 * faceSurface;
-									mCubeShadowMapCache[pLight->GetShadowMapIndex()]->GetCubeMapSurface((D3DCUBEMAP_FACES)face, 0, &faceSurface);
+									D3DCALL(mCubeShadowMapCache[pLight->GetShadowMapIndex()]->GetCubeMapSurface((D3DCUBEMAP_FACES)face, 0, &faceSurface));
 
-									pD3D->SetRenderTarget(0, faceSurface);
-									pD3D->SetDepthStencilSurface(mCubeDepthStencilSurface);
-									pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+									D3DCALL(pD3D->SetRenderTarget(0, faceSurface));
+									D3DCALL(pD3D->SetDepthStencilSurface(mCubeDepthStencilSurface));
+									D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
 
 									ruVector3 eye = pLight->GetPosition();
 									ruVector3 at = eye + directions[face].target;
@@ -1229,8 +1240,8 @@ void Renderer::RenderWorld() {
 													continue;
 												}
 
-												if (mesh->mAABB.IsIntersectSphere(pOwner->GetPosition(), pLight->GetPosition(), pLight->GetRange())) {
-													if ((pOwner->IsBone() ? false : pOwner->IsVisible()) || pOwner->IsSkinned()) {
+												if (mesh->mAABB.IsIntersectSphere(pOwner->GetPosition(), pLight->GetPosition(), pLight->GetRange()) || pOwner->IsSkinned()) {
+													if ((pOwner->IsBone() ? false : pOwner->IsVisible())) {
 														// Load vertex shader constants
 														gpuFloatRegisterStack.Clear();
 														gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * viewMatrix * projectionMatrix);
@@ -1823,10 +1834,14 @@ void Renderer::RenderWorld() {
 	pD3D->SetTexture(0, mFlareTexture);
 	++mTextureChangeCount;
 
-	for (auto weakLight : pointLights) {
+	for (auto & weakLight : pointLights) {
 		auto light = weakLight.lock();
 		
 		if (light->IsVisible()) {
+
+			if (!light->IsDrawFlare()) {
+				continue;
+			}
 
 			auto picked = ((light->GetPosition() - camera->GetPosition()).Length2() > 0.001) ? ruPhysics::CastRay(light->GetPosition(), camera->GetPosition()) : nullptr;
 			bool show = picked ? (picked->GetBodyType() == BodyType::Capsule) : false;
@@ -1877,7 +1892,7 @@ void Renderer::RenderWorld() {
 
 	// Render gui scenes
 	auto & guiSceneList = GUIScene::GetSceneList();
-	for (auto weakScene : guiSceneList) {
+	for (auto & weakScene : guiSceneList) {
 		auto scene = weakScene.lock();
 
 		// do not render if invisible
@@ -1887,7 +1902,7 @@ void Renderer::RenderWorld() {
 
 		// consistent rendering is quite inefficient, but layer management is easy
 		auto & nodeList = scene->GetNodeList();
-		for (auto node : nodeList) {
+		for (auto & node : nodeList) {
 			if (node->IsVisible()) {
 				auto rect = dynamic_pointer_cast<GUIRect>(node);
 				auto text = dynamic_pointer_cast<GUIText>(node);
@@ -2055,6 +2070,10 @@ void Renderer::UpdateWorld() {
 
 	// Update sound subsystem
 	pfSystemUpdate();
+
+	if (camera) {
+		camera->Update();
+	}
 }
 
 void Renderer::ChangeVideomode(int width, int height, bool fullscreen, bool vsync) {
@@ -2368,16 +2387,14 @@ void Renderer::SetParallaxEnabled(bool state) {
 
 void Renderer::AddMesh(const shared_ptr<Mesh> & mesh) {
 	mesh->CalculateAABB();
-	// pass it to deferred renderer
-	if (mesh->mDiffuseTexture) {
-		auto textureGroup = mDeferredMeshMap.find(mesh->mDiffuseTexture->GetInterface());
 
-		if (textureGroup == mDeferredMeshMap.end()) {
-			mDeferredMeshMap[mesh->mDiffuseTexture->GetInterface()] = vector<weak_ptr<Mesh>>();
-		}
+	IDirect3DTexture9 * d3dTexture = (mesh->mDiffuseTexture != nullptr) ? mesh->mDiffuseTexture->GetInterface() : mWhiteMap;
 
-		mDeferredMeshMap[mesh->mDiffuseTexture->GetInterface()].push_back(mesh);
+	auto textureGroup = mDeferredMeshMap.find(d3dTexture);
+	if (textureGroup == mDeferredMeshMap.end()) {
+		mDeferredMeshMap[d3dTexture] = vector<weak_ptr<Mesh>>();
 	}
+	mDeferredMeshMap[d3dTexture].push_back(mesh);	
 }
 
 bool Renderer::IsParallaxEnabled() {

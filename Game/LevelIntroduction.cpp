@@ -35,7 +35,7 @@ void LevelIntroduction::DoScenario() {
 
 	if (mShowIntro == false) {
 		if (mTextAlpha < 5.0f) {
-			Level::Change(LevelName::L1Arrival);
+			Level::Change(LevelName::Arrival);
 		}
 	}
 
@@ -52,15 +52,16 @@ LevelIntroduction::LevelIntroduction(const unique_ptr<PlayerTransfer> & playerTr
 	mTextAlpha = 0.0f;
 	mTextAlphaTo = 255.0f;
 	mShowIntro = true;
-	mTypeNum = 1;
+	mName = LevelName::Introduction;
 	LoadLocalization("intro.loc");
 	int scx = ruVirtualScreenWidth / 2;
 	int scy = ruVirtualScreenHeight / 2;
 	int w = 600;
 	int h = 400;
+	mGUIBackground = mGUIScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/generic/loadingScreen.jpg"));
 	mGUIText = mGUIScene->CreateText(mLocalization.GetString("intro"), scx - w / 2, scy - h / 2, w, h, pGUIProp->mFont, ruVector3(0, 0, 0), ruTextAlignment::Left, mTextAlpha);
 	mGUISkipText = mGUIScene->CreateText(mLocalization.GetString("skip"), ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, ruVector3(255, 0, 0), ruTextAlignment::Center);
-	mGUIBackground = mGUIScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/generic/loadingScreen.jpg"));
+	
 }
 
 void LevelIntroduction::OnDeserialize(SaveFile & in) {

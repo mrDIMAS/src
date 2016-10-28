@@ -6,7 +6,9 @@
 
 
 LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mChangeLevel(false) {
-	mTypeNum = 2;
+	mName = LevelName::Arrival;
+
+	mPlayer->mYaw.SetTarget(180.0f);
 
 	// Load localization
 	LoadLocalization("arrival.loc");
@@ -16,7 +18,7 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 
 	//////////////////////////////////////////////////////////////////////////
 	// Find and create all sheets
-	AddSheet("Note1", mLocalization.GetString("note1Desc"), mLocalization.GetString("note1"));
+	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note1")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note1Desc"), mLocalization.GetString("note1")); });
 
 	//////////////////////////////////////////////////////////////////////////
 	// Find zones
@@ -62,7 +64,16 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	mWindSound->SetVolume(0.5f);
 	mWindSound->Play();
 
-	mLift = AddLift("Lift1", "Lift1Screen", "Lift1Source", "Lift1Dest", "Lift1FrontDoorLeft", "Lift1FrontDoorRight", "Lift1BackDoorLeft", "Lift1BackDoorRight");
+	// construct lift
+	{
+		mLift = AddLift("Lift1", "Lift1Source", "Lift1Dest", "Lift1FrontDoorLeft", "Lift1FrontDoorRight", "Lift1BackDoorLeft", "Lift1BackDoorRight");
+		// add go up button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1GoUp"), "Go up", [this] { mLift->GoUp(); }));
+		// add go down button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1GoDown"), "Go down", [this] { mLift->GoDown(); }));
+		// add call button
+		AddButton(make_shared<Button>(GetUniqueObject("Lift1GoUpFloor1"), "Call", [this] { mLift->GoUp(); }));
+	}
 
 	ruSound::SetAudioReverb(15);
 
@@ -76,11 +87,11 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	AddSound(mWoodHitSound = ruSound::Load2D("data/sounds/woodhit.ogg"));
 
 	mPlayer->mpCamera->mCamera->SetSkybox(
-		ruTexture::Request("data/textures/skyboxes/night3/nightsky_u.jpg"),
-		ruTexture::Request("data/textures/skyboxes/night3/nightsky_l.jpg"),
-		ruTexture::Request("data/textures/skyboxes/night3/nightsky_r.jpg"),
-		ruTexture::Request("data/textures/skyboxes/night3/nightsky_f.jpg"),
-		ruTexture::Request("data/textures/skyboxes/night3/nightsky_b.jpg")
+		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonUp2048.png"),
+		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonRight2048.png"),
+		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonLeft2048.png"),
+		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonFront2048.png"),
+		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonBack2048.png")
 	);
 
 	mStages["LiftCrashed"] = false;
@@ -110,15 +121,16 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch4"), lights, false)));
 
 	// every action series disabled by default
-	mLiftCrashSeries.AddAction(0.0f, ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_PowerDown));
-	mLiftCrashSeries.AddAction(mPowerDownSound->GetLength(), ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_AfterPowerDown));
-	mLiftCrashSeries.AddAction(mMetalStressSound->GetLength(), ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_AfterFirstStressSound));
-	mLiftCrashSeries.AddAction(mLiftFallSound->GetLength(), ruDelegate::Bind(this, &LevelArrival::ActLiftCrash_AfterFalldown));
+	mLiftCrashSeries.AddAction(0.0f, [this] { ActLiftCrash_PowerDown(); });
+	mLiftCrashSeries.AddAction(mPowerDownSound->GetLength(), [this] { ActLiftCrash_AfterPowerDown(); });
+	mLiftCrashSeries.AddAction(mMetalStressSound->GetLength(), [this] { ActLiftCrash_AfterFirstStressSound(); });
+	mLiftCrashSeries.AddAction(mLiftFallSound->GetLength(), [this] { ActLiftCrash_AfterFalldown(); });
 
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Lighter), make_shared<InteractiveObject>(GetUniqueObject("Zippo")), ruDelegate::Bind(this, &LevelArrival::Proxy_AddLighther));
-	AddInteractiveObject(Item::GetNameByType(Item::Type::Crowbar), make_shared<InteractiveObject>(GetUniqueObject("Crowbar")), ruDelegate::Bind(this, &LevelArrival::Proxy_AddCrowbar));
+	AddInteractiveObject(Item::GetNameByType(Item::Type::Crowbar), make_shared<InteractiveObject>(GetUniqueObject("Crowbar")), [this] {mPlayer->AddItem(Item::Type::Crowbar); });
 
 	AddDoor("MetalDoor1", 90.0f);
+
+	mPlayer->GetInventory()->AddItem(Item::Type::Lighter);
 
 	DoneInitialization();
 }
@@ -203,7 +215,7 @@ void LevelArrival::DoScenario() {
 	}
 
 	if (mChangeLevel) {
-		Level::Change(LevelName::L2Mine);
+		Level::Change(LevelName::Mine);
 	}
 }
 
@@ -219,18 +231,13 @@ void LevelArrival::ActLiftCrash_PowerDown() {
 
 void LevelArrival::ActLiftCrash_AfterPowerDown() {
 	mMetalStressSound->Play();
-	mPlayer->TrembleCamera(1.5f);
 	mLift->SetEngineSoundEnabled(false);
 	mLift->SetPaused(false);
 	mLift->SetSpeedMultiplier(0.24f);
 }
 
 void LevelArrival::ActLiftCrash_AfterFirstStressSound() {
-	if (mPlayer->GetFlashLight()) {
-		mPlayer->GetFlashLight()->SwitchOff();
-	}
 	mLiftFallSound->Play();
-	mPlayer->TrembleCamera(2.0f);
 	mPlayer->LockFlashlight(true);
 }
 
@@ -238,12 +245,4 @@ void LevelArrival::ActLiftCrash_AfterFalldown() {
 	mChangeLevel = true;
 	mPlayer->LockFlashlight(false);
 	mPlayer->SetHealth(20);
-}
-
-void LevelArrival::Proxy_AddLighther() {
-	mPlayer->AddUsableObject(new Flashlight);
-}
-
-void LevelArrival::Proxy_AddCrowbar() {
-	mPlayer->AddItem(Item::Type::Crowbar);
 }

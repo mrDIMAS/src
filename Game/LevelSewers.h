@@ -21,11 +21,17 @@ private:
 	shared_ptr<ruSound> mKnocksSound;
 	shared_ptr<ruSceneNode> mWater;
 
+	shared_ptr<ruSceneNode> mZoneNextLevel;
+
 	shared_ptr<Zone> mZoneEnemySpawn;
 	shared_ptr<Zone> mZoneDropWaterLevel;
 	shared_ptr<Lift> mLift1;
+
+	shared_ptr<ruLight> mPumpLight[3];
 	shared_ptr<ruLight> mPassLightGreen;
 	shared_ptr<ruLight> mPassLightRed;
+
+	shared_ptr<ruSound> mWaterPumpSound[3];
 
 	vector<shared_ptr<ruSceneNode>> mVerticalWaterList;
 	float mVerticalWaterFlow;
@@ -38,10 +44,12 @@ private:
 			mStages["EnemySpawned"] = true;
 		}
 	}
-
-	void OnPlayerEnterDropWaterLevelZone() {
+	
+	void OnPlayerEnterDrainWaterLevelZone() {
 		mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveDropWaterLevel"));
 	}
+
+
 public:
 	LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelSewers();
