@@ -577,7 +577,7 @@ void Menu::Update() {
 				mGUILoadGameFileTime[i]->SetText(GetFileCreationDate(nameList[i]));
 				if (mGUILoadGameSlot[i]->IsHit()) {
 					SetPage(Page::Main, false);
-
+					break;
 				}
 			}
 		} else {

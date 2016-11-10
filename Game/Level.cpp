@@ -6,12 +6,12 @@
 #include "Player.h"
 #include "Menu.h"
 #include "LevelResearchFacility.h"
-#include "LevelIntroduction.h"
 #include "SaveLoader.h"
 #include "SaveWriter.h"
 #include "LevelSewers.h"
 #include "LevelCutsceneIntro.h"
 #include "LevelForest.h"
+#include "LevelEnding.h"
 
 unique_ptr<Level> Level::msCurrent;
 
@@ -29,7 +29,7 @@ Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) :
 	mName = LevelName::Undefined;
 
 	 // create player
-	if (Level::msCurLevelID != LevelName::Introduction && Level::msCurLevelID != LevelName::CutSceneIntro) {
+	if (Level::msCurLevelID != LevelName::Intro && Level::msCurLevelID != LevelName::Ending) {
 		mPlayer = unique_ptr<Player>(new Player);
 
 		// restore state
@@ -61,9 +61,6 @@ void Level::Hide() {
 			sound->Pause();
 		}
 	}
-	for (auto pLamp : mLampList) {
-		pLamp->Hide();
-	}
 }
 
 void Level::Show() {
@@ -76,9 +73,10 @@ void Level::Show() {
 			}
 		}
 	}
-	for (auto pLamp : mLampList) {
-		pLamp->Show();
-	}
+}
+
+bool Level::IsVisible() {
+	return mScene->IsVisible();
 }
 
 void Level::Change(LevelName name, bool continueFromSave) {
@@ -107,11 +105,8 @@ void Level::Change(LevelName name, bool continueFromSave) {
 
 	// load new level and restore player state
 	switch (Level::msCurLevelID) {
-	case LevelName::CutSceneIntro:
-		msCurrent = make_unique<LevelCutsceneIntro>(playerTransfer);
-		break;
-	case LevelName::Introduction:
-		msCurrent = make_unique<LevelIntroduction>(playerTransfer);
+	case LevelName::Intro:
+		msCurrent = make_unique<LevelIntro>(playerTransfer);
 		break;
 	case LevelName::Arrival:
 		msCurrent = make_unique<LevelArrival>(playerTransfer);
@@ -128,6 +123,9 @@ void Level::Change(LevelName name, bool continueFromSave) {
 	case LevelName::Forest:
 		msCurrent = make_unique<LevelForest>(playerTransfer);
 		break;
+	case LevelName::Ending:
+		msCurrent = make_unique<LevelEnding>(playerTransfer);
+		break;
 	default:
 		throw runtime_error("Unable to load level with bad id!");
 		break;
@@ -139,6 +137,17 @@ void Level::Change(LevelName name, bool continueFromSave) {
 
 	if (msCurrent->mPlayer) {
 		msCurrent->mPlayer->GetHUD()->SetTip(msCurrent->mPlayer->GetLocalization()->GetString("loaded"));
+	}
+	
+	// fill sound list for react to
+	if (msCurrent->mEnemy) {
+		for (auto & pMat : msCurrent->mPlayer->mSoundMaterialList) {
+			for (auto & pSound : pMat->GetSoundList()) {
+				msCurrent->mEnemy->mReactSounds.push_back(pSound);
+			}
+		}
+		msCurrent->mEnemy->mReactSounds.insert(msCurrent->mEnemy->mReactSounds.end(), msCurrent->mPlayer->mPainSound.begin(), msCurrent->mPlayer->mPainSound.end());
+		msCurrent->mEnemy->mReactSounds.push_back(msCurrent->mPlayer->mFlashlightSwitchSound);
 	}
 
 	lastLevel = name;
@@ -161,6 +170,10 @@ shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & sourceNo
 
 const vector<shared_ptr<Ladder>> & Level::GetLadderList() const {
 	return mLadderList;
+}
+
+void Level::AddLightSwitch(const shared_ptr<LightSwitch>& lswitch) {
+	mLightSwitchList.push_back(lswitch);
 }
 
 void Level::AddValve(const shared_ptr<Valve> & valve) {
@@ -349,10 +362,6 @@ void Level::CreateBlankScene() {
 	mScene = ruSceneNode::Create();
 }
 
-void Level::BuildPath(Path & path, const string & nodeBaseName) {
-	path.BuildPath(mScene, nodeBaseName);
-}
-
 void Level::DoneInitialization() {
 	mInitializationComplete = true;
 }
@@ -367,9 +376,6 @@ unique_ptr<Level> & Level::Current() {
 	return msCurrent;
 }
 
-void Level::AddLamp(const shared_ptr<Lamp> & lamp) {
-	mLampList.push_back(lamp);
-}
 
 void Level::GenericUpdate() {
 	if (mPlayer) {
@@ -381,9 +387,6 @@ void Level::GenericUpdate() {
 	}
 	for (auto kp : mKeypadList) {
 		kp->Update();
-	}
-	for (auto pLamp : mLampList) {
-		pLamp->Update();
 	}
 	for (auto pZone : mZoneList) {
 		pZone->Update();
@@ -411,16 +414,6 @@ void Level::GenericUpdate() {
 
 	mChaseMusicVolume += (mDestChaseMusicVolume - mChaseMusicVolume) * 0.02f;
 	mChaseMusic->SetVolume(mChaseMusicVolume);
-}
-
-void Level::AutoCreateLampsByNamePattern(const string & namePattern, string buzzSound) {
-	std::regex rx(namePattern);
-	for (int i = 0; i < mScene->GetCountChildren(); i++) {
-		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
-		if (regex_match(child->GetName(), rx)) {
-			AddLamp(make_shared<Lamp>(child, ruSound::Load3D(buzzSound)));
-		}
-	}
 }
 
 void Level::AutoCreateBulletsByNamePattern(const string & namePattern) {
@@ -473,6 +466,14 @@ void Level::PlayChaseMusic() {
 
 unique_ptr<Enemy> & Level::GetEnemy() {
 	return mEnemy;
+}
+
+unique_ptr<Player>& Level::GetPlayer() {
+	return mPlayer;
+}
+
+void Level::DestroyCurrent() {
+	msCurrent.reset();
 }
 
 void Level::AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction) {

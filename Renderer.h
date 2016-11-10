@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -145,6 +145,8 @@ private:
 	ruVector2 mBloomDX;
 	ruVector2 mBloomDY;
 
+	COMPtr<IDirect3DVolumeTexture9> mColorMap;
+
 	// Shadow cubemap
 	//COMPtr<IDirect3DCubeTexture9> mCubeShadowMap;
 	COMPtr<IDirect3DSurface9> mCubeDepthStencilSurface;
@@ -273,5 +275,6 @@ public:
 	bool IsSSAOEnabled() const {
 		return mSSAOEnabled;
 	}
+	void LoadColorGradingMap(const char * fileName);
 	void AddMesh(const shared_ptr<Mesh> & mesh);
 };

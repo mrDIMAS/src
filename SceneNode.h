@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -59,6 +59,7 @@ protected:
 	void AutoName();
 	bool mShadowCastEnabled;
 	bool mVegetation;
+	bool mAnimationBledingEnabled;
 
 	// animation stuff
 	ruAnimation * mCurrentAnimation;
@@ -228,6 +229,16 @@ public:
 	}
 	virtual bool IsAnimationOverride() const override {
 		return mAnimationOverride;
+	}
+	virtual void SetAnimationBlendingEnabled(bool state) override {
+		mAnimationBledingEnabled = state;
+
+		for (auto & child : mChildren) {
+			child->SetAnimationBlendingEnabled(state);
+		}
+	}
+	virtual bool IsAnimationBlendingEnabled(bool state) const override {
+		return mAnimationBledingEnabled;
 	}
 };
 

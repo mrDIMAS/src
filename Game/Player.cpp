@@ -8,6 +8,9 @@
 #include "SaveWriter.h"
 #include "Level.h"
 
+#include  <random>
+#include  <iterator>
+
 Player::Player() :
 	Actor(0.7f, 0.2f),
 	mFlashlightLocked(false),
@@ -43,7 +46,8 @@ Player::Player() :
 	mNodeInHands(nullptr),
 	mYawWalkOffset(0.0, -30, 30),
 	mHealthRegenTimer(0),
-	mFlashlightEnabled(true)
+	mFlashlightEnabled(true),
+	mNoiseFactor(0.0f)
 {
 	mLocalization.ParseFile(gLocalizationPath + "player.loc");
 	mHUD = unique_ptr<HUD>(new HUD());
@@ -64,6 +68,7 @@ Player::Player() :
 	mBodyModelRoot = mBodyModel->FindChild("Root");
 	mFlashlight = dynamic_pointer_cast<ruSpotLight>(mBodyModel->FindChild("Fspot001"));
 	mFlashlightSwitchSound = ruSound::Load2D("data/sounds/flashlight_switch.ogg");
+	mFlashlightSwitchSound->Attach(mBody);
 
 	// fill left arm
 	{
@@ -169,14 +174,14 @@ Player::Player() :
 	mPainSound.push_back(ruSound::Load2D("data/sounds/player/grunt1.ogg"));
 	mPainSound.push_back(ruSound::Load2D("data/sounds/player/grunt2.ogg"));
 	mPainSound.push_back(ruSound::Load2D("data/sounds/player/grunt3.ogg"));
+	for (auto & ps : mPainSound) {
+		ps->Attach(mBody);
+		ps->SetVolume(0.7);
+	}
 
 	mWhispersSound = ruSound::Load2D("data/sounds/whispers.ogg");
 	mWhispersSound->SetVolume(0.085f);
 	mWhispersSound->SetLoop(true);
-
-	for (auto & ps : mPainSound) {
-		ps->SetVolume(0.7);
-	}
 
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/stone.smat", mpCamera->mCamera));
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/metal.smat", mpCamera->mCamera));
@@ -222,6 +227,21 @@ bool Player::UseStamina(float required) {
 	return true;
 }
 
+
+template<typename Iter, typename RandomGenerator>
+Iter select_randomly(Iter start, Iter end, RandomGenerator& g) {
+	std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
+	std::advance(start, dis(g));
+	return start;
+}
+
+template<typename Iter>
+Iter select_randomly(Iter start, Iter end) {
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	return select_randomly(start, end, gen);
+}
+
 void Player::Damage(float dmg, bool headJitter) {
 	if (mDead) {
 		return;
@@ -236,10 +256,11 @@ void Player::Damage(float dmg, bool headJitter) {
 		mPitch.SetTarget(mPitch.GetTarget() + frandom(20, 40));
 		mYaw.SetTarget(mYaw.GetTarget() + frandom(-40, 40));
 	}
-	if (mLastHealth - mHealth > 5) {
-		mPainSound[rand() % mPainSound.size()]->Play();
+	//if (abs(mLastHealth - mHealth) > 5) {
+		auto randomSound = *select_randomly(mPainSound.begin(), mPainSound.end());
+		randomSound->Play();
 		mLastHealth = mHealth;
-	}
+	//}
 	if (mHealth <= 0.0f) {
 		if (!mDead) {
 			mBody->Freeze();
@@ -592,7 +613,9 @@ void Player::UpdateMoving() {
 			mBodyModel->Attach(mBody);
 		}
 
-		mBody->SetLocalScale(ruVector3(1.0f, mCrouchMultiplier, 1.0f));
+
+		mBody->SetLocalScale(ruVector3(1, mCrouchMultiplier, 1));
+		
 		mBodyModel->SetPosition(ruVector3(0, -1.f * mCrouchMultiplier, -0.1));
 	}
 
@@ -620,9 +643,9 @@ void Player::Crouch(bool state) {
 
 	// stand up only if we can
 	ruVector3 pickPoint;
-	ruVector3 rayBegin = mBody->GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
-	ruVector3 rayEnd = mBody->GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
-	shared_ptr<ruSceneNode> upCast = ruPhysics::CastRay(rayBegin, rayEnd, &pickPoint);
+	const ruVector3 rayBegin = mBody->GetPosition() + ruVector3(0, mBodyHeight * mCrouchMultiplier * 1.025f, 0);
+	const ruVector3 rayEnd = mBody->GetPosition() + ruVector3(0, mBodyHeight * 1.05f, 0);
+	const shared_ptr<ruSceneNode> upCast = ruPhysics::CastRay(rayBegin, rayEnd, &pickPoint);
 	if (upCast) {
 		if (!mCrouch) {
 			mCrouch = true;
@@ -633,12 +656,21 @@ void Player::Crouch(bool state) {
 void Player::ComputeStealth() {
 	mInLight = false;
 
+	shared_ptr<ruLight> closestLight;
+	float distance = FLT_MAX;
 	// check if player inside any point light
 	for (int i = 0; i < ruPointLight::GetCount(); i++) {
-		if (!(ruPointLight::Get(i) == mFakeLight)) {
-			if (ruPointLight::Get(i)->IsSeePoint(mBody->GetPosition())) {
-				mInLight = true;
-				break;
+		const auto light = ruPointLight::Get(i);
+		if (light->IsVisible()) {
+			if (!(light == mFakeLight)) {
+				const float d = light->GetPosition().Distance(mBody->GetPosition());
+				if (d < distance) {
+					closestLight = light;
+					distance = d;
+				}
+				if (ruPointLight::Get(i)->IsSeePoint(mBody->GetPosition())) {
+					mInLight = true;
+				}
 			}
 		}
 	}
@@ -646,9 +678,18 @@ void Player::ComputeStealth() {
 	// check if player inside any spot light's cone
 	if (!mInLight) {
 		for (int i = 0; i < ruSpotLight::GetCount(); i++) {
-			if (ruSpotLight::Get(i)->IsSeePoint(mBody->GetPosition())) {
-				mInLight = true;
-				break;
+			const auto light = ruSpotLight::Get(i);
+			if (light->IsVisible()) {
+				const float d = light->GetPosition().Distance(mBody->GetPosition());
+				if (d < distance) {
+					closestLight = light;
+					distance = d;
+				}
+
+				if (ruSpotLight::Get(i)->IsSeePoint(mBody->GetPosition())) {
+					mInLight = true;
+					closestLight = light;
+				}
 			}
 		}
 	}
@@ -675,15 +716,36 @@ void Player::ComputeStealth() {
 
 	mStealthFactor = 0.0f;
 
+	const float d = closestLight ? 1.0f - closestLight->GetPosition().Distance(mBody->GetPosition()) / closestLight->GetRange() : 0.0f;
+
+	mStealthFactor += mStealthMode ? d * 0.5f : d;
+	if (mStealthMode) {
+		mStealthFactor += mMoved ? 0.25f : 0.0f;		
+	} else {
+		mStealthFactor += mMoved ? 0.5f : 0.0f;
+		mStealthFactor += mRunning ? 1.0f : 0.0f;
+	}
+	 
+	if (mMoved) {
+		mNoiseFactor = mStealthMode ? 0.5f : 1.0f;
+	} else {
+		mNoiseFactor = 0.1;
+	}
+
+	mHUD->SetNoise(mNoiseFactor * 100.0f);
+	/*
 	if (mInLight) {
-		mStealthFactor += mStealthMode ? 0.25f : 0.5f;
+		const float d = 1.0f - closestLight->GetPosition().Distance(mBody->GetPosition()) / closestLight->GetRange();
+
+		mStealthFactor += mStealthMode ? d * 0.5f : d;
 		mStealthFactor += mMoved ? 0.5f : 0.0f;
 		mStealthFactor += mRunning ? 1.0f : 0.0f;
 	} else {
-		mStealthFactor += mStealthMode ? 0.0f : 0.25f;
+		mStealthFactor += mStealthMode ? 0.0f : 0.1f;
 		mStealthFactor += mMoved ? 0.1f : 0.0f;
 		mStealthFactor += mRunning ? 0.25f : 0.0f;
 	}
+	*/
 
 	int stealth = (100 * ((mStealthFactor > 1.05f) ? 1.0f : (mStealthFactor + 0.05f)));
 	if (stealth > 100) {
@@ -738,8 +800,8 @@ void Player::Update() {
 					mAirPosition = mBody->GetPosition();
 					mInAir = true;
 				} else if (IsCanJump() && mInAir) { // landing 
-					ruVector3 curPos = mBody->GetPosition();
-					float heightDelta = fabsf(curPos.y - mAirPosition.y);
+					const ruVector3 curPos = mBody->GetPosition();
+					const float heightDelta = fabsf(curPos.y - mAirPosition.y);
 					if (heightDelta > 2.0f) {
 						Damage(heightDelta * 10);
 					}
@@ -768,9 +830,9 @@ void Player::Update() {
 void Player::UpdateItemsHandling() {
 	if (mNodeInHands) {
 		if (mPitch < 70) {
-			ruVector3 ppPos = mItemPoint->GetPosition();
-			ruVector3 objectPos = mNodeInHands->GetPosition() + mPickCenterOffset;
-			ruVector3 dir = ppPos - objectPos;
+			const ruVector3 ppPos = mItemPoint->GetPosition();
+			const ruVector3 objectPos = mNodeInHands->GetPosition() + mPickCenterOffset;
+			const ruVector3 dir = ppPos - objectPos;
 			if (ruInput::IsMouseDown(ruInput::MouseButton::Left)) {
 				mNodeInHands->Move(dir * 6);
 
@@ -819,10 +881,10 @@ void Player::UpdatePicking() {
 	if (mPickedNode && !mNodeInHands) {
 		mNodeInHands = nullptr;
 
-		ruVector3 ppPos = mPickPoint->GetPosition();
-		ruVector3 dir = ppPos - pickPosition;
+		const ruVector3 ppPos = mPickPoint->GetPosition();
+		const ruVector3 dir = ppPos - pickPosition;
 
-		auto pIO = Level::Current()->FindInteractiveObject(mPickedNode->GetName());
+		const auto pIO = Level::Current()->FindInteractiveObject(mPickedNode->GetName());
 		if (dir.Length2() < 1.5f) {
 			mNearestPickedNode = mPickedNode;
 			string pickedObjectDesc;
@@ -1022,11 +1084,11 @@ inline void Player::Interact() {
 
 void Player::Step(ruVector3 direction, float speed) {
 	// spring based step
-	ruVector3 currentPosition = mBody->GetPosition();
-	ruVector3 rayBegin = currentPosition;
-	ruVector3 rayEnd = rayBegin - ruVector3(0, 5, 0);
+	const ruVector3 currentPosition = mBody->GetPosition();
+	const ruVector3 rayBegin = currentPosition;
+	const ruVector3 rayEnd = rayBegin - ruVector3(0, 5, 0);
 	ruVector3 intPoint;
-	shared_ptr<ruSceneNode> rayResult = ruPhysics::CastRay(rayBegin, rayEnd, &intPoint);
+	const shared_ptr<ruSceneNode> rayResult = ruPhysics::CastRay(rayBegin, rayEnd, &intPoint);
 	ruVector3 pushpullVelocity = ruVector3(0, 0, 0);
 	if (rayResult && !(rayResult == mBody)) {
 		pushpullVelocity.y = -(currentPosition.y - intPoint.y - mSpringLength * mCrouchMultiplier) * 4.4f;
@@ -1036,10 +1098,10 @@ void Player::Step(ruVector3 direction, float speed) {
 
 void Player::EmitStepSound() {
 	if (mMoved) {
-		ruRayCastResultEx result = ruPhysics::CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
+		const ruRayCastResultEx result = ruPhysics::CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
 		if (result.valid) {
 			for (auto & sMat : mSoundMaterialList) {
-				shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
+				const auto snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
 				if (snd) {
 					snd->Play(false);
 				}

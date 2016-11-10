@@ -112,62 +112,34 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	mStages["FoundObjectsForExplosion"] = false;
 
 	// create paths
-	Path path;
-	BuildPath(path, "Path");
-	Path pathOnUpperLevel;
-	BuildPath(pathOnUpperLevel, "PathOnUpperLevel");
-	Path pathUpperRight;
-	BuildPath(pathUpperRight, "PathUpperRight");
-	Path pathUpperLeft;
-	BuildPath(pathUpperLeft, "PathUpperLeft");
-	Path pathToRoom;
-	BuildPath(pathToRoom, "PathToRoom");
-	Path pathUpperRightTwo;
-	BuildPath(pathUpperRightTwo, "PathUpperRightTwo");
-	Path pathLeft;
-	BuildPath(pathLeft, "PathLeft");
+	const char * ways[] = {
+		"WayA", "WayB", "WayC", "WayD", "WayE", "WayF", "WayG",
+		"WayH", "WayI", "WayJ", "WayK"
+	};
+	Path p;
+	for (auto w : ways) {
+		p += Path(mScene, w);
+	}
 
-	// cross-path edges
-	path.mVertexList[17]->AddEdge(pathOnUpperLevel.mVertexList[0]);
-	pathOnUpperLevel.mVertexList[6]->AddEdge(pathUpperRight.mVertexList[0]);
-	pathOnUpperLevel.mVertexList[8]->AddEdge(pathUpperLeft.mVertexList[0]);
-	path.mVertexList[18]->AddEdge(pathToRoom.mVertexList[0]);
-	pathOnUpperLevel.mVertexList[12]->AddEdge(pathUpperRightTwo.mVertexList[0]);
-	path.mVertexList[13]->AddEdge(pathLeft.mVertexList[0]);
+	p.Get("WayB1")->AddEdge(p.Get("WayA004"));
+	p.Get("WayC1")->AddEdge(p.Get("WayA019"));
+	p.Get("WayD1")->AddEdge(p.Get("WayA019"));
+	p.Get("WayE1")->AddEdge(p.Get("WayA040"));
+	p.Get("WayF1")->AddEdge(p.Get("WayA042"));
+	p.Get("WayF009")->AddEdge(p.Get("WayG1"));
+	p.Get("WayH1")->AddEdge(p.Get("WayA059"));
+	p.Get("WayI1")->AddEdge(p.Get("WayA097"));
+	p.Get("WayJ1")->AddEdge(p.Get("WayA073"));
+	p.Get("WayK1")->AddEdge(p.Get("WayA027"));
 
-	// concatenate all paths
-	vector<GraphVertex*> allPaths;
-	allPaths.insert(allPaths.end(), path.mVertexList.begin(), path.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathOnUpperLevel.mVertexList.begin(), pathOnUpperLevel.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathUpperRight.mVertexList.begin(), pathUpperRight.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathUpperLeft.mVertexList.begin(), pathUpperLeft.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathToRoom.mVertexList.begin(), pathToRoom.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathUpperRightTwo.mVertexList.begin(), pathUpperRightTwo.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathLeft.mVertexList.begin(), pathLeft.mVertexList.end());
+	vector<shared_ptr<GraphVertex>> patrolPoints = {
+		p.Get("WayA1"), p.Get("WayC024"), p.Get("WayB012"),
+		p.Get("WayB012"), p.Get("WayD003"), p.Get("WayK005"),
+		p.Get("WayE006"), p.Get("WayF019"), p.Get("WayG007"),
+		p.Get("WayH013"), p.Get("WayA110"), p.Get("WayI009")
+	};
 
-	vector< GraphVertex* > patrolPoints;
-	patrolPoints.push_back(path.mVertexList.front());
-	patrolPoints.push_back(path.mVertexList.back());
-
-	patrolPoints.push_back(pathOnUpperLevel.mVertexList.front());
-	patrolPoints.push_back(pathOnUpperLevel.mVertexList.back());
-
-	patrolPoints.push_back(pathUpperRight.mVertexList.front());
-	patrolPoints.push_back(pathUpperRight.mVertexList.back());
-
-	patrolPoints.push_back(pathUpperLeft.mVertexList.front());
-	patrolPoints.push_back(pathUpperLeft.mVertexList.back());
-
-	patrolPoints.push_back(pathUpperRightTwo.mVertexList.front());
-	patrolPoints.push_back(pathUpperRightTwo.mVertexList.back());
-
-	patrolPoints.push_back(pathToRoom.mVertexList.front());
-	patrolPoints.push_back(pathToRoom.mVertexList.back());
-
-	patrolPoints.push_back(pathLeft.mVertexList.front());
-	patrolPoints.push_back(pathLeft.mVertexList.back());
-
-	mEnemy = unique_ptr<Enemy>(new Enemy(allPaths, patrolPoints));
+	mEnemy = unique_ptr<Enemy>(new Enemy(p.mVertexList, patrolPoints));
 	mEnemy->SetPosition(GetUniqueObject("EnemyPosition")->GetPosition());
 	
 	mExplosivesDummy[0] = GetUniqueObject("ExplosivesModel5");
@@ -179,6 +151,8 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 	mExplodedWall->Hide();
 
 	mExplosionFlashPosition = GetUniqueObject("ExplosionFlash");
+
+	mPlayer->GetInventory()->RemoveItem(Item::Type::Crowbar, 1);
 
 	DoneInitialization();
 }

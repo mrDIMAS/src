@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -222,6 +222,14 @@ void GUINode::SetLayer(int layer) {
 
 int GUINode::GetLayer() const {
 	return mLayer;
+}
+
+void GUINode::Move(const ruVector2 & speed) {
+	float dx = speed.x * pEngine->GetGUIWidthScaleFactor();
+	float dy = speed.y * pEngine->GetGUIHeightScaleFactor();
+
+	mX += dx;
+	mY += dy;
 }
 
 void GUINode::RemoveAction(ruGUIAction act) {

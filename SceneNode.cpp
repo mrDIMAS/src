@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -60,7 +60,8 @@ SceneNode::SceneNode() :
 	mVegetation(false),
 	mAnimationOverride(false),
 	mTransitionFrames(10), 
-	mCurrentTransitionFrame(0)
+	mCurrentTransitionFrame(0),
+	mAnimationBledingEnabled(true)
 {
 	AutoName();
 	mLocalTransform = btTransform(btQuaternion(0, 0, 0), btVector3(0, 0, 0));
@@ -469,7 +470,7 @@ void SceneNode::PerformAnimation() {
 				}*/
 
 
-				if (mTransitionAnimation) {
+				if (mTransitionAnimation && mAnimationBledingEnabled) {
 					// do transition					
 					float t = (float)mCurrentTransitionFrame / (float)mTransitionFrames;
 					 

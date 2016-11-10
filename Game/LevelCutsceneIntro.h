@@ -2,7 +2,7 @@
 
 #include "Level.h"
 
-class LevelCutsceneIntro : public Level {
+class LevelIntro : public Level {
 private:
 	shared_ptr<ruSceneNode> mUAZ;
 	GameCamera * mCamera;
@@ -20,9 +20,17 @@ private:
 	shared_ptr<ruSound> mEngineLoop;
 	ruVector3 mLastUAZPosition;
 	SmoothFloat mEnginePitch;
+
+	// text
+	float mTextAlpha;
+	float mTextAlphaTo;
+	bool mShowIntro;
+	shared_ptr<ruGUIScene> mGUIScene;
+	shared_ptr<ruText> mGUIText;
+	shared_ptr<ruText> mGUISkipText;
 public:
-	LevelCutsceneIntro(const unique_ptr<PlayerTransfer> & playerTransfer);
-	~LevelCutsceneIntro();
+	LevelIntro(const unique_ptr<PlayerTransfer> & playerTransfer);
+	~LevelIntro();
 	virtual void DoScenario();
 	void OnSerialize( SaveFile & out );
 	void OnDeserialize( SaveFile & in );

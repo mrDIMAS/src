@@ -27,6 +27,23 @@ void Game_UpdateClock() {
 	gGameClock = gDeltaTimer->GetTimeInSeconds();
 }
 
+// force OS to use high-performance GPU
+extern "C" {
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
+void Dispose() {
+	// delete level with stuff (player, objects, etc)
+	Level::Purge();
+	// delete menu
+	pMainMenu.reset();
+	// finally delete engine
+	ruEngine::Free();
+}
+
+#include <thread>
+
 int main(int argc, char * argv[]) {
 	try {
 		Parser config;
@@ -112,20 +129,17 @@ int main(int argc, char * argv[]) {
 
 		gDeltaTimer.reset();
 
-		// delete level with stuff (player, objects, etc)
-		Level::Purge();
-		// delete menu
-		pMainMenu.reset();
-		// finally delete engine
-		ruEngine::Free();
+		Dispose();
 
 	} catch (std::exception & err) {
 		// something went wrong
 		MessageBoxA(0, err.what(), "Exception caught!", MB_OK | MB_ICONERROR);
+		Dispose();
 		return EXIT_FAILURE;
 	} catch (...) {
 		// something went srsly wrong
 		MessageBoxA(0, "Unknown exception", "Exception caught!", MB_OK | MB_ICONERROR);
+		Dispose();
 		return EXIT_FAILURE;
 	}
 

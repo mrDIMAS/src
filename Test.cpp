@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -105,8 +105,8 @@ void main( ) {
 
 		ruEngine::SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
 		ruEngine::EnableSpotLightShadows(false);
-		ruEngine::EnablePointLightShadows(true);
-		ruEngine::SetHDREnabled(false);
+		ruEngine::EnablePointLightShadows(false);
+		ruEngine::SetHDREnabled(true);
 		ruEngine::SetFXAAEnabled(false);
 		ruEngine::SetParallaxEnabled(false);
 

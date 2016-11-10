@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -34,6 +34,7 @@
 #include <functional>
 
 using namespace std;
+
 
 typedef function<void()> ruDelegate;
 
@@ -139,7 +140,7 @@ public:
 		z *= v.z;
 	}
 
-	float Angle(const ruVector3 & v) {
+	float Angle(const ruVector3 & v) const {
 		return acosf(Dot(v) / sqrtf(Length2() * v.Length2()));
 	}
 
@@ -513,6 +514,8 @@ public:
 	virtual ruVector2 GetTexCoordFlow() const = 0;
 	virtual void SetAnimationOverride(bool state) = 0;
 	virtual bool IsAnimationOverride() const = 0;
+	virtual void SetAnimationBlendingEnabled(bool state) = 0;
+	virtual bool IsAnimationBlendingEnabled(bool state) const = 0;
 	virtual shared_ptr<ruSceneNode> FindChild(const string & name) = 0;
 	static shared_ptr<ruSceneNode> Create();
 	static shared_ptr<ruSceneNode> LoadFromFile(const string & file);
@@ -626,6 +629,7 @@ public:
 	virtual bool IsIndependentAlpha() const = 0;
 	virtual void SetLayer(int layer) = 0;
 	virtual int GetLayer() const = 0;
+	virtual void Move(const ruVector2 & speed) = 0;
 };
 
 class ruRect : public virtual ruGUINode {
@@ -720,6 +724,8 @@ public:
 	static bool IsPointLightShadowsEnabled();
 
 	static int GetMaxAnisotropy();
+
+	static void LoadColorGradingMap(const char * fileName);
 };
 
 struct ruRayCastResultEx {

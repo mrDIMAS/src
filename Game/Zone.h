@@ -18,7 +18,15 @@ public:
 	ruEvent OnPlayerLeave;  // Loop
 	ruEvent OnPlayerInside; // Loop
 
-	explicit Zone( shared_ptr<ruSceneNode> object );
+	Zone(const shared_ptr<ruSceneNode> & object, const ruDelegate & onEnter) :
+		mObject(object),
+		mType(Type::OneShot),
+		mPlayerInside(false),
+		mActive(true) 
+	{
+		OnPlayerEnter += onEnter;
+	}
+
 	void Update();
 	void SetActive( bool active );
 };

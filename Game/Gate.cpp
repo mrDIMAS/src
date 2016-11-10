@@ -15,7 +15,7 @@ void Gate::Update() {
 	if (player->mNearestPickedNode == mButtonOpen[0] || player->mNearestPickedNode == mButtonOpen[1]) {
 		if (!(mState == State::Closing || mState == State::Opening)) {
 			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("openGateway"));
-			if (ruInput::IsKeyHit(player->mKeyUse)) {
+			if (ruInput::IsKeyHit(player->mKeyUse) && !mLocked) {
 				mButtonSound->SetPosition(player->mNearestPickedNode->GetPosition());
 				if (mState != State::Opened) {
 					player->mNearestPickedNode->GetCurrentAnimation()->Rewind();
@@ -27,7 +27,7 @@ void Gate::Update() {
 	if (player->mNearestPickedNode == mButtonClose[0] || player->mNearestPickedNode == mButtonClose[1]) {
 		if (!(mState == State::Closing || mState == State::Opening)) {
 			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("closeGateway"));
-			if (ruInput::IsKeyHit(player->mKeyUse)) {
+			if (ruInput::IsKeyHit(player->mKeyUse) && !mLocked) {
 				mButtonSound->SetPosition(player->mNearestPickedNode->GetPosition());
 				if (mState != State::Closed) {
 					player->mNearestPickedNode->GetCurrentAnimation()->Rewind();
@@ -60,6 +60,8 @@ Gate::State Gate::GetState() const {
 
 Gate::Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2) {
 	mGate = gate;
+
+	mLocked = false;
 
 	int frameCount = mGate->GetTotalAnimationFrameCount();
 

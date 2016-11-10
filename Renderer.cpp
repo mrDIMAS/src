@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -251,8 +251,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	mShadersChangeCount(0),
 	mRenderedTriangleCount(0),
 	mTextureChangeCount(0),
-	mSSAOEnabled(false)
-{
+	mSSAOEnabled(false) {
 	if (width == 0 || height == 0) {
 		width = GetSystemMetrics(SM_CXSCREEN);
 		height = GetSystemMetrics(SM_CYSCREEN);
@@ -308,7 +307,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	// Check passed resolution
 	bool passedResolutionValid = false;
 	D3DDISPLAYMODE mode;
-	for (int i = 0; i < mpDirect3D->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8); i++) {		
+	for (int i = 0; i < mpDirect3D->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8); i++) {
 		mpDirect3D->EnumAdapterModes(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, i, &mode);
 		Log::Write(StringBuilder("Videomode: ") << mode.Width << " x " << mode.Height << " x 32 @ " << mode.RefreshRate);
 		mVideomodeList.push_back(Videomode(mode.Width, mode.Height, mode.RefreshRate));
@@ -357,7 +356,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		mPresentParameters.FullScreen_RefreshRateInHz = mode.RefreshRate;
 
 		displayMode.Height = mPresentParameters.BackBufferHeight;
-		displayMode.Width = mPresentParameters.BackBufferWidth;		
+		displayMode.Width = mPresentParameters.BackBufferWidth;
 		displayMode.Format = mPresentParameters.BackBufferFormat;
 		displayMode.RefreshRate = mode.RefreshRate;
 	} else {
@@ -429,7 +428,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		D3DCALL(pD3D->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mNormalMap, nullptr));
 		D3DCALL(mNormalMap->GetSurfaceLevel(0, &mNormalSurface));
 
-		D3DCALL(pD3D->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mDiffuseMap, nullptr));		
+		D3DCALL(pD3D->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mDiffuseMap, nullptr));
 		D3DCALL(mDiffuseMap->GetSurfaceLevel(0, &mDiffuseSurface));
 	}
 
@@ -544,7 +543,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		vertices[3] = Vertex(ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0));
 		vertices[4] = Vertex(ruVector3(GetResolutionWidth() - 0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(1, 1));
 		vertices[5] = Vertex(ruVector3(-0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(0, 1));
-		
+
 		D3DCALL(pD3D->CreateVertexBuffer(6 * sizeof(Vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mQuadVertexBuffer, 0));
 		D3DCALL(mQuadVertexBuffer->Lock(0, 0, &lockedData, 0));
 		memcpy(lockedData, vertices, sizeof(Vertex) * 6);
@@ -727,6 +726,11 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 
 		D3DCALL(D3DXCreateTextureFromFileA(pD3D, "data/textures/effects/flare.png", &mFlareTexture));
 	}
+
+	// Color grading 
+	{
+		LoadColorGradingMap("data/textures/colormaps/default.png");
+	}
 }
 
 /*
@@ -848,7 +852,7 @@ void Renderer::RenderWorld() {
 	D3DCALL(pD3D->SetRenderTarget(1, mNormalSurface));
 	D3DCALL(pD3D->SetRenderTarget(2, mDiffuseSurface));
 
-	D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0,0), 1.0, 0));
+	D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
 
 	if (mHDREnabled) {
 		D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, TRUE));
@@ -945,7 +949,7 @@ void Renderer::RenderWorld() {
 					static float vegetationAnimator = 0.0f;
 					vegetationAnimator += 0.0001f;
 					//vegetationAnimator = fmod(vegetationAnimator, 3.14159f);
-					
+
 
 					gpuFloatRegisterStack.Clear();
 					gpuFloatRegisterStack.PushMatrix(world);
@@ -1141,16 +1145,16 @@ void Renderer::RenderWorld() {
 	auto & visLightList = camera->GetNearestPathPoint()->GetListOfVisibleLights();
 	sort
 	(
-		visLightList.begin(), 
-		visLightList.end(), 
-		[camera] (const weak_ptr<PointLight> & lhs, const weak_ptr<PointLight> & rhs) -> bool { 
-			return (lhs.lock()->GetPosition() - camera->GetPosition()).Length2() < (rhs.lock()->GetPosition() - camera->GetPosition()).Length2();
+		visLightList.begin(),
+		visLightList.end(),
+		[camera](const weak_ptr<PointLight> & lhs, const weak_ptr<PointLight> & rhs) -> bool {
+		return (lhs.lock()->GetPosition() - camera->GetPosition()).Length2() < (rhs.lock()->GetPosition() - camera->GetPosition()).Length2();
 	});
-		
+
 	// select proper shadow map for each light from shadow map cache
 	int lightCounter = 0;
 	for (auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights()) {
-		shared_ptr<PointLight> pLight = lWeak.lock();		
+		shared_ptr<PointLight> pLight = lWeak.lock();
 		if (lightCounter < mShadowMapCacheSize) {
 			pLight->SetShadowMapIndex(lightCounter++);
 		} else {
@@ -1165,14 +1169,14 @@ void Renderer::RenderWorld() {
 			bool animated = node->GetCurrentAnimation() ? node->GetCurrentAnimation()->IsEnabled() : false;
 
 			if ((pLight->GetPosition() - node->GetPosition()).Length2() < pLight->GetRange() * pLight->GetRange()) {
-				if ( node->IsMoving() || animated) {
+				if (node->IsMoving() || animated) {
 					pLight->mNeedRecomputeShadowMap = true;
 					break;
 				}
 			}
 		}
 	}
-	
+
 	for (auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights()) {
 		shared_ptr<PointLight> pLight = lWeak.lock();
 		if (pLight) {
@@ -1180,9 +1184,9 @@ void Renderer::RenderWorld() {
 				if (pLight->mInFrustum) {
 					bool useShadows = false;
 
-					if(pLight->GetShadowMapIndex() >= 0) {
-						useShadows = mUsePointLightShadows;						
-						
+					if (pLight->GetShadowMapIndex() >= 0) {
+						useShadows = mUsePointLightShadows;
+
 						if (useShadows) {
 
 							// Render shadow cube map
@@ -1310,7 +1314,7 @@ void Renderer::RenderWorld() {
 						pD3D->SetTexture(3, mWhiteCubeMap);
 					}
 					++mTextureChangeCount;
-					 
+
 					// Load pixel shader constants
 					gpuFloatRegisterStack.Clear();
 					gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
@@ -1597,8 +1601,7 @@ void Renderer::RenderWorld() {
 		++mTextureChangeCount;
 		pD3D->SetTexture(1, mAdaptedLuminanceLast);
 		++mTextureChangeCount;
-		pD3D->SetTexture(2, mBloomTexture);
-		++mTextureChangeCount;
+
 
 		pD3D->SetPixelShader(mAdaptationPixelShader);
 		++mShadersChangeCount;
@@ -1619,6 +1622,10 @@ void Renderer::RenderWorld() {
 		pD3D->SetTexture(0, mHDRFrame);
 		++mTextureChangeCount;
 		pD3D->SetTexture(1, mAdaptedLuminanceCurrent);
+		++mTextureChangeCount;
+		pD3D->SetTexture(2, mBloomTexture);
+		++mTextureChangeCount;
+		pD3D->SetTexture(3, mColorMap);
 		++mTextureChangeCount;
 
 		pD3D->SetPixelShader(mToneMapShader);
@@ -1674,12 +1681,12 @@ void Renderer::RenderWorld() {
 	if (mSSAOEnabled) {
 		pD3D->SetRenderTarget(0, (finalFrame == mFrame[1]) ? mFrameSurface[0] : mFrameSurface[1]);
 		pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
-		
+
 		pD3D->SetTexture(0, mDepthMap);
 		++mTextureChangeCount;
-		
+
 		pD3D->SetTexture(1, mNormalMap);
-		++mTextureChangeCount;		
+		++mTextureChangeCount;
 
 		pD3D->SetTexture(2, finalFrame);
 		++mTextureChangeCount;
@@ -1836,7 +1843,7 @@ void Renderer::RenderWorld() {
 
 	for (auto & weakLight : pointLights) {
 		auto light = weakLight.lock();
-		
+
 		if (light->IsVisible()) {
 
 			if (!light->IsDrawFlare()) {
@@ -1939,7 +1946,7 @@ void Renderer::RenderWorld() {
 							gft_glyph_get_width(font->mFont, symbol, &width);
 							gft_glyph_get_height(font->mFont, symbol, &height);
 							gft_glyph_get_texcoords(font->mFont, symbol, texCoords);
-	
+
 							int x = caret.x + offsetX;
 							int y = caret.y + offsetY;
 
@@ -1982,7 +1989,7 @@ void Renderer::RenderWorld() {
 			}
 		}
 	}
-	
+
 	// Render Cursor on top of all
 	if (GetCursor()) {
 		pD3D->SetStreamSource(0, mRectVertexBuffer, 0, sizeof(Vertex));
@@ -1992,10 +1999,10 @@ void Renderer::RenderWorld() {
 		}
 	}
 
-	
+
 	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-	
+
 	// End rendering
 	pD3D->EndScene();
 	pD3D->PresentEx(nullptr, nullptr, nullptr, nullptr, 0);
@@ -2336,7 +2343,7 @@ void Renderer::LoadPixelShader(COMPtr<IDirect3DPixelShader9> & pixelShader, cons
 	if (FAILED(pD3D->CreatePixelShader(binaryData, &pixelShader))) {
 		Log::Error(StringBuilder("Unable to create pixel shader from '") << fileName << "' !");
 	}
-	delete [] binaryData;
+	delete[] binaryData;
 }
 
 void Renderer::LoadVertexShader(COMPtr<IDirect3DVertexShader9> & vertexShader, const char * fileName) {
@@ -2344,7 +2351,7 @@ void Renderer::LoadVertexShader(COMPtr<IDirect3DVertexShader9> & vertexShader, c
 	if (FAILED(pD3D->CreateVertexShader(binaryData, &vertexShader))) {
 		Log::Error(StringBuilder("Unable to create vertex shader from '") << fileName << "' !");
 	}
-	delete [] binaryData;
+	delete[] binaryData;
 }
 
 void Renderer::RenderFullscreenQuad() {
@@ -2385,6 +2392,34 @@ void Renderer::SetParallaxEnabled(bool state) {
 	mParallaxEnabled = state;
 }
 
+void Renderer::LoadColorGradingMap(const char * fileName) {
+	const int dim = 16;
+	mColorMap.Reset();
+	COMPtr<IDirect3DTexture9> unwrapped;
+	D3DCALL(D3DXCreateTextureFromFileExA(pD3D, fileName, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_FROM_FILE, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, nullptr, nullptr, &unwrapped));
+	D3DCALL(pD3D->CreateVolumeTexture(dim, dim, dim, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mColorMap, nullptr));
+	D3DLOCKED_BOX locked;
+	D3DCALL(mColorMap->LockBox(0, &locked, nullptr, 0));
+	int rowOffset = locked.RowPitch / sizeof(A8R8G8B8Pixel);
+	int sliceOffset = locked.SlicePitch / sizeof(A8R8G8B8Pixel);
+	A8R8G8B8Pixel * pixels = static_cast<A8R8G8B8Pixel*>(locked.pBits);
+	for (int slice = 0; slice < dim; ++slice) {
+		D3DLOCKED_RECT unwrapLocked;
+		D3DCALL(unwrapped->LockRect(0, &unwrapLocked, nullptr, 0));
+		A8R8G8B8Pixel * unwrappedPixels = static_cast<A8R8G8B8Pixel*>(unwrapLocked.pBits);
+		int unwrapRowOffset = unwrapLocked.Pitch / sizeof(A8R8G8B8Pixel);
+		for (int row = 0; row < dim; ++row) {
+			for (int col = 0; col < dim; ++col) {
+				pixels[(slice)* sliceOffset + (row)* rowOffset + (col)] = unwrappedPixels[row * unwrapRowOffset + slice * dim + col];
+			}
+		}
+		unwrapped->UnlockRect(0);
+	}
+	mColorMap->UnlockBox(0);
+
+	D3DXSaveTextureToFileA("colormap.dds", D3DXIFF_DDS, mColorMap, nullptr);
+}
+
 void Renderer::AddMesh(const shared_ptr<Mesh> & mesh) {
 	mesh->CalculateAABB();
 
@@ -2394,7 +2429,7 @@ void Renderer::AddMesh(const shared_ptr<Mesh> & mesh) {
 	if (textureGroup == mDeferredMeshMap.end()) {
 		mDeferredMeshMap[d3dTexture] = vector<weak_ptr<Mesh>>();
 	}
-	mDeferredMeshMap[d3dTexture].push_back(mesh);	
+	mDeferredMeshMap[d3dTexture].push_back(mesh);
 }
 
 bool Renderer::IsParallaxEnabled() {

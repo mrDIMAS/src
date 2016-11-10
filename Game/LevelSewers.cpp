@@ -2,7 +2,12 @@
 #include "Keypad.h"
 #include "LevelSewers.h"
 
-LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mWaterFlow(0.0f), mVerticalWaterFlow(0.0f) {
+LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : 
+	Level(playerTransfer),
+	mWaterFlow(0.0f), 
+	mVerticalWaterFlow(0.0f),
+	mDrainTimer(60 * 60)
+{
 	mName = LevelName::Sewers;
 
 	LoadLocalization("sewers.loc");
@@ -16,8 +21,7 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 	mGate1 = AddGate("SmallGate1", "Button1Open", "Button1Close", "Button1Open2", "Button1Close2");
 	mGate2 = AddGate("SmallGate2", "Button2Open", "Button2Close", "Button2Open2", "Button2Close2");
 	mGateToLift = AddGate("SmallGate3", "Button3Open", "Button3Close", "Button3Open2", "Button3Close2");
-
-	AutoCreateLampsByNamePattern("Lamp?([[:digit:]]+)", "data/sounds/lamp_buzz.ogg");
+	mGateToLift->mLocked = true;
 
 	mZoneKnocks = GetUniqueObject("ZoneKnocks");
 
@@ -53,17 +57,14 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 
 	mEnemySpawnPosition = GetUniqueObject("EnemySpawnPosition");
 
-	AddZone(mZoneEnemySpawn = make_shared<Zone>(GetUniqueObject("EnemySpawnZone")));
-	mZoneEnemySpawn->OnPlayerEnter += [this] { OnPlayerEnterSpawnEnemyZone(); };
-
-	mZoneDropWaterLevel = make_shared<Zone>(GetUniqueObject("ZoneDropWaterLevel"));
-	mZoneDropWaterLevel->OnPlayerEnter += [this] { OnPlayerEnterDrainWaterLevelZone(); };
+	AddZone(make_shared<Zone>(GetUniqueObject("ZoneDropWaterLevel"), [this] { OnPlayerEnterDrainWaterLevelZone(); }));
 
 	mWater = GetUniqueObject("Water");
 
 	mStages["KnocksDone"] = false;
 	mStages["EnemySpawned"] = false;
 	mStages["WaterDrained"] = false;
+	mStages["PumpsActivated"] = false;
 
 	mPassLightGreen = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightGreen"));
 	mPassLightRed = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightRed"));
@@ -94,56 +95,70 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : Le
 	for (int i = 0; i < 3; ++i) {
 		AddSound(mWaterPumpSound[i] = ruSound::Load3D("data/sounds/waterpump.ogg"));
 		mWaterPumpSound[i]->Attach(GetUniqueObject(StringBuilder("WaterPumpSound") << i + 1));
-		mWaterPumpSound[i]->Play();
 		mWaterPumpSound[i]->SetLoop(true);
 	}
 
 	mZoneNextLevel = GetUniqueObject("ZoneNextLevel");
+
+	mPumpSwitch = GetUniqueObject("PumpSwitch");
+	mPumpSwitchAnimation = ruAnimation(0, 100, 0.6, false);
+	mPumpSwitch->SetAnimation(&mPumpSwitchAnimation);
+
+	OnPlayerEnterSpawnEnemyZone();
 
 	DoneInitialization();
 }
 
 void LevelSewers::CreateEnemy() {
 	// create paths
-	Path wayNorth; BuildPath(wayNorth, "WayNorth");
-	Path wayWest; BuildPath(wayWest, "WayWest");
-	Path waySouthWest; BuildPath(waySouthWest, "WaySouthWest");
-	Path wayBasement; BuildPath(wayBasement, "WayBasement");
-	Path wayPump; BuildPath(wayBasement, "WayPump");
+	const char * ways[] = {
+		"WayA", "WayB", "WayC", "WayD", "WayE", "WayF", "WayG", 
+		"WayH", "WayI", "WayJ", "WayK", "WayL", "WayM"
+	};
+	Path p;
+	for (auto w : ways) {
+		p += Path(mScene, w);
+	}
 
-	// add edges
-	wayNorth.mVertexList[0]->AddEdge(wayWest.mVertexList[0]);
-	wayNorth.mVertexList[0]->AddEdge(waySouthWest.mVertexList[0]);
-	wayBasement.mVertexList[0]->AddEdge(waySouthWest.mVertexList.back());
-	wayPump.mVertexList[0]->AddEdge(wayBasement.mVertexList.back());
+	// add egdes
+	p.Get("WayA001")->AddEdge(p.Get("WayF1"));
+	p.Get("WayB1")->AddEdge(p.Get("WayE1"));
+	p.Get("WayF002")->AddEdge(p.Get("WayE002")); // bridge
+	p.Get("WayA020")->AddEdge(p.Get("WayB026")); // bridge
+	p.Get("WayA029")->AddEdge(p.Get("WayC025")); // bridge
+	p.Get("WayC041")->AddEdge(p.Get("WayB041")); // bridge
+	p.Get("WayA046")->AddEdge(p.Get("WayC008")); // bridge
+	p.Get("WayD1")->AddEdge(p.Get("WayC068")); // bridge
+	p.Get("WayA001")->AddEdge(p.Get("WayG1")); 
+	p.Get("WayH012")->AddEdge(p.Get("WayG028"));
+	p.Get("WayH1")->AddEdge(p.Get("WayG022"));
+	p.Get("WayI1")->AddEdge(p.Get("WayG033"));
+	p.Get("WayJ1")->AddEdge(p.Get("WayI011"));
+	p.Get("WayK1")->AddEdge(p.Get("WayG040"));
+	p.Get("WayA017")->AddEdge(p.Get("WayB021"));
+	p.Get("WayA011")->AddEdge(p.Get("WayB012"));
+	p.Get("WayA004")->AddEdge(p.Get("WayB005"));
+	p.Get("WayF005")->AddEdge(p.Get("WayE005"));
+	p.Get("WayC028")->AddEdge(p.Get("WayB029"));
+	p.Get("WayC028")->AddEdge(p.Get("WayA024"));
+	p.Get("WayC018")->AddEdge(p.Get("WayA035"));
+	p.Get("WayC013")->AddEdge(p.Get("WayA041"));
+	p.Get("WayC1")->AddEdge(p.Get("WayA050"));
+	p.Get("WayC036")->AddEdge(p.Get("WayB037"));
+	p.Get("WayC052")->AddEdge(p.Get("WayB046"));
+	p.Get("WayC061")->AddEdge(p.Get("WayB055"));
+	p.Get("WayC069")->AddEdge(p.Get("WayB063"));
+	p.Get("WayH006")->AddEdge(p.Get("WayM1"));
+	p.Get("WayB1")->AddEdge(p.Get("WayL1"));
 
-	// concatenate paths
-	vector<GraphVertex*> allPaths;
-	allPaths.insert(allPaths.end(), wayNorth.mVertexList.begin(), wayNorth.mVertexList.end());
-	allPaths.insert(allPaths.end(), wayWest.mVertexList.begin(), wayWest.mVertexList.end());
-	allPaths.insert(allPaths.end(), waySouthWest.mVertexList.begin(), waySouthWest.mVertexList.end());
-	allPaths.insert(allPaths.end(), wayBasement.mVertexList.begin(), wayBasement.mVertexList.end());
-	allPaths.insert(allPaths.end(), wayPump.mVertexList.begin(), wayPump.mVertexList.end());
+	vector<shared_ptr<GraphVertex>> patrolPoints = {
+		p.Get("WayF007"), p.Get("WayA050"), p.Get("WayF007"),
+		p.Get("WayB064"), p.Get("WayD008"), p.Get("WayG046"),
+		p.Get("WayH008"), p.Get("WayK006"), p.Get("WayI033"),
+		p.Get("WayL012"), p.Get("WayM006")
+	};
 
-	// create patrol paths
-	vector< GraphVertex* > patrolPoints;
-
-	patrolPoints.push_back(wayNorth.mVertexList.front());
-	patrolPoints.push_back(wayNorth.mVertexList.back());
-
-	patrolPoints.push_back(wayWest.mVertexList.front());
-	patrolPoints.push_back(wayWest.mVertexList.back());
-
-	patrolPoints.push_back(waySouthWest.mVertexList.front());
-	patrolPoints.push_back(waySouthWest.mVertexList.back());
-
-	patrolPoints.push_back(wayBasement.mVertexList.front());
-	patrolPoints.push_back(wayBasement.mVertexList.back());
-
-	patrolPoints.push_back(wayPump.mVertexList.front());
-	patrolPoints.push_back(wayPump.mVertexList.back());
-
-	mEnemy = unique_ptr<Enemy>(new Enemy(allPaths, patrolPoints));
+	mEnemy = unique_ptr<Enemy>(new Enemy(p.mVertexList, patrolPoints));
 	mEnemy->SetPosition(mEnemySpawnPosition->GetPosition());
 }
 
@@ -170,9 +185,42 @@ void LevelSewers::DoScenario() {
 	if (mStages["WaterDrained"]) {
 		mPassLightGreen->Show();
 		mPassLightRed->Hide();
+
+		mGateToLift->mLocked = false;
 	} else {
 		mPassLightGreen->Hide();
 		mPassLightRed->Show();
+
+		if (!mStages["PumpsActivated"]) {
+			if (mPlayer->mNearestPickedNode == mPumpSwitch) {
+				mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mLocalization.GetString("activatePumps"));
+
+				if (ruInput::IsKeyHit(mPlayer->mKeyUse)) {
+					mStages["PumpsActivated"] = true;
+					mPumpSwitchAnimation.SetEnabled(true);
+
+					if (mEnemy) {
+						mEnemy->ForceCheckSound(mWaterPumpSound[0]->GetPosition());
+					}
+				}
+			}
+		} else {
+			--mDrainTimer;
+			if (mDrainTimer < 0) {
+				mDrainTimer = 0;
+				mStages["WaterDrained"] = true;
+				for (int i = 0; i < 3; ++i) {
+					mWaterPumpSound[i]->Stop();
+					mPumpLight[i]->SetColor(ruVector3(255, 0, 0));
+				}				
+			} else {
+				for (int i = 0; i < 3; ++i) {
+					mWaterPumpSound[i]->Play();
+					mPumpLight[i]->SetColor(ruVector3(0, 255, 0));
+				}
+			}
+			mPlayer->GetHUD()->SetObjective(StringBuilder() << mLocalization.GetString("objectiveWaitDrain") << mDrainTimer / 60);
+		}
 	}
 
 	mLift1->Update();
@@ -191,9 +239,15 @@ void LevelSewers::DoScenario() {
 		}
 	}
 
+	
+
+	mPumpSwitchAnimation.Update();
+
 	if (mPlayer->IsInsideZone(mZoneNextLevel)) {
 		Level::Change(LevelName::Forest);
 	}
+
+
 }
 
 void LevelSewers::Show() {
@@ -207,6 +261,8 @@ void LevelSewers::Hide() {
 void LevelSewers::OnSerialize(SaveFile & s) {
 	auto enemyPresented = mEnemy != nullptr;
 	s & enemyPresented;
+
+	s & mDrainTimer;
 
 	if (enemyPresented) {
 		if (s.IsLoading()) {

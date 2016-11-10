@@ -17,7 +17,8 @@ Actor::Actor(float height, float width) :
 	mVerticalSpeed(0.0f),
 	mLastVerticalPosition(0.0f),
 	mMaxHealth(100),
-	mHealth(100) {
+	mHealth(100)
+{
 	mBody = ruSceneNode::Create();
 	mBody->SetCapsuleBody(mBodyHeight, mBodyWidth);
 	mBody->SetAngularFactor(ruVector3(0, 0, 0));
@@ -44,7 +45,7 @@ ruVector3 Actor::GetCurrentPosition() {
 	return mBody->GetPosition();
 }
 
-void Actor::StopInstant() {
+void Actor::StopInstantly() {
 	mBody->Move(ruVector3(0.0f, 0.0f, 0.0f));
 }
 

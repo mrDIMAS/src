@@ -8,48 +8,63 @@ class GraphVertex;
 
 class Edge {
 public:
-    GraphVertex * mpDestVertex;
-    float mDistToDestVertex;
-    explicit Edge();
-    explicit Edge( GraphVertex * destinationVertex, float distanceToDestinationVertex );
+	weak_ptr<GraphVertex> mpDestVertex;
+	float mDistToDestVertex;
+	explicit Edge();
+	explicit Edge(const shared_ptr<GraphVertex> & destinationVertex, float distanceToDestinationVertex);
 };
 
-class GraphVertex {
+class GraphVertex : public enable_shared_from_this<GraphVertex> {
 private:
-    bool mUsed;
-    float mDistanceFromBegin;
-    GraphVertex * mAncestor;
-    vector< Edge > mEdges;
-    float DistanceToVertex( GraphVertex * vertex );
+	bool mUsed;
+	float mDistanceFromBegin;
+	weak_ptr<GraphVertex> mAncestor;
+	vector< Edge > mEdges;
+	float DistanceToVertex(const shared_ptr<GraphVertex> & vertex);
 public:
-    friend class Pathfinder;
-    ruVector3 mPosition;
-    explicit GraphVertex( ruVector3 pos );
-    void ClearState( );
-    void AddEdge( GraphVertex * vertex );
+	friend class Pathfinder;
+	shared_ptr<ruSceneNode> mNode;
+	explicit GraphVertex(const shared_ptr<ruSceneNode> & node);
+	void ClearState();
+	void AddEdge(const shared_ptr<GraphVertex> & vertex);
 };
 
 class Pathfinder {
 private:
-    vector< GraphVertex* > mGraph;
+	vector<shared_ptr<GraphVertex>> mGraph;
 public:
-    explicit Pathfinder();
-    virtual ~Pathfinder();
-    void SetVertices( vector< GraphVertex* > vertices );
-    GraphVertex * GetPoint( int i );
-    int GetPointCount( );
-    void BuildPath( GraphVertex * begin, GraphVertex * end, vector< GraphVertex* > & outPoints );
-    GraphVertex * GetVertexNearestTo( ruVector3 position, int * vertexNum = nullptr );
+	explicit Pathfinder();
+	virtual ~Pathfinder();
+	void SetVertices(const vector<shared_ptr<GraphVertex>> & vertices);
+	shared_ptr<GraphVertex> GetPoint(int i);
+	int GetPointCount();
+	void BuildPath(const shared_ptr<GraphVertex> & begin, const shared_ptr<GraphVertex> & end, vector<shared_ptr<GraphVertex>> & outPoints);
+	shared_ptr<GraphVertex> GetVertexNearestTo(ruVector3 position, int * vertexNum = nullptr);
 };
 
 // helper class for Pathfinder
 class Path {
 public:
-    vector< GraphVertex* > mVertexList;
-    void AddPointAndLinkWithPrevious( GraphVertex * vertex );
-    class NodeSorter {
-    public:
-        bool operator() ( const shared_ptr<ruSceneNode> node1, const shared_ptr<ruSceneNode> node2 );
-    };
-    void BuildPath( shared_ptr<ruSceneNode> scene, string pathBaseName );
+	Path() {
+
+	}
+	Path(shared_ptr<ruSceneNode> scene, string pathBaseName);
+	vector<shared_ptr<GraphVertex>> mVertexList;
+	void AddPointAndLinkWithPrevious(const shared_ptr<GraphVertex> & vertex);
+	class NodeSorter {
+	public:
+		bool operator() (const shared_ptr<ruSceneNode> node1, const shared_ptr<ruSceneNode> node2);
+	};
+	shared_ptr<GraphVertex> Get(const string & name) {
+		for (auto & v : mVertexList) {
+			if (v->mNode->GetName() == name) {
+				return v;
+			}
+		}
+		throw runtime_error(StringBuilder("Path point '") << name << "' not found!");
+		return nullptr;
+	}
+	void operator += (const Path & path) {
+		mVertexList.insert(mVertexList.end(), path.mVertexList.begin(), path.mVertexList.end());
+	}
 };

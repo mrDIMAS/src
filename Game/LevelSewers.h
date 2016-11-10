@@ -22,9 +22,7 @@ private:
 	shared_ptr<ruSceneNode> mWater;
 
 	shared_ptr<ruSceneNode> mZoneNextLevel;
-
-	shared_ptr<Zone> mZoneEnemySpawn;
-	shared_ptr<Zone> mZoneDropWaterLevel;
+	shared_ptr<ruSceneNode> mPumpSwitch;
 	shared_ptr<Lift> mLift1;
 
 	shared_ptr<ruLight> mPumpLight[3];
@@ -32,6 +30,9 @@ private:
 	shared_ptr<ruLight> mPassLightRed;
 
 	shared_ptr<ruSound> mWaterPumpSound[3];
+
+	ruAnimation mPumpSwitchAnimation;
+	int mDrainTimer;
 
 	vector<shared_ptr<ruSceneNode>> mVerticalWaterList;
 	float mVerticalWaterFlow;

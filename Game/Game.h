@@ -2,13 +2,14 @@
 
 enum class LevelName : int {
 	Undefined = -1,
-	CutSceneIntro,
-	Introduction,
+	Intro,
 	Arrival,
 	Mine,
 	ResearchFacility,
 	Sewers,
-	Forest
+	Forest,
+	Ending,
+	Count
 };
 
 extern float gMouseSens;

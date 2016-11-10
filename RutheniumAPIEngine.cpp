@@ -1,6 +1,6 @@
 /*******************************************************************************
 *                               Ruthenium Engine                               *
-*            Copyright (c) 2013-2016 Stepanov Dmitriy aka mrDIMAS              *
+*            Copyright (c) 2013-2017 Stepanov Dmitriy aka mrDIMAS              *
 *                                                                              *
 * This file is part of Ruthenium Engine.                                      *
 *                                                                              *
@@ -154,4 +154,8 @@ void ruEngine::EnablePointLightShadows( bool state ) {
 
 bool ruEngine::IsPointLightShadowsEnabled() {
 	return pEngine->IsPointLightShadowsEnabled();
+}
+
+void ruEngine::LoadColorGradingMap(const char * fileName) {
+	pEngine->LoadColorGradingMap(fileName);
 }

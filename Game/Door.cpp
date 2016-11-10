@@ -25,23 +25,23 @@ Door::Door(const shared_ptr<ruSceneNode> & hDoor, float fMaxAngle) : mDoorNode(h
 void Door::Update() {
 	float turnSpeed = 1.0f;
 
-	if (mDoorNode->GetContactCount() > 0) {
-		turnSpeed = 0.0f;
-
-		if (mState == State::Closing) {
-			mCloseSound->Pause();
-		}
-		if (mState == State::Opening) {
-			mOpenSound->Pause();
-		}
-	} else {
+	//if (mDoorNode->GetContactCount() > 0) {
+	//	turnSpeed = 0.0f;
+	//
+	//	if (mState == State::Closing) {
+	//		mCloseSound->Pause();
+	//	}
+	//	if (mState == State::Opening) {
+	//		mOpenSound->Pause();
+	//	}
+	//} else {
 		if (mState == State::Closing) {
 			mCloseSound->Play();
 		}
 		if (mState == State::Opening) {
 			mOpenSound->Play();
 		}
-	}
+	//}
 
 	if (mState == State::Closing) {
 		if (mTurnDirection == TurnDirection::Clockwise) {

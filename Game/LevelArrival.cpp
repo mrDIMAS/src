@@ -208,6 +208,12 @@ void LevelArrival::DoScenario() {
 		// fully dark
 		mPlayer->TurnOffFakeLight();
 		ruEngine::SetAmbientColor(ruVector3(0.0, 0.0, 0.0));
+		for (int i = 0; i < ruPointLight::GetCount(); ++i) {
+			ruPointLight::Get(i)->Hide();
+		}
+		for (int i = 0; i < ruSpotLight::GetCount(); ++i) {
+			ruSpotLight::Get(i)->Hide();
+		}
 	}
 
 	if (mPlayer->DistanceTo(mHalt) < 4) {

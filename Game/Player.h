@@ -59,6 +59,7 @@ public:
 	SmoothFloat mYaw;
 	SmoothFloat mFov;
 	bool mFlashlightEnabled;
+	float mNoiseFactor;
 	float mStamina;
 	float mMaxStamina;
 	float mRunSpeedMult;

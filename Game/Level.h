@@ -12,7 +12,6 @@
 #include "Parser.h"
 #include "AmbientSoundSet.h"
 #include "PathFinder.h"
-#include "Lamp.h"
 #include "Zone.h"
 #include "ActionSeries.h"
 #include "Button.h"
@@ -64,7 +63,6 @@ private:
 	vector<shared_ptr<ItemPlace>> mItemPlaceList;
 	vector<shared_ptr<Valve>> mValveList;
 	vector<shared_ptr<Lift>> mLiftList;
-	vector<shared_ptr<Lamp>> mLampList;
 	vector<shared_ptr<Zone>> mZoneList;
 	vector<shared_ptr<Gate>> mGateList;
 	vector<shared_ptr<Keypad>> mKeypadList;
@@ -88,7 +86,6 @@ protected:
 public:
 	explicit Level(const unique_ptr<PlayerTransfer> & playerTransfer);
 	virtual ~Level();
-
 	LevelName mName;
 	shared_ptr<ruSound> mMusic;
 	shared_ptr<ruSound> mChaseMusic;
@@ -96,12 +93,8 @@ public:
 	void PlayChaseMusic();
 	unordered_map<string, bool > mStages;
 	unique_ptr<Enemy> & GetEnemy();
-	unique_ptr<Player> & GetPlayer() {
-		return mPlayer;
-	}
-	static void DestroyCurrent() {
-		msCurrent.reset();
-	}
+	unique_ptr<Player> & GetPlayer();
+	static void DestroyCurrent();
 	void AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction);
 	shared_ptr<InteractiveObject> FindInteractiveObject(const string & name);
 	void AddItemPlace(const shared_ptr<ItemPlace> & ipc);
@@ -117,15 +110,11 @@ public:
 	shared_ptr<Ladder> AddLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint);
 	shared_ptr<Ladder> FindLadder(const string & name);
 	const vector<shared_ptr<Ladder>> & GetLadderList() const;
-	void AddLightSwitch(const shared_ptr<LightSwitch> & lswitch) {
-		mLightSwitchList.push_back(lswitch);
-	}
+	void AddLightSwitch(const shared_ptr<LightSwitch> & lswitch);
 	void AddValve(const shared_ptr<Valve> & valve);
 	shared_ptr<Lift> AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight);
-	void AddLamp(const shared_ptr<Lamp> & lamp);
 	void AddZone(const shared_ptr<Zone> & zone);
 	void AddButton(const shared_ptr<Button> & button);
-	void AutoCreateLampsByNamePattern(const string & namePattern, string buzzSound);
 	void AutoCreateBulletsByNamePattern(const string & namePattern);
 	void AutoCreateDoorsByNamePattern(const string & namePattern);
 	void AddSound(shared_ptr<ruSound> sound);
@@ -137,11 +126,8 @@ public:
 	virtual void DoScenario() = 0;
 	virtual void Hide();
 	virtual void Show();
-	virtual bool IsVisible() {
-		return mScene->IsVisible();
-	}
+	virtual bool IsVisible();
 	void DoneInitialization();
-	void BuildPath(Path & path, const string & nodeBaseName);
 	void CreateBlankScene();
 	shared_ptr<ruSceneNode> GetUniqueObject(const string & name);
 	static LevelName msCurLevelID;
@@ -150,6 +136,4 @@ public:
 	static unique_ptr<Level> & Current();
 	static void Purge();
 	virtual void Serialize(SaveFile & out) final;
-	//virtual void Deserialize(SaveFile & in) final;
-
 };

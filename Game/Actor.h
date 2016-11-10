@@ -22,7 +22,7 @@ public:
 
 	ruVector3 GetCurrentPosition();
 	char IsInsideZone(const shared_ptr<ruSceneNode> & zone);
-	void StopInstant();
+	void StopInstantly();
 	void Freeze();
 	void Unfreeze();
 	bool IsCrouch();

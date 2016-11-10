@@ -94,54 +94,15 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	mMeshAnimation = ruAnimation(0, 30, 2);
 	mMeshToSewers->SetAnimation(&mMeshAnimation);
 
-	// create zones
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("ObjectiveNeedPassThroughMesh"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterNeedPassThroughMeshZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("ZoneEnemySpawn"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterSpawnEnemyZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("SteamActivateZone"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterSteamActivateZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("ObjectiveRestorePower"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterRestorePowerZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("ObjectiveExaminePlace"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterExaminePlaceZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("ZoneRemovePathBlockingMesh"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterRemovePathBlockingMeshZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("ObjectiveNeedCrowbar"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterNeedCrowbarZone(); };
-		AddZone(zone);
-	}
-
-	{
-		auto zone = make_shared<Zone>(GetUniqueObject("DisableSteamZone"));
-		zone->OnPlayerEnter += [this] { OnPlayerEnterDisableSteamZone(); };
-		AddZone(zone);
-	}
+	// create zones	
+	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveNeedPassThroughMesh"), [this] { OnPlayerEnterNeedPassThroughMeshZone(); }));
+	AddZone(make_shared<Zone>(GetUniqueObject("ZoneEnemySpawn"), [this] { OnPlayerEnterSpawnEnemyZone(); }));
+	AddZone(make_shared<Zone>(GetUniqueObject("SteamActivateZone"), [this] { OnPlayerEnterSteamActivateZone(); }));
+	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveRestorePower"), [this] { OnPlayerEnterRestorePowerZone(); }));
+	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveExaminePlace"), [this] { OnPlayerEnterExaminePlaceZone(); }));	
+	AddZone(make_shared<Zone>(GetUniqueObject("ZoneRemovePathBlockingMesh"), [this] { OnPlayerEnterRemovePathBlockingMeshZone(); }));	
+	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveNeedCrowbar"), [this] { OnPlayerEnterNeedCrowbarZone(); }));	
+	AddZone(make_shared<Zone>(GetUniqueObject("DisableSteamZone"), [this] { OnPlayerEnterDisableSteamZone(); }));
 
 	CreatePowerUpSequence();
 
@@ -223,65 +184,41 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 }
 
 void LevelResearchFacility::CreateEnemy() {
-	// create paths
-	Path pathStraight; BuildPath(pathStraight, "PathStraight");
-	Path pathCircle; BuildPath(pathCircle, "PathCircle");
-	Path pathRoomA; BuildPath(pathRoomA, "PathRoomA");
-	Path pathRoomB;	BuildPath(pathRoomB, "PathRoomB");
-	Path pathRoomC;	BuildPath(pathRoomC, "PathRoomC");
-	Path pathRoomD;	BuildPath(pathRoomD, "PathRoomD");
-	Path pathToBasement; BuildPath(pathToBasement, "PathToBasement");
+	const char * ways[] = {
+		"WayA", "WayB", "WayC", "WayD", "WayE", "WayF", "WayG",
+		"WayH", "WayI", "WayJ", "WayK"
+	};
+	Path p;
+	for (auto w : ways) {
+		p += Path(mScene, w);
+	}
 
-	// add edges
-	pathStraight.mVertexList[7]->AddEdge(pathCircle.mVertexList[0]);
-	pathStraight.mVertexList[5]->AddEdge(pathToBasement.mVertexList[0]);
-	pathStraight.mVertexList[2]->AddEdge(pathRoomA.mVertexList[0]);
-	pathStraight.mVertexList[2]->AddEdge(pathRoomB.mVertexList[0]);
-	pathStraight.mVertexList[3]->AddEdge(pathRoomC.mVertexList[0]);
-	pathStraight.mVertexList[3]->AddEdge(pathRoomD.mVertexList[0]);
+	p.Get("WayA028")->AddEdge(p.Get("WayB1"));
+	p.Get("WayB024")->AddEdge(p.Get("WayC1"));
+	p.Get("WayB021")->AddEdge(p.Get("WayD1"));
+	p.Get("WayA020")->AddEdge(p.Get("WayE1"));
+	p.Get("WayA020")->AddEdge(p.Get("WayF1"));
+	p.Get("WayA013")->AddEdge(p.Get("WayG1"));
+	p.Get("WayA013")->AddEdge(p.Get("WayH1"));
+	p.Get("WayH005")->AddEdge(p.Get("WayI1"));
+	p.Get("WayA033")->AddEdge(p.Get("WayJ1"));
+	p.Get("WayA037")->AddEdge(p.Get("WayK1"));
 
-	// concatenate paths
-	vector<GraphVertex*> allPaths;
-	allPaths.insert(allPaths.end(), pathStraight.mVertexList.begin(), pathStraight.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathToBasement.mVertexList.begin(), pathToBasement.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathCircle.mVertexList.begin(), pathCircle.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathRoomA.mVertexList.begin(), pathRoomA.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathRoomB.mVertexList.begin(), pathRoomB.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathRoomC.mVertexList.begin(), pathRoomC.mVertexList.end());
-	allPaths.insert(allPaths.end(), pathRoomD.mVertexList.begin(), pathRoomD.mVertexList.end());
+	vector<shared_ptr<GraphVertex>> patrolPoints = {
+		p.Get("WayD009"), p.Get("WayC009"), p.Get("WayB024"),
+		p.Get("WayB024"), p.Get("WayA072"), p.Get("WayA1"),
+		p.Get("WayJ007"), p.Get("WayK010"), p.Get("WayE006"),
+		p.Get("WayF005"), p.Get("WayG007"), p.Get("WayI004"),
+		p.Get("WayH018")
+	};
 
-	// create patrol paths
-	vector< GraphVertex* > patrolPoints;
-
-	patrolPoints.push_back(pathToBasement.mVertexList.front());
-	patrolPoints.push_back(pathToBasement.mVertexList.back());
-
-	patrolPoints.push_back(pathStraight.mVertexList.front());
-	patrolPoints.push_back(pathStraight.mVertexList.back());
-
-	patrolPoints.push_back(pathCircle.mVertexList.front());
-	patrolPoints.push_back(pathCircle.mVertexList.back());
-
-	patrolPoints.push_back(pathRoomA.mVertexList.front());
-	patrolPoints.push_back(pathRoomA.mVertexList.back());
-
-	patrolPoints.push_back(pathRoomB.mVertexList.front());
-	patrolPoints.push_back(pathRoomB.mVertexList.back());
-
-	patrolPoints.push_back(pathRoomC.mVertexList.front());
-	patrolPoints.push_back(pathRoomC.mVertexList.back());
-
-	patrolPoints.push_back(pathRoomD.mVertexList.front());
-	patrolPoints.push_back(pathRoomD.mVertexList.back());
-
-	mEnemy = unique_ptr<Enemy>(new Enemy(allPaths, patrolPoints));
+	mEnemy = unique_ptr<Enemy>(new Enemy(p.mVertexList, patrolPoints));
 	mEnemy->SetPosition(mEnemySpawnPosition->GetPosition());
 }
 
 LevelResearchFacility::~LevelResearchFacility() {
 
 }
-
 
 void LevelResearchFacility::Show() {
 	Level::Show();
