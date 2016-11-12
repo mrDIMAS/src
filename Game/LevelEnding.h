@@ -8,6 +8,7 @@ private:
 	shared_ptr<ruRect> mBackground;
 	shared_ptr<ruText> mEndingText;
 	shared_ptr<ruFont> mLargeFont;
+	shared_ptr<ruCamera> mCamera;
 public:
 	LevelEnding(const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelEnding();

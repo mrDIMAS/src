@@ -67,6 +67,7 @@ Player::Player() :
 
 	mBodyModelRoot = mBodyModel->FindChild("Root");
 	mFlashlight = dynamic_pointer_cast<ruSpotLight>(mBodyModel->FindChild("Fspot001"));
+	mFlashlight->SetShadowCastEnabled(false); 
 	mFlashlightSwitchSound = ruSound::Load2D("data/sounds/flashlight_switch.ogg");
 	mFlashlightSwitchSound->Attach(mBody);
 
@@ -163,6 +164,7 @@ Player::Player() :
 	mFakeLight->Attach(mpCamera->mCamera);
 	mFakeLight->SetRange(2);
 	mFakeLight->SetColor(ruVector3(25, 25, 25));
+	mFakeLight->SetShadowCastEnabled(false);
 
 	mBody->SetName("Player");
 
@@ -692,6 +694,10 @@ void Player::ComputeStealth() {
 				}
 			}
 		}
+	}
+
+	if (ruDirectionalLight::GetCount()) {
+		mInLight = true;
 	}
 
 	if (mFlashlightEnabled) {

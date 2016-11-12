@@ -305,6 +305,9 @@ if outputFileName != undefined then (
 		if currentLight.type == #freeSpot then (
 			WriteLong file 1
 		)
+		if currentLight.type == #freeDirect then (
+			WriteLong file 2
+		)
 		
 		-- write basic parameters
 		
@@ -323,12 +326,13 @@ if outputFileName != undefined then (
 		in coordsys parent at time 0 WriteVector3(currentLight.position * GetParentScale ( currentLight ))
 		
 		-- write type-specific parameters
-		if currentLight.type == #freeSpot then (			
+		if (currentLight.type == #freeSpot) then (			
 			WriteFloat file currentLight.Hotspot -- inner cone angle 
-			WriteFloat file currentLight.Falloff -- outer cone angle
-			
+			WriteFloat file currentLight.Falloff -- outer cone angle			
 			in coordsys parent WriteQuaternion currentLight.rotation -- write light direction
-		)	
+		) else if (currentLight.type == #freeDirect) then (			
+			in coordsys parent WriteQuaternion currentLight.rotation -- write light direction
+		)
 	)
 	
 	-- write hierarchy

@@ -27,9 +27,10 @@
 class PointLight : public Light, public virtual ruPointLight {
 private:
 	friend class SceneFactory;
-	PointLight();
+
 	CubeTexture * mPointTexture;
 public:
+	PointLight();
 	static CubeTexture * msDefaultPointCubeTexture;
 		
 	~PointLight();

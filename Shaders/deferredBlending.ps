@@ -1,0 +1,19 @@
+sampler colorMap : register(s0);
+sampler diffuseMap : register(s1);
+
+float pixelHeight : register( c0 );
+
+float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
+	float4 c = tex2D( colorMap, texCoord );
+	float4 c2 = tex2D( colorMap, texCoord + float2( 0.0f, pixelHeight ));
+	float a = tex2D( diffuseMap, texCoord ).a;
+	float a2 = tex2D( diffuseMap, texCoord + float2( 0.0f, pixelHeight )).a;
+	
+	if( a2 < 0.99f ) {
+		c = c * ( 1.0f - a2 ) + c2 * a2;
+	} else if( a < 0.99f ) {
+		c = c * a + c2 * ( 1.0f - a );
+	}
+		
+	return c;
+};

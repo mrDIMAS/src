@@ -164,10 +164,15 @@ private:
 	COMPtr<IDirect3DCubeTexture9> mCubeShadowMapCache[32];
 
 	// Spot light shadow map
-	COMPtr<IDirect3DTexture9> mShadowMap;
-	COMPtr<IDirect3DSurface9> mShadowMapSurface;
+	COMPtr<IDirect3DTexture9> mSpotShadowMap;
+	COMPtr<IDirect3DSurface9> mSpotShadowMapSurface;
 	COMPtr<IDirect3DSurface9> mDefaultDepthStencil;
-	COMPtr<IDirect3DSurface9> mDepthStencilSurface;
+	COMPtr<IDirect3DSurface9> mSpotDepthStencilSurface;
+
+	// Directional light shadow map
+	COMPtr<IDirect3DTexture9> mDirectionalShadowMap;
+	COMPtr<IDirect3DSurface9> mDirectionalShadowMapSurface;
+	COMPtr<IDirect3DSurface9> mDirectionalDepthStencilSurface;
 
 	// Shadow map shaders
 	COMPtr<IDirect3DPixelShader9> mShadowMapPixelShader;
@@ -177,11 +182,13 @@ private:
 	D3DXMATRIX mOrthoProjectionMatrix;
 	COMPtr<IDirect3DVertexBuffer9> mQuadVertexBuffer;
 	COMPtr<IDirect3DVertexShader9> mQuadVertexShader;
+	COMPtr<IDirect3DPixelShader9> mTestQuadPixelShader;
+	COMPtr<IDirect3DVertexBuffer9> mTestQuadVertexBuffer;
+	void RenderFullscreenQuad();
+	void RenderTestQuad();
 
 	// SSAO Stuff
 	COMPtr<IDirect3DPixelShader9> mSSAOPixelShader;
-
-	void RenderFullscreenQuad();
 
 	// Skybox 
 	COMPtr<IDirect3DVertexBuffer9> mSkyboxVertexBuffer;

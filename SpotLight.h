@@ -26,7 +26,7 @@
 class SpotLight : public virtual ruSpotLight, public Light {
 private:
 	friend class SceneFactory;
-	SpotLight();	
+	
 
 	float mInnerAngle;
 	float mOuterAngle;
@@ -38,6 +38,7 @@ private:
 	D3DXMATRIX mSpotViewProjectionMatrix;
 public:
 	static shared_ptr<Texture> msDefaultSpotTexture;
+	SpotLight();
 	~SpotLight();
 	float GetInnerAngle() const;
 	float GetOuterAngle() const;

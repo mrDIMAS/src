@@ -1,0 +1,19 @@
+sampler hdrTexture : register( s0 );
+
+float2 dx : register( c0 );
+float2 dy : register( c1 );
+
+float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
+	float4 outColor = tex2D( hdrTexture, texCoord ) +
+					  tex2D( hdrTexture, texCoord + dx ) +
+					  tex2D( hdrTexture, texCoord + dy ) +
+					  tex2D( hdrTexture, texCoord + dx + dy );
+	
+	outColor *= 0.25f;
+	
+	if( dot( outColor.rgb, float3(0.2126, 0.7152, 0.0722)) < 0.95f ) {
+		outColor = float4( 0.0f, 0.0f, 0.0f, 1.0f );
+	}
+	
+	return outColor;
+};

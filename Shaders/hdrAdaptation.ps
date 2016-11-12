@@ -1,0 +1,11 @@
+sampler current : register( s0 );
+sampler last : register( s1 );
+
+float adaptation : register( c0 );
+
+float4 main( ) : COLOR0 {
+	float fAdaptedLum = tex2D( last, float2(0.5f, 0.5f)).r;
+	float fCurrentLum = tex2D( current, float2(0.5f, 0.5f)).r;
+	float fNewAdaptation = fAdaptedLum + (fCurrentLum - fAdaptedLum) * adaptation;
+	return float4(fNewAdaptation, 0.0f, 0.0f, 1.0f);
+};

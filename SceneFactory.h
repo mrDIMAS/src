@@ -26,12 +26,14 @@ class PointLight;
 class SpotLight;
 class Camera;
 class ParticleSystem;
+class DirectionalLight;
 
 class SceneFactory {
 private:
 	static vector<weak_ptr<SceneNode>> msNodeList;
 	static vector<weak_ptr<SpotLight>> msSpotLightList;
 	static vector<weak_ptr<PointLight>> msPointLightList;
+	static vector<weak_ptr<DirectionalLight>> msDirectionalLightList;
 	static vector<weak_ptr<ParticleSystem>> msParticleEmitters;
 	template<typename Type> 
 	static void RemoveUnreferenced( vector<weak_ptr<Type>> & objList );
@@ -40,11 +42,13 @@ public:
 	static vector<weak_ptr<SceneNode>> & GetNodeList();
 	static vector<weak_ptr<SpotLight>> & GetSpotLightList();
 	static vector<weak_ptr<PointLight>> & GetPointLightList();
+	static vector<weak_ptr<DirectionalLight>> & GetDirectionalLightList();
 	static vector<weak_ptr<ParticleSystem>> & GetParticleSystemList();
 	static shared_ptr<SceneNode> CreateSceneNode( );
 	static shared_ptr<SceneNode> CreateSceneNodeDuplicate( shared_ptr<SceneNode> source );
 	static shared_ptr<PointLight> CreatePointLight();
 	static shared_ptr<SpotLight> CreateSpotLight();
+	static shared_ptr<DirectionalLight> CreateDirectionalLight();
 	static shared_ptr<Camera> CreateCamera( float fov );
 	static shared_ptr<ParticleSystem> CreateParticleSystem( int particleCount );
 };

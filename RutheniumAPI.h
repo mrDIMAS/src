@@ -773,6 +773,15 @@ public:
 	virtual bool IsSeePoint(const ruVector3 & point) = 0;
 };
 
+class ruDirectionalLight : public virtual ruLight {
+public:
+	static shared_ptr<ruDirectionalLight> Create();
+	static int GetCount();
+	static shared_ptr<ruDirectionalLight> Get(int n);
+
+	virtual bool IsSeePoint(const ruVector3 & point) = 0;
+};
+
 class ruPointLight : public virtual ruLight {
 public:
 	static shared_ptr<ruPointLight> Create();

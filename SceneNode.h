@@ -26,7 +26,6 @@ class Camera;
 class SceneNode : public virtual ruSceneNode, public std::enable_shared_from_this<SceneNode> {
 protected:
 	friend class SceneFactory;
-	explicit SceneNode();
 	weak_ptr<SceneNode> mParent;
 	weak_ptr<SceneNode> mScene;
 	vector<shared_ptr<SceneNode>> mChildren;
@@ -71,9 +70,12 @@ protected:
 	// Objects of Bullet Physics does not fit into STL smartpointers, so bad
 	vector<btRigidBody*> mBodyList;
 	vector<btTriangleMesh*> mTrimeshList;
+
+public:
 	btTransform mGlobalTransform;
 	btTransform mLocalTransform;
-public:
+	explicit SceneNode();
+
 	// overload new/delete to be sure that scene node always be 16-aligned
 	static void * operator new(size_t size) {
 		return _mm_malloc(size, 16);

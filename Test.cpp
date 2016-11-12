@@ -103,12 +103,12 @@ void main( ) {
 		shared_ptr<ruGUIScene> anotherGUIScene = ruGUIScene::Create();
 		shared_ptr<ruButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
 
-		ruEngine::SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
-		ruEngine::EnableSpotLightShadows(false);
-		ruEngine::EnablePointLightShadows(false);
-		ruEngine::SetHDREnabled(true);
-		ruEngine::SetFXAAEnabled(false);
-		ruEngine::SetParallaxEnabled(false);
+
+		ruEngine::EnableSpotLightShadows(true);
+		ruEngine::EnablePointLightShadows(true);
+		ruEngine::SetHDREnabled(false);
+		ruEngine::SetFXAAEnabled(true);
+		ruEngine::SetParallaxEnabled(true);
 
 		shared_ptr<ruSceneNode> cube = ruSceneNode::LoadFromFile("data/cube.scene");
 
@@ -116,6 +116,7 @@ void main( ) {
 		snd->SetVolume(0.1);
 
 		
+		/*
 		shared_ptr<ruSceneNode> ripper = ruSceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
 		ruAnimation anim = ruAnimation(0, 85, 3, true);
 		anim.SetEnabled(true);
@@ -128,8 +129,9 @@ void main( ) {
 		dummyAnim.SetEnabled(true);
 		dummyTest->SetAnimation(&dummyAnim);
 		dummyTest->SetPosition(ruVector3(1, 0, -3));
+		*/
 
-		ruEngine::SetAmbientColor(ruVector3(.1, .1, .1));
+		ruEngine::SetAmbientColor(ruVector3(.01, .01, .01));
 
 		auto bone008 = node->FindByName("Bone011");
 		auto bone001 = node->FindByName("Bone004");
@@ -139,13 +141,14 @@ void main( ) {
 			//idleAnim.Update();
 			ruInput::Update();
 
-			anim.Update();
-			dummyAnim.Update();
+			//anim.Update();
+			//dummyAnim.Update();
 
 			
 
 			if (ruInput::IsMouseHit(ruInput::MouseButton::Right)) {
-				ruEngine::SetHDREnabled(!ruEngine::IsHDREnabled());
+				//ruEngine::SetHDREnabled(!ruEngine::IsHDREnabled());
+				ruEngine::EnableSpotLightShadows(ruEngine::IsSpotLightShadowsEnabled());
 			}
 
 			if (ruInput::IsKeyHit(ruInput::Key::T)) {

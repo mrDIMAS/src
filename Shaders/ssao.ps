@@ -1,0 +1,8 @@
+sampler depthSampler : register(s0);
+sampler normalSampler : register(s1);
+sampler frameSampler : register(s2);
+
+float4 main(float2 texcoord : TEXCOORD0) : COLOR0 {
+
+	return tex2D(frameSampler, texcoord) * float4(1, 1, 1, 1);
+}

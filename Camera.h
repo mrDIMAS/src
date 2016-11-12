@@ -51,7 +51,7 @@ public:
 class Camera : public virtual ruCamera, public SceneNode {
 private:
 	friend class SceneFactory;
-	explicit Camera( float fov );
+
 public:  
 	float mFov;
     float mNearZ;
@@ -74,6 +74,7 @@ public:
 	float mPathNewPointDelta;
 	void ManagePath();	
 public:
+	explicit Camera(float fov);
 	static weak_ptr<Camera> msCurrentCamera;    
     virtual ~Camera();
     void CalculateProjectionMatrix();
@@ -85,7 +86,9 @@ public:
 	unique_ptr<PathPoint> & GetNearestPathPoint();
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-
+	int GetPathSize() const {
+		return mPath.size();
+	}
 	// API Methods
 	virtual void SetFOV(float fov) override;
 	virtual void SetActive() override;

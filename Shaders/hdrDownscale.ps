@@ -1,0 +1,12 @@
+sampler s0 : register( s0 );
+
+float pixelSize : register( c0 );
+
+float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
+	float sample = 0.0f;
+	sample += tex2D( s0, texCoord + float2( -pixelSize, -pixelSize ) ).r;
+	sample += tex2D( s0, texCoord + float2(  pixelSize, -pixelSize ) ).r;
+	sample += tex2D( s0, texCoord + float2(  pixelSize,  pixelSize ) ).r;
+	sample += tex2D( s0, texCoord + float2( -pixelSize,  pixelSize ) ).r;
+	return sample / 4;
+};

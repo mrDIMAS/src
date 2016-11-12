@@ -1,0 +1,23 @@
+sampler hdrTexture : register( s0 );
+
+float2 dxdy : register( c0 );
+
+float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
+	float4 outColor = float4( 0.0f, 0.0f, 0.0f, 0.0f );
+    outColor += tex2D(hdrTexture, texCoord - 7 * dxdy ) * 0.0044299121055113265f;
+    outColor += tex2D(hdrTexture, texCoord - 6 * dxdy ) * 0.00895781211794f;
+    outColor += tex2D(hdrTexture, texCoord - 5 * dxdy ) * 0.0215963866053f;
+    outColor += tex2D(hdrTexture, texCoord - 4 * dxdy ) * 0.0443683338718f;
+    outColor += tex2D(hdrTexture, texCoord - 3 * dxdy ) * 0.0776744219933f;
+    outColor += tex2D(hdrTexture, texCoord - 2 * dxdy ) * 0.115876621105f;
+    outColor += tex2D(hdrTexture, texCoord - dxdy ) * 0.147308056121f;
+    outColor += tex2D(hdrTexture, texCoord ) * 0.159576912161f;
+    outColor += tex2D(hdrTexture, texCoord + dxdy ) * 0.147308056121f;
+    outColor += tex2D(hdrTexture, texCoord + 2 * dxdy ) * 0.115876621105f;
+    outColor += tex2D(hdrTexture, texCoord + 3 * dxdy ) * 0.0776744219933f;
+    outColor += tex2D(hdrTexture, texCoord + 4 * dxdy ) * 0.0443683338718f;
+    outColor += tex2D(hdrTexture, texCoord + 5 * dxdy ) * 0.0215963866053f;
+    outColor += tex2D(hdrTexture, texCoord + 6 * dxdy ) * 0.00895781211794f;
+    outColor += tex2D(hdrTexture, texCoord + 7 * dxdy ) * 0.0044299121055113265f;
+	return outColor;
+};

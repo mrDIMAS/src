@@ -330,6 +330,8 @@ int main(int argc, char * argv[]) {
 				light.mInner = reader.GetFloat();
 				light.mOuter = reader.GetFloat();
 				light.mRotation = reader.GetQuaternion();
+			} else if (light.mType == 2) { // directional
+				light.mRotation = reader.GetQuaternion();
 			}
 			lights.push_back(light);
 		}
@@ -444,6 +446,8 @@ int main(int argc, char * argv[]) {
 		if (light.mType == 1) { // free spot
 			writer.WriteFloat(light.mInner);
 			writer.WriteFloat(light.mOuter);
+			writer.WriteQuaternion(light.mRotation);
+		} else if (light.mType == 2) { // directional
 			writer.WriteQuaternion(light.mRotation);
 		}
 	}

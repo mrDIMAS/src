@@ -45,6 +45,7 @@
 #include "GUIButton.h"
 #include "GUIScene.h"
 #include <random>
+#include "DirectionalLight.h"
 
 IDirect3DDevice9Ex * pD3D;
 unique_ptr<Renderer> pEngine;
@@ -467,17 +468,27 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 
 	// Spot light shadow map
 	{
-		int shadowMapWidth = width * 0.5f;
-		int shadowMapHeight = height * 0.5f;
+		int shadowMapWidth = 1024;
+		int shadowMapHeight = 1024;
 
 		LoadVertexShader(mShadowMapVertexShader, "data/shaders/shadowMap.vso");
 		LoadPixelShader(mShadowMapPixelShader, "data/shaders/shadowMap.pso");
 
-		D3DCALL(pD3D->CreateTexture(shadowMapWidth, shadowMapHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mShadowMap, nullptr));
-		D3DCALL(mShadowMap->GetSurfaceLevel(0, &mShadowMapSurface));
+		D3DCALL(pD3D->CreateTexture(shadowMapWidth, shadowMapHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mSpotShadowMap, nullptr));
+		D3DCALL(mSpotShadowMap->GetSurfaceLevel(0, &mSpotShadowMapSurface));
 
 		D3DCALL(pD3D->GetDepthStencilSurface(&mDefaultDepthStencil));
-		D3DCALL(pD3D->CreateDepthStencilSurface(shadowMapWidth, shadowMapHeight, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDepthStencilSurface, 0));
+		D3DCALL(pD3D->CreateDepthStencilSurface(shadowMapWidth, shadowMapHeight, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mSpotDepthStencilSurface, 0));
+	}
+
+	// Directional light shadow map
+	{
+		int shadowMapWidth = 2048;
+		int shadowMapHeight = 2048;
+
+		D3DCALL(pD3D->CreateTexture(shadowMapWidth, shadowMapHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDirectionalShadowMap, nullptr));
+		D3DCALL(mDirectionalShadowMap->GetSurfaceLevel(0, &mDirectionalShadowMapSurface));
+		D3DCALL(pD3D->CreateDepthStencilSurface(shadowMapWidth, shadowMapHeight, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDirectionalDepthStencilSurface, 0));
 	}
 
 	// Particle shaders
@@ -536,13 +547,14 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	{
 		LoadVertexShader(mQuadVertexShader, "data/shaders/quad.vso");
 
-		Vertex vertices[6];
-		vertices[0] = Vertex(ruVector3(-0.5, -0.5, 0.0f), ruVector2(0, 0));
-		vertices[1] = Vertex(ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0));
-		vertices[2] = Vertex(ruVector3(-0.5, GetResolutionHeight() - 0.5, 0), ruVector2(0, 1));
-		vertices[3] = Vertex(ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0));
-		vertices[4] = Vertex(ruVector3(GetResolutionWidth() - 0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(1, 1));
-		vertices[5] = Vertex(ruVector3(-0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(0, 1));
+		const Vertex vertices[6] = {
+			{ ruVector3(-0.5, -0.5, 0.0f), ruVector2(0, 0) },
+			{ ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0) },
+			{ ruVector3(-0.5, GetResolutionHeight() - 0.5, 0), ruVector2(0, 1) },
+			{ ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0) },
+			{ ruVector3(GetResolutionWidth() - 0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(1, 1) },
+			{ ruVector3(-0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(0, 1) }
+		};
 
 		D3DCALL(pD3D->CreateVertexBuffer(6 * sizeof(Vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mQuadVertexBuffer, 0));
 		D3DCALL(mQuadVertexBuffer->Lock(0, 0, &lockedData, 0));
@@ -550,6 +562,26 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		D3DCALL(mQuadVertexBuffer->Unlock());
 
 		D3DXMatrixOrthoOffCenterLH(&mOrthoProjectionMatrix, 0, GetResolutionWidth(), GetResolutionHeight(), 0, 0, 1024);
+	}
+
+	// Create test quad
+	{
+		LoadPixelShader(mTestQuadPixelShader, "data/shaders/quad.pso");
+
+		const float size = 500;
+		const Vertex vertices[6] = {
+			{ ruVector3(0.0, 0.0, 0.0f), ruVector2(0, 0) },
+			{ ruVector3(size, 0.0, 0.0f), ruVector2(1, 0) },
+			{ ruVector3(0.0, size, 0), ruVector2(0, 1) },
+			{ ruVector3(size, -0.5, 0.0f), ruVector2(1, 0) },
+			{ ruVector3(size,size, 0.0f), ruVector2(1, 1) },
+			{ ruVector3(0.0, size, 0.0f), ruVector2(0, 1) }
+		};
+
+		D3DCALL(pD3D->CreateVertexBuffer(6 * sizeof(Vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mTestQuadVertexBuffer, 0));
+		D3DCALL(mTestQuadVertexBuffer->Lock(0, 0, &lockedData, 0));
+		memcpy(lockedData, vertices, sizeof(Vertex) * 6);
+		D3DCALL(mTestQuadVertexBuffer->Unlock());
 	}
 
 	// Skybox
@@ -856,6 +888,8 @@ void Renderer::RenderWorld() {
 
 	if (mHDREnabled) {
 		D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, TRUE));
+	} else {
+		D3DCALL(pD3D->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, FALSE));
 	}
 
 	D3DCALL(pD3D->SetVertexDeclaration(msVertexDeclaration));
@@ -864,6 +898,8 @@ void Renderer::RenderWorld() {
 	D3DCALL(pD3D->SetPixelShader(mGBufferPixelShader));
 
 	mShadersChangeCount += 2;
+
+	
 
 	for (auto & texGroupPair : mDeferredMeshMap) {
 		IDirect3DTexture9 * pDiffuseTexture = texGroupPair.first;
@@ -971,6 +1007,8 @@ void Renderer::RenderWorld() {
 			}
 		}
 	}
+
+	
 
 	//********************************
 	// Lighting pass
@@ -1111,7 +1149,7 @@ void Renderer::RenderWorld() {
 
 	D3DCALL(pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF));
 
-	float hdrLightIntensity = mHDREnabled ? 5.5f : 1.5f;
+	float hdrLightIntensity = 1;
 
 	// Bind G-Buffer Textures
 	D3DCALL(pD3D->SetTexture(0, mDepthMap));
@@ -1141,212 +1179,221 @@ void Renderer::RenderWorld() {
 	D3DCALL(pD3D->SetPixelShader(mDeferredLightShader));
 	++mShadersChangeCount;
 
-	// sort list of visible light in order to increse distance to camera
-	auto & visLightList = camera->GetNearestPathPoint()->GetListOfVisibleLights();
-	sort
-	(
-		visLightList.begin(),
-		visLightList.end(),
-		[camera](const weak_ptr<PointLight> & lhs, const weak_ptr<PointLight> & rhs) -> bool {
-		return (lhs.lock()->GetPosition() - camera->GetPosition()).Length2() < (rhs.lock()->GetPosition() - camera->GetPosition()).Length2();
-	});
+	if (camera->GetPathSize() > 0) {
+		// sort list of visible light in order to increse distance to camera
+		auto & visLightList = camera->GetNearestPathPoint()->GetListOfVisibleLights();
+		sort
+		(
+			visLightList.begin(),
+			visLightList.end(),
+			[camera](const weak_ptr<PointLight> & lhs, const weak_ptr<PointLight> & rhs) -> bool {
+			return (lhs.lock()->GetPosition() - camera->GetPosition()).Length2() < (rhs.lock()->GetPosition() - camera->GetPosition()).Length2();
+		});
 
-	// select proper shadow map for each light from shadow map cache
-	int lightCounter = 0;
-	for (auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights()) {
-		shared_ptr<PointLight> pLight = lWeak.lock();
-		if (lightCounter < mShadowMapCacheSize) {
-			pLight->SetShadowMapIndex(lightCounter++);
-		} else {
-			pLight->SetShadowMapIndex(-1);
-		}
+		// select proper shadow map for each light from shadow map cache
+		int lightCounter = 0;
+		for (auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights()) {
+			shared_ptr<PointLight> pLight = lWeak.lock();
+			if (lightCounter < mShadowMapCacheSize) {
+				pLight->SetShadowMapIndex(lightCounter++);
+			} else {
+				pLight->SetShadowMapIndex(-1);
+			}
 
-		// also checkout for dynamic objects, that moving inside light
-		auto & nodes = SceneFactory::GetNodeList();
-		for (auto weakNode : nodes) {
-			auto node = weakNode.lock();
+			if (!pLight->IsShadowCastEnabled()) {
+				pLight->SetShadowMapIndex(-1);
+			}
 
-			bool animated = node->GetCurrentAnimation() ? node->GetCurrentAnimation()->IsEnabled() : false;
+			// also checkout for dynamic objects, that moving inside light
+			auto & nodes = SceneFactory::GetNodeList();
+			for (auto weakNode : nodes) {
+				auto node = weakNode.lock();
 
-			if ((pLight->GetPosition() - node->GetPosition()).Length2() < pLight->GetRange() * pLight->GetRange()) {
-				if (node->IsMoving() || animated) {
-					pLight->mNeedRecomputeShadowMap = true;
-					break;
+				bool animated = node->GetCurrentAnimation() ? node->GetCurrentAnimation()->IsEnabled() : false;
+
+				if ((pLight->GetPosition() - node->GetPosition()).Length2() < pLight->GetRange() * pLight->GetRange()) {
+					if (node->IsMoving() || animated) {
+						pLight->mNeedRecomputeShadowMap = true;
+						break;
+					}
 				}
 			}
 		}
-	}
 
-	for (auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights()) {
-		shared_ptr<PointLight> pLight = lWeak.lock();
-		if (pLight) {
-			if (pLight->IsVisible()) {
-				if (pLight->mInFrustum) {
-					bool useShadows = false;
+		for (auto lWeak : camera->GetNearestPathPoint()->GetListOfVisibleLights()) {
+			shared_ptr<PointLight> pLight = lWeak.lock();
+			if (pLight) {
+				if (pLight->IsVisible()) {
+					if (pLight->mInFrustum) {
+						bool useShadows = false;
 
-					if (pLight->GetShadowMapIndex() >= 0) {
-						useShadows = mUsePointLightShadows;
+						if (pLight->GetShadowMapIndex() >= 0) {
+							useShadows = mUsePointLightShadows;
 
-						if (useShadows) {
+							if (useShadows) {
 
-							// Render shadow cube map
-							if (pLight->mNeedRecomputeShadowMap) {
-								D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE));
-								D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
-								D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
+								// Render shadow cube map
+								if (pLight->mNeedRecomputeShadowMap) {
+									D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE));
+									D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
+									D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
 
-								static CameraDirection directions[6] = {
-									{ ruVector3(1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
-									{ ruVector3(-1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
-									{ ruVector3(0.0f,  1.0f,  0.0f), ruVector3(0.0f, 0.0f, -1.0f) },
-									{ ruVector3(0.0f, -1.0f,  0.0f), ruVector3(0.0f, 0.0f,  1.0f) },
-									{ ruVector3(0.0f,  0.0f,  1.0f), ruVector3(0.0f, 1.0f,  0.0f) },
-									{ ruVector3(0.0f,  0.0f, -1.0f), ruVector3(0.0f, 1.0f,  0.0f) }
-								};
+									static CameraDirection directions[6] = {
+										{ ruVector3(1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
+										{ ruVector3(-1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
+										{ ruVector3(0.0f,  1.0f,  0.0f), ruVector3(0.0f, 0.0f, -1.0f) },
+										{ ruVector3(0.0f, -1.0f,  0.0f), ruVector3(0.0f, 0.0f,  1.0f) },
+										{ ruVector3(0.0f,  0.0f,  1.0f), ruVector3(0.0f, 1.0f,  0.0f) },
+										{ ruVector3(0.0f,  0.0f, -1.0f), ruVector3(0.0f, 1.0f,  0.0f) }
+									};
 
-								D3DCALL(pD3D->SetPixelShader(mShadowMapPixelShader));
-								D3DCALL(pD3D->SetVertexShader(mShadowMapVertexShader));
-								mShadersChangeCount += 2;
+									D3DCALL(pD3D->SetPixelShader(mShadowMapPixelShader));
+									D3DCALL(pD3D->SetVertexShader(mShadowMapVertexShader));
+									mShadersChangeCount += 2;
 
-								D3DXMATRIX projectionMatrix;
-								D3DXMatrixPerspectiveFovLH(&projectionMatrix, 1.570796, 1.0f, 0.05f, 1024.0f);
+									D3DXMATRIX projectionMatrix;
+									D3DXMatrixPerspectiveFovLH(&projectionMatrix, 1.570796, 1.0f, 0.05f, 1024.0f);
 
-								for (int face = 0; face < 6; ++face) {
-									IDirect3DSurface9 * faceSurface;
-									D3DCALL(mCubeShadowMapCache[pLight->GetShadowMapIndex()]->GetCubeMapSurface((D3DCUBEMAP_FACES)face, 0, &faceSurface));
+									for (int face = 0; face < 6; ++face) {
+										IDirect3DSurface9 * faceSurface;
+										D3DCALL(mCubeShadowMapCache[pLight->GetShadowMapIndex()]->GetCubeMapSurface((D3DCUBEMAP_FACES)face, 0, &faceSurface));
 
-									D3DCALL(pD3D->SetRenderTarget(0, faceSurface));
-									D3DCALL(pD3D->SetDepthStencilSurface(mCubeDepthStencilSurface));
-									D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
+										D3DCALL(pD3D->SetRenderTarget(0, faceSurface));
+										D3DCALL(pD3D->SetDepthStencilSurface(mCubeDepthStencilSurface));
+										D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
 
-									ruVector3 eye = pLight->GetPosition();
-									ruVector3 at = eye + directions[face].target;
-									ruVector3 up = directions[face].up;
+										ruVector3 eye = pLight->GetPosition();
+										ruVector3 at = eye + directions[face].target;
+										ruVector3 up = directions[face].up;
 
-									D3DXMATRIX viewMatrix;
-									D3DXMatrixLookAtLH(&viewMatrix, (D3DXVECTOR3*)(&eye), (D3DXVECTOR3*)(&at), (D3DXVECTOR3*)(&up));
+										D3DXMATRIX viewMatrix;
+										D3DXMatrixLookAtLH(&viewMatrix, (D3DXVECTOR3*)(&eye), (D3DXVECTOR3*)(&at), (D3DXVECTOR3*)(&up));
 
-									for (auto & texGroupPair : mDeferredMeshMap) {
-										pD3D->SetTexture(7, texGroupPair.first);
-										for (auto & weakMesh : texGroupPair.second) {
-											shared_ptr<Mesh> mesh = weakMesh.lock();
+										for (auto & texGroupPair : mDeferredMeshMap) {
+											pD3D->SetTexture(7, texGroupPair.first);
+											for (auto & weakMesh : texGroupPair.second) {
+												shared_ptr<Mesh> mesh = weakMesh.lock();
 
-											// semi-transparent meshes does not cast shadows - FIXME: Is this right?
-											if (mesh->GetOpacity() < 0.95) {
-												continue;
-											}
-
-											auto & owners = mesh->GetOwners();
-											for (auto & weakOwner : owners) {
-												shared_ptr<SceneNode> & pOwner = weakOwner.lock();
-
-												if (!pOwner->IsShadowCastEnabled()) {
+												// semi-transparent meshes does not cast shadows - FIXME: Is this right?
+												if (mesh->GetOpacity() < 0.95) {
 													continue;
 												}
 
-												if (mesh->mAABB.IsIntersectSphere(pOwner->GetPosition(), pLight->GetPosition(), pLight->GetRange()) || pOwner->IsSkinned()) {
-													if ((pOwner->IsBone() ? false : pOwner->IsVisible())) {
-														// Load vertex shader constants
-														gpuFloatRegisterStack.Clear();
-														gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * viewMatrix * projectionMatrix);
-														gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
-														for (auto bone : mesh->GetBones()) {
-															shared_ptr<SceneNode> boneNode = bone->mNode.lock();
-															if (boneNode) {
-																gpuFloatRegisterStack.PushMatrix(TransformToMatrix(boneNode->GetRelativeTransform() * pOwner->GetLocalTransform()));
+												auto & owners = mesh->GetOwners();
+												for (auto & weakOwner : owners) {
+													shared_ptr<SceneNode> & pOwner = weakOwner.lock();
+
+													if (!pOwner->IsShadowCastEnabled()) {
+														continue;
+													}
+
+													if (mesh->mAABB.IsIntersectSphere(pOwner->GetPosition(), pLight->GetPosition(), pLight->GetRange()) || pOwner->IsSkinned()) {
+														if ((pOwner->IsBone() ? false : pOwner->IsVisible())) {
+															// Load vertex shader constants
+															gpuFloatRegisterStack.Clear();
+															gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * viewMatrix * projectionMatrix);
+															gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
+															for (auto bone : mesh->GetBones()) {
+																shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+																if (boneNode) {
+																	gpuFloatRegisterStack.PushMatrix(TransformToMatrix(boneNode->GetRelativeTransform() * pOwner->GetLocalTransform()));
+																}
 															}
+															pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+															gpuBoolRegisterStack.Clear();
+															gpuBoolRegisterStack.Push(pOwner->IsSkinned());
+															gpuBoolRegisterStack.Push(TRUE);
+															gpuBoolRegisterStack.Push(FALSE); // dir light
+															D3DCALL(pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount));
+
+															// Load pixel shader constants
+															gpuFloatRegisterStack.Clear();
+															gpuFloatRegisterStack.PushVector(pLight->GetPosition());
+															D3DCALL(pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
+
+															gpuBoolRegisterStack.Clear();
+															gpuBoolRegisterStack.Push(TRUE);
+															D3DCALL(pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount));
+
+															RenderMesh(mesh);
 														}
-														pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
-
-														gpuBoolRegisterStack.Clear();
-														gpuBoolRegisterStack.Push(pOwner->IsSkinned());
-														gpuBoolRegisterStack.Push(TRUE);
-														pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
-
-														// Load pixel shader constants
-														gpuFloatRegisterStack.Clear();
-														gpuFloatRegisterStack.PushVector(pLight->GetPosition());
-														pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
-
-														gpuBoolRegisterStack.Clear();
-														gpuBoolRegisterStack.Push(TRUE);
-														pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
-
-														RenderMesh(mesh);
 													}
 												}
 											}
 										}
+
+										faceSurface->Release();
 									}
 
-									faceSurface->Release();
+									pLight->mNeedRecomputeShadowMap = false;
 								}
 
-								pLight->mNeedRecomputeShadowMap = false;
+								pD3D->SetRenderTarget(0, renderTarget);
+								pD3D->SetDepthStencilSurface(mDefaultDepthStencil);
+
+								pD3D->SetRenderState(D3DRS_STENCILENABLE, TRUE);
+								pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+								pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+								pD3D->SetTexture(6, mCubeShadowMapCache[pLight->GetShadowMapIndex()]);
+								++mTextureChangeCount;
+
+								// Revert to light shader
+								pD3D->SetPixelShader(mDeferredLightShader);
+								pD3D->SetVertexShader(mQuadVertexShader);
+								++mShadersChangeCount;
 							}
-
-							pD3D->SetRenderTarget(0, renderTarget);
-							pD3D->SetDepthStencilSurface(mDefaultDepthStencil);
-
-							pD3D->SetRenderState(D3DRS_STENCILENABLE, TRUE);
-							pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-							pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-
-							pD3D->SetTexture(6, mCubeShadowMapCache[pLight->GetShadowMapIndex()]);
-							++mTextureChangeCount;
-
-							// Revert to light shader
-							pD3D->SetPixelShader(mDeferredLightShader);
-							pD3D->SetVertexShader(mQuadVertexShader);
-							++mShadersChangeCount;
 						}
+
+						pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0x00000000);
+						pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS);
+						pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
+
+						pD3D->SetRenderState(D3DRS_ZENABLE, TRUE);
+
+						if (pLight->GetPointTexture()) {
+							pD3D->SetTexture(3, pLight->GetPointTexture()->mCubeTexture);
+						} else {
+							pD3D->SetTexture(3, mWhiteCubeMap);
+						}
+						++mTextureChangeCount;
+
+						// Load pixel shader constants
+						gpuFloatRegisterStack.Clear();
+						gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
+						gpuFloatRegisterStack.PushIdentityMatrix();
+						gpuFloatRegisterStack.PushVector(pLight->GetPosition());
+						gpuFloatRegisterStack.PushVector(pLight->GetColor());
+						gpuFloatRegisterStack.PushFloat(pLight->GetRange());
+						gpuFloatRegisterStack.PushFloat(hdrLightIntensity);
+						gpuFloatRegisterStack.PushVector(camera->GetPosition());
+						pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+						gpuBoolRegisterStack.Clear();
+						gpuBoolRegisterStack.Push(TRUE);
+						gpuBoolRegisterStack.Push(useShadows);
+						gpuBoolRegisterStack.Push(FALSE); // do not use directional lighting
+						gpuBoolRegisterStack.Push(mHDREnabled);
+						pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+
+						// Load vertex shader constants 
+						gpuFloatRegisterStack.Clear();
+						gpuFloatRegisterStack.PushMatrix(SetUniformScaleTranslationMatrix(1.5f * pLight->mRadius, pLight->GetPosition()) * camera->mViewProjection);
+						pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+						// Render bounding sphere
+						mBoundingSphere->DrawSubset(0);
+						pD3D->SetVertexDeclaration(msVertexDeclaration);
+
+						// Revert stencil
+						pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+						pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+						pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO);
+
+						// Apply lighting to pixels, that marked by bounding sphere
+						RenderFullscreenQuad();
 					}
-
-					pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0x00000000);
-					pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS);
-					pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
-
-					pD3D->SetRenderState(D3DRS_ZENABLE, TRUE);
-
-					if (pLight->GetPointTexture()) {
-						pD3D->SetTexture(3, pLight->GetPointTexture()->mCubeTexture);
-					} else {
-						pD3D->SetTexture(3, mWhiteCubeMap);
-					}
-					++mTextureChangeCount;
-
-					// Load pixel shader constants
-					gpuFloatRegisterStack.Clear();
-					gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
-					gpuFloatRegisterStack.PushIdentityMatrix();
-					gpuFloatRegisterStack.PushVector(pLight->GetPosition());
-					gpuFloatRegisterStack.PushVector(pLight->GetColor());
-					gpuFloatRegisterStack.PushFloat(pLight->GetRange());
-					gpuFloatRegisterStack.PushFloat(hdrLightIntensity);
-					gpuFloatRegisterStack.PushVector(camera->GetPosition());
-					pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
-
-					gpuBoolRegisterStack.Clear();
-					gpuBoolRegisterStack.Push(TRUE);
-					gpuBoolRegisterStack.Push(useShadows);
-					pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
-
-					// Load vertex shader constants 
-					gpuFloatRegisterStack.Clear();
-					gpuFloatRegisterStack.PushMatrix(SetUniformScaleTranslationMatrix(1.5f * pLight->mRadius, pLight->GetPosition()) * camera->mViewProjection);
-					pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
-
-					// Render bounding sphere
-					mBoundingSphere->DrawSubset(0);
-					pD3D->SetVertexDeclaration(msVertexDeclaration);
-
-					// Revert stencil
-					pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-					pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-					pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO);
-
-					// Apply lighting to pixels, that marked by bounding sphere
-					RenderFullscreenQuad();
 				}
 			}
 		}
@@ -1362,7 +1409,7 @@ void Renderer::RenderWorld() {
 		if (pLight) {
 			if (camera->mFrustum.IsSphereInside(pLight->GetPosition(), pLight->GetRange()) && pLight->IsVisible()) {
 				// If shadows enabled, render shadowmap first
-				if (IsSpotLightShadowsEnabled()) {
+				if (IsSpotLightShadowsEnabled() && pLight->IsShadowCastEnabled()) {
 					pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE);
 					pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 					pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
@@ -1370,8 +1417,8 @@ void Renderer::RenderWorld() {
 					pD3D->SetTexture(4, nullptr);
 					++mTextureChangeCount;
 
-					pD3D->SetRenderTarget(0, mShadowMapSurface);
-					pD3D->SetDepthStencilSurface(mDepthStencilSurface);
+					pD3D->SetRenderTarget(0, mSpotShadowMapSurface);
+					pD3D->SetDepthStencilSurface(mSpotDepthStencilSurface);
 					pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
 
 					pD3D->SetPixelShader(mShadowMapPixelShader);
@@ -1408,6 +1455,7 @@ void Renderer::RenderWorld() {
 									gpuBoolRegisterStack.Clear();
 									gpuBoolRegisterStack.Push(pOwner->IsSkinned());
 									gpuBoolRegisterStack.Push(FALSE);
+									gpuBoolRegisterStack.Push(FALSE); // dir light
 									pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
 
 									// Load pixel shader constants
@@ -1432,7 +1480,7 @@ void Renderer::RenderWorld() {
 					pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 					pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 
-					pD3D->SetTexture(5, mShadowMap);
+					pD3D->SetTexture(5, mSpotShadowMap);
 					++mTextureChangeCount;
 
 					// Revert to light shader
@@ -1477,7 +1525,9 @@ void Renderer::RenderWorld() {
 
 				gpuBoolRegisterStack.Clear();
 				gpuBoolRegisterStack.Push(FALSE);
-				gpuBoolRegisterStack.Push(mUseSpotLightShadows);
+				gpuBoolRegisterStack.Push(mUseSpotLightShadows && pLight->IsShadowCastEnabled());
+				gpuBoolRegisterStack.Push(FALSE); // do not use directional lighting
+				gpuBoolRegisterStack.Push(mHDREnabled);
 				pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
 
 				pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
@@ -1490,10 +1540,125 @@ void Renderer::RenderWorld() {
 		}
 	}
 
+	pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE);
+
+	// Render directional lights
+	pD3D->SetPixelShader(mDeferredLightShader);
+	++mShadersChangeCount;
+
+	auto & directionalLightList = SceneFactory::GetDirectionalLightList();
+	for (auto & lWeak : directionalLightList) {
+		shared_ptr<DirectionalLight> & pLight = lWeak.lock();
+		if (pLight && pLight->IsVisible()) {
+
+			D3DXMATRIX orthoMatrix;
+			//D3DXMatrixOrthoRH(&orthoMatrix, mResWidth, mResHeight, 0.5, 1024.0); // <<<<<<<< AWARE MAGIC NUMBERS
+			float dim = 150;
+			D3DXMatrixOrthoOffCenterRH(&orthoMatrix, -dim * 0.5, dim *0.5, -dim * 0.5, dim * 0.5, -dim, dim); // <<<<<<<< AWARE MAGIC NUMBERS
+			// D3DXMatrixOrthoRH(&orthoMatrix, dim, dim, -dim, dim);
+
+			pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+			pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+			pD3D->SetTexture(4, nullptr);
+			++mTextureChangeCount;
+
+			pD3D->SetRenderTarget(0, mDirectionalShadowMapSurface);
+			pD3D->SetDepthStencilSurface(mDirectionalDepthStencilSurface);
+			pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+
+			pD3D->SetPixelShader(mShadowMapPixelShader);
+			pD3D->SetVertexShader(mShadowMapVertexShader);
+			mShadersChangeCount += 2;
+
+			for (auto & texGroupPair : mDeferredMeshMap) {
+				pD3D->SetTexture(7, texGroupPair.first);
+				for (auto & weakMesh : texGroupPair.second) {
+					shared_ptr<Mesh> mesh = weakMesh.lock();
+					auto & owners = mesh->GetOwners();
+					for (auto & weakOwner : owners) {
+						shared_ptr<SceneNode> & pOwner = weakOwner.lock();
+
+						if (pOwner->IsBone()) {
+							continue;
+						}
+
+						if (pOwner->IsVisible()) {
+							// Load vertex shader constants
+							gpuFloatRegisterStack.Clear();
+							gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * (pLight->BuildViewMatrix(camera) * orthoMatrix));
+							gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
+							for (auto bone : mesh->GetBones()) {
+								shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+								if (boneNode) {
+									gpuFloatRegisterStack.PushMatrix(TransformToMatrix(boneNode->GetRelativeTransform() * pOwner->GetLocalTransform()));
+								}
+							}
+							pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+							gpuBoolRegisterStack.Clear();
+							gpuBoolRegisterStack.Push(pOwner->IsSkinned());
+							gpuBoolRegisterStack.Push(FALSE);
+							gpuBoolRegisterStack.Push(TRUE);
+							pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+
+							// Load pixel shader constants
+							gpuFloatRegisterStack.Clear();
+							gpuFloatRegisterStack.PushVector(pLight->GetPosition());
+							pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+							gpuBoolRegisterStack.Clear();
+							gpuBoolRegisterStack.Push(FALSE);
+							pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+
+							RenderMesh(mesh);
+						}
+					}
+				}
+			}
+
+			pD3D->SetRenderTarget(0, renderTarget);
+			pD3D->SetDepthStencilSurface(mDefaultDepthStencil);
+
+			pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+			pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+			pD3D->SetTexture(5, mDirectionalShadowMap);
+			++mTextureChangeCount;
+
+			// Revert to light shader
+			pD3D->SetPixelShader(mDeferredLightShader);
+			pD3D->SetVertexShader(mQuadVertexShader);
+			++mShadersChangeCount;
+			
+
+			ruVector3 dir = pLight->mGlobalTransform.getBasis() * btVector3(0, 1, 0);
+			// Load pixel shader constants
+			gpuFloatRegisterStack.Clear();
+			gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
+			gpuFloatRegisterStack.PushMatrix(pLight->BuildViewMatrix(camera) * orthoMatrix);
+			gpuFloatRegisterStack.PushVector(pLight->GetPosition());
+			gpuFloatRegisterStack.PushVector(pLight->GetColor());
+			gpuFloatRegisterStack.PushFloat(pLight->GetRange());
+			gpuFloatRegisterStack.PushFloat(hdrLightIntensity);
+			gpuFloatRegisterStack.PushVector(camera->GetPosition());
+			gpuFloatRegisterStack.PushVector(dir.Normalize());
+			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+			gpuBoolRegisterStack.Clear();
+			gpuBoolRegisterStack.Push(FALSE);
+			gpuBoolRegisterStack.Push(TRUE); // force enable shadows for directional lighting
+			gpuBoolRegisterStack.Push(TRUE); // use directional lighting
+			gpuBoolRegisterStack.Push(mHDREnabled);
+			pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+
+			RenderFullscreenQuad();
+		}
+	}
+
 	// Apply post-effects (HDR, FXAA, and so on)
 	IDirect3DTexture9 * finalFrame = mFrame[0];
 
-	pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE);
 	pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	pD3D->SetRenderState(D3DRS_ZENABLE, FALSE);
 
@@ -1631,7 +1796,11 @@ void Renderer::RenderWorld() {
 		pD3D->SetPixelShader(mToneMapShader);
 		++mShadersChangeCount;
 
+		pD3D->SetRenderState(D3DRS_SRGBWRITEENABLE, TRUE);
 		RenderFullscreenQuad();
+		pD3D->SetRenderState(D3DRS_SRGBWRITEENABLE, FALSE);
+
+		pD3D->SetTexture(3, nullptr);
 
 		finalFrame = mFrame[0];
 	};
@@ -1999,6 +2168,9 @@ void Renderer::RenderWorld() {
 		}
 	}
 
+	// Render test stuff
+	//pD3D->SetTexture(0, mSpotShadowMap);
+	//RenderTestQuad();
 
 	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 	pD3D->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
@@ -2222,7 +2394,7 @@ std::string Renderer::GetTextureStoragePath() {
 
 void Renderer::SetGenericSamplersFiltration(D3DTEXTUREFILTERTYPE filter, bool disableMips) {
 	// number of generic samplers (i.e. for diffuse, normal and height textures )
-	const int genericSamplersCount = 5;
+	const int genericSamplersCount = 6;
 
 	if (filter == D3DTEXF_NONE) { // invalid argument to min and mag filters
 		for (int i = 0; i < genericSamplersCount; i++) {
@@ -2360,6 +2532,19 @@ void Renderer::RenderFullscreenQuad() {
 
 	pD3D->SetVertexShaderConstantF(0, &mOrthoProjectionMatrix.m[0][0], 4);
 	pD3D->SetStreamSource(0, mQuadVertexBuffer, 0, sizeof(Vertex));
+
+	pD3D->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+	++mDIPCount;
+	mRenderedTriangleCount += 2;
+}
+
+void Renderer::RenderTestQuad() {
+	pD3D->SetVertexShader(mQuadVertexShader);
+	pD3D->SetPixelShader(mTestQuadPixelShader);
+	++mShadersChangeCount;
+
+	pD3D->SetVertexShaderConstantF(0, &mOrthoProjectionMatrix.m[0][0], 4);
+	pD3D->SetStreamSource(0, mTestQuadVertexBuffer, 0, sizeof(Vertex));
 
 	pD3D->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 	++mDIPCount;

@@ -27,19 +27,21 @@
 #include "PointLight.h"
 #include "Camera.h"
 #include "ParticleSystem.h"
+#include "DirectionalLight.h"
 
 vector<weak_ptr<SceneNode>> SceneFactory::msNodeList;
 vector<weak_ptr<SpotLight>> SceneFactory::msSpotLightList;
 vector<weak_ptr<PointLight>> SceneFactory::msPointLightList;
+vector<weak_ptr<DirectionalLight>> SceneFactory::msDirectionalLightList;
 vector<weak_ptr<ParticleSystem>> SceneFactory::msParticleEmitters;
 
 shared_ptr<SceneNode> SceneFactory::CreateSceneNode() {
-	shared_ptr<SceneNode> & sceneNode = shared_ptr<SceneNode>( new SceneNode );
-	msNodeList.push_back( sceneNode );
-	return std::move( sceneNode );
+	auto sceneNode = make_shared<SceneNode>();
+	msNodeList.push_back(sceneNode);
+	return sceneNode;
 }
 
-shared_ptr<SceneNode> SceneFactory::CreateSceneNodeDuplicate( shared_ptr<SceneNode> source ) {
+shared_ptr<SceneNode> SceneFactory::CreateSceneNodeDuplicate(shared_ptr<SceneNode> source) {
 	shared_ptr<SceneNode> & duplicate = CreateSceneNode();
 	duplicate->mInFrustum = source->mInFrustum;
 	duplicate->mTotalFrameCount = 0;
@@ -54,13 +56,13 @@ shared_ptr<SceneNode> SceneFactory::CreateSceneNodeDuplicate( shared_ptr<SceneNo
 	duplicate->mCurrentAnimation = nullptr;
 
 	// copy surfaces
-	for( auto pMesh : source->mMeshList ) {
-		pMesh->LinkTo( duplicate );
-		duplicate->mMeshList.push_back( pMesh );
+	for (auto pMesh : source->mMeshList) {
+		pMesh->LinkTo(duplicate);
+		duplicate->mMeshList.push_back(pMesh);
 	}
 
 	// create body
-	switch( source->GetBodyType() ) {
+	switch (source->GetBodyType()) {
 	case BodyType::Box:
 		duplicate->SetBoxBody();
 		break;
@@ -75,75 +77,86 @@ shared_ptr<SceneNode> SceneFactory::CreateSceneNodeDuplicate( shared_ptr<SceneNo
 		break;
 	}
 
-	if( duplicate->mFrozen ) {
+	if (duplicate->mFrozen) {
 		duplicate->Freeze();
 	}
 
 	// copy childs
-	for( auto & pChild : source->mChildren ) {
-		shared_ptr<SceneNode> & pNewChild = SceneFactory::CreateSceneNodeDuplicate( pChild );
+	for (auto & pChild : source->mChildren) {
+		shared_ptr<SceneNode> & pNewChild = SceneFactory::CreateSceneNodeDuplicate(pChild);
 		pNewChild->mParent = duplicate;
-		duplicate->mChildren.push_back( pNewChild );	
+		duplicate->mChildren.push_back(pNewChild);
 	}
-	return std::move( duplicate );
+	return duplicate;
 }
 
 shared_ptr<PointLight> SceneFactory::CreatePointLight() {
-	shared_ptr<PointLight> & pointLight = shared_ptr<PointLight>( new PointLight );
-	msNodeList.push_back( pointLight );
-	msPointLightList.push_back( pointLight );
-	return std::move( pointLight );
+	auto pointLight = make_shared<PointLight>();
+	msNodeList.push_back(pointLight);
+	msPointLightList.push_back(pointLight);
+	return pointLight;
 }
 
 shared_ptr<SpotLight> SceneFactory::CreateSpotLight() {
-	shared_ptr<SpotLight> & spotLight = shared_ptr<SpotLight>( new SpotLight );
-	msNodeList.push_back( spotLight );
-	msSpotLightList.push_back( spotLight );
-	return std::move( spotLight );
+	auto spotLight = make_shared<SpotLight>();
+	msNodeList.push_back(spotLight);
+	msSpotLightList.push_back(spotLight);
+	return spotLight;
+}
+
+shared_ptr<DirectionalLight> SceneFactory::CreateDirectionalLight() {
+	auto dirLight = make_shared<DirectionalLight>();
+	msNodeList.push_back(dirLight);
+	msDirectionalLightList.push_back(dirLight);
+	return dirLight;
 }
 
 vector<weak_ptr<PointLight>> & SceneFactory::GetPointLightList() {
-	RemoveUnreferenced( msPointLightList );
+	RemoveUnreferenced(msPointLightList);
 	return msPointLightList;
 }
 
+vector<weak_ptr<DirectionalLight>>& SceneFactory::GetDirectionalLightList() {
+	RemoveUnreferenced(msDirectionalLightList);
+	return msDirectionalLightList;
+}
+
 vector<weak_ptr<SpotLight>> & SceneFactory::GetSpotLightList() {
-	RemoveUnreferenced( msSpotLightList );
+	RemoveUnreferenced(msSpotLightList);
 	return msSpotLightList;
 }
 
 vector<weak_ptr<SceneNode>> & SceneFactory::GetNodeList() {
-	RemoveUnreferenced( msNodeList );
+	RemoveUnreferenced(msNodeList);
 	return msNodeList;
 }
 
-shared_ptr<Camera> SceneFactory::CreateCamera( float fov ) {
-	shared_ptr<Camera> & camera = shared_ptr<Camera>( new Camera( fov ) );
-	msNodeList.push_back( camera );
+shared_ptr<Camera> SceneFactory::CreateCamera(float fov) {
+	auto camera = make_shared<Camera>(fov);
+	msNodeList.push_back(camera);
 	Camera::msCurrentCamera = camera;
-	return std::move( camera );
+	return camera;
 }
 
-shared_ptr<ParticleSystem> SceneFactory::CreateParticleSystem( int particleCount ) {
-	shared_ptr<ParticleSystem> & particleSystem = shared_ptr<ParticleSystem>( new ParticleSystem( particleCount ));
-	msNodeList.push_back( particleSystem );
-	msParticleEmitters.push_back( particleSystem );
-	return std::move( particleSystem );
+shared_ptr<ParticleSystem> SceneFactory::CreateParticleSystem(int particleCount) {
+	auto particleSystem = make_shared<ParticleSystem>(particleCount);
+	msNodeList.push_back(particleSystem);
+	msParticleEmitters.push_back(particleSystem);
+	return particleSystem;
 }
 
 template<typename Type>
-void SceneFactory::RemoveUnreferenced( vector<weak_ptr<Type>> & objList )
-{
-	for( auto iter = objList.begin(); iter != objList.end(); ) {		
-		if((*iter).use_count()) {
+void SceneFactory::RemoveUnreferenced(vector<weak_ptr<Type>> & objList) {
+	for (auto iter = objList.begin(); iter != objList.end(); ) {
+		if ((*iter).use_count()) {
 			++iter;
 		} else {
-			iter = objList.erase( iter );
+			iter = objList.erase(iter);
 		}
 	}
 }
 
 vector<weak_ptr<ParticleSystem>> & SceneFactory::GetParticleSystemList() {
-	RemoveUnreferenced( msParticleEmitters );
+	RemoveUnreferenced(msParticleEmitters);
 	return msParticleEmitters;
 }

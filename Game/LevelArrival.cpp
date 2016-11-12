@@ -108,11 +108,7 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch2"), lights, false)));
 
 	lights.clear();
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight1")));
 	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight2")));
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight3")));
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight4")));
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight5")));
 	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch3"), lights, false)));
 
 	lights.clear();
@@ -151,6 +147,9 @@ void LevelArrival::DoScenario() {
 	mLiftCrashSeries.Perform();
 
 	mLift->Update();
+
+	// force disable hdr
+	//ruEngine::SetHDREnabled(false);
 
 	if (mPlayer->IsInsideZone(mTutorialZone1)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls"));

@@ -1,0 +1,9 @@
+sampler normalSampler : register( s1 );
+sampler diffuseSampler : register( s2 );
+float3 ambientColor : register( c0 );
+float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
+	float4 diffuseTexel = tex2D( diffuseSampler, texcoord );
+	float albedo = 2 * tex2D( normalSampler, texcoord ).a;
+	float4 intensity = clamp( float4( ambientColor.x + albedo, ambientColor.y + albedo, ambientColor.z + albedo, 1.0f ), 0.0f, 1.0f );
+	return intensity * diffuseTexel;
+};

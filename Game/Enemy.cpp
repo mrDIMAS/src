@@ -26,6 +26,9 @@ Enemy::Enemy(const vector<shared_ptr<GraphVertex>> & path, const vector<shared_p
 	mModel->SetBlurAmount(1.0f);
 	mModel->SetAnimationBlendingEnabled(false);
 
+	auto light = dynamic_pointer_cast<ruSpotLight>(mModel->FindChild("Fspot001"));
+	light->SetShadowCastEnabled(false);
+
 	FillByNamePattern(mRightLegParts, "RightLegP?([[:digit:]]+)");
 	FillByNamePattern(mLeftLegParts, "LeftLegP?([[:digit:]]+)");
 	FillByNamePattern(mRightArmParts, "RightArmP?([[:digit:]]+)");

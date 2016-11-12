@@ -1,0 +1,13 @@
+sampler diffuseSampler : register( s7 );
+float3 lightPosition : register( c0 );
+bool isPointShadowMap : register ( b0 );
+
+float4 main( float4 position : TEXCOORD0, float2 texCoord : TEXCOORD1 ) : COLOR0 {
+	clip( tex2D( diffuseSampler, texCoord ).a - 0.1 );
+      
+    if( isPointShadowMap ) {
+		return length( lightPosition.xyz - position.xyz );
+	} else {
+		return position.z / position.w;
+	}
+};

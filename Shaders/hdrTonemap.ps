@@ -1,0 +1,46 @@
+sampler hdrTexture : register(s0);
+sampler avgLum : register(s1);
+sampler bloom : register(s2);
+sampler colormap : register(s3);
+
+float3 Mr_F_Tonemap(float3 color) {
+    const float  A = 0.22, B = 0.3, C = .1, D = 0.2, E = .01, F = 0.3;
+    const float Scl = 1.25;
+
+    float3 h = max( float3(0.0,0.0,0.0), color - float3(0.004,0.004,0.004) );
+    return (h*((Scl*A)*h+Scl*float3(C*B,C*B,C*B))+Scl*float3(D*E,D*E,D*E)) / (h*(A*h+float3(B,B,B))+float3(D*F,D*F,D*F)) - Scl*float3(E/F,E/F,E/F);
+}
+
+float3 Uncharted2Tonemap(float3 x){
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+
+	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
+float3 ReinhardTonemap(float3 x) {
+	return x / (x + 1);
+}
+
+float3 ColorGrading(float3 color) {
+	const float lutSize = 16.0;
+	const float a = (lutSize - 1.0) / lutSize;
+	const float b = 1.0 / (2.0 * lutSize);
+	const float3 scale = float3(a, a, a);
+	const float3 offset = float3(b, b, b);
+	return tex3D(colormap, scale * color + offset).rgb;
+}
+
+float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{
+	float luminance = tex2D( avgLum, float2( 0.5f, 0.5f )).r;
+	float exposure = clamp(2 * exp(-luminance * 100), 0.5, 2);
+
+	float3 hdrColor = tex2D(hdrTexture, texCoord).rgb + 0.5f * tex2D( bloom, texCoord ).rgb;
+	float3 color = ReinhardTonemap(exposure * hdrColor);
+		
+	return float4(ColorGrading(color), 1.0f);
+};

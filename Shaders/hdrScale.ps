@@ -1,0 +1,27 @@
+sampler hdrTexture : register( s0 );
+float pixelSize : register( c0 );
+
+float GetLuminance( float3 x ) {
+	return dot( x, float3( 0.299f, 0.587f, 0.114f ) );
+}
+
+float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
+	float average = 0.0f;
+	float lum = 0.0f;
+	
+	lum = GetLuminance(tex2D(hdrTexture, texCoord + float2( -pixelSize, -pixelSize )).rgb);
+	average += lum;
+	
+	lum = GetLuminance(tex2D(hdrTexture, texCoord + float2(  pixelSize, -pixelSize )).rgb);
+	average += lum;
+	
+	lum = GetLuminance(tex2D(hdrTexture, texCoord + float2(  pixelSize,  pixelSize )).rgb);	
+	average += lum;
+	
+	lum = GetLuminance(tex2D(hdrTexture, texCoord + float2( -pixelSize,  pixelSize )).rgb);
+	average += lum;
+	
+	average *= 0.25;
+	
+	return float4( average, 0.0f, 0.0f, 1.0f );
+};

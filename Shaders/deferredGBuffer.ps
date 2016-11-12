@@ -1,0 +1,109 @@
+float albedo : register( c0 );
+float opacity : register( c1 );
+float frameBrightness : register( c2 );
+float3 frameColor : register( c3 );
+
+bool useParallax : register( b0 );
+
+sampler diffuseSampler : register(s0);
+sampler normalSampler : register(s1);
+sampler heightSampler : register(s2);
+
+
+struct PS_INPUT {
+	float4 screenPos : TEXCOORD0;
+	float3 normal : TEXCOORD1;
+	float2 diffuseMapCoord : TEXCOORD2;
+	float3 binormal : TEXCOORD3;
+	float3 tangent : TEXCOORD4;
+	float3 eyeInTangent : TEXCOORD5;
+};
+
+struct MRT_OUTPUT {
+	float4 depth : COLOR0;
+	float4 normal : COLOR1;
+	float4 diffuseMap : COLOR2;
+};    
+    
+float2 ComputeParallaxTextureCoordinates( float3 eyeVec, float2 texCoords ) {
+	const float minLayers = 5.0f;
+	const float maxLayers = 10.0f;
+	const int maxIterations = 10;
+	const float parallaxScale = 0.06f;
+	
+	float numLayers = lerp( maxLayers, minLayers, abs( dot( float3( 0, 0, 1 ), eyeVec )));
+	
+	float layerHeight = 1.0f / numLayers;
+	float curLayerHeight = 0.0f;
+	float2 dtex = parallaxScale * eyeVec.xy / numLayers;
+	
+	float2 currentTexCoords = texCoords;
+	
+	float height = tex2Dlod( heightSampler, float4( currentTexCoords.x, currentTexCoords.y, 0, 0 )).r;
+		
+	for( int i = 0; i < maxIterations; i++ ) {
+		if( height > curLayerHeight ) {
+			curLayerHeight += layerHeight;
+			currentTexCoords -= dtex;
+			height = tex2Dlod( heightSampler, float4( currentTexCoords.x, currentTexCoords.y, 0, 0 )).r;
+		}
+	}
+	
+	float2 prev = currentTexCoords + dtex;
+	float nextH = height - curLayerHeight;
+	float prevH = tex2Dlod( heightSampler, float4( prev.x, prev.y, 0, 0 )).r - curLayerHeight + layerHeight;
+	
+	float weight = nextH / ( nextH - prevH );
+	
+	return prev * weight + currentTexCoords * ( 1 - weight );
+};
+
+MRT_OUTPUT main( PS_INPUT input, float face : VFACE, float2 pixelCoord : VPOS ){
+	MRT_OUTPUT output;
+	
+	float2 texCoord = input.diffuseMapCoord;
+	
+	if( useParallax ) {
+		texCoord = ComputeParallaxTextureCoordinates( normalize(input.eyeInTangent), input.diffuseMapCoord );
+	}
+	
+	// get diffuse color
+	output.diffuseMap = frameBrightness * tex2D( diffuseSampler, texCoord );
+	output.diffuseMap.xyz *= frameColor;
+		
+	if( opacity < 1.0 ) {
+		// transparency interlace rendering	
+		if( frac( pixelCoord.y * 0.5f ) < 0.5f ) {
+			discard;
+		}
+	} else {
+		// do alpha test
+		clip( output.diffuseMap.a - 0.1 );
+	}
+	
+	output.diffuseMap.a *= opacity;
+		
+	// get normal from normal map
+	output.normal = normalize( tex2D( normalSampler, texCoord ) * 2.0 - 1.0f );
+	
+	// construct tangent space matrix
+	float3x3 tangentSpace = float3x3( input.tangent, input.binormal, input.normal );
+
+	// transform normal from normal map to tangent space
+	output.normal = float4( mul( output.normal.xyz, tangentSpace ), 1.0f );
+	
+	// for twosided lighting
+	if( face >= 0 ) {
+		output.normal = -output.normal;
+	}
+	
+	// pack normal to [ 0; 1 ]
+	output.normal = output.normal * 0.5f + 0.5f;
+	
+	// pass albedo to second passes
+	output.normal.a = albedo;
+		
+	output.depth = float4( input.screenPos.z / input.screenPos.w, 0, 0, 1.0 );
+
+	return output;
+};

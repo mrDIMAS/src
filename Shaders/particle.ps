@@ -1,0 +1,25 @@
+#include <common.h>
+
+sampler diffuseSampler : register( s0 );
+
+float3 lightPos : register( c0 );
+float3 lightColor : register( c1 );
+float lightRange : register( c2 );
+
+bool useLighting : register( b0 );
+
+struct Input {
+	float2 texcoord : TEXCOORD0;
+	float4 color : TEXCOORD1;
+	float3 normal : TEXCOORD2;
+	float4 worldPosition : TEXCOORD3;
+};
+
+float4 main( Input input ) : COLOR0 {
+	float4 diffuseColor = tex2D( diffuseSampler, input.texcoord ) * input.color;
+	if( useLighting ) {
+		return float4( diffuseColor.xyz * GetAttenuationWithoutNdotL( lightPos - input.worldPosition.xyz, lightRange), diffuseColor.w );
+	} else {
+		return diffuseColor;
+	}
+};

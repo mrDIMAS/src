@@ -69,6 +69,9 @@ LevelIntro::~LevelIntro() {
 }
 
 void LevelIntro::DoScenario() {
+	// force disable hdr
+	//ruEngine::SetHDREnabled(false);
+
 	mCamera->MakeCurrent();
 	mUAZAnim.Update();
 	mDeerAnim.Update();

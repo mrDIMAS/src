@@ -183,6 +183,7 @@ void Camera::ManagePath() {
 			mLastPosition = ruVector3(FLT_MAX, FLT_MAX, FLT_MAX);
 		}
 		mPath.clear();
+		mNearestPathPointIndex = 0;
 	}
 
 	// check how far we from last added point

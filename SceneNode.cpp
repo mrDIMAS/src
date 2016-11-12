@@ -31,6 +31,7 @@
 #include "Vertex.h"
 #include "Renderer.h"
 #include "SceneFactory.h"
+#include "DirectionalLight.h"
 
 void SceneNode::AutoName() {
 	static unsigned int uniqueNum = 0;
@@ -417,8 +418,10 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 		int type = reader.GetInteger();
 		if (type == 0) {
 			light = SceneFactory::CreatePointLight();
-		} else {
+		} else if(type == 1) {
 			light = SceneFactory::CreateSpotLight();
+		} else if (type == 2) {
+			light = SceneFactory::CreateDirectionalLight();
 		}
 		light->mName = name;
 		light->SetColor(reader.GetBareVector());
@@ -428,11 +431,13 @@ shared_ptr<SceneNode> SceneNode::LoadScene(const string & file) {
 		light->mScene = scene;
 		light->mParent = scene;
 		scene->mChildren.push_back(light);
-		if (type > 0) {
+		if (type == 1) { // spot
 			shared_ptr<SpotLight> & spot = std::dynamic_pointer_cast<SpotLight>(light);
 			float in = reader.GetFloat();
 			float out = reader.GetFloat();
 			spot->SetConeAngles(in, out);
+			light->mLocalTransform.setRotation(reader.GetQuaternion());
+		} else if (type == 2) { // directional
 			light->mLocalTransform.setRotation(reader.GetQuaternion());
 		}
 	}
