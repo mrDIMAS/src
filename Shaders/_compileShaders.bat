@@ -4,6 +4,7 @@ SET vsTarget=vs_3_0
 SET psTarget=ps_3_0
 SET outPath=../../release/data/shaders
 
+fxc /nologo /T %psTarget% /O3 /E main /Fo %outPath%/fog.pso fog.ps
 fxc /nologo /T %vsTarget% /O3 /E main /Fo %outPath%/shadowMap.vso shadowMap.vs
 fxc /nologo /T %psTarget% /O3 /E main /Fo %outPath%/shadowMap.pso shadowMap.ps
 fxc /nologo /T %psTarget% /O3 /E main /Fo %outPath%/deferredBlending.pso deferredBlending.ps
@@ -30,5 +31,6 @@ fxc /nologo /T %psTarget% /O3 /E main /Fo %outPath%/gaussianblur.pso gaussianblu
 fxc /nologo /T %psTarget% /O3 /E main /Fo %outPath%/ssao.pso ssao.ps
 fxc /nologo /T %vsTarget% /O3 /E main /Fo %outPath%/flare.vso flare.vs
 fxc /nologo /T %psTarget% /O3 /E main /Fo %outPath%/flare.pso flare.ps
+
 
 pause

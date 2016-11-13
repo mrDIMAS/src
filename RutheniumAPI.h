@@ -745,6 +745,25 @@ public:
 	static shared_ptr<ruSceneNode> CastRay(ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0);
 };
 
+// Volumetric fog with lighting
+class ruFog : public virtual ruSceneNode {
+public:
+	static shared_ptr<ruFog> Create(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
+
+	virtual void SetSize(const ruVector3 & min, const ruVector3 & max) = 0;
+	virtual ruVector3 GetMin() const = 0;
+	virtual ruVector3 GetMax() const = 0;
+
+	virtual void SetSpeed(const ruVector3 & speed) = 0;
+	virtual ruVector3 GetSpeed() const = 0;
+
+	virtual void SetColor(const ruVector3 & color) = 0;
+	virtual ruVector3 GetColor() const = 0;
+
+	virtual void SetDensity(float density) = 0;
+	virtual float GetDensity() const = 0;
+};
+
 class ruLight : public virtual ruSceneNode {
 protected:
 	virtual ~ruLight();

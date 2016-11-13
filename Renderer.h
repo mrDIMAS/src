@@ -187,6 +187,10 @@ private:
 	void RenderFullscreenQuad();
 	void RenderTestQuad();
 
+	// Fog stuff
+	COMPtr<IDirect3DPixelShader9> mFogShader;
+	COMPtr<IDirect3DVolumeTexture9> mFogVolume;
+
 	// SSAO Stuff
 	COMPtr<IDirect3DPixelShader9> mSSAOPixelShader;
 

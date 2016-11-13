@@ -27,6 +27,7 @@ class SpotLight;
 class Camera;
 class ParticleSystem;
 class DirectionalLight;
+class Fog;
 
 class SceneFactory {
 private:
@@ -35,6 +36,7 @@ private:
 	static vector<weak_ptr<PointLight>> msPointLightList;
 	static vector<weak_ptr<DirectionalLight>> msDirectionalLightList;
 	static vector<weak_ptr<ParticleSystem>> msParticleEmitters;
+	static vector<weak_ptr<Fog>> msFogList;
 	template<typename Type> 
 	static void RemoveUnreferenced( vector<weak_ptr<Type>> & objList );
 public:
@@ -44,6 +46,7 @@ public:
 	static vector<weak_ptr<PointLight>> & GetPointLightList();
 	static vector<weak_ptr<DirectionalLight>> & GetDirectionalLightList();
 	static vector<weak_ptr<ParticleSystem>> & GetParticleSystemList();
+	static vector<weak_ptr<Fog>> & GetFogList();
 	static shared_ptr<SceneNode> CreateSceneNode( );
 	static shared_ptr<SceneNode> CreateSceneNodeDuplicate( shared_ptr<SceneNode> source );
 	static shared_ptr<PointLight> CreatePointLight();
@@ -51,4 +54,5 @@ public:
 	static shared_ptr<DirectionalLight> CreateDirectionalLight();
 	static shared_ptr<Camera> CreateCamera( float fov );
 	static shared_ptr<ParticleSystem> CreateParticleSystem( int particleCount );
+	static shared_ptr<Fog> CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
 };

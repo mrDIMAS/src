@@ -28,12 +28,14 @@
 #include "Camera.h"
 #include "ParticleSystem.h"
 #include "DirectionalLight.h"
+#include "Fog.h"
 
 vector<weak_ptr<SceneNode>> SceneFactory::msNodeList;
 vector<weak_ptr<SpotLight>> SceneFactory::msSpotLightList;
 vector<weak_ptr<PointLight>> SceneFactory::msPointLightList;
 vector<weak_ptr<DirectionalLight>> SceneFactory::msDirectionalLightList;
 vector<weak_ptr<ParticleSystem>> SceneFactory::msParticleEmitters;
+vector<weak_ptr<Fog>> SceneFactory::msFogList;
 
 shared_ptr<SceneNode> SceneFactory::CreateSceneNode() {
 	auto sceneNode = make_shared<SceneNode>();
@@ -145,6 +147,13 @@ shared_ptr<ParticleSystem> SceneFactory::CreateParticleSystem(int particleCount)
 	return particleSystem;
 }
 
+shared_ptr<Fog> SceneFactory::CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density) {
+	auto fog = make_shared<Fog>(min, max, color, density);
+	msNodeList.push_back(fog);
+	msFogList.push_back(fog);
+	return fog;
+}
+
 template<typename Type>
 void SceneFactory::RemoveUnreferenced(vector<weak_ptr<Type>> & objList) {
 	for (auto iter = objList.begin(); iter != objList.end(); ) {
@@ -159,4 +168,9 @@ void SceneFactory::RemoveUnreferenced(vector<weak_ptr<Type>> & objList) {
 vector<weak_ptr<ParticleSystem>> & SceneFactory::GetParticleSystemList() {
 	RemoveUnreferenced(msParticleEmitters);
 	return msParticleEmitters;
+}
+
+vector<weak_ptr<Fog>>& SceneFactory::GetFogList() {
+	RemoveUnreferenced(msFogList);
+	return msFogList;
 }

@@ -104,11 +104,11 @@ void main( ) {
 		shared_ptr<ruButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
 
 
-		ruEngine::EnableSpotLightShadows(true);
-		ruEngine::EnablePointLightShadows(true);
+		ruEngine::EnableSpotLightShadows(false);
+		ruEngine::EnablePointLightShadows(false);
 		ruEngine::SetHDREnabled(false);
-		ruEngine::SetFXAAEnabled(true);
-		ruEngine::SetParallaxEnabled(true);
+		ruEngine::SetFXAAEnabled(false);
+		ruEngine::SetParallaxEnabled(false);
 
 		shared_ptr<ruSceneNode> cube = ruSceneNode::LoadFromFile("data/cube.scene");
 
@@ -136,6 +136,9 @@ void main( ) {
 		auto bone008 = node->FindByName("Bone011");
 		auto bone001 = node->FindByName("Bone004");
 		bone001->Detach();
+
+		auto fog = ruFog::Create(ruVector3(-100, -1, -100), ruVector3(100, 5, 100), ruVector3(0.7, 0.7, 0.9), 0.1);
+		fog->SetPosition(ruVector3(0, 0, -20));
 
 		while (!ruInput::IsKeyDown(ruInput::Key::Esc)) {
 			//idleAnim.Update();
