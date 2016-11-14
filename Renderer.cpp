@@ -697,9 +697,9 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	{
 		LoadPixelShader(mFogShader, "data/shaders/fog.pso");
 
-		D3DXCreateVolumeTextureFromFileA(pD3D, "data/textures/effects/perlin3d.dds", &mFogVolume);
+		//D3DXCreateVolumeTextureFromFileA(pD3D, "data/textures/effects/perlin3d.dds", &mFogVolume);
 
-		/*
+		
 		Perlin3DGenerator pg;
 
 		const int dim = 128;
@@ -713,17 +713,18 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 			for (int row = 0; row < dim; ++row) {
 				for (int col = 0; col < dim; ++col) {
 					float m = dim;
-					float p1 = pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 1) * 0.5 + 0.5;
-					float p2 = pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 2) * 0.5 + 0.5;
-					float p3 = pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 3) * 0.5 + 0.5;
-					float p4 = pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 4) * 0.5 + 0.5;
+					float scl = 2;
+					float p1 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 1) * 0.5 + 0.5);
+					float p2 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 2) * 0.5 + 0.5);
+					float p3 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 3) * 0.5 + 0.5);
+					float p4 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 4) * 0.5 + 0.5);
 					pixels[slice * sliceOffset + row * rowOffset + col] = A8R8G8B8Pixel(p1 * 255, p2 * 255, p3 * 255, p4 * 255);
 				}
 			}
 		}
 		mFogVolume->UnlockBox(0);
 
-		D3DXSaveTextureToFileA("perlin3d.dds", D3DXIFF_DDS, mFogVolume, nullptr);*/
+		D3DXSaveTextureToFileA("perlin3d.dds", D3DXIFF_DDS, mFogVolume, nullptr);
 	}
 
 	// GUI Stuff
@@ -1773,19 +1774,29 @@ void Renderer::RenderWorld() {
 		for (auto weakFog : fogList) {
 			auto fog = weakFog.lock();
 
-			fog->Update();
+			if (!fog->IsVisible()) {
+				continue;
+			}
+
+
 
 			// gather lights
 			const int maxLights = 4;
+			int lightCount = 0;
 			vector<LightProxy> lights;
 			for (auto lWeak : pointLights) {
 				auto light = lWeak.lock();
-				if (fog->GetAABB().IsIntersectSphere(ruVector3(0, 0, 0), light->GetPosition(), light->GetRange())) {
-					lights.push_back(LightProxy(light->GetPosition(), light->GetColor(), light->GetRange()));
+				
+				if (light->IsVisible()) {
+					if (fog->GetAABB().IsIntersectSphere(fog->GetPosition(), light->GetPosition(), light->GetRange())) {
+						lights.push_back(LightProxy(light->GetPosition(), light->GetColor(), light->GetRange()));
+						++lightCount;
+					}
 				}
 			}
 
 			for (int i = lights.size(); i < maxLights; ++i) lights.push_back(LightProxy());
+
 
 			// pass constants to pixel shader
 			gpuFloatRegisterStack.Clear();
@@ -1796,8 +1807,10 @@ void Renderer::RenderWorld() {
 			gpuFloatRegisterStack.PushVector(fog->GetColor());
 			gpuFloatRegisterStack.PushFloat(fog->GetDensity());
 			gpuFloatRegisterStack.PushVector(fog->GetOffset());
+			gpuFloatRegisterStack.PushFloat(lightCount < maxLights ? lightCount : maxLights);
 			for (int i = 0; i < maxLights; ++i) gpuFloatRegisterStack.PushFloat(lights[i].mPosition.x, lights[i].mPosition.y, lights[i].mPosition.z, lights[i].mRadius);
 			for (int i = 0; i < maxLights; ++i) gpuFloatRegisterStack.PushVector(lights[i].mColor);
+			gpuFloatRegisterStack.PushVector(SceneFactory::GetDirectionalLightList().size() ? (SceneFactory::GetDirectionalLightList()[0].lock()->GetColor() + mAmbientColor) : mAmbientColor);
 			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
 			pD3D->SetTexture(1, mFogVolume);
@@ -2395,6 +2408,18 @@ void Renderer::UpdateWorld() {
 		}
 
 		particleEmitter->Update();
+	}
+
+	// update fogs
+	auto & fogList = SceneFactory::GetFogList();
+	for (auto weakFog : fogList) {
+		auto fog = weakFog.lock();
+
+		if (!fog->IsVisible()) {
+			continue;
+		}
+
+		fog->Update();
 	}
 
 	// Update sound subsystem

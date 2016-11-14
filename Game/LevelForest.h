@@ -8,6 +8,7 @@ private:
 	float mWaterFlow;
 	shared_ptr<ruSceneNode> mWater;
 	shared_ptr<ruSceneNode> mZoneEnd;
+	shared_ptr<ruFog> mFog;
 public:
 	LevelForest(const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelForest();

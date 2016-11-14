@@ -67,7 +67,7 @@ public:
 	virtual void SetAlpha(int alpha);
 	virtual void SetSize(float w, float h);
 	virtual void SetVisible(bool visible);
-	virtual bool IsVisible();
+	virtual bool IsVisible() const;
 	virtual shared_ptr<ruTexture> GetTexture();
 	virtual void SetTexture(const shared_ptr<ruTexture> & pTexture);
 	virtual ruVector2 GetPosition();

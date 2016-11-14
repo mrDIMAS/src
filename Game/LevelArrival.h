@@ -11,7 +11,7 @@ private:
 	void ActLiftCrash_AfterFirstStressSound();
 	void ActLiftCrash_AfterFalldown();
 	bool mChangeLevel;
-
+	shared_ptr<ruFog> mFog;
 	shared_ptr<ruSound> mWoodHitSound;
 public:
     // Sounds

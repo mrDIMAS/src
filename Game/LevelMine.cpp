@@ -154,6 +154,14 @@ LevelMine::LevelMine(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(
 
 	mPlayer->GetInventory()->RemoveItem(Item::Type::Crowbar, 1);
 
+	//auto fogMesh = GetUniqueObject("Fog");
+	//mFog = ruFog::Create(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(1, 1, 1), 0.15);
+	//mFog->SetPosition(fogMesh->GetPosition());
+	//mFog->SetSpeed(ruVector3(0.0002, 0, 0.0002));
+	//mFog->Attach(mScene);
+
+	//ruEngine::LoadColorGradingMap("data/textures/colormaps/greensaturated.png");
+
 	DoneInitialization();
 }
 

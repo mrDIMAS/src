@@ -615,7 +615,7 @@ public:
 	virtual void SetColor(ruVector3 color) = 0;
 	virtual void SetAlpha(int alpha) = 0;
 	virtual void SetVisible(bool visible) = 0;
-	virtual bool IsVisible() = 0;
+	virtual bool IsVisible() const = 0;
 	virtual ruVector2 GetPosition() = 0;
 	virtual ruVector2 GetGlobalPosition() = 0;
 	virtual ruVector2 GetSize() = 0;

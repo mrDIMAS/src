@@ -48,6 +48,8 @@ private:
 	shared_ptr<Keypad> mKeypad2;
 	shared_ptr<Door> mKeypad2DoorToUnlock;
 
+	shared_ptr<ruFog> mFog;
+
 	shared_ptr<Keypad> mKeypad3;
 	shared_ptr<Door> mKeypad3DoorToUnlock;
 

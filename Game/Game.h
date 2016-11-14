@@ -20,7 +20,6 @@ extern bool gRunning;
 extern string gLocalizationPath;
 extern bool gShowFPS;
 extern LevelName g_initialLevel;
-extern bool g_continueGame;
 extern ruInput::Key gKeyQuickSave;
 extern ruInput::Key gKeyQuickLoad;
 extern float gMusicVolume;

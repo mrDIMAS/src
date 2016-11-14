@@ -173,9 +173,9 @@ Player::Player() :
 
 	mAutoSaveTimer = ruTimer::Create();
 
-	mPainSound.push_back(ruSound::Load2D("data/sounds/player/grunt1.ogg"));
-	mPainSound.push_back(ruSound::Load2D("data/sounds/player/grunt2.ogg"));
-	mPainSound.push_back(ruSound::Load2D("data/sounds/player/grunt3.ogg"));
+	mPainSound.push_back(ruSound::Load3D("data/sounds/player/grunt1.ogg"));
+	mPainSound.push_back(ruSound::Load3D("data/sounds/player/grunt2.ogg"));
+	mPainSound.push_back(ruSound::Load3D("data/sounds/player/grunt3.ogg"));
 	for (auto & ps : mPainSound) {
 		ps->Attach(mBody);
 		ps->SetVolume(0.7);
@@ -258,11 +258,11 @@ void Player::Damage(float dmg, bool headJitter) {
 		mPitch.SetTarget(mPitch.GetTarget() + frandom(20, 40));
 		mYaw.SetTarget(mYaw.GetTarget() + frandom(-40, 40));
 	}
-	//if (abs(mLastHealth - mHealth) > 5) {
+	if (abs(mLastHealth - mHealth) > 5) {
 		auto randomSound = *select_randomly(mPainSound.begin(), mPainSound.end());
 		randomSound->Play();
 		mLastHealth = mHealth;
-	//}
+	}
 	if (mHealth <= 0.0f) {
 		if (!mDead) {
 			mBody->Freeze();

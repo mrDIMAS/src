@@ -25,7 +25,7 @@
 #include "GUIScene.h"
 
 void GUIButton::Update() {
-	if( IsVisible() ) {
+	if (IsVisible()) {
 		CalculateTransform();
 
 		int mouseX = ruInput::GetMouseX();
@@ -37,100 +37,97 @@ void GUIButton::Update() {
 		mLeftHit = false;
 		mRightHit = false;
 
-		if( mActive ) {
-			mpText->SetColor( ruVector3( 255, 255, 255 ));
+		if (mActive) {
+			mpText->SetColor(ruVector3(255, 255, 255));
 
-			if( mouseX > mGlobalX && mouseX < ( mGlobalX + mWidth ) && mouseY > mGlobalY && mouseY < ( mGlobalY + mHeight ) ) {
+			if (mouseX > mGlobalX && mouseX < (mGlobalX + mWidth) && mouseY > mGlobalY && mouseY < (mGlobalY + mHeight)) {
 				mPicked = true;
 
-				if( ruInput::IsMouseHit( ruInput::MouseButton::Left )) {
-					if( IsGotAction( ruGUIAction::OnClick )) {
-						mEventList[ ruGUIAction::OnClick ]();
-					}
-
+				if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
 					mLeftHit = true;
+					if (IsGotAction(ruGUIAction::OnClick)) {
+						mEventList[ruGUIAction::OnClick]();
+					}					
 				}
 
-				if( ruInput::IsMouseHit( ruInput::MouseButton::Right )) {
+				if (ruInput::IsMouseHit(ruInput::MouseButton::Right)) {
 					mRightHit = true;
 				}
 
-				if( ruInput::IsMouseDown( ruInput::MouseButton::Left )) {
+				if (ruInput::IsMouseDown(ruInput::MouseButton::Left)) {
 					mLeftPressed = true;
 				}
 
-				if( ruInput::IsMouseDown( ruInput::MouseButton::Right )) {
+				if (ruInput::IsMouseDown(ruInput::MouseButton::Right)) {
 					mRightPressed = true;
 				}
 
-				mpText->SetColor( ruVector3( 255, 0, 0 ));
+				mpText->SetColor(ruVector3(255, 0, 0));
 			}
 
-			SetColor( mInitColor );
+			SetColor(mInitColor);
 		} else {
-			SetColor( ruVector3( 90, 90, 90 ));
-			mpText->SetColor( ruVector3( 90, 90, 90 ));
+			SetColor(ruVector3(90, 90, 90));
+			mpText->SetColor(ruVector3(90, 90, 90));
 		}
 	}
 }
 
-GUIButton::GUIButton(const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha )
-    : GUIRect( scene, x, y, w, h, texture, color, alpha ) {
-    mpText = dynamic_pointer_cast<GUIText>( mScene.lock()->CreateText( text, 0, 0, w, h, font, color, textAlign, alpha ));
+GUIButton::GUIButton(const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text, const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha)
+	: GUIRect(scene, x, y, w, h, texture, color, alpha) {
+	mpText = dynamic_pointer_cast<GUIText>(mScene.lock()->CreateText(text, 0, 0, w, h, font, color, textAlign, alpha));
 	mpText->SetLayer(0xFF);
-    mPicked = false;
-    mLeftPressed = false;
-    mRightPressed = false;
-    mLeftHit = false;
-    mRightHit = false;
+	mPicked = false;
+	mLeftPressed = false;
+	mRightPressed = false;
+	mLeftHit = false;
+	mRightHit = false;
 	mActive = true;
 	mInitColor = color;
-    pickedColor = ruVector3( 255, 255, 255 );
+	pickedColor = ruVector3(255, 255, 255);
 }
 
-void GUIButton::SetPickedColor( ruVector3 val ) {
-    pickedColor = val;
+void GUIButton::SetPickedColor(ruVector3 val) {
+	pickedColor = val;
 }
 
 ruVector3 GUIButton::GetPickedColor() const {
-    return pickedColor;
+	return pickedColor;
 }
 
 bool GUIButton::IsPressed() {
-    return mLeftPressed;
+	return mLeftPressed;
 }
 
 bool GUIButton::IsPicked() {
-    return mPicked;
+	return mPicked;
 }
 
 bool GUIButton::IsHit() const {
-    return mLeftHit;
+	return mLeftHit;
 }
 
 bool GUIButton::IsRightHit() const {
-    return mRightHit;
+	return mRightHit;
 }
 
 bool GUIButton::IsRightPressed() {
-    return mRightPressed;
+	return mRightPressed;
 }
 
 shared_ptr<ruText> GUIButton::GetText() {
-    return mpText;
+	return mpText;
 }
 
 GUIButton::~GUIButton() {
 
 }
 
-void GUIButton::SetAlpha( int alpha )
-{
-	GUINode::SetAlpha( alpha );
-	mpText->SetAlpha( alpha );
+void GUIButton::SetAlpha(int alpha) {
+	GUINode::SetAlpha(alpha);
+	mpText->SetAlpha(alpha);
 }
 
-void GUIButton::SetActive( bool state )
-{
+void GUIButton::SetActive(bool state) {
 	mActive = state;
 }

@@ -99,9 +99,9 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	AddZone(make_shared<Zone>(GetUniqueObject("ZoneEnemySpawn"), [this] { OnPlayerEnterSpawnEnemyZone(); }));
 	AddZone(make_shared<Zone>(GetUniqueObject("SteamActivateZone"), [this] { OnPlayerEnterSteamActivateZone(); }));
 	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveRestorePower"), [this] { OnPlayerEnterRestorePowerZone(); }));
-	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveExaminePlace"), [this] { OnPlayerEnterExaminePlaceZone(); }));	
-	AddZone(make_shared<Zone>(GetUniqueObject("ZoneRemovePathBlockingMesh"), [this] { OnPlayerEnterRemovePathBlockingMeshZone(); }));	
-	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveNeedCrowbar"), [this] { OnPlayerEnterNeedCrowbarZone(); }));	
+	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveExaminePlace"), [this] { OnPlayerEnterExaminePlaceZone(); }));
+	AddZone(make_shared<Zone>(GetUniqueObject("ZoneRemovePathBlockingMesh"), [this] { OnPlayerEnterRemovePathBlockingMeshZone(); }));
+	AddZone(make_shared<Zone>(GetUniqueObject("ObjectiveNeedCrowbar"), [this] { OnPlayerEnterNeedCrowbarZone(); }));
 	AddZone(make_shared<Zone>(GetUniqueObject("DisableSteamZone"), [this] { OnPlayerEnterDisableSteamZone(); }));
 
 	CreatePowerUpSequence();
@@ -162,8 +162,6 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 
 	AutoCreateBulletsByNamePattern("Bullet?([[:digit:]]+)");
 
-
-
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Crowbar), make_shared<InteractiveObject>(GetUniqueObject("Crowbar")), [this] { mPlayer->AddItem(Item::Type::Crowbar); });
 	AddInteractiveObject(Item::GetNameByType(Item::Type::FerrumOxide), make_shared<InteractiveObject>(GetUniqueObject("FerrumOxide")), [this] { mPlayer->AddItem(Item::Type::FerrumOxide); });
 	AddInteractiveObject(Item::GetNameByType(Item::Type::AluminumPowder), make_shared<InteractiveObject>(GetUniqueObject("AluminumPowder")), [this] { mPlayer->AddItem(Item::Type::AluminumPowder); });
@@ -179,6 +177,15 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	mEnemySpawnPosition = GetUniqueObject("EnemyPosition");
 
 	mSteamPS = nullptr;
+
+	auto fogMesh = GetUniqueObject("Fog");
+	mFog = ruFog::Create(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.0, 0.5, 1), 0.6);
+	mFog->SetPosition(fogMesh->GetPosition());
+	mFog->SetSpeed(ruVector3(0.0002, 0, 0.0002));
+	mFog->Attach(mScene);
+
+	dynamic_pointer_cast<ruPointLight>(GetUniqueObject("RadioLight1"))->SetDrawFlare(false);
+	dynamic_pointer_cast<ruPointLight>(GetUniqueObject("RadioLight2"))->SetDrawFlare(false);
 
 	DoneInitialization();
 }

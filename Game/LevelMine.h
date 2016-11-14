@@ -68,7 +68,7 @@ private:
     bool mDetonatorActivated;
 
     int mReadyExplosivesCount;
-
+	shared_ptr<ruFog> mFog;
     float mBeepSoundTiming;
 
     unique_ptr<LightAnimator> mExplosionFlashAnimator;

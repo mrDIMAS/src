@@ -66,7 +66,7 @@ shared_ptr<ruTexture> GUINode::GetTexture() {
 	return mpTexture;
 }
 
-bool GUINode::IsVisible() {
+bool GUINode::IsVisible() const {
 	bool visibility = mVisible;
 	if (mParent.use_count()) {
 		shared_ptr<GUINode> & pParent = mParent.lock();

@@ -29,6 +29,12 @@ LevelForest::LevelForest(const unique_ptr<PlayerTransfer>& playerTransfer) : Lev
 
 	mWater = GetUniqueObject("Water");
 
+	auto fogMesh = GetUniqueObject("Fog");
+	mFog = ruFog::Create(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.5, 0.5, 0.7), 0.15);
+	mFog->SetPosition(fogMesh->GetPosition());
+	mFog->SetSpeed(ruVector3(0.0015, 0, 0.0015));
+	mFog->Attach(mScene);
+
 	DoneInitialization();
 }
 
