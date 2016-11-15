@@ -3,6 +3,8 @@ sampler avgLum : register(s1);
 sampler bloom : register(s2);
 sampler colormap : register(s3);
 
+bool bloomEnabled : register (b0);
+
 float3 Mr_F_Tonemap(float3 color) {
     const float  A = 0.22, B = 0.3, C = .1, D = 0.2, E = .01, F = 0.3;
     const float Scl = 1.25;
@@ -37,9 +39,12 @@ float3 ColorGrading(float3 color) {
 
 float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{
 	float luminance = tex2D( avgLum, float2( 0.5f, 0.5f )).r;
-	float exposure = clamp(2 * exp(-luminance * 100), 0.5, 2);
+	float exposure = clamp(1 * exp(-luminance * 100), 0.5, 1);
 
-	float3 hdrColor = tex2D(hdrTexture, texCoord).rgb + 0.5f * tex2D( bloom, texCoord ).rgb;
+	float3 hdrColor = tex2D(hdrTexture, texCoord).rgb;
+	if(bloomEnabled) {
+		hdrColor += 0.5f * tex2D( bloom, texCoord ).rgb;
+	}
 	float3 color = ReinhardTonemap(exposure * hdrColor);
 		
 	return float4(ColorGrading(color), 1.0f);

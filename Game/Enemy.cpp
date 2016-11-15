@@ -317,7 +317,7 @@ void Enemy::HitPlayer() {
 	auto & player = Level::Current()->GetPlayer();
 	float distanceToPlayer = (player->GetCurrentPosition() - mBody->GetPosition()).Length();
 	if (distanceToPlayer < mHitDistance) {
-		player->Damage(33.333);
+		player->Damage(55.0f);
 		mHitFleshWithAxeSound->Play(true);
 	}
 }

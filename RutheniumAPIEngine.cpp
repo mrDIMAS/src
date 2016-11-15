@@ -63,11 +63,45 @@ void ruEngine::SetCursorSettings( shared_ptr<ruTexture> texture, int w, int h ) 
 int ruEngine::GetDIPs( ) {
 	return pEngine->GetDIPCount();
 }
-int ruEngine::GetMaxAnisotropy() {
-	D3DCAPS9 caps;
-	pD3D->GetDeviceCaps( &caps );
 
-	return caps.MaxAnisotropy;
+int ruEngine::GetMaxIsotropyDegree() {
+	return pEngine->GetMaxIsotropyDegree();
+}
+
+void ruEngine::SetIsotropyDegree(int degree) {
+	pEngine->SetIsotropyDegree(degree);
+}
+
+void ruEngine::SetDirectionalLightDynamicShadows(bool state) {
+	pEngine->SetDirectionalLightDynamicShadows(state);
+}
+
+bool ruEngine::IsDirectionalLightDynamicShadowsEnabled() {
+	return pEngine->IsDirectionalLightDynamicShadowsEnabled();
+}
+
+bool ruEngine::IsAnisotropicTextureFiltrationEnabled() {
+	return pEngine->IsAnisotropicFilteringEnabled();
+}
+
+void ruEngine::SetVolumetricFogEnabled(bool state) {
+	pEngine->SetVolumetricFogEnabled(state);
+}
+
+void ruEngine::SetDirectionalLightShadowMapSize(int size) {
+	pEngine->SetDirectionalLightShadowMapSize(size);
+}
+
+int ruEngine::GetDirectionalLightShadowMapSize() {
+	return pEngine->GetDirectionalLightShadowMapSize();
+}
+
+bool ruEngine::IsVolumetricFogEnabled() {
+	return pEngine->IsVolumetricFogEnabled();
+}
+
+vector<ruVideomode> ruEngine::GetVideoModeList() {
+	return pEngine->GetVideoModeList();
 }
 
 int ruEngine::GetTextureUsedPerFrame( ) {

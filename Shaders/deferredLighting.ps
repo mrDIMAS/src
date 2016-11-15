@@ -23,7 +23,7 @@ float3 direction : register(c13);
 bool usePointLighting : register( b0 );
 bool useShadows : register( b1 );
 bool useDirectionalLighting : register(b2);
-bool highDynamicRange : register(b3);
+bool softShadows : register(b3);
 
 static const float3 sampleOffsetDirections[20] = {
    float3( 1,  1,  1), float3( 1, -1,  1), float3(-1, -1,  1), float3(-1,  1,  1), 
@@ -35,18 +35,28 @@ static const float3 sampleOffsetDirections[20] = {
 
 // returns antialised shadow term for point light
 float GetShadow(in float3 lightVector) {
-	float shadow = 0.0;	
-	int samples = 20;
-	float diskRadius = 0.015;
+	const float bias = 0.035;
+	float outShadow = 0.0f;
 	float currentDistance = length( lightVector );
-	for(int i = 0; i < samples; ++i) {
-		const float bias = 0.035;
-		float3 samplingVector = lightVector + sampleOffsetDirections[i] * diskRadius;
-		if(currentDistance - bias > texCUBElod(cubeShadowSampler, float4(-samplingVector, 0)).r) {
-			shadow += 1.0;
+	if(softShadows) {
+		float shadow = 0.0;	
+		const int samples = 20;
+		const float diskRadius = 0.015;
+		for(int i = 0; i < samples; ++i) {
+			
+			float3 samplingVector = lightVector + sampleOffsetDirections[i] * diskRadius;
+			if(currentDistance - bias > texCUBElod(cubeShadowSampler, float4(-samplingVector, 0)).r) {
+				shadow += 1.0;
+			}
 		}
+		outShadow = saturate(1.2f - shadow / float(samples));  
+	} else {
+		if(currentDistance - bias > texCUBElod(cubeShadowSampler, float4(-lightVector, 0)).r) {
+			outShadow = 0.25f;
+		}	
 	}
-	return saturate(1.2f - shadow / float(samples));  
+	
+	return outShadow;
 }
 
 float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
@@ -65,7 +75,7 @@ float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
 		float attenuation = lightIntensity * GetAttenuation( lightVector, lightRange, n );		
 		outputColor = float4( lightColor.xyz * diffuse * attenuation, 1.0f );			
 	}
-	const float bias = 0.002f;
+	
 	
 	if( usePointLighting ) { 
 		// Point lighting		
@@ -80,18 +90,7 @@ float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
 			outputColor *= tex2Dlod( spotProjectionSampler, projection );						
 		} 	
 		if( useShadows ) {
-		/*
-			const float4 smStep = float4(1.0f / 1024.0f, 1.0f / 1024.0f, 0, 0);
-			float shadowTerm = 0.0f;
-			for(float y = -1.5f; y <= 1.5f; y += 1.0f) {
-				for(float x = -1.5f; x <= 1.5f; x += 1.0f) {
-					shadowTerm += tex2Dlod( shadowSampler, projection + smStep * float4(x, y, 0, 0)).r;
-				}
-			}
-			shadowTerm /= 16;
-			if( projection.z - bias > shadowTerm ) {
-			   outputColor.rgb *= 0.25f;
-			};*/
+			const float bias = 0.002f;
 			if( projection.z - bias > tex2Dlod( shadowSampler, projection).r) {
 			   outputColor.rgb *= 0.1f;
 			};

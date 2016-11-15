@@ -17,6 +17,8 @@ float4 lightPositionRange[MAX_LIGHTS] : register(c11); // change this too when c
 float3 lightColor[MAX_LIGHTS] : register(c15); // change this too when changing MAX_LIGHTS
 float3 directionalLightColor : register(c19);
 
+bool volumetricFog : register(b0);
+
 // original code of ray-box intersection
 // https://github.com/hpicgs/cgsee/wiki/Ray-Box-Intersection-on-the-GPU
 struct Ray {
@@ -53,8 +55,6 @@ float GetLighting(float3 fragPos, float4 lPosRange) {
 	return GetAttenuationWithoutNdotL(lPosRange.xyz - fragPos, lPosRange.w);
 }
 
-
-
 float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
 	float tmin, tmax;
 	float4 outColor = float4(fogColor, 0);
@@ -74,40 +74,57 @@ float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
 				float dTarget = length(p - pMin);			
 				outColor.a = saturate(dTarget / thickness);
 				// modulate density and apply lighting
-				float3 lighting = float3(0, 0, 0);				
-				for(float k = 0; k < 0.25; k += 0.025) {
-					float3 trace = cameraPos + (tmin + k) * direction;
-					float4 density = tex3Dlod(fogTexture, float4(fogOffset + 0.4f * trace, 0));
-					outColor.a += dot(float4(1, 0.5, 0.25, 0.125), density);
-					for(int i = 0; i < lightCount; ++i) {
-						lighting += lightColor[i] * GetLighting(trace, lightPositionRange[i]);
+				float3 lighting = float3(0, 0, 0);		
+				float sk = 1;
+				if(volumetricFog) {
+					for(float k = 0; k < 0.25; k += 0.025) {
+						float3 trace = cameraPos + (tmin + k) * direction;
+						float4 density = tex3Dlod(fogTexture, float4(fogOffset + 0.4f * trace, 0));
+						outColor.a += dot(float4(1, 0.5, 0.25, 0.125), density);
+						for(int i = 0; i < lightCount; ++i) {
+							lighting += lightColor[i] * GetLighting(trace, lightPositionRange[i]);
+						}
 					}
-				}				
+					sk = 0.1;
+				} else {
+					for(int i = 0; i < lightCount; ++i) {
+						lighting += lightColor[i] * GetLighting(pMin, lightPositionRange[i]);
+					}						
+				}
 				if(lightCount > 0) {
-					outColor.xyz *= lighting * 0.1;					
-				}	
+					outColor.xyz *= lighting * sk;					
+				}
 				outColor.xyz += directionalLightColor;
-				outColor.a *= fogDensity * 0.1;
+				outColor.a *= fogDensity * sk;
 			}			
 		} else if(tmin <= 0 && tmax > 0) { // camera is inside the fog
 			float thickness = length(tmax * direction);		
 			float dTarget = length(p - cameraPos);			
 			outColor.a = saturate((dTarget / thickness));	
 			// modulate density and apply lighting
-			float3 lighting = float3(0, 0, 0);			
-			for(float k = 0; k < 0.25; k += 0.025) {
-				float3 trace = (tmax + k) * direction;
-				float4 density = tex3Dlod(fogTexture, float4(fogOffset + 0.4f * trace, 0));
-				outColor.a += dot(float4(1, 0.5, 0.25, 0.125), density);
-				for(int i = 0; i < lightCount; ++i) {
-					lighting += lightColor[i] * GetLighting(trace, lightPositionRange[i]);
+			float3 lighting = float3(0, 0, 0);	
+			float sk = 1;
+			if(volumetricFog) {			
+				for(float k = 0; k < 0.25; k += 0.025) {
+					float3 trace = (tmax + k) * direction;
+					float4 density = tex3Dlod(fogTexture, float4(fogOffset + 0.4f * trace, 0));
+					outColor.a += dot(float4(1, 0.5, 0.25, 0.125), density);
+					for(int i = 0; i < lightCount; ++i) {
+						lighting += lightColor[i] * GetLighting(trace, lightPositionRange[i]);
+					}
 				}
+				sk = 0.1;
+			} else {				
+				float3 pt = tmax * direction;
+				for(int i = 0; i < lightCount; ++i) {
+					lighting += lightColor[i] * GetLighting( pt, lightPositionRange[i]);
+				}				
 			}
 			if(lightCount > 0) {
-				outColor.xyz *= lighting * 0.1;					
-			}	
+				outColor.xyz *= lighting * sk;					
+			}		
 			outColor.xyz += directionalLightColor;
-			outColor.a *= fogDensity * 0.1;				
+			outColor.a *= fogDensity * sk;				
 		}
 	} 
 	

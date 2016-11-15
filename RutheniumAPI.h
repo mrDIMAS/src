@@ -85,161 +85,51 @@ float frandom(float low, float high);
 class ruVector3 {
 public:
 	union {
-		struct {
-			float x;
-			float y;
-			float z;
-		};
-
+		struct { float x, y, z; };
 		float elements[3];
 	};
 
-
-	ruVector3() : x(0.0f), y(0.0f), z(0.0f) {};
-	ruVector3(float x, float y, float z) : x(x), y(y), z(z) {};
-
-	ruVector3(const ruVector3 & v) {
-		x = v.x;
-		y = v.y;
-		z = v.z;
-	};
-
-	ruVector3(float * v) {
-		x = v[0];
-		y = v[1];
-		z = v[2];
-	}
-
-	ruVector3 operator + (const ruVector3 & v) const {
-		return ruVector3(x + v.x, y + v.y, z + v.z);
-	}
-
-	ruVector3 operator - (const ruVector3 & v) const {
-		return ruVector3(x - v.x, y - v.y, z - v.z);
-	}
-
-	ruVector3 operator * (const ruVector3 & v) const {
-		return ruVector3(x * v.x, y * v.y, z * v.z);
-	}
-
-	ruVector3 operator * (const float & f) const {
-		return ruVector3(x * f, y * f, z * f);
-	}
-
-	ruVector3 operator / (const ruVector3 & v) const {
-		return ruVector3(x / v.x, y / v.y, z / v.z);
-	}
-
-	ruVector3 operator / (const float & f) const {
-		return ruVector3(x / f, y / f, z / f);
-	}
-
-	void operator *= (const ruVector3 & v) {
-		x *= v.x;
-		y *= v.y;
-		z *= v.z;
-	}
-
-	float Angle(const ruVector3 & v) const {
-		return acosf(Dot(v) / sqrtf(Length2() * v.Length2()));
-	}
-
-	ruVector3 Abs() const {
-		return ruVector3(abs(x), abs(y), abs(z));
-	}
-
-	void operator /= (const ruVector3 & v) {
-		x /= v.x;
-		y /= v.y;
-		z /= v.z;
-	}
-
-	void operator /= (float a) {
-		x /= a;
-		y /= a;
-		z /= a;
-	}
-
-	void operator += (const ruVector3 & v) {
-		x += v.x;
-		y += v.y;
-		z += v.z;
-	}
-
-	void operator -= (const ruVector3 & v) {
-		x -= v.x;
-		y -= v.y;
-		z -= v.z;
-	}
-
-	void operator = (const ruVector3 & v) {
-		x = v.x;
-		y = v.y;
-		z = v.z;
-	}
-
+	ruVector3() : x(0.0f), y(0.0f), z(0.0f) {}
+	ruVector3(float x, float y, float z) : x(x), y(y), z(z) {}
+	ruVector3(const ruVector3 & v) : x(v.x), y(v.y), z(v.z) {}
+	ruVector3(float * v) : x(v[0]), y(v[1]), z(v[2]) {}
+	ruVector3 operator + (const ruVector3 & v) const { return ruVector3(x + v.x, y + v.y, z + v.z); }
+	ruVector3 operator - (const ruVector3 & v) const { return ruVector3(x - v.x, y - v.y, z - v.z); }
+	ruVector3 operator * (const ruVector3 & v) const { return ruVector3(x * v.x, y * v.y, z * v.z); }
+	ruVector3 operator * (const float & f) const { return ruVector3(x * f, y * f, z * f); }
+	ruVector3 operator / (const ruVector3 & v) const { return ruVector3(x / v.x, y / v.y, z / v.z); } 
+	ruVector3 operator / (const float & f) const { return ruVector3(x / f, y / f, z / f); }
+	void operator *= (const ruVector3 & v) { x *= v.x; y *= v.y; z *= v.z; }
+	float Angle(const ruVector3 & v) const { return acosf(Dot(v) / sqrtf(Length2() * v.Length2())); }
+	ruVector3 Abs() const { return ruVector3(abs(x), abs(y), abs(z)); }
+	void operator /= (const ruVector3 & v) { x /= v.x; y /= v.y; z /= v.z; }
+	void operator /= (float a) { x /= a; y /= a; z /= a; }
+	void operator += (const ruVector3 & v) { x += v.x; y += v.y; z += v.z; }
+	void operator -= (const ruVector3 & v) { x -= v.x; y -= v.y; z -= v.z; }
+	void operator = (const ruVector3 & v) { x = v.x; y = v.y; z = v.z; } 
 	bool operator == (const ruVector3 & v) {
 		float dx = abs(x - v.x);
 		float dy = abs(y - v.y);
 		float dz = abs(z - v.z);
-
 		return dx > 0.0001f && dy > 0.0001f && dz > 0.0001f;
 	}
-
-	float Length() const {
-		return sqrt(x * x + y * y + z * z);
-	}
-
-	float Length2() const {
-		return x * x + y * y + z * z;
-	}
-
-	ruVector3 Normalize() {
-		float l = 1.0f / Length();
-
-		x *= l;
-		y *= l;
-		z *= l;
-
-		return *this;
-	}
-
-	ruVector3 Normalized() const {
-		float l = 1.0f / Length();
-		return ruVector3(x * l, y * l, z * l);
-	}
-
-	ruVector3 Cross(const ruVector3 & v) const {
-		return ruVector3(y * v.z - z * v.x, z * v.x - x * v.z, x * v.y - y * v.x);
-	}
-
-	float Dot(const ruVector3 & v) const {
-		return x * v.x + y * v.y + z * v.z;
-	}
-
-	ruVector3 Rotate(const ruVector3 & axis, float angle) {
+	float Length() const { return sqrt(x * x + y * y + z * z); }
+	float Length2() const { return x * x + y * y + z * z; }
+	ruVector3 Normalize() { float l = 1.0f / Length(); x *= l; y *= l; z *= l; return *this; }
+	ruVector3 Normalized() const { float l = 1.0f / Length(); return ruVector3(x * l, y * l, z * l); }
+	ruVector3 Cross(const ruVector3 & v) const { return ruVector3(y * v.z - z * v.x, z * v.x - x * v.z, x * v.y - y * v.x); }
+	float Dot(const ruVector3 & v) const { return x * v.x + y * v.y + z * v.z; }
+	ruVector3 Rotate(const ruVector3 & axis, float angle) { 
 		angle *= 3.14159f / 180.0f;
-
 		ruVector3 o = axis * axis.Dot(*this);
 		ruVector3 x = *this - o;
 		ruVector3 y;
-
 		y = axis.Cross(*this);
-
 		return (o + x * cosf(angle) + y * sinf(angle));
 	}
-
-	ruVector3 Lerp(const ruVector3 & v, float t) const {
-		return ruVector3(x + (v.x - x) * t, y + (v.y - y) * t, z + (v.z - z) * t);
-	}
-
-	ruVector3 Project(const ruVector3 & planeNormal) const {
-		return (*this) - (planeNormal * (*this).Dot(planeNormal)) / planeNormal.Length2();
-	}
-
-	float Distance(const ruVector3 & v) const {
-		return (*this - v).Length();
-	}
+	ruVector3 Lerp(const ruVector3 & v, float t) const { return ruVector3(x + (v.x - x) * t, y + (v.y - y) * t, z + (v.z - z) * t); }
+	ruVector3 Project(const ruVector3 & planeNormal) const { return (*this) - (planeNormal * (*this).Dot(planeNormal)) / planeNormal.Length2(); } 
+	float Distance(const ruVector3 & v) const { return (*this - v).Length(); }
 };
 
 static ruVector3 operator * (const float & f, const ruVector3 & v) {
@@ -659,13 +549,8 @@ public:
 
 class ruGUIScene {
 protected:
-	ruGUIScene() {
-
-	}
-
-	virtual ~ruGUIScene() {
-
-	}
+	ruGUIScene() { }
+	virtual ~ruGUIScene() { }
 public:
 	static shared_ptr<ruGUIScene> Create();
 
@@ -679,6 +564,51 @@ public:
 	virtual shared_ptr<ruText> CreateText(const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruFont> & theFont, ruVector3 theColor, ruTextAlignment theTextAlign, int theAlpha = 255) = 0;
 	virtual shared_ptr<ruRect> CreateRect(float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3 = ruVector3(255, 255, 255), int theAlpha = 255) = 0;
 	virtual shared_ptr<ruButton> CreateButton(int x, int y, int w, int h, const shared_ptr<ruTexture> & texture, const string & text, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign = ruTextAlignment::Center, int alpha = 255) = 0;
+};
+
+// basic class for configure engine performance and features
+class ruEngineSettings {
+public:
+	int mWidth; // G-Buffer width and width of the window
+	int mHeigth; // G-Buffer height and height of the window
+	bool mFullscreen; 
+	bool mVSync;
+
+	bool mParallaxEnabled;
+		
+	bool mFXAAEnabled;
+
+	bool mHDREnabled;
+	int mHDRQuality; // 0 - no color grading, Reinhard tonemapping; 1 - color grading, Hejl tonemapping
+
+	int mAnisotropyLevel; // zero means linear filtration
+
+	bool mSpotLightShadowsEnabled;
+	int mSpotLightShadowMapSize; // [256; 2048]
+	bool mSpotLightSoftShadows;
+
+	bool mPointLightShadowsEnabled;
+	int mPointLightShadowMapSize; // cubemap face size [128; 1024]
+	bool mPointLightSoftShadows;
+
+	int mDirectionalLightShadowMapSize; // [1024; 4096] - 1024 is the minimum, because on lower values there is too many artifacts
+	bool mDirectionalLightSoftShadows;
+
+	bool mVolumetricFog;
+	int mVolumetricFogLayers; // [2; 10]
+
+	int mLightQuality; // 0 - simplified lighting; 1 - full lighting
+};
+
+class ruVideomode {
+public:
+	int mWidth;
+	int mHeight;
+	int mRefreshRate;
+
+	ruVideomode(int width, int height, int refreshRate) : mWidth(width), mHeight(height), mRefreshRate(refreshRate) {
+
+	}
 };
 
 class ruEngine {
@@ -699,7 +629,7 @@ public:
 	static int GetAvailableTextureMemory();
 	static void EnableShadows(bool state);
 	static void UpdateWorld();
-	static void SetAnisotropicTextureFiltration(bool state);
+	
 	static void ChangeVideomode(int width, int height, int fullscreen, char vSync);
 
 	// FXAA
@@ -723,8 +653,22 @@ public:
 	static void EnablePointLightShadows(bool state);
 	static bool IsPointLightShadowsEnabled();
 
-	static int GetMaxAnisotropy();
+	static int GetMaxIsotropyDegree();
+	static void SetIsotropyDegree(int degree);
+	static void SetAnisotropicTextureFiltration(bool state);
+	static bool IsAnisotropicTextureFiltrationEnabled();
 
+
+	static void SetVolumetricFogEnabled(bool state);
+	static bool IsVolumetricFogEnabled();
+
+	static void SetDirectionalLightShadowMapSize(int size);
+	static int GetDirectionalLightShadowMapSize();
+
+	static void SetDirectionalLightDynamicShadows(bool state);
+	static bool IsDirectionalLightDynamicShadowsEnabled();
+
+	static vector<ruVideomode> GetVideoModeList();
 	static void LoadColorGradingMap(const char * fileName);
 };
 

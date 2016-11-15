@@ -30,29 +30,30 @@
 
 class Cursor;
 
-class Videomode {
-public:
-	int mWidth;
-	int mHeight;
-	int mRefreshRate;
 
-	Videomode(int width, int height, int refreshRate) {
-		mWidth = width;
-		mHeight = height;
-		mRefreshRate = refreshRate;
-	}
-};
 
 typedef unordered_map<IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
+
+template<class T>
+void Clamp(T & value, T min, T max) {
+	if (min > max) {
+		std::swap(min, max);
+	}
+	if (value > max) {
+		value = max;
+	}
+	if (value < min) {
+		value = min;
+	}
+}
 
 class Renderer {
 private:
 	HWND mWindowHandle;
 
-	bool mUsePointLightShadows;
-	bool mUseSpotLightShadows;
+
 	bool mRunning;
-	bool mAnisotropicFiltering;
+
 	float mResWidth;
 	float mResHeight;
 
@@ -66,7 +67,7 @@ private:
 	int mNativeResolutionWidth;
 	int mNativeResolutionHeight;
 	void SetDefaults();
-	vector<Videomode> mVideomodeList;
+	vector<ruVideomode> mVideomodeList;
 
 	shared_ptr<Cursor> mCursor;
 
@@ -240,7 +241,17 @@ private:
 	bool mHDREnabled;
 	bool mParallaxEnabled;
 	bool mFXAAEnabled;
-	bool mSSAOEnabled;
+	bool mSoftShadows;
+	bool mUsePointLightShadows;
+	bool mUseSpotLightShadows;
+	bool mIsotropyDegree;
+	bool mAnisotropicFiltering;
+	bool mVolumetricFog;
+	bool mBloomEnabled;
+	bool mDynamicDirectionalShadows; // if false - only static objects cast shadows
+	int mSpotShadowMapSize;
+	int mDirectionalLightShadowMapSize;
+	int mDirectionalLightShadowUpdateTimer;
 public:
 	explicit Renderer(int width, int height, int fullscreen, char vSync);
 	virtual ~Renderer();
@@ -249,18 +260,13 @@ public:
 	float GetResolutionWidth();
 	float GetResolutionHeight();
 	int GetDIPCount();
-	int GetRenderedTriangles() const {
-		return mRenderedTriangleCount;
-	}
+	void AddMesh(const shared_ptr<Mesh> & mesh);
+	int GetRenderedTriangles() const;
 	void ChangeVideomode(int width, int height, bool fullscreen, bool vsync);
 	bool IsAnisotropicFilteringEnabled();
 	void SetAnisotropicTextureFiltration(bool state);
 	void SetGenericSamplersFiltration(D3DTEXTUREFILTERTYPE filter, bool disableMips);
-	void SetSpotLightShadowMapSize(int size);
-	void SetPointLightShadowsEnabled(bool state);
-	void SetSpotLightShadowsEnabled(bool state);
-	bool IsPointLightShadowsEnabled();
-	bool IsSpotLightShadowsEnabled();
+
 	ruVector3 GetAmbientColor();
 	void SetAmbientColor(ruVector3 ambColor);
 	void SetCursor(shared_ptr<ruTexture> texture, int w, int h);
@@ -276,16 +282,68 @@ public:
 	// Effects control methods
 	bool IsFXAAEnabled();
 	void SetFXAAEnabled(bool state);
+
 	bool IsHDREnabled();
 	void SetHDREnabled(bool state);
+
 	bool IsParallaxEnabled();
 	void SetParallaxEnabled(bool state);
-	void SetSSAOEnabled(bool state) {
-		mSSAOEnabled = state;
+		
+	void SetPointLightShadowsEnabled(bool state);
+	bool IsPointLightShadowsEnabled();
+
+	void SetDirectionalLightShadowMapSize(int size) {
+		if (mDirectionalLightShadowMapSize != size) {
+			mDirectionalLightShadowMapSize = size;
+
+			Clamp(mDirectionalLightShadowMapSize, 1024, 4096);
+
+			mDirectionalShadowMapSurface.Reset();
+			mDirectionalShadowMap.Reset();
+			mDirectionalDepthStencilSurface.Reset();
+
+			D3DCALL(pD3D->CreateTexture(size, size, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDirectionalShadowMap, nullptr));
+			D3DCALL(mDirectionalShadowMap->GetSurfaceLevel(0, &mDirectionalShadowMapSurface));
+			D3DCALL(pD3D->CreateDepthStencilSurface(size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDirectionalDepthStencilSurface, 0));
+		}
 	}
-	bool IsSSAOEnabled() const {
-		return mSSAOEnabled;
+
+	void SetDirectionalLightDynamicShadows(bool state) {
+		mDynamicDirectionalShadows = state;
 	}
+	bool IsDirectionalLightDynamicShadowsEnabled() {
+		return mDynamicDirectionalShadows;
+	}
+
+	int GetDirectionalLightShadowMapSize() const {
+		return mDirectionalLightShadowMapSize;
+	}
+
+	void SetSpotLightShadowMapSize(int size);
+	void SetSpotLightShadowsEnabled(bool state);
+	bool IsSpotLightShadowsEnabled();
+
+	void SetVolumetricFogEnabled(bool state) {
+		mVolumetricFog = state;
+	}
+	bool IsVolumetricFogEnabled() const {
+		return mVolumetricFog;
+	}
+	int GetMaxIsotropyDegree() const {
+		D3DCAPS9 caps;
+		pD3D->GetDeviceCaps(&caps);
+		return caps.MaxAnisotropy;
+	}
+	void SetIsotropyDegree(int degree) {
+		int maxIsotropyDegree = GetMaxIsotropyDegree();
+		Clamp(degree, 1, maxIsotropyDegree);
+		for (int i = 0; i < 8; ++i) {
+			D3DCALL(pD3D->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, degree));
+		}
+	}
+	vector<ruVideomode> GetVideoModeList() {
+		return mVideomodeList;
+	}
+
 	void LoadColorGradingMap(const char * fileName);
-	void AddMesh(const shared_ptr<Mesh> & mesh);
 };

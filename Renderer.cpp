@@ -53,6 +53,8 @@ unique_ptr<Renderer> pEngine;
 Mouse mouse;
 Keyboard keyboard;
 
+
+
 // shadertoy code modified by Mr_F_, lastly modified by Me
 class Perlin3DGenerator {
 private:
@@ -165,6 +167,7 @@ struct GPUFloatRegister {
 	}
 };
 
+// helper class for passing boolean constants to shaders
 class GPUBoolRegisterStack {
 public:
 	BOOL mBooleans[8];
@@ -187,6 +190,8 @@ public:
 	}
 };
 
+
+// helper class for passing float constants to shaders
 class GPUFloatRegisterStack {
 public:
 	GPUFloatRegister mRegisters[256];
@@ -321,7 +326,11 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	mShadersChangeCount(0),
 	mRenderedTriangleCount(0),
 	mTextureChangeCount(0),
-	mSSAOEnabled(false) {
+	mSoftShadows(true),
+	mVolumetricFog(true),
+	mDynamicDirectionalShadows(true),
+	mDirectionalLightShadowUpdateTimer(0),
+	mBloomEnabled(true) {
 	if (width == 0 || height == 0) {
 		width = GetSystemMetrics(SM_CXSCREEN);
 		height = GetSystemMetrics(SM_CYSCREEN);
@@ -374,13 +383,13 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		Log::Error("Your graphics card doesn't support Pixel Shader 3.0. Engine initialization failed! Buy a modern video card!");
 	}
 
-	// Check passed resolution
+	// Check passed resolution and fill videomode list
 	bool passedResolutionValid = false;
 	D3DDISPLAYMODE mode;
 	for (int i = 0; i < mpDirect3D->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8); i++) {
 		mpDirect3D->EnumAdapterModes(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, i, &mode);
 		Log::Write(StringBuilder("Videomode: ") << mode.Width << " x " << mode.Height << " x 32 @ " << mode.RefreshRate);
-		mVideomodeList.push_back(Videomode(mode.Width, mode.Height, mode.RefreshRate));
+		mVideomodeList.push_back(ruVideomode(mode.Width, mode.Height, mode.RefreshRate));
 		if (mode.Width == width && mode.Height == height) {
 			passedResolutionValid = true;
 			break;
@@ -442,6 +451,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	// Create device
 	D3DCALL(mpDirect3D->CreateDeviceEx(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, mWindowHandle, D3DCREATE_HARDWARE_VERTEXPROCESSING, &mPresentParameters, fullscreen ? &displayMode : nullptr, &mpDevice));
 
+	// init alias, to make d3d calls more short and clear
 	pD3D = mpDevice;
 
 	D3DCALL(pD3D->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &mpBackBuffer));
@@ -503,13 +513,17 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	}
 
 	// Ambient light pixel shader
-	LoadPixelShader(mAmbientPixelShader, "data/shaders/deferredAmbientLight.pso");
+	{
+		LoadPixelShader(mAmbientPixelShader, "data/shaders/deferredAmbientLight.pso");
+	}
 
 	// GBuffer shaders
-	LoadVertexShader(mGBufferVertexShader, "data/shaders/deferredGBuffer.vso");
-	LoadPixelShader(mGBufferPixelShader, "data/shaders/deferredGBuffer.pso");
-	LoadPixelShader(mDeferredBlending, "data/shaders/deferredBlending.pso");
-	LoadPixelShader(mDeferredLightShader, "data/shaders/deferredLighting.pso");
+	{
+		LoadVertexShader(mGBufferVertexShader, "data/shaders/deferredGBuffer.vso");
+		LoadPixelShader(mGBufferPixelShader, "data/shaders/deferredGBuffer.pso");
+		LoadPixelShader(mDeferredBlending, "data/shaders/deferredBlending.pso");
+		LoadPixelShader(mDeferredLightShader, "data/shaders/deferredLighting.pso");
+	}
 
 	// Init HDR Stuff
 	{
@@ -535,29 +549,19 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		LoadPixelShader(mDownScalePixelShader, "data/shaders/hdrDownscale.pso");
 	}
 
+	D3DCALL(pD3D->GetDepthStencilSurface(&mDefaultDepthStencil));
+
 	// Spot light shadow map
 	{
-		int shadowMapWidth = 1024;
-		int shadowMapHeight = 1024;
-
 		LoadVertexShader(mShadowMapVertexShader, "data/shaders/shadowMap.vso");
 		LoadPixelShader(mShadowMapPixelShader, "data/shaders/shadowMap.pso");
 
-		D3DCALL(pD3D->CreateTexture(shadowMapWidth, shadowMapHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mSpotShadowMap, nullptr));
-		D3DCALL(mSpotShadowMap->GetSurfaceLevel(0, &mSpotShadowMapSurface));
-
-		D3DCALL(pD3D->GetDepthStencilSurface(&mDefaultDepthStencil));
-		D3DCALL(pD3D->CreateDepthStencilSurface(shadowMapWidth, shadowMapHeight, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mSpotDepthStencilSurface, 0));
+		SetSpotLightShadowMapSize(1024);
 	}
 
 	// Directional light shadow map
 	{
-		int shadowMapWidth = 2048;
-		int shadowMapHeight = 2048;
-
-		D3DCALL(pD3D->CreateTexture(shadowMapWidth, shadowMapHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDirectionalShadowMap, nullptr));
-		D3DCALL(mDirectionalShadowMap->GetSurfaceLevel(0, &mDirectionalShadowMapSurface));
-		D3DCALL(pD3D->CreateDepthStencilSurface(shadowMapWidth, shadowMapHeight, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDirectionalDepthStencilSurface, 0));
+		SetDirectionalLightShadowMapSize(2048);
 	}
 
 	// Particle shaders
@@ -697,34 +701,31 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 	{
 		LoadPixelShader(mFogShader, "data/shaders/fog.pso");
 
-		//D3DXCreateVolumeTextureFromFileA(pD3D, "data/textures/effects/perlin3d.dds", &mFogVolume);
-
-		
-		Perlin3DGenerator pg;
-
-		const int dim = 128;
-		D3DCALL(pD3D->CreateVolumeTexture(dim, dim, dim, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mFogVolume, nullptr));
-		D3DLOCKED_BOX locked;
-		D3DCALL(mFogVolume->LockBox(0, &locked, nullptr, 0));
-		int rowOffset = locked.RowPitch / sizeof(A8R8G8B8Pixel);
-		int sliceOffset = locked.SlicePitch / sizeof(A8R8G8B8Pixel);
-		A8R8G8B8Pixel * pixels = static_cast<A8R8G8B8Pixel*>(locked.pBits);
-		for (int slice = 0; slice < dim; ++slice) {
-			for (int row = 0; row < dim; ++row) {
-				for (int col = 0; col < dim; ++col) {
-					float m = dim;
-					float scl = 2;
-					float p1 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 1) * 0.5 + 0.5);
-					float p2 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 2) * 0.5 + 0.5);
-					float p3 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 3) * 0.5 + 0.5);
-					float p4 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 4) * 0.5 + 0.5);
-					pixels[slice * sliceOffset + row * rowOffset + col] = A8R8G8B8Pixel(p1 * 255, p2 * 255, p3 * 255, p4 * 255);
+		if (FAILED(D3DXCreateVolumeTextureFromFileA(pD3D, "data/textures/effects/perlin3d.dds", &mFogVolume))) {
+			Perlin3DGenerator pg;
+			const int dim = 128;
+			D3DCALL(pD3D->CreateVolumeTexture(dim, dim, dim, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &mFogVolume, nullptr));
+			D3DLOCKED_BOX locked;
+			D3DCALL(mFogVolume->LockBox(0, &locked, nullptr, 0));
+			int rowOffset = locked.RowPitch / sizeof(A8R8G8B8Pixel);
+			int sliceOffset = locked.SlicePitch / sizeof(A8R8G8B8Pixel);
+			A8R8G8B8Pixel * pixels = static_cast<A8R8G8B8Pixel*>(locked.pBits);
+			for (int slice = 0; slice < dim; ++slice) {
+				for (int row = 0; row < dim; ++row) {
+					for (int col = 0; col < dim; ++col) {
+						float m = dim;
+						float scl = 2;
+						float p1 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 1) * 0.5 + 0.5);
+						float p2 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 2) * 0.5 + 0.5);
+						float p3 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 3) * 0.5 + 0.5);
+						float p4 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 4) * 0.5 + 0.5);
+						pixels[slice * sliceOffset + row * rowOffset + col] = A8R8G8B8Pixel(p1 * 255, p2 * 255, p3 * 255, p4 * 255);
+					}
 				}
 			}
+			mFogVolume->UnlockBox(0);
+			D3DXSaveTextureToFileA("data/textures/effects/perlin3d.dds", D3DXIFF_DDS, mFogVolume, nullptr);
 		}
-		mFogVolume->UnlockBox(0);
-
-		D3DXSaveTextureToFileA("perlin3d.dds", D3DXIFF_DDS, mFogVolume, nullptr);
 	}
 
 	// GUI Stuff
@@ -867,7 +868,7 @@ Renderer::Renderer(int width, int height, int fullscreen, char vSync) :
 		LoadColorGradingMap("data/textures/colormaps/default.png");
 	}
 
-
+	mIsotropyDegree = GetMaxIsotropyDegree();
 }
 
 
@@ -1344,7 +1345,7 @@ void Renderer::RenderWorld() {
 									D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
 									D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
 
-									static CameraDirection directions[6] = {
+									static const CameraDirection directions[6] = {
 										{ ruVector3(1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
 										{ ruVector3(-1.0f,  0.0f,  0.0f), ruVector3(0.0f, 1.0f,  0.0f) },
 										{ ruVector3(0.0f,  1.0f,  0.0f), ruVector3(0.0f, 0.0f, -1.0f) },
@@ -1358,7 +1359,7 @@ void Renderer::RenderWorld() {
 									mShadersChangeCount += 2;
 
 									D3DXMATRIX projectionMatrix;
-									D3DXMatrixPerspectiveFovLH(&projectionMatrix, 1.570796, 1.0f, 0.05f, 1024.0f);
+									D3DXMatrixPerspectiveFovLH(&projectionMatrix, 1.570796, 1.0f, 0.05f, pLight->GetRange() * 2);
 
 									for (int face = 0; face < 6; ++face) {
 										IDirect3DSurface9 * faceSurface;
@@ -1435,33 +1436,33 @@ void Renderer::RenderWorld() {
 									pLight->mNeedRecomputeShadowMap = false;
 								}
 
-								pD3D->SetRenderTarget(0, renderTarget);
-								pD3D->SetDepthStencilSurface(mDefaultDepthStencil);
+								D3DCALL(pD3D->SetRenderTarget(0, renderTarget));
+								D3DCALL(pD3D->SetDepthStencilSurface(mDefaultDepthStencil));
 
-								pD3D->SetRenderState(D3DRS_STENCILENABLE, TRUE);
-								pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-								pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+								D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, TRUE));
+								D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE));
+								D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, FALSE));
 
-								pD3D->SetTexture(6, mCubeShadowMapCache[pLight->GetShadowMapIndex()]);
+								D3DCALL(pD3D->SetTexture(6, mCubeShadowMapCache[pLight->GetShadowMapIndex()]));
 								++mTextureChangeCount;
 
 								// Revert to light shader
-								pD3D->SetPixelShader(mDeferredLightShader);
-								pD3D->SetVertexShader(mQuadVertexShader);
+								D3DCALL(pD3D->SetPixelShader(mDeferredLightShader));
+								D3DCALL(pD3D->SetVertexShader(mQuadVertexShader));
 								++mShadersChangeCount;
 							}
 						}
 
-						pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0x00000000);
-						pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS);
-						pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
+						D3DCALL(pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0x00000000));
+						D3DCALL(pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS));
+						D3DCALL(pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP));
 
-						pD3D->SetRenderState(D3DRS_ZENABLE, TRUE);
+						D3DCALL(pD3D->SetRenderState(D3DRS_ZENABLE, TRUE));
 
 						if (pLight->GetPointTexture()) {
-							pD3D->SetTexture(3, pLight->GetPointTexture()->mCubeTexture);
+							D3DCALL(pD3D->SetTexture(3, pLight->GetPointTexture()->mCubeTexture));
 						} else {
-							pD3D->SetTexture(3, mWhiteCubeMap);
+							D3DCALL(pD3D->SetTexture(3, mWhiteCubeMap));
 						}
 						++mTextureChangeCount;
 
@@ -1474,28 +1475,28 @@ void Renderer::RenderWorld() {
 						gpuFloatRegisterStack.PushFloat(pLight->GetRange());
 						gpuFloatRegisterStack.PushFloat(hdrLightIntensity);
 						gpuFloatRegisterStack.PushVector(camera->GetPosition());
-						pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+						D3DCALL(pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
 						gpuBoolRegisterStack.Clear();
 						gpuBoolRegisterStack.Push(TRUE);
 						gpuBoolRegisterStack.Push(useShadows);
 						gpuBoolRegisterStack.Push(FALSE); // do not use directional lighting
-						gpuBoolRegisterStack.Push(mHDREnabled);
-						pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+						gpuBoolRegisterStack.Push(mSoftShadows);
+						D3DCALL(pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount));
 
 						// Load vertex shader constants 
 						gpuFloatRegisterStack.Clear();
 						gpuFloatRegisterStack.PushMatrix(SetUniformScaleTranslationMatrix(1.5f * pLight->mRadius, pLight->GetPosition()) * camera->mViewProjection);
-						pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+						D3DCALL(pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount));
 
 						// Render bounding sphere
-						mBoundingSphere->DrawSubset(0);
-						pD3D->SetVertexDeclaration(msVertexDeclaration);
+						D3DCALL(mBoundingSphere->DrawSubset(0));
+						D3DCALL(pD3D->SetVertexDeclaration(msVertexDeclaration));
 
 						// Revert stencil
-						pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-						pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
-						pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO);
+						D3DCALL(pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF));
+						D3DCALL(pD3D->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL));
+						D3DCALL(pD3D->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO));
 
 						// Apply lighting to pixels, that marked by bounding sphere
 						RenderFullscreenQuad();
@@ -1506,7 +1507,7 @@ void Renderer::RenderWorld() {
 	}
 
 	// Render spot lights
-	pD3D->SetPixelShader(mDeferredLightShader);
+	D3DCALL(pD3D->SetPixelShader(mDeferredLightShader));
 	++mShadersChangeCount;
 
 	auto & spotLights = SceneFactory::GetSpotLightList();
@@ -1516,19 +1517,19 @@ void Renderer::RenderWorld() {
 			if (camera->mFrustum.IsSphereInside(pLight->GetPosition(), pLight->GetRange()) && pLight->IsVisible()) {
 				// If shadows enabled, render shadowmap first
 				if (IsSpotLightShadowsEnabled() && pLight->IsShadowCastEnabled()) {
-					pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE);
-					pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-					pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+					D3DCALL(pD3D->SetRenderState(D3DRS_STENCILENABLE, FALSE));
+					D3DCALL(pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
+					D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
 
-					pD3D->SetTexture(4, nullptr);
+					D3DCALL(pD3D->SetTexture(4, nullptr));
 					++mTextureChangeCount;
 
-					pD3D->SetRenderTarget(0, mSpotShadowMapSurface);
-					pD3D->SetDepthStencilSurface(mSpotDepthStencilSurface);
-					pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+					D3DCALL(pD3D->SetRenderTarget(0, mSpotShadowMapSurface));
+					D3DCALL(pD3D->SetDepthStencilSurface(mSpotDepthStencilSurface));
+					D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
 
-					pD3D->SetPixelShader(mShadowMapPixelShader);
-					pD3D->SetVertexShader(mShadowMapVertexShader);
+					D3DCALL(pD3D->SetPixelShader(mShadowMapPixelShader));
+					D3DCALL(pD3D->SetVertexShader(mShadowMapVertexShader));
 					mShadersChangeCount += 2;
 
 					pLight->BuildSpotProjectionMatrixAndFrustum();
@@ -1633,7 +1634,7 @@ void Renderer::RenderWorld() {
 				gpuBoolRegisterStack.Push(FALSE);
 				gpuBoolRegisterStack.Push(mUseSpotLightShadows && pLight->IsShadowCastEnabled());
 				gpuBoolRegisterStack.Push(FALSE); // do not use directional lighting
-				gpuBoolRegisterStack.Push(mHDREnabled);
+				gpuBoolRegisterStack.Push(mSoftShadows);
 				pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
 
 				pD3D->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
@@ -1652,75 +1653,91 @@ void Renderer::RenderWorld() {
 	pD3D->SetPixelShader(mDeferredLightShader);
 	++mShadersChangeCount;
 
+	--mDirectionalLightShadowUpdateTimer;
+
 	auto & directionalLightList = SceneFactory::GetDirectionalLightList();
 	for (auto & lWeak : directionalLightList) {
 		shared_ptr<DirectionalLight> & pLight = lWeak.lock();
 		if (pLight && pLight->IsVisible()) {
-
 			D3DXMATRIX orthoMatrix;
-			//D3DXMatrixOrthoRH(&orthoMatrix, mResWidth, mResHeight, 0.5, 1024.0); // <<<<<<<< AWARE MAGIC NUMBERS
 			float dim = 150;
 			D3DXMatrixOrthoOffCenterRH(&orthoMatrix, -dim * 0.5, dim *0.5, -dim * 0.5, dim * 0.5, -dim, dim); // <<<<<<<< AWARE MAGIC NUMBERS
-			// D3DXMatrixOrthoRH(&orthoMatrix, dim, dim, -dim, dim);
 
-			pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-			pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+			// render shadows only if it is dynamic or by fixed period of time
+			if (mDirectionalLightShadowUpdateTimer <= 0 || mDynamicDirectionalShadows) { 
+				pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+				pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
-			pD3D->SetTexture(4, nullptr);
-			++mTextureChangeCount;
+				pD3D->SetTexture(4, nullptr);
+				++mTextureChangeCount;
 
-			pD3D->SetRenderTarget(0, mDirectionalShadowMapSurface);
-			pD3D->SetDepthStencilSurface(mDirectionalDepthStencilSurface);
-			pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+				pD3D->SetRenderTarget(0, mDirectionalShadowMapSurface);
+				pD3D->SetDepthStencilSurface(mDirectionalDepthStencilSurface);
+				pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
 
-			pD3D->SetPixelShader(mShadowMapPixelShader);
-			pD3D->SetVertexShader(mShadowMapVertexShader);
-			mShadersChangeCount += 2;
+				pD3D->SetPixelShader(mShadowMapPixelShader);
+				pD3D->SetVertexShader(mShadowMapVertexShader);
+				mShadersChangeCount += 2;
+				
+				for (auto & texGroupPair : mDeferredMeshMap) {
+					pD3D->SetTexture(7, texGroupPair.first);
+					for (auto & weakMesh : texGroupPair.second) {
+						shared_ptr<Mesh> mesh = weakMesh.lock();
 
-			for (auto & texGroupPair : mDeferredMeshMap) {
-				pD3D->SetTexture(7, texGroupPair.first);
-				for (auto & weakMesh : texGroupPair.second) {
-					shared_ptr<Mesh> mesh = weakMesh.lock();
-					auto & owners = mesh->GetOwners();
-					for (auto & weakOwner : owners) {
-						shared_ptr<SceneNode> & pOwner = weakOwner.lock();
-
-						if (pOwner->IsBone()) {
+						// semi-transparent meshes does not cast shadows - FIXME: Is this right?
+						if (mesh->GetOpacity() < 0.95) {
 							continue;
 						}
 
-						if (pOwner->IsVisible()) {
-							// Load vertex shader constants
-							gpuFloatRegisterStack.Clear();
-							gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * (pLight->BuildViewMatrix(camera) * orthoMatrix));
-							gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
-							for (auto bone : mesh->GetBones()) {
-								shared_ptr<SceneNode> boneNode = bone->mNode.lock();
-								if (boneNode) {
-									gpuFloatRegisterStack.PushMatrix(TransformToMatrix(boneNode->GetRelativeTransform() * pOwner->GetLocalTransform()));
+						auto & owners = mesh->GetOwners();
+						for (auto & weakOwner : owners) {
+							shared_ptr<SceneNode> & pOwner = weakOwner.lock();
+
+							if (pOwner->IsBone()) {
+								continue;
+							}
+
+							if (!mDynamicDirectionalShadows) {
+								if (pOwner->GetDynamicBody()) {
+									continue;
 								}
 							}
-							pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
-							gpuBoolRegisterStack.Clear();
-							gpuBoolRegisterStack.Push(pOwner->IsSkinned());
-							gpuBoolRegisterStack.Push(FALSE);
-							gpuBoolRegisterStack.Push(TRUE);
-							pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+							if (pOwner->IsVisible()) {
+								// Load vertex shader constants
+								gpuFloatRegisterStack.Clear();
+								gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * (pLight->BuildViewMatrix(camera) * orthoMatrix));
+								gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
+								for (auto bone : mesh->GetBones()) {
+									shared_ptr<SceneNode> boneNode = bone->mNode.lock();
+									if (boneNode) {
+										gpuFloatRegisterStack.PushMatrix(TransformToMatrix(boneNode->GetRelativeTransform() * pOwner->GetLocalTransform()));
+									}
+								}
+								pD3D->SetVertexShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
-							// Load pixel shader constants
-							gpuFloatRegisterStack.Clear();
-							gpuFloatRegisterStack.PushVector(pLight->GetPosition());
-							pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+								gpuBoolRegisterStack.Clear();
+								gpuBoolRegisterStack.Push(pOwner->IsSkinned());
+								gpuBoolRegisterStack.Push(FALSE);
+								gpuBoolRegisterStack.Push(TRUE);
+								pD3D->SetVertexShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
 
-							gpuBoolRegisterStack.Clear();
-							gpuBoolRegisterStack.Push(FALSE);
-							pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+								// Load pixel shader constants
+								gpuFloatRegisterStack.Clear();
+								gpuFloatRegisterStack.PushVector(pLight->GetPosition());
+								pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
-							RenderMesh(mesh);
+								gpuBoolRegisterStack.Clear();
+								gpuBoolRegisterStack.Push(FALSE);
+								pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+
+								RenderMesh(mesh);
+							}
 						}
 					}
 				}
+
+				mDirectionalLightShadowUpdateTimer = 120; // shadow will be updated after N frames
 			}
 
 			pD3D->SetRenderTarget(0, renderTarget);
@@ -1755,69 +1772,14 @@ void Renderer::RenderWorld() {
 			gpuBoolRegisterStack.Push(FALSE);
 			gpuBoolRegisterStack.Push(TRUE); // force enable shadows for directional lighting
 			gpuBoolRegisterStack.Push(TRUE); // use directional lighting
-			gpuBoolRegisterStack.Push(mHDREnabled);
+			gpuBoolRegisterStack.Push(mSoftShadows);
 			pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
 
 			RenderFullscreenQuad();
 		}
 	}
 
-	// Render fog
-	pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	pD3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	pD3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	{		
-		pD3D->SetPixelShader(mFogShader);
-		pD3D->SetVertexShader(mQuadVertexShader);
 
-		auto & fogList = SceneFactory::GetFogList();
-		for (auto weakFog : fogList) {
-			auto fog = weakFog.lock();
-
-			if (!fog->IsVisible()) {
-				continue;
-			}
-
-
-
-			// gather lights
-			const int maxLights = 4;
-			int lightCount = 0;
-			vector<LightProxy> lights;
-			for (auto lWeak : pointLights) {
-				auto light = lWeak.lock();
-				
-				if (light->IsVisible()) {
-					if (fog->GetAABB().IsIntersectSphere(fog->GetPosition(), light->GetPosition(), light->GetRange())) {
-						lights.push_back(LightProxy(light->GetPosition(), light->GetColor(), light->GetRange()));
-						++lightCount;
-					}
-				}
-			}
-
-			for (int i = lights.size(); i < maxLights; ++i) lights.push_back(LightProxy());
-
-
-			// pass constants to pixel shader
-			gpuFloatRegisterStack.Clear();
-			gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
-			gpuFloatRegisterStack.PushVector(fog->GetMin() + fog->GetPosition());
-			gpuFloatRegisterStack.PushVector(fog->GetMax() + fog->GetPosition());
-			gpuFloatRegisterStack.PushVector(camera->GetPosition());
-			gpuFloatRegisterStack.PushVector(fog->GetColor());
-			gpuFloatRegisterStack.PushFloat(fog->GetDensity());
-			gpuFloatRegisterStack.PushVector(fog->GetOffset());
-			gpuFloatRegisterStack.PushFloat(lightCount < maxLights ? lightCount : maxLights);
-			for (int i = 0; i < maxLights; ++i) gpuFloatRegisterStack.PushFloat(lights[i].mPosition.x, lights[i].mPosition.y, lights[i].mPosition.z, lights[i].mRadius);
-			for (int i = 0; i < maxLights; ++i) gpuFloatRegisterStack.PushVector(lights[i].mColor);
-			gpuFloatRegisterStack.PushVector(SceneFactory::GetDirectionalLightList().size() ? (SceneFactory::GetDirectionalLightList()[0].lock()->GetColor() + mAmbientColor) : mAmbientColor);
-			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
-
-			pD3D->SetTexture(1, mFogVolume);
-
-			RenderFullscreenQuad();
-		}
-	}
 
 	// Apply post-effects (HDR, FXAA, and so on)
 	IDirect3DTexture9 * finalFrame = mFrame[0];
@@ -1829,54 +1791,56 @@ void Renderer::RenderWorld() {
 
 	// Do HDR
 	if (mHDREnabled) {
-		// Build bloom texture
-		pD3D->SetRenderTarget(0, mBloomTextureSurface);
-		pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+		if (mBloomEnabled) {
+			// Build bloom texture
+			pD3D->SetRenderTarget(0, mBloomTextureSurface);
+			pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
 
-		pD3D->SetPixelShader(mBloomPixelShader);
-		++mShadersChangeCount;
+			pD3D->SetPixelShader(mBloomPixelShader);
+			++mShadersChangeCount;
 
-		pD3D->SetTexture(0, mHDRFrame);
-		++mTextureChangeCount;
+			pD3D->SetTexture(0, mHDRFrame);
+			++mTextureChangeCount;
 
-		gpuFloatRegisterStack.Clear();
-		gpuFloatRegisterStack.PushVector(mBloomDX);
-		gpuFloatRegisterStack.PushVector(mBloomDY);
-		pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+			gpuFloatRegisterStack.Clear();
+			gpuFloatRegisterStack.PushVector(mBloomDX);
+			gpuFloatRegisterStack.PushVector(mBloomDY);
+			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
-		RenderFullscreenQuad();
+			RenderFullscreenQuad();
 
-		// Blur bloom vertically
-		pD3D->SetRenderTarget(0, mBloomBlurredSurface);
-		pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+			// Blur bloom vertically
+			pD3D->SetRenderTarget(0, mBloomBlurredSurface);
+			pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
 
-		pD3D->SetTexture(0, mBloomTexture);
-		++mTextureChangeCount;
+			pD3D->SetTexture(0, mBloomTexture);
+			++mTextureChangeCount;
 
-		pD3D->SetPixelShader(mGaussianBlurShader);
-		++mShadersChangeCount;
+			pD3D->SetPixelShader(mGaussianBlurShader);
+			++mShadersChangeCount;
 
-		gpuFloatRegisterStack.Clear();
-		gpuFloatRegisterStack.PushVector(mBloomDY);
-		pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+			gpuFloatRegisterStack.Clear();
+			gpuFloatRegisterStack.PushVector(mBloomDY);
+			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
-		RenderFullscreenQuad();
+			RenderFullscreenQuad();
 
-		// Blur bloom horizontally
-		pD3D->SetRenderTarget(0, mBloomTextureSurface);
-		pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
+			// Blur bloom horizontally
+			pD3D->SetRenderTarget(0, mBloomTextureSurface);
+			pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
 
-		pD3D->SetTexture(0, mBloomBlurredTexture);
-		++mTextureChangeCount;
+			pD3D->SetTexture(0, mBloomBlurredTexture);
+			++mTextureChangeCount;
 
-		pD3D->SetPixelShader(mGaussianBlurShader);
-		++mShadersChangeCount;
+			pD3D->SetPixelShader(mGaussianBlurShader);
+			++mShadersChangeCount;
 
-		gpuFloatRegisterStack.Clear();
-		gpuFloatRegisterStack.PushVector(mBloomDX);
-		pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+			gpuFloatRegisterStack.Clear();
+			gpuFloatRegisterStack.PushVector(mBloomDX);
+			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
-		RenderFullscreenQuad();
+			RenderFullscreenQuad();
+		}
 
 		// Calculate HDR-frame luminance
 		pD3D->SetTexture(0, mHDRFrame);
@@ -1955,9 +1919,15 @@ void Renderer::RenderWorld() {
 		++mTextureChangeCount;
 		pD3D->SetTexture(3, mColorMap);
 		++mTextureChangeCount;
+		
+		gpuBoolRegisterStack.Clear();
+		gpuBoolRegisterStack.Push(mBloomEnabled);
+		pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
 
 		pD3D->SetPixelShader(mToneMapShader);
 		++mShadersChangeCount;
+
+
 
 		pD3D->SetRenderState(D3DRS_SRGBWRITEENABLE, TRUE);
 		RenderFullscreenQuad();
@@ -1967,6 +1937,69 @@ void Renderer::RenderWorld() {
 
 		finalFrame = mFrame[0];
 	};
+
+
+	// Render fog
+	pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	pD3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	pD3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	{
+		pD3D->SetTexture(0, mDepthMap);
+
+		pD3D->SetPixelShader(mFogShader);
+		pD3D->SetVertexShader(mQuadVertexShader);
+
+		auto & fogList = SceneFactory::GetFogList();
+		for (auto weakFog : fogList) {
+			auto fog = weakFog.lock();
+
+			if (!fog->IsVisible()) {
+				continue;
+			}
+
+			// gather lights
+			const int maxLights = 4;
+			int lightCount = 0;
+			vector<LightProxy> lights;
+			for (auto lWeak : pointLights) {
+				auto light = lWeak.lock();
+
+				if (light->IsVisible()) {
+					if (fog->GetAABB().IsIntersectSphere(fog->GetPosition(), light->GetPosition(), light->GetRange())) {
+						lights.push_back(LightProxy(light->GetPosition(), light->GetColor(), light->GetRange()));
+						++lightCount;
+					}
+				}
+			}
+
+			for (int i = lights.size(); i < maxLights; ++i) lights.push_back(LightProxy());
+
+			// pass constants to pixel shader
+			gpuFloatRegisterStack.Clear();
+			gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
+			gpuFloatRegisterStack.PushVector(fog->GetMin() + fog->GetPosition());
+			gpuFloatRegisterStack.PushVector(fog->GetMax() + fog->GetPosition());
+			gpuFloatRegisterStack.PushVector(camera->GetPosition());
+			gpuFloatRegisterStack.PushVector(fog->GetColor());
+			gpuFloatRegisterStack.PushFloat(fog->GetDensity());
+			gpuFloatRegisterStack.PushVector(fog->GetOffset());
+			gpuFloatRegisterStack.PushFloat(lightCount < maxLights ? lightCount : maxLights);
+			for (int i = 0; i < maxLights; ++i) gpuFloatRegisterStack.PushFloat(lights[i].mPosition.x, lights[i].mPosition.y, lights[i].mPosition.z, lights[i].mRadius);
+			for (int i = 0; i < maxLights; ++i) gpuFloatRegisterStack.PushVector(lights[i].mColor);
+			gpuFloatRegisterStack.PushVector(SceneFactory::GetDirectionalLightList().size() ? (SceneFactory::GetDirectionalLightList()[0].lock()->GetColor() + mAmbientColor) : mAmbientColor);
+			pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
+
+			gpuBoolRegisterStack.Clear();
+			gpuBoolRegisterStack.Push(mVolumetricFog);
+			pD3D->SetPixelShaderConstantB(0, gpuBoolRegisterStack.GetPointer(), gpuBoolRegisterStack.mBooleanCount);
+
+			pD3D->SetTexture(1, mFogVolume);
+
+			RenderFullscreenQuad();
+		}
+	}
+
+	pD3D->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 
 	// Do blending for transparent lines (remember interlace rendering for transparent objects)
 	pD3D->SetRenderTarget(0, mFrameSurface[1]);
@@ -2009,28 +2042,6 @@ void Renderer::RenderWorld() {
 		finalFrame = (finalFrame == mFrame[1]) ? mFrame[0] : mFrame[1];
 	}
 
-	// Do SSAO
-	if (mSSAOEnabled) {
-		pD3D->SetRenderTarget(0, (finalFrame == mFrame[1]) ? mFrameSurface[0] : mFrameSurface[1]);
-		pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
-
-		pD3D->SetTexture(0, mDepthMap);
-		++mTextureChangeCount;
-
-		pD3D->SetTexture(1, mNormalMap);
-		++mTextureChangeCount;
-
-		pD3D->SetTexture(2, finalFrame);
-		++mTextureChangeCount;
-
-		finalFrame = (finalFrame == mFrame[1]) ? mFrame[0] : mFrame[1];
-	}
-
-	// Postprocessing
-	//if (mHDREnabled) {
-	//	pD3D->SetRenderState(D3DRS_SRGBWRITEENABLE, TRUE);
-	//}
-
 	pD3D->SetRenderTarget(0, mpBackBuffer);
 	pD3D->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0);
 
@@ -2047,8 +2058,6 @@ void Renderer::RenderWorld() {
 	} else {
 		SetGenericSamplersFiltration(D3DTEXF_LINEAR, false);
 	}
-
-	//pD3D->SetRenderState(D3DRS_SRGBWRITEENABLE, FALSE);
 
 
 	//********************************
@@ -2484,11 +2493,27 @@ void Renderer::ChangeVideomode(int width, int height, bool fullscreen, bool vsyn
 }
 
 void Renderer::SetSpotLightShadowMapSize(int size) {
+	if (size != mSpotShadowMapSize) {
+		mSpotShadowMapSize = size;
 
+		Clamp(mSpotShadowMapSize, 256, 2048);
+
+		mSpotShadowMapSurface.Reset();
+		mSpotShadowMap.Reset();
+		mSpotDepthStencilSurface.Reset();
+
+		D3DCALL(pD3D->CreateTexture(mSpotShadowMapSize, mSpotShadowMapSize, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mSpotShadowMap, nullptr));
+		D3DCALL(mSpotShadowMap->GetSurfaceLevel(0, &mSpotShadowMapSurface));
+		D3DCALL(pD3D->CreateDepthStencilSurface(mSpotShadowMapSize, mSpotShadowMapSize, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mSpotDepthStencilSurface, 0));
+	}
 }
 
 int Renderer::GetDIPCount() {
 	return mDIPCount;
+}
+
+int Renderer::GetRenderedTriangles() const {
+	return mRenderedTriangleCount;
 }
 
 float Renderer::GetResolutionHeight() {
@@ -2646,19 +2671,8 @@ void Renderer::SetDefaults() {
 	pD3D->SetSamplerState(4, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 	pD3D->SetSamplerState(4, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
-	D3DCAPS9 dCaps;
-	mpDirect3D->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &dCaps);
-	if (dCaps.MaxAnisotropy > 4) {
-		dCaps.MaxAnisotropy = 4;
-	}
-
-	pD3D->SetSamplerState(0, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy);
-	pD3D->SetSamplerState(1, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy);
-	pD3D->SetSamplerState(2, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy);
-	pD3D->SetSamplerState(3, D3DSAMP_MAXANISOTROPY, dCaps.MaxAnisotropy);
-
+	SetIsotropyDegree(GetMaxIsotropyDegree());
 	SetAnisotropicTextureFiltration(true);
-
 	SetParallaxEnabled(true);
 }
 

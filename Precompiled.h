@@ -82,7 +82,7 @@
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "dxguid.lib" )
 
-#define D3DCALL(func) if(FAILED(func)) Log::Error(StringBuilder() << "Failed " << #func );
+#define D3DCALL(func) if(FAILED(func)) Log::Error(StringBuilder() << "Failed " << #func << ". At line" << __LINE__);
 
 template<typename Interface>
 class COMPtr {

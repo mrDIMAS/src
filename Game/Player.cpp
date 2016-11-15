@@ -67,7 +67,7 @@ Player::Player() :
 
 	mBodyModelRoot = mBodyModel->FindChild("Root");
 	mFlashlight = dynamic_pointer_cast<ruSpotLight>(mBodyModel->FindChild("Fspot001"));
-	mFlashlight->SetShadowCastEnabled(false); 
+	//mFlashlight->SetShadowCastEnabled(false); 
 	mFlashlightSwitchSound = ruSound::Load2D("data/sounds/flashlight_switch.ogg");
 	mFlashlightSwitchSound->Attach(mBody);
 
