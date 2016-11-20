@@ -32,6 +32,7 @@
 #include <memory>
 #include <unordered_map>
 #include <functional>
+#include <map>
 
 using namespace std;
 
@@ -43,7 +44,7 @@ private:
 	vector<ruDelegate> Actions;
 public:
 	void operator()() {
-		for (auto & f : Actions) f();
+		for(auto & f : Actions) f();
 	}
 
 	ruEvent & operator += (const ruDelegate & fn) {
@@ -97,7 +98,7 @@ public:
 	ruVector3 operator - (const ruVector3 & v) const { return ruVector3(x - v.x, y - v.y, z - v.z); }
 	ruVector3 operator * (const ruVector3 & v) const { return ruVector3(x * v.x, y * v.y, z * v.z); }
 	ruVector3 operator * (const float & f) const { return ruVector3(x * f, y * f, z * f); }
-	ruVector3 operator / (const ruVector3 & v) const { return ruVector3(x / v.x, y / v.y, z / v.z); } 
+	ruVector3 operator / (const ruVector3 & v) const { return ruVector3(x / v.x, y / v.y, z / v.z); }
 	ruVector3 operator / (const float & f) const { return ruVector3(x / f, y / f, z / f); }
 	void operator *= (const ruVector3 & v) { x *= v.x; y *= v.y; z *= v.z; }
 	float Angle(const ruVector3 & v) const { return acosf(Dot(v) / sqrtf(Length2() * v.Length2())); }
@@ -106,7 +107,7 @@ public:
 	void operator /= (float a) { x /= a; y /= a; z /= a; }
 	void operator += (const ruVector3 & v) { x += v.x; y += v.y; z += v.z; }
 	void operator -= (const ruVector3 & v) { x -= v.x; y -= v.y; z -= v.z; }
-	void operator = (const ruVector3 & v) { x = v.x; y = v.y; z = v.z; } 
+	void operator = (const ruVector3 & v) { x = v.x; y = v.y; z = v.z; }
 	bool operator == (const ruVector3 & v) {
 		float dx = abs(x - v.x);
 		float dy = abs(y - v.y);
@@ -119,7 +120,7 @@ public:
 	ruVector3 Normalized() const { float l = 1.0f / Length(); return ruVector3(x * l, y * l, z * l); }
 	ruVector3 Cross(const ruVector3 & v) const { return ruVector3(y * v.z - z * v.x, z * v.x - x * v.z, x * v.y - y * v.x); }
 	float Dot(const ruVector3 & v) const { return x * v.x + y * v.y + z * v.z; }
-	ruVector3 Rotate(const ruVector3 & axis, float angle) { 
+	ruVector3 Rotate(const ruVector3 & axis, float angle) {
 		angle *= 3.14159f / 180.0f;
 		ruVector3 o = axis * axis.Dot(*this);
 		ruVector3 x = *this - o;
@@ -128,7 +129,7 @@ public:
 		return (o + x * cosf(angle) + y * sinf(angle));
 	}
 	ruVector3 Lerp(const ruVector3 & v, float t) const { return ruVector3(x + (v.x - x) * t, y + (v.y - y) * t, z + (v.z - z) * t); }
-	ruVector3 Project(const ruVector3 & planeNormal) const { return (*this) - (planeNormal * (*this).Dot(planeNormal)) / planeNormal.Length2(); } 
+	ruVector3 Project(const ruVector3 & planeNormal) const { return (*this) - (planeNormal * (*this).Dot(planeNormal)) / planeNormal.Length2(); }
 	float Distance(const ruVector3 & v) const { return (*this - v).Length(); }
 };
 
@@ -190,10 +191,10 @@ public:
 	static ruQuaternion LookAt(const ruVector3 & sourcePoint, const ruVector3 & destPoint) {
 		ruVector3 forwardVector = (destPoint - sourcePoint).Normalize();
 		float dot = ruVector3(0, 0, 1).Dot(forwardVector);
-		if (abs(dot - (-1.0f)) < 0.000001f) {
+		if(abs(dot - (-1.0f)) < 0.000001f) {
 			return ruQuaternion(0, 1, 0, 3.1415926535897932f);
 		}
-		if (abs(dot - (1.0f)) < 0.000001f) {
+		if(abs(dot - (1.0f)) < 0.000001f) {
 			return ruQuaternion();
 		}
 		float rotAngle = acos(dot) * 180.0f / 3.14159;
@@ -229,9 +230,39 @@ public:
 	}
 };
 
+class ruConfig {
+private:
+	string mFileName;
+	map<string, string> mValues;
+	map<string, string>::iterator GetExisting(const string & varName);
+public:
+	ruConfig();
+	ruConfig(const string & filename);
+	void LoadString(const string & str);
+	void Load(const string & fileName);
+	void Save(const string & fileName) const;
+	void Save() const;
+	bool IsEmpty() const;
+	map<string, string> GetValuesCopy() const;
+	string GetString(const string & varName);
+	float GetNumber(const string & varName);
+	bool GetBoolean(const string & varName);
+	void SetNumber(const string & varName, float value);
+	void SetNumber(const string & varName, int value);
+	void SetBoolean(const string & varName, bool value);
+	void SetString(const string & varName, const string & value);
+	void AddNumber(const string & newVarName, float value);
+	void AddNumber(const string & newVarName, int value);
+	void AddString(const string & newVarName, const string & value);
+	void AddBoolean(const string & varName, bool value);
+};
+
 #define BODY_MAX_CONTACTS ( 16 )
 
 struct ruContact;
+
+class ruEngine;
+class ruSceneFactory;
 
 // Animation
 class ruAnimation {
@@ -317,6 +348,7 @@ struct ruKeyFrame {
 class ruSceneNode {
 public:
 	virtual ~ruSceneNode();
+	virtual ruSceneFactory * const GetFactory() const = 0;
 	virtual void SetBlurAmount(float blurAmount) = 0;
 	virtual float GetBlurAmount() = 0;
 	virtual string GetProperty(string propName) = 0;
@@ -406,14 +438,8 @@ public:
 	virtual bool IsAnimationOverride() const = 0;
 	virtual void SetAnimationBlendingEnabled(bool state) = 0;
 	virtual bool IsAnimationBlendingEnabled(bool state) const = 0;
+	virtual void SetOpacity(float opacity) = 0;
 	virtual shared_ptr<ruSceneNode> FindChild(const string & name) = 0;
-	static shared_ptr<ruSceneNode> Create();
-	static shared_ptr<ruSceneNode> LoadFromFile(const string & file);
-	static shared_ptr<ruSceneNode> FindByName(const string & name);
-	static shared_ptr<ruSceneNode> Duplicate(shared_ptr<ruSceneNode> source);
-	static int GetWorldObjectsCount();
-	static shared_ptr<ruSceneNode> GetWorldObject(int i);
-	static vector<shared_ptr<ruSceneNode>> GetTaggedObjects(const string & tag);
 };
 
 struct ruContact {
@@ -484,8 +510,6 @@ enum class ruTextAlignment : int {
 class ruFont {
 protected:
 	virtual ~ruFont();
-public:
-	static shared_ptr<ruFont> LoadFromFile(int size, const string & name);
 };
 
 const float ruVirtualScreenWidth = 1024.0f;
@@ -524,9 +548,7 @@ public:
 
 class ruRect : public virtual ruGUINode {
 public:
-	virtual ~ruRect() {
-
-	}
+	virtual ~ruRect() {	}
 };
 
 class ruText : public virtual ruGUINode {
@@ -549,127 +571,21 @@ public:
 
 class ruGUIScene {
 protected:
-	ruGUIScene() { }
-	virtual ~ruGUIScene() { }
+	ruGUIScene() {}
+	virtual ~ruGUIScene() {}
 public:
-	static shared_ptr<ruGUIScene> Create();
-
 	virtual bool IsVisible() const = 0;
 	virtual void SetVisible(bool visible) = 0;
 
 	virtual void SetOpacity(float opacity) = 0;
 	virtual float GetOpacity() const = 0;
 
+	virtual ruEngine * const GetEngine() const = 0;
+
 	virtual shared_ptr<ruGUINode> CreateNode() = 0;
 	virtual shared_ptr<ruText> CreateText(const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruFont> & theFont, ruVector3 theColor, ruTextAlignment theTextAlign, int theAlpha = 255) = 0;
 	virtual shared_ptr<ruRect> CreateRect(float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3 = ruVector3(255, 255, 255), int theAlpha = 255) = 0;
 	virtual shared_ptr<ruButton> CreateButton(int x, int y, int w, int h, const shared_ptr<ruTexture> & texture, const string & text, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign = ruTextAlignment::Center, int alpha = 255) = 0;
-};
-
-// basic class for configure engine performance and features
-class ruEngineSettings {
-public:
-	int mWidth; // G-Buffer width and width of the window
-	int mHeigth; // G-Buffer height and height of the window
-	bool mFullscreen; 
-	bool mVSync;
-
-	bool mParallaxEnabled;
-		
-	bool mFXAAEnabled;
-
-	bool mHDREnabled;
-	int mHDRQuality; // 0 - no color grading, Reinhard tonemapping; 1 - color grading, Hejl tonemapping
-
-	int mAnisotropyLevel; // zero means linear filtration
-
-	bool mSpotLightShadowsEnabled;
-	int mSpotLightShadowMapSize; // [256; 2048]
-	bool mSpotLightSoftShadows;
-
-	bool mPointLightShadowsEnabled;
-	int mPointLightShadowMapSize; // cubemap face size [128; 1024]
-	bool mPointLightSoftShadows;
-
-	int mDirectionalLightShadowMapSize; // [1024; 4096] - 1024 is the minimum, because on lower values there is too many artifacts
-	bool mDirectionalLightSoftShadows;
-
-	bool mVolumetricFog;
-	int mVolumetricFogLayers; // [2; 10]
-
-	int mLightQuality; // 0 - simplified lighting; 1 - full lighting
-};
-
-class ruVideomode {
-public:
-	int mWidth;
-	int mHeight;
-	int mRefreshRate;
-
-	ruVideomode(int width, int height, int refreshRate) : mWidth(width), mHeight(height), mRefreshRate(refreshRate) {
-
-	}
-};
-
-class ruEngine {
-public:
-	static void Create(int width, int height, int fullscreen, char vSync);
-	static void Free();
-	static void RenderWorld();
-	static int GetResolutionWidth();
-	static int GetResolutionHeight();
-	static void HideCursor();
-	static void ShowCursor();
-	static void SetCursorSettings(shared_ptr<ruTexture> texture, int w, int h);
-	static int GetDIPs();
-	static int GetTextureUsedPerFrame();
-	static int GetShaderCountChangedPerFrame();
-	static int GetRenderedTriangles();
-	static void SetAmbientColor(ruVector3 color);
-	static int GetAvailableTextureMemory();
-	static void EnableShadows(bool state);
-	static void UpdateWorld();
-	
-	static void ChangeVideomode(int width, int height, int fullscreen, char vSync);
-
-	// FXAA
-	static void SetFXAAEnabled(bool state);
-	static bool IsFXAAEnabled();
-
-	// HDR
-	static void SetHDREnabled(bool state);
-	static bool IsHDREnabled();
-
-	// Parallax Occlusion Mapping
-	static void SetParallaxEnabled(bool state);
-	static bool IsParallaxEnabled();
-
-	// Shadow functions
-	static void SetSpotLightShadowMapSize(int size);
-	static void EnableSpotLightShadows(bool state);
-	static bool IsSpotLightShadowsEnabled();
-
-	static void SetPointLightShadowMapSize(int size);
-	static void EnablePointLightShadows(bool state);
-	static bool IsPointLightShadowsEnabled();
-
-	static int GetMaxIsotropyDegree();
-	static void SetIsotropyDegree(int degree);
-	static void SetAnisotropicTextureFiltration(bool state);
-	static bool IsAnisotropicTextureFiltrationEnabled();
-
-
-	static void SetVolumetricFogEnabled(bool state);
-	static bool IsVolumetricFogEnabled();
-
-	static void SetDirectionalLightShadowMapSize(int size);
-	static int GetDirectionalLightShadowMapSize();
-
-	static void SetDirectionalLightDynamicShadows(bool state);
-	static bool IsDirectionalLightDynamicShadowsEnabled();
-
-	static vector<ruVideomode> GetVideoModeList();
-	static void LoadColorGradingMap(const char * fileName);
 };
 
 struct ruRayCastResultEx {
@@ -683,16 +599,17 @@ struct ruRayCastResultEx {
 
 class ruPhysics {
 public:
-	static void Update(float timeStep, int subSteps, float fixedTimeStep);
-	static ruRayCastResultEx CastRayEx(ruVector3 begin, ruVector3 end);
-	static shared_ptr<ruSceneNode> RayPick(int x, int y, ruVector3 * outPickPoint = 0);
-	static shared_ptr<ruSceneNode> CastRay(ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint = 0);
+	virtual ~ruPhysics() {}
+	virtual shared_ptr<ruSceneNode> CastRay(ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint) = 0;
+	virtual ruRayCastResultEx CastRayEx(ruVector3 begin, ruVector3 end) = 0;
+	virtual void Update(float timeStep, int subSteps, float fixedTimeStep) = 0;
+	virtual shared_ptr<ruSceneNode> RayPick(int x, int y, ruVector3 * outPickPoint) = 0;
 };
 
 // Volumetric fog with lighting
 class ruFog : public virtual ruSceneNode {
 public:
-	static shared_ptr<ruFog> Create(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
+	virtual ~ruFog() {}
 
 	virtual void SetSize(const ruVector3 & min, const ruVector3 & max) = 0;
 	virtual ruVector3 GetMin() const = 0;
@@ -726,9 +643,8 @@ public:
 
 class ruSpotLight : public virtual ruLight {
 public:
-	static shared_ptr<ruSpotLight> Create();
-	static int GetCount();
-	static shared_ptr<ruSpotLight> Get(int n);
+	virtual ~ruSpotLight() {}
+
 	static void SetSpotDefaultTexture(shared_ptr<ruTexture> defaultSpotTexture);
 
 	virtual void SetSpotTexture(shared_ptr<ruTexture> texture) = 0;
@@ -738,18 +654,14 @@ public:
 
 class ruDirectionalLight : public virtual ruLight {
 public:
-	static shared_ptr<ruDirectionalLight> Create();
-	static int GetCount();
-	static shared_ptr<ruDirectionalLight> Get(int n);
+	virtual ~ruDirectionalLight() {}
 
 	virtual bool IsSeePoint(const ruVector3 & point) = 0;
 };
 
 class ruPointLight : public virtual ruLight {
 public:
-	static shared_ptr<ruPointLight> Create();
-	static int GetCount();
-	static shared_ptr<ruPointLight> Get(int n);
+	virtual ~ruPointLight() {}
 	static void SetPointDefaultTexture(ruCubeTexture * defaultPointTexture);
 
 	virtual void SetPointTexture(ruCubeTexture * cubeTexture) = 0;
@@ -758,7 +670,8 @@ public:
 
 class ruCamera : public virtual ruSceneNode {
 public:
-	static shared_ptr<ruCamera> Create(float fov);
+	virtual ~ruCamera() {}
+
 	virtual void SetActive() = 0;
 	virtual void SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back) = 0;
 	virtual void SetFOV(float fov) = 0;
@@ -769,9 +682,8 @@ public:
 };
 
 class ruTimer {
-protected:
-	virtual ~ruTimer();
 public:
+	virtual ~ruTimer() {}
 	static shared_ptr<ruTimer> Create();
 	virtual void Restart() = 0;
 	virtual double GetTimeInSeconds() = 0;
@@ -784,11 +696,11 @@ public:
 
 class ruParticleSystem : public virtual ruSceneNode {
 public:
+	virtual ~ruParticleSystem() {}
+
 	enum class Type {
 		Box, Stream
 	};
-
-	static shared_ptr<ruParticleSystem> Create(int particleNum);
 
 	virtual void SetType(ruParticleSystem::Type type) = 0;
 	virtual ruParticleSystem::Type GetType() = 0;
@@ -835,6 +747,100 @@ public:
 	virtual float GetAlphaOffset() = 0;
 	virtual void SetAlphaOffset(float alphaOffset) = 0;
 };
+
+
+class ruVideomode {
+public:
+	int mWidth;
+	int mHeight;
+	int mRefreshRate;
+
+	ruVideomode(int width, int height, int refreshRate) : mWidth(width), mHeight(height), mRefreshRate(refreshRate) {
+
+	}
+};
+
+class ruRenderer {
+public:
+	virtual ~ruRenderer() {}
+	virtual void RenderWorld() = 0;
+	virtual float GetResolutionWidth() const = 0;
+	virtual float GetResolutionHeight() const = 0;
+	virtual void SetCursorVisible(bool state) = 0;
+	virtual void SetCursor(shared_ptr<ruTexture> texture, int w, int h) = 0;
+	virtual int GetDIPs() const = 0;
+	virtual int GetTextureUsedPerFrame() const = 0;
+	virtual int GetShaderUsedPerFrame() const = 0;
+	virtual int GetRenderedTriangles() const = 0;
+	virtual void SetAmbientColor(ruVector3 color) = 0;
+	virtual ruVector3 GetAmbientColor() const = 0;
+	virtual int GetAvailableTextureMemory() = 0;
+	virtual void UpdateWorld() = 0;
+	virtual void SetFXAAEnabled(bool state) = 0;
+	virtual bool IsFXAAEnabled() = 0;
+	virtual void SetHDREnabled(bool state) = 0;
+	virtual bool IsHDREnabled() = 0;
+	virtual void SetParallaxEnabled(bool state) = 0;
+	virtual bool IsParallaxEnabled() = 0;
+	virtual void SetSpotLightShadowMapSize(int size) = 0;
+	virtual void SetSpotLightShadowsEnabled(bool state) = 0;
+	virtual bool IsSpotLightShadowsEnabled() = 0;
+	virtual void SetPointLightShadowMapSize(int size) = 0;
+	virtual void SetPointLightShadowsEnabled(bool state) = 0;
+	virtual bool IsPointLightShadowsEnabled() = 0;
+	virtual int GetMaxIsotropyDegree() const = 0;
+	virtual void SetIsotropyDegree(int degree) = 0;
+	virtual void SetAnisotropicTextureFiltration(bool state) = 0;
+	virtual bool IsAnisotropicTextureFiltrationEnabled() const = 0;
+	virtual void SetVolumetricFogEnabled(bool state) = 0;
+	virtual bool IsVolumetricFogEnabled() const = 0;
+	virtual void SetDirectionalLightShadowMapSize(int size) = 0;
+	virtual int GetDirectionalLightShadowMapSize() const = 0;
+	virtual void SetDirectionalLightDynamicShadows(bool state) = 0;
+	virtual bool IsDirectionalLightDynamicShadowsEnabled() = 0;
+	virtual void SetBloomEnabled(bool state) = 0;
+	virtual bool IsBloomEnabled() const = 0;
+	virtual void SetSoftShadowsEnabled(bool state) = 0;
+	virtual bool IsSoftShadowsEnabled() const = 0;
+	virtual vector<ruVideomode> GetVideoModeList() = 0;
+	virtual void LoadColorGradingMap(const char * fileName) = 0;
+	virtual float GetGUIWidthScaleFactor() const = 0;
+	virtual float GetGUIHeightScaleFactor() const = 0;
+	virtual bool IsRunning() const = 0;
+	virtual void Shutdown() = 0;
+};
+
+class ruSceneFactory {
+public:
+	virtual ~ruSceneFactory() {}
+
+	virtual shared_ptr<ruSceneNode> CreateSceneNode() = 0;
+	virtual shared_ptr<ruSceneNode> CreateSceneNodeDuplicate(shared_ptr<ruSceneNode> src) = 0;
+	virtual shared_ptr<ruPointLight> CreatePointLight() = 0;
+	virtual shared_ptr<ruSpotLight> CreateSpotLight() = 0;
+	virtual shared_ptr<ruDirectionalLight> CreateDirectionalLight() = 0;
+	virtual shared_ptr<ruCamera> CreateCamera(float fov) = 0;
+	virtual shared_ptr<ruParticleSystem> CreateParticleSystem(int particleCount) = 0;
+	virtual shared_ptr<ruFog> CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density) = 0;
+
+	virtual shared_ptr<ruSceneNode> FindByName(const string & name) = 0;
+	virtual shared_ptr<ruSceneNode> LoadScene(const string & file) = 0;
+	virtual int GetNodeCount() = 0;
+	virtual shared_ptr<ruSceneNode> GetNode(int i) = 0;
+	virtual vector<shared_ptr<ruSceneNode>> GetTaggedObjects(const string & tag) = 0;
+
+	virtual int GetSpotLightCount() = 0;
+	virtual shared_ptr<ruSpotLight> GetSpotLight(int n) = 0;
+
+	virtual int GetPointLightCount() = 0;
+	virtual shared_ptr<ruPointLight> GetPointLight(int n) = 0;
+
+	virtual int GetDirectionalLightCount() = 0;
+	virtual shared_ptr<ruDirectionalLight> GetDirectionalLight(int n) = 0;
+};
+
+
+
 
 class ruInput {
 public:
@@ -992,20 +998,34 @@ public:
 		Right,
 		Middle,
 	};
+	virtual ~ruInput() {}
+	virtual string GetKeyName(ruInput::Key key) = 0;
+	virtual void Update() = 0;
+	virtual bool IsKeyDown(Key key) = 0;
+	virtual bool IsKeyHit(Key key) = 0;
+	virtual bool IsKeyUp(Key key) = 0;
+	virtual bool IsMouseDown(MouseButton button) = 0;
+	virtual bool IsMouseHit(MouseButton button) = 0;
+	virtual int GetMouseX() = 0;
+	virtual int GetMouseY() = 0;
+	virtual int GetMouseWheel() = 0;
+	virtual int GetMouseXSpeed() = 0;
+	virtual int GetMouseYSpeed() = 0;
+	virtual int GetMouseWheelSpeed() = 0;
+};
 
-	static void Init(HWND window);
-	static void Destroy();
-	static bool	IsMouseDown(MouseButton button);
-	static bool	IsMouseHit(MouseButton button);
-	static int GetMouseX();
-	static int GetMouseY();
-	static int GetMouseWheel();
-	static int GetMouseXSpeed();
-	static int GetMouseYSpeed();
-	static int GetMouseWheelSpeed();
-	static bool	IsKeyDown(Key key);
-	static bool IsKeyHit(Key key);
-	static bool IsKeyUp(Key key);
-	static void Update();
-	static string GetKeyName(Key key);
+class ruEngine {
+public:
+	static unique_ptr<ruEngine> Create(int width, int height, int fullscreen, char vSync);
+
+public:
+	virtual shared_ptr<ruFont> CreateBitmapFont(int size, const string & filename) = 0;
+	virtual ruRenderer * const GetRenderer() const = 0;
+	virtual ruSceneFactory * const GetSceneFactory() const = 0;
+	virtual shared_ptr<ruGUIScene> CreateGUIScene() = 0;
+	virtual ruPhysics * const GetPhysics() const = 0;
+	virtual ruInput * const GetInput() const = 0;
+
+	ruEngine() {}
+	virtual ~ruEngine() {}
 };

@@ -8,7 +8,8 @@ void Actor::Move(ruVector3 direction, float speed) {
 
 
 
-Actor::Actor(float height, float width) :
+Actor::Actor(unique_ptr<Game> & game, float height, float width) :
+	mGame(game),
 	mBodyHeight(height),
 	mBodyWidth(width),
 	mSpringLength(1.0f),
@@ -17,9 +18,8 @@ Actor::Actor(float height, float width) :
 	mVerticalSpeed(0.0f),
 	mLastVerticalPosition(0.0f),
 	mMaxHealth(100),
-	mHealth(100)
-{
-	mBody = ruSceneNode::Create();
+	mHealth(100) {
+	mBody = mGame->GetEngine()->GetSceneFactory()->CreateSceneNode();
 	mBody->SetCapsuleBody(mBodyHeight, mBodyWidth);
 	mBody->SetAngularFactor(ruVector3(0, 0, 0));
 	mBody->SetFriction(0);
@@ -64,7 +64,7 @@ ruVector3 Actor::GetLookDirection() {
 }
 
 void Actor::SetBodyVisible(bool state) {
-	if (state) {
+	if(state) {
 		mBody->Show();
 	} else {
 		mBody->Hide();
@@ -72,10 +72,8 @@ void Actor::SetBodyVisible(bool state) {
 }
 
 bool Actor::IsVisibleFromPoint(ruVector3 begin) {
-	return ruPhysics::CastRay(begin, GetCurrentPosition(), nullptr) == mBody;
+	return mGame->GetEngine()->GetPhysics()->CastRay(begin, GetCurrentPosition(), nullptr) == mBody;
 }
-
-
 
 bool Actor::IsCrouch() {
 	return mCrouch;
@@ -83,14 +81,14 @@ bool Actor::IsCrouch() {
 
 void Actor::Damage(float dmg) {
 	mHealth -= fabsf(dmg);
-	if (mHealth < 0.0f) {
+	if(mHealth < 0.0f) {
 		mHealth = 0.0f;
 	}
 }
 
 void Actor::Heal(float howMuch) {
 	mHealth += fabsf(howMuch);
-	if (mHealth > mMaxHealth) {
+	if(mHealth > mMaxHealth) {
 		mHealth = mMaxHealth;
 	}
 }

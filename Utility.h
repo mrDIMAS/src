@@ -22,8 +22,8 @@
 #pragma once
 
 D3DXMATRIX TransformToMatrix( const btTransform & transform );
-void ParseString( string str, map<string,string> & values);
+void ParseString( string str, map<string, string> & values );
 int FloorPow2( int number );
 int CeilPow2( int number );
-int IntegerPow( int base, int exp);
+int IntegerPow( int base, int exp );
 bool FileExist( const string & fileName );

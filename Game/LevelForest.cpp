@@ -1,7 +1,8 @@
 #include "Precompiled.h"
 #include "LevelForest.h"
 
-LevelForest::LevelForest(const unique_ptr<PlayerTransfer>& playerTransfer) : Level(playerTransfer) {
+LevelForest::LevelForest(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer>& playerTransfer) :
+	Level(game, playerTransfer) {
 	mName = LevelName::Forest;
 
 	LoadLocalization("forest.loc");
@@ -25,12 +26,12 @@ LevelForest::LevelForest(const unique_ptr<PlayerTransfer>& playerTransfer) : Lev
 
 	mZoneEnd = GetUniqueObject("GameEndZone");
 
-	//ruEngine::LoadColorGradingMap("data/textures/colormaps/greyblueshade.png");
+	//ruRenderer::LoadColorGradingMap("data/textures/colormaps/greyblueshade.png");
 
 	mWater = GetUniqueObject("Water");
 
 	auto fogMesh = GetUniqueObject("Fog");
-	mFog = ruFog::Create(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.5, 0.5, 0.7), 0.2);
+	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.5, 0.5, 0.7), 0.2);
 	mFog->SetPosition(fogMesh->GetPosition());
 	mFog->SetSpeed(ruVector3(0.0005, 0, 0.0005));
 	mFog->Attach(mScene);
@@ -43,7 +44,7 @@ LevelForest::~LevelForest() {
 }
 
 void LevelForest::DoScenario() {
-	ruEngine::SetAmbientColor(ruVector3(0.1, 0.1, 0.1));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.1, 0.1, 0.1));
 
 	mWater->SetTexCoordFlow(ruVector2(0.0, -mWaterFlow));
 	mWaterFlow += 0.00025f;
@@ -51,8 +52,8 @@ void LevelForest::DoScenario() {
 	mMusic->SetVolume(0.65);
 	mMusic->Play();
 
-	if (mPlayer->IsInsideZone(mZoneEnd)) {
-		Level::Change(LevelName::Ending);
+	if(mPlayer->IsInsideZone(mZoneEnd)) {
+		mGame->LoadLevel(LevelName::Ending);
 	}
 }
 

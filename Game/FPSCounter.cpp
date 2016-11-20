@@ -2,16 +2,18 @@
 
 #include "FPSCounter.h"
 
-void FPSCounter::RegisterFrame() {
+void FPSCounter::RegisterFrame()
+{
 	frameCounter++;
-	if (timer->GetElapsedTimeInSeconds() >= 1.0f) {
+	if(timer->GetElapsedTimeInSeconds() >= 1.0f) {
 		fps = frameCounter;
 		frameCounter = 0;
 		timer->Restart();
 	}
 }
 
-FPSCounter::FPSCounter() {
+FPSCounter::FPSCounter()
+{
 	timer = ruTimer::Create();
 
 	fps = 0;

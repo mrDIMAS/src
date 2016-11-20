@@ -5,7 +5,7 @@
 
 class SaveLoader : public SaveFile {
 public:
-    SaveLoader( string fn );
-    ~SaveLoader();
-    void RestoreWorldState( );
+	SaveLoader(string fn);
+	~SaveLoader();
+	void RestoreWorldState();
 };

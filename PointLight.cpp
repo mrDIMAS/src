@@ -25,42 +25,29 @@
 
 CubeTexture * PointLight::msDefaultPointCubeTexture;
 
-bool PointLight::IsSeePoint( const ruVector3 & point ) {
-	return (ruVector3( mGlobalTransform.getOrigin().m_floats ) - point ).Length2() < mRadius * mRadius * 4;
+bool PointLight::IsSeePoint(const ruVector3 & point) {
+	return (ruVector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
 }
 
-void PointLight::SetPointTexture( ruCubeTexture * cubeTexture ) {
-	mPointTexture = dynamic_cast<CubeTexture*>( cubeTexture );
+void PointLight::SetPointTexture(ruCubeTexture * cubeTexture) {
+	mPointTexture = dynamic_cast<CubeTexture*>(cubeTexture);
 }
 
 PointLight::~PointLight() {
 
 }
 
-PointLight::PointLight() {
+PointLight::PointLight(SceneFactory * factory) : Light(factory) {
 	mPointTexture = nullptr;
-	if( msDefaultPointCubeTexture ) {
+	if(msDefaultPointCubeTexture) {
 		mPointTexture = msDefaultPointCubeTexture;
 	}
 }
 
-CubeTexture * PointLight::GetPointTexture()
-{
+CubeTexture * PointLight::GetPointTexture() {
 	return mPointTexture;
 }
 
-shared_ptr<ruPointLight> ruPointLight::Create() {
-	return SceneFactory::CreatePointLight();
-}
-
-int ruPointLight::GetCount() {
-	return SceneFactory::GetPointLightList().size();
-}
-
-shared_ptr<ruPointLight> ruPointLight::Get( int n ) {
-	return SceneFactory::GetPointLightList()[n].lock();
-}
-
-void ruPointLight::SetPointDefaultTexture( ruCubeTexture * defaultPointTexture ) {
-	PointLight::msDefaultPointCubeTexture = dynamic_cast<CubeTexture*>( defaultPointTexture );
+void ruPointLight::SetPointDefaultTexture(ruCubeTexture * defaultPointTexture) {
+	PointLight::msDefaultPointCubeTexture = dynamic_cast<CubeTexture*>(defaultPointTexture);
 }

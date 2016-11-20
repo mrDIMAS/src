@@ -6,30 +6,34 @@
 #include "Ladder.h"
 #include "Enemy.h"
 
-void SaveWriter::SaveWorldState() {	
-    if( Level::Current() ) {
-		bool visible = Level::Current()->IsVisible();
+void SaveWriter::SaveWorldState()
+{
+	auto & level = Game::Instance()->GetLevel();
+	if(level) {
+		bool visible = level->IsVisible();
 
-		if (!visible) {
-			Level::Current()->Show();
+		if(!visible) {
+			level->Show();
 		}
 
 		// oh, those casts...
-		int name = (int)Level::Current()->mName;
+		int name = (int)level->mName;
 		*this & name;
 
-        Level::Current()->Serialize( *this );
+		level->Serialize(*this);
 
-		if (!visible) {
-			Level::Current()->Hide();
+		if(!visible) {
+			level->Hide();
 		}
-    }
+	}
 }
 
-SaveWriter::~SaveWriter() {
+SaveWriter::~SaveWriter()
+{
 
 }
 
-SaveWriter::SaveWriter( string fn ) : SaveFile( fn, true ) {
+SaveWriter::SaveWriter(string fn) : SaveFile(fn, true)
+{
 
 }

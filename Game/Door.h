@@ -32,10 +32,12 @@ public:
 	virtual ~Door();
 	void SwitchState();
 	State GetState();
-	float SetOffsetAngle(float angle) {
+	float SetOffsetAngle(float angle)
+	{
 		mOffsetAngle = angle;
 	}
-	shared_ptr<ruSceneNode> GetNode() {
+	shared_ptr<ruSceneNode> GetNode()
+	{
 		return mDoorNode;
 	}
 	void SetTurnDirection(TurnDirection direction);

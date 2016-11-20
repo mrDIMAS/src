@@ -25,10 +25,10 @@ void Log::Write( const string & message ) {
 	static ofstream output( "ruthenium.log" );
 	cout << message << endl;
 	output << message << endl;
-	output.flush();
+	output.flush( );
 }
 
 void Log::Error( const string & message ) {
 	Log::Write( message );
-	throw std::runtime_error( message.c_str() );
+	throw std::runtime_error( message.c_str( ) );
 }

@@ -2,7 +2,8 @@
 #include "ModalWindow.h"
 #include "GUIProperties.h"
 
-ModalWindow::ModalWindow(const shared_ptr<ruGUIScene> & scene, int x, int y, int w, int h, shared_ptr<ruTexture> texture, shared_ptr<ruTexture> buttonTexture, ruVector3 color) {
+ModalWindow::ModalWindow(const shared_ptr<ruGUIScene> & scene, int x, int y, int w, int h, shared_ptr<ruTexture> texture, shared_ptr<ruTexture> buttonTexture, ruVector3 color)
+{
 	int buttonWidth = 128;
 	int buttonHeight = 32;
 
@@ -21,31 +22,37 @@ ModalWindow::ModalWindow(const shared_ptr<ruGUIScene> & scene, int x, int y, int
 	Close();
 }
 
-void ModalWindow::Ask(const string & text) {
+void ModalWindow::Ask(const string & text)
+{
 	mText->SetText(text);
 	mCanvas->SetVisible(true);
 }
 
-void ModalWindow::AttachTo(shared_ptr<ruGUINode> node) {
+void ModalWindow::AttachTo(shared_ptr<ruGUINode> node)
+{
 	mCanvas->Attach(node);
 }
 
-void ModalWindow::SetYesAction(const ruDelegate & yesAction) {
+void ModalWindow::SetYesAction(const ruDelegate & yesAction)
+{
 	mYesButton->RemoveAllActions();
 	mYesButton->AddAction(ruGUIAction::OnClick, yesAction);
 	mYesButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
 }
 
-void ModalWindow::SetNoAction(const ruDelegate & noAction) {
+void ModalWindow::SetNoAction(const ruDelegate & noAction)
+{
 	mNoButton->RemoveAllActions();
 	mNoButton->AddAction(ruGUIAction::OnClick, noAction);
 	mNoButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
 }
 
-void ModalWindow::Close() {
+void ModalWindow::Close()
+{
 	mCanvas->SetVisible(false);
 }
 
-void ModalWindow::CloseNoAction() {
+void ModalWindow::CloseNoAction()
+{
 	Close();
 }

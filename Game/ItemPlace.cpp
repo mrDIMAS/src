@@ -3,41 +3,47 @@
 #include "ItemPlace.h"
 
 
-Item::Type ItemPlace::GetPlacedItem() {
-    return mItemPlaced;
+Item::Type ItemPlace::GetPlacedItem()
+{
+	return mItemPlaced;
 }
 
-bool ItemPlace::PlaceItem( Item::Type type ) {
-	auto & player = Level::Current()->GetPlayer();
-    if( type == mItemTypeCanBePlaced ) {
-        mItemPlaced = type;
+bool ItemPlace::PlaceItem(Item::Type type)
+{
+	auto & player = Game::Instance()->GetLevel()->GetPlayer();
+	if(type == mItemTypeCanBePlaced) {
+		mItemPlaced = type;
 		player->mInventory->ResetSelectedForUse();
-		player->mInventory->RemoveItem( type, 1 );
-        return true;
-    }
-    return false;
+		player->mInventory->RemoveItem(type, 1);
+		return true;
+	}
+	return false;
 }
 
-ItemPlace::ItemPlace( shared_ptr<ruSceneNode> obj, Item::Type itemTypeCanBePlaced ) :
+ItemPlace::ItemPlace(shared_ptr<ruSceneNode> obj, Item::Type itemTypeCanBePlaced) :
 	mItemPlaced(Item::Type::Unknown)
 {
-    mObject = obj;
+	mObject = obj;
 	mItemTypeCanBePlaced = itemTypeCanBePlaced;
 }
 
-bool ItemPlace::IsPickedByPlayer() const {
-	auto & player = Level::Current()->GetPlayer();
-    return player->mNearestPickedNode == mObject;
+bool ItemPlace::IsPickedByPlayer() const
+{
+	auto & player = Game::Instance()->GetLevel()->GetPlayer();
+	return player->mNearestPickedNode == mObject;
 }
 
-void ItemPlace::SetPlaceType( Item::Type itemTypeCanBePlaced ) {
-    mItemTypeCanBePlaced = itemTypeCanBePlaced;
+void ItemPlace::SetPlaceType(Item::Type itemTypeCanBePlaced)
+{
+	mItemTypeCanBePlaced = itemTypeCanBePlaced;
 }
 
-Item::Type ItemPlace::GetPlaceType() const {
-    return mItemTypeCanBePlaced;
+Item::Type ItemPlace::GetPlaceType() const
+{
+	return mItemTypeCanBePlaced;
 }
 
-ItemPlace::~ItemPlace() {
+ItemPlace::~ItemPlace()
+{
 
 }

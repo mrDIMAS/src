@@ -22,10 +22,15 @@
 
 class Mesh;
 class Camera;
+class SceneFactory;
+
+#include "Engine.h"
 
 class SceneNode : public virtual ruSceneNode, public std::enable_shared_from_this<SceneNode> {
 protected:
+	SceneFactory * const mFactory;
 	friend class SceneFactory;
+	friend class Physics; // so many friends :)
 	weak_ptr<SceneNode> mParent;
 	weak_ptr<SceneNode> mScene;
 	vector<shared_ptr<SceneNode>> mChildren;
@@ -58,7 +63,7 @@ protected:
 	void AutoName();
 	bool mShadowCastEnabled;
 	bool mVegetation;
-	bool mAnimationBledingEnabled;
+	bool mAnimationBlendingEnabled;
 
 	// animation stuff
 	ruAnimation * mCurrentAnimation;
@@ -74,7 +79,7 @@ protected:
 public:
 	btTransform mGlobalTransform;
 	btTransform mLocalTransform;
-	explicit SceneNode();
+	SceneNode(SceneFactory * factory);
 
 	// overload new/delete to be sure that scene node always be 16-aligned
 	static void * operator new(size_t size) {
@@ -88,10 +93,7 @@ public:
 
 	// Internal static methods
 	static void UpdateContacts();
-	static shared_ptr<SceneNode> FindByName(const string & name);
-	static shared_ptr<SceneNode> LoadScene(const string & file);
-	static shared_ptr<SceneNode> Find(const shared_ptr<SceneNode> parent, string childName);
-	static shared_ptr<SceneNode> FindChildInNode(shared_ptr<SceneNode> node, const string & name);
+
 
 	// Internal methods
 	void AddMesh(const shared_ptr<Mesh> & mesh);
@@ -109,30 +111,17 @@ public:
 	virtual btTransform GetRelativeTransform();
 	virtual void CheckFrustum(Camera * pCamera);
 	virtual shared_ptr<Mesh> GetMesh(int n);
-	virtual btRigidBody * GetDynamicBody() {
-		if (mBodyList.size()) {
-			return mBodyList[0];
-		}
-		return nullptr;
-
-	}
-	virtual bool IsMoving() const {
-		return mIsMoving;
-	}
+	virtual btRigidBody * GetDynamicBody();
+	virtual bool IsMoving() const;
+	static shared_ptr<SceneNode> FindChildInNode(shared_ptr<SceneNode> node, const string & name);
+	static shared_ptr<SceneNode> FindChildInNodeNonRecursive(const shared_ptr<SceneNode> parent, string childName);
 
 	// API Methods
 	virtual ~SceneNode();
-	virtual ruKeyFrame GetKeyFrame(int n) const override {
-		ruKeyFrame kf;
-		if (n >= 0 && n < mKeyframeList.size()) {
-			auto & bkf = mKeyframeList[n];
-			kf.mPosition = ruVector3(bkf->getOrigin().x(), bkf->getOrigin().y(), bkf->getOrigin().z());
-			kf.mRotation = ruQuaternion(bkf->getRotation().x(), bkf->getRotation().y(), bkf->getRotation().z(), bkf->getRotation().w());
-		} else {
-			throw runtime_error("Invalid key frame number!");
-		}
-		return kf;
+	virtual SceneFactory * const GetFactory() const override final {
+		return mFactory;
 	}
+	virtual ruKeyFrame GetKeyFrame(int n) const override;
 	virtual void SetTexCoordFlow(const ruVector2 & flow) override;
 	virtual ruVector2 GetTexCoordFlow() const override;
 	virtual ruVector3 GetRotationAxis() override;
@@ -214,33 +203,14 @@ public:
 	virtual void SetCollisionEnabled(bool state) override;
 	virtual bool IsCollisionEnabled() const override;
 	virtual shared_ptr<ruSceneNode> FindChild(const string & name) override;
-	virtual void SetShadowCastEnabled(bool state) override {
-		mShadowCastEnabled = state;
-	}
-	virtual bool IsShadowCastEnabled() const override {
-		return mShadowCastEnabled;
-	}
-	virtual void SetVegetation(bool state) override {
-		mVegetation = state;
-	}
-	virtual bool IsVegetation() const override {
-		return mVegetation;
-	}
-	virtual void SetAnimationOverride(bool state) override {
-		mAnimationOverride = state;
-	}
-	virtual bool IsAnimationOverride() const override {
-		return mAnimationOverride;
-	}
-	virtual void SetAnimationBlendingEnabled(bool state) override {
-		mAnimationBledingEnabled = state;
-
-		for (auto & child : mChildren) {
-			child->SetAnimationBlendingEnabled(state);
-		}
-	}
-	virtual bool IsAnimationBlendingEnabled(bool state) const override {
-		return mAnimationBledingEnabled;
-	}
+	virtual void SetShadowCastEnabled(bool state) override;
+	virtual bool IsShadowCastEnabled() const override;
+	virtual void SetVegetation(bool state) override;
+	virtual bool IsVegetation() const override;
+	virtual void SetAnimationOverride(bool state) override;
+	virtual bool IsAnimationOverride() const override;
+	virtual void SetAnimationBlendingEnabled(bool state) override;
+	virtual bool IsAnimationBlendingEnabled(bool state) const override;
+	virtual void SetOpacity(float opacity) override;
 };
 

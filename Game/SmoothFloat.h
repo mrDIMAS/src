@@ -25,7 +25,8 @@ public:
 	float GetTarget();
 	float ChaseTarget(float chaseSpeed = 0.01f);
 	operator const float();
-	void operator = (float f) {
+	void operator = (float f)
+	{
 		mValue = f;
 	}
 	void Serialize(SaveFile & out);

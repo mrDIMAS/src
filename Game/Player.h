@@ -16,9 +16,9 @@
 class Player : public Actor {
 private:
 	friend class Level;
-	explicit Player();
+	explicit Player(unique_ptr<Game> & game);
 public:
-	Parser mLocalization;	
+	ruConfig mLocalization;
 	// animations
 	ruAnimation mWalkAnimation;
 	ruAnimation mCrouchAnimation;
@@ -32,7 +32,7 @@ public:
 	ruAnimation mLookRightAnimation;
 	ruAnimation mLookLeftAnimation;
 	ruAnimation mLadderCrawlInAnimation;
-	ruAnimation mLadderCrawlAnimation;	
+	ruAnimation mLadderCrawlAnimation;
 	ruAnimation mSwitchFlashlightAnimation;
 	// items additional animations
 	float mLadderClimbDelta;
@@ -121,12 +121,15 @@ public:
 	void SetBodyAnimation(ruAnimation * anim);
 	void EmitStepSound();
 	void LadderEmitStepSound();
-	void SwitchFlashlight() {
+	void SwitchFlashlight()
+	{
 		mFlashlightEnabled = !mFlashlightEnabled;
 		mFlashlightSwitchSound->Play();
 	}
+
 public:
 	virtual ~Player();
+
 	void Step(ruVector3 direction, float speed);
 	void FreeHands();
 	void LockFlashlight(bool state);
@@ -143,16 +146,20 @@ public:
 	void UpdateMoving();
 	void DrawStatusBar();
 	bool IsUseButtonHit();
+	bool IsUseButtonDown() {
+		return mGame->GetEngine()->GetInput()->IsKeyDown(mKeyUse);
+	}
 	bool IsObjectHasNormalMass(shared_ptr<ruSceneNode> node);
 	bool IsDead();
 	void ComputeStealth();
 	virtual void SetPosition(ruVector3 position);
 	unique_ptr<Inventory> & GetInventory();
-	Parser * GetLocalization();
+	ruConfig * GetLocalization();
 	virtual void Serialize(SaveFile & out) final;
 	void SetHUDVisible(bool state);
 	void Interact();
-	unique_ptr<HUD> & GetHUD() {
+	unique_ptr<HUD> & GetHUD()
+	{
 		return mHUD;
 	}
 	void Crouch(bool state);

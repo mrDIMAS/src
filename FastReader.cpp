@@ -23,106 +23,106 @@
 
 #include "FastReader.h"
 
-bool FastReader::IsEnded() {
-    return mCursor > mSize;
+bool FastReader::IsEnded( ) {
+	return mCursor > mSize;
 }
 
-btQuaternion FastReader::GetQuaternion() {
-    float x = GetFloat();
-    float y = GetFloat();
-    float z = GetFloat();
-    float w = GetFloat();
+btQuaternion FastReader::GetQuaternion( ) {
+	float x = GetFloat( );
+	float y = GetFloat( );
+	float z = GetFloat( );
+	float w = GetFloat( );
 
-    return btQuaternion( x, y, z, w );
+	return btQuaternion( x, y, z, w );
 }
 
-ruVector2 FastReader::GetBareVector2() {
-    float x = GetFloat();
-    float y = GetFloat();
+ruVector2 FastReader::GetBareVector2( ) {
+	float x = GetFloat( );
+	float y = GetFloat( );
 
-    return ruVector2( x, y );
+	return ruVector2( x, y );
 }
 
-ruVector3 FastReader::GetBareVector() {
-    float x = GetFloat();
-    float y = GetFloat();
-    float z = GetFloat();
+ruVector3 FastReader::GetBareVector( ) {
+	float x = GetFloat( );
+	float y = GetFloat( );
+	float z = GetFloat( );
 
-    return ruVector3( x, y, z );
+	return ruVector3( x, y, z );
 }
 
-btVector3 FastReader::GetVector() {
-    float x = GetFloat();
-    float y = GetFloat();
-    float z = GetFloat();
+btVector3 FastReader::GetVector( ) {
+	float x = GetFloat( );
+	float y = GetFloat( );
+	float z = GetFloat( );
 
-    return btVector3( x, y, z );
+	return btVector3( x, y, z );
 }
 
-std::string FastReader::GetString() {
-    string out;
+std::string FastReader::GetString( ) {
+	string out;
 
-    for ( ; mData[ mCursor ] != '\0'; ++mCursor ) {
-        out += mData[ mCursor ];
-    }
+	for ( ; mData[ mCursor ] != '\0'; ++mCursor ) {
+		out += mData[ mCursor ];
+	}
 
-    if ( mData[ mCursor ] == '\0' ) {
-        ++mCursor;
-    }
+	if ( mData[ mCursor ] == '\0' ) {
+		++mCursor;
+	}
 
-    return out;
+	return out;
 }
 
-float FastReader::GetFloat() {
-    float value = *reinterpret_cast<float*>( mData + mCursor );
+float FastReader::GetFloat( ) {
+	float value = *reinterpret_cast<float*>( mData + mCursor );
 
-    mCursor += sizeof(float);
+	mCursor += sizeof( float );
 
-    return value;
+	return value;
 }
 
-unsigned char FastReader::GetByte() {
-    unsigned char value = mData[ mCursor ];
+unsigned char FastReader::GetByte( ) {
+	unsigned char value = mData[ mCursor ];
 
-    ++mCursor;
+	++mCursor;
 
-    return value;
+	return value;
 }
 
-unsigned short FastReader::GetShort() {
-    unsigned short value = *reinterpret_cast<unsigned short*>( mData + mCursor );
+unsigned short FastReader::GetShort( ) {
+	unsigned short value = *reinterpret_cast<unsigned short*>( mData + mCursor );
 
-    mCursor += sizeof(short);
+	mCursor += sizeof( short );
 
-    return value;
+	return value;
 }
 
-int FastReader::GetInteger() {
-    int value = *reinterpret_cast<int *>( mData + mCursor );
+int FastReader::GetInteger( ) {
+	int value = *reinterpret_cast<int *>( mData + mCursor );
 
-    mCursor += sizeof(int);
+	mCursor += sizeof( int );
 
-    return value;
+	return value;
 }
 
-FastReader::~FastReader() {
-    delete [] mData;
+FastReader::~FastReader( ) {
+	delete[ ] mData;
 }
 
 bool FastReader::ReadFile( const string & fileName ) {
-    ifstream file( fileName, ios_base::binary );
-    if ( !file.good() ) {
-        return false;
-    }
+	ifstream file( fileName, ios_base::binary );
+	if ( !file.good( ) ) {
+		return false;
+	}
 	file.seekg( 0, ios_base::end );
-    mSize = file.tellg();
-    mData = new Byte[mSize];
-    file.seekg( 0, ios_base::beg );
-    file.read( reinterpret_cast<char*>( mData ), mSize );
-	file.close();
-    return true;
+	mSize = file.tellg( );
+	mData = new Byte[ mSize ];
+	file.seekg( 0, ios_base::beg );
+	file.read( reinterpret_cast<char*>( mData ), mSize );
+	file.close( );
+	return true;
 }
 
-FastReader::FastReader() : mSize( 0 ), mCursor( 0 ), mData( 0 ) {
+FastReader::FastReader( ) : mSize( 0 ), mCursor( 0 ), mData( 0 ) {
 
 }

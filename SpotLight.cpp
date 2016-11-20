@@ -27,7 +27,7 @@ shared_ptr<Texture> SpotLight::msDefaultSpotTexture;
 
 bool SpotLight::IsSeePoint(const ruVector3 & point) {
 	bool inFrustum = mFrustum.IsPointInside(point);
-	if (inFrustum) {
+	if(inFrustum) {
 		return (ruVector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
 	}
 	return false;
@@ -82,9 +82,9 @@ SpotLight::~SpotLight() {
 
 }
 
-SpotLight::SpotLight() {
+SpotLight::SpotLight(SceneFactory * factory) : Light(factory) {
 	mSpotTexture = nullptr;
-	if (msDefaultSpotTexture) {
+	if(msDefaultSpotTexture) {
 		mSpotTexture = msDefaultSpotTexture;
 	}
 	SetConeAngles(45.0f, 80.0f);
@@ -100,18 +100,6 @@ shared_ptr<Texture> SpotLight::GetSpotTexture() {
 
 D3DXMATRIX SpotLight::GetViewProjectionMatrix() {
 	return mSpotViewProjectionMatrix;
-}
-
-shared_ptr<ruSpotLight> ruSpotLight::Create() {
-	return SceneFactory::CreateSpotLight();
-}
-
-int ruSpotLight::GetCount() {
-	return SceneFactory::GetSpotLightList().size();
-}
-
-shared_ptr<ruSpotLight> ruSpotLight::Get(int n) {
-	return SceneFactory::GetSpotLightList()[n].lock();
 }
 
 void ruSpotLight::SetSpotDefaultTexture(shared_ptr<ruTexture> defaultSpotTexture) {

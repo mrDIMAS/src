@@ -13,7 +13,7 @@ private:
 	ruVector3 mSpeed;
 	ruVector3 mOffset;
 public:
-	Fog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
+	Fog(SceneFactory * factory, const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
 
 	AABB & GetAABB() {
 		return mAABB;

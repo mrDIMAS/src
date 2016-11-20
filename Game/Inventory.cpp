@@ -5,28 +5,28 @@
 #include "Player.h"
 #include "Level.h"
 
-Inventory::Inventory() :
+Inventory::Inventory(unique_ptr<Game> & game) :
+	mGame(game),
 	mOpen(false),
 	mpSelectedItem(nullptr),
 	mpCombineItemFirst(nullptr),
 	mpCombineItemSecond(nullptr),
 	mpItemForUse(nullptr),
-	mTab(Inventory::Tab::Items)
-{
-	mLocalization.ParseFile(gLocalizationPath + "inventory.loc");
+	mTab(Inventory::Tab::Items) {
+	mLocalization.Load(Game::Instance()->GetLocalizationPath() + "inventory.loc");
 
-	mScene = ruGUIScene::Create();
+	mScene = mGame->GetEngine()->CreateGUIScene();
 
 	mBackgroundTexture = ruTexture::Request("data/gui/inventory/back.tga");
 	mCellTexture = ruTexture::Request("data/gui/inventory/item.tga");
 	mButtonTexture = ruTexture::Request("data/gui/inventory/button.tga");
-	mFont = ruFont::LoadFromFile(14, "data/fonts/font5.ttf");
+	mFont = mGame->GetEngine()->CreateBitmapFont(14, "data/fonts/font5.ttf");
 	mPickSound = ruSound::Load2D("data/sounds/menupick.ogg");
 
 	float distMult = 1.1f;
 	int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
 	int cellSpaceY = distMult * mCellHeight / (float)mCellCountHeight;
-	
+
 	int backGroundSpace = 20;
 	int backgroundW = mCellCountWidth * mCellWidth + 2.5 * backGroundSpace + cellSpaceX + 128;
 	int backgroundH = mCellCountHeight * mCellHeight + 2.5 * backGroundSpace + cellSpaceY + 128;
@@ -91,8 +91,8 @@ Inventory::Inventory() :
 	mItemCharacteristics->Attach(mItemsBackground);
 
 	int itemSpacing = 5;
-	for (int cw = 0; cw < mCellCountWidth; cw++) {
-		for (int ch = 0; ch < mCellCountHeight; ch++) {
+	for(int cw = 0; cw < mCellCountWidth; cw++) {
+		for(int ch = 0; ch < mCellCountHeight; ch++) {
 			int cellX = 20 + distMult * mCellWidth * cw;
 			int cellY = 20 + distMult * mCellHeight * ch;
 
@@ -108,7 +108,7 @@ Inventory::Inventory() :
 	}
 
 	int offset = combineBoxY + 2.2f * mCellHeight;
-	mItemDescription = mScene->CreateText("Desc",  2 * itemSpacing, descriptionY + 5 * itemSpacing, backgroundW - 2 * itemSpacing - 128, combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3(200, 200, 200), ruTextAlignment::Left, 255);
+	mItemDescription = mScene->CreateText("Desc", 2 * itemSpacing, descriptionY + 5 * itemSpacing, backgroundW - 2 * itemSpacing - 128, combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3(200, 200, 200), ruTextAlignment::Left, 255);
 	mItemDescription->Attach(mItemsBackground);
 
 	// characteristics of item
@@ -130,7 +130,7 @@ Inventory::Inventory() :
 	{
 		mNotesBackground = mScene->CreateRect(backgroundX, backgroundY, backgroundW, backgroundH, ruTexture::Request("data/gui/inventory/back_note.tga"), pGUIProp->mBackColor);
 
-		mNotesList = unique_ptr<ScrollList>(new ScrollList(mScene, 80, 20, ruTexture::Request("data/gui/menu/button.tga"), " " ));
+		mNotesList = unique_ptr<ScrollList>(new ScrollList(mScene, 80, 20, ruTexture::Request("data/gui/menu/button.tga"), " "));
 		mNotesList->AttachTo(mNotesBackground);
 
 		mNoteText = mScene->CreateText(" ", 30, 60, backgroundW - 60, backgroundH - 90, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
@@ -146,7 +146,7 @@ void Inventory::SetVisible(bool state) {
 }
 
 void Inventory::DoCombine() {
-	if (mpCombineItemFirst->Combine(mpCombineItemSecond->GetType())) { // combine successfull
+	if(mpCombineItemFirst->Combine(mpCombineItemSecond->GetType())) { // combine successfull
 		mpCombineItemFirst = nullptr;
 		mpCombineItemSecond = nullptr;
 		mpSelectedItem = nullptr;
@@ -159,7 +159,7 @@ void Inventory::Update() {
 	int screenCenterY = ruVirtualScreenHeight / 2;
 
 
-	if (mTab == Tab::Items) {
+	if(mTab == Tab::Items) {
 		mItemsBackground->SetVisible(true);
 		mNotesBackground->SetVisible(false);
 
@@ -173,40 +173,39 @@ void Inventory::Update() {
 		mPageItems->SetSize(mPageItems->GetSize().x, 32);
 	}
 
-	if (mReadedNotes.size() > 0) {
+	if(mReadedNotes.size() > 0) {
 		try {
 			mNoteText->SetText(mReadedNotes.at(mNotesList->GetCurrentValue()).second);
-		} catch (std::exception & e) {
+		} catch(std::exception) {
 			// nothing
 		}
 	}
-	mNotesList->Update();
 
-	if (mpItemForUse) {
-		ruEngine::HideCursor();
+	if(mpItemForUse) {
+		mGame->GetEngine()->GetRenderer()->SetCursorVisible(false);
 		SetVisible(false);
-		Level::Current()->GetPlayer()->GetHUD()->ShowUsedItem(mpItemForUse);
+		mGame->GetLevel()->GetPlayer()->GetHUD()->ShowUsedItem(mpItemForUse);
 
-		if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
-			Level::Current()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr);
+		if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
+			mGame->GetLevel()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr);
 			mpItemForUse = nullptr;
 			mpSelectedItem = nullptr;
 			SetVisible(true);
 		}
-		if (mOpen) {
+		if(mOpen) {
 			mpItemForUse = nullptr;
 		}
 		return;
 	} else {
-		Level::Current()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr); // HAAAAX!!!!
+		mGame->GetLevel()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr); // HAAAAX!!!!
 	}
 
-	if (!mOpen) {
-		ruEngine::HideCursor();
+	if(!mOpen) {
+		mGame->GetEngine()->GetRenderer()->SetCursorVisible(false);
 		return;
 	}
 
-	ruEngine::ShowCursor();
+	mGame->GetEngine()->GetRenderer()->SetCursorVisible(true);
 
 	int useAlpha = mpSelectedItem ? 255 : 60;
 	mUseButton->SetAlpha(useAlpha);
@@ -227,12 +226,12 @@ void Inventory::Update() {
 	mSecondCombineItem->SetTexture(nullptr);
 
 	// show first combining item
-	if (mpCombineItemFirst) {
+	if(mpCombineItemFirst) {
 		mFirstCombineItem->SetVisible(true);
 		mFirstCombineItem->SetTexture(mpCombineItemFirst->GetPictogram());
-		if (mFirstCombineItem->IsMouseInside()) {
+		if(mFirstCombineItem->IsMouseInside()) {
 			combineColor1 = ruVector3(255, 0, 0);
-			if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
+			if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
 				mpCombineItemFirst = nullptr;
 			}
 		}
@@ -242,12 +241,12 @@ void Inventory::Update() {
 	mFirstCombineItemCell->SetColor(combineColor1);
 
 	// show second combining item
-	if (mpCombineItemSecond) {
+	if(mpCombineItemSecond) {
 		mSecondCombineItem->SetVisible(true);
 		mSecondCombineItem->SetTexture(mpCombineItemSecond->GetPictogram());
-		if (mSecondCombineItem->IsMouseInside()) {
+		if(mSecondCombineItem->IsMouseInside()) {
 			combineColor2 = ruVector3(255, 0, 0);
-			if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
+			if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
 				mpCombineItemSecond = nullptr;
 			}
 		}
@@ -257,15 +256,15 @@ void Inventory::Update() {
 	mSecondCombineItemCell->SetColor(combineColor2);
 
 	// do combine
-	if (mCombineButton->IsHit()) {
-		if (canCombine) {
+	if(mCombineButton->IsHit()) {
+		if(canCombine) {
 			DoCombine();
 		}
 	}
 
 	// use item
-	if (mUseButton->IsHit()) {
-		if (mpSelectedItem) {
+	if(mUseButton->IsHit()) {
+		if(mpSelectedItem) {
 			mpItemForUse = mpSelectedItem;
 			mOpen = false;
 		}
@@ -279,30 +278,30 @@ void Inventory::Update() {
 
 
 	bool combinePick = true;
-	for (int cw = 0; cw < mCellCountWidth; cw++) {
-		for (int ch = 0; ch < mCellCountHeight; ch++) {			
+	for(int cw = 0; cw < mCellCountWidth; cw++) {
+		for(int ch = 0; ch < mCellCountHeight; ch++) {
 			ruVector3 color = pGUIProp->mForeColor;
 
 			int itemNum = cw * mCellCountHeight + ch;
-			
+
 			int i = 0;
 
 			Item * pItem = nullptr;
 			int curItemCount = 0;
-			for (auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
-				if (i == itemNum) {
+			for(auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
+				if(i == itemNum) {
 					pItem = const_cast<Item*>(&itemCountPair->first);
 					curItemCount = itemCountPair->second;
 					break;
 				}
 				i++;
 			}
-			if (pItem) {
-				if (mpSelectedItem == pItem) {
+			if(pItem) {
+				if(mpSelectedItem == pItem) {
 					color = ruVector3(0, 200, 0);
 				}
 				mItemCountText[cw][ch]->SetText(StringBuilder() << curItemCount);
-				if (pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
+				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
 					mItemCountText[cw][ch]->SetVisible(true);
 				} else {
 					mItemCountText[cw][ch]->SetVisible(false);
@@ -312,25 +311,25 @@ void Inventory::Update() {
 			}
 
 			Item * pPicked = nullptr;
-			if (mItemCell[cw][ch]->IsMouseInside()) {
+			if(mItemCell[cw][ch]->IsMouseInside()) {
 				color = ruVector3(255, 0, 0);
-				if (pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
+				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
 					pPicked = pItem;
-					if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
+					if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
 						mpSelectedItem = pItem;
 					}
 				}
 			}
 
 			mItemCell[cw][ch]->SetColor(color);
-			if (pPicked) {
-				if (ruInput::IsMouseHit(ruInput::MouseButton::Right) && combinePick) {
-					if (mpCombineItemFirst == nullptr) {
-						if (pPicked != mpCombineItemFirst) {
+			if(pPicked) {
+				if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Right) && combinePick) {
+					if(mpCombineItemFirst == nullptr) {
+						if(pPicked != mpCombineItemFirst) {
 							mpCombineItemFirst = pPicked;
 						}
-					} else if (mpCombineItemSecond == nullptr) {
-						if (pPicked != mpCombineItemSecond) {
+					} else if(mpCombineItemSecond == nullptr) {
+						if(pPicked != mpCombineItemSecond) {
 							mpCombineItemSecond = pPicked;
 						}
 					}
@@ -339,11 +338,11 @@ void Inventory::Update() {
 					mpSelectedItem = nullptr;
 				}
 			}
-			if (pItem) {
-				if (pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
+			if(pItem) {
+				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
 					mItem[cw][ch]->SetVisible(true);
 					mItem[cw][ch]->SetTexture(pItem->GetPictogram());
-					if (pItem == pPicked) {
+					if(pItem == pPicked) {
 						mItemDescription->SetVisible(true);
 						mItemContentType->SetVisible(true);
 						mItemContent->SetVisible(true);
@@ -366,10 +365,10 @@ void Inventory::Update() {
 }
 
 void Inventory::RemoveItem(Item::Type type, int count) {
-	for (auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
-		if (itemCountPair->first.GetType() == type) {
+	for(auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
+		if(itemCountPair->first.GetType() == type) {
 			itemCountPair->second -= count;
-			if (itemCountPair->second <= 0) {
+			if(itemCountPair->second <= 0) {
 				mItemMap.erase(itemCountPair);
 				break;
 			}
@@ -394,8 +393,8 @@ bool Inventory::IsOpened() const {
 void Inventory::Serialize(SaveFile & s) {
 	int count = mItemMap.size();
 	s & count;
-	if (s.IsLoading()) {
-		for (int i = 0; i < count; ++i) {
+	if(s.IsLoading()) {
+		for(int i = 0; i < count; ++i) {
 			int value;
 			int type;
 
@@ -405,7 +404,7 @@ void Inventory::Serialize(SaveFile & s) {
 			mItemMap[Item((Item::Type)type)] = value;
 		}
 	} else {
-		for (auto p : mItemMap) {
+		for(auto p : mItemMap) {
 			auto key = (int)p.first.GetType();
 			auto value = p.second;
 
@@ -413,17 +412,17 @@ void Inventory::Serialize(SaveFile & s) {
 			s & value;
 		}
 	}
-		
+
 	// serialize readed notes
 	count = mReadedNotes.size();
 	s & count;
-	for (int i = 0; i < count; ++i) {
+	for(int i = 0; i < count; ++i) {
 		string desc, text;
 
-		if (s.IsLoading()) {
+		if(s.IsLoading()) {
 			s & desc;
 			s & text;
-			
+
 			AddReadedNote(desc, text);
 
 			mTab = Tab::Items;
@@ -441,17 +440,17 @@ void Inventory::Serialize(SaveFile & s) {
 }
 
 void Inventory::AddItem(Item::Type type) {
-	if (type != Item::Type::Unknown) {
+	if(type != Item::Type::Unknown) {
 		bool found = false;
-		for (auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
-			if (itemCountPair->first.GetType() == type) {
+		for(auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
+			if(itemCountPair->first.GetType() == type) {
 				found = true;
-				if (!itemCountPair->first.mSingleInstance) {
+				if(!itemCountPair->first.mSingleInstance) {
 					itemCountPair->second++;
 				}
 			}
 		}
-		if (!found) {
+		if(!found) {
 			mItemMap[Item(type)] = 1;
 		}
 	}
@@ -466,8 +465,8 @@ Item * Inventory::GetItemSelectedForUse() {
 }
 
 int Inventory::GetItemCount(Item::Type type) {
-	for (auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
-		if (itemCountPair->first.GetType() == type) {
+	for(auto & itemCountPair = mItemMap.begin(); itemCountPair != mItemMap.end(); itemCountPair++) {
+		if(itemCountPair->first.GetType() == type) {
 			return itemCountPair->second;
 		}
 	}
@@ -476,6 +475,17 @@ int Inventory::GetItemCount(Item::Type type) {
 
 void Inventory::GetItems(map<Item, int> & itemMap) {
 	itemMap = mItemMap;
+}
+
+void Inventory::AddReadedNote(const string & desc, const string & text) {
+	auto existing = find(mReadedNotes.begin(), mReadedNotes.end(), pair<string, string>(desc, text));
+	if(existing == mReadedNotes.end()) {
+		mNotesList->AddValue(desc);
+		mNotesList->SetCurrentValue(mNotesList->GetValueCount() - 1);
+		mReadedNotes.push_back(pair<string, string>(desc, text));
+	}
+	mTab = Tab::Notes;
+	SetVisible(true);
 }
 
 void Inventory::SetItems(map<Item, int> & items) {

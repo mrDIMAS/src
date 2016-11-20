@@ -22,30 +22,10 @@
 #include "Precompiled.h"
 #include "GUIButton.h"
 #include "GUIScene.h"
+#include "Input.h"
+#include "Engine.h"
 
-LPDIRECTINPUT8 pInput;
-LPDIRECTINPUTDEVICE8 pKeyboard;
-LPDIRECTINPUTDEVICE8 pMouse;
-DIMOUSESTATE mouseData;
-HWND hwnd;
-
-char g_keys[ 256 ] = { 0 };
-char g_lastKeys[ 256 ] = { 0 };
-char g_keysHit[ 256 ] = { 0 };
-char g_keysUp[ 256 ] = { 0 };
-
-char g_mouseUp[ 4 ] = { 0 };
-char g_mouseHit[ 4 ] = { 0 };
-char g_mousePressed[ 4 ] = { 0 };
-
-int mouseX = 0;
-int mouseY = 0;
-int mouseWheel = 0;
-int windowOffsetX = 0;
-int windowOffsetY = 0;
-RECT windowRect;
-
-const char * keyNames [] = {
+const char * keyNames[] = {
 	"Esc",
 	"1",
 	"2",
@@ -192,138 +172,138 @@ const char * keyNames [] = {
 	"MEDIASELECT"
 };
 
-string ruInput::GetKeyName( ruInput::Key key ) {
-	if( key >= ruInput::Key::Count ) {
+string Input::GetKeyName(ruInput::Key key) {
+	if(key >= ruInput::Key::Count) {
 		return "BadID";
 	}
-	return keyNames[ static_cast<int>( key ) - 1 ];
+	return keyNames[static_cast<int>(key) - 1];
 }
 
-void ruInput::Update( ) {
-    if( pKeyboard->GetDeviceState( sizeof( g_keys ), reinterpret_cast<void*>( &g_keys )) == DIERR_INPUTLOST ) {
-        pKeyboard->Acquire();
-    }
+Input::Input(Engine * engine, HWND window) : mEngine(engine) {
+	HINSTANCE hInstance = GetModuleHandle(0);
+	hwnd = window;
+	DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(&pInput), NULL);
+	pInput->CreateDevice(GUID_SysKeyboard, &pKeyboard, NULL);
+	pKeyboard->SetDataFormat(&c_dfDIKeyboard);
+	pKeyboard->SetCooperativeLevel(hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
+	pKeyboard->Acquire();
+	pInput->CreateDevice(GUID_SysMouse, &pMouse, NULL);
+	pMouse->SetDataFormat(&c_dfDIMouse);
+	pMouse->SetCooperativeLevel(hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
+	pMouse->Acquire();
+	RECT initialWindowRect;
+	GetWindowRect(hwnd, &initialWindowRect);
+	GetClientRect(hwnd, &windowRect);
+	AdjustWindowRect(&windowRect, GetWindowLong(hwnd, GWL_STYLE), 0);
+	windowOffsetX = initialWindowRect.left - windowRect.left;
+	windowOffsetY = initialWindowRect.top - windowRect.top;
+	GetClientRect(hwnd, &windowRect);
+}
 
-    if( pMouse->GetDeviceState( sizeof( DIMOUSESTATE ), reinterpret_cast<void*>( &mouseData )) == DIERR_INPUTLOST ) {
-        pMouse->Acquire();
-    }
+Input::~Input() {
+	pMouse->Unacquire();
+	pMouse->Release();
+	pKeyboard->Unacquire();
+	pKeyboard->Release();
+	pInput->Release();
+}
 
-    for( size_t i = 0; i < sizeof( g_keys ); ++i ) {
-        g_keysHit[ i ] = g_keys[ i ] & ~g_lastKeys[ i ];
-        g_keysUp[ i ]  = ~g_keys[ i ] & g_lastKeys[ i ];
-    }
+void Input::Update() {
+	if(pKeyboard->GetDeviceState(sizeof(g_keys), reinterpret_cast<void*>(&g_keys)) == DIERR_INPUTLOST) {
+		pKeyboard->Acquire();
+	}
 
-    for( size_t i = 0; i < 4; ++i ) {
-        g_mouseUp[ i ] =  mouseData.rgbButtons[ i ] & ~g_mousePressed[ i ];
-        g_mouseHit[ i ] = ~mouseData.rgbButtons[ i ] & g_mousePressed[ i ];
-    }
+	if(pMouse->GetDeviceState(sizeof(DIMOUSESTATE), reinterpret_cast<void*>(&mouseData)) == DIERR_INPUTLOST) {
+		pMouse->Acquire();
+	}
 
-    mouseX += mouseData.lX;
-    mouseY += mouseData.lY;
-    mouseWheel += mouseData.lZ;
+	for(size_t i = 0; i < sizeof(g_keys); ++i) {
+		g_keysHit[i] = g_keys[i] & ~g_lastKeys[i];
+		g_keysUp[i] = ~g_keys[i] & g_lastKeys[i];
+	}
 
-    if( mouseX < 0 ) {
-        mouseX = 0;
-    }
-    if( mouseY < 0 ) {
-        mouseY = 0;
-    }
-    if( mouseX > windowRect.right ) {
-        mouseX = windowRect.right;
-    }
-    if( mouseY > windowRect.bottom ) {
-        mouseY = windowRect.bottom;
-    }
+	for(size_t i = 0; i < 4; ++i) {
+		g_mouseUp[i] = mouseData.rgbButtons[i] & ~g_mousePressed[i];
+		g_mouseHit[i] = ~mouseData.rgbButtons[i] & g_mousePressed[i];
+	}
 
-    memcpy( g_lastKeys, g_keys, sizeof( g_lastKeys ));
-    memcpy( g_mousePressed, mouseData.rgbButtons, sizeof( g_mousePressed ));
+	mouseX += mouseData.lX;
+	mouseY += mouseData.lY;
+	mouseWheel += mouseData.lZ;
 
-	auto & guiSceneList = GUIScene::GetSceneList();
-	for (auto weakScene : guiSceneList) {
+	if(mouseX < 0) {
+		mouseX = 0;
+	}
+	if(mouseY < 0) {
+		mouseY = 0;
+	}
+	if(mouseX > windowRect.right) {
+		mouseX = windowRect.right;
+	}
+	if(mouseY > windowRect.bottom) {
+		mouseY = windowRect.bottom;
+	}
+
+	memcpy(g_lastKeys, g_keys, sizeof(g_lastKeys));
+	memcpy(g_mousePressed, mouseData.rgbButtons, sizeof(g_mousePressed));
+
+	auto & guiSceneList = mEngine->GetGUISceneList();
+	for(auto weakScene : guiSceneList) {
 		auto scene = weakScene.lock();
 		auto & buttons = scene->GetButtonList();
-		for (auto & pButton : buttons) {
-			if (pButton->IsVisible()) {
+		for(auto & pButton : buttons) {
+			if(pButton->IsVisible()) {
 				pButton->Update();
-			}			
+			}
 		}
 	}
-};
-
-void ruInput::Init( HWND window ) {
-    HINSTANCE hInstance = GetModuleHandle( 0 );
-    hwnd = window;
-    DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>( &pInput ),NULL);
-    pInput->CreateDevice( GUID_SysKeyboard, &pKeyboard, NULL );
-    pKeyboard->SetDataFormat( &c_dfDIKeyboard );
-    pKeyboard->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE );
-    pKeyboard->Acquire();
-    pInput->CreateDevice( GUID_SysMouse, &pMouse, NULL );
-    pMouse->SetDataFormat(&c_dfDIMouse);
-    pMouse->SetCooperativeLevel( hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE );
-    pMouse->Acquire();
-    RECT initialWindowRect;
-    GetWindowRect( hwnd, &initialWindowRect );
-    GetClientRect( hwnd, &windowRect );
-    AdjustWindowRect( &windowRect, GetWindowLong( hwnd, GWL_STYLE ), 0 );
-    windowOffsetX = initialWindowRect.left - windowRect.left;
-    windowOffsetY = initialWindowRect.top - windowRect.top ;
-    GetClientRect( hwnd, &windowRect );
-};
-
-void ruInput::Destroy() {
-    pMouse->Unacquire();
-    pMouse->Release();
-    pKeyboard->Unacquire();
-    pKeyboard->Release();
-    pInput->Release();
-};
-
-bool ruInput::IsKeyDown( Key key ) {
-    return g_keys[ static_cast<int>( key ) ];
-};
-
-bool ruInput::IsKeyHit( Key key ) {
-    return g_keysHit[ static_cast<int>( key ) ];
-};
-
-bool ruInput::IsKeyUp ( Key key ) {
-	return g_keysUp[ static_cast<int>( key ) ];
 }
 
-bool ruInput::IsMouseDown( MouseButton button ) {
-    if( (int)button >= 4 ) {
-        return 0;
-    }
 
-    return mouseData.rgbButtons[ static_cast<int>( button ) ];
+bool Input::IsKeyDown(Key key) {
+	return g_keys[static_cast<int>(key)];
 }
 
-bool ruInput::IsMouseHit( MouseButton button ) {
-    return g_mouseHit[ static_cast<int>( button )];
+bool Input::IsKeyHit(Key key) {
+	return g_keysHit[static_cast<int>(key)];
 }
 
-int ruInput::GetMouseX( ) {
-    return mouseX;
+bool Input::IsKeyUp(Key key) {
+	return g_keysUp[static_cast<int>(key)];
 }
 
-int ruInput::GetMouseY( ) {
-    return mouseY;
+bool Input::IsMouseDown(MouseButton button) {
+	if((int)button >= 4) {
+		return 0;
+	}
+
+	return mouseData.rgbButtons[static_cast<int>(button)];
 }
 
-int ruInput::GetMouseWheel( ) {
-    return mouseWheel;
+bool Input::IsMouseHit(MouseButton button) {
+	return g_mouseHit[static_cast<int>(button)];
 }
 
-int ruInput::GetMouseXSpeed( ) {
-    return mouseData.lX;
+int Input::GetMouseX() {
+	return mouseX;
 }
 
-int ruInput::GetMouseYSpeed( ) {
-    return mouseData.lY;
+int Input::GetMouseY() {
+	return mouseY;
 }
 
-int ruInput::GetMouseWheelSpeed( ) {
-    return mouseData.lZ;
+int Input::GetMouseWheel() {
+	return mouseWheel;
 }
 
+int Input::GetMouseXSpeed() {
+	return mouseData.lX;
+}
+
+int Input::GetMouseYSpeed() {
+	return mouseData.lY;
+}
+
+int Input::GetMouseWheelSpeed() {
+	return mouseData.lZ;
+}

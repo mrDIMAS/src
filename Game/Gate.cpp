@@ -6,30 +6,30 @@ void Gate::Update() {
 	mOpenAnim.Update();
 	mCloseAnim.Update();
 
-	for (int i = 0; i < 4; i++) {
+	for(int i = 0; i < 4; i++) {
 		mButtonPushAnim[i].Update();
 	}
 
-	auto & player = Level::Current()->GetPlayer();
+	auto & player = Game::Instance()->GetLevel()->GetPlayer();
 
-	if (player->mNearestPickedNode == mButtonOpen[0] || player->mNearestPickedNode == mButtonOpen[1]) {
-		if (!(mState == State::Closing || mState == State::Opening)) {
+	if(player->mNearestPickedNode == mButtonOpen[0] || player->mNearestPickedNode == mButtonOpen[1]) {
+		if(!(mState == State::Closing || mState == State::Opening)) {
 			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("openGateway"));
-			if (ruInput::IsKeyHit(player->mKeyUse) && !mLocked) {
+			if(player->IsUseButtonHit() && !mLocked) {
 				mButtonSound->SetPosition(player->mNearestPickedNode->GetPosition());
-				if (mState != State::Opened) {
+				if(mState != State::Opened) {
 					player->mNearestPickedNode->GetCurrentAnimation()->Rewind();
 					player->mNearestPickedNode->GetCurrentAnimation()->SetEnabled(true);
 				}
 			}
 		}
 	}
-	if (player->mNearestPickedNode == mButtonClose[0] || player->mNearestPickedNode == mButtonClose[1]) {
-		if (!(mState == State::Closing || mState == State::Opening)) {
+	if(player->mNearestPickedNode == mButtonClose[0] || player->mNearestPickedNode == mButtonClose[1]) {
+		if(!(mState == State::Closing || mState == State::Opening)) {
 			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("closeGateway"));
-			if (ruInput::IsKeyHit(player->mKeyUse) && !mLocked) {
+			if(player->IsUseButtonHit() && !mLocked) {
 				mButtonSound->SetPosition(player->mNearestPickedNode->GetPosition());
-				if (mState != State::Closed) {
+				if(mState != State::Closed) {
 					player->mNearestPickedNode->GetCurrentAnimation()->Rewind();
 					player->mNearestPickedNode->GetCurrentAnimation()->SetEnabled(true);
 				}
@@ -75,7 +75,7 @@ Gate::Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, sha
 	mCloseAnim.AddFrameListener(frameCount / 2 + 2, [this] { mIdleSound->Play(); });
 	mCloseAnim.AddFrameListener(frameCount - 2, [this] { mEndSound->Play();	mState = State::Closed;	mIdleSound->Stop(); });
 
-	for (int i = 0; i < 4; i++) {
+	for(int i = 0; i < 4; i++) {
 		mButtonPushAnim[i] = ruAnimation(0, frameCount, 0.1);
 		mButtonPushAnim[i].AddFrameListener(frameCount / 2, [this] { mButtonSound->Play(); });
 	}

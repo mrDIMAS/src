@@ -23,45 +23,40 @@
 
 #include "Vertex.h"
 
-Vertex::Vertex()
-{
+Vertex::Vertex( ) {
 
 }
 
 Vertex::Vertex( const Vertex & v, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
-	mPosition( v.mPosition ), 
-	mNormal( v.mNormal ), 
-	mTexCoord( v.mTexCoord ), 
+	mPosition( v.mPosition ),
+	mNormal( v.mNormal ),
+	mTexCoord( v.mTexCoord ),
 	mTangent( v.mTangent ),
-	mBoneIndices( boneIndices ), 
-	mBoneWeights( boneWeights )
-{
+	mBoneIndices( boneIndices ),
+	mBoneWeights( boneWeights ) {
 
 }
 
-Vertex::Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) : 
-	mPosition( position ), 
-	mNormal( normal ), 
-	mTexCoord( texCoord ), 
-	mTangent( tangent ), 
-	mBoneIndices( boneIndices ), 
-	mBoneWeights( boneWeights )
-{
+Vertex::Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
+	mPosition( position ),
+	mNormal( normal ),
+	mTexCoord( texCoord ),
+	mTangent( tangent ),
+	mBoneIndices( boneIndices ),
+	mBoneWeights( boneWeights ) {
 
 }
 
 Vertex::Vertex( const ruVector3 & position, const ruVector2 & texCoord, const ruVector4 & color ) :
 	mPosition( position ),
 	mTexCoord( texCoord ),
-	mBoneIndices( color )
-{
+	mBoneIndices( color ) {
 
 }
 
 Vertex::Vertex( const ruVector3 & position, const ruVector2 & texCoord ) :
 	mPosition( position ),
-	mTexCoord( texCoord )
-{
+	mTexCoord( texCoord ) {
 
 }
 

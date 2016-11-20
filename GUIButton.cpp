@@ -23,13 +23,17 @@
 #include "Texture.h"
 #include "GUIButton.h"
 #include "GUIScene.h"
+#include "Engine.h"
+#include "Input.h"
 
 void GUIButton::Update() {
-	if (IsVisible()) {
+	if(IsVisible()) {
 		CalculateTransform();
 
-		int mouseX = ruInput::GetMouseX();
-		int mouseY = ruInput::GetMouseY();
+		auto input = mScene.lock()->GetEngine()->GetInput();
+
+		int mouseX = input->GetMouseX();
+		int mouseY = input->GetMouseY();
 
 		mPicked = false;
 		mLeftPressed = false;
@@ -37,28 +41,28 @@ void GUIButton::Update() {
 		mLeftHit = false;
 		mRightHit = false;
 
-		if (mActive) {
+		if(mActive) {
 			mpText->SetColor(ruVector3(255, 255, 255));
 
-			if (mouseX > mGlobalX && mouseX < (mGlobalX + mWidth) && mouseY > mGlobalY && mouseY < (mGlobalY + mHeight)) {
+			if(mouseX > mGlobalX && mouseX < (mGlobalX + mWidth) && mouseY > mGlobalY && mouseY < (mGlobalY + mHeight)) {
 				mPicked = true;
 
-				if (ruInput::IsMouseHit(ruInput::MouseButton::Left)) {
+				if(input->IsMouseHit(ruInput::MouseButton::Left)) {
 					mLeftHit = true;
-					if (IsGotAction(ruGUIAction::OnClick)) {
+					if(IsGotAction(ruGUIAction::OnClick)) {
 						mEventList[ruGUIAction::OnClick]();
-					}					
+					}
 				}
 
-				if (ruInput::IsMouseHit(ruInput::MouseButton::Right)) {
+				if(input->IsMouseHit(ruInput::MouseButton::Right)) {
 					mRightHit = true;
 				}
 
-				if (ruInput::IsMouseDown(ruInput::MouseButton::Left)) {
+				if(input->IsMouseDown(ruInput::MouseButton::Left)) {
 					mLeftPressed = true;
 				}
 
-				if (ruInput::IsMouseDown(ruInput::MouseButton::Right)) {
+				if(input->IsMouseDown(ruInput::MouseButton::Right)) {
 					mRightPressed = true;
 				}
 

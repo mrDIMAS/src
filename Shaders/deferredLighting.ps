@@ -18,6 +18,7 @@ float lightRange : register( c10 );
 float lightIntensity : register(c11);
 float3 cameraPos : register(c12);
 float3 direction : register(c13);
+float2 shadowMapScale : register(c14);
 
 // Bool constants
 bool usePointLighting : register( b0 );
@@ -35,7 +36,7 @@ static const float3 sampleOffsetDirections[20] = {
 
 // returns antialised shadow term for point light
 float GetShadow(in float3 lightVector) {
-	const float bias = 0.035;
+	const float bias = 0.05;
 	float outShadow = 0.0f;
 	float currentDistance = length( lightVector );
 	if(softShadows) {
@@ -76,7 +77,6 @@ float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
 		outputColor = float4( lightColor.xyz * diffuse * attenuation, 1.0f );			
 	}
 	
-	
 	if( usePointLighting ) { 
 		// Point lighting		
 		outputColor *= texCUBElod( pointProjectionSampler, float4( lightVector, 0 ) );
@@ -91,9 +91,26 @@ float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
 		} 	
 		if( useShadows ) {
 			const float bias = 0.002f;
-			if( projection.z - bias > tex2Dlod( shadowSampler, projection).r) {
-			   outputColor.rgb *= 0.1f;
-			};
+			
+			float shadow = 1.0f;
+			if(softShadows) {
+				for (float y = -1.5; y <= 1.5; y += 1.0) {
+					for (float x = -1.5; x <= 1.5; x += 1.0) {
+						float4 sampling = float4(projection.x + x * shadowMapScale.x, projection.y + y * shadowMapScale.y, 0, 0);						
+						if( projection.z - bias > tex2Dlod( shadowSampler, sampling).r) {
+							shadow += 1.0f;
+						}
+					}
+				}			
+				
+				shadow = saturate(1.025f - shadow / 16.0f);  
+			} else {
+				if( projection.z - bias > tex2Dlod( shadowSampler, projection).r) {
+					shadow = 0.25f;
+				}
+			}
+			
+			outputColor.rgb *= shadow;
 		}		
 	}
 

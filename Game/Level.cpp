@@ -1,42 +1,32 @@
 #include "Precompiled.h"
 #include "Level.h"
-#include "LevelArrival.h"
-#include "LevelMine.h"
 #include "GUIProperties.h"
 #include "Player.h"
 #include "Menu.h"
-#include "LevelResearchFacility.h"
 #include "SaveLoader.h"
 #include "SaveWriter.h"
-#include "LevelSewers.h"
-#include "LevelCutsceneIntro.h"
-#include "LevelForest.h"
-#include "LevelEnding.h"
-
-unique_ptr<Level> Level::msCurrent;
-
-unique_ptr<LoadingScreen> Level::msLoadingScreen;
 
 LevelName g_initialLevel = LevelName::Undefined;
 LevelName Level::msCurLevelID = LevelName::Undefined;
 
-Level::Level(const unique_ptr<PlayerTransfer> & playerTransfer) : 
+Level::Level(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) :
+	mGame(game),
 	mChaseMusicStopInterval(0),
 	mChaseMusicVolume(1.0f),
-	mDestChaseMusicVolume(1.0f)
-{
+	mDestChaseMusicVolume(1.0f),
+	mEnded(false) {
 	mInitializationComplete = false;
 	mName = LevelName::Undefined;
 
-	 // create player
-	if (Level::msCurLevelID != LevelName::Intro && Level::msCurLevelID != LevelName::Ending) {
-		mPlayer = unique_ptr<Player>(new Player);
+	// create player
+	if(Level::msCurLevelID != LevelName::Intro && Level::msCurLevelID != LevelName::Ending) {
+		mPlayer = unique_ptr<Player>(new Player(mGame));
 
 		// restore state
-		if (playerTransfer) {
+		if(playerTransfer) {
 			mPlayer->SetHealth(playerTransfer->mHealth);
 
-			if (playerTransfer->mItems.size()) {
+			if(playerTransfer->mItems.size()) {
 				mPlayer->GetInventory()->SetItems(playerTransfer->mItems);
 			}
 		}
@@ -50,14 +40,14 @@ Level::~Level() {
 }
 
 void Level::LoadLocalization(string fn) {
-	mLocalization.ParseFile(gLocalizationPath + fn);
+	mLocalization.Load(mGame->GetLocalizationPath() + fn);
 }
 
 void Level::Hide() {
 	mScene->Hide();
-	for (auto & sWeak : mSounds) {
+	for(auto & sWeak : mSounds) {
 		shared_ptr<ruSound> & sound = sWeak.lock();
-		if (sound) {
+		if(sound) {
 			sound->Pause();
 		}
 	}
@@ -65,10 +55,10 @@ void Level::Hide() {
 
 void Level::Show() {
 	mScene->Show();
-	for (auto & sWeak : mSounds) {
+	for(auto & sWeak : mSounds) {
 		shared_ptr<ruSound> & sound = sWeak.lock();
-		if (sound) {
-			if (sound->IsPaused()) {
+		if(sound) {
+			if(sound->IsPaused()) {
 				sound->Play();
 			}
 		}
@@ -79,81 +69,6 @@ bool Level::IsVisible() {
 	return mScene->IsVisible();
 }
 
-void Level::Change(LevelName name, bool continueFromSave) {
-	static LevelName lastLevel = LevelName::Undefined;
-
-	Level::msCurLevelID = name;
-
-	// save player state - grim stuff
-	unique_ptr<PlayerTransfer> playerTransfer;
-
-	if (msCurrent) {
-		if (msCurrent->mPlayer) {
-			playerTransfer = make_unique<PlayerTransfer>();
-			msCurrent->mPlayer->GetInventory()->GetItems(playerTransfer->mItems);
-			playerTransfer->mHealth = msCurrent->mPlayer->GetHealth();
-		}
-
-		// delete player
-		msCurrent->mPlayer.reset();
-	}
-
-	// delete level
-	msCurrent.reset();
-
-	msLoadingScreen->Draw();
-
-	// load new level and restore player state
-	switch (Level::msCurLevelID) {
-	case LevelName::Intro:
-		msCurrent = make_unique<LevelIntro>(playerTransfer);
-		break;
-	case LevelName::Arrival:
-		msCurrent = make_unique<LevelArrival>(playerTransfer);
-		break;
-	case LevelName::Mine:
-		msCurrent = make_unique<LevelMine>(playerTransfer);
-		break;
-	case LevelName::ResearchFacility:
-		msCurrent = make_unique<LevelResearchFacility>(playerTransfer);
-		break;
-	case LevelName::Sewers:
-		msCurrent = make_unique<LevelSewers>(playerTransfer);
-		break;
-	case LevelName::Forest:
-		msCurrent = make_unique<LevelForest>(playerTransfer);
-		break;
-	case LevelName::Ending:
-		msCurrent = make_unique<LevelEnding>(playerTransfer);
-		break;
-	default:
-		throw runtime_error("Unable to load level with bad id!");
-		break;
-	}
-
-	if (continueFromSave) {
-		SaveLoader("lastGame.save").RestoreWorldState();
-	}
-
-	if (msCurrent->mPlayer) {
-		msCurrent->mPlayer->GetHUD()->SetTip(msCurrent->mPlayer->GetLocalization()->GetString("loaded"));
-	}
-	
-	// fill sound list for react to
-	if (msCurrent->mEnemy) {
-		for (auto & pMat : msCurrent->mPlayer->mSoundMaterialList) {
-			for (auto & pSound : pMat->GetSoundList()) {
-				msCurrent->mEnemy->mReactSounds.push_back(pSound);
-			}
-		}
-		msCurrent->mEnemy->mReactSounds.insert(msCurrent->mEnemy->mReactSounds.end(), msCurrent->mPlayer->mPainSound.begin(), msCurrent->mPlayer->mPainSound.end());
-		msCurrent->mEnemy->mReactSounds.push_back(msCurrent->mPlayer->mFlashlightSwitchSound);
-	}
-
-	lastLevel = name;
-
-	Game_UpdateClock();
-}
 
 shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight) {
 	shared_ptr<Lift> lift(new Lift(GetUniqueObject(baseNode)));
@@ -201,8 +116,8 @@ shared_ptr<Ladder> Level::AddLadder(const string & hBegin, const string & hEnd, 
 }
 
 shared_ptr<Ladder> Level::FindLadder(const string & name) {
-	for (auto & ladder : mLadderList) {
-		if (ladder->mEnterZone->GetName() == name) {
+	for(auto & ladder : mLadderList) {
+		if(ladder->mEnterZone->GetName() == name) {
 			return ladder;
 		}
 	}
@@ -216,8 +131,8 @@ shared_ptr<Door> Level::AddDoor(const string & nodeName, float fMaxAngle) {
 }
 
 shared_ptr<Door> Level::FindDoor(const string & name) {
-	for (auto & door : mDoorList) {
-		if (door->mDoorNode->GetName() == name) {
+	for(auto & door : mDoorList) {
+		if(door->mDoorNode->GetName() == name) {
 			return door;
 		}
 	}
@@ -229,8 +144,8 @@ void Level::AddItemPlace(const shared_ptr<ItemPlace> & pItemPlace) {
 }
 
 shared_ptr<ItemPlace> Level::FindItemPlace(const string & name) {
-	for (auto & ipl : mItemPlaceList) {
-		if (ipl->mObject->GetName() == name) {
+	for(auto & ipl : mItemPlaceList) {
+		if(ipl->mObject->GetName() == name) {
 			return ipl;
 		}
 	}
@@ -245,19 +160,15 @@ shared_ptr<Keypad> Level::AddKeypad(const string & keypad, const string & key0, 
 	return k;
 }
 
-void Level::Purge() {
-	msCurrent.reset();
-}
-
 void Level::Serialize(SaveFile & s) {
 	mPlayer->Serialize(s);
 
-	mPlayer->GetHUD()->SetTip(msCurrent->mPlayer->GetLocalization()->GetString("saved"));
+	mPlayer->GetHUD()->SetTip(mPlayer->GetLocalization()->GetString("saved"));
 
 	// serialize all scene nodes
 	int childCount = mScene->GetCountChildren();
 	s & childCount;
-	for (int i = 0; i < childCount; i++) {
+	for(int i = 0; i < childCount; i++) {
 		shared_ptr<ruSceneNode> node = mScene->GetChild(i);
 		shared_ptr<ruLight> light = std::dynamic_pointer_cast<ruLight>(node);
 
@@ -271,42 +182,42 @@ void Level::Serialize(SaveFile & s) {
 		s & name;
 		s & position;
 		s & rotation;
-		s & visible;		
+		s & visible;
 		s & isLight;
 		s & lightRange;
-		
+
 		// apply values on load
-		if (s.IsLoading()) {
+		if(s.IsLoading()) {
 			node->SetLocalPosition(position);
 			node->SetLocalRotation(rotation);
-			if (visible) {
+			if(visible) {
 				node->Show();
 			} else {
 				node->Hide();
 			}
-			if (isLight) {
+			if(isLight) {
 				std::dynamic_pointer_cast<ruLight>(node)->SetRange(lightRange);
 			}
 		}
 	}
 	// serialize doors
-	for (auto door : mDoorList) {
+	for(auto door : mDoorList) {
 		door->Serialize(s);
 	}
 	// serialize lifts
-	for (auto lift : mLiftList) {
+	for(auto lift : mLiftList) {
 		lift->Serialize(s);
 	}
 	// serialize ladders
-	for (auto ladder : mLadderList) {
+	for(auto ladder : mLadderList) {
 		ladder->Serialize(s);
 	}
 	// serialize item places
-	for (auto itemPlace : mItemPlaceList) {
+	for(auto itemPlace : mItemPlaceList) {
 		itemPlace->Serialize(s);
 	}
 	// serialize light switches
-	for (auto lswitch : mLightSwitchList) {
+	for(auto lswitch : mLightSwitchList) {
 		lswitch->Serialize(s);
 	}
 	// serialize stages
@@ -315,7 +226,7 @@ void Level::Serialize(SaveFile & s) {
 }
 
 void Level::AddSound(shared_ptr<ruSound> sound) {
-	if (!sound) {
+	if(!sound) {
 		throw std::runtime_error("Unable to add ambient sound! Invalid source!");
 	}
 	mSounds.push_back(sound);
@@ -326,7 +237,7 @@ void Level::PlayAmbientSounds() {
 }
 
 void Level::AddAmbientSound(shared_ptr<ruSound> sound) {
-	if (!sound) {
+	if(!sound) {
 		throw std::runtime_error("Unable to add ambient sound! Invalid source!");
 	}
 	mSounds.push_back(sound);
@@ -337,78 +248,67 @@ shared_ptr<ruSceneNode> Level::GetUniqueObject(const string & name) {
 	// the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
 	// game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
 	// also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
-	if (mInitializationComplete) {
+	if(mInitializationComplete) {
 		throw std::runtime_error(StringBuilder("You must get object in game level initialization! Get object in game logic loop is strictly forbidden! Object name: ") << name);
 	}
-	if (!mScene) {
+	if(!mScene) {
 		throw std::runtime_error(StringBuilder("Object ") << name << " can't be found in the empty scene. Load scene first!");
 	}
 	shared_ptr<ruSceneNode> object = mScene->FindChild(name);
 	// each unique object must be presented in the scene, otherwise error will be generated
-	if (!object) {
+	if(!object) {
 		throw std::runtime_error(StringBuilder("Object ") << name << " can't be found in the scene! Game will be closed.");
 	}
 	return object;
 }
 
 void Level::LoadSceneFromFile(const string & file) {
-	mScene = ruSceneNode::LoadFromFile(file);
-	if (!mScene) {
+	mScene = mGame->GetEngine()->GetSceneFactory()->LoadScene(file);
+	if(!mScene) {
 		throw std::runtime_error(StringBuilder("Unable to load scene from ") << file << "! Game will be closed.");
 	}
 }
 
 void Level::CreateBlankScene() {
-	mScene = ruSceneNode::Create();
+	mScene = mGame->GetEngine()->GetSceneFactory()->CreateSceneNode();
 }
 
 void Level::DoneInitialization() {
 	mInitializationComplete = true;
 }
 
-void Level::CreateLoadingScreen() {
-	Parser loc;
-	loc.ParseFile(gLocalizationPath + "menu.loc");
-	msLoadingScreen = unique_ptr<LoadingScreen>(new LoadingScreen(loc.GetString("loading")));
-}
-
-unique_ptr<Level> & Level::Current() {
-	return msCurrent;
-}
-
-
 void Level::GenericUpdate() {
-	if (mPlayer) {
+	if(mPlayer) {
 		mPlayer->Update();
 	}
 
-	for (auto io : mInteractiveObjectList) {
+	for(auto io : mInteractiveObjectList) {
 		io->Update();
 	}
-	for (auto kp : mKeypadList) {
+	for(auto kp : mKeypadList) {
 		kp->Update();
 	}
-	for (auto pZone : mZoneList) {
+	for(auto pZone : mZoneList) {
 		pZone->Update();
 	}
-	for (auto pButton : mButtonList) {
+	for(auto pButton : mButtonList) {
 		pButton->Update();
 	}
-	for (auto lswitch : mLightSwitchList) {
+	for(auto lswitch : mLightSwitchList) {
 		lswitch->Update();
 	}
 
 
-	if (mMusic) {
-		mMusic->SetVolume(pMainMenu->GetMusicVolume());
+	if(mMusic) {
+		mMusic->SetVolume(mGame->GetMenu()->GetMusicVolume());
 	}
 
 	--mChaseMusicStopInterval;
-	if (mChaseMusicStopInterval < 0) {
+	if(mChaseMusicStopInterval < 0) {
 		mDestChaseMusicVolume = 0.0f;
 	}
 
-	if (mChaseMusicVolume < 0.0f) {
+	if(mChaseMusicVolume < 0.0f) {
 		mChaseMusicVolume = 0.0f;
 	}
 
@@ -416,29 +316,19 @@ void Level::GenericUpdate() {
 	mChaseMusic->SetVolume(mChaseMusicVolume);
 }
 
-void Level::AutoCreateBulletsByNamePattern(const string & namePattern) {
-	std::regex rx(namePattern);
-	for (int i = 0; i < mScene->GetCountChildren(); i++) {
-		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
-		if (regex_match(child->GetName(), rx)) {
-			AddInteractiveObject(Item::GetNameByType(Item::Type::Bullet), make_shared<InteractiveObject>(child), [this] { mPlayer->AddItem(Item::Type::Bullet); });
-		}
-	}
-}
-
 void Level::AutoCreateDoorsByNamePattern(const string & namePattern) {
 	std::regex rx(namePattern);
-	for (int i = 0; i < mScene->GetCountChildren(); i++) {
+	for(int i = 0; i < mScene->GetCountChildren(); i++) {
 		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
 		bool ignore = false;
-		for (auto pDoor : mDoorList) {
-			if (pDoor->mDoorNode == child) {
+		for(auto pDoor : mDoorList) {
+			if(pDoor->mDoorNode == child) {
 				ignore = true;
 				break;
 			}
 		}
-		if (!ignore) {
-			if (regex_match(child->GetName(), rx)) {
+		if(!ignore) {
+			if(regex_match(child->GetName(), rx)) {
 				AddDoor(child->GetName(), 90);
 			}
 		}
@@ -457,23 +347,23 @@ void Level::AddButton(const shared_ptr<Button> & button) {
 // when enemy detects player, enemy should call this method
 
 void Level::PlayChaseMusic() {
-	if (!mChaseMusic->IsPlaying()) {
+	if(!mChaseMusic->IsPlaying()) {
 		mChaseMusic->Play();
 	}
 	mDestChaseMusicVolume = 1.0f;
 	mChaseMusicStopInterval = 60 * 10; // 10 seconds (60 fps)
 }
 
-unique_ptr<Enemy> & Level::GetEnemy() {
+const unique_ptr<Enemy> & Level::GetEnemy() const {
 	return mEnemy;
 }
 
-unique_ptr<Player>& Level::GetPlayer() {
+const unique_ptr<Player> & Level::GetPlayer() const {
 	return mPlayer;
 }
 
-void Level::DestroyCurrent() {
-	msCurrent.reset();
+void Level::DestroyPlayer() {
+	mPlayer.reset();
 }
 
 void Level::AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction) {
@@ -483,8 +373,8 @@ void Level::AddInteractiveObject(const string & desc, const shared_ptr<Interacti
 }
 
 shared_ptr<InteractiveObject> Level::FindInteractiveObject(const string & name) {
-	for (auto & io : mInteractiveObjectList) {
-		if (io->mObject->GetName() == name) {
+	for(auto & io : mInteractiveObjectList) {
+		if(io->mObject->GetName() == name) {
 			return io;
 		}
 	}

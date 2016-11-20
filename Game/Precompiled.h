@@ -27,7 +27,6 @@
 #include <regex>
 #include <math.h>
 #include <memory>
+#include "Game.h"
 
 using namespace std;
-
-void Game_UpdateClock();

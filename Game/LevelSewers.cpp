@@ -2,9 +2,9 @@
 #include "Keypad.h"
 #include "LevelSewers.h"
 
-LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) : 
-	Level(playerTransfer),
-	mWaterFlow(0.0f), 
+LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) :
+	Level(game, playerTransfer),
+	mWaterFlow(0.0f),
 	mVerticalWaterFlow(0.0f),
 	mDrainTimer(60 * 60)
 {
@@ -85,14 +85,14 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) :
 		AddButton(make_shared<Button>(GetUniqueObject("Lift1CallDown"), "Call down", [this] { mLift1->GoDown(); }));
 	}
 	std::regex rx("VerticalWater?([[:digit:]]+)");
-	for (int i = 0; i < mScene->GetCountChildren(); i++) {
+	for(int i = 0; i < mScene->GetCountChildren(); i++) {
 		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
-		if (regex_match(child->GetName(), rx)) {
+		if(regex_match(child->GetName(), rx)) {
 			mVerticalWaterList.push_back(child);
 		}
 	}
 
-	for (int i = 0; i < 3; ++i) {
+	for(int i = 0; i < 3; ++i) {
 		AddSound(mWaterPumpSound[i] = ruSound::Load3D("data/sounds/waterpump.ogg"));
 		mWaterPumpSound[i]->Attach(GetUniqueObject(StringBuilder("WaterPumpSound") << i + 1));
 		mWaterPumpSound[i]->SetLoop(true);
@@ -109,14 +109,15 @@ LevelSewers::LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer) :
 	DoneInitialization();
 }
 
-void LevelSewers::CreateEnemy() {
+void LevelSewers::CreateEnemy()
+{
 	// create paths
 	const char * ways[] = {
-		"WayA", "WayB", "WayC", "WayD", "WayE", "WayF", "WayG", 
+		"WayA", "WayB", "WayC", "WayD", "WayE", "WayF", "WayG",
 		"WayH", "WayI", "WayJ", "WayK", "WayL", "WayM"
 	};
 	Path p;
-	for (auto w : ways) {
+	for(auto w : ways) {
 		p += Path(mScene, w);
 	}
 
@@ -129,7 +130,7 @@ void LevelSewers::CreateEnemy() {
 	p.Get("WayC041")->AddEdge(p.Get("WayB041")); // bridge
 	p.Get("WayA046")->AddEdge(p.Get("WayC008")); // bridge
 	p.Get("WayD1")->AddEdge(p.Get("WayC068")); // bridge
-	p.Get("WayA001")->AddEdge(p.Get("WayG1")); 
+	p.Get("WayA001")->AddEdge(p.Get("WayG1"));
 	p.Get("WayH012")->AddEdge(p.Get("WayG028"));
 	p.Get("WayH1")->AddEdge(p.Get("WayG022"));
 	p.Get("WayI1")->AddEdge(p.Get("WayG033"));
@@ -158,31 +159,33 @@ void LevelSewers::CreateEnemy() {
 		p.Get("WayL012"), p.Get("WayM006")
 	};
 
-	mEnemy = unique_ptr<Enemy>(new Enemy(p.mVertexList, patrolPoints));
+	mEnemy = make_unique<Enemy>(mGame, p.mVertexList, patrolPoints);
 	mEnemy->SetPosition(mEnemySpawnPosition->GetPosition());
 }
 
-LevelSewers::~LevelSewers() {
+LevelSewers::~LevelSewers()
+{
 
 }
 
-void LevelSewers::DoScenario() {
+void LevelSewers::DoScenario()
+{
 	// animate water flow
 	mWater->SetTexCoordFlow(ruVector2(0.0, -mWaterFlow));
 	mWaterFlow += 0.00025f;
 
 	mVerticalWaterFlow += 0.001;
-	for (auto & pVW : mVerticalWaterList) {
+	for(auto & pVW : mVerticalWaterList) {
 		pVW->SetTexCoordFlow(ruVector2(0.0f, mVerticalWaterFlow));
 	}
 
 	// update enemy, if present
-	if (mEnemy) {
+	if(mEnemy) {
 		mEnemy->Think();
 	}
 
 	// indicate, that water is drained or not
-	if (mStages["WaterDrained"]) {
+	if(mStages["WaterDrained"]) {
 		mPassLightGreen->Show();
 		mPassLightRed->Hide();
 
@@ -191,30 +194,30 @@ void LevelSewers::DoScenario() {
 		mPassLightGreen->Hide();
 		mPassLightRed->Show();
 
-		if (!mStages["PumpsActivated"]) {
-			if (mPlayer->mNearestPickedNode == mPumpSwitch) {
+		if(!mStages["PumpsActivated"]) {
+			if(mPlayer->mNearestPickedNode == mPumpSwitch) {
 				mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mLocalization.GetString("activatePumps"));
 
-				if (ruInput::IsKeyHit(mPlayer->mKeyUse)) {
+				if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse)) {
 					mStages["PumpsActivated"] = true;
 					mPumpSwitchAnimation.SetEnabled(true);
 
-					if (mEnemy) {
+					if(mEnemy) {
 						mEnemy->ForceCheckSound(mWaterPumpSound[0]->GetPosition());
 					}
 				}
 			}
 		} else {
 			--mDrainTimer;
-			if (mDrainTimer < 0) {
+			if(mDrainTimer < 0) {
 				mDrainTimer = 0;
 				mStages["WaterDrained"] = true;
-				for (int i = 0; i < 3; ++i) {
+				for(int i = 0; i < 3; ++i) {
 					mWaterPumpSound[i]->Stop();
 					mPumpLight[i]->SetColor(ruVector3(255, 0, 0));
-				}				
+				}
 			} else {
-				for (int i = 0; i < 3; ++i) {
+				for(int i = 0; i < 3; ++i) {
 					mWaterPumpSound[i]->Play();
 					mPumpLight[i]->SetColor(ruVector3(0, 255, 0));
 				}
@@ -225,13 +228,13 @@ void LevelSewers::DoScenario() {
 
 	mLift1->Update();
 
-	ruEngine::SetAmbientColor(ruVector3(9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f));
 	mGate1->Update();
 	mGate2->Update();
 	mGateToLift->Update();
 
-	if (!mStages["KnocksDone"]) {
-		if (mPlayer->IsInsideZone(mZoneKnocks)) {
+	if(!mStages["KnocksDone"]) {
+		if(mPlayer->IsInsideZone(mZoneKnocks)) {
 			mKnocksSound->Play();
 			mStages["KnocksDone"] = true;
 
@@ -239,33 +242,34 @@ void LevelSewers::DoScenario() {
 		}
 	}
 
-	
+
 
 	mPumpSwitchAnimation.Update();
 
-	if (mPlayer->IsInsideZone(mZoneNextLevel)) {
-		Level::Change(LevelName::Forest);
+	if(mPlayer->IsInsideZone(mZoneNextLevel)) {
+		mGame->LoadLevel(LevelName::Forest);
 	}
-
-
 }
 
-void LevelSewers::Show() {
+void LevelSewers::Show()
+{
 	Level::Show();
 }
 
-void LevelSewers::Hide() {
+void LevelSewers::Hide()
+{
 	Level::Hide();
 }
 
-void LevelSewers::OnSerialize(SaveFile & s) {
+void LevelSewers::OnSerialize(SaveFile & s)
+{
 	auto enemyPresented = mEnemy != nullptr;
 	s & enemyPresented;
 
 	s & mDrainTimer;
 
-	if (enemyPresented) {
-		if (s.IsLoading()) {
+	if(enemyPresented) {
+		if(s.IsLoading()) {
 			CreateEnemy();
 		}
 		auto epos = mEnemy->GetBody()->GetPosition();

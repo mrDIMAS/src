@@ -39,7 +39,7 @@ void Camera::Update() {
 
 	btVector3 normlook = mGlobalTransform.getBasis().getColumn(2).normalized();
 
-	float f_up[3] = { 0.0f, 1.0f, 0.0f };
+	float f_up[3] = {0.0f, 1.0f, 0.0f};
 
 	// sound listener
 	pfSetListenerOrientation(normlook.m_floats, f_up);
@@ -62,10 +62,10 @@ void Camera::Update() {
 }
 
 void Camera::SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back) {
-	if (up && left && right && forward && back) {
+	if(up && left && right && forward && back) {
 		mSkybox = shared_ptr<Skybox>(new Skybox(std::dynamic_pointer_cast<Texture>(up), std::dynamic_pointer_cast<Texture>(left), std::dynamic_pointer_cast<Texture>(right), std::dynamic_pointer_cast<Texture>(forward), std::dynamic_pointer_cast<Texture>(back)));
 	} else {
-		if (mSkybox) {
+		if(mSkybox) {
 			mSkybox.reset();
 		}
 	}
@@ -73,10 +73,10 @@ void Camera::SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruText
 
 void Camera::SetFrameBrightness(float brightness) {
 	mFrameBrightness = brightness;
-	if (mFrameBrightness > 100.0f) {
+	if(mFrameBrightness > 100.0f) {
 		mFrameBrightness = 100.0f;
 	}
-	if (mFrameBrightness < 0.0f) {
+	if(mFrameBrightness < 0.0f) {
 		mFrameBrightness = 0.0f;
 	}
 }
@@ -88,23 +88,23 @@ float Camera::GetFrameBrightness() const {
 void Camera::SetFrameColor(const ruVector3 & color) {
 	mFrameColor = color;
 
-	if (mFrameColor.x > 255.0f) {
+	if(mFrameColor.x > 255.0f) {
 		mFrameColor.x = 255.0f;
 	}
-	if (mFrameColor.y > 255.0f) {
+	if(mFrameColor.y > 255.0f) {
 		mFrameColor.y = 255.0f;
 	}
-	if (mFrameColor.z > 255.0f) {
+	if(mFrameColor.z > 255.0f) {
 		mFrameColor.z = 255.0f;
 	}
 
-	if (mFrameColor.x < 0.0f) {
+	if(mFrameColor.x < 0.0f) {
 		mFrameColor.x = 0.0f;
 	}
-	if (mFrameColor.y < 0.0f) {
+	if(mFrameColor.y < 0.0f) {
 		mFrameColor.y = 0.0f;
 	}
-	if (mFrameColor.z < 0.0f) {
+	if(mFrameColor.z < 0.0f) {
 		mFrameColor.z = 0.0f;
 	}
 }
@@ -128,15 +128,15 @@ Camera::~Camera() {
 
 }
 
-Camera::Camera(float fov) :
+Camera::Camera(SceneFactory * factory, float fov) :
+	SceneNode(factory),
 	mFrameBrightness(100.0f),
 	mNearZ(0.025f),
 	mFarZ(6000.0f),
 	mFov(fov),
 	mInDepthHack(false),
 	mPathNewPointDelta(5.0f),
-	mFrameColor(255.0f, 255.0f, 255.0f)
-{
+	mFrameColor(255.0f, 255.0f, 255.0f) {
 	// path must contain at least one point, add new one located in camera's position 
 	mNearestPathPointIndex = 0;
 	mPath.push_back(std::move(unique_ptr<PathPoint>(new PathPoint(GetPosition()))));
@@ -148,8 +148,8 @@ Camera::Camera(float fov) :
 void Camera::EnterDepthHack(float depth) {
 	depth = fabs(depth);
 
-	if (depth > 0.001) {
-		if (!mInDepthHack) {
+	if(depth > 0.001) {
+		if(!mInDepthHack) {
 			mDepthHackMatrix = mProjection;
 		}
 		mInDepthHack = true;
@@ -159,7 +159,7 @@ void Camera::EnterDepthHack(float depth) {
 }
 
 void Camera::LeaveDepthHack() {
-	if (mInDepthHack) {
+	if(mInDepthHack) {
 		mInDepthHack = false;
 		mProjection = mDepthHackMatrix;
 		CalculateInverseViewProjection();
@@ -168,14 +168,14 @@ void Camera::LeaveDepthHack() {
 
 // this function builds path of camera by creating points in regular distance between them
 void Camera::ManagePath() {
-	if (mPath.size() > 64) {
+	if(mPath.size() > 64) {
 		// get half of average distance between lights
-		auto & pointLights = SceneFactory::GetPointLightList();
-		if (pointLights.size()) {
+		auto & pointLights = mFactory->GetPointLightList();
+		if(pointLights.size()) {
 			float mRangeSum = 0;
-			for (auto & lWeak : pointLights) {
+			for(auto & lWeak : pointLights) {
 				shared_ptr<PointLight> & light = lWeak.lock();
-				if (light) {
+				if(light) {
 					mRangeSum += light->GetRange();
 				}
 			}
@@ -188,24 +188,24 @@ void Camera::ManagePath() {
 
 	// check how far we from last added point
 	ruVector3 position = GetPosition();
-	if ((position - mLastPosition).Length2() > mPathNewPointDelta) {
+	if((position - mLastPosition).Length2() > mPathNewPointDelta) {
 		mLastPosition = position;
 		bool addNewPoint = true;
 		float distToNearest = -FLT_MAX;
 		// check how far we from other path points, if far enough addNewPoint sets to true
 		int index = 0;
-		for (auto & pPoint : mPath) {
+		for(auto & pPoint : mPath) {
 			float dist = (position - pPoint->GetPosition()).Length2();
-			if (dist < distToNearest) {
+			if(dist < distToNearest) {
 				mNearestPathPointIndex = index;
 				distToNearest = dist;
 			}
-			if (dist < mPathNewPointDelta) {
+			if(dist < mPathNewPointDelta) {
 				addNewPoint = false;
 			}
 			++index;
 		}
-		if (addNewPoint) {
+		if(addNewPoint) {
 			mNearestPathPointIndex = mPath.size();
 			mPath.push_back(std::move(unique_ptr<PathPoint>(new PathPoint(position))));
 		}
@@ -219,12 +219,12 @@ void Camera::OnResetDevice() {
 void Camera::OnLostDevice() {
 	mPath.clear();
 
-	auto & pointLights = SceneFactory::GetPointLightList();
-	if (pointLights.size()) {
+	auto & pointLights = mFactory->GetPointLightList();
+	if(pointLights.size()) {
 		float mRangeSum = 0;
-		for (auto & pLight : pointLights) {
+		for(auto & pLight : pointLights) {
 			shared_ptr<PointLight> & light = pLight.lock();
-			if (light) {
+			if(light) {
 				mRangeSum += light->GetRange();
 			}
 		}
@@ -250,7 +250,3 @@ void Camera::SetFOV(float fov) {
 unique_ptr<PathPoint> & Camera::GetNearestPathPoint() {
 	return mPath[mNearestPathPointIndex];
 }
-
-shared_ptr<ruCamera> ruCamera::Create(float fov) {
-	return std::move(SceneFactory::CreateCamera(fov));
-};

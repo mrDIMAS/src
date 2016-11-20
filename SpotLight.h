@@ -26,7 +26,7 @@
 class SpotLight : public virtual ruSpotLight, public Light {
 private:
 	friend class SceneFactory;
-	
+
 
 	float mInnerAngle;
 	float mOuterAngle;
@@ -38,18 +38,18 @@ private:
 	D3DXMATRIX mSpotViewProjectionMatrix;
 public:
 	static shared_ptr<Texture> msDefaultSpotTexture;
-	SpotLight();
+	SpotLight(SceneFactory * factory);
 	~SpotLight();
 	float GetInnerAngle() const;
 	float GetOuterAngle() const;
-	float GetCosHalfInnerAngle( );
-	float GetCosHalfOuterAngle( );
-	void SetConeAngles( float theInner, float theOuter );
-	void SetSpotTexture( shared_ptr<ruTexture> texture );
+	float GetCosHalfInnerAngle();
+	float GetCosHalfOuterAngle();
+	void SetConeAngles(float theInner, float theOuter);
+	void SetSpotTexture(shared_ptr<ruTexture> texture);
 	void BuildSpotProjectionMatrixAndFrustum();
 	D3DXMATRIX GetViewProjectionMatrix();
-	shared_ptr<Texture> GetSpotTexture( );
-	Frustum & GetFrustum( );
+	shared_ptr<Texture> GetSpotTexture();
+	Frustum & GetFrustum();
 
 	// API Methods
 	virtual bool IsSeePoint(const ruVector3 & point) override final;

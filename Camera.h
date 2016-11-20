@@ -36,11 +36,11 @@ private:
 	ruVector3 mPoint;
 	// list of lights visible from that point, filled by occlusion queries
 	vector<weak_ptr<PointLight>> mVisibleLightList;
-public:		
+public:
 	ruVector3 GetPosition() const {
 		return mPoint;
 	}
-	explicit PathPoint( const ruVector3 & position ) : mPoint( position ) {
+	explicit PathPoint(const ruVector3 & position) : mPoint(position) {
 
 	}
 	vector<weak_ptr<PointLight>> & GetListOfVisibleLights() {
@@ -52,37 +52,37 @@ class Camera : public virtual ruCamera, public SceneNode {
 private:
 	friend class SceneFactory;
 
-public:  
+public:
 	float mFov;
-    float mNearZ;
-    float mFarZ;
+	float mNearZ;
+	float mFarZ;
 	float mFrameBrightness;
 	ruVector3 mFrameColor;
 
-    D3DXMATRIX mProjection;
-    D3DXMATRIX mView;
-    D3DXMATRIX mViewProjection;
+	D3DXMATRIX mProjection;
+	D3DXMATRIX mView;
+	D3DXMATRIX mViewProjection;
 	D3DXMATRIX mInverseView;
-    D3DXMATRIX invViewProjection;
-    D3DXMATRIX mDepthHackMatrix;
-    Frustum mFrustum;
-    bool mInDepthHack;
-    shared_ptr<Skybox> mSkybox;
+	D3DXMATRIX invViewProjection;
+	D3DXMATRIX mDepthHackMatrix;
+	Frustum mFrustum;
+	bool mInDepthHack;
+	shared_ptr<Skybox> mSkybox;
 	int mNearestPathPointIndex;
 	ruVector3 mLastPosition;
 	vector<unique_ptr<PathPoint>> mPath;
 	float mPathNewPointDelta;
-	void ManagePath();	
+	void ManagePath();
 public:
-	explicit Camera(float fov);
-	static weak_ptr<Camera> msCurrentCamera;    
-    virtual ~Camera();
-    void CalculateProjectionMatrix();
-    void CalculateInverseViewProjection();
-    void Update();
+	explicit Camera(SceneFactory * factory, float fov);
+	static weak_ptr<Camera> msCurrentCamera;
+	virtual ~Camera();
+	void CalculateProjectionMatrix();
+	void CalculateInverseViewProjection();
+	void Update();
 	// Modify projection matrix to add depth offset, applied only of depth > 0.001
-    void EnterDepthHack( float depth );
-    void LeaveDepthHack( );
+	void EnterDepthHack(float depth);
+	void LeaveDepthHack();
 	unique_ptr<PathPoint> & GetNearestPathPoint();
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
@@ -92,7 +92,7 @@ public:
 	// API Methods
 	virtual void SetFOV(float fov) override;
 	virtual void SetActive() override;
-	virtual void SetSkybox( const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back ) override;
+	virtual void SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back) override;
 	virtual void SetFrameBrightness(float brightness) override;
 	virtual float GetFrameBrightness() const override;
 	virtual void SetFrameColor(const ruVector3 & color) override;

@@ -26,9 +26,9 @@
 #include "Vertex.h"
 
 Skybox::Skybox( shared_ptr<Texture> up, shared_ptr<Texture> left, shared_ptr<Texture> right, shared_ptr<Texture> forward, shared_ptr<Texture> back ) {
-	mTextures[0] = forward;
-	mTextures[1] = back;
-	mTextures[2] = right;
-	mTextures[3] = left;
-	mTextures[4] = up;
+	mTextures[ 0 ] = forward;
+	mTextures[ 1 ] = back;
+	mTextures[ 2 ] = right;
+	mTextures[ 3 ] = left;
+	mTextures[ 4 ] = up;
 }

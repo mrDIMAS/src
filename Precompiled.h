@@ -89,7 +89,7 @@ class COMPtr {
 private:
 	Interface * mInterface;
 public:
-	COMPtr() {
+	COMPtr( ) {
 		mInterface = nullptr;
 	}
 
@@ -97,33 +97,33 @@ public:
 		mInterface = iface;
 	}
 
-	void Reset() {
-		if( mInterface ) {
-			mInterface->Release();
-			mInterface = nullptr;	
+	void Reset( ) {
+		if ( mInterface ) {
+			mInterface->Release( );
+			mInterface = nullptr;
 		}
 	}
 
-	~COMPtr() {
-		if( mInterface ) {
-			mInterface->Release();
+	~COMPtr( ) {
+		if ( mInterface ) {
+			mInterface->Release( );
 		}
 	}
 
-	Interface ** operator & () {
+	Interface ** operator & ( ) {
 		return &mInterface;
 	}
 
-	Interface * operator -> () {
+	Interface * operator -> ( ) {
 		return mInterface;
 	}
 
-	operator Interface* () {
+	operator Interface* ( ) {
 		return mInterface;
 	}
 
 	Interface * operator = ( Interface * iface ) {
-		iface->AddRef();
+		iface->AddRef( );
 		mInterface = iface;
 		return mInterface;
 	}
@@ -135,29 +135,29 @@ struct A8R8G8B8Pixel {
 	uint8_t g;
 	uint8_t b;
 
-	A8R8G8B8Pixel(uint8_t _a, uint8_t _r, uint8_t _g, uint8_t _b) : a(_a), r(_r), g(_g), b(_b) {};
+	A8R8G8B8Pixel( uint8_t _a, uint8_t _r, uint8_t _g, uint8_t _b ) : a( _a ), r( _r ), g( _g ), b( _b ) { };
 };
 
 class Keyboard {
 public:
-	bool mKeysDown[256];
-	bool mKeysUp[256];
-	bool mKeysHit[256];
+	bool mKeysDown[ 256 ];
+	bool mKeysUp[ 256 ];
+	bool mKeysHit[ 256 ];
 
-	Keyboard() {
-		for( int i = 0; i < 256; ++i ) {
-			mKeysDown[i] = mKeysUp[i] = mKeysHit[i] = false;
+	Keyboard( ) {
+		for ( int i = 0; i < 256; ++i ) {
+			mKeysDown[ i ] = mKeysUp[ i ] = mKeysHit[ i ] = false;
 		}
 	}
 
 	void KeyDown( int keyId ) {
-		if( mKeysDown[ keyId ] ) {
+		if ( mKeysDown[ keyId ] ) {
 			mKeysHit[ keyId ] = false;
 		} else {
 			mKeysHit[ keyId ] = true;
-		}		
+		}
 		mKeysDown[ keyId ] = true;
-		mKeysUp[ keyId ] = false;		
+		mKeysUp[ keyId ] = false;
 	}
 
 	void KeyUp( int keyId ) {
@@ -173,13 +173,13 @@ public:
 	int mY;
 	int mWheel;
 
-	bool mButtonsDown[3];
-	bool mButtonsUp[3];
-	bool mButtonsHit[3];
+	bool mButtonsDown[ 3 ];
+	bool mButtonsUp[ 3 ];
+	bool mButtonsHit[ 3 ];
 
-	Mouse() : mX( 0 ), mY( 0 ), mWheel( 0 ) {
-		for( int i = 0; i < 3; ++i ) {
-			mButtonsDown[i] = mButtonsUp[i] = mButtonsHit[i] = false;
+	Mouse( ) : mX( 0 ), mY( 0 ), mWheel( 0 ) {
+		for ( int i = 0; i < 3; ++i ) {
+			mButtonsDown[ i ] = mButtonsUp[ i ] = mButtonsHit[ i ] = false;
 		}
 	}
 
@@ -190,11 +190,11 @@ public:
 
 	void ButtonDown( ruInput::MouseButton button ) {
 		int buttonId = (int)button;
-		if( mButtonsDown[ buttonId ] ) {
+		if ( mButtonsDown[ buttonId ] ) {
 			mButtonsHit[ buttonId ] = false;
 		} else {
 			mButtonsHit[ buttonId ] = true;
-		}		
+		}
 		mButtonsDown[ buttonId ] = true;
 		mButtonsUp[ buttonId ] = false;
 	}
@@ -216,8 +216,6 @@ using namespace std;
 extern Mouse mouse;
 extern Keyboard keyboard;
 extern IDirect3DDevice9Ex * pD3D;
-extern unique_ptr<class Renderer> pEngine;
-
 
 
 

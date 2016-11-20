@@ -26,21 +26,21 @@ vector<weak_ptr<ruSound>> gSoundList;
 PlaybackCallback ruSound::PlayCallback;
 
 SoundData GetSoundData( const string & fn, bool streamed ) {
-	return pfDataLoad( fn.c_str(), streamed );
+	return pfDataLoad( fn.c_str( ), streamed );
 }
 
-ruSound::ruSound() : mIs3D(false), pfHandle(-1) {
+ruSound::ruSound( ) : mIs3D( false ), pfHandle( -1 ) {
 
 }
 
-ruSound::~ruSound() {
-	if( pfIsSound( pfHandle )) {
+ruSound::~ruSound( ) {
+	if ( pfIsSound( pfHandle ) ) {
 		pfFreeSound( pfHandle );
 	}
 }
 
 shared_ptr<ruSound> ruSound::Load2D( const string & file ) {
-	shared_ptr<ruSound> & handle = make_shared<ruSound>();
+	shared_ptr<ruSound> & handle = make_shared<ruSound>( );
 	handle->pfHandle = pfCreateSound( GetSoundData( file, false ), false );
 	gSoundList.push_back( handle );
 	handle->mIs3D = false;
@@ -48,7 +48,7 @@ shared_ptr<ruSound> ruSound::Load2D( const string & file ) {
 }
 
 shared_ptr<ruSound> ruSound::Load3D( const string & file ) {
-	shared_ptr<ruSound> & handle = make_shared<ruSound>();
+	shared_ptr<ruSound> & handle = make_shared<ruSound>( );
 	handle->pfHandle = pfCreateSound( GetSoundData( file, false ), true );
 	gSoundList.push_back( handle );
 	handle->mIs3D = true;
@@ -56,7 +56,7 @@ shared_ptr<ruSound> ruSound::Load3D( const string & file ) {
 }
 
 shared_ptr<ruSound> ruSound::LoadMusic( const string & file ) {
-	shared_ptr<ruSound> & handle = make_shared<ruSound>();
+	shared_ptr<ruSound> & handle = make_shared<ruSound>( );
 	handle->pfHandle = pfCreateSound( GetSoundData( file, true ), false );
 	gSoundList.push_back( handle );
 	return std::move( handle );
@@ -66,38 +66,38 @@ void ruSound::SetLoop( bool state ) {
 	pfSetSoundLooping( pfHandle, state );
 }
 
-void ruSound::Stop() {
+void ruSound::Stop( ) {
 	pfStopSound( pfHandle );
 }
 
-bool ruSound::Is3D() const {
+bool ruSound::Is3D( ) const {
 	return mIs3D;
 }
 
-ruVector3 ruSound::GetPosition() const {
+ruVector3 ruSound::GetPosition( ) const {
 	ruVector3 p;
-	pfGetSoundPosition(pfHandle, (float*)&p);
+	pfGetSoundPosition( pfHandle, (float*)&p );
 	return p;
 }
 
 void ruSound::Attach( const shared_ptr<ruSceneNode> & node ) {
 	shared_ptr<SceneNode> & sceneNode = std::dynamic_pointer_cast<SceneNode>( node );
-	if( sceneNode ) {
-		sceneNode->AttachSound( shared_from_this() );
+	if ( sceneNode ) {
+		sceneNode->AttachSound( shared_from_this( ) );
 	}
 }
 
 void ruSound::Play( int oneshot ) {
-	PlayCallback.PlayEvent();
-	PlayCallback.Caller = shared_from_this();
+	PlayCallback.PlayEvent( );
+	PlayCallback.Caller = shared_from_this( );
 	pfPlaySound( pfHandle, oneshot );
 }
 
-float ruSound::GetLength() {
+float ruSound::GetLength( ) {
 	return pfGetSoundLengthSeconds( pfHandle );
 }
 
-void ruSound::Pause() {
+void ruSound::Pause( ) {
 	pfPauseSound( pfHandle );
 }
 
@@ -125,7 +125,7 @@ void ruSound::SetMaxDistance( float maxDistance ) {
 	pfSetMaxDistance( pfHandle, maxDistance );
 }
 
-int ruSound::IsPlaying() {
+int ruSound::IsPlaying( ) {
 	return pfIsSoundPlaying( pfHandle );
 }
 
@@ -133,7 +133,7 @@ void ruSound::SetPitch( float pitch ) {
 	pfSetSoundPitch( pfHandle, pitch );
 }
 
-bool ruSound::IsPaused() {
+bool ruSound::IsPaused( ) {
 	return pfIsSoundPaused( pfHandle );
 }
 
@@ -145,16 +145,16 @@ void ruSound::SetMasterVolume( float volume ) {
 	pfSetMasterVolume( volume );
 }
 
-float ruSound::GetMasterVolume() {
-	return pfGetMasterVolume();
+float ruSound::GetMasterVolume( ) {
+	return pfGetMasterVolume( );
 }
 
-int ruSound::GetCount() {
-	return pfSystemGetSoundCount();
+int ruSound::GetCount( ) {
+	return pfSystemGetSoundCount( );
 }
 
 shared_ptr<ruSound> ruSound::GetSound( int n ) {
-	return gSoundList[n].lock();
+	return gSoundList[ n ].lock( );
 }
 
 float ruSound::GetPlaybackPosition( ) {

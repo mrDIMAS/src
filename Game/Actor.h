@@ -4,6 +4,7 @@
 
 class Actor {
 protected:
+	unique_ptr<Game> & mGame;
 	float mBodyHeight;
 	float mBodyWidth;
 	shared_ptr<ruSceneNode> mBody;
@@ -15,11 +16,13 @@ protected:
 	float mVerticalSpeed;
 	float mLastVerticalPosition;
 public:
-	explicit Actor(float height, float width);
+	explicit Actor(unique_ptr<Game> & game, float height, float width);
 	virtual ~Actor();
 	virtual void SetPosition(ruVector3 position);
 	void Move(ruVector3 direction, float speed);
-
+	unique_ptr<Game> & GetGame() const {
+		return mGame;
+	}
 	ruVector3 GetCurrentPosition();
 	char IsInsideZone(const shared_ptr<ruSceneNode> & zone);
 	void StopInstantly();
@@ -31,10 +34,12 @@ public:
 	virtual void Damage(float dmg);
 	virtual void Heal(float howMuch);
 	ruVector3 GetLookDirection();
-	float DistanceTo(const shared_ptr<ruSceneNode> & obj) {
+	float DistanceTo(const shared_ptr<ruSceneNode> & obj)
+	{
 		return (obj->GetPosition() - mBody->GetPosition()).Length();
 	}
-	shared_ptr<ruSceneNode> GetBody() {
+	shared_ptr<ruSceneNode> GetBody()
+	{
 		return mBody;
 	}
 };

@@ -5,7 +5,10 @@
 #include "LevelMine.h"
 
 
-LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mChangeLevel(false) {
+LevelArrival::LevelArrival(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) : 
+	Level(game, playerTransfer), 
+	mChangeLevel(false)
+{
 	mName = LevelName::Arrival;
 
 	mPlayer->mYaw.SetTarget(180.0f);
@@ -101,7 +104,7 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("ClockHouseLight1")));
 	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("ClockHouseLight2")));
 	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch1"), lights, false)));
-	
+
 	lights.clear();
 	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("EntranceLight1")));
 	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("EntranceLight2")));
@@ -130,7 +133,7 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 
 
 	auto fogMesh = GetUniqueObject("Fog");
-	mFog = ruFog::Create(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.5, 0.5, 0.7), 0.2);
+	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.5, 0.5, 0.7), 0.2);
 	mFog->SetPosition(fogMesh->GetPosition());
 	mFog->SetSpeed(ruVector3(0.0005, 0, 0.0005));
 	mFog->Attach(mScene);
@@ -138,59 +141,63 @@ LevelArrival::LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer) : 
 	DoneInitialization();
 }
 
-LevelArrival::~LevelArrival() {
+LevelArrival::~LevelArrival()
+{
 
 }
 
-void LevelArrival::Show() {
+void LevelArrival::Show()
+{
 	Level::Show();
 }
 
-void LevelArrival::Hide() {
+void LevelArrival::Hide()
+{
 	Level::Hide();
 }
 
-void LevelArrival::DoScenario() {
+void LevelArrival::DoScenario()
+{
 	mLiftCrashSeries.Perform();
 
 	mLift->Update();
 
 	// force disable hdr
-	//ruEngine::SetHDREnabled(false);
+	//ruRenderer::SetHDREnabled(false);
 
-	if (mPlayer->IsInsideZone(mTutorialZone1)) {
+	if(mPlayer->IsInsideZone(mTutorialZone1)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone2)) {
+	if(mPlayer->IsInsideZone(mTutorialZone2)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls2"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone3)) {
+	if(mPlayer->IsInsideZone(mTutorialZone3)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls3"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone4)) {
+	if(mPlayer->IsInsideZone(mTutorialZone4)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls4"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone5)) {
+	if(mPlayer->IsInsideZone(mTutorialZone5)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls5"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone6)) {
+	if(mPlayer->IsInsideZone(mTutorialZone6)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls6"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone7)) {
+	if(mPlayer->IsInsideZone(mTutorialZone7)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls7"));
 	}
-	if (mPlayer->IsInsideZone(mTutorialZone8)) {
+	if(mPlayer->IsInsideZone(mTutorialZone8)) {
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls8"));
 	}
 
 	auto itemForUse = mPlayer->GetInventory()->GetItemSelectedForUse();
-	if (itemForUse) {
-		if (ruInput::IsKeyHit(mPlayer->mKeyUse)) {
-			if (itemForUse->GetType() == Item::Type::Crowbar) {
-				auto planks = ruSceneNode::GetTaggedObjects("WoodenPlank");
-				for (auto plank : planks) {
-					if (plank->IsFrozen()) {
-						if (mPlayer->mNearestPickedNode == plank) {
+	if(itemForUse) {
+		if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse)) {
+			if(itemForUse->GetType() == Item::Type::Crowbar) {
+				auto planks = mGame->GetEngine()->GetSceneFactory()->GetTaggedObjects("WoodenPlank");
+				for(auto plank : planks) {
+					if(plank->IsFrozen()) {
+						if(mPlayer->mNearestPickedNode == plank) {
 							plank->Unfreeze();
 							mWoodHitSound->SetPosition(plank->GetPosition());
 							mWoodHitSound->Play();
@@ -201,10 +208,10 @@ void LevelArrival::DoScenario() {
 		}
 	}
 
-	if (!mStages["LiftCrashed"]) {
-		ruEngine::SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
+	if(!mStages["LiftCrashed"]) {
+		mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
 		PlayAmbientSounds();
-		if (mPlayer->IsInsideZone(mLiftStopZone)) {
+		if(mPlayer->IsInsideZone(mLiftStopZone)) {
 			mLift->SetPaused(true);
 			mLiftLamp->SetRange(0.01f);
 			mStages["LiftCrashed"] = true;
@@ -213,47 +220,52 @@ void LevelArrival::DoScenario() {
 	} else {
 		// fully dark
 		mPlayer->TurnOffFakeLight();
-		ruEngine::SetAmbientColor(ruVector3(0.0, 0.0, 0.0));
-		for (int i = 0; i < ruPointLight::GetCount(); ++i) {
-			ruPointLight::Get(i)->Hide();
+		mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.0, 0.0, 0.0));
+		for(int i = 0; i < mGame->GetEngine()->GetSceneFactory()->GetPointLightCount(); ++i) {
+			mGame->GetEngine()->GetSceneFactory()->GetPointLight(i)->Hide();
 		}
-		for (int i = 0; i < ruSpotLight::GetCount(); ++i) {
-			ruSpotLight::Get(i)->Hide();
+		for(int i = 0; i < mGame->GetEngine()->GetSceneFactory()->GetSpotLightCount(); ++i) {
+			mGame->GetEngine()->GetSceneFactory()->GetSpotLight(i)->Hide();
 		}
 	}
 
-	if (mPlayer->DistanceTo(mHalt) < 4) {
+	if(mPlayer->DistanceTo(mHalt) < 4) {
 		mHalt->Unfreeze();
 	}
 
-	if (mChangeLevel) {
-		Level::Change(LevelName::Mine);
+	if(mChangeLevel) {
+		mGame->LoadLevel(LevelName::Mine);
 	}
 }
 
-void LevelArrival::OnSerialize(SaveFile & s) {
+void LevelArrival::OnSerialize(SaveFile & s)
+{
 	mLiftCrashSeries.Serialize(s);
 }
 
 // ACTIONS
-void LevelArrival::ActLiftCrash_PowerDown() {
+void LevelArrival::ActLiftCrash_PowerDown()
+{
 	mPowerDownSound->Play();
 	mWindSound->Pause();
 }
 
-void LevelArrival::ActLiftCrash_AfterPowerDown() {
+void LevelArrival::ActLiftCrash_AfterPowerDown()
+{
 	mMetalStressSound->Play();
 	mLift->SetEngineSoundEnabled(false);
 	mLift->SetPaused(false);
 	mLift->SetSpeedMultiplier(0.24f);
 }
 
-void LevelArrival::ActLiftCrash_AfterFirstStressSound() {
+void LevelArrival::ActLiftCrash_AfterFirstStressSound()
+{
 	mLiftFallSound->Play();
 	mPlayer->LockFlashlight(true);
 }
 
-void LevelArrival::ActLiftCrash_AfterFalldown() {
+void LevelArrival::ActLiftCrash_AfterFalldown()
+{
 	mChangeLevel = true;
 	mPlayer->LockFlashlight(false);
 	mPlayer->SetHealth(20);

@@ -27,47 +27,47 @@
 
 vector<Light*> Light::msLightList;
 
-Light::Light() :
-	mColor(1.0f, 1.0f, 1.0f),
-	mRadius(1.0f),
-	mQueryDone(true),
-	mInFrustum(false),
-	mShadowMapIndex(0),
-	mNeedRecomputeShadowMap(true),
-	mDrawFlare(true)
-{
-	OnResetDevice();	
+Light::Light(SceneFactory * factory) :
+	SceneNode(factory),
+	mColor( 1.0f, 1.0f, 1.0f ),
+	mRadius( 1.0f ),
+	mQueryDone( true ),
+	mInFrustum( false ),
+	mShadowMapIndex( 0 ),
+	mNeedRecomputeShadowMap( true ),
+	mDrawFlare( true ) {
+	OnResetDevice( );
 }
 
 void Light::SetColor( const ruVector3 & theColor ) {
-    mColor = theColor / 255.0f;
+	mColor = theColor / 255.0f;
 }
 
-ruVector3 Light::GetColor() const {
-    return mColor;
+ruVector3 Light::GetColor( ) const {
+	return mColor;
 }
 
-void Light::SetRange( float theRadius )  {
-    mRadius = theRadius;
+void Light::SetRange( float theRadius ) {
+	mRadius = theRadius;
 }
 
-float Light::GetRange() const {
-    return mRadius;
+float Light::GetRange( ) const {
+	return mRadius;
 }
 
-Light::~Light() {
-	pOcclusionQuery.Reset();
+Light::~Light( ) {
+	pOcclusionQuery.Reset( );
 }
 
-void Light::OnResetDevice() {
+void Light::OnResetDevice( ) {
 	pD3D->CreateQuery( D3DQUERYTYPE_OCCLUSION, &pOcclusionQuery );
 	mQueryDone = true;
 }
 
-void Light::OnLostDevice() {
-	pOcclusionQuery->Release();
+void Light::OnLostDevice( ) {
+	pOcclusionQuery->Release( );
 }
 
-ruLight::~ruLight() {
+ruLight::~ruLight( ) {
 
 }

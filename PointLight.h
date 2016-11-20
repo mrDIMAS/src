@@ -30,11 +30,11 @@ private:
 
 	CubeTexture * mPointTexture;
 public:
-	PointLight();
+	PointLight(SceneFactory * factory);
 	static CubeTexture * msDefaultPointCubeTexture;
-		
+
 	~PointLight();
-	void SetPointTexture( ruCubeTexture * cubeTexture );
+	void SetPointTexture(ruCubeTexture * cubeTexture);
 	CubeTexture * GetPointTexture();
 
 	// API Methods

@@ -88,14 +88,15 @@ private:
 	void OnPlayerEnterSpawnEnemyZone();
 	void OnPlayerEnterNeedPassThroughMeshZone();
 	void OnCrowbarPickup();
-	void OnPlayerEnterDisableSteamZone() {
-		if (!mStages["EnterDisableSteamZone"]) {
+	void OnPlayerEnterDisableSteamZone()
+	{
+		if(!mStages["EnterDisableSteamZone"]) {
 			mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveDisableSteam"));
 			mStages["EnterDisableSteamZone"] = true;
 		}
 	}
 public:
-	explicit LevelResearchFacility(const unique_ptr<PlayerTransfer> & playerTransfer);
+	explicit LevelResearchFacility(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
 	virtual ~LevelResearchFacility();
 	virtual void DoScenario() final;
 	virtual void Hide() final;

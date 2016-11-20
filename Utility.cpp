@@ -24,39 +24,39 @@
 
 D3DXMATRIX TransformToMatrix( const btTransform & transform ) {
 	D3DXMATRIX outMatrix;
-	btVector3 R = transform.getBasis().getColumn ( 0 );
-	btVector3 U = transform.getBasis().getColumn ( 1 );
-	btVector3 L = transform.getBasis().getColumn ( 2 );
-	btVector3 P = transform.getOrigin();
-	outMatrix._11 = R.x();
-	outMatrix._12 = R.y();
-	outMatrix._13 = R.z();
+	btVector3 R = transform.getBasis( ).getColumn( 0 );
+	btVector3 U = transform.getBasis( ).getColumn( 1 );
+	btVector3 L = transform.getBasis( ).getColumn( 2 );
+	btVector3 P = transform.getOrigin( );
+	outMatrix._11 = R.x( );
+	outMatrix._12 = R.y( );
+	outMatrix._13 = R.z( );
 	outMatrix._14 = 0.0f;
-	outMatrix._21 = U.x();
-	outMatrix._22 = U.y();
-	outMatrix._23 = U.z();
+	outMatrix._21 = U.x( );
+	outMatrix._22 = U.y( );
+	outMatrix._23 = U.z( );
 	outMatrix._24 = 0.0f;
-	outMatrix._31 = L.x();
-	outMatrix._32 = L.y();
-	outMatrix._33 = L.z();
+	outMatrix._31 = L.x( );
+	outMatrix._32 = L.y( );
+	outMatrix._33 = L.z( );
 	outMatrix._34 = 0.0f;
-	outMatrix._41 = P.x();
-	outMatrix._42 = P.y();
-	outMatrix._43 = P.z();
+	outMatrix._41 = P.x( );
+	outMatrix._42 = P.y( );
+	outMatrix._43 = P.z( );
 	outMatrix._44 = 1.0f;
 	return outMatrix;
 }
 
 float frandom( float low, float high ) {
-    return low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+	return low + static_cast <float> ( rand( ) ) / ( static_cast <float> ( RAND_MAX / ( high - low ) ) );
 }
 
-void ParseString ( string str, map<string,string> & values ) {
-	if ( str.size() <= 1 ) {
+void ParseString( string str, map<string, string> & values ) {
+	if ( str.size( ) <= 1 ) {
 		return;
 	}
 
-	values.clear();
+	values.clear( );
 
 	bool equalFound = false;
 	bool quoteLF = false, quoteRF = false;
@@ -65,20 +65,20 @@ void ParseString ( string str, map<string,string> & values ) {
 	string varName, var;
 
 	while ( true ) {
-		char symbol = str.at ( n );
+		char symbol = str.at( n );
 
 		if ( symbol == ';' ) {
-			quoteLF    = false;
-			quoteRF    = false;
-			equalFound  = false;
+			quoteLF = false;
+			quoteRF = false;
+			equalFound = false;
 
-			varName.clear();
-			var.clear();
+			varName.clear( );
+			var.clear( );
 		};
 
-		if ( isalpha ( ( unsigned char ) symbol ) || isdigit ( ( unsigned char ) symbol ) || symbol == '_' ) {
+		if ( isalpha( (unsigned char)symbol ) || isdigit( (unsigned char)symbol ) || symbol == '_' ) {
 			if ( !equalFound ) {
-				varName.push_back ( symbol );
+				varName.push_back( symbol );
 			}
 		} else {
 			if ( symbol == '=' ) {
@@ -99,14 +99,14 @@ void ParseString ( string str, map<string,string> & values ) {
 				values[ varName ] = var;
 			} else {
 				if ( symbol != '"' ) {
-					var.push_back ( symbol );
+					var.push_back( symbol );
 				}
 			};
 		};
 
 		n++;
 
-		if ( n >= str.size() ) {
+		if ( n >= str.size( ) ) {
 			break;
 		}
 	};
@@ -114,12 +114,11 @@ void ParseString ( string str, map<string,string> & values ) {
 
 
 
-int FloorPow2( int number )
-{
+int FloorPow2( int number ) {
 	int power = 1;
-	while( power < number ) {
+	while ( power < number ) {
 		power *= 2;
-		if( power * 2 > number )
+		if ( power * 2 > number )
 			break;
 	}
 	return power;
@@ -127,17 +126,16 @@ int FloorPow2( int number )
 
 int CeilPow2( int number ) {
 	int power = 1;
-	while( power < number ) {
+	while ( power < number ) {
 		power *= 2;
 	}
-	return power;	
+	return power;
 }
 
-int IntegerPow( int base, int exp )
-{
+int IntegerPow( int base, int exp ) {
 	int result = 1;
-	while (exp) {
-		if (exp & 1) {
+	while ( exp ) {
+		if ( exp & 1 ) {
 			result *= base;
 		}
 		exp >>= 1;
@@ -147,8 +145,7 @@ int IntegerPow( int base, int exp )
 	return result;
 }
 
-bool FileExist( const string & fileName )
-{
+bool FileExist( const string & fileName ) {
 	ifstream file( fileName );
-	return file.good();
+	return file.good( );
 }

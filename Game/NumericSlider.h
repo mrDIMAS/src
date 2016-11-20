@@ -4,23 +4,23 @@
 
 class Slider {
 private:
-    float mValue;
-    float mfMinimum, mfMaximum;
-    float mfStep;
-    shared_ptr<ruButton> mGUIIncreaseButton;
-    shared_ptr<ruButton> mGUIDecreaseButton;
-    shared_ptr<ruText> mGUIText;
-    shared_ptr<ruText> mGUIValueText;
+	float mValue;
+	float mfMinimum, mfMaximum;
+	float mfStep;
+	shared_ptr<ruButton> mGUIIncreaseButton;
+	shared_ptr<ruButton> mGUIDecreaseButton;
+	shared_ptr<ruText> mGUIText;
+	shared_ptr<ruText> mGUIValueText;
 	void UpdateText();
 	void OnIncreaseClick();
 	void OnDecreaseClick();
 public:
-    explicit Slider( const shared_ptr<ruGUIScene> & scene, float x, float y, float minimum, float maximum, float step,  shared_ptr<ruTexture> buttonImage, const string & text );
-    float GetValue();
-    void SetValue( float value );
-    ~Slider();
-    void AttachTo( shared_ptr<ruGUINode> node );
-	void SetChangeAction( const ruDelegate & action );
+	explicit Slider(const shared_ptr<ruGUIScene> & scene, float x, float y, float minimum, float maximum, float step, shared_ptr<ruTexture> buttonImage, const string & text);
+	float GetValue();
+	void SetValue(float value);
+	~Slider();
+	void AttachTo(shared_ptr<ruGUINode> node);
+	void SetChangeAction(const ruDelegate & action);
 	int GetWidth();
 	int GetHeight();
 };

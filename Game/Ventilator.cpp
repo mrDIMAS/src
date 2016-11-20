@@ -1,13 +1,15 @@
 #include "Precompiled.h"
 #include "Ventilator.h"
 
-void Ventilator::DoTurn() {
+void Ventilator::DoTurn()
+{
 	mAngle += mTurnSpeed;
 	mBody->SetRotation(ruQuaternion(mTurnAxis, mAngle));
 	mEngineSound->Play();
 }
 
-Ventilator::Ventilator(shared_ptr<ruSceneNode> obj, float ts, ruVector3 axis, shared_ptr<ruSound> snd) {
+Ventilator::Ventilator(shared_ptr<ruSceneNode> obj, float ts, ruVector3 axis, shared_ptr<ruSound> snd)
+{
 	mBody = obj;
 	mTurnSpeed = ts;
 	mTurnAxis = axis;
@@ -16,6 +18,7 @@ Ventilator::Ventilator(shared_ptr<ruSceneNode> obj, float ts, ruVector3 axis, sh
 	mEngineSound->Attach(mBody);
 }
 
-Ventilator::~Ventilator() {
+Ventilator::~Ventilator()
+{
 
 }

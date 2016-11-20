@@ -26,7 +26,7 @@ private:
 
 	ruAnimation mOpenAnim;
 	ruAnimation mCloseAnim;
-	ruAnimation mButtonPushAnim[4];	
+	ruAnimation mButtonPushAnim[4];
 public:
 	bool mLocked;
 	~Gate();

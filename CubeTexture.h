@@ -24,11 +24,11 @@
 class CubeTexture : public ruCubeTexture {
 private:
 	string mSourceName;
-	void Load();
+	void Load( );
 public:
-    COMPtr<IDirect3DCubeTexture9> mCubeTexture;
-    explicit CubeTexture( string fn );
-    virtual ~CubeTexture();
-    static CubeTexture * Request( string fn );
-    static map< string, CubeTexture*> all;
+	COMPtr<IDirect3DCubeTexture9> mCubeTexture;
+	explicit CubeTexture( string fn );
+	virtual ~CubeTexture( );
+	static CubeTexture * Request( string fn );
+	static map< string, CubeTexture*> all;
 };

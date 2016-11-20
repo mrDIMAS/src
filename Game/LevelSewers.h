@@ -39,20 +39,22 @@ private:
 	shared_ptr<ruSceneNode> mEnemySpawnPosition;
 	float mWaterFlow;
 
-	void OnPlayerEnterSpawnEnemyZone() {
-		if (!mStages["EnemySpawned"]) {
+	void OnPlayerEnterSpawnEnemyZone()
+	{
+		if(!mStages["EnemySpawned"]) {
 			CreateEnemy();
 			mStages["EnemySpawned"] = true;
 		}
 	}
-	
-	void OnPlayerEnterDrainWaterLevelZone() {
+
+	void OnPlayerEnterDrainWaterLevelZone()
+	{
 		mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveDropWaterLevel"));
 	}
 
 
 public:
-	LevelSewers(const unique_ptr<PlayerTransfer> & playerTransfer);
+	LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelSewers();
 
 	virtual void DoScenario();

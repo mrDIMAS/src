@@ -36,6 +36,8 @@ public:
 
 class HUD {
 private:
+	unique_ptr<Game> & mGame;
+
 	shared_ptr<ruGUIScene> mGUIScene;
 
 	shared_ptr<ruText> mGUIActionText;
@@ -60,9 +62,9 @@ private:
 	unique_ptr<Goal> mGoal;
 	unique_ptr<Tip> mTip;
 
-	Parser mLocalization;
+	ruConfig mLocalization;
 public:
-	HUD();
+	HUD(unique_ptr<Game> & game);
 	void SetStamina(float value);
 	void SetHealth(float value);
 	void SetNoise(float value);
@@ -70,7 +72,7 @@ public:
 	void SetObjective(const string & text);
 	void SetStealth(float value);
 	void SetDead(bool dead);
-	void SetVisible(bool visible);	
+	void SetVisible(bool visible);
 	void SetAction(ruInput::Key keyCode, const string & action);
 	void SetTip(const string & text);
 	shared_ptr<ruGUIScene> GetScene() const;

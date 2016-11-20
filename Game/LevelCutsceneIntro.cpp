@@ -1,7 +1,10 @@
 #include "Precompiled.h"
 #include "LevelCutsceneIntro.h"
 
-LevelIntro::LevelIntro(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer), mEnginePitch(1.0f, 0.65f, 1.25f) {
+LevelIntro::LevelIntro(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) : 
+	Level(game, playerTransfer), 
+	mEnginePitch(1.0f, 0.65f, 1.25f)
+{
 	mName = LevelName::Intro;
 
 	LoadSceneFromFile("data/maps/intro.scene");
@@ -57,36 +60,38 @@ LevelIntro::LevelIntro(const unique_ptr<PlayerTransfer> & playerTransfer) : Leve
 	int scy = ruVirtualScreenHeight / 2;
 	int w = 600;
 	int h = 400;
-	mGUIScene = ruGUIScene::Create();
+	mGUIScene = mGame->GetEngine()->CreateGUIScene();
 	mGUIText = mGUIScene->CreateText(mLocalization.GetString("intro"), scx - w / 2, scy - h / 2, w, h, pGUIProp->mFont, ruVector3(255, 255, 255), ruTextAlignment::Left, mTextAlpha);
 	mGUISkipText = mGUIScene->CreateText(mLocalization.GetString("skip"), ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, ruVector3(255, 0, 0), ruTextAlignment::Center);
 
 	DoneInitialization();
 }
 
-LevelIntro::~LevelIntro() {
+LevelIntro::~LevelIntro()
+{
 
 }
 
-void LevelIntro::DoScenario() {
+void LevelIntro::DoScenario()
+{
 	// force disable hdr
-	//ruEngine::SetHDREnabled(false);
+	//ruRenderer::SetHDREnabled(false);
 
 	mCamera->MakeCurrent();
 	mUAZAnim.Update();
 	mDeerAnim.Update();
 	mCameraAnim1.Update();
-	ruEngine::SetAmbientColor(ruVector3(0.095, 0.095, 0.15));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.095, 0.095, 0.15));
 
-	if (mUAZ->IsInsideNode(mChangeCameraZone1)) {
+	if(mUAZ->IsInsideNode(mChangeCameraZone1)) {
 		mCamera->mCamera->Attach(mCameraPivot2);
 	}
 
-	if (mUAZ->IsInsideNode(mChangeCameraZone2)) {
+	if(mUAZ->IsInsideNode(mChangeCameraZone2)) {
 		mCamera->mCamera->Attach(mCameraPivot3);
 	}
 
-	if (mUAZ->IsInsideNode(mChangeCameraZone3)) {
+	if(mUAZ->IsInsideNode(mChangeCameraZone3)) {
 		mCamera->mCamera->Attach(mCameraPivot4);
 	}
 
@@ -97,7 +102,7 @@ void LevelIntro::DoScenario() {
 	mEngineLoop->SetPitch(mEnginePitch);
 
 	// text
-	if (mShowIntro) {
+	if(mShowIntro) {
 		mTextAlphaTo = 255.0f;
 	} else {
 		mTextAlphaTo = 0.0f;
@@ -105,23 +110,25 @@ void LevelIntro::DoScenario() {
 
 	mTextAlpha += (mTextAlphaTo - mTextAlpha) * 0.075f;
 
-	if (ruInput::IsKeyHit(ruInput::Key::Space)) {
+	if(mGame->GetEngine()->GetInput()->IsKeyHit(ruInput::Key::Space)) {
 		mShowIntro = false;
 	}
 
 	mGUIText->SetAlpha(mTextAlpha);
 	mGUISkipText->SetVisible(mShowIntro);
 
-	if (mUAZ->IsInsideNode(mNewLevelLoadZone) || (mShowIntro == false && mTextAlpha < 5.0f)) {
-		Level::Change(LevelName::Arrival);
+	if(mUAZ->IsInsideNode(mNewLevelLoadZone) || (mShowIntro == false && mTextAlpha < 5.0f)) {
+		mGame->LoadLevel(LevelName::Arrival);
 	}
 }
 
-void LevelIntro::OnDeserialize(SaveFile & in) {
+void LevelIntro::OnDeserialize(SaveFile & in)
+{
 
 }
 
-void LevelIntro::OnSerialize(SaveFile & out) {
+void LevelIntro::OnSerialize(SaveFile & out)
+{
 
 }
 

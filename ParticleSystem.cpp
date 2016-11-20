@@ -29,12 +29,12 @@
 
 ParticleSystem::~ParticleSystem() {
 	OnLostDevice();
-	delete [] mVertices;
-	delete [] mFaces;
+	delete[] mVertices;
+	delete[] mFaces;
 }
 
 void ParticleSystem::Update() {
-	if (!mFirstTimeUpdate) {
+	if(!mFirstTimeUpdate) {
 		ResurrectParticles();
 		mFirstTimeUpdate = true;
 	}
@@ -43,17 +43,17 @@ void ParticleSystem::Update() {
 
 	int vertexNum = 0, faceNum = 0;
 
-	for (auto & p : mParticles) {
+	for(auto & p : mParticles) {
 		p.mPosition += p.mSpeed;
 
 		float inside = 1.0f;
-		if (mType == ruParticleSystem::Type::Box) {
+		if(mType == ruParticleSystem::Type::Box) {
 			inside = (p.mPosition).Length2() / (mBoundingBoxMax - mBoundingBoxMin).Length2();
 		} else {
 			inside = (p.mPosition).Length2() / mBoundingRadius;
 		}
 
-		if (inside > 1.0f) {
+		if(inside > 1.0f) {
 			inside = 1.0f;
 		}
 
@@ -62,8 +62,8 @@ void ParticleSystem::Update() {
 		p.mOpacity = fakeOpacity + mAlphaOffset;
 		p.mSize += mScaleFactor;
 
-		if (p.mOpacity <= 1.0f) {
-			if (mAutoResurrectDeadParticles) {
+		if(p.mOpacity <= 1.0f) {
+			if(mAutoResurrectDeadParticles) {
 				ResurrectParticle(p);
 			}
 		} else {
@@ -135,10 +135,10 @@ bool ParticleSystem::IsLightAffects() {
 }
 
 void ParticleSystem::ResurrectParticle(Particle & p) {
-	if (mType == ruParticleSystem::Type::Box) {
+	if(mType == ruParticleSystem::Type::Box) {
 		p.mPosition = RandomVector3(mBoundingBoxMin, mBoundingBoxMax);
 		p.mSpeed = RandomVector3(mSpeedDeviationMin, mSpeedDeviationMax);
-	} else if (mType == ruParticleSystem::Type::Stream) {
+	} else if(mType == ruParticleSystem::Type::Stream) {
 		p.mPosition = ruVector3(0, 0, 0);
 		p.mSpeed = RandomVector3(mSpeedDeviationMin, mSpeedDeviationMax);
 	}
@@ -164,12 +164,13 @@ float ParticleSystem::GetThickness() {
 }
 
 void ParticleSystem::ResurrectParticles() {
-	for (auto & particle : mParticles) {
+	for(auto & particle : mParticles) {
 		ResurrectParticle(particle);
 	}
 }
 
-ParticleSystem::ParticleSystem(int theParticleCount) :
+ParticleSystem::ParticleSystem(SceneFactory * factory, int theParticleCount) :
+	SceneNode(factory),
 	mAliveParticleCount(theParticleCount),
 	mMaxParticleCount(theParticleCount),
 	mType(ruParticleSystem::Type::Box),
@@ -192,7 +193,7 @@ ParticleSystem::ParticleSystem(int theParticleCount) :
 	OnResetDevice();
 	mFaces = new Triangle[theParticleCount * 2];
 	mVertices = new Vertex[theParticleCount * 4];
-	for (int i = 0; i < theParticleCount; i++) {
+	for(int i = 0; i < theParticleCount; i++) {
 		mParticles.push_back(Particle());
 	}
 	ResurrectParticles();
@@ -343,8 +344,4 @@ Particle::Particle(const ruVector3 & thePosition, const ruVector3 & theSpeed, co
 	mOpacity(theTranslucency),
 	mSize(theSize) {
 
-}
-
-shared_ptr<ruParticleSystem> ruParticleSystem::Create(int particleNum) {
-	return SceneFactory::CreateParticleSystem(particleNum);
 }

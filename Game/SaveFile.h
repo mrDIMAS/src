@@ -5,20 +5,22 @@
 class SaveFile {
 private:
 	template<typename T>
-	void Write(T v) {
+	void Write(T v)
+	{
 		mStream.write((char*)&v, sizeof(v));
 	}
 
 	template<typename T>
-	void Read(T & v) {
+	void Read(T & v)
+	{
 		mStream.read((char*)&v, sizeof(v));
 	}
 
-    fstream mStream;
+	fstream mStream;
 	bool mSave;
 public:
-    SaveFile( const string & fileName, bool save );
-    ~SaveFile();
+	SaveFile(const string & fileName, bool save);
+	~SaveFile();
 
 	bool IsSaving() const;
 	bool IsLoading() const;
@@ -33,11 +35,12 @@ public:
 	void operator & (class SmoothFloat & s);
 
 	template<typename K, typename V>
-	void operator & (std::unordered_map<K, V> & m) {
+	void operator & (std::unordered_map<K, V> & m)
+	{
 		int s = m.size();
-	    *this & s;
-		if (IsLoading()) {
-			for (int i = 0; i < s; ++i) {
+		*this & s;
+		if(IsLoading()) {
+			for(int i = 0; i < s; ++i) {
 				K key;
 				V value;
 
@@ -47,7 +50,7 @@ public:
 				m[key] = value;
 			}
 		} else {
-			for (auto p : m) {
+			for(auto p : m) {
 				auto key = p.first;
 				auto value = p.second;
 

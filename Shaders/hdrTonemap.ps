@@ -45,7 +45,7 @@ float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0{
 	if(bloomEnabled) {
 		hdrColor += 0.5f * tex2D( bloom, texCoord ).rgb;
 	}
-	float3 color = ReinhardTonemap(exposure * hdrColor);
+	float3 color = Mr_F_Tonemap(exposure * hdrColor);
 		
 	return float4(ColorGrading(color), 1.0f);
 };

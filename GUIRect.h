@@ -29,10 +29,10 @@ class Texture;
 class GUIRect : public GUINode, public virtual ruRect {
 protected:
 	friend class GUIScene;
-	explicit GUIRect(const weak_ptr<GUIScene> & scene, float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha );
-	explicit GUIRect(); // special constructor for cursor
+	explicit GUIRect( const weak_ptr<GUIScene> & scene, float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha );
+	explicit GUIRect( ); // special constructor for cursor
 public:
-    
-    virtual ~GUIRect();
-    void GetSixVertices( Vertex * vertices );
+
+	virtual ~GUIRect( );
+	void GetSixVertices( Vertex * vertices );
 };

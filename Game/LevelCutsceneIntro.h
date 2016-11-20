@@ -29,9 +29,19 @@ private:
 	shared_ptr<ruText> mGUIText;
 	shared_ptr<ruText> mGUISkipText;
 public:
-	LevelIntro(const unique_ptr<PlayerTransfer> & playerTransfer);
+	LevelIntro(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelIntro();
 	virtual void DoScenario();
-	void OnSerialize( SaveFile & out );
-	void OnDeserialize( SaveFile & in );
+	void OnSerialize(SaveFile & out);
+	void OnDeserialize(SaveFile & in);
+	virtual void Hide()
+	{
+		Level::Hide();
+		mGUIScene->SetVisible(false);
+	}
+	virtual void Show()
+	{
+		Level::Show();
+		mGUIScene->SetVisible(true);
+	}
 };

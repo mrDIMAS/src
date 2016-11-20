@@ -5,8 +5,8 @@
 #include "Door.h"
 #include "Level.h"
 
-Enemy::Enemy(const vector<shared_ptr<GraphVertex>> & path, const vector<shared_ptr<GraphVertex>> & patrol) :
-	Actor(0.5f, 0.25f),
+Enemy::Enemy(unique_ptr<Game> & game, const vector<shared_ptr<GraphVertex>> & path, const vector<shared_ptr<GraphVertex>> & patrol) :
+	Actor(game, 0.5f, 0.25f),
 	mHitDistance(1.3),
 	mCurrentPatrolPoint(0),
 	mAngleTo(0.0f),
@@ -15,12 +15,11 @@ Enemy::Enemy(const vector<shared_ptr<GraphVertex>> & path, const vector<shared_p
 	mMoveType(MoveType::Patrol),
 	mPathCheckTimer(120),
 	mCurrentPathPoint(0),
-	mLostTimer(0)
-{
+	mLostTimer(0) {
 	mPathfinder.SetVertices(path);
 	mPatrolPointList = patrol;
 
-	mModel = ruSceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
+	mModel =  mGame->GetEngine()->GetSceneFactory()->LoadScene("data/models/ripper/ripper0.scene");
 	mModel->Attach(mBody);
 	mModel->SetPosition(ruVector3(0, -0.7f, 0));
 	mModel->SetBlurAmount(1.0f);
@@ -78,22 +77,22 @@ Enemy::Enemy(const vector<shared_ptr<GraphVertex>> & path, const vector<shared_p
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/soil.smat", mBody));
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/chain.smat", mBody));
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/mud.smat", mBody));
-	for (auto & pMat : mSoundMaterialList) {
-		for (auto & pSound : pMat->GetSoundList()) {
+	for(auto & pMat : mSoundMaterialList) {
+		for(auto & pSound : pMat->GetSoundList()) {
 			pSound->SetVolume(0.75f);
 			pSound->SetRolloffFactor(35);
 			pSound->SetRoomRolloffFactor(35);
 			pSound->SetReferenceDistance(5);
 		}
 	}
-	
+
 
 	// set callback to let enemy 'hear' sounds and properly react to it
 	ruSound::PlayCallback.PlayEvent += [this] { Listen(); };
 }
 
 void Enemy::Think() {
-	const auto & player = Level::Current()->GetPlayer();
+	const auto & player = Game::Instance()->GetLevel()->GetPlayer();
 
 	// tweakable parameters
 	const float reachDistanceTolerance = 0.7f;
@@ -118,12 +117,12 @@ void Enemy::Think() {
 	const bool playerInSight = abs(toPlayer.Normalized().Angle(toDestination) * 180.0f / M_PI) <= detectionAngle;
 	const float distanceToPlayer = mBody->GetPosition().Distance(player->GetBody()->GetPosition());
 	const bool playerCloseEnough = distanceToPlayer <= detectionDistance;
-	if (!ignorePlayer && ((eyeContact || flashLightHighlight) && playerInSight && playerCloseEnough)) {
+	if(!ignorePlayer && ((eyeContact || flashLightHighlight) && playerInSight && playerCloseEnough)) {
 		mMoveType = MoveType::ChasePlayer;
-		Level::Current()->PlayChaseMusic();		
+		Game::Instance()->GetLevel()->PlayChaseMusic();
 		mLostTimer = lostTime;
 	} else if(mLostTimer <= 0) {
-		if (mMoveType != MoveType::CheckSound) {
+		if(mMoveType != MoveType::CheckSound) {
 			mMoveType = MoveType::Patrol;
 		}
 	}
@@ -134,7 +133,7 @@ void Enemy::Think() {
 	const float moveSpeed = (mMoveType == MoveType::ChasePlayer) ? runSpeed : walkSpeed;
 
 	// select target
-	switch (mMoveType) {
+	switch(mMoveType) {
 	case MoveType::Patrol: mTarget = mPatrolPointList[mCurrentPatrolPoint]->mNode->GetPosition(); break;
 	case MoveType::ChasePlayer: mTarget = player->GetCurrentPosition(); break;
 	case MoveType::CheckSound: mTarget = mCheckSoundPosition; break;
@@ -143,7 +142,7 @@ void Enemy::Think() {
 	// build path to target 
 	const auto pathBegin = mPathfinder.GetVertexNearestTo(mBody->GetPosition());
 	const auto pathEnd = mPathfinder.GetVertexNearestTo(mTarget);
-	if (pathEnd != mTargetVertex) {
+	if(pathEnd != mTargetVertex) {
 		// rebuild path only if target vertex has changed
 		mPathfinder.BuildPath(pathBegin, pathEnd, mCurrentPath);
 		mTargetVertex = pathEnd;
@@ -151,74 +150,74 @@ void Enemy::Think() {
 	}
 
 	// follow path
-	if (!mCurrentPath.empty()) {
+	if(!mCurrentPath.empty()) {
 		// if close enough to player, then follow him directly, instead of following path points
-		if (mCurrentPathPoint == (mCurrentPath.size() - 1) && mMoveType == MoveType::ChasePlayer) {
+		if(mCurrentPathPoint == (mCurrentPath.size() - 1) && mMoveType == MoveType::ChasePlayer) {
 			mDestination = mTarget;
 		} else {
 			mDestination = mCurrentPath[mCurrentPathPoint]->mNode->GetPosition();
 		}
-		
+
 		LookAt(mDestination);
 
 		// if reach destination
 		const ruVector3 destinationVector = mDestination - mBody->GetPosition();
 		const float distanceToDestination = destinationVector.Length();
-		if (distanceToDestination < reachDistanceTolerance) {
+		if(distanceToDestination < reachDistanceTolerance) {
 			// switch to next vertex
 			++mCurrentPathPoint;
 			// if reach end of path
-			if (mCurrentPathPoint >= mCurrentPath.size()) {				
+			if(mCurrentPathPoint >= mCurrentPath.size()) {
 				mCurrentPathPoint = mCurrentPath.size() - 1;
-				if (mMoveType == MoveType::Patrol) {
+				if(mMoveType == MoveType::Patrol) {
 					// if patrolling, select next patrol point
 					++mCurrentPatrolPoint;
-					if (mCurrentPatrolPoint >= mPatrolPointList.size()) {
+					if(mCurrentPatrolPoint >= mPatrolPointList.size()) {
 						mCurrentPatrolPoint = 0;
 					}
-				} else if (mMoveType == MoveType::CheckSound) {
+				} else if(mMoveType == MoveType::CheckSound) {
 					// sound checked, switch to patrolling
 					mMoveType = MoveType::Patrol;
 				}
 
 				// stand still on end of the path
 				StopInstantly();
-				if (mMoveType != MoveType::ChasePlayer) {
+				if(mMoveType != MoveType::ChasePlayer) {
 					SetIdleAnimation();
 				}
 			}
 		} else {
 			// check doors
 			bool allDoorsAreOpen = true;
-			for (auto & pDoor : Level::Current()->GetDoorList()) {
-				if ((pDoor->mDoorNode->GetPosition() - mBody->GetPosition()).Length() < doorCheckDistance) {
+			for(auto & pDoor : Game::Instance()->GetLevel()->GetDoorList()) {
+				if((pDoor->mDoorNode->GetPosition() - mBody->GetPosition()).Length() < doorCheckDistance) {
 					// ignore locked doors
-					if (pDoor->GetState() != Door::State::Opened && !pDoor->IsLocked()) {
+					if(pDoor->GetState() != Door::State::Opened && !pDoor->IsLocked()) {
 						allDoorsAreOpen = false;
 					}
-					if (pDoor->GetState() == Door::State::Closed && !pDoor->IsLocked()) {
+					if(pDoor->GetState() == Door::State::Closed && !pDoor->IsLocked()) {
 						pDoor->Open();
 					}
 				}
 			}
 
 			// check gates (door too)
-			for (auto & pGate : Level::Current()->GetGateList()) {
-				if ((pGate->GetNode()->GetPosition() - mBody->GetPosition()).Length() < doorCheckDistance) {
-					if (pGate->GetState() == Gate::State::Closed && !pGate->mLocked) {
+			for(auto & pGate : Game::Instance()->GetLevel()->GetGateList()) {
+				if((pGate->GetNode()->GetPosition() - mBody->GetPosition()).Length() < doorCheckDistance) {
+					if(pGate->GetState() == Gate::State::Closed && !pGate->mLocked) {
 						pGate->Open();
 					}
 				}
 			}
 
 			// check for stuck when patrolling (i.e. because of locked doors)
-			if (mMoveType == MoveType::Patrol) {
+			if(mMoveType == MoveType::Patrol) {
 				--mPathCheckTimer;
-				if (mPathCheckTimer <= 0) {
-					if (mLastCheckPosition.Distance(mBody->GetPosition()) < pathCheckTolerance) {
+				if(mPathCheckTimer <= 0) {
+					if(mLastCheckPosition.Distance(mBody->GetPosition()) < pathCheckTolerance) {
 						// select next patrol point
 						++mCurrentPatrolPoint;
-						if (mCurrentPatrolPoint >= mPatrolPointList.size()) {
+						if(mCurrentPatrolPoint >= mPatrolPointList.size()) {
 							mCurrentPatrolPoint = 0;
 						}
 					}
@@ -229,11 +228,11 @@ void Enemy::Think() {
 
 			bool allowMovement = allDoorsAreOpen;
 			// select animation type by distance to player
-			if (mMoveType == MoveType::ChasePlayer) {
-				if (distanceToPlayer < nearAttackPlayerDistance) {
+			if(mMoveType == MoveType::ChasePlayer) {
+				if(distanceToPlayer < nearAttackPlayerDistance) {
 					allowMovement = false;
 					SetStayAndAttackAnimation();
-				} else if (distanceToPlayer >= nearAttackPlayerDistance && distanceToPlayer <= attackPlayerDistance) {
+				} else if(distanceToPlayer >= nearAttackPlayerDistance && distanceToPlayer <= attackPlayerDistance) {
 					SetRunAndAttackAnimation();
 				} else {
 					SetRunAnimation();
@@ -243,10 +242,10 @@ void Enemy::Think() {
 				SetWalkAnimation();
 			}
 
-			if (allowMovement) {
+			if(allowMovement) {
 				Move(destinationVector.Normalized(), moveSpeed);
 			} else {
-				if (mMoveType != MoveType::ChasePlayer) {
+				if(mMoveType != MoveType::ChasePlayer) {
 					SetIdleAnimation();
 				}
 				StopInstantly();
@@ -258,7 +257,7 @@ void Enemy::Think() {
 	mAttackAnimation.Update();
 	mIdleAnimation.Update();
 	mRunAnimation.Update();
-	mWalkAnimation.Update();	
+	mWalkAnimation.Update();
 }
 
 void Enemy::SetWalkAnimation() {
@@ -299,35 +298,35 @@ void Enemy::SetCommonAnimation(ruAnimation * anim) {
 }
 
 void Enemy::SetTorsoAnimation(ruAnimation * anim) {
-	for (auto & torsoPart : mTorsoParts) {
+	for(auto & torsoPart : mTorsoParts) {
 		torsoPart->SetAnimation(anim);
 	}
 }
 
 void Enemy::SetLegsAnimation(ruAnimation *pAnim) {
-	for (auto & rightLegPart : mRightLegParts) {
+	for(auto & rightLegPart : mRightLegParts) {
 		rightLegPart->SetAnimation(pAnim);
 	}
-	for (auto & leftLegPart : mLeftLegParts) {
+	for(auto & leftLegPart : mLeftLegParts) {
 		leftLegPart->SetAnimation(pAnim);
 	}
 }
 
 void Enemy::HitPlayer() {
-	auto & player = Level::Current()->GetPlayer();
+	auto & player = Game::Instance()->GetLevel()->GetPlayer();
 	float distanceToPlayer = (player->GetCurrentPosition() - mBody->GetPosition()).Length();
-	if (distanceToPlayer < mHitDistance) {
+	if(distanceToPlayer < mHitDistance) {
 		player->Damage(55.0f);
 		mHitFleshWithAxeSound->Play(true);
 	}
 }
 
 void Enemy::EmitStepSound() {
-	ruRayCastResultEx result = ruPhysics::CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
-	if (result.valid) {
-		for (auto & sMat : mSoundMaterialList) {
+	ruRayCastResultEx result = mGame->GetEngine()->GetPhysics()->CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
+	if(result.valid) {
+		for(auto & sMat : mSoundMaterialList) {
 			shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
-			if (snd) {
+			if(snd) {
 				snd->Play(true);
 			}
 		}
@@ -336,9 +335,9 @@ void Enemy::EmitStepSound() {
 
 void Enemy::FillByNamePattern(vector< shared_ptr<ruSceneNode> > & container, const string & pattern) {
 	std::regex rx(pattern);
-	for (int i = 0; i < mModel->GetCountChildren(); i++) {
+	for(int i = 0; i < mModel->GetCountChildren(); i++) {
 		shared_ptr<ruSceneNode> child = mModel->GetChild(i);
-		if (regex_match(child->GetName(), rx)) {
+		if(regex_match(child->GetName(), rx)) {
 			container.push_back(child);
 		}
 	}
@@ -346,14 +345,14 @@ void Enemy::FillByNamePattern(vector< shared_ptr<ruSceneNode> > & container, con
 
 void Enemy::Listen() {
 	// if hear something before, then check it and only then check new sound
-	if (mMoveType != MoveType::ChasePlayer) {
-		const float hearDistance = Level::Current()->GetPlayer()->mNoiseFactor * 10.0f;
+	if(mMoveType != MoveType::ChasePlayer) {
+		const float hearDistance = Game::Instance()->GetLevel()->GetPlayer()->mNoiseFactor * 10.0f;
 		const auto sound = ruSound::PlayCallback.Caller;
-		for (const auto & reactSound : mReactSounds) {
-			if (sound == reactSound) {
-				if (sound->GetPosition().Distance(mBody->GetPosition()) < hearDistance) {
+		for(const auto & reactSound : mReactSounds) {
+			if(sound == reactSound) {
+				if(sound->GetPosition().Distance(mBody->GetPosition()) < hearDistance) {
 					mCheckSoundPosition = sound->GetPosition();
-					if (mMoveType != MoveType::ChasePlayer) {
+					if(mMoveType != MoveType::ChasePlayer) {
 						mMoveType = MoveType::CheckSound;
 					}
 				}
@@ -397,16 +396,16 @@ void Enemy::LookAt(const ruVector3 & lookAt) {
 	mAngleTo = fmod(mAngleTo, 360.0f);
 	mAngle = fmod(mAngle, 360.0f);
 
-	if ((int)mAngleTo != (int)mAngle) {
+	if((int)mAngleTo != (int)mAngle) {
 		float change = 0;
 		float diff = mAngle - mAngleTo;
-		if (diff < 0) {
+		if(diff < 0) {
 			change = 1;
 		} else {
 			change = -1;
 		}
 
-		if (fabs(diff) > 180) {
+		if(fabs(diff) > 180) {
 			change = -change;
 		}
 
@@ -422,7 +421,7 @@ void Enemy::LookAt(const ruVector3 & lookAt) {
 
 void Enemy::SetNextPatrolPoint() {
 	mCurrentPatrolPoint++;
-	if (mCurrentPatrolPoint >= mPatrolPointList.size()) {
+	if(mCurrentPatrolPoint >= mPatrolPointList.size()) {
 		mCurrentPatrolPoint = 0;
 	}
 }

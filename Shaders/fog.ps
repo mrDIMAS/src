@@ -83,8 +83,9 @@ float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
 						outColor.a += dot(float4(1, 0.5, 0.25, 0.125), density);
 						for(int i = 0; i < lightCount; ++i) {
 							lighting += lightColor[i] * GetLighting(trace, lightPositionRange[i]);
-						}
+						}					
 					}
+
 					sk = 0.1;
 				} else {
 					for(int i = 0; i < lightCount; ++i) {
@@ -94,6 +95,9 @@ float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
 				if(lightCount > 0) {
 					outColor.xyz *= lighting * sk;					
 				}
+				
+				outColor.a *= clamp(length(p - (cameraPos + tmin * direction)), 0.1, 1);
+				
 				outColor.xyz += directionalLightColor;
 				outColor.a *= fogDensity * sk;
 			}			
@@ -102,29 +106,16 @@ float4 main( float2 texCoord : TEXCOORD0 ) : COLOR0 {
 			float dTarget = length(p - cameraPos);			
 			outColor.a = saturate((dTarget / thickness));	
 			// modulate density and apply lighting
-			float3 lighting = float3(0, 0, 0);	
-			float sk = 1;
-			if(volumetricFog) {			
-				for(float k = 0; k < 0.25; k += 0.025) {
-					float3 trace = (tmax + k) * direction;
-					float4 density = tex3Dlod(fogTexture, float4(fogOffset + 0.4f * trace, 0));
-					outColor.a += dot(float4(1, 0.5, 0.25, 0.125), density);
-					for(int i = 0; i < lightCount; ++i) {
-						lighting += lightColor[i] * GetLighting(trace, lightPositionRange[i]);
-					}
-				}
-				sk = 0.1;
-			} else {				
-				float3 pt = tmax * direction;
-				for(int i = 0; i < lightCount; ++i) {
-					lighting += lightColor[i] * GetLighting( pt, lightPositionRange[i]);
-				}				
-			}
+			float3 lighting = float3(0, 0, 0);				
+			float3 pt = tmax * direction;
+			for(int i = 0; i < lightCount; ++i) {
+				lighting += lightColor[i] * GetLighting( pt, lightPositionRange[i]);
+			}		
 			if(lightCount > 0) {
-				outColor.xyz *= lighting * sk;					
+				outColor.xyz *= lighting;					
 			}		
 			outColor.xyz += directionalLightColor;
-			outColor.a *= fogDensity * sk;				
+			outColor.a *= fogDensity;				
 		}
 	} 
 	

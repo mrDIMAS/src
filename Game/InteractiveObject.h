@@ -13,12 +13,12 @@ private:
 	string mPickDesc;
 	void UpdateFlashing();
 public:
-    shared_ptr<ruSceneNode> mObject;
+	shared_ptr<ruSceneNode> mObject;
 	ruEvent OnInteract;
-    explicit InteractiveObject( shared_ptr<ruSceneNode> object );
+	explicit InteractiveObject(shared_ptr<ruSceneNode> object);
 	explicit InteractiveObject();
-    virtual ~InteractiveObject();   
-    virtual void Update();
-	void SetPickDescription( const string & pd );
+	virtual ~InteractiveObject();
+	virtual void Update();
+	void SetPickDescription(const string & pd);
 	string GetPickDescription() const;
 };

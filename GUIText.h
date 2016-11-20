@@ -27,13 +27,12 @@ class GUITextLine {
 public:
 	float mX, mY;
 	u32string mSubstring;
-		
+
 	GUITextLine( float x, float y, const u32string & substring ) :
 		mX( x ),
 		mY( y ),
-		mSubstring( substring )
-	{
-		
+		mSubstring( substring ) {
+
 	}
 };
 
@@ -41,23 +40,23 @@ class GUIText : public GUINode, public ruText {
 protected:
 	friend class GUIScene;
 	explicit GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
-    shared_ptr<BitmapFont> mFont;
-	u32string mTextUTF32; 
+	shared_ptr<BitmapFont> mFont;
+	u32string mTextUTF32;
 	string mTextUTF8;
 
-    ruTextAlignment mTextAlign;
-	
+	ruTextAlignment mTextAlign;
 
-	void BreakOnLines();
+
+	void BreakOnLines( );
 public:
 	// Data for renderer
 	vector<GUITextLine> mLines;
 public:
-    virtual ~GUIText( );
-    ruTextAlignment GetTextAlignment();
-    string & GetText();
-    shared_ptr<BitmapFont> GetFont();
+	virtual ~GUIText( );
+	ruTextAlignment GetTextAlignment( );
+	string & GetText( );
+	shared_ptr<BitmapFont> GetFont( );
 
 
-    virtual void SetText( const string & text );
+	virtual void SetText( const string & text );
 };

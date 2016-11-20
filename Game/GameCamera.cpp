@@ -4,13 +4,14 @@
 
 GameCamera * GameCamera::currentCamera = 0;
 
-void GameCamera::Update() {
-	if (currentCamera == this) {
+void GameCamera::Update()
+{
+	if(currentCamera == this) {
 		quadAlpha += (quadAlphaTo - quadAlpha) * 0.15f;
 	}
 
-	if (mFullscreenQuad) {
-		if (currentCamera == this) {
+	if(mFullscreenQuad) {
+		if(currentCamera == this) {
 			mFullscreenQuad->SetVisible(true);
 			mFullscreenQuad->SetAlpha(quadAlpha);
 		} else {
@@ -19,16 +20,19 @@ void GameCamera::Update() {
 	}
 }
 
-void GameCamera::FadeIn() {
+void GameCamera::FadeIn()
+{
 	quadAlphaTo = 0.0f;
 }
 
-void GameCamera::FadeOut() {
+void GameCamera::FadeOut()
+{
 	quadAlphaTo = 255.0f;
 }
 
-GameCamera::GameCamera(const shared_ptr<ruGUIScene> & scene, float fov) {
-	mCamera = ruCamera::Create(fov);
+GameCamera::GameCamera(const shared_ptr<ruGUIScene> & scene, float fov)
+{
+	mCamera = scene->GetEngine()->GetSceneFactory()->CreateCamera(fov);
 
 	quadAlpha = 0.0f;
 	quadAlphaTo = 0.0f;
@@ -37,7 +41,7 @@ GameCamera::GameCamera(const shared_ptr<ruGUIScene> & scene, float fov) {
 
 	MakeCurrent();
 
-	if (scene) {
+	if(scene) {
 		mFullscreenQuad = scene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/generic/black.jpg"), fadeColor, quadAlpha);
 		mFullscreenQuad->SetAlpha(0);
 		mFullscreenQuad->SetIndependentAlpha(true);
@@ -45,23 +49,28 @@ GameCamera::GameCamera(const shared_ptr<ruGUIScene> & scene, float fov) {
 	}
 }
 
-void GameCamera::MakeCurrent() {
+void GameCamera::MakeCurrent()
+{
 	mCamera->SetActive();
 	currentCamera = this;
 }
 
-bool GameCamera::FadeComplete() {
+bool GameCamera::FadeComplete()
+{
 	return abs(quadAlpha - quadAlphaTo) < 1.5f;
 }
 
-void GameCamera::FadePercent(int percent) {
+void GameCamera::FadePercent(int percent)
+{
 	quadAlphaTo = 255 - (float)percent / 100.0f * 255.0f;
 }
 
-void GameCamera::SetFadeColor(ruVector3 newFadeColor) {
+void GameCamera::SetFadeColor(ruVector3 newFadeColor)
+{
 	fadeColor = newFadeColor;
 }
 
-GameCamera::~GameCamera() {
+GameCamera::~GameCamera()
+{
 
 }

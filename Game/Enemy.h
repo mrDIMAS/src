@@ -62,7 +62,7 @@ public:
 	virtual void SetWalkAnimation();
 	virtual void SetRunAndAttackAnimation();
 	virtual void SetStayAndAttackAnimation();
-	explicit Enemy(const vector<shared_ptr<GraphVertex>> & path, const vector<shared_ptr<GraphVertex>> & patrol);
+	explicit Enemy(unique_ptr<Game> & game, const vector<shared_ptr<GraphVertex>> & path, const vector<shared_ptr<GraphVertex>> & patrol);
 	virtual ~Enemy();
 	void Think();
 	void Serialize(SaveFile & out);

@@ -2,26 +2,26 @@
 #include "Level.h"
 #include "Keypad.h"
 
-void Keypad::Update() {
-	auto & player = Level::Current()->GetPlayer();
-	for (int i = 0; i < 10; i++) {
-		if (player->mNearestPickedNode == mKeys[i]) {
-			if (!mKeyState[i]) {
+void Keypad::Update()
+{
+	auto & player = Game::Instance()->GetLevel()->GetPlayer();
+	for(int i = 0; i < 10; i++) {
+		if(player->mNearestPickedNode == mKeys[i]) {
+			if(!mKeyState[i]) {
 				player->GetHUD()->SetAction(player->mKeyUse, StringBuilder() << player->mLocalization.GetString("pressButton") << " " << i);
-				if (ruInput::IsKeyHit(player->mKeyUse)) {
+				if(player->IsUseButtonHit()) {
 					mCurrentCode += to_string(i);
 					mKeyState[i] = true;
 					mButtonPushSound->Play();
-					if (mCurrentCode.size() == 4) {
-						if (mCurrentCode == mCodeToUnlock) {
-							if (mDoorToUnlock.use_count()) {
+					if(mCurrentCode.size() == 4) {
+						if(mCurrentCode == mCodeToUnlock) {
+							if(mDoorToUnlock.use_count()) {
 								mDoorToUnlock.lock()->SetLocked(false);
 								mDoorToUnlock.lock()->Open();
 							}
 						}
 						Reset();
-					}
-					else {
+					} else {
 						mKeys[i]->SetPosition(mKeysInitialPosition[i] + mKeysPressedOffsets[i]);
 					}
 				}
@@ -29,9 +29,9 @@ void Keypad::Update() {
 		}
 	}
 
-	if (player->mNearestPickedNode == mKeyCancel) {
+	if(player->mNearestPickedNode == mKeyCancel) {
 		player->GetHUD()->SetAction(player->mKeyUse, player->mLocalization.GetString("resetButtons"));
-		if (ruInput::IsKeyHit(player->mKeyUse)) {
+		if(player->IsUseButtonHit()) {
 			Reset();
 		}
 	}
@@ -58,7 +58,7 @@ Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sha
 	mDoorToUnlock = doorToUnlock;
 	mCodeToUnlock = codeToUnlock;
 
-	for (int i = 0; i < 10; i++) {
+	for(int i = 0; i < 10; i++) {
 		mKeysInitialPosition[i] = mKeys[i]->GetPosition();
 		ruVector3 min = mKeys[i]->GetAABBMin();
 		ruVector3 max = mKeys[i]->GetAABBMax();
@@ -67,7 +67,7 @@ Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sha
 		mKeysPressedOffsets[i] = right * (size / 2);
 	}
 
-	if (mDoorToUnlock.use_count()) {
+	if(mDoorToUnlock.use_count()) {
 		mDoorToUnlock.lock()->SetLocked(true);
 	}
 
@@ -82,7 +82,7 @@ Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sha
 
 void Keypad::Reset()
 {
-	for (int i = 0; i < 10; i++) {
+	for(int i = 0; i < 10; i++) {
 		mKeyState[i] = false;
 		mCurrentCode.clear();
 		mKeys[i]->SetPosition(mKeysInitialPosition[i]);

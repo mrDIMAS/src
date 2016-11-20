@@ -53,10 +53,10 @@ public:
 private:
 	vector<BoneGroup> mBoneTable;
 	vector<shared_ptr<Bone>> mBones;
-    // mesh can be shared between multiple nodes
+	// mesh can be shared between multiple nodes
 	vector<weak_ptr<SceneNode>> mOwnerList;
-    
-	bool mSkinned;    
+
+	bool mSkinned;
 public:
 	// Data for renderer
 	AABB mAABB;
@@ -67,29 +67,29 @@ public:
 	shared_ptr<Texture> mDiffuseTexture;
 	shared_ptr<Texture> mNormalTexture;
 	shared_ptr<Texture> mHeightTexture;
-	
+
 	float mOpacity;
 public:
 	shared_ptr<Bone> AddBone( weak_ptr<SceneNode> node );
-	vector<shared_ptr<Bone>> & GetBones();
-	void CalculateAABB();
-    explicit Mesh();
-    virtual ~Mesh();
+	vector<shared_ptr<Bone>> & GetBones( );
+	void CalculateAABB( );
+	explicit Mesh( );
+	virtual ~Mesh( );
 	void LinkTo( weak_ptr<SceneNode> owner );
 	// This method guaranteed to return list with only existing owners
-    vector<weak_ptr<SceneNode>> & GetOwners();
-    void CreateVertexBuffer();
-    void CreateIndexBuffer( vector< Triangle > & idc );
-    void CreateHardwareBuffers();
+	vector<weak_ptr<SceneNode>> & GetOwners( );
+	void CreateVertexBuffer( );
+	void CreateIndexBuffer( vector< Triangle > & idc );
+	void CreateHardwareBuffers( );
 	AABB GetBoundingBox( ) const;
-	vector<Vertex> & GetVertices();
-	vector<Triangle> & GetTriangles();
-	bool IsSkinned() const;
+	vector<Vertex> & GetVertices( );
+	vector<Triangle> & GetTriangles( );
+	bool IsSkinned( ) const;
 	void AddBoneGroup( const BoneGroup & bg );
 	void AddTriangle( const Triangle & triangle );
 	void SetOpacity( float opacity );
 	float GetOpacity( ) const;
 	void AddVertex( const Vertex & vertex );
-	vector<BoneGroup> & GetBoneTable();
-	bool IsHardwareBuffersGood();
+	vector<BoneGroup> & GetBoneTable( );
+	bool IsHardwareBuffersGood( );
 };

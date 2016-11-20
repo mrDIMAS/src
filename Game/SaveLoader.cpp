@@ -4,26 +4,27 @@
 #include "Level.h"
 #include "Ladder.h"
 
-void SaveLoader::RestoreWorldState() {
+void SaveLoader::RestoreWorldState()
+{
 	int levNum = 0;
-	
+
 	*this & levNum;
 
-    // load level
-    Level::Change( (LevelName)levNum );
+	// load level
+	Game::Instance()->LoadLevel((LevelName)levNum);
 
-    // deserialize it's objects
-    if( Level::Current() ) {
-        Level::Current()->Serialize( *this );
-    }
-
-	Game_UpdateClock(); 
+	// deserialize it's objects
+	if(Game::Instance()->GetLevel()) {
+		Game::Instance()->GetLevel()->Serialize(*this);
+	}
 }
 
-SaveLoader::~SaveLoader() {
+SaveLoader::~SaveLoader()
+{
 
 }
 
-SaveLoader::SaveLoader( string fn ) : SaveFile( fn, false ) {
+SaveLoader::SaveLoader(string fn) : SaveFile(fn, false)
+{
 
 }

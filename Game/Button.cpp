@@ -4,11 +4,12 @@
 #include "Utils.h"
 #include "Level.h"
 
-void Button::Update() {
-	auto & player = Level::Current()->GetPlayer();
-	if (player->mNearestPickedNode == mNode) {
+void Button::Update()
+{
+	auto & player = Game::Instance()->GetLevel()->GetPlayer();
+	if(player->mNearestPickedNode == mNode) {
 		player->GetHUD()->SetAction(player->mKeyUse, mText);
-		if (ruInput::IsKeyHit(player->mKeyUse) && !mPushAnimation.IsEnabled()) {
+		if(player->IsUseButtonHit() && !mPushAnimation.IsEnabled()) {
 			mPushAnimation.SetEnabled(true);
 		}
 	}
@@ -17,7 +18,7 @@ void Button::Update() {
 }
 
 Button::Button(const shared_ptr<ruSceneNode> & node, const string & text, const ruDelegate & onPush) :
-	mNode(node),  
+	mNode(node),
 	mText(text)
 {
 	mPushSound = ruSound::Load3D("data/sounds/button.ogg");

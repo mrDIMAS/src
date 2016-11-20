@@ -10,7 +10,7 @@ private:
 	shared_ptr<ruSceneNode> mZoneEnd;
 	shared_ptr<ruFog> mFog;
 public:
-	LevelForest(const unique_ptr<PlayerTransfer> & playerTransfer);
+	LevelForest(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelForest();
 	virtual void DoScenario() override final;
 	virtual void OnSerialize(SaveFile & out) override final;

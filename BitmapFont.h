@@ -21,12 +21,15 @@
 
 #pragma once
 
+class Engine;
+
 class BitmapFont : public ruFont {
 public:
+	Engine * const mEngine;
 	// Data for the renderer
 	COMPtr<IDirect3DTexture9> mAtlas;
 	gft_font_t * mFont;
 public:
-    explicit BitmapFont( const string & file, int size );
-    virtual ~BitmapFont( );
+	explicit BitmapFont(Engine * engine, const string & file, int size);
+	virtual ~BitmapFont();
 };

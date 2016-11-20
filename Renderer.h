@@ -26,51 +26,43 @@
 #include "BitmapFont.h"
 #include "Mesh.h"
 #include "GUIRect.h"
-#include "Camera.h"
 
 class Cursor;
-
-
+class Engine;
 
 typedef unordered_map<IDirect3DTexture9*, vector<weak_ptr<Mesh>>> MeshMap;
 
 template<class T>
 void Clamp(T & value, T min, T max) {
-	if (min > max) {
+	if(min > max) {
 		std::swap(min, max);
 	}
-	if (value > max) {
+	if(value > max) {
 		value = max;
 	}
-	if (value < min) {
+	if(value < min) {
 		value = min;
 	}
 }
 
-class Renderer {
+class Renderer : public ruRenderer {
 private:
+	Engine * const mEngine;
+
 	HWND mWindowHandle;
-
-
 	bool mRunning;
-
 	float mResWidth;
 	float mResHeight;
-
 	D3DPRESENT_PARAMETERS mPresentParameters;
-
 	string mTextureStoragePath;
 	ruVector3 mAmbientColor;
-
 	bool mPaused;
 	bool mChangeVideomode;
 	int mNativeResolutionWidth;
 	int mNativeResolutionHeight;
 	void SetDefaults();
 	vector<ruVideomode> mVideomodeList;
-
 	shared_ptr<Cursor> mCursor;
-
 	MeshMap mDeferredMeshMap;
 
 	void RenderMesh(const shared_ptr<Mesh> & mesh);
@@ -178,7 +170,7 @@ private:
 	// Shadow map shaders
 	COMPtr<IDirect3DPixelShader9> mShadowMapPixelShader;
 	COMPtr<IDirect3DVertexShader9> mShadowMapVertexShader;
-	
+
 	// Quad
 	D3DXMATRIX mOrthoProjectionMatrix;
 	COMPtr<IDirect3DVertexBuffer9> mQuadVertexBuffer;
@@ -253,97 +245,60 @@ private:
 	int mDirectionalLightShadowMapSize;
 	int mDirectionalLightShadowUpdateTimer;
 public:
-	explicit Renderer(int width, int height, int fullscreen, char vSync);
+	explicit Renderer(Engine * engine, int width, int height, int fullscreen, char vSync);
 	virtual ~Renderer();
-	void RenderWorld();
-	void UpdateWorld();
-	float GetResolutionWidth();
-	float GetResolutionHeight();
-	int GetDIPCount();
 	void AddMesh(const shared_ptr<Mesh> & mesh);
-	int GetRenderedTriangles() const;
-	void ChangeVideomode(int width, int height, bool fullscreen, bool vsync);
-	bool IsAnisotropicFilteringEnabled();
-	void SetAnisotropicTextureFiltration(bool state);
 	void SetGenericSamplersFiltration(D3DTEXTUREFILTERTYPE filter, bool disableMips);
-
-	ruVector3 GetAmbientColor();
-	void SetAmbientColor(ruVector3 ambColor);
-	void SetCursor(shared_ptr<ruTexture> texture, int w, int h);
-	void SetCursorVisible(bool state);
-	void Shutdown();
 	shared_ptr<Cursor> & GetCursor();
-	int GetTextureChangeCount();
-	int GetShaderChangeCount();
 	string GetTextureStoragePath();
 	void SetTextureStoragePath(const string & path);
-	float GetGUIWidthScaleFactor() const;
-	float GetGUIHeightScaleFactor() const;
-	// Effects control methods
-	bool IsFXAAEnabled();
-	void SetFXAAEnabled(bool state);
-
-	bool IsHDREnabled();
-	void SetHDREnabled(bool state);
-
-	bool IsParallaxEnabled();
-	void SetParallaxEnabled(bool state);
-		
-	void SetPointLightShadowsEnabled(bool state);
-	bool IsPointLightShadowsEnabled();
-
-	void SetDirectionalLightShadowMapSize(int size) {
-		if (mDirectionalLightShadowMapSize != size) {
-			mDirectionalLightShadowMapSize = size;
-
-			Clamp(mDirectionalLightShadowMapSize, 1024, 4096);
-
-			mDirectionalShadowMapSurface.Reset();
-			mDirectionalShadowMap.Reset();
-			mDirectionalDepthStencilSurface.Reset();
-
-			D3DCALL(pD3D->CreateTexture(size, size, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R32F, D3DPOOL_DEFAULT, &mDirectionalShadowMap, nullptr));
-			D3DCALL(mDirectionalShadowMap->GetSurfaceLevel(0, &mDirectionalShadowMapSurface));
-			D3DCALL(pD3D->CreateDepthStencilSurface(size, size, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, TRUE, &mDirectionalDepthStencilSurface, 0));
-		}
+	HWND GetWindow() const {
+		return mWindowHandle;
 	}
-
-	void SetDirectionalLightDynamicShadows(bool state) {
-		mDynamicDirectionalShadows = state;
-	}
-	bool IsDirectionalLightDynamicShadowsEnabled() {
-		return mDynamicDirectionalShadows;
-	}
-
-	int GetDirectionalLightShadowMapSize() const {
-		return mDirectionalLightShadowMapSize;
-	}
-
-	void SetSpotLightShadowMapSize(int size);
-	void SetSpotLightShadowsEnabled(bool state);
-	bool IsSpotLightShadowsEnabled();
-
-	void SetVolumetricFogEnabled(bool state) {
-		mVolumetricFog = state;
-	}
-	bool IsVolumetricFogEnabled() const {
-		return mVolumetricFog;
-	}
-	int GetMaxIsotropyDegree() const {
-		D3DCAPS9 caps;
-		pD3D->GetDeviceCaps(&caps);
-		return caps.MaxAnisotropy;
-	}
-	void SetIsotropyDegree(int degree) {
-		int maxIsotropyDegree = GetMaxIsotropyDegree();
-		Clamp(degree, 1, maxIsotropyDegree);
-		for (int i = 0; i < 8; ++i) {
-			D3DCALL(pD3D->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, degree));
-		}
-	}
-	vector<ruVideomode> GetVideoModeList() {
-		return mVideomodeList;
-	}
-
-	void LoadColorGradingMap(const char * fileName);
+	// API Methods
+	virtual void RenderWorld() override final;
+	virtual float GetResolutionWidth() const override final;
+	virtual float GetResolutionHeight() const override final;
+	virtual void SetCursorVisible(bool state) override final;
+	virtual void SetCursor(shared_ptr<ruTexture> texture, int w, int h) override final;
+	virtual int GetDIPs() const override final;
+	virtual int GetTextureUsedPerFrame() const override final;
+	virtual int GetShaderUsedPerFrame() const override final;
+	virtual int GetRenderedTriangles() const override final;
+	virtual void SetAmbientColor(ruVector3 color) override final;
+	virtual int GetAvailableTextureMemory() override final;
+	virtual void UpdateWorld() override final;
+	virtual bool IsAnisotropicTextureFiltrationEnabled() const override final;
+	virtual void SetAnisotropicTextureFiltration(bool state) override final;
+	virtual ruVector3 GetAmbientColor() const override final;
+	virtual void Shutdown() override final;
+	virtual float GetGUIWidthScaleFactor() const override final;
+	virtual float GetGUIHeightScaleFactor() const override final;
+	virtual bool IsFXAAEnabled() override final;
+	virtual void SetFXAAEnabled(bool state) override final;
+	virtual bool IsHDREnabled() override final;
+	virtual void SetHDREnabled(bool state) override final;
+	virtual bool IsParallaxEnabled() override final;
+	virtual void SetParallaxEnabled(bool state) override final;
+	virtual void SetPointLightShadowsEnabled(bool state) override final;
+	virtual bool IsPointLightShadowsEnabled() override final;
+	virtual void SetDirectionalLightShadowMapSize(int size) override final;
+	virtual void SetDirectionalLightDynamicShadows(bool state) override final;
+	virtual bool IsDirectionalLightDynamicShadowsEnabled() override final;
+	virtual int GetDirectionalLightShadowMapSize() const override final;
+	virtual void SetSpotLightShadowMapSize(int size) override final;
+	virtual void SetSpotLightShadowsEnabled(bool state) override final;
+	virtual bool IsSpotLightShadowsEnabled() override final;
+	virtual void SetVolumetricFogEnabled(bool state) override final;
+	virtual bool IsVolumetricFogEnabled() const override final;
+	virtual int GetMaxIsotropyDegree() const override final;
+	virtual void SetIsotropyDegree(int degree) override final;
+	virtual vector<ruVideomode> GetVideoModeList() override final;
+	virtual void SetBloomEnabled(bool state) override final;
+	virtual bool IsBloomEnabled() const override final;
+	virtual void SetSoftShadowsEnabled(bool state) override final;
+	virtual bool IsSoftShadowsEnabled() const override final;
+	virtual void LoadColorGradingMap(const char * fileName) override final;
+	virtual bool IsRunning() const override final;
+	virtual void SetPointLightShadowMapSize(int size) override final;
 };

@@ -22,11 +22,11 @@ public:
 		mObject(object),
 		mType(Type::OneShot),
 		mPlayerInside(false),
-		mActive(true) 
+		mActive(true)
 	{
 		OnPlayerEnter += onEnter;
 	}
 
 	void Update();
-	void SetActive( bool active );
+	void SetActive(bool active);
 };

@@ -23,15 +23,24 @@
 
 #include "GUIRect.h"
 
-class Cursor : public GUIRect {
+class Cursor {
 public:
-    explicit Cursor( int w, int h, shared_ptr<Texture> texture ) {
-		//: GUIRect(0, 0, w, h, texture, ruVector3(255, 255, 255), 255)
-		SetPosition(0, 0);
-		SetSize(w, h);
-		SetTexture(texture);
-    }
+	bool mVisible;
+	ruVector2 mPosition;
+	ruVector2 mSize;
+	shared_ptr<Texture> mTexture;
 
-    void Show();
-    void Hide();
+	Cursor(const ruVector2 & size, const ruVector2 & scale, const shared_ptr<Texture> & texture) : 
+		mVisible(true) ,
+		mSize(size.x * scale.x, size.y * scale.y),
+		mTexture(texture)
+	{
+
+	}
+
+	void SetVisible(bool state) {
+		mVisible = state;
+		ShowCursor(state);
+		pD3D->ShowCursor(state);
+	}
 };

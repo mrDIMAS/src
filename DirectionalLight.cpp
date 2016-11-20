@@ -2,19 +2,7 @@
 #include "DirectionalLight.h"
 #include "SceneFactory.h"
 
-shared_ptr<ruDirectionalLight> ruDirectionalLight::Create() {
-	return SceneFactory::CreateDirectionalLight();
-}
-
-int ruDirectionalLight::GetCount() {
-	return SceneFactory::GetDirectionalLightList().size();
-}
-
-shared_ptr<ruDirectionalLight> ruDirectionalLight::Get(int n) {
-	return SceneFactory::GetDirectionalLightList()[n].lock();
-}
-
-DirectionalLight::DirectionalLight() {
+DirectionalLight::DirectionalLight(SceneFactory * factory) : Light(factory) {
 
 }
 

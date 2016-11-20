@@ -6,7 +6,7 @@
 
 class SaveWriter : public SaveFile {
 public:
-    SaveWriter( string fn );
-    ~SaveWriter();
-    void SaveWorldState( );
+	SaveWriter(string fn);
+	~SaveWriter();
+	void SaveWorldState();
 };

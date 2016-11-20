@@ -26,15 +26,13 @@ private:
 	LARGE_INTEGER mFreq;
 	double mLastTime;
 public:
-    Timer();
-	~Timer();
-    virtual void Restart( );
-    virtual double GetTimeInSeconds( );
-    virtual double GetTimeInMilliSeconds( );
-    virtual double GetTimeInMicroSeconds( );
-    virtual double GetElapsedTimeInSeconds( );
-    virtual double GetElapsedTimeInMilliSeconds( );
-    virtual double GetElapsedTimeInMicroSeconds( );
-
-    static vector<Timer*> msTimerList;
+	Timer( );
+	~Timer( );
+	virtual void Restart( ) override final;
+	virtual double GetTimeInSeconds( ) override final;
+	virtual double GetTimeInMilliSeconds( ) override final;
+	virtual double GetTimeInMicroSeconds( ) override final;
+	virtual double GetElapsedTimeInSeconds( ) override final;
+	virtual double GetElapsedTimeInMilliSeconds( ) override final;
+	virtual double GetElapsedTimeInMicroSeconds( ) override final;
 };

@@ -5,7 +5,8 @@
 #include "Door.h"
 #include "Utils.h"
 
-LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & playerTransfer) : Level(playerTransfer) {
+LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) :
+	Level(game, playerTransfer) {
 	mpPowerSparks = nullptr;
 
 	mSteamDisabled = false;
@@ -72,7 +73,7 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	AddSound(steamHis);
 	mpExtemeSteam = unique_ptr<SteamStream>(new SteamStream(GetUniqueObject("ExtremeSteam"), ruVector3(-0.0015, -0.1, -0.0015), ruVector3(0.0015, -0.45, 0.0015), steamHis));
 
-	ruEngine::SetAmbientColor(ruVector3(0, 0, 0));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0, 0, 0));
 
 	mDoorUnderFloor = GetUniqueObject("DoorUnderFloor");
 
@@ -160,8 +161,6 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	mStages["EnemySpawned"] = false;
 	mStages["EnterDisableSteamZone"] = false;
 
-	AutoCreateBulletsByNamePattern("Bullet?([[:digit:]]+)");
-
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Crowbar), make_shared<InteractiveObject>(GetUniqueObject("Crowbar")), [this] { mPlayer->AddItem(Item::Type::Crowbar); });
 	AddInteractiveObject(Item::GetNameByType(Item::Type::FerrumOxide), make_shared<InteractiveObject>(GetUniqueObject("FerrumOxide")), [this] { mPlayer->AddItem(Item::Type::FerrumOxide); });
 	AddInteractiveObject(Item::GetNameByType(Item::Type::AluminumPowder), make_shared<InteractiveObject>(GetUniqueObject("AluminumPowder")), [this] { mPlayer->AddItem(Item::Type::AluminumPowder); });
@@ -179,7 +178,7 @@ LevelResearchFacility::LevelResearchFacility(const unique_ptr<PlayerTransfer> & 
 	mSteamPS = nullptr;
 
 	auto fogMesh = GetUniqueObject("Fog");
-	mFog = ruFog::Create(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.0, 0.5, 1), 0.6);
+	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.0, 0.5, 1), 0.6);
 	mFog->SetPosition(fogMesh->GetPosition());
 	mFog->SetSpeed(ruVector3(0.0002, 0, 0.0002));
 	mFog->Attach(mScene);
@@ -196,7 +195,7 @@ void LevelResearchFacility::CreateEnemy() {
 		"WayH", "WayI", "WayJ", "WayK"
 	};
 	Path p;
-	for (auto w : ways) {
+	for(auto w : ways) {
 		p += Path(mScene, w);
 	}
 
@@ -219,7 +218,7 @@ void LevelResearchFacility::CreateEnemy() {
 		p.Get("WayH018")
 	};
 
-	mEnemy = unique_ptr<Enemy>(new Enemy(p.mVertexList, patrolPoints));
+	mEnemy = make_unique<Enemy>(mGame, p.mVertexList, patrolPoints);
 	mEnemy->SetPosition(mEnemySpawnPosition->GetPosition());
 }
 
@@ -245,9 +244,9 @@ void LevelResearchFacility::DoScenario() {
 	mMeshAnimation.Update();
 	mMeshLockAnimation.Update();
 
-	ruEngine::SetAmbientColor(ruVector3(0.01, 0.01, 0.01));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.01, 0.01, 0.01));
 
-	if (mPowerOn) {
+	if(mPowerOn) {
 		mpFan1->DoTurn();
 		mpFan2->DoTurn();
 		mLift1->SetLocked(false);
@@ -258,17 +257,17 @@ void LevelResearchFacility::DoScenario() {
 	mLift1->Update();
 	mLift2->Update();
 
-	if (mEnemy) {
+	if(mEnemy) {
 		mEnemy->Think();
 	}
 
-	if (!mStages["DoorUnderFloorOpen"]) {
-		if (mPlayer->mNearestPickedNode) {
-			if (mPlayer->mNearestPickedNode == mDoorUnderFloor) {
-				if (mPlayer->GetInventory()->GetItemSelectedForUse()) {
-					if (mPlayer->GetInventory()->GetItemSelectedForUse()->GetType() == Item::Type::Crowbar) {
+	if(!mStages["DoorUnderFloorOpen"]) {
+		if(mPlayer->mNearestPickedNode) {
+			if(mPlayer->mNearestPickedNode == mDoorUnderFloor) {
+				if(mPlayer->GetInventory()->GetItemSelectedForUse()) {
+					if(mPlayer->GetInventory()->GetItemSelectedForUse()->GetType() == Item::Type::Crowbar) {
 						mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->GetLocalization()->GetString("openDoor"));
-						if (ruInput::IsKeyHit(mPlayer->mKeyUse)) {
+						if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse)) {
 							mPlayer->GetInventory()->ResetSelectedForUse();
 							mDoorUnderFloor->SetRotation(ruQuaternion(0, 0, -110));
 							mStages["DoorUnderFloorOpen"] = true;
@@ -279,7 +278,7 @@ void LevelResearchFacility::DoScenario() {
 		}
 	}
 
-	if (mPlayer->IsInsideZone(mRadioHurtZone)) {
+	if(mPlayer->IsInsideZone(mRadioHurtZone)) {
 		mPlayer->Damage(0.05, false);
 		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("radioactive"));
 	}
@@ -291,58 +290,57 @@ void LevelResearchFacility::DoScenario() {
 	UpdatePowerupSequence();
 	UpdateThermiteSequence();
 
-	if (mPowerOn && mpPowerSparks) {
+	if(mPowerOn && mpPowerSparks) {
 		mpPowerSparks->Update();
 
-		if (!mpPowerSparks->IsAlive()) {
+		if(!mpPowerSparks->IsAlive()) {
 			mpPowerSparks.reset();
 		}
 	}
 
-	if (mSteamHissSound->IsPlaying() && mSteamPS) {
+	if(mSteamHissSound->IsPlaying() && mSteamPS) {
 		static float steamParticleSize = 0.15f;
 
 		mSteamPS->SetPointSize(steamParticleSize);
 
-		if (steamParticleSize > 0) {
+		if(steamParticleSize > 0) {
 			steamParticleSize -= 0.0005f;
 		} else {
 			mSteamPS.reset();
 		}
 	}
 
-	if (mSteamDisabled) {
+	if(mSteamDisabled) {
 		mExtremeSteamBlock->SetPosition(ruVector3(1000, 1000, 1000));
 		mSteamPS.reset();
 	} else {
-		if (mPlayer->IsInsideZone(mZoneExtremeSteamHurt)) {
+		if(mPlayer->IsInsideZone(mZoneExtremeSteamHurt)) {
 			mPlayer->Damage(0.6);
 		}
 	}
 
-	if (mpSteamValve->IsDone()) {
+	if(mpSteamValve->IsDone()) {
 		mSteamDisabled = true;
 	}
 
-	if (mPlayer->IsInsideZone(mZoneNewLevelLoad)) {
-		Level::Change(LevelName::Sewers);
+	if(mPlayer->IsInsideZone(mZoneNewLevelLoad)) {
+		mGame->LoadLevel(LevelName::Sewers);
 	}
 }
 
 void LevelResearchFacility::UpdateThermiteSequence() {
-	auto & player = Level::Current()->GetPlayer();
-	if (player->GetInventory()->GetItemSelectedForUse()) {
-		if (mThermiteItemPlace->IsPickedByPlayer()) {
-			if (ruInput::IsKeyHit(player->mKeyUse)) {
-				bool placed = mThermiteItemPlace->PlaceItem(player->GetInventory()->GetItemSelectedForUse()->GetType());
-				if (placed) {
-					if (mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder) {
+	if(mPlayer->GetInventory()->GetItemSelectedForUse()) {
+		if(mThermiteItemPlace->IsPickedByPlayer()) {
+			if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse)) {
+				bool placed = mThermiteItemPlace->PlaceItem(mPlayer->GetInventory()->GetItemSelectedForUse()->GetType());
+				if(placed) {
+					if(mThermiteItemPlace->GetPlaceType() == Item::Type::AluminumPowder) {
 						mThermiteSmall->Show();
 						mThermiteItemPlace->SetPlaceType(Item::Type::FerrumOxide);
-					} else if (mThermiteItemPlace->GetPlaceType() == Item::Type::FerrumOxide) {
+					} else if(mThermiteItemPlace->GetPlaceType() == Item::Type::FerrumOxide) {
 						mThermiteBig->Show();
 						mThermiteItemPlace->SetPlaceType(Item::Type::Lighter);
-					} else if (mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter) {
+					} else if(mThermiteItemPlace->GetPlaceType() == Item::Type::Lighter) {
 						mMeshLockAnimation.SetEnabled(true);
 						mMeshAnimation.SetEnabled(true);
 
@@ -355,7 +353,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 
 						mThermiteItemPlace->SetPlaceType(Item::Type::Unknown);
 
-						mThermitePS = ruParticleSystem::Create(150);
+						mThermitePS = mGame->GetEngine()->GetSceneFactory()->CreateParticleSystem(150);
 						mThermitePS->SetPosition(mThermiteSmall->GetPosition());
 						mThermitePS->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
 						mThermitePS->SetType(ruParticleSystem::Type::Box);
@@ -369,41 +367,39 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 					}
 				}
 			}
-			player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("placeReactive"));
+			mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->GetLocalization()->GetString("placeReactive"));
 		}
 	}
 }
 
 void LevelResearchFacility::UpdatePowerupSequence() {
-	if (fuseInsertedCount < 3) {
+	if(fuseInsertedCount < 3) {
 		fuseInsertedCount = 0;
 
-		for (int iFuse = 0; iFuse < 3; iFuse++) {
+		for(int iFuse = 0; iFuse < 3; iFuse++) {
 			shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFuse];
-			if (pFuse->GetPlaceType() == Item::Type::Unknown) {
+			if(pFuse->GetPlaceType() == Item::Type::Unknown) {
 				fuseInsertedCount++;
 			}
 		}
 	}
 
-	auto & player = Level::Current()->GetPlayer();
-
-	if (player->GetInventory()->GetItemSelectedForUse()) {
-		for (int iFuse = 0; iFuse < 3; iFuse++) {
+	if(mPlayer->GetInventory()->GetItemSelectedForUse()) {
+		for(int iFuse = 0; iFuse < 3; iFuse++) {
 			shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFuse];
-			if (pFuse->IsPickedByPlayer()) {
-				player->GetHUD()->SetAction(player->mKeyUse, player->GetLocalization()->GetString("insertFuse"));
+			if(pFuse->IsPickedByPlayer()) {
+				mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->GetLocalization()->GetString("insertFuse"));
 			}
 		}
 
-		if (ruInput::IsKeyHit(player->mKeyUse)) {
-			for (int iFusePlace = 0; iFusePlace < 3; iFusePlace++) {
+		if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse)) {
+			for(int iFusePlace = 0; iFusePlace < 3; iFusePlace++) {
 				shared_ptr<ItemPlace> pFuse = mFusePlaceList[iFusePlace];
 
-				if (pFuse->IsPickedByPlayer()) {
-					bool placed = pFuse->PlaceItem(player->GetInventory()->GetItemSelectedForUse()->GetType());
+				if(pFuse->IsPickedByPlayer()) {
+					bool placed = pFuse->PlaceItem(mPlayer->GetInventory()->GetItemSelectedForUse()->GetType());
 
-					if (placed) {
+					if(placed) {
 						fuseModel[iFusePlace]->Show();
 						pFuse->SetPlaceType(Item::Type::Unknown);
 					}
@@ -412,11 +408,11 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 		}
 	}
 
-	if (fuseInsertedCount >= 3) {
-		if (player->mNearestPickedNode == powerLever) {
-			player->GetHUD()->SetAction(player->mKeyUse, player->mLocalization.GetString("powerUp"));
+	if(fuseInsertedCount >= 3) {
+		if(mPlayer->mNearestPickedNode == powerLever) {
+			mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->mLocalization.GetString("powerUp"));
 
-			if (ruInput::IsKeyHit(player->mKeyUse) && !mPowerOn) {
+			if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse) && !mPowerOn) {
 
 
 				mPowerLamp->SetColor(ruVector3(0, 255, 0));
@@ -430,7 +426,7 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 
 				mPowerOn = true;
 
-				player->GetHUD()->SetObjective(mLocalization.GetString("objectiveTryToFindExit"));
+				mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveTryToFindExit"));
 			}
 		}
 	}
@@ -462,8 +458,8 @@ void LevelResearchFacility::OnSerialize(SaveFile & s) {
 	auto enemyPresented = mEnemy != nullptr;
 	s & enemyPresented;
 
-	if (enemyPresented) {
-		if (s.IsLoading()) {
+	if(enemyPresented) {
+		if(s.IsLoading()) {
 			CreateEnemy();
 		}
 		auto epos = mEnemy->GetBody()->GetPosition();
@@ -476,47 +472,43 @@ void LevelResearchFacility::OnSerialize(SaveFile & s) {
 }
 
 void LevelResearchFacility::OnCrowbarPickup() {
-	if (!mStages["EnterObjectiveNeedOpenDoorOntoFloor"]) {
-		auto & player = Level::Current()->GetPlayer();
-		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedOpenDoorOntoFloor"));
+	if(!mStages["EnterObjectiveNeedOpenDoorOntoFloor"]) {
+		mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedOpenDoorOntoFloor"));
 		mStages["EnterObjectiveNeedOpenDoorOntoFloor"] = true;
 	}
 }
 
 void LevelResearchFacility::OnPlayerEnterNeedCrowbarZone() {
-	if (!mStages["EnterObjectiveNeedCrowbar"]) {
-		auto & player = Level::Current()->GetPlayer();
-		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedCrowbar"));
+	if(!mStages["EnterObjectiveNeedCrowbar"]) {
+		mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveNeedCrowbar"));
 		mStages["EnterObjectiveNeedCrowbar"] = true;
 	}
 }
 
 void LevelResearchFacility::OnPlayerEnterRemovePathBlockingMeshZone() {
-	if (!mStages["PassedThroughBlockingMesh"]) {
+	if(!mStages["PassedThroughBlockingMesh"]) {
 		mLockedDoor->SetLocked(false);
 		mStages["PassedThroughBlockingMesh"] = true;
 	}
 }
 
 void LevelResearchFacility::OnPlayerEnterExaminePlaceZone() {
-	if (!mStages["EnterObjectiveExaminePlace"]) {
-		auto & player = Level::Current()->GetPlayer();
-		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveExaminePlace"));
+	if(!mStages["EnterObjectiveExaminePlace"]) {
+		mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveExaminePlace"));
 		mStages["EnterObjectiveExaminePlace"] = true;
 	}
 }
 
 void LevelResearchFacility::OnPlayerEnterRestorePowerZone() {
-	if (!mStages["EnterObjectiveRestorePowerZone"]) {
-		auto & player = Level::Current()->GetPlayer();
-		player->GetHUD()->SetObjective(mLocalization.GetString("objectiveRestorePower"));
+	if(!mStages["EnterObjectiveRestorePowerZone"]) {
+		mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveRestorePower"));
 		mStages["EnterObjectiveRestorePowerZone"] = true;
 	}
 }
 
 void LevelResearchFacility::OnPlayerEnterSteamActivateZone() {
-	if (!mStages["EnterSteamActivateZone"]) {
-		mSteamPS = ruParticleSystem::Create(35);
+	if(!mStages["EnterSteamActivateZone"]) {
+		mSteamPS = mGame->GetEngine()->GetSceneFactory()->CreateParticleSystem(35);
 		mSteamPS->SetPosition(mSmallSteamPosition->GetPosition());
 		mSteamPS->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
 		mSteamPS->SetType(ruParticleSystem::Type::Stream);
@@ -534,7 +526,7 @@ void LevelResearchFacility::OnPlayerEnterSteamActivateZone() {
 }
 
 void LevelResearchFacility::OnPlayerEnterSpawnEnemyZone() {
-	if (!mStages["EnemySpawned"]) {
+	if(!mStages["EnemySpawned"]) {
 		CreateEnemy();
 		mStages["EnemySpawned"] = true;
 	}

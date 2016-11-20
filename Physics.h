@@ -21,15 +21,28 @@
 
 #pragma once
 
-// physic world can be only one, so all members are static
-class Physics {
-public:
-	static btDynamicsWorld * mpDynamicsWorld;
-	static btDefaultCollisionConfiguration * mpDefaultCollision;
-	static btCollisionDispatcher * mpCollisionDispatcher;
-	static btBroadphaseInterface * mpBroadphase;
-	static btSequentialImpulseConstraintSolver * mpSolver;
+class Engine;
 
-    static void CreateWorld();
-    static void DestructWorld();
+class Physics : public ruPhysics {
+private:
+	Engine * const mEngine;
+public:
+	btDynamicsWorld * mpDynamicsWorld;
+	btDefaultCollisionConfiguration * mpDefaultCollision;
+	btCollisionDispatcher * mpCollisionDispatcher;
+	btBroadphaseInterface * mpBroadphase;
+	btSequentialImpulseConstraintSolver * mpSolver;
+
+	Physics(Engine * engine);
+	~Physics();
+
+	Engine * GetEngine() const;
+
+	void UpdateContacts();
+
+	// API Methods
+	virtual shared_ptr<ruSceneNode> CastRay(ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint) override final;
+	virtual ruRayCastResultEx CastRayEx(ruVector3 begin, ruVector3 end) override final;
+	virtual void Update(float timeStep, int subSteps, float fixedTimeStep) override final;
+	virtual shared_ptr<ruSceneNode> RayPick(int x, int y, ruVector3 * outPickPoint) override final;
 };

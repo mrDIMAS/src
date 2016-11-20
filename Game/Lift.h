@@ -8,13 +8,13 @@
 class Lift {
 private:
 	friend class Level;
-	explicit Lift( shared_ptr<ruSceneNode> base );
+	explicit Lift(shared_ptr<ruSceneNode> base);
 
-    shared_ptr<ruSceneNode> mBaseNode;
-    shared_ptr<ruSceneNode> mSourceNode;
-    shared_ptr<ruSceneNode> mDestNode;
-    shared_ptr<ruSceneNode> mTargetNode;
-    shared_ptr<ruSound> mMotorSound;
+	shared_ptr<ruSceneNode> mBaseNode;
+	shared_ptr<ruSceneNode> mSourceNode;
+	shared_ptr<ruSceneNode> mDestNode;
+	shared_ptr<ruSceneNode> mTargetNode;
+	shared_ptr<ruSound> mMotorSound;
 	shared_ptr<Door> mDoorFrontLeft;
 	shared_ptr<Door> mDoorFrontRight;
 	shared_ptr<Door> mDoorBackLeft;
@@ -25,29 +25,32 @@ private:
 	float mSpeedMultiplier;
 	bool mLocked;
 public:
-    virtual ~Lift( );
-    void SetDestinationPoint( shared_ptr<ruSceneNode> destNode );
-    void SetSourcePoint( shared_ptr<ruSceneNode> sourceNode );
-    void SetFrontDoors( const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor );
-    void SetBackDoors( const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor );
-    bool IsArrived( );
-    void Update();
-	void SetDoorsLocked( bool state );
+	virtual ~Lift();
+	void SetDestinationPoint(shared_ptr<ruSceneNode> destNode);
+	void SetSourcePoint(shared_ptr<ruSceneNode> sourceNode);
+	void SetFrontDoors(const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor);
+	void SetBackDoors(const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor);
+	bool IsArrived();
+	void Update();
+	void SetDoorsLocked(bool state);
 	bool IsAllDoorsClosed();
-	void SetPaused( bool state );
-	void SetEngineSoundEnabled( bool state );
-	void SetSpeedMultiplier( float mult );
-	void Serialize( SaveFile & out );
-	void SetLocked(bool state) {
+	void SetPaused(bool state);
+	void SetEngineSoundEnabled(bool state);
+	void SetSpeedMultiplier(float mult);
+	void Serialize(SaveFile & out);
+	void SetLocked(bool state)
+	{
 		mLocked = state;
 	}
-	bool IsLocked() const {
+	bool IsLocked() const
+	{
 		return mLocked;
 	}
-	void GoDown() {
-		if (!mLocked) {
-			if (mArrived) {
-				if (IsAllDoorsClosed()) {
+	void GoDown()
+	{
+		if(!mLocked) {
+			if(mArrived) {
+				if(IsAllDoorsClosed()) {
 					SetDoorsLocked(true);
 					mTargetNode = mDestNode;
 				}
@@ -55,12 +58,13 @@ public:
 			mArrived = false;
 		}
 	}
-	void GoUp() {
-		if (!mLocked) {
-			if (mArrived) {
-				if (IsAllDoorsClosed()) {
+	void GoUp()
+	{
+		if(!mLocked) {
+			if(mArrived) {
+				if(IsAllDoorsClosed()) {
 					SetDoorsLocked(true);
-					mTargetNode = mSourceNode;					
+					mTargetNode = mSourceNode;
 				}
 			}
 			mArrived = false;

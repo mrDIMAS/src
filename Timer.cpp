@@ -23,57 +23,48 @@
 
 #include "Timer.h"
 
-vector<Timer*> Timer::msTimerList;
-
 double Timer::GetElapsedTimeInMicroSeconds() {
-    return GetTimeInMicroSeconds() - mLastTime;
+	return GetTimeInMicroSeconds() - mLastTime;
 }
 
 double Timer::GetElapsedTimeInMilliSeconds() {
-    return GetTimeInMilliSeconds() - mLastTime / 1000.0;
+	return GetTimeInMilliSeconds() - mLastTime / 1000.0;
 }
 
 double Timer::GetElapsedTimeInSeconds() {
-    return GetTimeInSeconds() - mLastTime / 1000000.0;
+	return GetTimeInSeconds() - mLastTime / 1000000.0;
 }
 
 double Timer::GetTimeInMicroSeconds() {
-    LARGE_INTEGER time;
-    QueryPerformanceCounter ( &time );
-    return ( double ) ( time.QuadPart * 1000000.0 ) / ( double ) ( mFreq.QuadPart );
+	LARGE_INTEGER time;
+	QueryPerformanceCounter(&time);
+	return (double)(time.QuadPart * 1000000.0) / (double)(mFreq.QuadPart);
 }
 
 double Timer::GetTimeInMilliSeconds() {
-    LARGE_INTEGER time;
-    QueryPerformanceCounter ( &time );
-    return ( double ) ( time.QuadPart * 1000.0 ) / ( double ) ( mFreq.QuadPart );
+	LARGE_INTEGER time;
+	QueryPerformanceCounter(&time);
+	return (double)(time.QuadPart * 1000.0) / (double)(mFreq.QuadPart);
 }
 
 double Timer::GetTimeInSeconds() {
-    LARGE_INTEGER time;
-    QueryPerformanceCounter ( &time );
-    return ( double ) ( time.QuadPart ) / ( double ) ( mFreq.QuadPart );
+	LARGE_INTEGER time;
+	QueryPerformanceCounter(&time);
+	return (double)(time.QuadPart) / (double)(mFreq.QuadPart);
 }
 
 void Timer::Restart() {
-    mLastTime = GetTimeInMicroSeconds();
+	mLastTime = GetTimeInMicroSeconds();
 }
 
 Timer::Timer() {
-    msTimerList.push_back( this );
-    QueryPerformanceFrequency ( &mFreq );
-    Restart();
+	QueryPerformanceFrequency(&mFreq);
+	Restart();
 }
 
-Timer::~Timer()
-{
-	msTimerList.erase( find( msTimerList.begin(), msTimerList.end(), this ));
+Timer::~Timer() {
 }
 
-shared_ptr<ruTimer> ruTimer::Create( ) {
-	return shared_ptr<ruTimer>( new Timer );
-}
-
-ruTimer::~ruTimer() {
-
+shared_ptr<ruTimer> ruTimer::Create() {
+	return make_shared<Timer>();
 }

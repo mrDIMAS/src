@@ -30,7 +30,7 @@ public:
 	ruVector4 mBoneIndices; // Also used for passing color for GUI and Particle System
 	ruVector4 mBoneWeights;
 
-	Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights  );;
+	Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights );;
 	Vertex( const Vertex & v, const ruVector4 & boneIndices, const ruVector4 & boneWeights );
 	Vertex( const ruVector3 & position, const ruVector2 & texCoord, const ruVector4 & color );
 	Vertex( const ruVector3 & position, const ruVector2 & texCoord );
@@ -43,7 +43,7 @@ public:
 	unsigned short mB;
 	unsigned short mC;
 
-	Triangle() : mA( 0 ), mB( 0 ), mC( 0 ) {
+	Triangle( ) : mA( 0 ), mB( 0 ), mC( 0 ) {
 	}
 	Triangle( unsigned short vA, unsigned short vB, unsigned short vC );
 };

@@ -14,14 +14,14 @@ private:
 	shared_ptr<ruFog> mFog;
 	shared_ptr<ruSound> mWoodHitSound;
 public:
-    // Sounds
-    shared_ptr<ruSound> mWindSound;
+	// Sounds
+	shared_ptr<ruSound> mWindSound;
 	shared_ptr<ruSound> mPowerDownSound;
 	shared_ptr<ruSound> mMetalWhineSound;
 	shared_ptr<ruSound> mMetalStressSound;
 	shared_ptr<ruSound> mLiftFallSound;
 
-    // Zones
+	// Zones
 	shared_ptr<ruSceneNode> mLiftStopZone;
 	shared_ptr<ruSceneNode> mTutorialZone1;
 	shared_ptr<ruSceneNode> mTutorialZone2;
@@ -32,7 +32,7 @@ public:
 	shared_ptr<ruSceneNode> mTutorialZone7;
 	shared_ptr<ruSceneNode> mTutorialZone8;
 
-    // Entities
+	// Entities
 	shared_ptr<ruSceneNode> mHalt;
 
 	shared_ptr<ruLight>mLiftLamp;
@@ -41,11 +41,11 @@ public:
 
 	shared_ptr<Lift> mLift;
 
-    LevelArrival(const unique_ptr<PlayerTransfer> & playerTransfer);
-    ~LevelArrival( );
+	LevelArrival(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
+	~LevelArrival();
 
-    virtual void DoScenario();
-    virtual void Show();
-    virtual void Hide();
-    virtual void OnSerialize( SaveFile & out ) final;
+	virtual void DoScenario();
+	virtual void Show();
+	virtual void Hide();
+	virtual void OnSerialize(SaveFile & out) final;
 };

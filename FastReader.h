@@ -23,23 +23,23 @@
 
 class FastReader {
 private:
-    long mSize;
-    long mCursor;
-    typedef unsigned char Byte;
-    Byte * mData;
+	long mSize;
+	long mCursor;
+	typedef unsigned char Byte;
+	Byte * mData;
 public:
-    FastReader( );
-    bool ReadFile ( const string & fileName );
-    ~FastReader();
-    int GetInteger( );
-    unsigned short GetShort( );
-    unsigned char GetByte( );
-    float GetFloat( );
-    string GetString( );
-    btVector3 GetVector( );
-    ruVector3 GetBareVector( );
-    ruVector2 GetBareVector2( );
-    btQuaternion GetQuaternion( );
-    bool IsEnded( );
+	FastReader( );
+	bool ReadFile( const string & fileName );
+	~FastReader( );
+	int GetInteger( );
+	unsigned short GetShort( );
+	unsigned char GetByte( );
+	float GetFloat( );
+	string GetString( );
+	btVector3 GetVector( );
+	ruVector3 GetBareVector( );
+	ruVector2 GetBareVector2( );
+	btQuaternion GetQuaternion( );
+	bool IsEnded( );
 };
 

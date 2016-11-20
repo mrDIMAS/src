@@ -2,11 +2,13 @@
 #include "Level.h"
 #include "Door.h"
 
-Door::~Door() {
+Door::~Door()
+{
 
 }
 
-Door::Door(const shared_ptr<ruSceneNode> & hDoor, float fMaxAngle) : mDoorNode(hDoor), mMaxAngle(fMaxAngle), mLocked(false), mCurrentAngle(0.0f), mState(State::Closed) {
+Door::Door(const shared_ptr<ruSceneNode> & hDoor, float fMaxAngle) : mDoorNode(hDoor), mMaxAngle(fMaxAngle), mLocked(false), mCurrentAngle(0.0f), mState(State::Closed)
+{
 	mOffsetAngle = hDoor->GetEulerAngles().y;
 	SetTurnDirection(TurnDirection::Clockwise);
 	mOpenSound = ruSound::Load3D("data/sounds/door/dooropen.ogg");
@@ -22,7 +24,8 @@ Door::Door(const shared_ptr<ruSceneNode> & hDoor, float fMaxAngle) : mDoorNode(h
 	mCloseSound->SetReferenceDistance(0.5);
 }
 
-void Door::Update() {
+void Door::Update()
+{
 	float turnSpeed = 1.0f;
 
 	//if (mDoorNode->GetContactCount() > 0) {
@@ -35,24 +38,24 @@ void Door::Update() {
 	//		mOpenSound->Pause();
 	//	}
 	//} else {
-		if (mState == State::Closing) {
-			mCloseSound->Play();
-		}
-		if (mState == State::Opening) {
-			mOpenSound->Play();
-		}
+	if(mState == State::Closing) {
+		mCloseSound->Play();
+	}
+	if(mState == State::Opening) {
+		mOpenSound->Play();
+	}
 	//}
 
-	if (mState == State::Closing) {
-		if (mTurnDirection == TurnDirection::Clockwise) {
+	if(mState == State::Closing) {
+		if(mTurnDirection == TurnDirection::Clockwise) {
 			mCurrentAngle -= turnSpeed;
-			if (mCurrentAngle < 0) {
+			if(mCurrentAngle < 0) {
 				mCurrentAngle = 0.0f;
 				mState = State::Closed;
 			}
-		} else if (mTurnDirection == TurnDirection::Counterclockwise) {
+		} else if(mTurnDirection == TurnDirection::Counterclockwise) {
 			mCurrentAngle += turnSpeed;
-			if (mCurrentAngle > 0) {
+			if(mCurrentAngle > 0) {
 				mCurrentAngle = 0;
 				mState = State::Closed;
 			}
@@ -60,16 +63,16 @@ void Door::Update() {
 
 	}
 
-	if (mState == State::Opening) {
-		if (mTurnDirection == TurnDirection::Clockwise) {
+	if(mState == State::Opening) {
+		if(mTurnDirection == TurnDirection::Clockwise) {
 			mCurrentAngle += turnSpeed;
-			if (mCurrentAngle > mMaxAngle) {
+			if(mCurrentAngle > mMaxAngle) {
 				mState = State::Opened;
 				mCurrentAngle = mMaxAngle;
 			}
-		} else if (mTurnDirection == TurnDirection::Counterclockwise) {
+		} else if(mTurnDirection == TurnDirection::Counterclockwise) {
 			mCurrentAngle -= turnSpeed;
-			if (mCurrentAngle < -mMaxAngle) {
+			if(mCurrentAngle < -mMaxAngle) {
 				mState = State::Opened;
 				mCurrentAngle = -mMaxAngle;
 			}
@@ -80,36 +83,41 @@ void Door::Update() {
 	mDoorNode->SetRotation(ruQuaternion(ruVector3(0, 1, 0), mCurrentAngle + mOffsetAngle));
 }
 
-Door::State Door::GetState() {
+Door::State Door::GetState()
+{
 	return mState;
 }
 
-void Door::SwitchState() {
-	if (mState == State::Closed) {
+void Door::SwitchState()
+{
+	if(mState == State::Closed) {
 		mState = State::Opening;
 		mOpenSound->Play();
 	}
-	if (mState == State::Opened) {
+	if(mState == State::Opened) {
 		mState = State::Closing;
 		mCloseSound->Play();
 	}
 }
 
-void Door::Close() {
-	if (mState == State::Opened) {
+void Door::Close()
+{
+	if(mState == State::Opened) {
 		mState = State::Closing;
 		mCloseSound->Play();
 	}
 }
 
-void Door::Open() {
-	if (mState == State::Closed) {
+void Door::Open()
+{
+	if(mState == State::Closed) {
 		mState = State::Opening;
 		mOpenSound->Play();
 	}
 }
 
-void Door::Serialize(SaveFile & s) {
+void Door::Serialize(SaveFile & s)
+{
 	int turnDirection = (int)mTurnDirection;
 	int state = (int)mState;
 
@@ -124,14 +132,17 @@ void Door::Serialize(SaveFile & s) {
 	mState = (State)state;
 }
 
-void Door::SetLocked(bool state) {
+void Door::SetLocked(bool state)
+{
 	mLocked = state;
 }
 
-bool Door::IsLocked() {
+bool Door::IsLocked()
+{
 	return mLocked;
 }
 
-void Door::SetTurnDirection(TurnDirection direction) {
+void Door::SetTurnDirection(TurnDirection direction)
+{
 	mTurnDirection = direction;
 }

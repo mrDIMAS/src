@@ -25,34 +25,34 @@
 
 map< string, CubeTexture*> CubeTexture::all;
 
-CubeTexture * CubeTexture::Request(string fn) {
-	auto existing = all.find(fn);
-	if (existing != all.end()) {
+CubeTexture * CubeTexture::Request( string fn ) {
+	auto existing = all.find( fn );
+	if ( existing != all.end( ) ) {
 		return existing->second;
 	} else {
-		CubeTexture * newCubeTexture = new CubeTexture(fn);
-		all[fn] = newCubeTexture;
+		CubeTexture * newCubeTexture = new CubeTexture( fn );
+		all[ fn ] = newCubeTexture;
 		return newCubeTexture;
 	}
 }
 
-CubeTexture::CubeTexture(string fn) {
+CubeTexture::CubeTexture( string fn ) {
 	mSourceName = fn;
-	Load();
+	Load( );
 }
 
-CubeTexture::~CubeTexture() {
+CubeTexture::~CubeTexture( ) {
 
 }
 
-void CubeTexture::Load() {
-	D3DXCreateCubeTextureFromFileA(pD3D, mSourceName.c_str(), &mCubeTexture);
+void CubeTexture::Load( ) {
+	D3DXCreateCubeTextureFromFileA( pD3D, mSourceName.c_str( ), &mCubeTexture );
 }
 
-ruCubeTexture * ruCubeTexture::Request(const string & file) {
-	return CubeTexture::Request(file);
+ruCubeTexture * ruCubeTexture::Request( const string & file ) {
+	return CubeTexture::Request( file );
 }
 
-ruCubeTexture::~ruCubeTexture() {
+ruCubeTexture::~ruCubeTexture( ) {
 
 }

@@ -9,16 +9,19 @@ Ladder::Ladder(const shared_ptr<ruSceneNode> & hBegin, const shared_ptr<ruSceneN
 	mEnterZone(hEnterZone),
 	mBeginLeavePoint(hBeginLeavePoint),
 	mEndLeavePoint(hEndLeavePoint),
-	mStatus(Status::Free) {
+	mStatus(Status::Free)
+{
 
 }
 
-Ladder::~Ladder() {
+Ladder::~Ladder()
+{
 
 }
 
 
-void Ladder::Serialize(SaveFile & s) {
+void Ladder::Serialize(SaveFile & s)
+{
 	int status = (int)mStatus;
 	s & status;
 	mStatus = (Status)status;

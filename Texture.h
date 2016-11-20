@@ -22,24 +22,24 @@
 #pragma once
 
 class Texture : public ruTexture {
-private:    
-    COMPtr<IDirect3DTexture9> mTexture;
-    int mHeight;
-    int mWidth;
-    int mColorDepth;
+private:
+	COMPtr<IDirect3DTexture9> mTexture;
+	int mHeight;
+	int mWidth;
+	int mColorDepth;
 	string mName;
 	bool LoadFromFile( const string & file );
 public:
-	virtual int GetHeight();
-	virtual int GetWidth();
-	virtual int GetColorDepth();
-	virtual string GetName();    
+	virtual int GetHeight( );
+	virtual int GetWidth( );
+	virtual int GetColorDepth( );
+	virtual string GetName( );
 
-    static unordered_map< string, weak_ptr<Texture>> msTextureList;
+	static unordered_map< string, weak_ptr<Texture>> msTextureList;
 	explicit Texture( );
-    virtual ~Texture( );
-    IDirect3DTexture9 * GetInterface();
-    static shared_ptr<Texture> Request( string file );
-	void OnResetDevice();
-	void OnLostDevice();
+	virtual ~Texture( );
+	IDirect3DTexture9 * GetInterface( );
+	static shared_ptr<Texture> Request( string file );
+	void OnResetDevice( );
+	void OnLostDevice( );
 };

@@ -25,33 +25,33 @@
 #include "GUIText.h"
 
 class GUIButton : public GUIRect, public ruButton {
-private:    
-    bool mPicked;
-    bool mLeftPressed;
-    bool mRightPressed;
-    bool mLeftHit;
-    bool mRightHit;
+private:
+	bool mPicked;
+	bool mLeftPressed;
+	bool mRightPressed;
+	bool mLeftHit;
+	bool mRightHit;
 	bool mActive;
 	ruVector3 mInitColor;
-    ruVector3 pickedColor;
+	ruVector3 pickedColor;
 	shared_ptr<GUIText> mpText;
-	virtual void OnClick() {
+	virtual void OnClick( ) {
 		// action defined in Update()
 	}
 public:
-    
-    explicit GUIButton( const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text,  const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha );
-    virtual ~GUIButton();
-    void Update(); // must be called inside ruInputUpdate
-  
-    virtual bool IsRightPressed();
-    virtual ruVector3 GetPickedColor() const;	
-	virtual bool IsRightHit() const;
+
+	explicit GUIButton( const weak_ptr<GUIScene> & scene, int x, int y, int w, int h, shared_ptr<Texture> texture, const string & text, const shared_ptr<BitmapFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha );
+	virtual ~GUIButton( );
+	void Update( ); // must be called inside ruInputUpdate
+
+	virtual bool IsRightPressed( );
+	virtual ruVector3 GetPickedColor( ) const;
+	virtual bool IsRightHit( ) const;
 	virtual void SetPickedColor( ruVector3 val );
-    virtual bool IsHit() const;
+	virtual bool IsHit( ) const;
 	virtual void SetAlpha( int alpha );
 	virtual void SetActive( bool state );
-	virtual bool IsPicked();
-    virtual shared_ptr<ruText> GetText();
-	virtual bool IsPressed();
+	virtual bool IsPicked( );
+	virtual shared_ptr<ruText> GetText( );
+	virtual bool IsPressed( );
 };

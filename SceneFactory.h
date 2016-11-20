@@ -28,31 +28,57 @@ class Camera;
 class ParticleSystem;
 class DirectionalLight;
 class Fog;
+class Engine;
 
-class SceneFactory {
+class SceneFactory : public ruSceneFactory {
 private:
-	static vector<weak_ptr<SceneNode>> msNodeList;
-	static vector<weak_ptr<SpotLight>> msSpotLightList;
-	static vector<weak_ptr<PointLight>> msPointLightList;
-	static vector<weak_ptr<DirectionalLight>> msDirectionalLightList;
-	static vector<weak_ptr<ParticleSystem>> msParticleEmitters;
-	static vector<weak_ptr<Fog>> msFogList;
-	template<typename Type> 
-	static void RemoveUnreferenced( vector<weak_ptr<Type>> & objList );
+	Engine * const mEngine;
+	vector<weak_ptr<SceneNode>> msNodeList;
+	vector<weak_ptr<SpotLight>> msSpotLightList;
+	vector<weak_ptr<PointLight>> msPointLightList;
+	vector<weak_ptr<DirectionalLight>> msDirectionalLightList;
+	vector<weak_ptr<ParticleSystem>> msParticleEmitters;
+	vector<weak_ptr<Fog>> msFogList;
+	template<typename Type>
+	void RemoveUnreferenced(vector<weak_ptr<Type>> & objList);
 public:
+	SceneFactory(Engine * engine) : mEngine(engine) {
+
+	}
+
+	Engine * GetEngine() const {
+		return mEngine;
+	}
 	// All 'Get***' Methods guarantee to return weak_ptr's to existing objects 
-	static vector<weak_ptr<SceneNode>> & GetNodeList();
-	static vector<weak_ptr<SpotLight>> & GetSpotLightList();
-	static vector<weak_ptr<PointLight>> & GetPointLightList();
-	static vector<weak_ptr<DirectionalLight>> & GetDirectionalLightList();
-	static vector<weak_ptr<ParticleSystem>> & GetParticleSystemList();
-	static vector<weak_ptr<Fog>> & GetFogList();
-	static shared_ptr<SceneNode> CreateSceneNode( );
-	static shared_ptr<SceneNode> CreateSceneNodeDuplicate( shared_ptr<SceneNode> source );
-	static shared_ptr<PointLight> CreatePointLight();
-	static shared_ptr<SpotLight> CreateSpotLight();
-	static shared_ptr<DirectionalLight> CreateDirectionalLight();
-	static shared_ptr<Camera> CreateCamera( float fov );
-	static shared_ptr<ParticleSystem> CreateParticleSystem( int particleCount );
-	static shared_ptr<Fog> CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
+	vector<weak_ptr<SceneNode>> & GetNodeList();
+	vector<weak_ptr<SpotLight>> & GetSpotLightList();
+	vector<weak_ptr<PointLight>> & GetPointLightList();
+	vector<weak_ptr<DirectionalLight>> & GetDirectionalLightList();
+	vector<weak_ptr<ParticleSystem>> & GetParticleSystemList();
+	vector<weak_ptr<Fog>> & GetFogList();
+
+	// API Methods
+	virtual shared_ptr<ruSceneNode> CreateSceneNode() override final;
+	virtual shared_ptr<ruSceneNode> CreateSceneNodeDuplicate(shared_ptr<ruSceneNode> src) override final;
+	virtual shared_ptr<ruPointLight> CreatePointLight() override final;
+	virtual shared_ptr<ruSpotLight> CreateSpotLight() override final;
+	virtual shared_ptr<ruDirectionalLight> CreateDirectionalLight() override final;
+	virtual shared_ptr<ruCamera> CreateCamera(float fov) override final;
+	virtual shared_ptr<ruParticleSystem> CreateParticleSystem(int particleCount) override final;
+	virtual shared_ptr<ruFog> CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density) override final;
+
+	virtual shared_ptr<ruSceneNode> FindByName(const string & name) override final;
+	virtual shared_ptr<ruSceneNode> LoadScene(const string & file) override final;
+	virtual vector<shared_ptr<ruSceneNode>> GetTaggedObjects(const string & tag) override final;
+	virtual shared_ptr<ruSceneNode> GetNode(int i) override final;
+	virtual int GetNodeCount() override final;
+
+	virtual int GetSpotLightCount() override final;
+	virtual shared_ptr<ruSpotLight> GetSpotLight(int n) override final;
+
+	virtual int GetPointLightCount() override final;
+	virtual shared_ptr<ruPointLight> GetPointLight(int n) override final;
+
+	virtual int GetDirectionalLightCount() override final;
+	virtual shared_ptr<ruDirectionalLight> GetDirectionalLight(int n) override final;
 };

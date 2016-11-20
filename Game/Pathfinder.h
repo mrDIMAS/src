@@ -45,7 +45,8 @@ public:
 // helper class for Pathfinder
 class Path {
 public:
-	Path() {
+	Path()
+	{
 
 	}
 	Path(shared_ptr<ruSceneNode> scene, string pathBaseName);
@@ -55,16 +56,18 @@ public:
 	public:
 		bool operator() (const shared_ptr<ruSceneNode> node1, const shared_ptr<ruSceneNode> node2);
 	};
-	shared_ptr<GraphVertex> Get(const string & name) {
-		for (auto & v : mVertexList) {
-			if (v->mNode->GetName() == name) {
+	shared_ptr<GraphVertex> Get(const string & name)
+	{
+		for(auto & v : mVertexList) {
+			if(v->mNode->GetName() == name) {
 				return v;
 			}
 		}
 		throw runtime_error(StringBuilder("Path point '") << name << "' not found!");
 		return nullptr;
 	}
-	void operator += (const Path & path) {
+	void operator += (const Path & path)
+	{
 		mVertexList.insert(mVertexList.end(), path.mVertexList.begin(), path.mVertexList.end());
 	}
 };

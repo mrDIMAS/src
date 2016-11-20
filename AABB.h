@@ -28,14 +28,14 @@
 
 class AABB {
 private:
-	void BuildPoints();
+	void BuildPoints( );
 	float Squared( float x );
 public:
-    ruVector3 mMin;
-    ruVector3 mMax;
-	ruVector3 mPoints[8];
-    explicit AABB( );
-    explicit AABB( const ruVector3 & min, const ruVector3 & max );
-    explicit AABB( const vector< Vertex > & vertices );
+	ruVector3 mMin;
+	ruVector3 mMax;
+	ruVector3 mPoints[ 8 ];
+	explicit AABB( );
+	explicit AABB( const ruVector3 & min, const ruVector3 & max );
+	explicit AABB( const vector< Vertex > & vertices );
 	bool IsIntersectSphere( const ruVector3 & aabbOffset, const ruVector3 & position, float radius );
 };
