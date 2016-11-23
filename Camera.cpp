@@ -61,7 +61,7 @@ void Camera::Update() {
 	ManagePath();
 }
 
-void Camera::SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back) {
+void Camera::SetSkybox(const shared_ptr<ITexture> & up, const shared_ptr<ITexture> & left, const shared_ptr<ITexture> & right, const shared_ptr<ITexture> & forward, const shared_ptr<ITexture> & back) {
 	if(up && left && right && forward && back) {
 		mSkybox = shared_ptr<Skybox>(new Skybox(std::dynamic_pointer_cast<Texture>(up), std::dynamic_pointer_cast<Texture>(left), std::dynamic_pointer_cast<Texture>(right), std::dynamic_pointer_cast<Texture>(forward), std::dynamic_pointer_cast<Texture>(back)));
 	} else {
@@ -85,7 +85,7 @@ float Camera::GetFrameBrightness() const {
 	return mFrameBrightness;
 }
 
-void Camera::SetFrameColor(const ruVector3 & color) {
+void Camera::SetFrameColor(const Vector3 & color) {
 	mFrameColor = color;
 
 	if(mFrameColor.x > 255.0f) {
@@ -109,7 +109,7 @@ void Camera::SetFrameColor(const ruVector3 & color) {
 	}
 }
 
-ruVector3 Camera::GetFrameColor() const {
+Vector3 Camera::GetFrameColor() const {
 	return mFrameColor;
 }
 
@@ -180,14 +180,14 @@ void Camera::ManagePath() {
 				}
 			}
 			mPathNewPointDelta = (mRangeSum / pointLights.size()) / 2;
-			mLastPosition = ruVector3(FLT_MAX, FLT_MAX, FLT_MAX);
+			mLastPosition = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
 		}
 		mPath.clear();
 		mNearestPathPointIndex = 0;
 	}
 
 	// check how far we from last added point
-	ruVector3 position = GetPosition();
+	Vector3 position = GetPosition();
 	if((position - mLastPosition).Length2() > mPathNewPointDelta) {
 		mLastPosition = position;
 		bool addNewPoint = true;
@@ -232,7 +232,7 @@ void Camera::OnLostDevice() {
 	} else {
 		mPathNewPointDelta = 0.0f;
 	}
-	mLastPosition = ruVector3(FLT_MAX, FLT_MAX, FLT_MAX);
+	mLastPosition = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
 
 	// path must contain at least one point, add new one located in camera's position 
 	mNearestPathPointIndex = 0;

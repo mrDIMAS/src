@@ -7,16 +7,16 @@
 
 class Goal {
 private:
-	shared_ptr<ruTimer> mWaitTimer;
+	shared_ptr<ITimer> mWaitTimer;
 	float mCurrentY;
 	float mDestY;
 	float mInitialY;
 	float mWaitSec;
 	float mAlpha;
 	string mText;
-	shared_ptr<ruText> mGoalText;
+	shared_ptr<IText> mGoalText;
 public:
-	explicit Goal(const shared_ptr<ruGUIScene> & scene);
+	explicit Goal(const shared_ptr<IGUIScene> & scene);
 	virtual ~Goal();
 	void SetText(string t);
 	void AnimateAndRender();

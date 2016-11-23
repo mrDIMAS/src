@@ -8,20 +8,20 @@ class WaitKeyButton {
 private:
 	unique_ptr<Game> & mGame;
 	bool mGrabKey;
-	ruInput::Key mSelectedKey;
+	IInput::Key mSelectedKey;
 	int mAnimCounter;
 	string mDesc;
-	shared_ptr<ruText> mGUIText;
-	shared_ptr<ruButton> mGUIButton;
+	shared_ptr<IText> mGUIText;
+	shared_ptr<IButton> mGUIButton;
 public:
 	static vector<WaitKeyButton*> msWaitKeyList;
-	explicit WaitKeyButton(unique_ptr<Game> & game, const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text);
+	explicit WaitKeyButton(unique_ptr<Game> & game, const shared_ptr<IGUIScene> & scene, float x, float y, shared_ptr<ITexture> buttonImage, const string & text);
 	~WaitKeyButton();
-	ruInput::Key GetSelectedKey();
-	void SetSelected(ruInput::Key i);
+	IInput::Key GetSelectedKey();
+	void SetSelected(IInput::Key i);
 	void Update();
 	void SetVisible(bool state);
-	void AttachTo(const shared_ptr<ruGUINode> & node);
+	void AttachTo(const shared_ptr<IGUINode> & node);
 	static void UpdateAll()
 	{
 		for(auto pWaitKey : msWaitKeyList) {

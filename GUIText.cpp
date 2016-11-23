@@ -23,7 +23,7 @@
 #include "Renderer.h"
 #include "GUIText.h"
 
-GUIText::GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont ) :
+GUIText::GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, Vector3 theColor, int theAlpha, TextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont ) :
 	GUINode( scene ),
 	mFont( theFont ),
 	mTextAlign( theTextAlign ) {
@@ -77,7 +77,7 @@ void GUIText::BreakOnLines( ) {
 	}
 
 	// do alignment
-	if ( mTextAlign == ruTextAlignment::Center ) {
+	if ( mTextAlign == TextAlignment::Center ) {
 		for ( auto & line : mLines ) {
 			float width = 0.0f;
 			for ( int i = 0; i < line.mSubstring.size( ); ++i ) {
@@ -103,7 +103,7 @@ std::string & GUIText::GetText( ) {
 	return mTextUTF8;
 }
 
-ruTextAlignment GUIText::GetTextAlignment( ) {
+TextAlignment GUIText::GetTextAlignment( ) {
 	return mTextAlign;
 }
 

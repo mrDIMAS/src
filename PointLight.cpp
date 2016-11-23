@@ -23,14 +23,12 @@
 #include "PointLight.h"
 #include "SceneFactory.h"
 
-CubeTexture * PointLight::msDefaultPointCubeTexture;
-
-bool PointLight::IsSeePoint(const ruVector3 & point) {
-	return (ruVector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
+bool PointLight::IsSeePoint(const Vector3 & point) {
+	return (Vector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
 }
 
-void PointLight::SetPointTexture(ruCubeTexture * cubeTexture) {
-	mPointTexture = dynamic_cast<CubeTexture*>(cubeTexture);
+void PointLight::SetPointTexture(const shared_ptr<ICubeTexture> & cubeTexture) {
+	mPointTexture = dynamic_pointer_cast<CubeTexture>(cubeTexture);
 }
 
 PointLight::~PointLight() {
@@ -38,16 +36,9 @@ PointLight::~PointLight() {
 }
 
 PointLight::PointLight(SceneFactory * factory) : Light(factory) {
-	mPointTexture = nullptr;
-	if(msDefaultPointCubeTexture) {
-		mPointTexture = msDefaultPointCubeTexture;
-	}
+	mPointTexture = dynamic_pointer_cast<CubeTexture>(factory->GetPointLightDefaultTexture());	
 }
 
-CubeTexture * PointLight::GetPointTexture() {
+shared_ptr<CubeTexture> PointLight::GetPointTexture() {
 	return mPointTexture;
-}
-
-void ruPointLight::SetPointDefaultTexture(ruCubeTexture * defaultPointTexture) {
-	PointLight::msDefaultPointCubeTexture = dynamic_cast<CubeTexture*>(defaultPointTexture);
 }

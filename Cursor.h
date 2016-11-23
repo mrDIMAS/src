@@ -26,21 +26,10 @@
 class Cursor {
 public:
 	bool mVisible;
-	ruVector2 mPosition;
-	ruVector2 mSize;
+	Vector2 mPosition;
+	Vector2 mSize;
 	shared_ptr<Texture> mTexture;
 
-	Cursor(const ruVector2 & size, const ruVector2 & scale, const shared_ptr<Texture> & texture) : 
-		mVisible(true) ,
-		mSize(size.x * scale.x, size.y * scale.y),
-		mTexture(texture)
-	{
-
-	}
-
-	void SetVisible(bool state) {
-		mVisible = state;
-		ShowCursor(state);
-		pD3D->ShowCursor(state);
-	}
+	Cursor(const Vector2 & size, const Vector2 & scale, const shared_ptr<Texture> & texture);
+	void SetVisible(bool state);
 };

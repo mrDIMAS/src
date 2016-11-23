@@ -28,50 +28,50 @@
 
 class FilterCallback : public btOverlapFilterCallback {
 public:
-	virtual bool needBroadphaseCollision( btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1 ) const {
-		btCollisionObject * colObjA = static_cast<btCollisionObject*>( proxy0->m_clientObject );
-		SceneNode * nodeA = static_cast<SceneNode*>( colObjA->getUserPointer( ) );
+	virtual bool needBroadphaseCollision(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) const {
+		btCollisionObject * colObjA = static_cast<btCollisionObject*>(proxy0->m_clientObject);
+		SceneNode * nodeA = static_cast<SceneNode*>(colObjA->getUserPointer());
 
-		btCollisionObject * colObjB = static_cast<btCollisionObject*>( proxy1->m_clientObject );
-		SceneNode * nodeB = static_cast<SceneNode*>( colObjB->getUserPointer( ) );
+		btCollisionObject * colObjB = static_cast<btCollisionObject*>(proxy1->m_clientObject);
+		SceneNode * nodeB = static_cast<SceneNode*>(colObjB->getUserPointer());
 
-		if ( !nodeA->IsCollisionEnabled( ) || !nodeB->IsCollisionEnabled( ) ) {
+		if(!nodeA->IsCollisionEnabled() || !nodeB->IsCollisionEnabled()) {
 			return false;
 		}
-		if ( nodeA->IsFrozen( ) && nodeB->IsStatic( ) || nodeB->IsFrozen( ) && nodeA->IsStatic( ) ) {
+		if(nodeA->IsFrozen() && nodeB->IsStatic() || nodeB->IsFrozen() && nodeA->IsStatic()) {
 			return false;
 		}
-		if ( nodeA->IsFrozen( ) && nodeB->IsFrozen( ) || nodeB->IsFrozen( ) && nodeA->IsFrozen( ) ) {
+		if(nodeA->IsFrozen() && nodeB->IsFrozen() || nodeB->IsFrozen() && nodeA->IsFrozen()) {
 			return false;
 		}
-		if ( nodeA->IsStatic( ) && nodeB->IsStatic( ) || nodeB->IsStatic( ) && nodeA->IsStatic( ) ) {
+		if(nodeA->IsStatic() && nodeB->IsStatic() || nodeB->IsStatic() && nodeA->IsStatic()) {
 			return false;
 		}
 		return true;
 	}
 };
 
-void MyNearCallback( btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatchInfo ) {
-	btCollisionObject * colObjA = static_cast<btCollisionObject*>( collisionPair.m_pProxy0->m_clientObject );
-	SceneNode * nodeA = static_cast<SceneNode*>( colObjA->getUserPointer( ) );
+void MyNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatchInfo) {
+	btCollisionObject * colObjA = static_cast<btCollisionObject*>(collisionPair.m_pProxy0->m_clientObject);
+	SceneNode * nodeA = static_cast<SceneNode*>(colObjA->getUserPointer());
 
-	btCollisionObject * colObjB = static_cast<btCollisionObject*>( collisionPair.m_pProxy1->m_clientObject );
-	SceneNode * nodeB = static_cast<SceneNode*>( colObjB->getUserPointer( ) );
+	btCollisionObject * colObjB = static_cast<btCollisionObject*>(collisionPair.m_pProxy1->m_clientObject);
+	SceneNode * nodeB = static_cast<SceneNode*>(colObjB->getUserPointer());
 
-	if ( !nodeA->IsCollisionEnabled( ) || !nodeB->IsCollisionEnabled( ) ) {
+	if(!nodeA->IsCollisionEnabled() || !nodeB->IsCollisionEnabled()) {
 		return;
 	}
-	if ( nodeA->IsFrozen( ) && nodeB->IsStatic( ) || nodeB->IsFrozen( ) && nodeA->IsStatic( ) ) {
+	if(nodeA->IsFrozen() && nodeB->IsStatic() || nodeB->IsFrozen() && nodeA->IsStatic()) {
 		return;
 	}
-	if ( nodeA->IsFrozen( ) && nodeB->IsFrozen( ) || nodeB->IsFrozen( ) && nodeA->IsFrozen( ) ) {
+	if(nodeA->IsFrozen() && nodeB->IsFrozen() || nodeB->IsFrozen() && nodeA->IsFrozen()) {
 		return;
 	}
-	if ( nodeA->IsStatic( ) && nodeB->IsStatic( ) || nodeB->IsStatic( ) && nodeA->IsStatic( ) ) {
+	if(nodeA->IsStatic() && nodeB->IsStatic() || nodeB->IsStatic() && nodeA->IsStatic()) {
 		return;
 	}
 
-	dispatcher.defaultNearCallback( collisionPair, dispatcher, dispatchInfo );
+	dispatcher.defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
 }
 
 btOverlapFilterCallback * filterCallback;
@@ -144,8 +144,8 @@ void Physics::UpdateContacts() {
 				nodeB->mContactCount++;
 
 				int obAIndex = obA->getUserIndex();
-				nodeA->mContactList[j].normal = ruVector3(pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
-				nodeA->mContactList[j].position = ruVector3(pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
+				nodeA->mContactList[j].normal = Vector3(pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
+				nodeA->mContactList[j].position = Vector3(pt.m_positionWorldOnA.x(), pt.m_positionWorldOnA.y(), pt.m_positionWorldOnA.z());
 				nodeA->mContactList[j].impulse = pt.m_appliedImpulse;
 				nodeA->mContactList[j].body = nodeB;
 				if(obAIndex >= 0) {
@@ -155,8 +155,8 @@ void Physics::UpdateContacts() {
 				}
 
 				int obBIndex = obB->getUserIndex();
-				nodeB->mContactList[j].normal = ruVector3(pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
-				nodeB->mContactList[j].position = ruVector3(pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());
+				nodeB->mContactList[j].normal = Vector3(pt.m_normalWorldOnB.x(), pt.m_normalWorldOnB.y(), pt.m_normalWorldOnB.z());
+				nodeB->mContactList[j].position = Vector3(pt.m_positionWorldOnB.x(), pt.m_positionWorldOnB.y(), pt.m_positionWorldOnB.z());
 				nodeB->mContactList[j].impulse = pt.m_appliedImpulse;
 				nodeB->mContactList[j].body = nodeA;
 				if(obBIndex >= 0) {
@@ -168,16 +168,12 @@ void Physics::UpdateContacts() {
 				if(pt.m_appliedImpulse > 10.0f) {
 					if(!nodeA->mFrozen) {
 						if(nodeA->mHitSound) {
-							if(nodeA->mHitSound->pfHandle) {
-								nodeA->mHitSound->Play();
-							}
+							nodeA->mHitSound->Play();
 						}
 					}
 					if(!nodeB->mFrozen) {
 						if(nodeB->mHitSound) {
-							if(nodeB->mHitSound->pfHandle) {
-								nodeB->mHitSound->Play();
-							}
+							nodeB->mHitSound->Play();
 						}
 					}
 					float vol = pt.m_appliedImpulse / 20.0f;
@@ -188,16 +184,16 @@ void Physics::UpdateContacts() {
 					float pitch = 1.0f;
 
 					if(nodeA->mHitSound) {
-						if(nodeA->mHitSound->pfHandle) {
-							nodeA->mHitSound->SetVolume(vol);
-							nodeA->mHitSound->SetPitch(pitch);
-						}
+
+						nodeA->mHitSound->SetVolume(vol);
+						nodeA->mHitSound->SetPitch(pitch);
+
 					}
 					if(nodeB->mHitSound) {
-						if(nodeB->mHitSound->pfHandle) {
-							nodeB->mHitSound->SetVolume(vol);
-							nodeB->mHitSound->SetPitch(pitch);
-						}
+
+						nodeB->mHitSound->SetVolume(vol);
+						nodeB->mHitSound->SetPitch(pitch);
+
 					}
 				}
 			}
@@ -205,7 +201,7 @@ void Physics::UpdateContacts() {
 	}
 }
 
-shared_ptr<ruSceneNode> Physics::CastRay(ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint) {
+shared_ptr<ISceneNode> Physics::CastRay(Vector3 begin, Vector3 end, Vector3 * outPickPoint) {
 	btVector3 rayEnd = btVector3(end.x, end.y, end.z);
 	btVector3 rayBegin = btVector3(begin.x, begin.y, begin.z);
 
@@ -232,8 +228,8 @@ shared_ptr<ruSceneNode> Physics::CastRay(ruVector3 begin, ruVector3 end, ruVecto
 	return nullptr;
 }
 
-ruRayCastResultEx Physics::CastRayEx(ruVector3 begin, ruVector3 end) {
-	ruRayCastResultEx result;
+RayCastResultEx Physics::CastRayEx(Vector3 begin, Vector3 end) {
+	RayCastResultEx result;
 	result.valid = false;
 
 	btVector3 rayEnd = btVector3(end.x, end.y, end.z);
@@ -278,7 +274,7 @@ void Physics::Update(float timeStep, int subSteps, float fixedTimeStep) {
 	UpdateContacts();
 }
 
-inline shared_ptr<ruSceneNode> Physics::RayPick(int x, int y, ruVector3 * outPickPoint) {
+inline shared_ptr<ISceneNode> Physics::RayPick(int x, int y, Vector3 * outPickPoint) {
 	D3DVIEWPORT9 vp;
 	pD3D->GetViewport(&vp);
 

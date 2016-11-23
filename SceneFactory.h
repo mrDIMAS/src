@@ -30,7 +30,10 @@ class DirectionalLight;
 class Fog;
 class Engine;
 
-class SceneFactory : public ruSceneFactory {
+#include "Texture.h"
+#include "CubeTexture.h"
+
+class SceneFactory : public ISceneFactory {
 private:
 	Engine * const mEngine;
 	vector<weak_ptr<SceneNode>> msNodeList;
@@ -39,16 +42,16 @@ private:
 	vector<weak_ptr<DirectionalLight>> msDirectionalLightList;
 	vector<weak_ptr<ParticleSystem>> msParticleEmitters;
 	vector<weak_ptr<Fog>> msFogList;
+	shared_ptr<Texture> mDefaultSpotTexture;
+	shared_ptr<CubeTexture> mDefaultPointCubeTexture;
 	template<typename Type>
 	void RemoveUnreferenced(vector<weak_ptr<Type>> & objList);
 public:
-	SceneFactory(Engine * engine) : mEngine(engine) {
+	SceneFactory(Engine * engine);
+	~SceneFactory() {}
+	virtual Engine * GetEngine() const;
 
-	}
 
-	Engine * GetEngine() const {
-		return mEngine;
-	}
 	// All 'Get***' Methods guarantee to return weak_ptr's to existing objects 
 	vector<weak_ptr<SceneNode>> & GetNodeList();
 	vector<weak_ptr<SpotLight>> & GetSpotLightList();
@@ -58,27 +61,33 @@ public:
 	vector<weak_ptr<Fog>> & GetFogList();
 
 	// API Methods
-	virtual shared_ptr<ruSceneNode> CreateSceneNode() override final;
-	virtual shared_ptr<ruSceneNode> CreateSceneNodeDuplicate(shared_ptr<ruSceneNode> src) override final;
-	virtual shared_ptr<ruPointLight> CreatePointLight() override final;
-	virtual shared_ptr<ruSpotLight> CreateSpotLight() override final;
-	virtual shared_ptr<ruDirectionalLight> CreateDirectionalLight() override final;
-	virtual shared_ptr<ruCamera> CreateCamera(float fov) override final;
-	virtual shared_ptr<ruParticleSystem> CreateParticleSystem(int particleCount) override final;
-	virtual shared_ptr<ruFog> CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density) override final;
+	virtual IEngine * const GetEngineInterface() const override final;
+	virtual shared_ptr<ISceneNode> CreateSceneNode() override final;
+	virtual shared_ptr<ISceneNode> CreateSceneNodeDuplicate(shared_ptr<ISceneNode> src) override final;
+	virtual shared_ptr<IPointLight> CreatePointLight() override final;
+	virtual shared_ptr<ISpotLight> CreateSpotLight() override final;
+	virtual shared_ptr<IDirectionalLight> CreateDirectionalLight() override final;
+	virtual shared_ptr<ICamera> CreateCamera(float fov) override final;
+	virtual shared_ptr<IParticleSystem> CreateParticleSystem(int particleCount) override final;
+	virtual shared_ptr<IFog> CreateFog(const Vector3 & min, const Vector3 & max, const Vector3 & color, float density) override final;
 
-	virtual shared_ptr<ruSceneNode> FindByName(const string & name) override final;
-	virtual shared_ptr<ruSceneNode> LoadScene(const string & file) override final;
-	virtual vector<shared_ptr<ruSceneNode>> GetTaggedObjects(const string & tag) override final;
-	virtual shared_ptr<ruSceneNode> GetNode(int i) override final;
+	virtual shared_ptr<ISceneNode> FindByName(const string & name) override final;
+	virtual shared_ptr<ISceneNode> LoadScene(const string & file) override final;
+	virtual vector<shared_ptr<ISceneNode>> GetTaggedObjects(const string & tag) override final;
+	virtual shared_ptr<ISceneNode> GetNode(int i) override final;
 	virtual int GetNodeCount() override final;
 
 	virtual int GetSpotLightCount() override final;
-	virtual shared_ptr<ruSpotLight> GetSpotLight(int n) override final;
+	virtual shared_ptr<ISpotLight> GetSpotLight(int n) override final;
 
 	virtual int GetPointLightCount() override final;
-	virtual shared_ptr<ruPointLight> GetPointLight(int n) override final;
+	virtual shared_ptr<IPointLight> GetPointLight(int n) override final;
 
 	virtual int GetDirectionalLightCount() override final;
-	virtual shared_ptr<ruDirectionalLight> GetDirectionalLight(int n) override final;
+	virtual shared_ptr<IDirectionalLight> GetDirectionalLight(int n) override final;
+
+	virtual void SetPointLightDefaultTexture(const shared_ptr<ICubeTexture> & defaultPointTexture) override final;
+	virtual shared_ptr<ICubeTexture> GetPointLightDefaultTexture() const override final;
+	virtual void SetSpotLightDefaultTexture(const shared_ptr<ITexture> & defaultSpotTexture) override final;
+	virtual shared_ptr<ITexture> GetSpotLightDefaultTexture() const override final;
 };

@@ -5,15 +5,15 @@
 
 class AmbientSoundSet {
 private:
-	vector< shared_ptr<ruSound> > mSoundList;
+	vector< shared_ptr<ISound> > mSoundList;
 	float mTimeToNextSoundSec;
 	float mTimeMinSec;
 	float mTimeMaxSec;
-	shared_ptr<ruTimer> mTimer;
+	shared_ptr<ITimer> mTimer;
 public:
 	AmbientSoundSet();
 	~AmbientSoundSet();
 	void SetMinMax(float tMin, float tMax);
-	void AddSound(shared_ptr<ruSound> sound);
+	void AddSound(shared_ptr<ISound> sound);
 	void DoRandomPlaying();
 };

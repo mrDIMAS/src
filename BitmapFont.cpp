@@ -70,6 +70,6 @@ BitmapFont::~BitmapFont( ) {
 	mAtlas.Reset( );
 }
 
-ruFont::~ruFont( ) {
+IFont::~IFont( ) {
 
 }

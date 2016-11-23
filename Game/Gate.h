@@ -12,27 +12,25 @@ public:
 		Closed,
 	};
 private:
-	friend class Level;
-	explicit Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2);
-
 	State mState;
-	shared_ptr<ruSceneNode> mGate;
-	shared_ptr<ruSceneNode> mButtonOpen[2];
-	shared_ptr<ruSceneNode> mButtonClose[2];
-	shared_ptr<ruSound> mBeginSound;
-	shared_ptr<ruSound> mIdleSound;
-	shared_ptr<ruSound> mEndSound;
-	shared_ptr<ruSound> mButtonSound;
+	shared_ptr<ISceneNode> mGate;
+	shared_ptr<ISceneNode> mButtonOpen[2];
+	shared_ptr<ISceneNode> mButtonClose[2];
+	shared_ptr<ISound> mBeginSound;
+	shared_ptr<ISound> mIdleSound;
+	shared_ptr<ISound> mEndSound;
+	shared_ptr<ISound> mButtonSound;
 
-	ruAnimation mOpenAnim;
-	ruAnimation mCloseAnim;
-	ruAnimation mButtonPushAnim[4];
+	Animation mOpenAnim;
+	Animation mCloseAnim;
+	Animation mButtonPushAnim[4];
 public:
 	bool mLocked;
+	explicit Gate(shared_ptr<ISceneNode> gate, shared_ptr<ISceneNode> buttonOpen, shared_ptr<ISceneNode> buttonClose, shared_ptr<ISceneNode> buttonOpen2, shared_ptr<ISceneNode> buttonClose2);
 	~Gate();
 	void Update();
 	void Open();
 	void Close();
-	shared_ptr<ruSceneNode> GetNode() const;
+	shared_ptr<ISceneNode> GetNode() const;
 	State GetState() const;
 };

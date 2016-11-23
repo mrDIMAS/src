@@ -4,14 +4,14 @@
 #include "Player.h"
 #include "Utils.h"
 
-Lift::Lift(shared_ptr<ruSceneNode> base) :
+Lift::Lift(shared_ptr<ISceneNode> base) :
 	mPaused(false),
 	mBaseNode(base),
 	mArrived(true),
 	mEngineSoundEnabled(true),
 	mSpeedMultiplier(1.0f),
 	mLocked(false) {
-	mMotorSound = ruSound::Load3D("data/sounds/motor_idle.ogg");
+	mMotorSound = base->GetFactory()->GetEngineInterface()->GetSoundSystem()->LoadSound3D("data/sounds/motor_idle.ogg");
 	mMotorSound->Attach(mBaseNode);
 	mMotorSound->SetRolloffFactor(30);
 	mMotorSound->SetRoomRolloffFactor(30);
@@ -20,8 +20,8 @@ Lift::Lift(shared_ptr<ruSceneNode> base) :
 void Lift::Update() {
 	if(mBaseNode && mSourceNode && mDestNode && mTargetNode) {
 
-		ruVector3 directionVector = mTargetNode->GetPosition() - mBaseNode->GetPosition();
-		ruVector3 speedVector = directionVector.Normalized() * 0.02f;
+		Vector3 directionVector = mTargetNode->GetPosition() - mBaseNode->GetPosition();
+		Vector3 speedVector = directionVector.Normalized() * 0.02f;
 		float distSqr = directionVector.Length2();
 
 		if(distSqr < 0.025f) {
@@ -78,12 +78,12 @@ void Lift::SetFrontDoors(const shared_ptr<Door> & leftDoor, const shared_ptr<Doo
 	mDoorFrontRight->SetTurnDirection(Door::TurnDirection::Counterclockwise);
 }
 
-void Lift::SetSourcePoint(shared_ptr<ruSceneNode> sourceNode) {
+void Lift::SetSourcePoint(shared_ptr<ISceneNode> sourceNode) {
 	mSourceNode = sourceNode;
 	mTargetNode = mSourceNode;
 }
 
-void Lift::SetDestinationPoint(shared_ptr<ruSceneNode> destNode) {
+void Lift::SetDestinationPoint(shared_ptr<ISceneNode> destNode) {
 	mDestNode = destNode;
 }
 

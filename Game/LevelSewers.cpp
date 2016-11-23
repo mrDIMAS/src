@@ -25,12 +25,14 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 
 	mZoneKnocks = GetUniqueObject("ZoneKnocks");
 
-	mKnocksSound = ruSound::Load3D("data/sounds/knocks.ogg");
+	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
+
+	mKnocksSound = soundSystem->LoadSound3D("data/sounds/knocks.ogg");
 	mKnocksSound->SetPosition(mZoneKnocks->GetPosition());
 	mKnocksSound->SetRolloffFactor(0.2f);
 	mKnocksSound->SetRoomRolloffFactor(0.2f);
 
-	ruSound::SetAudioReverb(10);
+	soundSystem->SetReverbPreset(ReverbPreset::Stonecorridor);
 
 	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note1")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note1Desc"), mLocalization.GetString("note1")); });
 	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note2")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note2Desc"), mLocalization.GetString("note2")); });
@@ -66,12 +68,12 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 	mStages["WaterDrained"] = false;
 	mStages["PumpsActivated"] = false;
 
-	mPassLightGreen = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightGreen"));
-	mPassLightRed = dynamic_pointer_cast<ruLight>(GetUniqueObject("PassLightRed"));
+	mPassLightGreen = dynamic_pointer_cast<ILight>(GetUniqueObject("PassLightGreen"));
+	mPassLightRed = dynamic_pointer_cast<ILight>(GetUniqueObject("PassLightRed"));
 
-	mPumpLight[0] = dynamic_pointer_cast<ruLight>(GetUniqueObject("PumpLight1"));
-	mPumpLight[1] = dynamic_pointer_cast<ruLight>(GetUniqueObject("PumpLight2"));
-	mPumpLight[2] = dynamic_pointer_cast<ruLight>(GetUniqueObject("PumpLight3"));
+	mPumpLight[0] = dynamic_pointer_cast<ILight>(GetUniqueObject("PumpLight1"));
+	mPumpLight[1] = dynamic_pointer_cast<ILight>(GetUniqueObject("PumpLight2"));
+	mPumpLight[2] = dynamic_pointer_cast<ILight>(GetUniqueObject("PumpLight3"));
 
 	{
 		mLift1 = AddLift("Lift1", "Lift1Source", "Lift1Dest", "Lift1FrontDoor1", "Lift1FrontDoor2", "Lift1BackDoor1", "Lift1BackDoor2");
@@ -86,14 +88,14 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 	}
 	std::regex rx("VerticalWater?([[:digit:]]+)");
 	for(int i = 0; i < mScene->GetCountChildren(); i++) {
-		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
+		shared_ptr<ISceneNode> child = mScene->GetChild(i);
 		if(regex_match(child->GetName(), rx)) {
 			mVerticalWaterList.push_back(child);
 		}
 	}
 
 	for(int i = 0; i < 3; ++i) {
-		AddSound(mWaterPumpSound[i] = ruSound::Load3D("data/sounds/waterpump.ogg"));
+		AddSound(mWaterPumpSound[i] = soundSystem->LoadSound3D("data/sounds/waterpump.ogg"));
 		mWaterPumpSound[i]->Attach(GetUniqueObject(StringBuilder("WaterPumpSound") << i + 1));
 		mWaterPumpSound[i]->SetLoop(true);
 	}
@@ -101,7 +103,7 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 	mZoneNextLevel = GetUniqueObject("ZoneNextLevel");
 
 	mPumpSwitch = GetUniqueObject("PumpSwitch");
-	mPumpSwitchAnimation = ruAnimation(0, 100, 0.6, false);
+	mPumpSwitchAnimation = Animation(0, 100, 0.6, false);
 	mPumpSwitch->SetAnimation(&mPumpSwitchAnimation);
 
 	OnPlayerEnterSpawnEnemyZone();
@@ -171,12 +173,12 @@ LevelSewers::~LevelSewers()
 void LevelSewers::DoScenario()
 {
 	// animate water flow
-	mWater->SetTexCoordFlow(ruVector2(0.0, -mWaterFlow));
+	mWater->SetTexCoordFlow(Vector2(0.0, -mWaterFlow));
 	mWaterFlow += 0.00025f;
 
 	mVerticalWaterFlow += 0.001;
 	for(auto & pVW : mVerticalWaterList) {
-		pVW->SetTexCoordFlow(ruVector2(0.0f, mVerticalWaterFlow));
+		pVW->SetTexCoordFlow(Vector2(0.0f, mVerticalWaterFlow));
 	}
 
 	// update enemy, if present
@@ -214,12 +216,12 @@ void LevelSewers::DoScenario()
 				mStages["WaterDrained"] = true;
 				for(int i = 0; i < 3; ++i) {
 					mWaterPumpSound[i]->Stop();
-					mPumpLight[i]->SetColor(ruVector3(255, 0, 0));
+					mPumpLight[i]->SetColor(Vector3(255, 0, 0));
 				}
 			} else {
 				for(int i = 0; i < 3; ++i) {
 					mWaterPumpSound[i]->Play();
-					mPumpLight[i]->SetColor(ruVector3(0, 255, 0));
+					mPumpLight[i]->SetColor(Vector3(0, 255, 0));
 				}
 			}
 			mPlayer->GetHUD()->SetObjective(StringBuilder() << mLocalization.GetString("objectiveWaitDrain") << mDrainTimer / 60);
@@ -228,7 +230,7 @@ void LevelSewers::DoScenario()
 
 	mLift1->Update();
 
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(9.5f / 255.0f, 9.5f / 255.0f, 9.5f / 255.0f));
 	mGate1->Update();
 	mGate2->Update();
 	mGateToLift->Update();

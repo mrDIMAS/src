@@ -33,14 +33,14 @@ class PointLight;
 // List of visible lights is filled by occlusion queries inside the render chain 
 class PathPoint {
 private:
-	ruVector3 mPoint;
+	Vector3 mPoint;
 	// list of lights visible from that point, filled by occlusion queries
 	vector<weak_ptr<PointLight>> mVisibleLightList;
 public:
-	ruVector3 GetPosition() const {
+	Vector3 GetPosition() const {
 		return mPoint;
 	}
-	explicit PathPoint(const ruVector3 & position) : mPoint(position) {
+	explicit PathPoint(const Vector3 & position) : mPoint(position) {
 
 	}
 	vector<weak_ptr<PointLight>> & GetListOfVisibleLights() {
@@ -48,7 +48,7 @@ public:
 	}
 };
 
-class Camera : public virtual ruCamera, public SceneNode {
+class Camera : public virtual ICamera, public SceneNode {
 private:
 	friend class SceneFactory;
 
@@ -57,7 +57,7 @@ public:
 	float mNearZ;
 	float mFarZ;
 	float mFrameBrightness;
-	ruVector3 mFrameColor;
+	Vector3 mFrameColor;
 
 	D3DXMATRIX mProjection;
 	D3DXMATRIX mView;
@@ -69,7 +69,7 @@ public:
 	bool mInDepthHack;
 	shared_ptr<Skybox> mSkybox;
 	int mNearestPathPointIndex;
-	ruVector3 mLastPosition;
+	Vector3 mLastPosition;
 	vector<unique_ptr<PathPoint>> mPath;
 	float mPathNewPointDelta;
 	void ManagePath();
@@ -92,9 +92,9 @@ public:
 	// API Methods
 	virtual void SetFOV(float fov) override;
 	virtual void SetActive() override;
-	virtual void SetSkybox(const shared_ptr<ruTexture> & up, const shared_ptr<ruTexture> & left, const shared_ptr<ruTexture> & right, const shared_ptr<ruTexture> & forward, const shared_ptr<ruTexture> & back) override;
+	virtual void SetSkybox(const shared_ptr<ITexture> & up, const shared_ptr<ITexture> & left, const shared_ptr<ITexture> & right, const shared_ptr<ITexture> & forward, const shared_ptr<ITexture> & back) override;
 	virtual void SetFrameBrightness(float brightness) override;
 	virtual float GetFrameBrightness() const override;
-	virtual void SetFrameColor(const ruVector3 & color) override;
-	virtual ruVector3 GetFrameColor() const override;
+	virtual void SetFrameColor(const Vector3 & color) override;
+	virtual Vector3 GetFrameColor() const override;
 };

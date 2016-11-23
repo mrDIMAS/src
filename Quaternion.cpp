@@ -23,21 +23,21 @@
 
 
 
-ruQuaternion::ruQuaternion( ) {
+Quaternion::Quaternion( ) {
 	x = 0.0f;
 	y = 0.0f;
 	z = 0.0f;
 	w = 1.0f;
 };
 
-ruQuaternion::ruQuaternion( float x, float y, float z, float w ) {
+Quaternion::Quaternion( float x, float y, float z, float w ) {
 	this->x = x;
 	this->y = y;
 	this->z = z;
 	this->w = w;
 };
 
-ruQuaternion::ruQuaternion( float pitch, float yaw, float roll ) {
+Quaternion::Quaternion( float pitch, float yaw, float roll ) {
 	pitch *= DEG2RAD;
 	yaw *= DEG2RAD;
 	roll *= DEG2RAD;
@@ -57,7 +57,7 @@ ruQuaternion::ruQuaternion( float pitch, float yaw, float roll ) {
 	w = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
 };
 
-ruQuaternion::ruQuaternion( const ruVector3 & axis, float angle ) {
+Quaternion::Quaternion( const Vector3 & axis, float angle ) {
 	angle *= DEG2RAD;
 
 	float d = axis.Length( );

@@ -21,7 +21,7 @@
 
 #pragma once
 
-class CubeTexture : public ruCubeTexture {
+class CubeTexture : public ICubeTexture {
 private:
 	string mSourceName;
 	void Load( );
@@ -29,6 +29,5 @@ public:
 	COMPtr<IDirect3DCubeTexture9> mCubeTexture;
 	explicit CubeTexture( string fn );
 	virtual ~CubeTexture( );
-	static CubeTexture * Request( string fn );
-	static map< string, CubeTexture*> all;
+
 };

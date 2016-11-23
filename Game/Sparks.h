@@ -4,11 +4,11 @@
 
 class Sparks {
 private:
-	shared_ptr<ruParticleSystem > mParticleSystem;
+	shared_ptr<IParticleSystem > mParticleSystem;
 	bool mAlive;
-	shared_ptr<ruSound> mSound;
+	shared_ptr<ISound> mSound;
 public:
-	Sparks(shared_ptr<ruSceneNode> at, shared_ptr<ruSound> emits);
+	Sparks(shared_ptr<ISceneNode> at, shared_ptr<ISound> emits);
 	~Sparks();
 	void Update();
 	bool IsAlive();

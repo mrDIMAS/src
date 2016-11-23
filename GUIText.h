@@ -36,15 +36,15 @@ public:
 	}
 };
 
-class GUIText : public GUINode, public ruText {
+class GUIText : public GUINode, public IText {
 protected:
 	friend class GUIScene;
-	explicit GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, ruVector3 theColor, int theAlpha, ruTextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
+	explicit GUIText( const weak_ptr<GUIScene> & scene, const string & theText, float theX, float theY, float theWidth, float theHeight, Vector3 theColor, int theAlpha, TextAlignment theTextAlign, const shared_ptr<BitmapFont> & theFont );
 	shared_ptr<BitmapFont> mFont;
 	u32string mTextUTF32;
 	string mTextUTF8;
 
-	ruTextAlignment mTextAlign;
+	TextAlignment mTextAlign;
 
 
 	void BreakOnLines( );
@@ -53,7 +53,7 @@ public:
 	vector<GUITextLine> mLines;
 public:
 	virtual ~GUIText( );
-	ruTextAlignment GetTextAlignment( );
+	TextAlignment GetTextAlignment( );
 	string & GetText( );
 	shared_ptr<BitmapFont> GetFont( );
 

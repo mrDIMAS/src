@@ -26,7 +26,7 @@
 #include "GUIRect.h"
 #include "Engine.h"
 
-class GUIScene : public ruGUIScene, public enable_shared_from_this<GUIScene> {
+class GUIScene : public IGUIScene, public enable_shared_from_this<GUIScene> {
 private:
 	Engine * const mEngine;
 	vector<shared_ptr<GUINode>> mNodeList;
@@ -55,8 +55,8 @@ public:
 	vector<shared_ptr<GUIButton>> & GetButtonList();
 	vector<shared_ptr<GUIRect>> & GetRectList();
 
-	virtual shared_ptr<ruGUINode> CreateNode();
-	virtual shared_ptr<ruText> CreateText(const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruFont> & theFont, ruVector3 theColor, ruTextAlignment theTextAlign, int theAlpha);
-	virtual shared_ptr<ruRect> CreateRect(float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture> & theTexture, ruVector3, int theAlpha);
-	virtual shared_ptr<ruButton> CreateButton(int x, int y, int w, int h, const shared_ptr<ruTexture> & texture, const string & text, const shared_ptr<ruFont> & font, ruVector3 color, ruTextAlignment textAlign, int alpha);
+	virtual shared_ptr<IGUINode> CreateNode();
+	virtual shared_ptr<IText> CreateText(const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<IFont> & theFont, Vector3 theColor, TextAlignment theTextAlign, int theAlpha);
+	virtual shared_ptr<IRect> CreateRect(float theX, float theY, float theWidth, float theHeight, const shared_ptr<ITexture> & theTexture, Vector3, int theAlpha);
+	virtual shared_ptr<IButton> CreateButton(int x, int y, int w, int h, const shared_ptr<ITexture> & texture, const string & text, const shared_ptr<IFont> & font, Vector3 color, TextAlignment textAlign, int alpha);
 };

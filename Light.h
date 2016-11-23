@@ -30,7 +30,7 @@
 #include "Frustum.h"
 #include "Utility.h"
 
-class Light : public virtual ruLight, public SceneNode {
+class Light : public virtual ILight, public SceneNode {
 public:
 	COMPtr<IDirect3DQuery9> pOcclusionQuery;
 	bool mQueryDone;
@@ -39,7 +39,7 @@ public:
 	bool mNeedRecomputeShadowMap;
 	int mShadowMapIndex;
 	bool mDrawFlare;
-	ruVector3 mColor;
+	Vector3 mColor;
 	static vector<Light*> msLightList;
 public:
 	virtual void OnLostDevice();
@@ -59,13 +59,13 @@ public:
 	}
 
 	// API Methods
-	virtual void SetColor(const ruVector3 & theColor) override;
-	virtual ruVector3 GetColor() const override;
+	virtual void SetColor(const Vector3 & theColor) override;
+	virtual Vector3 GetColor() const override;
 
 	virtual void SetRange(float radius) override;
 	virtual float GetRange() const override;
 
-	virtual bool IsSeePoint(const ruVector3 & point) = 0;
+	virtual bool IsSeePoint(const Vector3 & point) = 0;
 
 	virtual void SetDrawFlare(bool state) override {
 		mDrawFlare = state;

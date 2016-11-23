@@ -32,7 +32,7 @@ GUIRect::GUIRect( ) : GUINode( shared_ptr<GUIScene>( nullptr ) ) {
 
 }
 
-GUIRect::GUIRect( const weak_ptr<GUIScene> & scene, float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, ruVector3 theColor, int theAlpha ) :
+GUIRect::GUIRect( const weak_ptr<GUIScene> & scene, float theX, float theY, float theWidth, float theHeight, shared_ptr<Texture> theTexture, Vector3 theColor, int theAlpha ) :
 	GUINode( scene ) {
 	SetPosition( theX, theY );
 	SetSize( theWidth, theHeight );
@@ -44,10 +44,10 @@ GUIRect::GUIRect( const weak_ptr<GUIScene> & scene, float theX, float theY, floa
 
 void GUIRect::GetSixVertices( Vertex * vertices ) {
 	float alpha = ( mScene.expired( ) || mIndependentAlpha ) ? mAlpha / 255.0f : mScene.lock( )->GetOpacity( ) * mAlpha / 255.0f;
-	vertices[ 0 ] = Vertex( ruVector3( mGlobalX, mGlobalY, 0 ), ruVector2( 0, 0 ), ruVector4( mColor, alpha ) );
-	vertices[ 1 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY, 0 ), ruVector2( 1, 0 ), ruVector4( mColor, alpha ) );
-	vertices[ 2 ] = Vertex( ruVector3( mGlobalX, mGlobalY + mHeight, 0 ), ruVector2( 0, 1 ), ruVector4( mColor, alpha ) );
-	vertices[ 3 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY, 0 ), ruVector2( 1, 0 ), ruVector4( mColor, alpha ) );
-	vertices[ 4 ] = Vertex( ruVector3( mGlobalX + mWidth, mGlobalY + mHeight, 0 ), ruVector2( 1, 1 ), ruVector4( mColor, alpha ) );
-	vertices[ 5 ] = Vertex( ruVector3( mGlobalX, mGlobalY + mHeight, 0 ), ruVector2( 0, 1 ), ruVector4( mColor, alpha ) );
+	vertices[ 0 ] = Vertex( Vector3( mGlobalX, mGlobalY, 0 ), Vector2( 0, 0 ), Vector4( mColor, alpha ) );
+	vertices[ 1 ] = Vertex( Vector3( mGlobalX + mWidth, mGlobalY, 0 ), Vector2( 1, 0 ), Vector4( mColor, alpha ) );
+	vertices[ 2 ] = Vertex( Vector3( mGlobalX, mGlobalY + mHeight, 0 ), Vector2( 0, 1 ), Vector4( mColor, alpha ) );
+	vertices[ 3 ] = Vertex( Vector3( mGlobalX + mWidth, mGlobalY, 0 ), Vector2( 1, 0 ), Vector4( mColor, alpha ) );
+	vertices[ 4 ] = Vertex( Vector3( mGlobalX + mWidth, mGlobalY + mHeight, 0 ), Vector2( 1, 1 ), Vector4( mColor, alpha ) );
+	vertices[ 5 ] = Vertex( Vector3( mGlobalX, mGlobalY + mHeight, 0 ), Vector2( 0, 1 ), Vector4( mColor, alpha ) );
 }

@@ -4,52 +4,46 @@
 #include "GUIProperties.h"
 #include "Menu.h"
 
-RadioButton::RadioButton(const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text)
-{
+RadioButton::RadioButton(const shared_ptr<IGUIScene> & scene, float x, float y, shared_ptr<ITexture> buttonImage, const string & text) {
 	int textHeight = 16;
 	float buttonWidth = 110;
 	float buttonHeight = 32;
-	mGUIButton = scene->CreateButton(x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
-	mCheck = scene->CreateRect(buttonWidth + 10, 6, 20, 20, ruTexture::Request("data/gui/menu/checkbox_checked.tga"), pGUIProp->mForeColor);
+	mGUIButton = scene->CreateButton(x, y, buttonWidth, buttonHeight, buttonImage, text, pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
+	mCheck = scene->CreateRect(buttonWidth + 10, 6, 20, 20, scene->GetEngine()->GetRenderer()->GetTexture("data/gui/menu/checkbox_checked.tga"), pGUIProp->mForeColor);
 	mCheck->Attach(mGUIButton);
-	mGUIButton->AddAction(ruGUIAction::OnClick, [this] { OnChange(); });
+	mGUIButton->AddAction(GUIAction::OnClick, [this] { OnChange(); });
 	SetEnabled(false);
 }
 
-void RadioButton::SetEnabled(bool state)
-{
+void RadioButton::SetEnabled(bool state) {
 	mOn = state;
 	SelectCheckTexture();
 }
 
-bool RadioButton::IsChecked()
-{
+bool RadioButton::IsChecked() {
 	return mOn;
 }
 
-void RadioButton::SetChangeAction(const ruDelegate & delegat)
-{
+void RadioButton::SetChangeAction(const Delegate & delegat) {
 	mGUIButton->RemoveAllActions();
-	mGUIButton->AddAction(ruGUIAction::OnClick, [this] { OnChange(); });
-	mGUIButton->AddAction(ruGUIAction::OnClick, delegat);
+	mGUIButton->AddAction(GUIAction::OnClick, [this] { OnChange(); });
+	mGUIButton->AddAction(GUIAction::OnClick, delegat);
 }
 
-void RadioButton::AttachTo(shared_ptr<ruGUINode> node)
-{
+void RadioButton::AttachTo(shared_ptr<IGUINode> node) {
 	mGUIButton->Attach(node);
 }
 
-void RadioButton::SelectCheckTexture()
-{
+void RadioButton::SelectCheckTexture() {
+	auto renderer = mCheck->GetScene().lock()->GetEngine()->GetRenderer();
 	if(mOn) {
-		mCheck->SetTexture(ruTexture::Request("data/gui/menu/checkbox_checked.tga"));
+		mCheck->SetTexture(renderer->GetTexture("data/gui/menu/checkbox_checked.tga"));
 	} else {
-		mCheck->SetTexture(ruTexture::Request("data/gui/menu/checkbox.tga"));
+		mCheck->SetTexture(renderer->GetTexture("data/gui/menu/checkbox.tga"));
 	}
 }
 
-void RadioButton::OnChange()
-{
+void RadioButton::OnChange() {
 	mOn = !mOn;
 	SelectCheckTexture();
 }

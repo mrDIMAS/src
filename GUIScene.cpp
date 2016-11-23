@@ -74,7 +74,7 @@ vector<shared_ptr<GUINode>>& GUIScene::GetNodeList( ) {
 	return mNodeList;
 }
 
-shared_ptr<ruGUINode> GUIScene::CreateNode( ) {
+shared_ptr<IGUINode> GUIScene::CreateNode( ) {
 	shared_ptr<GUINode> node( new GUINode( shared_from_this( ) ) );
 	mNodeList.push_back( node );
 	SortNodes( );
@@ -85,7 +85,7 @@ vector<shared_ptr<GUIText>>& GUIScene::GetTextList( ) {
 	return mTextList;
 }
 
-shared_ptr<ruText> GUIScene::CreateText( const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruFont>& theFont, ruVector3 theColor, ruTextAlignment theTextAlign, int theAlpha ) {
+shared_ptr<IText> GUIScene::CreateText( const string & theText, float theX, float theY, float theWidth, float theHeight, const shared_ptr<IFont>& theFont, Vector3 theColor, TextAlignment theTextAlign, int theAlpha ) {
 	shared_ptr<GUIText> text( new GUIText( shared_from_this( ), theText, theX, theY, theWidth, theHeight, theColor, theAlpha, theTextAlign, dynamic_pointer_cast<BitmapFont>( theFont ) ) );
 	mNodeList.push_back( text );
 	mTextList.push_back( text );
@@ -93,7 +93,7 @@ shared_ptr<ruText> GUIScene::CreateText( const string & theText, float theX, flo
 	return text;
 }
 
-shared_ptr<ruRect> GUIScene::CreateRect( float theX, float theY, float theWidth, float theHeight, const shared_ptr<ruTexture>& theTexture, ruVector3 theColor, int theAlpha ) {
+shared_ptr<IRect> GUIScene::CreateRect( float theX, float theY, float theWidth, float theHeight, const shared_ptr<ITexture>& theTexture, Vector3 theColor, int theAlpha ) {
 	shared_ptr<GUIRect> rect( new GUIRect( shared_from_this( ), theX, theY, theWidth, theHeight, dynamic_pointer_cast<Texture>( theTexture ), theColor, theAlpha ) );
 	mNodeList.push_back( rect );
 	mRectList.push_back( rect );
@@ -109,7 +109,7 @@ vector<shared_ptr<GUIRect>>& GUIScene::GetRectList( ) {
 	return mRectList;
 }
 
-shared_ptr<ruButton> GUIScene::CreateButton( int x, int y, int w, int h, const shared_ptr<ruTexture>& texture, const string & text, const shared_ptr<ruFont>& font, ruVector3 color, ruTextAlignment textAlign, int alpha ) {
+shared_ptr<IButton> GUIScene::CreateButton( int x, int y, int w, int h, const shared_ptr<ITexture>& texture, const string & text, const shared_ptr<IFont>& font, Vector3 color, TextAlignment textAlign, int alpha ) {
 	shared_ptr<GUIButton> button( new GUIButton( shared_from_this( ), x, y, w, h, dynamic_pointer_cast<Texture>( texture ), text, dynamic_pointer_cast<BitmapFont>( font ), color, textAlign, alpha ) );
 	button->GetText( )->Attach( button );
 	mNodeList.push_back( button );

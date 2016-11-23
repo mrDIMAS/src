@@ -26,6 +26,7 @@
 #include "BitmapFont.h"
 #include "Mesh.h"
 #include "GUIRect.h"
+#include "CubeTexture.h"
 
 class Cursor;
 class Engine;
@@ -45,7 +46,7 @@ void Clamp(T & value, T min, T max) {
 	}
 }
 
-class Renderer : public ruRenderer {
+class Renderer : public IRenderer {
 private:
 	Engine * const mEngine;
 
@@ -55,13 +56,13 @@ private:
 	float mResHeight;
 	D3DPRESENT_PARAMETERS mPresentParameters;
 	string mTextureStoragePath;
-	ruVector3 mAmbientColor;
+	Vector3 mAmbientColor;
 	bool mPaused;
 	bool mChangeVideomode;
 	int mNativeResolutionWidth;
 	int mNativeResolutionHeight;
 	void SetDefaults();
-	vector<ruVideomode> mVideomodeList;
+	vector<Videomode> mVideomodeList;
 	shared_ptr<Cursor> mCursor;
 	MeshMap mDeferredMeshMap;
 
@@ -135,8 +136,8 @@ private:
 
 	COMPtr<IDirect3DPixelShader9> mBloomPixelShader;
 	COMPtr<IDirect3DPixelShader9> mGaussianBlurShader;
-	ruVector2 mBloomDX;
-	ruVector2 mBloomDY;
+	Vector2 mBloomDX;
+	Vector2 mBloomDY;
 
 	COMPtr<IDirect3DVolumeTexture9> mColorMap;
 
@@ -244,6 +245,9 @@ private:
 	int mSpotShadowMapSize;
 	int mDirectionalLightShadowMapSize;
 	int mDirectionalLightShadowUpdateTimer;
+
+	unordered_map<string, weak_ptr<Texture>> msTextureList;
+	unordered_map<string, weak_ptr<CubeTexture>> mCubeTextureList;
 public:
 	explicit Renderer(Engine * engine, int width, int height, int fullscreen, char vSync);
 	virtual ~Renderer();
@@ -252,25 +256,25 @@ public:
 	shared_ptr<Cursor> & GetCursor();
 	string GetTextureStoragePath();
 	void SetTextureStoragePath(const string & path);
-	HWND GetWindow() const {
-		return mWindowHandle;
-	}
+	HWND GetWindow() const;
 	// API Methods
+	virtual shared_ptr<ITexture> GetTexture(const string & filename) override final;
+	virtual shared_ptr<ICubeTexture> GetCubeTexture(const string & filename) override final;
 	virtual void RenderWorld() override final;
 	virtual float GetResolutionWidth() const override final;
 	virtual float GetResolutionHeight() const override final;
 	virtual void SetCursorVisible(bool state) override final;
-	virtual void SetCursor(shared_ptr<ruTexture> texture, int w, int h) override final;
+	virtual void SetCursor(shared_ptr<ITexture> texture, int w, int h) override final;
 	virtual int GetDIPs() const override final;
 	virtual int GetTextureUsedPerFrame() const override final;
 	virtual int GetShaderUsedPerFrame() const override final;
 	virtual int GetRenderedTriangles() const override final;
-	virtual void SetAmbientColor(ruVector3 color) override final;
+	virtual void SetAmbientColor(Vector3 color) override final;
 	virtual int GetAvailableTextureMemory() override final;
 	virtual void UpdateWorld() override final;
 	virtual bool IsAnisotropicTextureFiltrationEnabled() const override final;
 	virtual void SetAnisotropicTextureFiltration(bool state) override final;
-	virtual ruVector3 GetAmbientColor() const override final;
+	virtual Vector3 GetAmbientColor() const override final;
 	virtual void Shutdown() override final;
 	virtual float GetGUIWidthScaleFactor() const override final;
 	virtual float GetGUIHeightScaleFactor() const override final;
@@ -293,7 +297,7 @@ public:
 	virtual bool IsVolumetricFogEnabled() const override final;
 	virtual int GetMaxIsotropyDegree() const override final;
 	virtual void SetIsotropyDegree(int degree) override final;
-	virtual vector<ruVideomode> GetVideoModeList() override final;
+	virtual vector<Videomode> GetVideoModeList() override final;
 	virtual void SetBloomEnabled(bool state) override final;
 	virtual bool IsBloomEnabled() const override final;
 	virtual void SetSoftShadowsEnabled(bool state) override final;

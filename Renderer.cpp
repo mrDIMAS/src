@@ -59,35 +59,35 @@ private:
 	inline float fract(float x) {
 		return x - std::floor(x);
 	}
-	inline ruVector3 fract(ruVector3 v) {
-		return ruVector3(v.x - std::floor(v.x), v.y - std::floor(v.y), v.z - std::floor(v.z));
+	inline Vector3 fract(Vector3 v) {
+		return Vector3(v.x - std::floor(v.x), v.y - std::floor(v.y), v.z - std::floor(v.z));
 	}
-	inline ruVector3 floor(ruVector3 v) {
-		return ruVector3(std::floor(v.x), std::floor(v.y), std::floor(v.z));
+	inline Vector3 floor(Vector3 v) {
+		return Vector3(std::floor(v.x), std::floor(v.y), std::floor(v.z));
 	}
 	inline float mix(float a, float b, float t) {
 		return a + (b - a) * t;
 	}
-	inline ruVector3 mix(ruVector3 a, ruVector3 b, float t) {
+	inline Vector3 mix(Vector3 a, Vector3 b, float t) {
 		return a + (b - a) * t;
 	}
-	inline float dot(ruVector3 a, ruVector3 b) {
+	inline float dot(Vector3 a, Vector3 b) {
 		return a.Dot(b);
 	}
-	ruVector3 hash33(ruVector3 p3) {
-		p3 = fract(p3 * ruVector3(.1031, .11369, .13787));
-		float a = p3.Dot(ruVector3(p3.y, p3.x, p3.z) + ruVector3(19.19, 19.19, 19.19));
-		p3 += ruVector3(a, a, a);
-		return ruVector3(-1.0, -1, -1) + 2.0 * fract(ruVector3((p3.x + p3.y)*p3.z, (p3.x + p3.z)*p3.y, (p3.y + p3.z)*p3.x));
+	Vector3 hash33(Vector3 p3) {
+		p3 = fract(p3 * Vector3(.1031, .11369, .13787));
+		float a = p3.Dot(Vector3(p3.y, p3.x, p3.z) + Vector3(19.19, 19.19, 19.19));
+		p3 += Vector3(a, a, a);
+		return Vector3(-1.0, -1, -1) + 2.0 * fract(Vector3((p3.x + p3.y)*p3.z, (p3.x + p3.z)*p3.y, (p3.y + p3.z)*p3.x));
 	}
 public:
-	float GenerateNoise(ruVector3 p, float freq) {
-		p *= ruVector3(freq, freq, freq);
+	float GenerateNoise(Vector3 p, float freq) {
+		p *= Vector3(freq, freq, freq);
 
-		ruVector3 pi = floor(p);
-		ruVector3 pf = p - pi;
+		Vector3 pi = floor(p);
+		Vector3 pf = p - pi;
 
-		ruVector3 w = pf * pf * (ruVector3(3.0, 3, 3) - 2.0 * pf);
+		Vector3 w = pf * pf * (Vector3(3.0, 3, 3) - 2.0 * pf);
 
 		float nx = pi.x < 0.01 ? freq : pi.x;
 		float ny = pi.y < 0.01 ? freq : pi.y;
@@ -95,19 +95,19 @@ public:
 
 		return  mix(
 			mix(
-				mix(dot(pf - ruVector3(0, 0, 0), hash33(ruVector3(nx, ny, nz))),
-					dot(pf - ruVector3(1, 0, 0), hash33(ruVector3(pi.x + 1.0, ny, nz))),
+				mix(dot(pf - Vector3(0, 0, 0), hash33(Vector3(nx, ny, nz))),
+					dot(pf - Vector3(1, 0, 0), hash33(Vector3(pi.x + 1.0, ny, nz))),
 					w.x),
-				mix(dot(pf - ruVector3(0, 0, 1), hash33(ruVector3(nx, ny, pi.z + 1.0))),
-					dot(pf - ruVector3(1, 0, 1), hash33(ruVector3(pi.x + 1.0, ny, pi.z + 1.0))),
+				mix(dot(pf - Vector3(0, 0, 1), hash33(Vector3(nx, ny, pi.z + 1.0))),
+					dot(pf - Vector3(1, 0, 1), hash33(Vector3(pi.x + 1.0, ny, pi.z + 1.0))),
 					w.x),
 				w.z),
 			mix(
-				mix(dot(pf - ruVector3(0, 1, 0), hash33(ruVector3(nx, pi.y + 1.0, nz))),
-					dot(pf - ruVector3(1, 1, 0), hash33(ruVector3(pi.x + 1.0, pi.y + 1.0, nz))),
+				mix(dot(pf - Vector3(0, 1, 0), hash33(Vector3(nx, pi.y + 1.0, nz))),
+					dot(pf - Vector3(1, 1, 0), hash33(Vector3(pi.x + 1.0, pi.y + 1.0, nz))),
 					w.x),
-				mix(dot(pf - ruVector3(0, 1, 1), hash33(ruVector3(nx, pi.y + 1.0, pi.z + 1.0))),
-					dot(pf - ruVector3(1, 1, 1), hash33(pi + ruVector3(1, 1, 1))),
+				mix(dot(pf - Vector3(0, 1, 1), hash33(Vector3(nx, pi.y + 1.0, pi.z + 1.0))),
+					dot(pf - Vector3(1, 1, 1), hash33(pi + Vector3(1, 1, 1))),
 					w.x),
 				w.z),
 			w.y);
@@ -115,10 +115,10 @@ public:
 };
 
 struct LightProxy {
-	ruVector3 mPosition, mColor;
+	Vector3 mPosition, mColor;
 	float mRadius;
 	LightProxy() : mRadius(0) {}
-	LightProxy(const ruVector3 & pos, const ruVector3 & col, float rad) : mPosition(pos), mColor(col), mRadius(rad) {}
+	LightProxy(const Vector3 & pos, const Vector3 & col, float rad) : mPosition(pos), mColor(col), mRadius(rad) {}
 };
 
 
@@ -129,8 +129,8 @@ struct XYZNormalVertex {
 };
 
 struct CameraDirection {
-	ruVector3 target;
-	ruVector3 up;
+	Vector3 target;
+	Vector3 up;
 };
 
 struct GPUFloatRegister {
@@ -217,11 +217,11 @@ public:
 		mRegisters[mRegisterCount++].Set(0, 0, 0, 1);
 	}
 
-	void PushVector(const ruVector3 & v) {
+	void PushVector(const Vector3 & v) {
 		mRegisters[mRegisterCount++].Set(v.x, v.y, v.z);
 	}
 
-	void PushVector(const ruVector2 & v) {
+	void PushVector(const Vector2 & v) {
 		mRegisters[mRegisterCount++].Set(v.x, v.y);
 	}
 
@@ -251,7 +251,7 @@ public:
 SetUniformScaleTranslationMatrix
 =========
 */
-D3DXMATRIX SetUniformScaleTranslationMatrix(float s, const ruVector3 & p) {
+D3DXMATRIX SetUniformScaleTranslationMatrix(float s, const Vector3 & p) {
 	return D3DXMATRIX(
 		s, 0.0f, 0.0f, 0.0f,
 		0.0f, s, 0.0f, 0.0f,
@@ -280,22 +280,22 @@ LRESULT CALLBACK WindowProcess(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		mouse.Move(LOWORD(lParam), HIWORD(lParam));
 		break;
 	case WM_LBUTTONDOWN:
-		mouse.ButtonDown(ruInput::MouseButton::Left);
+		mouse.ButtonDown(IInput::MouseButton::Left);
 		break;
 	case WM_RBUTTONDOWN:
-		mouse.ButtonDown(ruInput::MouseButton::Right);
+		mouse.ButtonDown(IInput::MouseButton::Right);
 		break;
 	case WM_MBUTTONDOWN:
-		mouse.ButtonDown(ruInput::MouseButton::Middle);
+		mouse.ButtonDown(IInput::MouseButton::Middle);
 		break;
 	case WM_LBUTTONUP:
-		mouse.ButtonUp(ruInput::MouseButton::Left);
+		mouse.ButtonUp(IInput::MouseButton::Left);
 		break;
 	case WM_RBUTTONUP:
-		mouse.ButtonUp(ruInput::MouseButton::Right);
+		mouse.ButtonUp(IInput::MouseButton::Right);
 		break;
 	case WM_MBUTTONUP:
-		mouse.ButtonUp(ruInput::MouseButton::Middle);
+		mouse.ButtonUp(IInput::MouseButton::Middle);
 		break;
 	case WM_MOUSEWHEEL:
 		mouse.Wheel(((short)HIWORD(wParam)) / WHEEL_DELTA);
@@ -385,7 +385,7 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 	for(int i = 0; i < mpDirect3D->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8); i++) {
 		mpDirect3D->EnumAdapterModes(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, i, &mode);
 		Log::Write(StringBuilder("Videomode: ") << mode.Width << " x " << mode.Height << " x 32 @ " << mode.RefreshRate);
-		mVideomodeList.push_back(ruVideomode(mode.Width, mode.Height, mode.RefreshRate));
+		mVideomodeList.push_back(Videomode(mode.Width, mode.Height, mode.RefreshRate));
 		if(mode.Width == width && mode.Height == height) {
 			passedResolutionValid = true;
 		}
@@ -613,12 +613,12 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 		LoadVertexShader(mQuadVertexShader, "data/shaders/quad.vso");
 
 		const Vertex vertices[6] = {
-			{ruVector3(-0.5, -0.5, 0.0f), ruVector2(0, 0)},
-			{ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0)},
-			{ruVector3(-0.5, GetResolutionHeight() - 0.5, 0), ruVector2(0, 1)},
-			{ruVector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), ruVector2(1, 0)},
-			{ruVector3(GetResolutionWidth() - 0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(1, 1)},
-			{ruVector3(-0.5, GetResolutionHeight() - 0.5, 0.0f), ruVector2(0, 1)}
+			{Vector3(-0.5, -0.5, 0.0f), Vector2(0, 0)},
+			{Vector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), Vector2(1, 0)},
+			{Vector3(-0.5, GetResolutionHeight() - 0.5, 0), Vector2(0, 1)},
+			{Vector3(GetResolutionWidth() - 0.5, -0.5, 0.0f), Vector2(1, 0)},
+			{Vector3(GetResolutionWidth() - 0.5, GetResolutionHeight() - 0.5, 0.0f), Vector2(1, 1)},
+			{Vector3(-0.5, GetResolutionHeight() - 0.5, 0.0f), Vector2(0, 1)}
 		};
 
 		D3DCALL(pD3D->CreateVertexBuffer(6 * sizeof(Vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mQuadVertexBuffer, 0));
@@ -635,12 +635,12 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 
 		const float size = 500;
 		const Vertex vertices[6] = {
-			{ruVector3(0.0, 0.0, 0.0f), ruVector2(0, 0)},
-			{ruVector3(size, 0.0, 0.0f), ruVector2(1, 0)},
-			{ruVector3(0.0, size, 0), ruVector2(0, 1)},
-			{ruVector3(size, -0.5, 0.0f), ruVector2(1, 0)},
-			{ruVector3(size, size, 0.0f), ruVector2(1, 1)},
-			{ruVector3(0.0, size, 0.0f), ruVector2(0, 1)}
+			{Vector3(0.0, 0.0, 0.0f), Vector2(0, 0)},
+			{Vector3(size, 0.0, 0.0f), Vector2(1, 0)},
+			{Vector3(0.0, size, 0), Vector2(0, 1)},
+			{Vector3(size, -0.5, 0.0f), Vector2(1, 0)},
+			{Vector3(size, size, 0.0f), Vector2(1, 1)},
+			{Vector3(0.0, size, 0.0f), Vector2(0, 1)}
 		};
 
 		D3DCALL(pD3D->CreateVertexBuffer(6 * sizeof(Vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mTestQuadVertexBuffer, 0));
@@ -656,26 +656,26 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 
 		float size = 1024.0f;
 		Vertex fv[] = {
-			Vertex(ruVector3(-size, size, -size), ruVector2(0.0f, 0.0f)),
-			Vertex(ruVector3(size, size, -size), ruVector2(1.0f, 0.0f)),
-			Vertex(ruVector3(size, -size, -size), ruVector2(1.0f, 1.0f)),
-			Vertex(ruVector3(-size, -size, -size), ruVector2(0.0f, 1.0f)),
-			Vertex(ruVector3(size, size, size), ruVector2(0.0f, 0.0f)),
-			Vertex(ruVector3(-size, size, size), ruVector2(1.0f, 0.0f)),
-			Vertex(ruVector3(-size, -size, size), ruVector2(1.0f, 1.0f)),
-			Vertex(ruVector3(size, -size, size), ruVector2(0.0f, 1.0f)),
-			Vertex(ruVector3(size, size, -size), ruVector2(0.0f, 0.0f)),
-			Vertex(ruVector3(size, size, size), ruVector2(1.0f, 0.0f)),
-			Vertex(ruVector3(size, -size, size), ruVector2(1.0f, 1.0f)),
-			Vertex(ruVector3(size, -size, -size), ruVector2(0.0f, 1.0f)),
-			Vertex(ruVector3(-size, size, size), ruVector2(0.0f, 0.0f)),
-			Vertex(ruVector3(-size, size, -size), ruVector2(1.0f, 0.0f)),
-			Vertex(ruVector3(-size, -size, -size), ruVector2(1.0f, 1.0f)),
-			Vertex(ruVector3(-size, -size, size), ruVector2(0.0f, 1.0f)),
-			Vertex(ruVector3(-size, size, size), ruVector2(0.0f, 0.0f)),
-			Vertex(ruVector3(size, size, size), ruVector2(1.0f, 0.0f)),
-			Vertex(ruVector3(size, size, -size), ruVector2(1.0f, 1.0f)),
-			Vertex(ruVector3(-size, size, -size), ruVector2(0.0f, 1.0f))
+			Vertex(Vector3(-size, size, -size), Vector2(0.0f, 0.0f)),
+			Vertex(Vector3(size, size, -size), Vector2(1.0f, 0.0f)),
+			Vertex(Vector3(size, -size, -size), Vector2(1.0f, 1.0f)),
+			Vertex(Vector3(-size, -size, -size), Vector2(0.0f, 1.0f)),
+			Vertex(Vector3(size, size, size), Vector2(0.0f, 0.0f)),
+			Vertex(Vector3(-size, size, size), Vector2(1.0f, 0.0f)),
+			Vertex(Vector3(-size, -size, size), Vector2(1.0f, 1.0f)),
+			Vertex(Vector3(size, -size, size), Vector2(0.0f, 1.0f)),
+			Vertex(Vector3(size, size, -size), Vector2(0.0f, 0.0f)),
+			Vertex(Vector3(size, size, size), Vector2(1.0f, 0.0f)),
+			Vertex(Vector3(size, -size, size), Vector2(1.0f, 1.0f)),
+			Vertex(Vector3(size, -size, -size), Vector2(0.0f, 1.0f)),
+			Vertex(Vector3(-size, size, size), Vector2(0.0f, 0.0f)),
+			Vertex(Vector3(-size, size, -size), Vector2(1.0f, 0.0f)),
+			Vertex(Vector3(-size, -size, -size), Vector2(1.0f, 1.0f)),
+			Vertex(Vector3(-size, -size, size), Vector2(0.0f, 1.0f)),
+			Vertex(Vector3(-size, size, size), Vector2(0.0f, 0.0f)),
+			Vertex(Vector3(size, size, size), Vector2(1.0f, 0.0f)),
+			Vertex(Vector3(size, size, -size), Vector2(1.0f, 1.0f)),
+			Vertex(Vector3(-size, size, -size), Vector2(0.0f, 1.0f))
 		};
 		D3DCALL(pD3D->CreateVertexBuffer(sizeof(fv), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mSkyboxVertexBuffer, 0));
 		D3DCALL(mSkyboxVertexBuffer->Lock(0, 0, &lockedData, 0));
@@ -707,10 +707,10 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 					for(int col = 0; col < dim; ++col) {
 						float m = dim;
 						float scl = 2;
-						float p1 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 1) * 0.5 + 0.5);
-						float p2 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 2) * 0.5 + 0.5);
-						float p3 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 3) * 0.5 + 0.5);
-						float p4 = scl * (pg.GenerateNoise(ruVector3(col / m, row / m, slice / m), 4) * 0.5 + 0.5);
+						float p1 = scl * (pg.GenerateNoise(Vector3(col / m, row / m, slice / m), 1) * 0.5 + 0.5);
+						float p2 = scl * (pg.GenerateNoise(Vector3(col / m, row / m, slice / m), 2) * 0.5 + 0.5);
+						float p3 = scl * (pg.GenerateNoise(Vector3(col / m, row / m, slice / m), 3) * 0.5 + 0.5);
+						float p4 = scl * (pg.GenerateNoise(Vector3(col / m, row / m, slice / m), 4) * 0.5 + 0.5);
 						pixels[slice * sliceOffset + row * rowOffset + col] = A8R8G8B8Pixel(p1 * 255, p2 * 255, p3 * 255, p4 * 255);
 					}
 				}
@@ -738,8 +738,8 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 	{
 		float bloomWidth = width * 0.5f;
 		float bloomHeight = height * 0.5f;
-		mBloomDX = ruVector2(1.0f / bloomWidth, 0.0f);
-		mBloomDY = ruVector2(0.0f, 1.0f / bloomHeight);
+		mBloomDX = Vector2(1.0f / bloomWidth, 0.0f);
+		mBloomDY = Vector2(0.0f, 1.0f / bloomHeight);
 		D3DCALL(pD3D->CreateTexture(bloomWidth, bloomHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &mBloomTexture, nullptr));
 		D3DCALL(mBloomTexture->GetSurfaceLevel(0, &mBloomTextureSurface));
 
@@ -870,13 +870,8 @@ Renderer::Renderer(Engine * engine, int width, int height, int fullscreen, char 
 =========
 */
 Renderer::~Renderer() {
-	for(auto & kv : CubeTexture::all) {
-		delete kv.second;
-	}
 	pfSystemDestroy();
 }
-
-
 
 /*
 =========
@@ -928,7 +923,7 @@ void Renderer::RenderWorld() {
 
 			bool textureFound = texGroupPair.first == mWhiteMap;
 			if(!textureFound) {
-				for(auto textureGroup : Texture::msTextureList) {
+				for(auto textureGroup : msTextureList) {
 					auto texture = textureGroup.second.lock();
 					if(texture) {
 						if(texture->GetInterface() == texGroupPair.first) {
@@ -1342,12 +1337,12 @@ void Renderer::RenderWorld() {
 										D3DCALL(pD3D->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
 
 										static const CameraDirection directions[6] = {
-											{ruVector3(1.0f, 0.0f, 0.0f), ruVector3(0.0f, 1.0f, 0.0f)},
-											{ruVector3(-1.0f, 0.0f, 0.0f), ruVector3(0.0f, 1.0f, 0.0f)},
-											{ruVector3(0.0f, 1.0f, 0.0f), ruVector3(0.0f, 0.0f, -1.0f)},
-											{ruVector3(0.0f, -1.0f, 0.0f), ruVector3(0.0f, 0.0f, 1.0f)},
-											{ruVector3(0.0f, 0.0f, 1.0f), ruVector3(0.0f, 1.0f, 0.0f)},
-											{ruVector3(0.0f, 0.0f, -1.0f), ruVector3(0.0f, 1.0f, 0.0f)}
+											{Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f)},
+											{Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f)},
+											{Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f)},
+											{Vector3(0.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f)},
+											{Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f)},
+											{Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, 1.0f, 0.0f)}
 										};
 
 										D3DCALL(pD3D->SetPixelShader(mShadowMapPixelShader));
@@ -1365,9 +1360,9 @@ void Renderer::RenderWorld() {
 											D3DCALL(pD3D->SetDepthStencilSurface(mCubeDepthStencilSurface));
 											D3DCALL(pD3D->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, D3DCOLOR_XRGB(0, 0, 0), 1.0, 0));
 
-											ruVector3 eye = pLight->GetPosition();
-											ruVector3 at = eye + directions[face].target;
-											ruVector3 up = directions[face].up;
+											Vector3 eye = pLight->GetPosition();
+											Vector3 at = eye + directions[face].target;
+											Vector3 up = directions[face].up;
 
 											D3DXMATRIX viewMatrix;
 											D3DXMatrixLookAtLH(&viewMatrix, (D3DXVECTOR3*)(&eye), (D3DXVECTOR3*)(&at), (D3DXVECTOR3*)(&up));
@@ -1631,8 +1626,8 @@ void Renderer::RenderWorld() {
 					gpuFloatRegisterStack.PushVector(pLight->GetColor());
 					gpuFloatRegisterStack.PushFloat(pLight->GetRange());
 					gpuFloatRegisterStack.PushFloat(hdrLightIntensity);
-					gpuFloatRegisterStack.PushVector(ruVector3());
-					gpuFloatRegisterStack.PushVector(ruVector3());
+					gpuFloatRegisterStack.PushVector(Vector3());
+					gpuFloatRegisterStack.PushVector(Vector3());
 					gpuFloatRegisterStack.PushFloat(1.0f / mSpotShadowMapSize, 1.0f / mSpotShadowMapSize);
 					pD3D->SetPixelShaderConstantF(0, gpuFloatRegisterStack.GetPointer(), gpuFloatRegisterStack.mRegisterCount);
 
@@ -1761,7 +1756,7 @@ void Renderer::RenderWorld() {
 				++mShadersChangeCount;
 
 
-				ruVector3 dir = pLight->mGlobalTransform.getBasis() * btVector3(0, 1, 0);
+				Vector3 dir = pLight->mGlobalTransform.getBasis() * btVector3(0, 1, 0);
 				// Load pixel shader constants
 				gpuFloatRegisterStack.Clear();
 				gpuFloatRegisterStack.PushMatrix(camera->invViewProjection);
@@ -2083,9 +2078,9 @@ void Renderer::RenderWorld() {
 		pD3D->SetPixelShader(mParticleSystemPixelShader);
 		++mShadersChangeCount;
 
-		ruVector3 rightVect = ruVector3(camera->mView._11, camera->mView._21, camera->mView._31).Normalize();
-		ruVector3 upVect = ruVector3(camera->mView._12, camera->mView._22, camera->mView._32).Normalize();
-		ruVector3 frontVect = ruVector3(camera->mView._13, camera->mView._23, camera->mView._33).Normalize();
+		Vector3 rightVect = Vector3(camera->mView._11, camera->mView._21, camera->mView._31).Normalize();
+		Vector3 upVect = Vector3(camera->mView._12, camera->mView._22, camera->mView._32).Normalize();
+		Vector3 frontVect = Vector3(camera->mView._13, camera->mView._23, camera->mView._33).Normalize();
 
 		auto & particleSystems = mEngine->GetSceneFactory()->GetParticleSystemList();
 		for(auto pWeak : particleSystems) {
@@ -2127,7 +2122,7 @@ void Renderer::RenderWorld() {
 			// this part must be refactored to support lighting by more than one light source
 			if(particleEmitter->mUseLighting) {
 				// find closest light source
-				shared_ptr<ruLight> closestLightSource;
+				shared_ptr<ILight> closestLightSource;
 				float lastDistance = FLT_MAX;
 
 				// check out point lights first
@@ -2280,8 +2275,8 @@ void Renderer::RenderWorld() {
 					mTextVertexBuffer->Lock(0, mTextMaxChars * 4 * sizeof(Vertex), reinterpret_cast<void**>(&vertices), D3DLOCK_DISCARD);
 					mTextIndexBuffer->Lock(0, mTextMaxChars * 2 * sizeof(Triangle), reinterpret_cast<void**>(&triangles), D3DLOCK_DISCARD);
 
-					ruVector2 position = text->GetGlobalPosition();
-					ruVector2 caret = position;
+					Vector2 position = text->GetGlobalPosition();
+					Vector2 caret = position;
 					for(auto & line : text->mLines) {
 						caret.x = line.mX + position.x;
 						caret.y = line.mY + position.y;
@@ -2307,10 +2302,10 @@ void Renderer::RenderWorld() {
 							float alpha = text->IsIndependentAlpha() ? text->GetAlpha() / 255.0f : scene->GetOpacity() * text->GetAlpha() / 255.0f;
 
 							// vertices
-							*(vertices++) = Vertex(ruVector3(x, y, 0.0f), ruVector2(texCoords[0].x, texCoords[0].y), ruVector4(text->GetColor(), alpha));
-							*(vertices++) = Vertex(ruVector3(x + width, y, 0.0f), ruVector2(texCoords[1].x, texCoords[1].y), ruVector4(text->GetColor(), alpha));
-							*(vertices++) = Vertex(ruVector3(x + width, y + height, 0.0f), ruVector2(texCoords[2].x, texCoords[2].y), ruVector4(text->GetColor(), alpha));
-							*(vertices++) = Vertex(ruVector3(x, y + height, 0.0f), ruVector2(texCoords[3].x, texCoords[3].y), ruVector4(text->GetColor(), alpha));
+							*(vertices++) = Vertex(Vector3(x, y, 0.0f), Vector2(texCoords[0].x, texCoords[0].y), Vector4(text->GetColor(), alpha));
+							*(vertices++) = Vertex(Vector3(x + width, y, 0.0f), Vector2(texCoords[1].x, texCoords[1].y), Vector4(text->GetColor(), alpha));
+							*(vertices++) = Vertex(Vector3(x + width, y + height, 0.0f), Vector2(texCoords[2].x, texCoords[2].y), Vector4(text->GetColor(), alpha));
+							*(vertices++) = Vertex(Vector3(x, y + height, 0.0f), Vector2(texCoords[3].x, texCoords[3].y), Vector4(text->GetColor(), alpha));
 
 							// indices
 							*(triangles++) = Triangle(n, n + 1, n + 2);
@@ -2349,17 +2344,17 @@ void Renderer::RenderWorld() {
 	if(cursor) {
 		pD3D->SetStreamSource(0, mRectVertexBuffer, 0, sizeof(Vertex));
 		if(cursor->mVisible) {
-			cursor->mPosition = ruVector2(mEngine->GetInput()->GetMouseX(), mEngine->GetInput()->GetMouseY());			
+			cursor->mPosition = Vector2(mEngine->GetInput()->GetMouseX(), mEngine->GetInput()->GetMouseY());			
 			if(cursor->mTexture) {
 				pD3D->SetStreamSource(0, mRectVertexBuffer, 0, sizeof(Vertex));
 				void * data = nullptr;
 				Vertex vertices[6] = {
-					Vertex(ruVector3(cursor->mPosition.x, cursor->mPosition.y, 0), ruVector2(0, 0), ruVector4(ruVector3(255, 255, 255), 255)),
-					Vertex(ruVector3(cursor->mPosition.x + cursor->mSize.x, cursor->mPosition.y, 0), ruVector2(1, 0), ruVector4(ruVector3(255, 255, 255), 255)),
-					Vertex(ruVector3(cursor->mPosition.x, cursor->mPosition.y + cursor->mSize.y, 0), ruVector2(0, 1), ruVector4(ruVector3(255, 255, 255), 255)),
-					Vertex(ruVector3(cursor->mPosition.x + cursor->mSize.x, cursor->mPosition.y, 0), ruVector2(1, 0), ruVector4(ruVector3(255, 255, 255), 255)),
-					Vertex(ruVector3(cursor->mPosition.x + cursor->mSize.x, cursor->mPosition.y + cursor->mSize.y, 0), ruVector2(1, 1), ruVector4(ruVector3(255, 255, 255), 255)),
-					Vertex(ruVector3(cursor->mPosition.x, cursor->mPosition.y + cursor->mSize.y, 0), ruVector2(0, 1), ruVector4(ruVector3(255, 255, 255), 255))
+					Vertex(Vector3(cursor->mPosition.x, cursor->mPosition.y, 0), Vector2(0, 0), Vector4(Vector3(255, 255, 255), 255)),
+					Vertex(Vector3(cursor->mPosition.x + cursor->mSize.x, cursor->mPosition.y, 0), Vector2(1, 0), Vector4(Vector3(255, 255, 255), 255)),
+					Vertex(Vector3(cursor->mPosition.x, cursor->mPosition.y + cursor->mSize.y, 0), Vector2(0, 1), Vector4(Vector3(255, 255, 255), 255)),
+					Vertex(Vector3(cursor->mPosition.x + cursor->mSize.x, cursor->mPosition.y, 0), Vector2(1, 0), Vector4(Vector3(255, 255, 255), 255)),
+					Vertex(Vector3(cursor->mPosition.x + cursor->mSize.x, cursor->mPosition.y + cursor->mSize.y, 0), Vector2(1, 1), Vector4(Vector3(255, 255, 255), 255)),
+					Vertex(Vector3(cursor->mPosition.x, cursor->mPosition.y + cursor->mSize.y, 0), Vector2(0, 1), Vector4(Vector3(255, 255, 255), 255))
 				};
 				mRectVertexBuffer->Lock(0, 0, &data, D3DLOCK_DISCARD);
 				memcpy(data, vertices, 6 * sizeof(Vertex));
@@ -2526,7 +2521,7 @@ void Renderer::SetIsotropyDegree(int degree) {
 	}
 }
 
-vector<ruVideomode> Renderer::GetVideoModeList() {
+vector<Videomode> Renderer::GetVideoModeList() {
 	return mVideomodeList;
 }
 
@@ -2586,7 +2581,7 @@ void Renderer::SetPointLightShadowsEnabled(bool state) {
 	mUsePointLightShadows = state;
 }
 
-void Renderer::SetAmbientColor(ruVector3 ambColor) {
+void Renderer::SetAmbientColor(Vector3 ambColor) {
 	mAmbientColor = ambColor;
 }
 
@@ -2594,7 +2589,7 @@ int Renderer::GetAvailableTextureMemory() {
 	return 0; // FIX THIS
 }
 
-ruVector3 Renderer::GetAmbientColor() const {
+Vector3 Renderer::GetAmbientColor() const {
 	return mAmbientColor;
 }
 
@@ -2636,6 +2631,44 @@ int Renderer::GetShaderUsedPerFrame() const {
 
 void Renderer::SetTextureStoragePath(const string & path) {
 	mTextureStoragePath = path;
+}
+
+HWND Renderer::GetWindow() const {
+	return mWindowHandle;
+}
+
+// API Methods
+
+shared_ptr<ITexture> Renderer::GetTexture(const string & filename) {
+	shared_ptr<Texture> pTexture;
+	auto existing = msTextureList.find(filename);
+	if(existing != msTextureList.end()) {
+		pTexture = existing->second.lock();
+	}
+	if(pTexture) {
+		return pTexture;
+	} else {
+		pTexture = make_shared<Texture>(filename);
+		if(pTexture->LoadFromFile(filename)) {
+			msTextureList[filename] = pTexture;
+		} else {
+			pTexture.reset();
+		}
+	}
+	return pTexture;
+}
+
+inline shared_ptr<ICubeTexture> Renderer::GetCubeTexture(const string & filename) {
+	shared_ptr<CubeTexture> pTexture;
+	auto existing = mCubeTextureList.find(filename);
+	if(existing != mCubeTextureList.end()) {
+		pTexture = existing->second.lock();
+	} else {
+		auto newCubeTexture = make_shared<CubeTexture>(filename);
+		mCubeTextureList[filename] = newCubeTexture;
+		return newCubeTexture;
+	}
+	return pTexture;
 }
 
 std::string Renderer::GetTextureStoragePath() {
@@ -2876,8 +2909,8 @@ void Renderer::SetCursorVisible(bool state) {
 	pD3D->ShowCursor(state);
 }
 
-void Renderer::SetCursor(shared_ptr<ruTexture> texture, int w, int h) {
-	mCursor = shared_ptr<Cursor>(new Cursor(ruVector2(w, h), ruVector2(GetGUIWidthScaleFactor(), GetGUIHeightScaleFactor()), std::dynamic_pointer_cast<Texture>(texture)));
+void Renderer::SetCursor(shared_ptr<ITexture> texture, int w, int h) {
+	mCursor = make_shared<Cursor>(Vector2(w, h), Vector2(GetGUIWidthScaleFactor(), GetGUIHeightScaleFactor()), std::dynamic_pointer_cast<Texture>(texture));
 }
 
 int Renderer::GetDIPs() const {

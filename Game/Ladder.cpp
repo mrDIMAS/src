@@ -3,7 +3,7 @@
 #include "Player.h"
 #include "Level.h"
 
-Ladder::Ladder(const shared_ptr<ruSceneNode> & hBegin, const shared_ptr<ruSceneNode> & hEnd, const shared_ptr<ruSceneNode> & hEnterZone, const shared_ptr<ruSceneNode> & hBeginLeavePoint, const shared_ptr<ruSceneNode> & hEndLeavePoint) :
+Ladder::Ladder(const shared_ptr<ISceneNode> & hBegin, const shared_ptr<ISceneNode> & hEnd, const shared_ptr<ISceneNode> & hEnterZone, const shared_ptr<ISceneNode> & hBeginLeavePoint, const shared_ptr<ISceneNode> & hEndLeavePoint) :
 	mBegin(hBegin),
 	mEnd(hEnd),
 	mEnterZone(hEnterZone),

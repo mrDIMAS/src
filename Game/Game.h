@@ -19,10 +19,10 @@ class Game;
 class LoadingScreen {
 private:
 	unique_ptr<Game> & mGame;
-	shared_ptr<ruGUIScene> mScene;
-	shared_ptr<ruText> mGUILoadingText;
-	shared_ptr<ruRect> mGUILoadingBackground;
-	shared_ptr<ruFont> mGUIFont;
+	shared_ptr<IGUIScene> mScene;
+	shared_ptr<IText> mGUILoadingText;
+	shared_ptr<IRect> mGUILoadingBackground;
+	shared_ptr<IFont> mGUIFont;
 public:
 	LoadingScreen(unique_ptr<Game> & game, const string & loadingText);
 	void Draw();
@@ -30,17 +30,17 @@ public:
 
 class Game {
 private:
-	unique_ptr<ruEngine> mEngine;
+	unique_ptr<IEngine> mEngine;
 	unique_ptr<class Level> mLevel;
 	unique_ptr<LoadingScreen> mLoadingScreen;
 	unique_ptr<class Menu> mMenu;
 	string mLocalizationPath;
 	LevelName mInitialLevel;
-	ruInput::Key mKeyQuickSave;
-	ruInput::Key mKeyQuickLoad;
-	shared_ptr<ruTimer> mDeltaTimer;
-	shared_ptr<ruGUIScene> mOverlayScene;
-	shared_ptr<ruText> mFPSText;
+	IInput::Key mKeyQuickSave;
+	IInput::Key mKeyQuickLoad;
+	shared_ptr<ITimer> mDeltaTimer;
+	shared_ptr<IGUIScene> mOverlayScene;
+	shared_ptr<IText> mFPSText;
 	FPSCounter mFPSCounter;
 	float mMouseSens;
 	bool mRunning;
@@ -61,11 +61,11 @@ public:
 	LevelName GetNewGameLevel() const;
 	void ShowFPS(bool state);
 	bool IsShowFPSEnabled() const;
-	void SetQuickSaveKey(const ruInput::Key & key);
-	void SetQuickLoadKey(const ruInput::Key & key);
+	void SetQuickSaveKey(const IInput::Key & key);
+	void SetQuickLoadKey(const IInput::Key & key);
 	void SetMusicVolume(float vol);
 	float GetMusicVolume() const;
-	const unique_ptr<ruEngine> & GetEngine() const;
+	const unique_ptr<IEngine> & GetEngine() const;
 	const unique_ptr<Level> & GetLevel() const;
 	const unique_ptr<class Menu> & GetMenu() const;
 	void LoadLevel(LevelName name, bool continueFromSave = false);

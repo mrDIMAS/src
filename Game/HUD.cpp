@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "HUD.h"
 
-GUIBar::GUIBar(const shared_ptr<ruGUIScene>& scene, const shared_ptr<ruTexture>& signTex, float x, float y, float w, float h, float minValue, float maxValue, float value, const ruVector3 & color, bool leftToRight) :
+GUIBar::GUIBar(const shared_ptr<IGUIScene>& scene, const shared_ptr<ITexture>& signTex, float x, float y, float w, float h, float minValue, float maxValue, float value, const Vector3 & color, bool leftToRight) :
 	mValue(value),
 	mMaxValue(maxValue),
 	mMinValue(minValue),
@@ -19,16 +19,18 @@ GUIBar::GUIBar(const shared_ptr<ruGUIScene>& scene, const shared_ptr<ruTexture>&
 
 	mWSegment = h / 3.0f;
 
-	mBegin = scene->CreateRect(0, 0, mWSegment, h, ruTexture::Request("data/gui/bar_begin.png"));
+	auto renderer = scene->GetEngine()->GetRenderer();
+
+	mBegin = scene->CreateRect(0, 0, mWSegment, h, renderer->GetTexture("data/gui/bar_begin.png"));
 	mBegin->SetPosition(-mWSegment, 0);
 	mBegin->Attach(mNode);
 	mBegin->SetColor(color);
 
-	mBar = scene->CreateRect(0, 0, mWSegment, h, ruTexture::Request("data/gui/bar.png"));
+	mBar = scene->CreateRect(0, 0, mWSegment, h, renderer->GetTexture("data/gui/bar.png"));
 	mBar->Attach(mNode);
 	mBar->SetColor(color);
 
-	mEnd = scene->CreateRect(0, 0, mWSegment, h, ruTexture::Request("data/gui/bar_end.png"));
+	mEnd = scene->CreateRect(0, 0, mWSegment, h, renderer->GetTexture("data/gui/bar_end.png"));
 	mEnd->Attach(mNode);
 	mEnd->SetColor(color);
 
@@ -123,7 +125,7 @@ void GUIBar::Update()
 	}
 }
 
-shared_ptr<ruGUINode>& GUIBar::GetNode()
+shared_ptr<IGUINode>& GUIBar::GetNode()
 {
 	return mNode;
 }
@@ -138,12 +140,14 @@ HUD::HUD(unique_ptr<Game> & game) :
 	mTip = make_unique<Tip>(mGUIScene);
 	mGoal = make_unique<Goal>(mGUIScene);
 
-	mGUIActionText = mGUIScene->CreateText("Action text", ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center);
+	mGUIActionText = mGUIScene->CreateText("Action text", ruVirtualScreenWidth / 2 - 256, ruVirtualScreenHeight - 200, 512, 128, pGUIProp->mFont, pGUIProp->mNoticeColor, TextAlignment::Center);
 
-	mHealthBar = make_unique<GUIBar>(mGUIScene, ruTexture::Request("data/gui/health.png"), 32, ruVirtualScreenHeight - 80, 150, 17, 0, 100, 100, pGUIProp->mForeColor);
-	mStaminaBar = make_unique<GUIBar>(mGUIScene, ruTexture::Request("data/gui/stamina.png"), 32, ruVirtualScreenHeight - 60, 150, 17, 0, 100, 100, pGUIProp->mForeColor);
-	mStealthBar = make_unique<GUIBar>(mGUIScene, ruTexture::Request("data/gui/stealth.png"), ruVirtualScreenWidth - 170, ruVirtualScreenHeight - 80, 150, 17, 0, 100, 100, pGUIProp->mForeColor, false);
-	mNoiseBar = make_unique<GUIBar>(mGUIScene, ruTexture::Request("data/gui/noise.png"), ruVirtualScreenWidth - 170, ruVirtualScreenHeight - 60, 150, 17, 0, 100, 100, pGUIProp->mForeColor, false);
+	auto renderer = mGame->GetEngine()->GetRenderer();
+
+	mHealthBar = make_unique<GUIBar>(mGUIScene, renderer->GetTexture("data/gui/health.png"), 32, ruVirtualScreenHeight - 80, 150, 17, 0, 100, 100, pGUIProp->mForeColor);
+	mStaminaBar = make_unique<GUIBar>(mGUIScene, renderer->GetTexture("data/gui/stamina.png"), 32, ruVirtualScreenHeight - 60, 150, 17, 0, 100, 100, pGUIProp->mForeColor);
+	mStealthBar = make_unique<GUIBar>(mGUIScene, renderer->GetTexture("data/gui/stealth.png"), ruVirtualScreenWidth - 170, ruVirtualScreenHeight - 80, 150, 17, 0, 100, 100, pGUIProp->mForeColor, false);
+	mNoiseBar = make_unique<GUIBar>(mGUIScene, renderer->GetTexture("data/gui/noise.png"), ruVirtualScreenWidth - 170, ruVirtualScreenHeight - 60, 150, 17, 0, 100, 100, pGUIProp->mForeColor, false);
 
 	mHealthBar->SetSmooth(true);
 	mStaminaBar->SetSmooth(true);
@@ -152,16 +156,16 @@ HUD::HUD(unique_ptr<Game> & game) :
 
 
 	mGUIYouDiedFont = mGame->GetEngine()->CreateBitmapFont(40, "data/fonts/font5.ttf");
-	mGUIYouDied = mGUIScene->CreateText(mLocalization.GetString("youDied"), (ruVirtualScreenWidth - 300) / 2, ruVirtualScreenHeight / 2, 300, 50, mGUIYouDiedFont, ruVector3(255, 0, 0), ruTextAlignment::Center, 255);
+	mGUIYouDied = mGUIScene->CreateText(mLocalization.GetString("youDied"), (ruVirtualScreenWidth - 300) / 2, ruVirtualScreenHeight / 2, 300, 50, mGUIYouDiedFont, Vector3(255, 0, 0), TextAlignment::Center, 255);
 	mGUIYouDied->SetVisible(false);
 
 	mGUIRectItemForUse = mGUIScene->CreateRect(ruVirtualScreenWidth / 2, ruVirtualScreenHeight / 2, 64, 64, nullptr, pGUIProp->mForeColor, 255);
 
-	mGUICursorPickUp = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request("data/gui/up.tga"));
-	mGUICursorPut = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request("data/gui/down.tga"));
-	mGUICrosshair = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, ruTexture::Request("data/gui/crosshair.tga"));
+	mGUICursorPickUp = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, renderer->GetTexture("data/gui/up.tga"));
+	mGUICursorPut = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, renderer->GetTexture("data/gui/down.tga"));
+	mGUICrosshair = mGUIScene->CreateRect((ruVirtualScreenWidth - 32) / 2, (ruVirtualScreenHeight - 32) / 2, 32, 32, renderer->GetTexture("data/gui/crosshair.tga"));
 
-	mGUIDamageBackground = mGUIScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/effects/damageBackground.tga"), ruVector3(200, 0, 0), mDamageBackgroundAlpha);
+	mGUIDamageBackground = mGUIScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, renderer->GetTexture("data/textures/effects/damageBackground.tga"), Vector3(200, 0, 0), mDamageBackgroundAlpha);
 
 	SetObjective(mLocalization.GetString("objectiveUnknown"));
 }
@@ -209,11 +213,11 @@ void HUD::SetVisible(bool visible)
 	mGUIScene->SetVisible(visible);
 }
 
-void HUD::SetAction(ruInput::Key keyCode, const string & action)
+void HUD::SetAction(IInput::Key keyCode, const string & action)
 {
 	string text;
 
-	if(keyCode == ruInput::Key::None) {
+	if(keyCode == IInput::Key::None) {
 		text = action;
 	} else {
 		text = StringBuilder() << "[" << mGame->GetEngine()->GetInput()->GetKeyName(keyCode) << "] - " << action;
@@ -228,7 +232,7 @@ void HUD::SetTip(const string & text)
 	mTip->SetNewText(text);
 }
 
-shared_ptr<ruGUIScene> HUD::GetScene() const
+shared_ptr<IGUIScene> HUD::GetScene() const
 {
 	return mGUIScene;
 }

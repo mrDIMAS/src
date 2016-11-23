@@ -2,7 +2,7 @@
 
 #include "Light.h"
 
-class DirectionalLight : public virtual ruDirectionalLight, public Light {
+class DirectionalLight : public virtual IDirectionalLight, public Light {
 private:
 	friend class SceneFactory;
 public:
@@ -12,6 +12,6 @@ public:
 	D3DXMATRIX BuildViewMatrix( const shared_ptr<Camera> & camera );
 
 	// API Methods
-	virtual bool IsSeePoint( const ruVector3 & point ) override final;
+	virtual bool IsSeePoint( const Vector3 & point ) override final;
 };
 

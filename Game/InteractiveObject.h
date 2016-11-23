@@ -13,9 +13,9 @@ private:
 	string mPickDesc;
 	void UpdateFlashing();
 public:
-	shared_ptr<ruSceneNode> mObject;
-	ruEvent OnInteract;
-	explicit InteractiveObject(shared_ptr<ruSceneNode> object);
+	shared_ptr<ISceneNode> mObject;
+	Event OnInteract;
+	explicit InteractiveObject(shared_ptr<ISceneNode> object);
 	explicit InteractiveObject();
 	virtual ~InteractiveObject();
 	virtual void Update();

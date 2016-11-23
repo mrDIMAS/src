@@ -19,8 +19,8 @@ public:
 	};
 private:
 	friend class Inventory;
-	static ruConfig msLocalization;
-	shared_ptr<ruTexture> mPic;
+	static Config msLocalization;
+	shared_ptr<ITexture> mPic;
 	string mDesc;
 	string mName;
 	Type mType;
@@ -34,7 +34,7 @@ public:
 	virtual ~Item();
 	bool Combine(Item::Type combinerType);
 	Type GetType() const;
-	shared_ptr<ruTexture> GetPictogram() const;
+	shared_ptr<ITexture> GetPictogram() const;
 	float GetContent() const;
 	void SetContent(float content);
 	const string & GetContentType() const;

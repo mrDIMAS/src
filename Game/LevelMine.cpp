@@ -5,8 +5,7 @@
 #include "Pathfinder.h"
 #include "Utils.h"
 
-LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) : Level(game, playerTransfer)
-{
+LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer) : Level(game, playerTransfer) {
 	mName = LevelName::Mine;
 
 	LoadLocalization("mine.loc");
@@ -17,8 +16,8 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
 
-	ruVector3 placePos = GetUniqueObject("PlayerPosition")->GetPosition();
-	ruVector3 playerPos = mPlayer->GetCurrentPosition();
+	Vector3 placePos = GetUniqueObject("PlayerPosition")->GetPosition();
+	Vector3 playerPos = mPlayer->GetCurrentPosition();
 
 	mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective1"));
 
@@ -37,18 +36,20 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 
 	mNewLevelZone = GetUniqueObject("NewLevel");
 
-	ruSound::SetAudioReverb(10);
+	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
 
-	AddSound(mMusic = ruSound::LoadMusic("data/music/chapter2.ogg"));
+	soundSystem->SetReverbPreset(ReverbPreset::Cave);
+
+	AddSound(mMusic = soundSystem->LoadMusic("data/music/chapter2.ogg"));
 
 	mConcreteWall = GetUniqueObject("ConcreteWall");
 	mDeathZone = GetUniqueObject("DeadZone");
 	mDetonator = GetUniqueObject("Detonator");
 
-	AddSound(mAlertSound = ruSound::Load3D("data/sounds/alert.ogg"));
+	AddSound(mAlertSound = soundSystem->LoadSound3D("data/sounds/alert.ogg"));
 	mAlertSound->Attach(mDetonator);
 
-	AddSound(mExplosionSound = ruSound::Load3D("data/sounds/blast.ogg"));
+	AddSound(mExplosionSound = soundSystem->LoadSound3D("data/sounds/blast.ogg"));
 	mExplosionSound->SetReferenceDistance(10);
 
 	mDetonatorActivated = 0;
@@ -80,14 +81,14 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 
 	mFindItemsZone = GetUniqueObject("FindItemsZone");
 
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/mine/ambientmine1.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/mine/ambientmine2.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/mine/ambientmine3.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/mine/ambientmine4.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/mine/ambientmine5.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/mine/ambientmine1.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/mine/ambientmine2.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/mine/ambientmine3.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/mine/ambientmine4.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/mine/ambientmine5.ogg"));
 
-	mExplosionTimer = ruTimer::Create();
-	mBeepSoundTimer = ruTimer::Create();
+	mExplosionTimer = ITimer::Create();
+	mBeepSoundTimer = ITimer::Create();
 	mBeepSoundTiming = 1.0f;
 
 	CreateItems();
@@ -158,35 +159,27 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 	DoneInitialization();
 }
 
-LevelMine::~LevelMine()
-{
+LevelMine::~LevelMine() {
 
 }
 
-void LevelMine::Show()
-{
+void LevelMine::Show() {
 	Level::Show();
 }
 
-void LevelMine::Hide()
-{
+void LevelMine::Hide() {
 	Level::Hide();
 
 	mMusic->Pause();
 }
 
-void LevelMine::DoScenario()
-{
+void LevelMine::DoScenario() {
 	mMusic->Play();
-
 	mEnemy->Think();
-
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.01, 0.01, 0.01));
-
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.01, 0.01, 0.01));
 	PlayAmbientSounds();
-
 	if(mPlayer->mNearestPickedNode == mLiftButton) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("brokenLift"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("brokenLift"));
 	}
 
 	if(!mStages["FindObjectObjectiveSet"]) {
@@ -226,31 +219,31 @@ void LevelMine::DoScenario()
 
 				mStages["ConcreteWallExp"] = true;
 
-				mConcreteWall->SetPosition(ruVector3(10000, 10000, 10000));
+				mConcreteWall->SetPosition(Vector3(10000, 10000, 10000));
 
 				CleanUpExplodeArea();
 
-				ruVector3 vec = (mConcreteWall->GetPosition() - mPlayer->GetCurrentPosition()).Normalize() * 20;
+				Vector3 vec = (mConcreteWall->GetPosition() - mPlayer->GetCurrentPosition()).Normalize() * 20;
 
 				mExplodedWall->Show();
 
 				mExplosionFlashLight = mGame->GetEngine()->GetSceneFactory()->CreatePointLight();
 				mExplosionFlashLight->Attach(mExplosionFlashPosition);
-				mExplosionFlashLight->SetColor(ruVector3(255, 200, 160));
-				mExplosionFlashAnimator = unique_ptr<LightAnimator>(new LightAnimator(mExplosionFlashLight, 0.25, 30, 1.1));
+				mExplosionFlashLight->SetColor(Vector3(255, 200, 160));
+				mExplosionFlashAnimator = make_unique<LightAnimator>(mExplosionFlashLight, 0.25, 30, 1.1);
 				mExplosionFlashAnimator->SetAnimationType(LightAnimator::AnimationType::Off);
 
 				// dust
 				mExplosionDustParticleSystem = mGame->GetEngine()->GetSceneFactory()->CreateParticleSystem(400);
-				mExplosionDustParticleSystem->SetPosition(mExplosivesDummy[0]->GetPosition() - ruVector3(0, 2.5, 0));
-				mExplosionDustParticleSystem->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
-				mExplosionDustParticleSystem->SetType(ruParticleSystem::Type::Box);
+				mExplosionDustParticleSystem->SetPosition(mExplosivesDummy[0]->GetPosition() - Vector3(0, 2.5, 0));
+				mExplosionDustParticleSystem->SetTexture(mGame->GetEngine()->GetRenderer()->GetTexture("data/textures/particles/p1.png"));
+				mExplosionDustParticleSystem->SetType(IParticleSystem::Type::Box);
 				mExplosionDustParticleSystem->SetLightingEnabled(false);
 				mExplosionDustParticleSystem->SetAutoResurrection(false);
 				mExplosionDustParticleSystem->SetPointSize(0.8f);
-				mExplosionDustParticleSystem->SetSpeedDeviation(ruVector3(-0.0008, 0.0, -0.0008), ruVector3(0.0008, 0.005, 0.0008));
-				mExplosionDustParticleSystem->SetBoundingBox(ruVector3(-1, 0, -3), ruVector3(1, 3, 3));
-				mExplosionDustParticleSystem->SetColorRange(ruVector3(130, 130, 130), ruVector3(150, 150, 150));
+				mExplosionDustParticleSystem->SetSpeedDeviation(Vector3(-0.0008, 0.0, -0.0008), Vector3(0.0008, 0.005, 0.0008));
+				mExplosionDustParticleSystem->SetBoundingBox(Vector3(-1, 0, -3), Vector3(1, 3, 3));
+				mExplosionDustParticleSystem->SetColorRange(Vector3(130, 130, 130), Vector3(150, 150, 150));
 
 				if(mPlayer->IsInsideZone(mDeathZone)) {
 					mPlayer->Damage(1000);
@@ -273,8 +266,7 @@ void LevelMine::DoScenario()
 }
 
 
-void LevelMine::UpdateExplodeSequence()
-{
+void LevelMine::UpdateExplodeSequence() {
 	if(mReadyExplosivesCount < 4) {
 		mReadyExplosivesCount = 0;
 
@@ -341,10 +333,9 @@ void LevelMine::UpdateExplodeSequence()
 	}
 }
 
-void LevelMine::CleanUpExplodeArea()
-{
+void LevelMine::CleanUpExplodeArea() {
 	for(int i = 0; i < 4; i++) {
-		mDetonatorPlace[i]->mObject->SetPosition(ruVector3(1000, 1000, 1000));
+		mDetonatorPlace[i]->mObject->SetPosition(Vector3(1000, 1000, 1000));
 		mWireModels[i]->Hide();
 		mExplosivesModels[i]->Hide();
 		mDetonatorModels[i]->Hide();
@@ -352,8 +343,7 @@ void LevelMine::CleanUpExplodeArea()
 	}
 }
 
-void LevelMine::CreateItems()
-{
+void LevelMine::CreateItems() {
 	// Create explosives
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives1")), [this] { mPlayer->AddItem(Item::Type::Explosives); });
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Explosives), make_shared<InteractiveObject>(GetUniqueObject("Explosives2")), [this] { mPlayer->AddItem(Item::Type::Explosives); });
@@ -373,8 +363,7 @@ void LevelMine::CreateItems()
 	AddInteractiveObject(Item::GetNameByType(Item::Type::Wires), make_shared<InteractiveObject>(GetUniqueObject("Wire4")), [this] { mPlayer->AddItem(Item::Type::Wires); });
 }
 
-void LevelMine::OnSerialize(SaveFile & s)
-{
+void LevelMine::OnSerialize(SaveFile & s) {
 	s & mDetonatorActivated;
 	s & mBeepSoundTiming;
 	mEnemy->Serialize(s);

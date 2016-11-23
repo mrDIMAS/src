@@ -11,7 +11,7 @@ public:
 		Patrol, // patrolling
 		CheckSound // enemy hears something
 	};
-	vector<shared_ptr<ruSound>> mReactSounds;
+	vector<shared_ptr<ISound>> mReactSounds;
 private:
 
 	vector<shared_ptr<GraphVertex>> mCurrentPath;
@@ -20,19 +20,19 @@ private:
 	int mCurrentPatrolPoint;
 	int mCurrentPathPoint;
 	Pathfinder mPathfinder;
-	shared_ptr<ruSceneNode> mModel;
-	ruVector3 mTarget;
-	ruVector3 mDestination;
-	ruVector3 mCheckSoundPosition;
-	vector<shared_ptr<ruSceneNode>> mRightLegParts;
-	vector<shared_ptr<ruSceneNode>> mLeftLegParts;
-	vector<shared_ptr<ruSceneNode>> mRightArmParts;
-	vector<shared_ptr<ruSceneNode>> mLeftArmParts;
-	vector<shared_ptr<ruSceneNode>> mTorsoParts;
-	shared_ptr<ruSceneNode> mHead;
-	shared_ptr<ruSound> mHitFleshWithAxeSound;
-	shared_ptr<ruSound> mBreathSound;
-	shared_ptr<ruSound> mScreamSound;
+	shared_ptr<ISceneNode> mModel;
+	Vector3 mTarget;
+	Vector3 mDestination;
+	Vector3 mCheckSoundPosition;
+	vector<shared_ptr<ISceneNode>> mRightLegParts;
+	vector<shared_ptr<ISceneNode>> mLeftLegParts;
+	vector<shared_ptr<ISceneNode>> mRightArmParts;
+	vector<shared_ptr<ISceneNode>> mLeftArmParts;
+	vector<shared_ptr<ISceneNode>> mTorsoParts;
+	shared_ptr<ISceneNode> mHead;
+	shared_ptr<ISound> mHitFleshWithAxeSound;
+	shared_ptr<ISound> mBreathSound;
+	shared_ptr<ISound> mScreamSound;
 	MoveType mMoveType;
 	float mAngleTo;
 	float mAngle;
@@ -40,23 +40,24 @@ private:
 	float mHitDistance;
 	int mPathCheckTimer;
 	int mLostTimer;
-	ruAnimation mIdleAnimation;
-	ruAnimation mRunAnimation;
-	ruAnimation mAttackAnimation;
-	ruAnimation mWalkAnimation;
-	ruVector3 mLastCheckPosition;
+	bool mForceRun;
+	Animation mIdleAnimation;
+	Animation mRunAnimation;
+	Animation mAttackAnimation;
+	Animation mWalkAnimation;
+	Vector3 mLastCheckPosition;
 	vector<unique_ptr<SoundMaterial>> mSoundMaterialList;
 	void HitPlayer();
 	void EmitStepSound();
-	void FillByNamePattern(vector< shared_ptr<ruSceneNode> > & container, const string & pattern);
+	void FillByNamePattern(vector< shared_ptr<ISceneNode> > & container, const string & pattern);
 	void Listen();
 public:
-	void ForceCheckSound(ruVector3 position);
-	shared_ptr<ruSceneNode> GetBody();
+	void ForceCheckSound(Vector3 position);
+	shared_ptr<ISceneNode> GetBody();
 	void SetNextPatrolPoint();
-	void SetLegsAnimation(ruAnimation *pAnim);
-	void SetTorsoAnimation(ruAnimation * anim);
-	void SetCommonAnimation(ruAnimation * anim);
+	void SetLegsAnimation(Animation *pAnim);
+	void SetTorsoAnimation(Animation * anim);
+	void SetCommonAnimation(Animation * anim);
 	virtual void SetIdleAnimation();
 	virtual void SetRunAnimation();
 	virtual void SetWalkAnimation();
@@ -67,5 +68,5 @@ public:
 	void Think();
 	void Serialize(SaveFile & out);
 	virtual void Damage(float dmg) override final;
-	void LookAt(const ruVector3 & lookAt);
+	void LookAt(const Vector3 & lookAt);
 };

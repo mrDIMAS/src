@@ -2,7 +2,7 @@
 
 #include "Actor.h"
 
-void Actor::Move(ruVector3 direction, float speed) {
+void Actor::Move(Vector3 direction, float speed) {
 	mBody->Move(direction * speed);
 }
 
@@ -21,15 +21,15 @@ Actor::Actor(unique_ptr<Game> & game, float height, float width) :
 	mHealth(100) {
 	mBody = mGame->GetEngine()->GetSceneFactory()->CreateSceneNode();
 	mBody->SetCapsuleBody(mBodyHeight, mBodyWidth);
-	mBody->SetAngularFactor(ruVector3(0, 0, 0));
+	mBody->SetAngularFactor(Vector3(0, 0, 0));
 	mBody->SetFriction(0);
-	mBody->SetAnisotropicFriction(ruVector3(1, 1, 1));
+	mBody->SetAnisotropicFriction(Vector3(1, 1, 1));
 	mBody->SetDamping(0, 0);
 	mBody->SetMass(2);
-	mBody->SetGravity(ruVector3(0, 0, 0));
+	mBody->SetGravity(Vector3(0, 0, 0));
 }
 
-void Actor::SetPosition(ruVector3 position) {
+void Actor::SetPosition(Vector3 position) {
 	mBody->SetPosition(position);
 }
 
@@ -37,16 +37,16 @@ Actor::~Actor() {
 
 }
 
-char Actor::IsInsideZone(const shared_ptr<ruSceneNode> & zone) {
+char Actor::IsInsideZone(const shared_ptr<ISceneNode> & zone) {
 	return mBody->IsInsideNode(zone);
 }
 
-ruVector3 Actor::GetCurrentPosition() {
+Vector3 Actor::GetCurrentPosition() {
 	return mBody->GetPosition();
 }
 
 void Actor::StopInstantly() {
-	mBody->Move(ruVector3(0.0f, 0.0f, 0.0f));
+	mBody->Move(Vector3(0.0f, 0.0f, 0.0f));
 }
 
 void Actor::Unfreeze() {
@@ -59,7 +59,7 @@ void Actor::Freeze() {
 	mBody->SetCollisionEnabled(false);
 }
 
-ruVector3 Actor::GetLookDirection() {
+Vector3 Actor::GetLookDirection() {
 	return mBody->GetLookVector();
 }
 
@@ -71,7 +71,7 @@ void Actor::SetBodyVisible(bool state) {
 	}
 }
 
-bool Actor::IsVisibleFromPoint(ruVector3 begin) {
+bool Actor::IsVisibleFromPoint(Vector3 begin) {
 	return mGame->GetEngine()->GetPhysics()->CastRay(begin, GetCurrentPosition(), nullptr) == mBody;
 }
 

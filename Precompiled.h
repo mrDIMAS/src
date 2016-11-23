@@ -188,7 +188,7 @@ public:
 		mY = y;
 	}
 
-	void ButtonDown( ruInput::MouseButton button ) {
+	void ButtonDown( IInput::MouseButton button ) {
 		int buttonId = (int)button;
 		if ( mButtonsDown[ buttonId ] ) {
 			mButtonsHit[ buttonId ] = false;
@@ -199,7 +199,7 @@ public:
 		mButtonsUp[ buttonId ] = false;
 	}
 
-	void ButtonUp( ruInput::MouseButton button ) {
+	void ButtonUp( IInput::MouseButton button ) {
 		int buttonId = (int)button;
 		mButtonsHit[ buttonId ] = false;
 		mButtonsDown[ buttonId ] = false;

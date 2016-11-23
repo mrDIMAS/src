@@ -11,31 +11,31 @@ private:
 	void ActLiftCrash_AfterFirstStressSound();
 	void ActLiftCrash_AfterFalldown();
 	bool mChangeLevel;
-	shared_ptr<ruFog> mFog;
-	shared_ptr<ruSound> mWoodHitSound;
+	shared_ptr<IFog> mFog;
+	shared_ptr<ISound> mWoodHitSound;
 public:
 	// Sounds
-	shared_ptr<ruSound> mWindSound;
-	shared_ptr<ruSound> mPowerDownSound;
-	shared_ptr<ruSound> mMetalWhineSound;
-	shared_ptr<ruSound> mMetalStressSound;
-	shared_ptr<ruSound> mLiftFallSound;
+	shared_ptr<ISound> mWindSound;
+	shared_ptr<ISound> mPowerDownSound;
+	shared_ptr<ISound> mMetalWhineSound;
+	shared_ptr<ISound> mMetalStressSound;
+	shared_ptr<ISound> mLiftFallSound;
 
 	// Zones
-	shared_ptr<ruSceneNode> mLiftStopZone;
-	shared_ptr<ruSceneNode> mTutorialZone1;
-	shared_ptr<ruSceneNode> mTutorialZone2;
-	shared_ptr<ruSceneNode> mTutorialZone3;
-	shared_ptr<ruSceneNode> mTutorialZone4;
-	shared_ptr<ruSceneNode> mTutorialZone5;
-	shared_ptr<ruSceneNode> mTutorialZone6;
-	shared_ptr<ruSceneNode> mTutorialZone7;
-	shared_ptr<ruSceneNode> mTutorialZone8;
+	shared_ptr<ISceneNode> mLiftStopZone;
+	shared_ptr<ISceneNode> mTutorialZone1;
+	shared_ptr<ISceneNode> mTutorialZone2;
+	shared_ptr<ISceneNode> mTutorialZone3;
+	shared_ptr<ISceneNode> mTutorialZone4;
+	shared_ptr<ISceneNode> mTutorialZone5;
+	shared_ptr<ISceneNode> mTutorialZone6;
+	shared_ptr<ISceneNode> mTutorialZone7;
+	shared_ptr<ISceneNode> mTutorialZone8;
 
 	// Entities
-	shared_ptr<ruSceneNode> mHalt;
+	shared_ptr<ISceneNode> mHalt;
 
-	shared_ptr<ruLight>mLiftLamp;
+	shared_ptr<ILight>mLiftLamp;
 
 	ActionSeries mLiftCrashSeries;
 

@@ -30,19 +30,19 @@ void GameCamera::FadeOut()
 	quadAlphaTo = 255.0f;
 }
 
-GameCamera::GameCamera(const shared_ptr<ruGUIScene> & scene, float fov)
+GameCamera::GameCamera(const shared_ptr<IGUIScene> & scene, float fov)
 {
 	mCamera = scene->GetEngine()->GetSceneFactory()->CreateCamera(fov);
 
 	quadAlpha = 0.0f;
 	quadAlphaTo = 0.0f;
 
-	SetFadeColor(ruVector3(0, 0, 0));
+	SetFadeColor(Vector3(0, 0, 0));
 
 	MakeCurrent();
 
 	if(scene) {
-		mFullscreenQuad = scene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/textures/generic/black.jpg"), fadeColor, quadAlpha);
+		mFullscreenQuad = scene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, scene->GetEngine()->GetRenderer()->GetTexture("data/textures/generic/black.jpg"), fadeColor, quadAlpha);
 		mFullscreenQuad->SetAlpha(0);
 		mFullscreenQuad->SetIndependentAlpha(true);
 		mFullscreenQuad->SetLayer(0xFFFF); // top most
@@ -65,7 +65,7 @@ void GameCamera::FadePercent(int percent)
 	quadAlphaTo = 255 - (float)percent / 100.0f * 255.0f;
 }
 
-void GameCamera::SetFadeColor(ruVector3 newFadeColor)
+void GameCamera::SetFadeColor(Vector3 newFadeColor)
 {
 	fadeColor = newFadeColor;
 }

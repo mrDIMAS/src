@@ -4,18 +4,18 @@
 
 class GameCamera {
 public:
-	shared_ptr<ruCamera> mCamera;
+	shared_ptr<ICamera> mCamera;
 	float quadAlpha;
 	float quadAlphaTo;
-	ruVector3 fadeColor;
-	shared_ptr<ruRect> mFullscreenQuad;
+	Vector3 fadeColor;
+	shared_ptr<IRect> mFullscreenQuad;
 public:
-	explicit GameCamera(const shared_ptr<ruGUIScene> & scene, float fov = 65);
+	explicit GameCamera(const shared_ptr<IGUIScene> & scene, float fov = 65);
 	virtual ~GameCamera();
 	void FadeOut();
 	void FadeIn();
 	void FadePercent(int percent);
-	void SetFadeColor(ruVector3 newFadeColor);
+	void SetFadeColor(Vector3 newFadeColor);
 	void Update();
 	void MakeCurrent();
 	bool FadeComplete();

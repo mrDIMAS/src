@@ -13,12 +13,12 @@ private:
 	enum class Tab : int {
 		Items, Notes
 	};
-	shared_ptr<ruGUIScene> mScene;
+	shared_ptr<IGUIScene> mScene;
 	// item-count map
 	map<Item, int> mItemMap;
-	shared_ptr<ruTexture> mBackgroundTexture;
-	shared_ptr<ruTexture> mCellTexture;
-	shared_ptr<ruTexture> mButtonTexture;
+	shared_ptr<ITexture> mBackgroundTexture;
+	shared_ptr<ITexture> mCellTexture;
+	shared_ptr<ITexture> mButtonTexture;
 	bool mOpen;
 	Item* mpItemForUse;
 	Item* mpSelectedItem;
@@ -28,33 +28,32 @@ private:
 	static const int mCellCountHeight = 4;
 	static const int mCellWidth = 64;
 	static const int mCellHeight = 64;
-	shared_ptr<ruSound> mPickSound;
-	shared_ptr<ruFont> mFont;
-	ruConfig mLocalization;
+	shared_ptr<IFont> mFont;
+	Config mLocalization;
 
-	shared_ptr<ruText> mItemDescriptionText;
-	shared_ptr<ruRect> mItemsBackground;
-	shared_ptr<ruText> mItemDescription;
-	shared_ptr<ruButton> mUseButton;
-	shared_ptr<ruButton> mCombineButton;
-	shared_ptr<ruRect> mFirstCombineItem;
-	shared_ptr<ruRect> mSecondCombineItem;
-	shared_ptr<ruRect> mFirstCombineItemCell;
-	shared_ptr<ruRect> mSecondCombineItemCell;
-	shared_ptr<ruText> mItemCharacteristics;
-	shared_ptr<ruRect> mItem[mCellCountWidth][mCellCountHeight];
-	shared_ptr<ruRect> mItemCell[mCellCountWidth][mCellCountHeight];
-	shared_ptr<ruText> mItemCountText[mCellCountWidth][mCellCountHeight];
-	shared_ptr<ruText> mItemMass;
-	shared_ptr<ruText> mItemContent;
-	shared_ptr<ruText> mItemContentType;
-	shared_ptr<ruText> mItemVolume;
-	shared_ptr<ruButton> mPageItems;
-	shared_ptr<ruButton> mPageNotes;
+	shared_ptr<IText> mItemDescriptionText;
+	shared_ptr<IRect> mItemsBackground;
+	shared_ptr<IText> mItemDescription;
+	shared_ptr<IButton> mUseButton;
+	shared_ptr<IButton> mCombineButton;
+	shared_ptr<IRect> mFirstCombineItem;
+	shared_ptr<IRect> mSecondCombineItem;
+	shared_ptr<IRect> mFirstCombineItemCell;
+	shared_ptr<IRect> mSecondCombineItemCell;
+	shared_ptr<IText> mItemCharacteristics;
+	shared_ptr<IRect> mItem[mCellCountWidth][mCellCountHeight];
+	shared_ptr<IRect> mItemCell[mCellCountWidth][mCellCountHeight];
+	shared_ptr<IText> mItemCountText[mCellCountWidth][mCellCountHeight];
+	shared_ptr<IText> mItemMass;
+	shared_ptr<IText> mItemContent;
+	shared_ptr<IText> mItemContentType;
+	shared_ptr<IText> mItemVolume;
+	shared_ptr<IButton> mPageItems;
+	shared_ptr<IButton> mPageNotes;
 
-	shared_ptr<ruRect> mNotesBackground;
+	shared_ptr<IRect> mNotesBackground;
 	unique_ptr<ScrollList> mNotesList;
-	shared_ptr<ruText> mNoteText;
+	shared_ptr<IText> mNoteText;
 
 	void OnPageItemsClick() {
 		mTab = Tab::Items;

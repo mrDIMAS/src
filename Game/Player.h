@@ -14,47 +14,44 @@
 #include "HUD.h"
 
 class Player : public Actor {
-private:
-	friend class Level;
-	explicit Player(unique_ptr<Game> & game);
 public:
-	ruConfig mLocalization;
+	Config mLocalization;
 	// animations
-	ruAnimation mWalkAnimation;
-	ruAnimation mCrouchAnimation;
-	ruAnimation mCrouchWalkAnimation;
-	ruAnimation mRunAnimation;
-	ruAnimation mStayAnimation;
-	ruAnimation mGrabAnimation;
-	ruAnimation mPushDoorAnimation;
-	ruAnimation mPickUpAnimation;
-	ruAnimation mJumpAnimation;
-	ruAnimation mLookRightAnimation;
-	ruAnimation mLookLeftAnimation;
-	ruAnimation mLadderCrawlInAnimation;
-	ruAnimation mLadderCrawlAnimation;
-	ruAnimation mSwitchFlashlightAnimation;
+	Animation mWalkAnimation;
+	Animation mCrouchAnimation;
+	Animation mCrouchWalkAnimation;
+	Animation mRunAnimation;
+	Animation mStayAnimation;
+	Animation mGrabAnimation;
+	Animation mPushDoorAnimation;
+	Animation mPickUpAnimation;
+	Animation mJumpAnimation;
+	Animation mLookRightAnimation;
+	Animation mLookLeftAnimation;
+	Animation mLadderCrawlInAnimation;
+	Animation mLadderCrawlAnimation;
+	Animation mSwitchFlashlightAnimation;
 	// items additional animations
 	float mLadderClimbDelta;
 	int mHealthRegenTimer;
-	shared_ptr<ruSceneNode> mBodyModelRoot;
-	shared_ptr<ruSceneNode> mBodyModel;
-	shared_ptr<ruSceneNode> mNeck;
-	shared_ptr<ruSceneNode> mCameraPivot;
-	vector<shared_ptr<ruSceneNode>> mLeftArm;
-	vector<shared_ptr<ruSceneNode>> mRightArm;
-	vector<shared_ptr<ruSceneNode>> mLeftLeg;
-	vector<shared_ptr<ruSceneNode>> mRightLeg;
-	vector<shared_ptr<ruSceneNode>> mSpine;
+	shared_ptr<ISceneNode> mBodyModelRoot;
+	shared_ptr<ISceneNode> mBodyModel;
+	shared_ptr<ISceneNode> mNeck;
+	shared_ptr<ISceneNode> mCameraPivot;
+	vector<shared_ptr<ISceneNode>> mLeftArm;
+	vector<shared_ptr<ISceneNode>> mRightArm;
+	vector<shared_ptr<ISceneNode>> mLeftLeg;
+	vector<shared_ptr<ISceneNode>> mRightLeg;
+	vector<shared_ptr<ISceneNode>> mSpine;
 	unique_ptr<GameCamera> mpCamera;
-	shared_ptr<ruSceneNode> mPickPoint;
-	shared_ptr<ruSceneNode> mItemPoint;
-	shared_ptr<ruSceneNode> mNodeInHands;
-	shared_ptr<ruSceneNode> mNearestPickedNode;
-	shared_ptr<ruSceneNode> mPickedNode;
-	shared_ptr<ruPointLight> mFakeLight;
-	shared_ptr<ruSpotLight> mFlashlight;
-	shared_ptr<ruSound> mFlashlightSwitchSound;
+	shared_ptr<ISceneNode> mPickPoint;
+	shared_ptr<ISceneNode> mItemPoint;
+	shared_ptr<ISceneNode> mNodeInHands;
+	shared_ptr<ISceneNode> mNearestPickedNode;
+	shared_ptr<ISceneNode> mPickedNode;
+	shared_ptr<IPointLight> mFakeLight;
+	shared_ptr<ISpotLight> mFlashlight;
+	shared_ptr<ISound> mFlashlightSwitchSound;
 	SmoothFloat mPitch;
 	SmoothFloat mYaw;
 	SmoothFloat mFov;
@@ -68,17 +65,17 @@ public:
 	float mDeadRotation;
 	float mDestDeadRotation;
 	SmoothFloat mYawWalkOffset;
-	ruVector3 mSpeed;
-	ruVector3 mSpeedTo;
-	ruVector3 mGravity;
-	ruVector3 mJumpTo;
-	ruVector3 mFrameColor;
-	ruVector3 mPickCenterOffset;
+	Vector3 mSpeed;
+	Vector3 mSpeedTo;
+	Vector3 mGravity;
+	Vector3 mJumpTo;
+	Vector3 mFrameColor;
+	Vector3 mPickCenterOffset;
 	weak_ptr<Ladder> mLadder;
 	float mWhispersSoundVolume;
 	float mWhispersSoundVolumeTo;
-	shared_ptr<ruSound> mWhispersSound;
-	vector<shared_ptr<ruSound>> mPainSound;
+	shared_ptr<ISound> mWhispersSound;
+	vector<shared_ptr<ISound>> mPainSound;
 	bool mInLight;
 	bool mObjectThrown;
 	bool mLanded;
@@ -90,47 +87,47 @@ public:
 	bool mFlashlightLocked;
 	bool mLandedSoundEmitted;
 	unique_ptr<Inventory> mInventory;
-	ruInput::Key mKeyMoveForward;
-	ruInput::Key mKeyMoveBackward;
-	ruInput::Key mKeyStrafeLeft;
-	ruInput::Key mKeyStrafeRight;
-	ruInput::Key mKeyJump;
-	ruInput::Key mKeyRun;
-	ruInput::Key mKeyInventory;
-	ruInput::Key mKeyUse;
-	ruInput::Key mKeyStealth;
-	ruInput::Key mKeyLookLeft;
-	ruInput::Key mKeyLookRight;
-	ruInput::Key mKeyFlashlightHotkey;
+	IInput::Key mKeyMoveForward;
+	IInput::Key mKeyMoveBackward;
+	IInput::Key mKeyStrafeLeft;
+	IInput::Key mKeyStrafeRight;
+	IInput::Key mKeyJump;
+	IInput::Key mKeyRun;
+	IInput::Key mKeyInventory;
+	IInput::Key mKeyUse;
+	IInput::Key mKeyStealth;
+	IInput::Key mKeyLookLeft;
+	IInput::Key mKeyLookRight;
+	IInput::Key mKeyFlashlightHotkey;
 	unique_ptr<HUD> mHUD;
-	shared_ptr<ruSound> mDeadSound;
-	ruVector3 mAirPosition;
-	shared_ptr<ruTimer> mAutoSaveTimer;
+	shared_ptr<ISound> mDeadSound;
+	Vector3 mAirPosition;
+	shared_ptr<ITimer> mAutoSaveTimer;
 	vector<unique_ptr<SoundMaterial>> mSoundMaterialList;
 
 	void UpdateJumping();
 	void UpdatePicking();
 	void UpdateItemsHandling();
-	void SetLeftLegAnimation(ruAnimation * anim);
-	void SetRightLegAnimation(ruAnimation * anim);
-	void SetLeftArmAnimation(ruAnimation * anim);
-	void SetRightArmAnimation(ruAnimation * anim);
-	void SetSpineAnimation(ruAnimation * anim);
-	void SetLegsAnimation(ruAnimation * anim);
-	void SetArmsAnimation(ruAnimation * anim);
-	void SetBodyAnimation(ruAnimation * anim);
+	void SetLeftLegAnimation(Animation * anim);
+	void SetRightLegAnimation(Animation * anim);
+	void SetLeftArmAnimation(Animation * anim);
+	void SetRightArmAnimation(Animation * anim);
+	void SetSpineAnimation(Animation * anim);
+	void SetLegsAnimation(Animation * anim);
+	void SetArmsAnimation(Animation * anim);
+	void SetBodyAnimation(Animation * anim);
 	void EmitStepSound();
 	void LadderEmitStepSound();
-	void SwitchFlashlight()
-	{
+	void SwitchFlashlight() {
 		mFlashlightEnabled = !mFlashlightEnabled;
 		mFlashlightSwitchSound->Play();
 	}
 
 public:
+	explicit Player(unique_ptr<Game> & game);
 	virtual ~Player();
 
-	void Step(ruVector3 direction, float speed);
+	void Step(Vector3 direction, float speed);
 	void FreeHands();
 	void LockFlashlight(bool state);
 	void SetHealth(float health);
@@ -149,17 +146,16 @@ public:
 	bool IsUseButtonDown() {
 		return mGame->GetEngine()->GetInput()->IsKeyDown(mKeyUse);
 	}
-	bool IsObjectHasNormalMass(shared_ptr<ruSceneNode> node);
+	bool IsObjectHasNormalMass(shared_ptr<ISceneNode> node);
 	bool IsDead();
 	void ComputeStealth();
-	virtual void SetPosition(ruVector3 position);
+	virtual void SetPosition(Vector3 position);
 	unique_ptr<Inventory> & GetInventory();
-	ruConfig * GetLocalization();
+	Config * GetLocalization();
 	virtual void Serialize(SaveFile & out) final;
 	void SetHUDVisible(bool state);
 	void Interact();
-	unique_ptr<HUD> & GetHUD()
-	{
+	unique_ptr<HUD> & GetHUD() {
 		return mHUD;
 	}
 	void Crouch(bool state);

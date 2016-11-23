@@ -4,11 +4,11 @@
 
 class GUIProperties {
 public:
-	shared_ptr<ruFont> mFont;
+	shared_ptr<IFont> mFont;
 
-	ruVector3 mBackColor;
-	ruVector3 mForeColor;
-	ruVector3 mNoticeColor;
+	Vector3 mBackColor;
+	Vector3 mForeColor;
+	Vector3 mNoticeColor;
 
 	GUIProperties(unique_ptr<Game> & game);
 };

@@ -10,16 +10,16 @@ void Sparks::Update()
 	}
 }
 
-Sparks::Sparks(shared_ptr<ruSceneNode> at, shared_ptr<ruSound> emits)
+Sparks::Sparks(shared_ptr<ISceneNode> at, shared_ptr<ISound> emits)
 {
 	mParticleSystem = at->GetFactory()->CreateParticleSystem(50);
 	mParticleSystem->Attach(at);
-	mParticleSystem->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
-	mParticleSystem->SetType(ruParticleSystem::Type::Box);
-	mParticleSystem->SetSpeedDeviation(ruVector3(-0.0015, 0.02, -0.0015), ruVector3(0.0015, -0.09, 0.0015));
-	mParticleSystem->SetColorRange(ruVector3(255, 255, 255), ruVector3(255, 255, 0));
+	mParticleSystem->SetTexture(at->GetFactory()->GetEngineInterface()->GetRenderer()->GetTexture("data/textures/particles/p1.png"));
+	mParticleSystem->SetType(IParticleSystem::Type::Box);
+	mParticleSystem->SetSpeedDeviation(Vector3(-0.0015, 0.02, -0.0015), Vector3(0.0015, -0.09, 0.0015));
+	mParticleSystem->SetColorRange(Vector3(255, 255, 255), Vector3(255, 255, 0));
 	mParticleSystem->SetPointSize(0.025f);
-	mParticleSystem->SetBoundingBox(ruVector3(-0.08, -0.2, -0.08), ruVector3(0.08, 0.1, 0.08));
+	mParticleSystem->SetBoundingBox(Vector3(-0.08, -0.2, -0.08), Vector3(0.08, 0.1, 0.08));
 	mParticleSystem->SetParticleThickness(20.5f);
 	mParticleSystem->SetAutoResurrection(false);
 	mParticleSystem->SetLightingEnabled(false);

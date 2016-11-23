@@ -27,11 +27,11 @@ public:
 	void operator & (int & v);
 	void operator & (float & v);
 	void operator & (bool & v);
-	void operator & (ruInput::Key & v);
+	void operator & (IInput::Key & v);
 	void operator & (string & str);
-	void operator & (ruQuaternion & v);
-	void operator & (ruVector3 & v);
-	void operator & (ruAnimation & a);
+	void operator & (Quaternion & v);
+	void operator & (Vector3 & v);
+	void operator & (Animation & a);
 	void operator & (class SmoothFloat & s);
 
 	template<typename K, typename V>

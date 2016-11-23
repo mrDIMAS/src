@@ -47,7 +47,7 @@ void ParticleSystem::Update() {
 		p.mPosition += p.mSpeed;
 
 		float inside = 1.0f;
-		if(mType == ruParticleSystem::Type::Box) {
+		if(mType == IParticleSystem::Type::Box) {
 			inside = (p.mPosition).Length2() / (mBoundingBoxMax - mBoundingBoxMin).Length2();
 		} else {
 			inside = (p.mPosition).Length2() / mBoundingRadius;
@@ -74,7 +74,7 @@ void ParticleSystem::Update() {
 			mVertices[vertexNum].mPosition = p.mPosition;
 			mVertices[vertexNum].mTexCoord.x = 0.0f;
 			mVertices[vertexNum].mTexCoord.y = 0.0f;
-			mVertices[vertexNum].mBoneIndices = ruVector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
+			mVertices[vertexNum].mBoneIndices = Vector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
 			mVertices[vertexNum].mBoneWeights.x = -1.0f;
 			mVertices[vertexNum].mBoneWeights.y = -1.0f;
 			mVertices[vertexNum].mBoneWeights.z = p.mSize;
@@ -82,7 +82,7 @@ void ParticleSystem::Update() {
 			mVertices[v1].mPosition = p.mPosition;
 			mVertices[v1].mTexCoord.x = 1.0f;
 			mVertices[v1].mTexCoord.y = 0.0f;
-			mVertices[v1].mBoneIndices = ruVector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
+			mVertices[v1].mBoneIndices = Vector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
 			mVertices[v1].mBoneWeights.x = -1.0f;
 			mVertices[v1].mBoneWeights.y = 1.0f;
 			mVertices[v1].mBoneWeights.z = p.mSize;
@@ -90,7 +90,7 @@ void ParticleSystem::Update() {
 			mVertices[v2].mPosition = p.mPosition;
 			mVertices[v2].mTexCoord.x = 1.0f;
 			mVertices[v2].mTexCoord.y = 1.0f;
-			mVertices[v2].mBoneIndices = ruVector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
+			mVertices[v2].mBoneIndices = Vector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
 			mVertices[v2].mBoneWeights.x = 1.0f;
 			mVertices[v2].mBoneWeights.y = 1.0f;
 			mVertices[v2].mBoneWeights.z = p.mSize;
@@ -98,7 +98,7 @@ void ParticleSystem::Update() {
 			mVertices[v3].mPosition = p.mPosition;
 			mVertices[v3].mTexCoord.x = 0.0f;
 			mVertices[v3].mTexCoord.y = 1.0f;
-			mVertices[v3].mBoneIndices = ruVector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
+			mVertices[v3].mBoneIndices = Vector4(p.mColor / 255.0f, p.mOpacity / 255.0f);
 			mVertices[v3].mBoneWeights.x = 1.0f;
 			mVertices[v3].mBoneWeights.y = -1.0f;
 			mVertices[v3].mBoneWeights.z = p.mSize;
@@ -135,11 +135,11 @@ bool ParticleSystem::IsLightAffects() {
 }
 
 void ParticleSystem::ResurrectParticle(Particle & p) {
-	if(mType == ruParticleSystem::Type::Box) {
+	if(mType == IParticleSystem::Type::Box) {
 		p.mPosition = RandomVector3(mBoundingBoxMin, mBoundingBoxMax);
 		p.mSpeed = RandomVector3(mSpeedDeviationMin, mSpeedDeviationMax);
-	} else if(mType == ruParticleSystem::Type::Stream) {
-		p.mPosition = ruVector3(0, 0, 0);
+	} else if(mType == IParticleSystem::Type::Stream) {
+		p.mPosition = Vector3(0, 0, 0);
 		p.mSpeed = RandomVector3(mSpeedDeviationMin, mSpeedDeviationMax);
 	}
 
@@ -147,8 +147,8 @@ void ParticleSystem::ResurrectParticle(Particle & p) {
 	p.mOpacity = 255;
 }
 
-ruVector3 ParticleSystem::RandomVector3(ruVector3 & min, ruVector3 & max) {
-	return ruVector3(frandom(min.x, max.x), frandom(min.y, max.y), frandom(min.z, max.z));
+Vector3 ParticleSystem::RandomVector3(Vector3 & min, Vector3 & max) {
+	return Vector3(frandom(min.x, max.x), frandom(min.y, max.y), frandom(min.z, max.z));
 }
 
 bool ParticleSystem::HasAliveParticles() {
@@ -173,7 +173,7 @@ ParticleSystem::ParticleSystem(SceneFactory * factory, int theParticleCount) :
 	SceneNode(factory),
 	mAliveParticleCount(theParticleCount),
 	mMaxParticleCount(theParticleCount),
-	mType(ruParticleSystem::Type::Box),
+	mType(IParticleSystem::Type::Box),
 	mColorBegin(0, 0, 0),
 	mColorEnd(255, 255, 255),
 	mSpeedDeviationMin(-1, -1, -1),
@@ -209,28 +209,28 @@ void ParticleSystem::OnResetDevice() {
 	pD3D->CreateIndexBuffer(mMaxParticleCount * 2 * sizeof(Triangle), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &mIndexBuffer, 0);
 }
 
-ruVector3 ParticleSystem::GetSpeedDeviationMin() {
+Vector3 ParticleSystem::GetSpeedDeviationMin() {
 	return mSpeedDeviationMin;
 }
 
-ruVector3 ParticleSystem::GetSpeedDeviationMax() {
+Vector3 ParticleSystem::GetSpeedDeviationMax() {
 	return mSpeedDeviationMax;
 }
 
-void ParticleSystem::SetSpeedDeviation(const ruVector3 & dMin, const ruVector3 & dMax) {
+void ParticleSystem::SetSpeedDeviation(const Vector3 & dMin, const Vector3 & dMax) {
 	mSpeedDeviationMax = dMax;
 	mSpeedDeviationMin = dMin;
 }
 
-ruVector3 ParticleSystem::GetBoundingBoxMin() {
+Vector3 ParticleSystem::GetBoundingBoxMin() {
 	return mBoundingBoxMin;
 }
 
-ruVector3 ParticleSystem::GetBoundingBoxMax() {
+Vector3 ParticleSystem::GetBoundingBoxMax() {
 	return mBoundingBoxMax;
 }
 
-void ParticleSystem::SetBoundingBox(const ruVector3 & bbMin, const ruVector3 & bbMax) {
+void ParticleSystem::SetBoundingBox(const Vector3 & bbMin, const Vector3 & bbMax) {
 	mBoundingBoxMax = bbMax;
 	mBoundingBoxMin = bbMin;
 }
@@ -283,11 +283,11 @@ int ParticleSystem::GetAliveParticles() {
 	return mAliveParticleCount;
 }
 
-shared_ptr<ruTexture> ParticleSystem::GetTexture() {
+shared_ptr<ITexture> ParticleSystem::GetTexture() {
 	return mTexture;
 }
 
-void ParticleSystem::SetTexture(const shared_ptr<ruTexture> & texture) {
+void ParticleSystem::SetTexture(const shared_ptr<ITexture> & texture) {
 	mTexture = std::dynamic_pointer_cast<Texture>(texture);
 }
 
@@ -299,23 +299,23 @@ void ParticleSystem::SetBoundingRadius(float radius) {
 	mBoundingRadius = radius;
 }
 
-ruParticleSystem::Type ParticleSystem::GetType() {
+IParticleSystem::Type ParticleSystem::GetType() {
 	return mType;
 }
 
-void ParticleSystem::SetType(ruParticleSystem::Type type) {
+void ParticleSystem::SetType(IParticleSystem::Type type) {
 	mType = type;
 }
 
-ruVector3 ParticleSystem::GetColorMax() {
+Vector3 ParticleSystem::GetColorMax() {
 	return mColorBegin;
 }
 
-ruVector3 ParticleSystem::GetColorMin() {
+Vector3 ParticleSystem::GetColorMin() {
 	return mColorEnd;
 }
 
-void ParticleSystem::SetColorRange(const ruVector3 & cMin, const ruVector3 & cMax) {
+void ParticleSystem::SetColorRange(const Vector3 & cMin, const Vector3 & cMax) {
 	mColorEnd = cMin;
 	mColorBegin = cMax;
 }
@@ -337,7 +337,7 @@ Particle::Particle() :
 
 }
 
-Particle::Particle(const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize) :
+Particle::Particle(const Vector3 & thePosition, const Vector3 & theSpeed, const Vector3 & theColor, float theTranslucency, float theSize) :
 	mPosition(thePosition),
 	mSpeed(theSpeed),
 	mColor(theColor),

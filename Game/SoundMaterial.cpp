@@ -15,8 +15,9 @@ enum class ReaderMode {
 	Sound,
 };
 
-SoundMaterial::SoundMaterial(const string & filename, shared_ptr<ruSceneNode> owner)
+SoundMaterial::SoundMaterial(const string & filename, shared_ptr<ISceneNode> owner)
 {
+	auto soundSystem = owner->GetFactory()->GetEngineInterface()->GetSoundSystem();
 	ifstream matFile(filename, ifstream::in);
 	if(matFile.good()) {
 		ReaderMode mode = ReaderMode::Unknown;
@@ -34,7 +35,7 @@ SoundMaterial::SoundMaterial(const string & filename, shared_ptr<ruSceneNode> ow
 			} else {
 				if(line.size() > 2) {
 					if(mode == ReaderMode::Sound) {
-						shared_ptr<ruSound> snd = ruSound::Load3D(line);
+						shared_ptr<ISound> snd = soundSystem->LoadSound3D(line);
 						snd->SetVolume(volume);
 						snd->Attach(owner);
 						mSoundList.push_back(snd);
@@ -47,9 +48,9 @@ SoundMaterial::SoundMaterial(const string & filename, shared_ptr<ruSceneNode> ow
 	}
 }
 
-shared_ptr<ruSound> SoundMaterial::GetRandomSoundAssociatedWith(const string & texName)
+shared_ptr<ISound> SoundMaterial::GetRandomSoundAssociatedWith(const string & texName)
 {
-	shared_ptr<ruSound> snd;
+	shared_ptr<ISound> snd;
 	if(mSoundList.size()) {
 		for(auto & str : mTextureList) {
 			if(str == texName) {

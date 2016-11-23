@@ -17,26 +17,26 @@ private:
 	shared_ptr<Gate> mGate2;
 	shared_ptr<Gate> mGateToLift;
 
-	shared_ptr<ruSceneNode> mZoneKnocks;
-	shared_ptr<ruSound> mKnocksSound;
-	shared_ptr<ruSceneNode> mWater;
+	shared_ptr<ISceneNode> mZoneKnocks;
+	shared_ptr<ISound> mKnocksSound;
+	shared_ptr<ISceneNode> mWater;
 
-	shared_ptr<ruSceneNode> mZoneNextLevel;
-	shared_ptr<ruSceneNode> mPumpSwitch;
+	shared_ptr<ISceneNode> mZoneNextLevel;
+	shared_ptr<ISceneNode> mPumpSwitch;
 	shared_ptr<Lift> mLift1;
 
-	shared_ptr<ruLight> mPumpLight[3];
-	shared_ptr<ruLight> mPassLightGreen;
-	shared_ptr<ruLight> mPassLightRed;
+	shared_ptr<ILight> mPumpLight[3];
+	shared_ptr<ILight> mPassLightGreen;
+	shared_ptr<ILight> mPassLightRed;
 
-	shared_ptr<ruSound> mWaterPumpSound[3];
+	shared_ptr<ISound> mWaterPumpSound[3];
 
-	ruAnimation mPumpSwitchAnimation;
+	Animation mPumpSwitchAnimation;
 	int mDrainTimer;
 
-	vector<shared_ptr<ruSceneNode>> mVerticalWaterList;
+	vector<shared_ptr<ISceneNode>> mVerticalWaterList;
 	float mVerticalWaterFlow;
-	shared_ptr<ruSceneNode> mEnemySpawnPosition;
+	shared_ptr<ISceneNode> mEnemySpawnPosition;
 	float mWaterFlow;
 
 	void OnPlayerEnterSpawnEnemyZone()

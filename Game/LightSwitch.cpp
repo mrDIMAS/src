@@ -2,21 +2,18 @@
 #include "LightSwitch.h"
 #include "Level.h"
 
-LightSwitch::LightSwitch(const shared_ptr<ruSceneNode>& model, const vector<shared_ptr<ruLight>>& lights, bool enabled) : mModel(model), mLights(lights), mEnabled(enabled)
-{
-	mSwitchOnAnim = ruAnimation(0, model->GetTotalAnimationFrameCount() / 2, 0.5f, false);
-	mSwitchOffAnim = ruAnimation(model->GetTotalAnimationFrameCount() / 2, model->GetTotalAnimationFrameCount() - 1, 0.5f, false);
-	mSwitchSound = ruSound::Load3D("data/sounds/lever.ogg");
+LightSwitch::LightSwitch(const shared_ptr<ISceneNode>& model, const vector<shared_ptr<ILight>>& lights, bool enabled) : mModel(model), mLights(lights), mEnabled(enabled) {
+	mSwitchOnAnim = Animation(0, model->GetTotalAnimationFrameCount() / 2, 0.5f, false);
+	mSwitchOffAnim = Animation(model->GetTotalAnimationFrameCount() / 2, model->GetTotalAnimationFrameCount() - 1, 0.5f, false);
+	mSwitchSound = model->GetFactory()->GetEngineInterface()->GetSoundSystem()->LoadSound3D("data/sounds/lever.ogg");
 	mSwitchSound->Attach(model);
 }
 
-void LightSwitch::AddLight(const shared_ptr<ruLight>& light)
-{
+void LightSwitch::AddLight(const shared_ptr<ILight>& light) {
 	mLights.push_back(light);
 }
 
-void LightSwitch::Update()
-{
+void LightSwitch::Update() {
 	mSwitchOffAnim.Update();
 	mSwitchOnAnim.Update();
 	auto & player = Game::Instance()->GetLevel()->GetPlayer();
@@ -46,7 +43,6 @@ void LightSwitch::Update()
 	}
 }
 
-void LightSwitch::Serialize(SaveFile & s)
-{
+void LightSwitch::Serialize(SaveFile & s) {
 	s & mEnabled;
 }

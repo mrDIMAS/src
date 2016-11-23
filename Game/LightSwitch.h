@@ -4,15 +4,15 @@
 
 class LightSwitch {
 private:
-	shared_ptr<ruSceneNode> mModel;
+	shared_ptr<ISceneNode> mModel;
 	bool mEnabled;
-	shared_ptr<ruSound> mSwitchSound;
-	vector<shared_ptr<ruLight>> mLights;
-	ruAnimation mSwitchOnAnim;
-	ruAnimation mSwitchOffAnim;
+	shared_ptr<ISound> mSwitchSound;
+	vector<shared_ptr<ILight>> mLights;
+	Animation mSwitchOnAnim;
+	Animation mSwitchOffAnim;
 public:
-	LightSwitch(const shared_ptr<ruSceneNode> & model, const vector<shared_ptr<ruLight>> & lights, bool enabled = true);
-	void AddLight(const shared_ptr<ruLight> & light);
+	LightSwitch(const shared_ptr<ISceneNode> & model, const vector<shared_ptr<ILight>> & lights, bool enabled = true);
+	void AddLight(const shared_ptr<ILight> & light);
 	void Update();
 	void Serialize(SaveFile & out);
 };

@@ -36,7 +36,7 @@ void GUINode::SetAlpha( int alpha ) {
 	}
 }
 
-void GUINode::SetColor( ruVector3 color ) {
+void GUINode::SetColor( Vector3 color ) {
 	mColor = color / 255.0f;
 }
 
@@ -51,7 +51,7 @@ GUINode::GUINode( const weak_ptr<GUIScene> & scene ) :
 	mGlobalY( 0.0f ),
 	mLastMouseInside( false ),
 	mLayer( 0 ) {
-	SetColor( ruVector3( 255, 255, 255 ) );
+	SetColor( Vector3( 255, 255, 255 ) );
 	SetAlpha( 255 );
 }
 
@@ -59,11 +59,11 @@ GUINode::~GUINode( ) {
 
 }
 
-void GUINode::SetTexture( const shared_ptr<ruTexture> & pTexture ) {
+void GUINode::SetTexture( const shared_ptr<ITexture> & pTexture ) {
 	mpTexture = std::dynamic_pointer_cast<Texture>( pTexture );
 }
 
-shared_ptr<ruTexture> GUINode::GetTexture( ) {
+shared_ptr<ITexture> GUINode::GetTexture( ) {
 	return mpTexture;
 }
 
@@ -105,21 +105,21 @@ int GUINode::GetAlpha( ) {
 	return mAlpha;
 }
 
-ruVector3 GUINode::GetColor( ) {
+Vector3 GUINode::GetColor( ) {
 	return mColor;
 }
 
-ruVector2 GUINode::GetSize( ) {
-	return ruVector2( mWidth / mScene.lock()->GetEngine()->GetRenderer()->GetGUIWidthScaleFactor( ), mHeight / mScene.lock()->GetEngine()->GetRenderer()->GetGUIHeightScaleFactor( ) );
+Vector2 GUINode::GetSize( ) {
+	return Vector2( mWidth / mScene.lock()->GetEngine()->GetRenderer()->GetGUIWidthScaleFactor( ), mHeight / mScene.lock()->GetEngine()->GetRenderer()->GetGUIHeightScaleFactor( ) );
 }
 
-ruVector2 GUINode::GetPosition( ) {
-	return ruVector2( GetX( ), GetY( ) );
+Vector2 GUINode::GetPosition( ) {
+	return Vector2( GetX( ), GetY( ) );
 }
 
-ruVector2 GUINode::GetGlobalPosition( ) {
+Vector2 GUINode::GetGlobalPosition( ) {
 	CalculateTransform( );
-	return ruVector2( mGlobalX, mGlobalY );
+	return Vector2( mGlobalX, mGlobalY );
 }
 
 void GUINode::SetIndependentAlpha( bool useIndependent ) {
@@ -136,7 +136,7 @@ void GUINode::SetPosition( float x, float y ) {
 	CalculateTransform( );
 }
 
-void GUINode::Attach( const shared_ptr<ruGUINode> & parent ) {
+void GUINode::Attach( const shared_ptr<IGUINode> & parent ) {
 	shared_ptr<GUINode> & parentNode = std::dynamic_pointer_cast<GUINode>( parent );
 	parentNode->mChildList.push_back( shared_from_this( ) );
 	mParent = parentNode;
@@ -156,11 +156,11 @@ void GUINode::CalculateTransform( ) {
 	}
 }
 
-void GUINode::AddAction( ruGUIAction act, const ruDelegate & delegat ) {
+void GUINode::AddAction( GUIAction act, const Delegate & delegat ) {
 	mEventList[ act ] += delegat;
 }
 
-bool GUINode::IsGotAction( ruGUIAction act ) {
+bool GUINode::IsGotAction( GUIAction act ) {
 	auto iter = mEventList.find( act );
 	return iter != mEventList.end( );
 }
@@ -175,20 +175,20 @@ bool GUINode::IsMouseInside( ) {
 }
 
 void GUINode::OnMouseEnter( ) {
-	if ( IsGotAction( ruGUIAction::OnMouseEnter ) ) {
-		mEventList[ ruGUIAction::OnMouseEnter ]( );
+	if ( IsGotAction( GUIAction::OnMouseEnter ) ) {
+		mEventList[ GUIAction::OnMouseEnter ]( );
 	}
 }
 
 void GUINode::OnMouseLeave( ) {
-	if ( IsGotAction( ruGUIAction::OnMouseLeave ) ) {
-		mEventList[ ruGUIAction::OnMouseLeave ]( );
+	if ( IsGotAction( GUIAction::OnMouseLeave ) ) {
+		mEventList[ GUIAction::OnMouseLeave ]( );
 	}
 }
 
 void GUINode::DoActions( ) {
 	if ( IsMouseInside( ) ) {
-		if ( mScene.lock()->GetEngine()->GetInput()->IsMouseHit( ruInput::MouseButton::Left ) ) {
+		if ( mScene.lock()->GetEngine()->GetInput()->IsMouseHit( IInput::MouseButton::Left ) ) {
 			OnClick( );
 		}
 		if ( !mLastMouseInside ) {
@@ -202,8 +202,8 @@ void GUINode::DoActions( ) {
 }
 
 void GUINode::OnClick( ) {
-	if ( IsGotAction( ruGUIAction::OnClick ) ) {
-		mEventList[ ruGUIAction::OnClick ]( );
+	if ( IsGotAction( GUIAction::OnClick ) ) {
+		mEventList[ GUIAction::OnClick ]( );
 	}
 }
 
@@ -211,7 +211,7 @@ void GUINode::RemoveAllActions( ) {
 	mEventList.clear( );
 }
 
-weak_ptr<class ruGUIScene> GUINode::GetScene( ) {
+weak_ptr<class IGUIScene> GUINode::GetScene( ) {
 	return mScene;
 }
 
@@ -226,7 +226,7 @@ int GUINode::GetLayer( ) const {
 	return mLayer;
 }
 
-void GUINode::Move( const ruVector2 & speed ) {
+void GUINode::Move( const Vector2 & speed ) {
 	float dx = speed.x * mScene.lock()->GetEngine()->GetRenderer()->GetGUIWidthScaleFactor( );
 	float dy = speed.y * mScene.lock()->GetEngine()->GetRenderer()->GetGUIHeightScaleFactor( );
 
@@ -234,7 +234,7 @@ void GUINode::Move( const ruVector2 & speed ) {
 	mY += dy;
 }
 
-void GUINode::RemoveAction( ruGUIAction act ) {
+void GUINode::RemoveAction( GUIAction act ) {
 	mEventList.erase( act );
 }
 
@@ -246,6 +246,6 @@ shared_ptr<GUINode> GUINode::GetParent( ) {
 	return mParent.lock( );
 }
 
-ruGUINode::~ruGUINode( ) {
+IGUINode::~IGUINode( ) {
 
 }

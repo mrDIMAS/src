@@ -12,10 +12,10 @@ private:
 	SmoothFloat mY;
 	int mWidth;
 	int mHeight;
-	shared_ptr<ruTimer> mTimer;
-	shared_ptr<ruText> mGUIText;
+	shared_ptr<ITimer> mTimer;
+	shared_ptr<IText> mGUIText;
 public:
-	explicit Tip(const shared_ptr<ruGUIScene> & scene);
+	explicit Tip(const shared_ptr<IGUIScene> & scene);
 	virtual ~Tip();
 	void SetVisible(bool state);
 	void SetNewText(string text);

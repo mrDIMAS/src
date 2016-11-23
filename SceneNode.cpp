@@ -110,12 +110,16 @@ SceneNode::~SceneNode() {
 	}
 }
 
-ruKeyFrame SceneNode::GetKeyFrame(int n) const {
-	ruKeyFrame kf;
+SceneFactory * const SceneNode::GetFactory() const {
+	return mFactory;
+}
+
+KeyFrame SceneNode::GetKeyFrame(int n) const {
+	KeyFrame kf;
 	if(n >= 0 && n < mKeyframeList.size()) {
 		auto & bkf = mKeyframeList[n];
-		kf.mPosition = ruVector3(bkf->getOrigin().x(), bkf->getOrigin().y(), bkf->getOrigin().z());
-		kf.mRotation = ruQuaternion(bkf->getRotation().x(), bkf->getRotation().y(), bkf->getRotation().z(), bkf->getRotation().w());
+		kf.mPosition = Vector3(bkf->getOrigin().x(), bkf->getOrigin().y(), bkf->getOrigin().z());
+		kf.mRotation = Quaternion(bkf->getRotation().x(), bkf->getRotation().y(), bkf->getRotation().z(), bkf->getRotation().w());
 	} else {
 		throw runtime_error("Invalid key frame number!");
 	}
@@ -154,7 +158,7 @@ void SceneNode::SetCapsuleBody(float height, float radius) {
 }
 
 void SceneNode::SetBoxBody() {
-	ruVector3 halfExtents = (GetAABBMax() - GetAABBMin()) / 2.0f;
+	Vector3 halfExtents = (GetAABBMax() - GetAABBMin()) / 2.0f;
 	btCollisionShape * shape = new btBoxShape(btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
 	btVector3 inertia;
 	shape->calculateLocalInertia(1, inertia);
@@ -162,7 +166,7 @@ void SceneNode::SetBoxBody() {
 }
 
 void SceneNode::SetCylinderBody() {
-	ruVector3 halfExtents = (GetAABBMax() - GetAABBMin()) / 2.0f;
+	Vector3 halfExtents = (GetAABBMax() - GetAABBMin()) / 2.0f;
 	btCollisionShape * shape = new btCylinderShape(btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
 	btVector3 inertia;
 	shape->calculateLocalInertia(1, inertia);
@@ -177,7 +181,7 @@ void SceneNode::SetSphereBody() {
 	SetBody(new btRigidBody(1, static_cast<btMotionState*>(new btDefaultMotionState()), shape, inertia));
 }
 
-void SceneNode::SetAngularFactor(ruVector3 fact) {
+void SceneNode::SetAngularFactor(Vector3 fact) {
 	for(auto & body : mBodyList) {
 		body->setAngularFactor(btVector3(fact.x, fact.y, fact.z));
 	}
@@ -191,9 +195,9 @@ void SceneNode::SetTrimeshBody() {
 			if(mesh->GetTriangles().size()) {
 				btTriangleMesh * trimesh = new btTriangleMesh();
 				for(auto triangle : mesh->GetTriangles()) {
-					ruVector3 & a = mesh->GetVertices()[triangle.mA].mPosition;
-					ruVector3 & b = mesh->GetVertices()[triangle.mB].mPosition;
-					ruVector3 & c = mesh->GetVertices()[triangle.mC].mPosition;
+					Vector3 & a = mesh->GetVertices()[triangle.mA].mPosition;
+					Vector3 & b = mesh->GetVertices()[triangle.mB].mPosition;
+					Vector3 & c = mesh->GetVertices()[triangle.mC].mPosition;
 					trimesh->addTriangle(btVector3(a.x, a.y, a.z), btVector3(b.x, b.y, b.z), btVector3(c.x, c.y, c.z), false);
 				};
 				btMotionState * motionState = new btDefaultMotionState();
@@ -216,7 +220,7 @@ void SceneNode::SetTrimeshBody() {
 	}
 }
 
-void SceneNode::Attach(const shared_ptr<ruSceneNode> & parent) {
+void SceneNode::Attach(const shared_ptr<ISceneNode> & parent) {
 	shared_ptr<SceneNode> & pParent = std::dynamic_pointer_cast<SceneNode>(parent);
 
 	mParent = pParent;
@@ -267,8 +271,8 @@ btTransform & SceneNode::CalculateGlobalTransform() {
 	return mGlobalTransform;
 }
 
-ruVector3 SceneNode::GetAABBMin() {
-	ruVector3 min = ruVector3(FLT_MAX, FLT_MAX, FLT_MAX);
+Vector3 SceneNode::GetAABBMin() {
+	Vector3 min = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
 
 	for(auto mesh : mMeshList) {
 		AABB aabb = mesh->GetBoundingBox();
@@ -285,8 +289,8 @@ ruVector3 SceneNode::GetAABBMin() {
 	return min;
 }
 
-ruVector3 SceneNode::GetAABBMax() {
-	ruVector3 max = ruVector3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+Vector3 SceneNode::GetAABBMax() {
+	Vector3 max = Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
 	for(auto mesh : mMeshList) {
 		AABB aabb = mesh->GetBoundingBox();
@@ -400,7 +404,7 @@ void SceneNode::UpdateSounds() {
 	btVector3 pos = mGlobalTransform.getOrigin();
 
 	for(auto & sound : mSoundList) {
-		sound->SetPosition(ruVector3(pos.x(), pos.y(), pos.z()));
+		sound->SetPosition(Vector3(pos.x(), pos.y(), pos.z()));
 	}
 	if(mIdleSound) {
 		mIdleSound->Play();
@@ -409,22 +413,22 @@ void SceneNode::UpdateSounds() {
 
 
 
-void SceneNode::SetLinearFactor(ruVector3 lin) {
+void SceneNode::SetLinearFactor(Vector3 lin) {
 	for(auto & body : mBodyList) {
 		body->setLinearFactor(btVector3(lin.x, lin.y, lin.z));
 	}
 }
 
-ruVector3 SceneNode::GetPosition() const {
+Vector3 SceneNode::GetPosition() const {
 	btVector3 pos = mGlobalTransform.getOrigin();
-	return ruVector3(pos.x(), pos.y(), pos.z());
+	return Vector3(pos.x(), pos.y(), pos.z());
 }
 
 int SceneNode::GetContactCount() {
 	return mContactCount;
 }
 
-ruContact SceneNode::GetContact(int num) {
+Contact SceneNode::GetContact(int num) {
 	return mContactList[num];
 }
 
@@ -506,23 +510,23 @@ void SceneNode::ApplyProperties() {
 		}
 
 		if(pname == "hitSound") {
-			mHitSound = ruSound::Load3D(value.c_str());
+			mHitSound = mFactory->GetEngine()->GetSoundSystem()->LoadSound3D(value.c_str());
 			AttachSound(mHitSound);
 		};
 
 		if(pname == "idleSound") {
-			mIdleSound = ruSound::Load3D(value.c_str());
+			mIdleSound = mFactory->GetEngine()->GetSoundSystem()->LoadSound3D(value.c_str());
 			AttachSound(mIdleSound);
 		};
 	};
 }
 
 
-void SceneNode::AttachSound(const shared_ptr<ruSound> & sound) {
+void SceneNode::AttachSound(const shared_ptr<ISound> & sound) {
 	mSoundList.push_back(sound);
 }
 
-bool SceneNode::IsInsideNode(shared_ptr<ruSceneNode> n) {
+bool SceneNode::IsInsideNode(shared_ptr<ISceneNode> n) {
 	shared_ptr<SceneNode> & node = std::dynamic_pointer_cast<SceneNode>(n);
 
 	if(!node) {
@@ -531,7 +535,7 @@ bool SceneNode::IsInsideNode(shared_ptr<ruSceneNode> n) {
 
 	btVector3 pos(mGlobalTransform.getOrigin());
 
-	ruVector3 point(pos.x(), pos.y(), pos.z());
+	Vector3 point(pos.x(), pos.y(), pos.z());
 
 	int result = 0;
 
@@ -561,7 +565,7 @@ bool SceneNode::IsInsideNode(shared_ptr<ruSceneNode> n) {
 	return result;
 }
 
-shared_ptr<ruSceneNode> SceneNode::GetChild(int i) {
+shared_ptr<ISceneNode> SceneNode::GetChild(int i) {
 	return mChildren[i];
 }
 
@@ -585,13 +589,13 @@ void SceneNode::SetDepthHack(float depthHack) {
 	}
 }
 
-void SceneNode::SetAnisotropicFriction(ruVector3 aniso) {
+void SceneNode::SetAnisotropicFriction(Vector3 aniso) {
 	for(auto & body : mBodyList) {
 		body->setAnisotropicFriction(btVector3(aniso.x, aniso.y, aniso.z));
 	}
 }
 
-void SceneNode::Move(ruVector3 speed) {
+void SceneNode::Move(Vector3 speed) {
 	for(auto & body : mBodyList) {
 		body->activate(true);
 		body->setLinearVelocity(btVector3(speed.x, speed.y, speed.z));
@@ -599,14 +603,14 @@ void SceneNode::Move(ruVector3 speed) {
 	mLocalTransform.setOrigin(mLocalTransform.getOrigin() + btVector3(speed.x, speed.y, speed.z));
 }
 
-void SceneNode::SetVelocity(ruVector3 velocity) {
+void SceneNode::SetVelocity(Vector3 velocity) {
 	for(auto & body : mBodyList) {
 		body->activate(true);
 		body->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
 	}
 }
 
-void SceneNode::SetPosition(ruVector3 position) {
+void SceneNode::SetPosition(Vector3 position) {
 	mLocalTransform.setOrigin(btVector3(position.x, position.y, position.z));
 	for(auto & body : mBodyList) {
 		body->activate(true);
@@ -627,7 +631,7 @@ bool SceneNode::IsFrozen() {
 	return mFrozen;
 }
 
-void SceneNode::SetRotation(ruQuaternion rotation) {
+void SceneNode::SetRotation(Quaternion rotation) {
 	for(auto & body : mBodyList) {
 		body->activate(true);
 		body->getWorldTransform().getBasis().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
@@ -635,48 +639,48 @@ void SceneNode::SetRotation(ruQuaternion rotation) {
 	mLocalTransform.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
 }
 
-void SceneNode::SetLocalScale(ruVector3 scale) {
+void SceneNode::SetLocalScale(Vector3 scale) {
 	for(auto & body : mBodyList) {
 		body->getCollisionShape()->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
 	}
 }
 
-ruVector3 SceneNode::GetLookVector() const {
+Vector3 SceneNode::GetLookVector() const {
 	btVector3 look = mLocalTransform.getBasis().getColumn(2);
-	return ruVector3(look.x(), look.y(), look.z());
+	return Vector3(look.x(), look.y(), look.z());
 }
 
-ruVector3 SceneNode::GetAbsoluteLookVector() {
+Vector3 SceneNode::GetAbsoluteLookVector() {
 	btVector3 look = mGlobalTransform.getBasis().getColumn(2);
-	return ruVector3(look.x(), look.y(), look.z());
+	return Vector3(look.x(), look.y(), look.z());
 }
 
 const string SceneNode::GetName() {
 	return mName;
 }
 
-ruVector3 SceneNode::GetRightVector() const {
+Vector3 SceneNode::GetRightVector() const {
 	btVector3 right = mLocalTransform.getBasis().getColumn(0);
-	return ruVector3(right.x(), right.y(), right.z());
+	return Vector3(right.x(), right.y(), right.z());
 }
 
-ruVector3 SceneNode::GetUpVector() const {
+Vector3 SceneNode::GetUpVector() const {
 	btVector3 up = mLocalTransform.getBasis().getColumn(1);
-	return ruVector3(up.x(), up.y(), up.z());
+	return Vector3(up.x(), up.y(), up.z());
 }
 
 btTransform SceneNode::GetGlobalTransform() const {
 	return mGlobalTransform;
 }
 
-ruVector3 SceneNode::GetLocalPosition() {
+Vector3 SceneNode::GetLocalPosition() {
 	btTransform transform = mLocalTransform;
 
 	if(mBodyList.size() && !mFrozen) {
 		transform = mBodyList[0]->getWorldTransform();
 	}
 
-	ruVector3 lp;
+	Vector3 lp;
 
 	lp.x = transform.getOrigin().x();
 	lp.y = transform.getOrigin().y();
@@ -728,17 +732,17 @@ void SceneNode::SetOpacity(float opacity) {
 	}
 }
 
-shared_ptr<ruSceneNode> SceneNode::FindChild(const string & name) {
+shared_ptr<ISceneNode> SceneNode::FindChild(const string & name) {
 	return FindChildInNode(shared_from_this(), name);
 }
 
-void SceneNode::SetAngularVelocity(ruVector3 velocity) {
+void SceneNode::SetAngularVelocity(Vector3 velocity) {
 	for(auto & body : mBodyList) {
 		body->setAngularVelocity(btVector3(velocity.x, velocity.y, velocity.z));
 	}
 }
 
-ruVector3 SceneNode::GetEulerAngles() {
+Vector3 SceneNode::GetEulerAngles() {
 	float y, p, r;
 
 	mGlobalTransform.getBasis().getEulerYPR(y, p, r);
@@ -747,15 +751,15 @@ ruVector3 SceneNode::GetEulerAngles() {
 	p *= 180.0 / 3.14159f;
 	r *= 180.0 / 3.14159f;
 
-	return ruVector3(p, y, r);
+	return Vector3(p, y, r);
 }
 
-ruQuaternion SceneNode::GetLocalRotation() {
+Quaternion SceneNode::GetLocalRotation() {
 	btTransform transform = mLocalTransform;
 	if(mBodyList.size()) {
 		transform = mBodyList[0]->getWorldTransform();
 	}
-	return ruQuaternion(transform.getRotation().x(), transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w());
+	return Quaternion(transform.getRotation().x(), transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w());
 }
 
 void SceneNode::SetDamping(float linearDamping, float angularDamping) {
@@ -764,7 +768,7 @@ void SceneNode::SetDamping(float linearDamping, float angularDamping) {
 	}
 }
 
-void SceneNode::SetGravity(const ruVector3 & gravity) {
+void SceneNode::SetGravity(const Vector3 & gravity) {
 	btVector3 g(gravity.x, gravity.y, gravity.z);
 
 	for(auto & body : mBodyList) {
@@ -795,7 +799,7 @@ void SceneNode::SetBody(btRigidBody * theBody) {
 	mBodyList.push_back(theBody);
 }
 
-void SceneNode::SetAnimation(ruAnimation * newAnim, bool dontAffectChilds) {
+void SceneNode::SetAnimation(Animation * newAnim, bool dontAffectChilds) {
 	if(newAnim) {
 		/*
 		if (newAnim->GetBeginFrame() < 0 || newAnim->GetBeginFrame() >= mKeyframeList.size()) {
@@ -853,20 +857,20 @@ BodyType SceneNode::GetBodyType() const {
 	return bodyType;
 }
 
-ruVector3 SceneNode::GetTotalForce() {
+Vector3 SceneNode::GetTotalForce() {
 	if(mBodyList.size()) {
-		return ruVector3(mBodyList[0]->getTotalForce().x(), mBodyList[0]->getTotalForce().y(), mBodyList[0]->getTotalForce().z());
+		return Vector3(mBodyList[0]->getTotalForce().x(), mBodyList[0]->getTotalForce().y(), mBodyList[0]->getTotalForce().z());
 	} else {
-		return ruVector3(0.0f, 0.0f, 0.0f);
+		return Vector3(0.0f, 0.0f, 0.0f);
 	}
 }
 
-ruAnimation * SceneNode::GetCurrentAnimation() {
+Animation * SceneNode::GetCurrentAnimation() {
 	return mCurrentAnimation;
 }
 
-ruVector3 SceneNode::GetLinearVelocity() {
-	ruVector3 vel;
+Vector3 SceneNode::GetLinearVelocity() {
+	Vector3 vel;
 	if(mBodyList.size()) {
 		vel.x = mBodyList[0]->getLinearVelocity().x();
 		vel.y = mBodyList[0]->getLinearVelocity().y();
@@ -879,30 +883,30 @@ float SceneNode::GetRotationAngle() {
 	return mLocalTransform.getRotation().getAngle() * 180.0f / 3.14159;
 }
 
-ruVector3 SceneNode::GetRotationAxis() {
+Vector3 SceneNode::GetRotationAxis() {
 	btVector3 axis = mLocalTransform.getRotation().getAxis();
-	return ruVector3(axis.x(), axis.y(), axis.z());
+	return Vector3(axis.x(), axis.y(), axis.z());
 }
 
-void SceneNode::AddTorque(ruVector3 torque) {
+void SceneNode::AddTorque(Vector3 torque) {
 	for(auto & body : mBodyList) {
 		body->applyTorque(btVector3(torque.x, torque.y, torque.z));
 	}
 }
 
-void SceneNode::AddForceAtPoint(ruVector3 force, ruVector3 point) {
+void SceneNode::AddForceAtPoint(Vector3 force, Vector3 point) {
 	for(auto & body : mBodyList) {
 		body->applyForce(btVector3(force.x, force.y, force.z), btVector3(point.x, point.y, point.z));
 	}
 }
 
-void SceneNode::AddForce(ruVector3 force) {
+void SceneNode::AddForce(Vector3 force) {
 	for(auto & body : mBodyList) {
 		body->applyCentralForce(btVector3(force.x, force.y, force.z));
 	}
 }
 
-void SceneNode::SetLocalPosition(ruVector3 pos) {
+void SceneNode::SetLocalPosition(Vector3 pos) {
 	mLocalTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
 	for(auto & body : mBodyList) {
 		body->getWorldTransform().setOrigin(btVector3(pos.x, pos.y, pos.z));
@@ -910,7 +914,7 @@ void SceneNode::SetLocalPosition(ruVector3 pos) {
 	CalculateGlobalTransform();
 }
 
-void  SceneNode::SetLocalRotation(ruQuaternion rot) {
+void  SceneNode::SetLocalRotation(Quaternion rot) {
 	mLocalTransform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 	for(auto & body : mBodyList) {
 		body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
@@ -918,7 +922,7 @@ void  SceneNode::SetLocalRotation(ruQuaternion rot) {
 	CalculateGlobalTransform();
 }
 
-shared_ptr<ruSceneNode> SceneNode::GetParent() {
+shared_ptr<ISceneNode> SceneNode::GetParent() {
 	return mParent.lock();
 }
 
@@ -935,7 +939,7 @@ bool SceneNode::IsDynamic() {
 	return false;
 }
 
-shared_ptr<ruTexture> SceneNode::GetTexture(int n) {
+shared_ptr<ITexture> SceneNode::GetTexture(int n) {
 	if(n < 0 || n >= mMeshList.size()) {
 		return nullptr;
 	} else {
@@ -1078,16 +1082,16 @@ void SceneNode::SetCollisionEnabled(bool state) {
 	mCollisionEnabled = state;
 }
 
-ruVector2 SceneNode::GetTexCoordFlow() const {
+Vector2 SceneNode::GetTexCoordFlow() const {
 	return mTexCoordFlow;
 }
 
-void SceneNode::SetTexCoordFlow(const ruVector2 & flow) {
+void SceneNode::SetTexCoordFlow(const Vector2 & flow) {
 	mTexCoordFlow = flow;
 }
 
 
 
-ruSceneNode::~ruSceneNode() {
+ISceneNode::~ISceneNode() {
 
 }

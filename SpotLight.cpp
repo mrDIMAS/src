@@ -23,18 +23,16 @@
 #include "SpotLight.h"
 #include "SceneFactory.h"
 
-shared_ptr<Texture> SpotLight::msDefaultSpotTexture;
-
-bool SpotLight::IsSeePoint(const ruVector3 & point) {
+bool SpotLight::IsSeePoint(const Vector3 & point) {
 	bool inFrustum = mFrustum.IsPointInside(point);
 	if(inFrustum) {
-		return (ruVector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
+		return (Vector3(mGlobalTransform.getOrigin().m_floats) - point).Length2() < mRadius * mRadius * 4;
 	}
 	return false;
 }
 
 void SpotLight::BuildSpotProjectionMatrixAndFrustum() {
-	ruVector3 position = GetPosition();
+	Vector3 position = GetPosition();
 	btVector3 bEye = btVector3(position.x, position.y, position.z);
 	btVector3 bLookAt = bEye + mGlobalTransform.getBasis() * btVector3(0, -1, 0);
 	btVector3 bUp = mGlobalTransform.getBasis() * btVector3(1, 0, 0);
@@ -50,7 +48,7 @@ void SpotLight::BuildSpotProjectionMatrixAndFrustum() {
 	mFrustum.Build(mSpotViewProjectionMatrix);
 }
 
-void SpotLight::SetSpotTexture(shared_ptr<ruTexture> texture) {
+void SpotLight::SetSpotTexture(shared_ptr<ITexture> texture) {
 	mSpotTexture = std::dynamic_pointer_cast<Texture>(texture);
 }
 
@@ -83,10 +81,7 @@ SpotLight::~SpotLight() {
 }
 
 SpotLight::SpotLight(SceneFactory * factory) : Light(factory) {
-	mSpotTexture = nullptr;
-	if(msDefaultSpotTexture) {
-		mSpotTexture = msDefaultSpotTexture;
-	}
+	mSpotTexture = dynamic_pointer_cast<Texture>(factory->GetSpotLightDefaultTexture());
 	SetConeAngles(45.0f, 80.0f);
 }
 
@@ -100,8 +95,4 @@ shared_ptr<Texture> SpotLight::GetSpotTexture() {
 
 D3DXMATRIX SpotLight::GetViewProjectionMatrix() {
 	return mSpotViewProjectionMatrix;
-}
-
-void ruSpotLight::SetSpotDefaultTexture(shared_ptr<ruTexture> defaultSpotTexture) {
-	SpotLight::msDefaultSpotTexture = std::dynamic_pointer_cast<Texture>(defaultSpotTexture);
 }

@@ -37,9 +37,9 @@ void Keypad::Update()
 	}
 }
 
-Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, shared_ptr<ruSceneNode> key1, shared_ptr<ruSceneNode> key2,
-	shared_ptr<ruSceneNode> key3, shared_ptr<ruSceneNode> key4, shared_ptr<ruSceneNode> key5, shared_ptr<ruSceneNode> key6,
-	shared_ptr<ruSceneNode> key7, shared_ptr<ruSceneNode> key8, shared_ptr<ruSceneNode> key9, shared_ptr<ruSceneNode> keyCancel,
+Keypad::Keypad(shared_ptr<ISceneNode> keypad, shared_ptr<ISceneNode> key0, shared_ptr<ISceneNode> key1, shared_ptr<ISceneNode> key2,
+	shared_ptr<ISceneNode> key3, shared_ptr<ISceneNode> key4, shared_ptr<ISceneNode> key5, shared_ptr<ISceneNode> key6,
+	shared_ptr<ISceneNode> key7, shared_ptr<ISceneNode> key8, shared_ptr<ISceneNode> key9, shared_ptr<ISceneNode> keyCancel,
 	weak_ptr<Door> doorToUnlock, string codeToUnlock)
 {
 	mKeypad = keypad;
@@ -60,10 +60,10 @@ Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sha
 
 	for(int i = 0; i < 10; i++) {
 		mKeysInitialPosition[i] = mKeys[i]->GetPosition();
-		ruVector3 min = mKeys[i]->GetAABBMin();
-		ruVector3 max = mKeys[i]->GetAABBMax();
-		ruVector3 size = (max - min) / 2;
-		ruVector3 right = mKeys[i]->GetRightVector();
+		Vector3 min = mKeys[i]->GetAABBMin();
+		Vector3 max = mKeys[i]->GetAABBMax();
+		Vector3 size = (max - min) / 2;
+		Vector3 right = mKeys[i]->GetRightVector();
 		mKeysPressedOffsets[i] = right * (size / 2);
 	}
 
@@ -71,8 +71,10 @@ Keypad::Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, sha
 		mDoorToUnlock.lock()->SetLocked(true);
 	}
 
-	mButtonPushSound = ruSound::Load3D("data/sounds/button_push.ogg");
-	mButtonPopSound = ruSound::Load3D("data/sounds/button_pop.ogg");
+	auto soundSystem = mKeypad->GetFactory()->GetEngineInterface()->GetSoundSystem();
+
+	mButtonPushSound = soundSystem->LoadSound3D("data/sounds/button_push.ogg");
+	mButtonPopSound = soundSystem->LoadSound3D("data/sounds/button_pop.ogg");
 
 	mButtonPushSound->SetPosition(mKeypad->GetPosition());
 	mButtonPopSound->SetPosition(mKeypad->GetPosition());

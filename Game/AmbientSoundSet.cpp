@@ -10,13 +10,13 @@ void AmbientSoundSet::DoRandomPlaying()
 	if(mTimer->GetElapsedTimeInSeconds() >= mTimeToNextSoundSec) {
 		mTimeToNextSoundSec = frandom(mTimeMinSec, mTimeMaxSec);
 		int randomSound = rand() % mSoundList.size();
-		mSoundList[randomSound]->SetPosition(player->mpCamera->mCamera->GetPosition() + ruVector3(frandom(-10.0f, 10.0f), 0.0f, frandom(-10.0f, 10.0f)));
+		mSoundList[randomSound]->SetPosition(player->mpCamera->mCamera->GetPosition() + Vector3(frandom(-10.0f, 10.0f), 0.0f, frandom(-10.0f, 10.0f)));
 		mSoundList[randomSound]->Play();
 		mTimer->Restart();
 	}
 }
 
-void AmbientSoundSet::AddSound(shared_ptr<ruSound> sound)
+void AmbientSoundSet::AddSound(shared_ptr<ISound> sound)
 {
 	mSoundList.push_back(sound);
 }
@@ -32,7 +32,7 @@ AmbientSoundSet::AmbientSoundSet()
 	mTimeMinSec = 5.0f;
 	mTimeMaxSec = 15.0f;
 	mTimeToNextSoundSec = mTimeMinSec;
-	mTimer = ruTimer::Create();
+	mTimer = ITimer::Create();
 }
 
 AmbientSoundSet::~AmbientSoundSet()

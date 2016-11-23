@@ -24,19 +24,16 @@
 #include "Light.h"
 #include "CubeTexture.h"
 
-class PointLight : public Light, public virtual ruPointLight {
+class PointLight : public Light, public virtual IPointLight {
 private:
 	friend class SceneFactory;
-
-	CubeTexture * mPointTexture;
+	shared_ptr<CubeTexture> mPointTexture;
 public:
 	PointLight(SceneFactory * factory);
-	static CubeTexture * msDefaultPointCubeTexture;
-
-	~PointLight();
-	void SetPointTexture(ruCubeTexture * cubeTexture);
-	CubeTexture * GetPointTexture();
+	~PointLight();	
+	shared_ptr<CubeTexture> GetPointTexture();
 
 	// API Methods
-	virtual bool IsSeePoint(const ruVector3 & point) override final;
+	virtual bool IsSeePoint(const Vector3 & point) override final;
+	virtual void SetPointTexture(const shared_ptr<ICubeTexture> & cubeTexture) override final;
 };

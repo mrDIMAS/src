@@ -25,6 +25,6 @@ D3DXMATRIX DirectionalLight::BuildViewMatrix(const shared_ptr<Camera> & camera) 
 
 // API Methods
 
-bool DirectionalLight::IsSeePoint(const ruVector3 & point) {
+bool DirectionalLight::IsSeePoint(const Vector3 & point) {
 	return true;
 }

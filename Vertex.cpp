@@ -27,7 +27,7 @@ Vertex::Vertex( ) {
 
 }
 
-Vertex::Vertex( const Vertex & v, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
+Vertex::Vertex( const Vertex & v, const Vector4 & boneIndices, const Vector4 & boneWeights ) :
 	mPosition( v.mPosition ),
 	mNormal( v.mNormal ),
 	mTexCoord( v.mTexCoord ),
@@ -37,7 +37,7 @@ Vertex::Vertex( const Vertex & v, const ruVector4 & boneIndices, const ruVector4
 
 }
 
-Vertex::Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVector2 & texCoord, const ruVector3 & tangent, const ruVector4 & boneIndices, const ruVector4 & boneWeights ) :
+Vertex::Vertex( const Vector3 & position, const Vector3 & normal, const Vector2 & texCoord, const Vector3 & tangent, const Vector4 & boneIndices, const Vector4 & boneWeights ) :
 	mPosition( position ),
 	mNormal( normal ),
 	mTexCoord( texCoord ),
@@ -47,14 +47,14 @@ Vertex::Vertex( const ruVector3 & position, const ruVector3 & normal, const ruVe
 
 }
 
-Vertex::Vertex( const ruVector3 & position, const ruVector2 & texCoord, const ruVector4 & color ) :
+Vertex::Vertex( const Vector3 & position, const Vector2 & texCoord, const Vector4 & color ) :
 	mPosition( position ),
 	mTexCoord( texCoord ),
 	mBoneIndices( color ) {
 
 }
 
-Vertex::Vertex( const ruVector3 & position, const ruVector2 & texCoord ) :
+Vertex::Vertex( const Vector3 & position, const Vector2 & texCoord ) :
 	mPosition( position ),
 	mTexCoord( texCoord ) {
 

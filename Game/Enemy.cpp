@@ -9,6 +9,7 @@ Enemy::Enemy(unique_ptr<Game> & game, const vector<shared_ptr<GraphVertex>> & pa
 	Actor(game, 0.5f, 0.25f),
 	mHitDistance(1.3),
 	mCurrentPatrolPoint(0),
+	mForceRun(false),
 	mAngleTo(0.0f),
 	mAngle(0.0f),
 	mRunSpeed(1.5f),
@@ -19,13 +20,13 @@ Enemy::Enemy(unique_ptr<Game> & game, const vector<shared_ptr<GraphVertex>> & pa
 	mPathfinder.SetVertices(path);
 	mPatrolPointList = patrol;
 
-	mModel =  mGame->GetEngine()->GetSceneFactory()->LoadScene("data/models/ripper/ripper0.scene");
+	mModel = mGame->GetEngine()->GetSceneFactory()->LoadScene("data/models/ripper/ripper0.scene");
 	mModel->Attach(mBody);
-	mModel->SetPosition(ruVector3(0, -0.7f, 0));
+	mModel->SetPosition(Vector3(0, -0.7f, 0));
 	mModel->SetBlurAmount(1.0f);
 	mModel->SetAnimationBlendingEnabled(false);
 
-	auto light = dynamic_pointer_cast<ruSpotLight>(mModel->FindChild("Fspot001"));
+	auto light = dynamic_pointer_cast<ISpotLight>(mModel->FindChild("Fspot001"));
 	light->SetShadowCastEnabled(false);
 
 	FillByNamePattern(mRightLegParts, "RightLegP?([[:digit:]]+)");
@@ -37,35 +38,37 @@ Enemy::Enemy(unique_ptr<Game> & game, const vector<shared_ptr<GraphVertex>> & pa
 	mHead = mModel->FindChild("Head");
 	mHead->SetAnimationOverride(true);
 
-	mHitFleshWithAxeSound = ruSound::Load3D("data/sounds/armor_axe_flesh.ogg");
+	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
+
+	mHitFleshWithAxeSound = soundSystem->LoadSound3D("data/sounds/armor_axe_flesh.ogg");
 	mHitFleshWithAxeSound->Attach(mModel->FindChild("Weapon"));
 
-	mBreathSound = ruSound::Load3D("data/sounds/breath1.ogg");
+	mBreathSound = soundSystem->LoadSound3D("data/sounds/breath1.ogg");
 	mBreathSound->Attach(mBody);
 	mBreathSound->SetVolume(0.25f);
 	mBreathSound->SetRolloffFactor(35);
 	mBreathSound->SetRoomRolloffFactor(35);
 	mBreathSound->SetReferenceDistance(2.8);
 
-	mScreamSound = ruSound::Load3D("data/sounds/scream_creepy_1.ogg");
+	mScreamSound = soundSystem->LoadSound3D("data/sounds/scream_creepy_1.ogg");
 	mScreamSound->SetVolume(1.0f);
 	mScreamSound->Attach(mBody);
 	mScreamSound->SetRolloffFactor(20);
 	mScreamSound->SetRoomRolloffFactor(20);
 	mScreamSound->SetReferenceDistance(4);
 
-	mRunAnimation = ruAnimation(0, 33, 0.8, true);
+	mRunAnimation = Animation(0, 33, 0.8, true);
 	mRunAnimation.AddFrameListener(5, [this] {EmitStepSound(); });
 	mRunAnimation.AddFrameListener(23, [this] {EmitStepSound(); });
 
-	mAttackAnimation = ruAnimation(34, 48, 0.78, true);
+	mAttackAnimation = Animation(34, 48, 0.78, true);
 	mAttackAnimation.AddFrameListener(44, [this] { HitPlayer(); });
 
-	mWalkAnimation = ruAnimation(49, 76, 0.7, true);
+	mWalkAnimation = Animation(49, 76, 0.7, true);
 	mWalkAnimation.AddFrameListener(51, [this] {EmitStepSound(); });
 	mWalkAnimation.AddFrameListener(67, [this] {EmitStepSound(); });
 
-	mIdleAnimation = ruAnimation(77, 85, 1.5, true);
+	mIdleAnimation = Animation(77, 85, 1.5, true);
 
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/stone.smat", mBody));
 	mSoundMaterialList.push_back(make_unique<SoundMaterial>("data/materials/metal.smat", mBody));
@@ -88,11 +91,12 @@ Enemy::Enemy(unique_ptr<Game> & game, const vector<shared_ptr<GraphVertex>> & pa
 
 
 	// set callback to let enemy 'hear' sounds and properly react to it
-	ruSound::PlayCallback.PlayEvent += [this] { Listen(); };
+	ISound::PlayCallback.PlayEvent += [this] { Listen(); };
 }
 
 void Enemy::Think() {
-	const auto & player = Game::Instance()->GetLevel()->GetPlayer();
+	const auto & level = mGame->GetLevel();
+	const auto & player = level->GetPlayer();
 
 	// tweakable parameters
 	const float reachDistanceTolerance = 0.7f;
@@ -105,11 +109,11 @@ void Enemy::Think() {
 	const float pathCheckTolerance = 1.0f;
 	const float detectionAngle = 45.0f; // in degress
 	const int lostTime = 5 * 60; // in frames
-	const bool ignorePlayer = player->IsDead(); // for debug only, force enemy to ignore player
+	const bool ignorePlayer = player->IsDead();
 	const int pathCheckTime = 4 * 60; // in frames
 
-	const ruVector3 toPlayer = player->mpCamera->mCamera->GetPosition() - (mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f);
-	const ruVector3 toDestination = (mDestination - mBody->GetPosition()).Normalize();
+	const Vector3 toPlayer = player->mpCamera->mCamera->GetPosition() - (mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f);
+	const Vector3 toDestination = (mDestination - mBody->GetPosition()).Normalize();
 
 	// select move type (also see Enemy::Listen)
 	const bool eyeContact = player->IsVisibleFromPoint(mHead->GetPosition() + mBody->GetLookVector().Normalize() * 0.4f);
@@ -119,7 +123,7 @@ void Enemy::Think() {
 	const bool playerCloseEnough = distanceToPlayer <= detectionDistance;
 	if(!ignorePlayer && ((eyeContact || flashLightHighlight) && playerInSight && playerCloseEnough)) {
 		mMoveType = MoveType::ChasePlayer;
-		Game::Instance()->GetLevel()->PlayChaseMusic();
+		level->PlayChaseMusic();
 		mLostTimer = lostTime;
 	} else if(mLostTimer <= 0) {
 		if(mMoveType != MoveType::CheckSound) {
@@ -130,7 +134,7 @@ void Enemy::Think() {
 	--mLostTimer;
 
 	// select move speed
-	const float moveSpeed = (mMoveType == MoveType::ChasePlayer) ? runSpeed : walkSpeed;
+	const float moveSpeed = (mMoveType == MoveType::ChasePlayer || mForceRun) ? runSpeed : walkSpeed;
 
 	// select target
 	switch(mMoveType) {
@@ -161,7 +165,7 @@ void Enemy::Think() {
 		LookAt(mDestination);
 
 		// if reach destination
-		const ruVector3 destinationVector = mDestination - mBody->GetPosition();
+		const Vector3 destinationVector = mDestination - mBody->GetPosition();
 		const float distanceToDestination = destinationVector.Length();
 		if(distanceToDestination < reachDistanceTolerance) {
 			// switch to next vertex
@@ -178,6 +182,7 @@ void Enemy::Think() {
 				} else if(mMoveType == MoveType::CheckSound) {
 					// sound checked, switch to patrolling
 					mMoveType = MoveType::Patrol;
+					mForceRun = false;
 				}
 
 				// stand still on end of the path
@@ -189,7 +194,7 @@ void Enemy::Think() {
 		} else {
 			// check doors
 			bool allDoorsAreOpen = true;
-			for(auto & pDoor : Game::Instance()->GetLevel()->GetDoorList()) {
+			for(auto & pDoor : level->GetDoorList()) {
 				if((pDoor->mDoorNode->GetPosition() - mBody->GetPosition()).Length() < doorCheckDistance) {
 					// ignore locked doors
 					if(pDoor->GetState() != Door::State::Opened && !pDoor->IsLocked()) {
@@ -202,7 +207,7 @@ void Enemy::Think() {
 			}
 
 			// check gates (door too)
-			for(auto & pGate : Game::Instance()->GetLevel()->GetGateList()) {
+			for(auto & pGate : level->GetGateList()) {
 				if((pGate->GetNode()->GetPosition() - mBody->GetPosition()).Length() < doorCheckDistance) {
 					if(pGate->GetState() == Gate::State::Closed && !pGate->mLocked) {
 						pGate->Open();
@@ -239,7 +244,11 @@ void Enemy::Think() {
 				}
 			} else {
 				// just walk
-				SetWalkAnimation();
+				if(mForceRun) {
+					SetWalkAnimation();
+				} else {
+					SetRunAnimation();
+				}
 			}
 
 			if(allowMovement) {
@@ -293,17 +302,17 @@ void Enemy::SetIdleAnimation() {
 	mAttackAnimation.SetEnabled(false);
 }
 
-void Enemy::SetCommonAnimation(ruAnimation * anim) {
+void Enemy::SetCommonAnimation(Animation * anim) {
 	mModel->SetAnimation(anim);
 }
 
-void Enemy::SetTorsoAnimation(ruAnimation * anim) {
+void Enemy::SetTorsoAnimation(Animation * anim) {
 	for(auto & torsoPart : mTorsoParts) {
 		torsoPart->SetAnimation(anim);
 	}
 }
 
-void Enemy::SetLegsAnimation(ruAnimation *pAnim) {
+void Enemy::SetLegsAnimation(Animation *pAnim) {
 	for(auto & rightLegPart : mRightLegParts) {
 		rightLegPart->SetAnimation(pAnim);
 	}
@@ -313,7 +322,7 @@ void Enemy::SetLegsAnimation(ruAnimation *pAnim) {
 }
 
 void Enemy::HitPlayer() {
-	auto & player = Game::Instance()->GetLevel()->GetPlayer();
+	auto & player = mGame->GetLevel()->GetPlayer();
 	float distanceToPlayer = (player->GetCurrentPosition() - mBody->GetPosition()).Length();
 	if(distanceToPlayer < mHitDistance) {
 		player->Damage(55.0f);
@@ -322,10 +331,10 @@ void Enemy::HitPlayer() {
 }
 
 void Enemy::EmitStepSound() {
-	ruRayCastResultEx result = mGame->GetEngine()->GetPhysics()->CastRayEx(mBody->GetPosition() + ruVector3(0, 0.1, 0), mBody->GetPosition() - ruVector3(0, mBodyHeight * 2.2, 0));
+	RayCastResultEx result = mGame->GetEngine()->GetPhysics()->CastRayEx(mBody->GetPosition() + Vector3(0, 0.1, 0), mBody->GetPosition() - Vector3(0, mBodyHeight * 2.2, 0));
 	if(result.valid) {
 		for(auto & sMat : mSoundMaterialList) {
-			shared_ptr<ruSound> & snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
+			shared_ptr<ISound> & snd = sMat->GetRandomSoundAssociatedWith(result.textureName);
 			if(snd) {
 				snd->Play(true);
 			}
@@ -333,10 +342,10 @@ void Enemy::EmitStepSound() {
 	}
 }
 
-void Enemy::FillByNamePattern(vector< shared_ptr<ruSceneNode> > & container, const string & pattern) {
+void Enemy::FillByNamePattern(vector< shared_ptr<ISceneNode> > & container, const string & pattern) {
 	std::regex rx(pattern);
 	for(int i = 0; i < mModel->GetCountChildren(); i++) {
-		shared_ptr<ruSceneNode> child = mModel->GetChild(i);
+		shared_ptr<ISceneNode> child = mModel->GetChild(i);
 		if(regex_match(child->GetName(), rx)) {
 			container.push_back(child);
 		}
@@ -346,8 +355,8 @@ void Enemy::FillByNamePattern(vector< shared_ptr<ruSceneNode> > & container, con
 void Enemy::Listen() {
 	// if hear something before, then check it and only then check new sound
 	if(mMoveType != MoveType::ChasePlayer) {
-		const float hearDistance = Game::Instance()->GetLevel()->GetPlayer()->mNoiseFactor * 10.0f;
-		const auto sound = ruSound::PlayCallback.Caller;
+		const float hearDistance = mGame->GetLevel()->GetPlayer()->mNoiseFactor * 10.0f;
+		const auto sound = ISound::PlayCallback.Caller;
 		for(const auto & reactSound : mReactSounds) {
 			if(sound == reactSound) {
 				if(sound->GetPosition().Distance(mBody->GetPosition()) < hearDistance) {
@@ -363,7 +372,7 @@ void Enemy::Listen() {
 
 
 void Enemy::Serialize(SaveFile & s) {
-	ruVector3 position = mBody->GetPosition();
+	Vector3 position = mBody->GetPosition();
 
 	s & position;
 	s & mHealth;
@@ -374,7 +383,7 @@ void Enemy::Serialize(SaveFile & s) {
 }
 
 Enemy::~Enemy() {
-	ruSound::PlayCallback.PlayEvent.Clear();
+	ISound::PlayCallback.PlayEvent.Clear();
 }
 
 void Enemy::Damage(float dmg) {
@@ -385,8 +394,8 @@ inline float RadToDeg(float rad) {
 	return rad * 180.0f / M_PI;
 }
 
-void Enemy::LookAt(const ruVector3 & lookAt) {
-	ruVector3 delta = (lookAt - mBody->GetPosition()).Normalize();
+void Enemy::LookAt(const Vector3 & lookAt) {
+	Vector3 delta = (lookAt - mBody->GetPosition()).Normalize();
 
 	mAngleTo = RadToDeg(atan2(delta.x, delta.z));
 
@@ -412,11 +421,11 @@ void Enemy::LookAt(const ruVector3 & lookAt) {
 		mAngle += change * 2;
 	}
 
-	mBody->SetRotation(ruQuaternion(ruVector3(0, 1, 0), mAngle - 90.0f));
+	mBody->SetRotation(Quaternion(Vector3(0, 1, 0), mAngle - 90.0f));
 
 	// head
 	//float headAngle = RadToDeg(atan2(delta.y, delta.z));
-	//mHead->SetRotation(ruQuaternion(ruVector3(1, 0, 0), headAngle));
+	//mHead->SetRotation(Quaternion(Vector3(1, 0, 0), headAngle));
 }
 
 void Enemy::SetNextPatrolPoint() {
@@ -426,11 +435,12 @@ void Enemy::SetNextPatrolPoint() {
 	}
 }
 
-void Enemy::ForceCheckSound(ruVector3 position) {
+void Enemy::ForceCheckSound(Vector3 position) {
 	mCheckSoundPosition = position;
 	mMoveType = MoveType::CheckSound;
+	mForceRun = true;
 }
 
-shared_ptr<ruSceneNode> Enemy::GetBody() {
+shared_ptr<ISceneNode> Enemy::GetBody() {
 	return mBody;
 }

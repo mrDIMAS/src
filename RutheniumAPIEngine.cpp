@@ -27,6 +27,6 @@
 #include "Physics.h"
 #include "Engine.h"
 
-unique_ptr<ruEngine> ruEngine::Create(int width, int height, int fullscreen, char vSync) {
-	return make_unique<Engine>(width, height, fullscreen, vSync);;
+unique_ptr<IEngine> IEngine::Create(int width, int height, bool fullscreen, bool vSync) {
+	return make_unique<Engine>(width, height, fullscreen, vSync);
 }

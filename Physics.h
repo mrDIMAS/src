@@ -23,7 +23,7 @@
 
 class Engine;
 
-class Physics : public ruPhysics {
+class Physics : public IPhysics {
 private:
 	Engine * const mEngine;
 public:
@@ -41,8 +41,8 @@ public:
 	void UpdateContacts();
 
 	// API Methods
-	virtual shared_ptr<ruSceneNode> CastRay(ruVector3 begin, ruVector3 end, ruVector3 * outPickPoint) override final;
-	virtual ruRayCastResultEx CastRayEx(ruVector3 begin, ruVector3 end) override final;
+	virtual shared_ptr<ISceneNode> CastRay(Vector3 begin, Vector3 end, Vector3 * outPickPoint) override final;
+	virtual RayCastResultEx CastRayEx(Vector3 begin, Vector3 end) override final;
 	virtual void Update(float timeStep, int subSteps, float fixedTimeStep) override final;
-	virtual shared_ptr<ruSceneNode> RayPick(int x, int y, ruVector3 * outPickPoint) override final;
+	virtual shared_ptr<ISceneNode> RayPick(int x, int y, Vector3 * outPickPoint) override final;
 };

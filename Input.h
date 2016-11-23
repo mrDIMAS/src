@@ -2,7 +2,7 @@
 
 class Engine;
 
-class Input : public ruInput {
+class Input : public IInput {
 private:
 	Engine * const mEngine;
 
@@ -31,7 +31,7 @@ public:
 	Input(Engine * engine, HWND window);
 	~Input();
 
-	virtual string GetKeyName(ruInput::Key key) override final;
+	virtual string GetKeyName(IInput::Key key) override final;
 	virtual void Update() override final;
 	virtual bool IsKeyDown(Key key) override final;
 	virtual bool IsKeyHit(Key key) override final;

@@ -15,11 +15,11 @@ private:
 	float mRange;
 	float mPeakRangeMult;
 	float mOnRange;
-	shared_ptr<ruLight>mLight;
+	shared_ptr<ILight>mLight;
 	AnimationType mAnimType;
 	float mAnimSpeed;
 public:
-	explicit LightAnimator(shared_ptr<ruLight>lit, float as, float onRange, float peakRangeMult);
+	explicit LightAnimator(shared_ptr<ILight>lit, float as, float onRange, float peakRangeMult);
 	void Update();
 	void SetAnimationType(AnimationType lat);
 	AnimationType GetAnimationType();

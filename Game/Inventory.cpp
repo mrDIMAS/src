@@ -17,11 +17,11 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 
 	mScene = mGame->GetEngine()->CreateGUIScene();
 
-	mBackgroundTexture = ruTexture::Request("data/gui/inventory/back.tga");
-	mCellTexture = ruTexture::Request("data/gui/inventory/item.tga");
-	mButtonTexture = ruTexture::Request("data/gui/inventory/button.tga");
+	auto renderer = mGame->GetEngine()->GetRenderer();
+	mBackgroundTexture = renderer->GetTexture("data/gui/inventory/back.tga");
+	mCellTexture = renderer->GetTexture("data/gui/inventory/item.tga");
+	mButtonTexture = renderer->GetTexture("data/gui/inventory/button.tga");
 	mFont = mGame->GetEngine()->CreateBitmapFont(14, "data/fonts/font5.ttf");
-	mPickSound = ruSound::Load2D("data/sounds/menupick.ogg");
 
 	float distMult = 1.1f;
 	int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
@@ -35,11 +35,11 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 
 	// Tab buttons 
 	{
-		mPageItems = mScene->CreateButton(backgroundX, backgroundY - 32, 120, 32, ruTexture::Request("data/gui/inventory/button2.png"), mLocalization.GetString("pageItems"), mFont, pGUIProp->mForeColor);
-		mPageItems->AddAction(ruGUIAction::OnClick, [this] { OnPageItemsClick(); });
+		mPageItems = mScene->CreateButton(backgroundX, backgroundY - 32, 120, 32, renderer->GetTexture("data/gui/inventory/button2.png"), mLocalization.GetString("pageItems"), mFont, pGUIProp->mForeColor);
+		mPageItems->AddAction(GUIAction::OnClick, [this] { OnPageItemsClick(); });
 
-		mPageNotes = mScene->CreateButton(backgroundX + 120, backgroundY - 32, 120, 32, ruTexture::Request("data/gui/inventory/button2.png"), mLocalization.GetString("pageNotes"), mFont, pGUIProp->mForeColor);
-		mPageNotes->AddAction(ruGUIAction::OnClick, [this] { OnPageNotesClick(); });
+		mPageNotes = mScene->CreateButton(backgroundX + 120, backgroundY - 32, 120, 32, renderer->GetTexture("data/gui/inventory/button2.png"), mLocalization.GetString("pageNotes"), mFont, pGUIProp->mForeColor);
+		mPageNotes->AddAction(GUIAction::OnClick, [this] { OnPageNotesClick(); });
 	}
 
 	// background
@@ -48,7 +48,7 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 	int combineY = backgroundH - 128;
 	int descriptionY = combineY + 10;
 
-	mItemDescriptionText = mScene->CreateText(mLocalization.GetString("desc"), 10, descriptionY, backgroundW - 128, combineH, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+	mItemDescriptionText = mScene->CreateText(mLocalization.GetString("desc"), 10, descriptionY, backgroundW - 128, combineH, mFont, pGUIProp->mForeColor, TextAlignment::Left);
 	mItemDescriptionText->Attach(mItemsBackground);
 
 	// item actions
@@ -62,16 +62,16 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 	int buttonH = 30;
 	int buttonW = actionsW - 2 * buttonSpace;
 
-	mUseButton = mScene->CreateButton(buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString("use"), mFont, pGUIProp->mForeColor, ruTextAlignment::Center, 255);
+	mUseButton = mScene->CreateButton(buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString("use"), mFont, pGUIProp->mForeColor, TextAlignment::Center, 255);
 	mUseButton->Attach(mItemsBackground);
 
-	mCombineButton = mScene->CreateButton(buttonsX, buttonY + 1.5f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString("combine"), mFont, pGUIProp->mForeColor, ruTextAlignment::Center, 255);
+	mCombineButton = mScene->CreateButton(buttonsX, buttonY + 1.5f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString("combine"), mFont, pGUIProp->mForeColor, TextAlignment::Center, 255);
 	mCombineButton->Attach(mItemsBackground);
 
 	// combine items
 	int combineBoxY = buttonY + 3.6f * buttonH;
-	ruVector3 combineColor1 = pGUIProp->mForeColor;
-	ruVector3 combineColor2 = pGUIProp->mForeColor;
+	Vector3 combineColor1 = pGUIProp->mForeColor;
+	Vector3 combineColor2 = pGUIProp->mForeColor;
 	int combineBoxSpacing = 5;
 	buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
 
@@ -87,7 +87,7 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 	mSecondCombineItemCell = mScene->CreateRect(buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight, mCellTexture, combineColor2, 255);
 	mSecondCombineItemCell->Attach(mItemsBackground);
 
-	mItemCharacteristics = mScene->CreateText(mLocalization.GetString("characteristics"), actionsX, combineBoxY + 1.5f * mCellHeight, 128, combineH, mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
+	mItemCharacteristics = mScene->CreateText(mLocalization.GetString("characteristics"), actionsX, combineBoxY + 1.5f * mCellHeight, 128, combineH, mFont, pGUIProp->mForeColor, TextAlignment::Center);
 	mItemCharacteristics->Attach(mItemsBackground);
 
 	int itemSpacing = 5;
@@ -99,41 +99,41 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 			mItemCell[cw][ch] = mScene->CreateRect(cellX, cellY, mCellWidth, mCellHeight, mCellTexture, pGUIProp->mForeColor, 255);
 			mItemCell[cw][ch]->Attach(mItemsBackground);
 
-			mItem[cw][ch] = mScene->CreateRect(cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, nullptr, ruVector3(255, 255, 255), 255);
+			mItem[cw][ch] = mScene->CreateRect(cellX + itemSpacing, cellY + itemSpacing, mCellWidth - 2 * itemSpacing, mCellHeight - 2 * itemSpacing, nullptr, Vector3(255, 255, 255), 255);
 			mItem[cw][ch]->Attach(mItemsBackground);
 
-			mItemCountText[cw][ch] = mScene->CreateText("0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
+			mItemCountText[cw][ch] = mScene->CreateText("0", cellX + distMult * mCellWidth - 18, cellY + distMult * mCellHeight - 24, 8, 8, mFont, pGUIProp->mForeColor, TextAlignment::Center);
 			mItemCountText[cw][ch]->Attach(mItemsBackground);
 		}
 	}
 
 	int offset = combineBoxY + 2.2f * mCellHeight;
-	mItemDescription = mScene->CreateText("Desc", 2 * itemSpacing, descriptionY + 5 * itemSpacing, backgroundW - 2 * itemSpacing - 128, combineH - 2 * itemSpacing, pGUIProp->mFont, ruVector3(200, 200, 200), ruTextAlignment::Left, 255);
+	mItemDescription = mScene->CreateText("Desc", 2 * itemSpacing, descriptionY + 5 * itemSpacing, backgroundW - 2 * itemSpacing - 128, combineH - 2 * itemSpacing, pGUIProp->mFont, Vector3(200, 200, 200), TextAlignment::Left, 255);
 	mItemDescription->Attach(mItemsBackground);
 
 	// characteristics of item
 	int charSpace = 28;
-	mItemContentType = mScene->CreateText("ContentType", actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+	mItemContentType = mScene->CreateText("ContentType", actionsX + buttonSpace, offset + charSpace * 1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, TextAlignment::Left);
 	mItemContentType->Attach(mItemsBackground);
 
-	mItemContent = mScene->CreateText("Content", actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+	mItemContent = mScene->CreateText("Content", actionsX + buttonSpace, offset + charSpace * 2.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, TextAlignment::Left);
 	mItemContent->Attach(mItemsBackground);
 
-	mItemVolume = mScene->CreateText("Volume", actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+	mItemVolume = mScene->CreateText("Volume", actionsX + buttonSpace, offset + charSpace * 3.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, TextAlignment::Left);
 	mItemVolume->Attach(mItemsBackground);
 
-	mItemMass = mScene->CreateText("Mass", actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+	mItemMass = mScene->CreateText("Mass", actionsX + buttonSpace, offset + charSpace * 4.1, actionsW - itemSpacing, 100, mFont, pGUIProp->mForeColor, TextAlignment::Left);
 	mItemMass->Attach(mItemsBackground);
 
 
 	// Notes page
 	{
-		mNotesBackground = mScene->CreateRect(backgroundX, backgroundY, backgroundW, backgroundH, ruTexture::Request("data/gui/inventory/back_note.tga"), pGUIProp->mBackColor);
+		mNotesBackground = mScene->CreateRect(backgroundX, backgroundY, backgroundW, backgroundH, renderer->GetTexture("data/gui/inventory/back_note.tga"), pGUIProp->mBackColor);
 
-		mNotesList = unique_ptr<ScrollList>(new ScrollList(mScene, 80, 20, ruTexture::Request("data/gui/menu/button.tga"), " "));
+		mNotesList = make_unique<ScrollList>(mScene, 80, 20, renderer->GetTexture("data/gui/menu/button.tga"), " ");
 		mNotesList->AttachTo(mNotesBackground);
 
-		mNoteText = mScene->CreateText(" ", 30, 60, backgroundW - 60, backgroundH - 90, mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+		mNoteText = mScene->CreateText(" ", 30, 60, backgroundW - 60, backgroundH - 90, mFont, pGUIProp->mForeColor, TextAlignment::Left);
 		mNoteText->Attach(mNotesBackground);
 	}
 
@@ -154,7 +154,7 @@ void Inventory::DoCombine() {
 }
 
 void Inventory::Update() {
-	ruVector3 whiteColor = ruVector3(255, 255, 255);
+	Vector3 whiteColor = Vector3(255, 255, 255);
 	int screenCenterX = ruVirtualScreenWidth / 2;
 	int screenCenterY = ruVirtualScreenHeight / 2;
 
@@ -186,7 +186,7 @@ void Inventory::Update() {
 		SetVisible(false);
 		mGame->GetLevel()->GetPlayer()->GetHUD()->ShowUsedItem(mpItemForUse);
 
-		if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
+		if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
 			mGame->GetLevel()->GetPlayer()->GetHUD()->ShowUsedItem(nullptr);
 			mpItemForUse = nullptr;
 			mpSelectedItem = nullptr;
@@ -218,8 +218,8 @@ void Inventory::Update() {
 	mCombineButton->GetText()->SetAlpha(combineAlpha);
 
 	// draw combine items
-	ruVector3 combineColor1 = pGUIProp->mForeColor;
-	ruVector3 combineColor2 = pGUIProp->mForeColor;
+	Vector3 combineColor1 = pGUIProp->mForeColor;
+	Vector3 combineColor2 = pGUIProp->mForeColor;
 	int combineBoxSpacing = 5;
 
 	mFirstCombineItem->SetTexture(nullptr);
@@ -230,8 +230,8 @@ void Inventory::Update() {
 		mFirstCombineItem->SetVisible(true);
 		mFirstCombineItem->SetTexture(mpCombineItemFirst->GetPictogram());
 		if(mFirstCombineItem->IsMouseInside()) {
-			combineColor1 = ruVector3(255, 0, 0);
-			if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
+			combineColor1 = Vector3(255, 0, 0);
+			if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
 				mpCombineItemFirst = nullptr;
 			}
 		}
@@ -245,8 +245,8 @@ void Inventory::Update() {
 		mSecondCombineItem->SetVisible(true);
 		mSecondCombineItem->SetTexture(mpCombineItemSecond->GetPictogram());
 		if(mSecondCombineItem->IsMouseInside()) {
-			combineColor2 = ruVector3(255, 0, 0);
-			if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
+			combineColor2 = Vector3(255, 0, 0);
+			if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
 				mpCombineItemSecond = nullptr;
 			}
 		}
@@ -280,7 +280,7 @@ void Inventory::Update() {
 	bool combinePick = true;
 	for(int cw = 0; cw < mCellCountWidth; cw++) {
 		for(int ch = 0; ch < mCellCountHeight; ch++) {
-			ruVector3 color = pGUIProp->mForeColor;
+			Vector3 color = pGUIProp->mForeColor;
 
 			int itemNum = cw * mCellCountHeight + ch;
 
@@ -298,7 +298,7 @@ void Inventory::Update() {
 			}
 			if(pItem) {
 				if(mpSelectedItem == pItem) {
-					color = ruVector3(0, 200, 0);
+					color = Vector3(0, 200, 0);
 				}
 				mItemCountText[cw][ch]->SetText(StringBuilder() << curItemCount);
 				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
@@ -312,10 +312,10 @@ void Inventory::Update() {
 
 			Item * pPicked = nullptr;
 			if(mItemCell[cw][ch]->IsMouseInside()) {
-				color = ruVector3(255, 0, 0);
+				color = Vector3(255, 0, 0);
 				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
 					pPicked = pItem;
-					if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
+					if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
 						mpSelectedItem = pItem;
 					}
 				}
@@ -323,7 +323,7 @@ void Inventory::Update() {
 
 			mItemCell[cw][ch]->SetColor(color);
 			if(pPicked) {
-				if(mGame->GetEngine()->GetInput()->IsMouseHit(ruInput::MouseButton::Right) && combinePick) {
+				if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Right) && combinePick) {
 					if(mpCombineItemFirst == nullptr) {
 						if(pPicked != mpCombineItemFirst) {
 							mpCombineItemFirst = pPicked;

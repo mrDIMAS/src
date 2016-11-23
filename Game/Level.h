@@ -37,7 +37,7 @@ private:
 	vector<shared_ptr<Gate>> mGateList;
 	vector<shared_ptr<Keypad>> mKeypadList;
 	vector<shared_ptr<LightSwitch>> mLightSwitchList;
-	vector<weak_ptr<ruSound>> mSounds;
+	vector<weak_ptr<ISound>> mSounds;
 	vector<shared_ptr<Button>> mButtonList;
 	vector<shared_ptr<InteractiveObject>> mInteractiveObjectList;
 	virtual void OnSerialize(SaveFile & out) = 0;
@@ -48,8 +48,8 @@ private:
 	float mDestChaseMusicVolume;
 protected:
 	unique_ptr<Game> & mGame;
-	shared_ptr<ruSceneNode> mScene;
-	ruConfig mLocalization;
+	shared_ptr<ISceneNode> mScene;
+	Config mLocalization;
 	// on each level only one enemy presented	
 	unique_ptr<Enemy> mEnemy;
 	// on each level only one player presented
@@ -59,14 +59,14 @@ public:
 	explicit Level(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
 	virtual ~Level();
 	LevelName mName;
-	shared_ptr<ruSound> mMusic;
-	shared_ptr<ruSound> mChaseMusic;	
+	shared_ptr<ISound> mMusic;
+	shared_ptr<ISound> mChaseMusic;	
 	void PlayChaseMusic(); // when enemy detects player, enemy should call this method
 	unordered_map<string, bool > mStages;
 	const unique_ptr<Enemy> & GetEnemy() const;
 	const unique_ptr<Player> & GetPlayer() const;
 	void DestroyPlayer();
-	void AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction);
+	void AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const Delegate & interactAction);
 	shared_ptr<InteractiveObject> FindInteractiveObject(const string & name);
 	void AddItemPlace(const shared_ptr<ItemPlace> & ipc);
 	shared_ptr<ItemPlace> FindItemPlace(const string & name);
@@ -85,9 +85,9 @@ public:
 	void AddZone(const shared_ptr<Zone> & zone);
 	void AddButton(const shared_ptr<Button> & button);
 	void AutoCreateDoorsByNamePattern(const string & namePattern);
-	void AddSound(shared_ptr<ruSound> sound);
+	void AddSound(shared_ptr<ISound> sound);
 	void LoadLocalization(string fn);
-	void AddAmbientSound(shared_ptr<ruSound> sound);
+	void AddAmbientSound(shared_ptr<ISound> sound);
 	void PlayAmbientSounds();
 	void GenericUpdate();
 	void LoadSceneFromFile(const string & file);
@@ -97,7 +97,7 @@ public:
 	virtual bool IsVisible();
 	void DoneInitialization();
 	void CreateBlankScene();
-	shared_ptr<ruSceneNode> GetUniqueObject(const string & name);
+	shared_ptr<ISceneNode> GetUniqueObject(const string & name);
 	static LevelName msCurLevelID;
 	virtual void Serialize(SaveFile & out) final;
 };

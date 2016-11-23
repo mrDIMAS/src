@@ -23,7 +23,7 @@
 
 class Engine;
 
-class BitmapFont : public ruFont {
+class BitmapFont : public IFont {
 public:
 	Engine * const mEngine;
 	// Data for the renderer

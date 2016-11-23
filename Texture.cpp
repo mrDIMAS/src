@@ -23,89 +23,59 @@
 #include "Texture.h"
 #include "Utility.h"
 
-unordered_map<string, weak_ptr<Texture>> Texture::msTextureList;
 
-bool DirExists( const std::string& dirName_in ) {
-	return GetFileAttributesA( dirName_in.c_str( ) ) & FILE_ATTRIBUTE_DIRECTORY;
+bool DirExists(const std::string& dirName_in) {
+	return GetFileAttributesA(dirName_in.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
 }
 
-shared_ptr<Texture> Texture::Request( string file ) {
-	shared_ptr<Texture> pTexture;
-	auto existing = msTextureList.find( file );
-	if ( existing != msTextureList.end( ) ) {
-		pTexture = existing->second.lock( );
-	}
-	if ( pTexture ) {
-		return pTexture;
-	} else {
-		pTexture = make_shared<Texture>( );
-		pTexture->mName = file;
-		if ( pTexture->LoadFromFile( file ) ) {
-			msTextureList[ file ] = pTexture;
-		} else {
-			pTexture.reset( );
-		}
-	}
-	return std::move( pTexture );
+Texture::Texture(const string & name) :
+	mName(name),
+	mHeight(0),
+	mWidth(0),
+	mColorDepth(0) {
 }
 
-Texture::Texture( ) :
-	mHeight( 0 ),
-	mWidth( 0 ),
-	mColorDepth( 0 ) {
-
+Texture::~Texture() {
 }
 
-Texture::~Texture( ) {
-	OnLostDevice( );
-}
-
-IDirect3DTexture9 * Texture::GetInterface( ) {
+IDirect3DTexture9 * Texture::GetInterface() {
 	return mTexture;
 }
 
-int Texture::GetWidth( ) {
+int Texture::GetWidth() const {
 	return mWidth;
 }
 
-int Texture::GetHeight( ) {
+int Texture::GetHeight() const {
 	return mHeight;
 }
 
-void Texture::OnLostDevice( ) {
-	mTexture.Reset( );
-}
-
-void Texture::OnResetDevice( ) {
-	LoadFromFile( mName );
-}
-
-bool Texture::LoadFromFile( const string & file ) {
+bool Texture::LoadFromFile(const string & file) {
 	D3DXIMAGE_INFO imgInfo;
 
-	int slashPos = file.find_last_of( '/' );
-	int dotPos = file.find_last_of( '.' );
-	string ext = file.substr( dotPos + 1, file.size( ) - dotPos );
-	string name = file.substr( slashPos + 1, dotPos - slashPos - 1 );
+	int slashPos = file.find_last_of('/');
+	int dotPos = file.find_last_of('.');
+	string ext = file.substr(dotPos + 1, file.size() - dotPos);
+	string name = file.substr(slashPos + 1, dotPos - slashPos - 1);
 
 	// cache lookup
 	string cacheFileName = "./cache/" + name + ".dds";
-	FILE * pFile = fopen( cacheFileName.c_str( ), "r" );
-	bool genericTex = file.find( "textures/generic" ) != string::npos;
-	if ( pFile && genericTex ) {
-		fclose( pFile );
-		if ( FAILED( D3DXCreateTextureFromFileExA( pD3D, cacheFileName.c_str( ), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture ) ) ) {
-			Log::Write( StringBuilder( "WARNING: Unable to load " ) << file << " texture!" );
+	FILE * pFile = fopen(cacheFileName.c_str(), "r");
+	bool genericTex = file.find("textures/generic") != string::npos;
+	if(pFile && genericTex) {
+		fclose(pFile);
+		if(FAILED(D3DXCreateTextureFromFileExA(pD3D, cacheFileName.c_str(), D3DX_DEFAULT_NONPOW2, D3DX_DEFAULT_NONPOW2, D3DX_FROM_FILE, 0, D3DFMT_FROM_FILE, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_FILTER_NONE, 0, &imgInfo, NULL, &mTexture))) {
+			Log::Write(StringBuilder("WARNING: Unable to load ") << file << " texture!");
 			return false;
 		} else {
-			Log::Write( StringBuilder( "Texture successfully loaded from DDS cache: " ) << cacheFileName );
+			Log::Write(StringBuilder("Texture successfully loaded from DDS cache: ") << cacheFileName);
 		}
 	} else {
-		if ( FAILED( D3DXCreateTextureFromFileExA( pD3D, file.c_str( ), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture ) ) ) {
-			Log::Write( StringBuilder( "WARNING: Unable to load " ) << file << " texture!" );
+		if(FAILED(D3DXCreateTextureFromFileExA(pD3D, file.c_str(), D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, &imgInfo, 0, &mTexture))) {
+			Log::Write(StringBuilder("WARNING: Unable to load ") << file << " texture!");
 			return false;
 		} else {
-			Log::Write( StringBuilder( "Texture successfully loaded: " ) << file );
+			Log::Write(StringBuilder("Texture successfully loaded: ") << file);
 		}
 	}
 	mWidth = imgInfo.Width;
@@ -114,18 +84,14 @@ bool Texture::LoadFromFile( const string & file ) {
 	return true;
 }
 
-std::string Texture::GetName( ) {
+std::string Texture::GetName() const {
 	return mName;
 }
 
-int Texture::GetColorDepth( ) {
+int Texture::GetColorDepth() const {
 	return mColorDepth;
 }
 
-shared_ptr<ruTexture> ruTexture::Request( const string & file ) {
-	return Texture::Request( file );
-}
-
-ruTexture::~ruTexture( ) {
+ITexture::~ITexture() {
 
 }

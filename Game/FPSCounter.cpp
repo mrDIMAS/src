@@ -14,7 +14,7 @@ void FPSCounter::RegisterFrame()
 
 FPSCounter::FPSCounter()
 {
-	timer = ruTimer::Create();
+	timer = ITimer::Create();
 
 	fps = 0;
 	frameCounter = 0;

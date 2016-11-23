@@ -39,11 +39,11 @@ Light::Light(SceneFactory * factory) :
 	OnResetDevice( );
 }
 
-void Light::SetColor( const ruVector3 & theColor ) {
+void Light::SetColor( const Vector3 & theColor ) {
 	mColor = theColor / 255.0f;
 }
 
-ruVector3 Light::GetColor( ) const {
+Vector3 Light::GetColor( ) const {
 	return mColor;
 }
 
@@ -68,6 +68,6 @@ void Light::OnLostDevice( ) {
 	pOcclusionQuery->Release( );
 }
 
-ruLight::~ruLight( ) {
+ILight::~ILight( ) {
 
 }

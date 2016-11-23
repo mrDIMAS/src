@@ -6,15 +6,15 @@
 #include <fstream>
 #include <streambuf>
 
-ruConfig::ruConfig( ) {
+Config::Config( ) {
 
 }
 
-ruConfig::ruConfig(const string & filename) {
+Config::Config(const string & filename) {
 	Load(filename);
 }
 
-void ruConfig::LoadString( const string & str ) {
+void Config::LoadString( const string & str ) {
 	mValues.clear( );
 	bool equalFound = false;
 	bool quoteLF = false, quoteRF = false;
@@ -59,7 +59,7 @@ void ruConfig::LoadString( const string & str ) {
 	};
 }
 
-void ruConfig::Load( const string & fileName ) {
+void Config::Load( const string & fileName ) {
 	std::ifstream file( fileName );
 	if ( !file.is_open( ) ) throw std::runtime_error( "Unable to parse file " + fileName );
 	std::string buffer( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>( ) );
@@ -68,70 +68,70 @@ void ruConfig::Load( const string & fileName ) {
 	LoadString( buffer );
 }
 
-void ruConfig::Save( const string & fileName ) const {
+void Config::Save( const string & fileName ) const {
 	ofstream file( fileName );
 	for ( auto & keyVal : mValues ) {
 		file << keyVal.first << " = " << "\"" << keyVal.second << "\";" << endl;
 	}
 }
 
-void ruConfig::Save( ) const {
+void Config::Save( ) const {
 	Save( mFileName );
 }
 
-map<string, string> ruConfig::GetValuesCopy( ) const {
+map<string, string> Config::GetValuesCopy( ) const {
 	return mValues;
 }
 
-float ruConfig::GetNumber( const string & varName ) {
+float Config::GetNumber( const string & varName ) {
 	return atof( GetExisting( varName )->second.c_str( ) );
 }
 
-bool ruConfig::GetBoolean( const string & varName ) {
+bool Config::GetBoolean( const string & varName ) {
 	return atoi( GetExisting( varName )->second.c_str( ) ) != 0;
 }
 
-void ruConfig::SetNumber( const string & varName, float value ) {
+void Config::SetNumber( const string & varName, float value ) {
 	GetExisting( varName )->second = to_string( value );
 }
 
-void ruConfig::SetString( const string & varName, const string & value ) {
+void Config::SetString( const string & varName, const string & value ) {
 	GetExisting( varName )->second = value;
 }
 
-void ruConfig::AddNumber( const string & newVarName, float value ) {
+void Config::AddNumber( const string & newVarName, float value ) {
 	mValues[ newVarName ] = to_string( value );
 }
 
-void ruConfig::AddString( const string & newVarName, const string & value ) {
+void Config::AddString( const string & newVarName, const string & value ) {
 	mValues[ newVarName ] = value;
 }
 
-bool ruConfig::IsEmpty( ) const {
+bool Config::IsEmpty( ) const {
 	return mValues.empty( );
 }
 
-void ruConfig::SetNumber( const string & varName, int value ) {
+void Config::SetNumber( const string & varName, int value ) {
 	GetExisting( varName )->second = to_string( value );
 }
 
-void ruConfig::AddNumber( const string & newVarName, int value ) {
+void Config::AddNumber( const string & newVarName, int value ) {
 	mValues[ newVarName ] = to_string( value );
 }
 
-string ruConfig::GetString( const string & varName ) {
+string Config::GetString( const string & varName ) {
 	return GetExisting( varName )->second;
 }
 
-void ruConfig::SetBoolean( const string & varName, bool value ) {
+void Config::SetBoolean( const string & varName, bool value ) {
 	GetExisting( varName )->second = value ? "1" : "0";
 }
 
-void ruConfig::AddBoolean( const string & varName, bool value ) {
+void Config::AddBoolean( const string & varName, bool value ) {
 	mValues[ varName ] = value ? "1" : "0";
 }
 
-map<string, string>::iterator ruConfig::GetExisting( const string & varName ) {
+map<string, string>::iterator Config::GetExisting( const string & varName ) {
 	map<string, string>::iterator var = mValues.find( varName );
 	if ( var == mValues.end( ) ) {
 		stringstream ss;

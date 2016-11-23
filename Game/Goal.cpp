@@ -28,15 +28,15 @@ void Goal::SetText(string t)
 	mCurrentY = ruVirtualScreenHeight * 0.45f;
 }
 
-Goal::Goal(const shared_ptr<ruGUIScene> & scene)
+Goal::Goal(const shared_ptr<IGUIScene> & scene)
 {
-	mWaitTimer = ruTimer::Create();
+	mWaitTimer = ITimer::Create();
 	mInitialY = 20;
 	mCurrentY = mInitialY;
 	mDestY = 20;
 	mWaitSec = 2.0f;
 	mAlpha = 255.0f;
-	mGoalText = scene->CreateText("Goal", 40, mCurrentY, ruVirtualScreenWidth - 80, 32, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center, mAlpha);
+	mGoalText = scene->CreateText("Goal", 40, mCurrentY, ruVirtualScreenWidth - 80, 32, pGUIProp->mFont, pGUIProp->mNoticeColor, TextAlignment::Center, mAlpha);
 }
 
 Goal::~Goal()

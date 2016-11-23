@@ -26,8 +26,8 @@ extern "C" {
 unique_ptr<Game> Game::msInstance;
 
 Game::Game() :
-	mKeyQuickSave(ruInput::Key::F5),
-	mKeyQuickLoad(ruInput::Key::F9),
+	mKeyQuickSave(IInput::Key::F5),
+	mKeyQuickLoad(IInput::Key::F9),
 	mShowFPS(true),
 	mRunning(true),
 	mMouseSens(0.5f),
@@ -115,7 +115,7 @@ Game::~Game() {
 
 void Game::Start() {
 	// read config
-	ruConfig cfg("config.cfg");
+	Config cfg("config.cfg");
 	string resolution = cfg.GetString("resolution");
 	int resW = atoi(resolution.substr(0, resolution.find('x')).c_str());
 	int resH = atoi(resolution.substr(resolution.find('x') + 1).c_str());
@@ -125,18 +125,18 @@ void Game::Start() {
 	mLocalizationPath = cfg.GetString("languagePath");
 
 	// create engine and set defaults
-	mEngine = ruEngine::Create(resW, resH, fullscreen, vsync);
-	ruPointLight::SetPointDefaultTexture(ruCubeTexture::Request("data/textures/generic/pointCube.dds"));
-	ruSpotLight::SetSpotDefaultTexture(ruTexture::Request("data/textures/generic/spotlight.jpg"));
+	mEngine = IEngine::Create(resW, resH, fullscreen, vsync);
+	mEngine->GetSceneFactory()->SetPointLightDefaultTexture(mEngine->GetRenderer()->GetCubeTexture("data/textures/generic/pointCube.dds"));
+	mEngine->GetSceneFactory()->SetSpotLightDefaultTexture(mEngine->GetRenderer()->GetTexture("data/textures/generic/spotlight.jpg"));
 
 	pGUIProp = make_unique<GUIProperties>(Instance());
 	mMenu = make_unique<Menu>(Instance());
-	mEngine->GetRenderer()->SetCursor(ruTexture::Request("data/gui/cursor.tga"), 32, 32);
-	mDeltaTimer = ruTimer::Create();
-	ruConfig loc(mLocalizationPath + "menu.loc");
-	mLoadingScreen = unique_ptr<LoadingScreen>(new LoadingScreen(Instance(), loc.GetString("loading")));
+	mEngine->GetRenderer()->SetCursor(mEngine->GetRenderer()->GetTexture("data/gui/cursor.tga"), 32, 32);
+	mDeltaTimer = ITimer::Create();
+	Config loc(mLocalizationPath + "menu.loc");
+	mLoadingScreen = make_unique<LoadingScreen>(Instance(), loc.GetString("loading"));
 	mOverlayScene = mEngine->CreateGUIScene();
-	mFPSText = mOverlayScene->CreateText("FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left, 100);
+	mFPSText = mOverlayScene->CreateText("FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Left, 100);
 	mEngine->GetRenderer()->SetCursorVisible(true);
 	UpdateClock();
 	MainLoop();
@@ -165,11 +165,11 @@ bool Game::IsShowFPSEnabled() const {
 	return mShowFPS;
 }
 
-void Game::SetQuickSaveKey(const ruInput::Key & key) {
+void Game::SetQuickSaveKey(const IInput::Key & key) {
 	mKeyQuickSave = key;
 }
 
-void Game::SetQuickLoadKey(const ruInput::Key & key) {
+void Game::SetQuickLoadKey(const IInput::Key & key) {
 	mKeyQuickLoad = key;
 }
 
@@ -183,7 +183,7 @@ float Game::GetMusicVolume() const// REPLACE THIS OR REMOVE
 	return mMusicVolume;
 }
 
-const unique_ptr<ruEngine> & Game::GetEngine() const {
+const unique_ptr<IEngine> & Game::GetEngine() const {
 	return mEngine;
 }
 
@@ -278,9 +278,9 @@ LoadingScreen::LoadingScreen(unique_ptr<Game> & game, const string & loadingText
 	mScene = mGame->GetEngine()->CreateGUIScene();
 	mScene->SetVisible(false);
 	mGUIFont = mGame->GetEngine()->CreateBitmapFont(32, "data/fonts/font5.ttf");
-	mGUILoadingText = mScene->CreateText(loadingText, x, y, w, h, mGUIFont, ruVector3(0, 0, 0), ruTextAlignment::Center);
+	mGUILoadingText = mScene->CreateText(loadingText, x, y, w, h, mGUIFont, Vector3(0, 0, 0), TextAlignment::Center);
 	mGUILoadingText->SetLayer(0xFF); // topmost
-	mGUILoadingBackground = mScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, ruTexture::Request("data/gui/loadingscreen.tga"), pGUIProp->mBackColor);
+	mGUILoadingBackground = mScene->CreateRect(0, 0, ruVirtualScreenWidth, ruVirtualScreenHeight, mGame->GetEngine()->GetRenderer()->GetTexture("data/gui/loadingscreen.tga"), pGUIProp->mBackColor);
 }
 
 void LoadingScreen::Draw() {

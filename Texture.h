@@ -21,25 +21,21 @@
 
 #pragma once
 
-class Texture : public ruTexture {
+class Texture : public ITexture {
 private:
 	COMPtr<IDirect3DTexture9> mTexture;
 	int mHeight;
 	int mWidth;
 	int mColorDepth;
 	string mName;
-	bool LoadFromFile( const string & file );
 public:
-	virtual int GetHeight( );
-	virtual int GetWidth( );
-	virtual int GetColorDepth( );
-	virtual string GetName( );
+	explicit Texture(const string & name);
+	virtual ~Texture();
+	bool LoadFromFile(const string & file);
+	IDirect3DTexture9 * GetInterface();
 
-	static unordered_map< string, weak_ptr<Texture>> msTextureList;
-	explicit Texture( );
-	virtual ~Texture( );
-	IDirect3DTexture9 * GetInterface( );
-	static shared_ptr<Texture> Request( string file );
-	void OnResetDevice( );
-	void OnLostDevice( );
+	virtual int GetHeight( ) const override final;
+	virtual int GetWidth( ) const override final;
+	virtual int GetColorDepth( ) const override final;
+	virtual string GetName( ) const override final;
 };

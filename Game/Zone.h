@@ -9,16 +9,16 @@ public:
 		Loop,
 	};
 private:
-	shared_ptr<ruSceneNode> mObject;
+	shared_ptr<ISceneNode> mObject;
 	bool mPlayerInside;
 	bool mActive;
 	Type mType;
 public:
-	ruEvent OnPlayerEnter;  // OneShot, Loop
-	ruEvent OnPlayerLeave;  // Loop
-	ruEvent OnPlayerInside; // Loop
+	Event OnPlayerEnter;  // OneShot, Loop
+	Event OnPlayerLeave;  // Loop
+	Event OnPlayerInside; // Loop
 
-	Zone(const shared_ptr<ruSceneNode> & object, const ruDelegate & onEnter) :
+	Zone(const shared_ptr<ISceneNode> & object, const Delegate & onEnter) :
 		mObject(object),
 		mType(Type::OneShot),
 		mPlayerInside(false),

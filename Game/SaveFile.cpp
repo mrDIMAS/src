@@ -54,7 +54,7 @@ void SaveFile::operator & (bool & v)
 	}
 }
 
-void SaveFile::operator & (ruInput::Key & v)
+void SaveFile::operator & (IInput::Key & v)
 {
 	int vi = (int)v;
 	if(mSave) {
@@ -62,7 +62,7 @@ void SaveFile::operator & (ruInput::Key & v)
 	} else {
 		Read(v);
 	}
-	v = (ruInput::Key)vi;
+	v = (IInput::Key)vi;
 }
 
 void SaveFile::operator & (string & str)
@@ -86,7 +86,7 @@ void SaveFile::operator & (string & str)
 	}
 }
 
-void SaveFile::operator & (ruQuaternion & v)
+void SaveFile::operator & (Quaternion & v)
 {
 	*this & v.x;
 	*this & v.y;
@@ -94,14 +94,14 @@ void SaveFile::operator & (ruQuaternion & v)
 	*this & v.w;
 }
 
-void SaveFile::operator & (ruVector3 & v)
+void SaveFile::operator & (Vector3 & v)
 {
 	*this & v.x;
 	*this & v.y;
 	*this & v.z;
 }
 
-void SaveFile::operator & (ruAnimation & a)
+void SaveFile::operator & (Animation & a)
 {
 	auto currentFrame = a.GetCurrentFrame();
 	auto enabled = a.IsEnabled();

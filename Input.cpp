@@ -172,8 +172,8 @@ const char * keyNames[] = {
 	"MEDIASELECT"
 };
 
-string Input::GetKeyName(ruInput::Key key) {
-	if(key >= ruInput::Key::Count) {
+string Input::GetKeyName(IInput::Key key) {
+	if(key >= IInput::Key::Count) {
 		return "BadID";
 	}
 	return keyNames[static_cast<int>(key) - 1];

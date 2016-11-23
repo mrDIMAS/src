@@ -6,7 +6,7 @@ class ActionSeries {
 private:
 	class TimePoint {
 	public:
-		ruEvent mActions;
+		Event mActions;
 		bool mDone;
 		TimePoint();
 		void Do();
@@ -14,14 +14,14 @@ private:
 	float mCounter;
 	float mLastActionTime;
 	bool mEnabled;
-	unordered_map<float, TimePoint*> mActions;
+	unordered_map<float, unique_ptr<TimePoint>> mActions;
 public:
 	explicit ActionSeries();
 	~ActionSeries();
 	void IdleActionDummy();
 	void SetEnabled(bool state);
 	void Rewind();
-	void AddAction(float length, const ruDelegate & action);
+	void AddAction(float length, const Delegate & action);
 	void AddSpace(float length);
 	void Perform();
 	void Serialize(SaveFile & out);

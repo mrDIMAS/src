@@ -10,15 +10,15 @@ void SteamStream::Update()
 	mSound->SetVolume(mPower);
 }
 
-SteamStream::SteamStream(shared_ptr<ruSceneNode> obj, ruVector3 speedMin, ruVector3 speedMax, shared_ptr<ruSound> hissSound)
+SteamStream::SteamStream(shared_ptr<ISceneNode> obj, Vector3 speedMin, Vector3 speedMax, shared_ptr<ISound> hissSound)
 {
 	mSound = hissSound;
 	mSteam =  obj->GetFactory()->CreateParticleSystem(60);
 	mSteam->SetPosition(obj->GetPosition());
-	mSteam->SetType(ruParticleSystem::Type::Stream);
+	mSteam->SetType(IParticleSystem::Type::Stream);
 	mSteam->SetSpeedDeviation(speedMin, speedMax);
-	mSteam->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
-	mSteam->SetColorRange(ruVector3(255, 255, 255), ruVector3(255, 255, 255));
+	mSteam->SetTexture(obj->GetFactory()->GetEngineInterface()->GetRenderer()->GetTexture("data/textures/particles/p1.png"));
+	mSteam->SetColorRange(Vector3(255, 255, 255), Vector3(255, 255, 255));
 	mSteam->SetPointSize(0.5f);
 	mSteam->SetParticleThickness(1.5f);
 	mSteam->SetBoundingRadius(0.8f);

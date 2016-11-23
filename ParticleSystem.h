@@ -27,17 +27,17 @@
 
 class Particle {
 public:
-	ruVector3 mPosition;
-	ruVector3 mColor;
-	ruVector3 mSpeed;
+	Vector3 mPosition;
+	Vector3 mColor;
+	Vector3 mSpeed;
 	float mOpacity;
 	float mSize;
 
-	explicit Particle(const ruVector3 & thePosition, const ruVector3 & theSpeed, const ruVector3 & theColor, float theTranslucency, float theSize);
+	explicit Particle(const Vector3 & thePosition, const Vector3 & theSpeed, const Vector3 & theColor, float theTranslucency, float theSize);
 	Particle();
 };
 
-class ParticleSystem : public virtual ruParticleSystem, public SceneNode {
+class ParticleSystem : public virtual IParticleSystem, public SceneNode {
 public:
 	vector< Particle > mParticles;
 	Vertex * mVertices;
@@ -46,13 +46,13 @@ public:
 	int mMaxParticleCount;
 	D3DXMATRIX mWorldTransform;
 	bool mFirstTimeUpdate;
-	ruParticleSystem::Type mType;
-	ruVector3 mColorBegin;
-	ruVector3 mColorEnd;
-	ruVector3 mSpeedDeviationMin;
-	ruVector3 mSpeedDeviationMax;
-	ruVector3 mBoundingBoxMin;
-	ruVector3 mBoundingBoxMax;
+	IParticleSystem::Type mType;
+	Vector3 mColorBegin;
+	Vector3 mColorEnd;
+	Vector3 mSpeedDeviationMin;
+	Vector3 mSpeedDeviationMax;
+	Vector3 mBoundingBoxMin;
+	Vector3 mBoundingBoxMax;
 	float mParticleThickness;
 	float mBoundingRadius;
 	float mPointSize;
@@ -61,7 +61,7 @@ public:
 	bool mUseLighting;
 	bool mEnabled;
 	float mAlphaOffset;
-	ruVector3 RandomVector3(ruVector3 & min, ruVector3 & max);
+	Vector3 RandomVector3(Vector3 & min, Vector3 & max);
 public:
 	// Data for renderer
 	shared_ptr<Texture> mTexture;
@@ -92,21 +92,21 @@ public:
 	virtual bool IsAutoResurrectionEnabled();
 	virtual void SetLightingEnabled(bool state);
 	virtual bool IsLightingEnabled();
-	virtual void SetBoundingBox(const ruVector3 & bbMin, const ruVector3 & bbMax);
-	virtual ruVector3 GetBoundingBoxMax();
-	virtual ruVector3 GetBoundingBoxMin();
-	virtual void SetSpeedDeviation(const ruVector3 & dMin, const ruVector3 & dMax);
-	virtual ruVector3 GetSpeedDeviationMax();
-	virtual ruVector3 GetSpeedDeviationMin();
-	virtual void SetTexture(const shared_ptr<ruTexture> & texture);
-	virtual shared_ptr<ruTexture> GetTexture();
-	virtual void SetType(ruParticleSystem::Type type);
-	virtual ruParticleSystem::Type GetType();
+	virtual void SetBoundingBox(const Vector3 & bbMin, const Vector3 & bbMax);
+	virtual Vector3 GetBoundingBoxMax();
+	virtual Vector3 GetBoundingBoxMin();
+	virtual void SetSpeedDeviation(const Vector3 & dMin, const Vector3 & dMax);
+	virtual Vector3 GetSpeedDeviationMax();
+	virtual Vector3 GetSpeedDeviationMin();
+	virtual void SetTexture(const shared_ptr<ITexture> & texture);
+	virtual shared_ptr<ITexture> GetTexture();
+	virtual void SetType(IParticleSystem::Type type);
+	virtual IParticleSystem::Type GetType();
 	virtual void SetBoundingRadius(float radius);
 	virtual float GetBoundingRadius();
-	virtual void SetColorRange(const ruVector3 & cMin, const ruVector3 & cMax);
-	virtual ruVector3 GetColorMin();
-	virtual ruVector3 GetColorMax();
+	virtual void SetColorRange(const Vector3 & cMin, const Vector3 & cMax);
+	virtual Vector3 GetColorMin();
+	virtual Vector3 GetColorMax();
 	virtual float GetAlphaOffset();
 	virtual void SetAlphaOffset(float alphaOffset);
 };

@@ -17,8 +17,10 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 	LoadLocalization("rf.loc");
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
+	
+	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
 
-	AddSound(mSteamHissSound = ruSound::Load3D("data/sounds/steamhiss.ogg"));
+	AddSound(mSteamHissSound = soundSystem->LoadSound3D("data/sounds/steamhiss.ogg"));
 	mSteamHissSound->SetRolloffFactor(5);
 	mSteamHissSound->SetReferenceDistance(4);
 	mSteamHissSound->SetRoomRolloffFactor(2.5f);
@@ -49,8 +51,8 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 		AddButton(make_shared<Button>(GetUniqueObject("Lift2CallDown"), "Call down", [this] { mLift2->GoDown(); }));
 	}
 
-	mpFan1 = make_shared<Ventilator>(GetUniqueObject("Fan"), 15, ruVector3(0, 1, 0), ruSound::Load3D("data/sounds/fan.ogg"));
-	mpFan2 = make_shared<Ventilator>(GetUniqueObject("Fan2"), 15, ruVector3(0, 1, 0), ruSound::Load3D("data/sounds/fan.ogg"));
+	mpFan1 = make_shared<Ventilator>(GetUniqueObject("Fan"), 15, Vector3(0, 1, 0), soundSystem->LoadSound3D("data/sounds/fan.ogg"));
+	mpFan2 = make_shared<Ventilator>(GetUniqueObject("Fan2"), 15, Vector3(0, 1, 0), soundSystem->LoadSound3D("data/sounds/fan.ogg"));
 
 	// create notes
 	{
@@ -63,17 +65,17 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 		AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note7")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note7Desc"), mLocalization.GetString("note7")); });
 	}
 
-	AddSound(mLeverSound = ruSound::Load3D("data/sounds/lever.ogg"));
+	AddSound(mLeverSound = soundSystem->LoadSound3D("data/sounds/lever.ogg"));
 
-	AddValve(mpSteamValve = make_shared<Valve>(GetUniqueObject("SteamValve"), ruVector3(0, 1, 0)));
-	shared_ptr<ruSound> steamHis = ruSound::Load3D("data/sounds/steamhiss_loop.ogg");
+	AddValve(mpSteamValve = make_shared<Valve>(GetUniqueObject("SteamValve"), Vector3(0, 1, 0)));
+	shared_ptr<ISound> steamHis = soundSystem->LoadSound3D("data/sounds/steamhiss_loop.ogg");
 	steamHis->SetRolloffFactor(5);
 	steamHis->SetReferenceDistance(4);
 	steamHis->SetRoomRolloffFactor(2.5f);
 	AddSound(steamHis);
-	mpExtemeSteam = unique_ptr<SteamStream>(new SteamStream(GetUniqueObject("ExtremeSteam"), ruVector3(-0.0015, -0.1, -0.0015), ruVector3(0.0015, -0.45, 0.0015), steamHis));
+	mpExtemeSteam = make_unique<SteamStream>(GetUniqueObject("ExtremeSteam"), Vector3(-0.0015, -0.1, -0.0015), Vector3(0.0015, -0.45, 0.0015), steamHis);
 
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0, 0, 0));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0, 0, 0));
 
 	mDoorUnderFloor = GetUniqueObject("DoorUnderFloor");
 
@@ -86,13 +88,13 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 	mRadioHurtZone = GetUniqueObject("RadioHurtZone");
 
 	mMeshLock = GetUniqueObject("MeshLock");
-	mMeshLockAnimation = ruAnimation(0, 30, 2);
+	mMeshLockAnimation = Animation(0, 30, 2);
 	mMeshLock->SetAnimation(&mMeshLockAnimation);
 
 	mThermitePlace = GetUniqueObject("ThermitePlace");
 
 	mMeshToSewers = GetUniqueObject("MeshToSewers");
-	mMeshAnimation = ruAnimation(0, 30, 2);
+	mMeshAnimation = Animation(0, 30, 2);
 	mMeshToSewers->SetAnimation(&mMeshAnimation);
 
 	// create zones	
@@ -109,7 +111,7 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 
 	// create music
 	{
-		AddSound(mMusic = ruSound::LoadMusic("data/music/rf.ogg"));
+		AddSound(mMusic = soundSystem->LoadMusic("data/music/rf.ogg"));
 		mMusic->SetVolume(0.75f);
 	}
 
@@ -141,11 +143,11 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 		mLockedDoor->SetLocked(true);
 	}
 
-	mThermiteItemPlace = new ItemPlace(mThermitePlace, Item::Type::AluminumPowder);
+	mThermiteItemPlace = make_unique<ItemPlace>(mThermitePlace, Item::Type::AluminumPowder);
 
 	AutoCreateDoorsByNamePattern("Door?([[:digit:]]+)");
 
-	mPowerLamp = std::dynamic_pointer_cast<ruPointLight>(GetUniqueObject("PowerLamp"));
+	mPowerLamp = std::dynamic_pointer_cast<IPointLight>(GetUniqueObject("PowerLamp"));
 	mPowerLeverSnd = GetUniqueObject("PowerLeverSnd");
 	mSmallSteamPosition = GetUniqueObject("RFSteamPos");
 	mZoneNewLevelLoad = GetUniqueObject("NewLevelLoadZone");
@@ -171,20 +173,20 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 	mLabKeypad = AddKeypad("Keypad4", "Keypad4Key0", "Keypad4Key1", "Keypad4Key2", "Keypad4Key3", "Keypad4Key4", "Keypad4Key5", "Keypad4Key6", "Keypad4Key7", "Keypad4Key8", "Keypad4Key9", "Keypad4KeyCancel", mLabDoorToUnlock, "8279");
 	mColliderKeypad = AddKeypad("Keypad5", "Keypad5Key0", "Keypad5Key1", "Keypad5Key2", "Keypad5Key3", "Keypad5Key4", "Keypad5Key5", "Keypad5Key6", "Keypad5Key7", "Keypad5Key8", "Keypad5Key9", "Keypad5KeyCancel", mColliderDoorToUnlock, "1598");
 
-	ruSound::SetAudioReverb(10);
+	soundSystem->SetReverbPreset(ReverbPreset::Stonecorridor);
 
 	mEnemySpawnPosition = GetUniqueObject("EnemyPosition");
 
 	mSteamPS = nullptr;
 
 	auto fogMesh = GetUniqueObject("Fog");
-	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.0, 0.5, 1), 0.6);
+	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), Vector3(0.0, 0.5, 1), 0.6);
 	mFog->SetPosition(fogMesh->GetPosition());
-	mFog->SetSpeed(ruVector3(0.0002, 0, 0.0002));
+	mFog->SetSpeed(Vector3(0.0002, 0, 0.0002));
 	mFog->Attach(mScene);
 
-	dynamic_pointer_cast<ruPointLight>(GetUniqueObject("RadioLight1"))->SetDrawFlare(false);
-	dynamic_pointer_cast<ruPointLight>(GetUniqueObject("RadioLight2"))->SetDrawFlare(false);
+	dynamic_pointer_cast<IPointLight>(GetUniqueObject("RadioLight1"))->SetDrawFlare(false);
+	dynamic_pointer_cast<IPointLight>(GetUniqueObject("RadioLight2"))->SetDrawFlare(false);
 
 	DoneInitialization();
 }
@@ -244,7 +246,7 @@ void LevelResearchFacility::DoScenario() {
 	mMeshAnimation.Update();
 	mMeshLockAnimation.Update();
 
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.01, 0.01, 0.01));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.01, 0.01, 0.01));
 
 	if(mPowerOn) {
 		mpFan1->DoTurn();
@@ -269,7 +271,7 @@ void LevelResearchFacility::DoScenario() {
 						mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->GetLocalization()->GetString("openDoor"));
 						if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse)) {
 							mPlayer->GetInventory()->ResetSelectedForUse();
-							mDoorUnderFloor->SetRotation(ruQuaternion(0, 0, -110));
+							mDoorUnderFloor->SetRotation(Quaternion(0, 0, -110));
 							mStages["DoorUnderFloorOpen"] = true;
 						}
 					}
@@ -280,7 +282,7 @@ void LevelResearchFacility::DoScenario() {
 
 	if(mPlayer->IsInsideZone(mRadioHurtZone)) {
 		mPlayer->Damage(0.05, false);
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("radioactive"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("radioactive"));
 	}
 
 	mpSteamValve->Update();
@@ -311,7 +313,7 @@ void LevelResearchFacility::DoScenario() {
 	}
 
 	if(mSteamDisabled) {
-		mExtremeSteamBlock->SetPosition(ruVector3(1000, 1000, 1000));
+		mExtremeSteamBlock->SetPosition(Vector3(1000, 1000, 1000));
 		mSteamPS.reset();
 	} else {
 		if(mPlayer->IsInsideZone(mZoneExtremeSteamHurt)) {
@@ -347,7 +349,7 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 						mThermiteSmall->Hide();
 						mThermiteBig->Hide();
 
-						mBurnSound = ruSound::Load3D("data/sounds/burn.ogg");
+						mBurnSound = mGame->GetEngine()->GetSoundSystem()->LoadSound3D("data/sounds/burn.ogg");
 						mBurnSound->SetPosition(mThermiteSmall->GetPosition());
 						mBurnSound->Play();
 
@@ -355,12 +357,12 @@ void LevelResearchFacility::UpdateThermiteSequence() {
 
 						mThermitePS = mGame->GetEngine()->GetSceneFactory()->CreateParticleSystem(150);
 						mThermitePS->SetPosition(mThermiteSmall->GetPosition());
-						mThermitePS->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
-						mThermitePS->SetType(ruParticleSystem::Type::Box);
-						mThermitePS->SetSpeedDeviation(ruVector3(-0.001, 0.001, -0.001), ruVector3(0.001, 0.009, 0.001));
-						mThermitePS->SetColorRange(ruVector3(255, 255, 255), ruVector3(255, 255, 255));
+						mThermitePS->SetTexture(mGame->GetEngine()->GetRenderer()->GetTexture("data/textures/particles/p1.png"));
+						mThermitePS->SetType(IParticleSystem::Type::Box);
+						mThermitePS->SetSpeedDeviation(Vector3(-0.001, 0.001, -0.001), Vector3(0.001, 0.009, 0.001));
+						mThermitePS->SetColorRange(Vector3(255, 255, 255), Vector3(255, 255, 255));
 						mThermitePS->SetPointSize(0.045f);
-						mThermitePS->SetBoundingBox(ruVector3(-0.2, 0.0, -0.2), ruVector3(0.2, 0.4, 0.2));
+						mThermitePS->SetBoundingBox(Vector3(-0.2, 0.0, -0.2), Vector3(0.2, 0.4, 0.2));
 						mThermitePS->SetParticleThickness(20.5f);
 						mThermitePS->SetAutoResurrection(false);
 						mThermitePS->SetLightingEnabled(true);
@@ -415,11 +417,11 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 			if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse) && !mPowerOn) {
 
 
-				mPowerLamp->SetColor(ruVector3(0, 255, 0));
+				mPowerLamp->SetColor(Vector3(0, 255, 0));
 
 				mLeverSound->Play();
 
-				mpPowerSparks = unique_ptr<Sparks>(new Sparks(mPowerLeverSnd, ruSound::Load3D("data/sounds/sparks.ogg")));
+				mpPowerSparks = make_unique<Sparks>(mPowerLeverSnd, mGame->GetEngine()->GetSoundSystem()->LoadSound3D("data/sounds/sparks.ogg"));
 
 				mPowerLeverOnModel->Show();
 				mPowerLeverOffModel->Hide();
@@ -510,11 +512,11 @@ void LevelResearchFacility::OnPlayerEnterSteamActivateZone() {
 	if(!mStages["EnterSteamActivateZone"]) {
 		mSteamPS = mGame->GetEngine()->GetSceneFactory()->CreateParticleSystem(35);
 		mSteamPS->SetPosition(mSmallSteamPosition->GetPosition());
-		mSteamPS->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
-		mSteamPS->SetType(ruParticleSystem::Type::Stream);
-		mSteamPS->SetSpeedDeviation(ruVector3(-0.0015, 0.08, -0.0015), ruVector3(0.0015, 0.2, 0.0015));
+		mSteamPS->SetTexture(mGame->GetEngine()->GetRenderer()->GetTexture("data/textures/particles/p1.png"));
+		mSteamPS->SetType(IParticleSystem::Type::Stream);
+		mSteamPS->SetSpeedDeviation(Vector3(-0.0015, 0.08, -0.0015), Vector3(0.0015, 0.2, 0.0015));
 		mSteamPS->SetBoundingRadius(0.4f);
-		mSteamPS->SetColorRange(ruVector3(255, 255, 255), ruVector3(255, 255, 255));
+		mSteamPS->SetColorRange(Vector3(255, 255, 255), Vector3(255, 255, 255));
 		mSteamPS->SetPointSize(0.15f);
 		mSteamPS->SetParticleThickness(1.5f);
 		mSteamPS->SetLightingEnabled(true);

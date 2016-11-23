@@ -4,13 +4,13 @@
 
 class Ventilator {
 private:
-	shared_ptr<ruSceneNode> mBody;
+	shared_ptr<ISceneNode> mBody;
 	float mTurnSpeed;
-	ruVector3 mTurnAxis;
+	Vector3 mTurnAxis;
 	float mAngle;
-	shared_ptr<ruSound> mEngineSound;
+	shared_ptr<ISound> mEngineSound;
 public:
-	explicit Ventilator(shared_ptr<ruSceneNode> object, float turnSpeed, ruVector3 turnAxis, shared_ptr<ruSound> engineSound);
+	explicit Ventilator(shared_ptr<ISceneNode> object, float turnSpeed, Vector3 turnAxis, shared_ptr<ISound> engineSound);
 	virtual ~Ventilator();
 	void DoTurn();
 };

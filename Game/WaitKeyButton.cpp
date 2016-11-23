@@ -15,13 +15,13 @@ void WaitKeyButton::Update() {
 	}
 
 	if(mGrabKey) {
-		for(int i = static_cast<int>(ruInput::Key::Num1); i < static_cast<int>(ruInput::Key::Count); i++) {
-			if(mGame->GetEngine()->GetInput()->IsKeyDown(static_cast<ruInput::Key>(i))) {
-				SetSelected(static_cast<ruInput::Key>(i));
+		for(int i = static_cast<int>(IInput::Key::Num1); i < static_cast<int>(IInput::Key::Count); i++) {
+			if(mGame->GetEngine()->GetInput()->IsKeyDown(static_cast<IInput::Key>(i))) {
+				SetSelected(static_cast<IInput::Key>(i));
 				mGrabKey = false;
 			}
 		}
-		if(mGame->GetEngine()->GetInput()->IsKeyHit(ruInput::Key::Esc)) {
+		if(mGame->GetEngine()->GetInput()->IsKeyHit(IInput::Key::Esc)) {
 			mGrabKey = false;
 		}
 
@@ -39,9 +39,9 @@ void WaitKeyButton::Update() {
 	}
 }
 
-void WaitKeyButton::SetSelected(ruInput::Key i) {
+void WaitKeyButton::SetSelected(IInput::Key i) {
 	mDesc = mGame->GetEngine()->GetInput()->GetKeyName(i);
-	ruInput::Key lastKey = mSelectedKey;
+	IInput::Key lastKey = mSelectedKey;
 	mSelectedKey = i;
 	// swap keys if duplicate found
 	for(auto pWaitKey : WaitKeyButton::msWaitKeyList) {
@@ -53,7 +53,7 @@ void WaitKeyButton::SetSelected(ruInput::Key i) {
 	}
 }
 
-WaitKeyButton::WaitKeyButton(unique_ptr<Game> & game, const shared_ptr<ruGUIScene> & scene, float x, float y, shared_ptr<ruTexture> buttonImage, const string & text) :
+WaitKeyButton::WaitKeyButton(unique_ptr<Game> & game, const shared_ptr<IGUIScene> & scene, float x, float y, shared_ptr<ITexture> buttonImage, const string & text) :
 	mGame(game) {
 	int textHeight = 16;
 	float buttonWidth = 60;
@@ -61,12 +61,12 @@ WaitKeyButton::WaitKeyButton(unique_ptr<Game> & game, const shared_ptr<ruGUIScen
 	mDesc = " ";
 	mAnimCounter = 0;
 	mGrabKey = false;
-	mGUIButton = scene->CreateButton(x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
-	mGUIText = scene->CreateText(text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
+	mGUIButton = scene->CreateButton(x, y, buttonWidth, buttonHeight, buttonImage, "[Key]", pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
+	mGUIText = scene->CreateText(text, x + buttonWidth * 1.1f, y + textHeight / 2, 100, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Left);
 	WaitKeyButton::msWaitKeyList.push_back(this);
 }
 
-ruInput::Key WaitKeyButton::GetSelectedKey() {
+IInput::Key WaitKeyButton::GetSelectedKey() {
 	return mSelectedKey;
 }
 
@@ -75,7 +75,7 @@ void WaitKeyButton::SetVisible(bool state) {
 	mGUIButton->SetVisible(state);
 }
 
-void WaitKeyButton::AttachTo(const shared_ptr<ruGUINode> & node) {
+void WaitKeyButton::AttachTo(const shared_ptr<IGUINode> & node) {
 	mGUIText->Attach(node);
 	mGUIButton->Attach(node);
 }

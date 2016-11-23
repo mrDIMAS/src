@@ -4,9 +4,6 @@
 #include "SaveFile.h"
 
 class Door {
-protected:
-	friend class Level;
-	explicit Door(const shared_ptr<ruSceneNode> & hDoor, float fMaxAngle);
 public:
 	enum class State {
 		Opened,
@@ -19,16 +16,17 @@ public:
 		Counterclockwise,
 	};
 public:
-	shared_ptr<ruSceneNode> mDoorNode;
+	shared_ptr<ISceneNode> mDoorNode;
 	float mMaxAngle;
 	float mOffsetAngle;
 	float mCurrentAngle;
 	TurnDirection mTurnDirection;
 	State mState;
 	bool mLocked;
-	shared_ptr<ruSound> mOpenSound;
-	shared_ptr<ruSound> mCloseSound;
+	shared_ptr<ISound> mOpenSound;
+	shared_ptr<ISound> mCloseSound;
 public:
+	explicit Door(const shared_ptr<ISceneNode> & hDoor, float fMaxAngle);
 	virtual ~Door();
 	void SwitchState();
 	State GetState();
@@ -36,7 +34,7 @@ public:
 	{
 		mOffsetAngle = angle;
 	}
-	shared_ptr<ruSceneNode> GetNode()
+	shared_ptr<ISceneNode> GetNode()
 	{
 		return mDoorNode;
 	}

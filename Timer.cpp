@@ -65,6 +65,6 @@ Timer::Timer() {
 Timer::~Timer() {
 }
 
-shared_ptr<ruTimer> ruTimer::Create() {
+shared_ptr<ITimer> ITimer::Create() {
 	return make_shared<Timer>();
 }

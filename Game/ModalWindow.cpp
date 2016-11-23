@@ -2,22 +2,22 @@
 #include "ModalWindow.h"
 #include "GUIProperties.h"
 
-ModalWindow::ModalWindow(const shared_ptr<ruGUIScene> & scene, int x, int y, int w, int h, shared_ptr<ruTexture> texture, shared_ptr<ruTexture> buttonTexture, ruVector3 color)
+ModalWindow::ModalWindow(const shared_ptr<IGUIScene> & scene, int x, int y, int w, int h, shared_ptr<ITexture> texture, shared_ptr<ITexture> buttonTexture, Vector3 color)
 {
 	int buttonWidth = 128;
 	int buttonHeight = 32;
 
 	mCanvas = scene->CreateRect(x, y, w, h, texture, color);
-	mYesButton = scene->CreateButton(20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "Yes", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
-	mNoButton = scene->CreateButton(w - buttonWidth - 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "No", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
-	mText = scene->CreateText("Text", 20, 20, w - 40, h - 40, pGUIProp->mFont, ruVector3(255, 255, 255), ruTextAlignment::Left);
+	mYesButton = scene->CreateButton(20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "Yes", pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
+	mNoButton = scene->CreateButton(w - buttonWidth - 20, h - buttonHeight - 10, buttonWidth, buttonHeight, buttonTexture, "No", pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
+	mText = scene->CreateText("Text", 20, 20, w - 40, h - 40, pGUIProp->mFont, Vector3(255, 255, 255), TextAlignment::Left);
 
 	mYesButton->Attach(mCanvas);
 	mNoButton->Attach(mCanvas);
 	mText->Attach(mCanvas);
 
-	mYesButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
-	mNoButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
+	mYesButton->AddAction(GUIAction::OnClick, [this] { Close(); });
+	mNoButton->AddAction(GUIAction::OnClick, [this] { Close(); });
 
 	Close();
 }
@@ -28,23 +28,23 @@ void ModalWindow::Ask(const string & text)
 	mCanvas->SetVisible(true);
 }
 
-void ModalWindow::AttachTo(shared_ptr<ruGUINode> node)
+void ModalWindow::AttachTo(shared_ptr<IGUINode> node)
 {
 	mCanvas->Attach(node);
 }
 
-void ModalWindow::SetYesAction(const ruDelegate & yesAction)
+void ModalWindow::SetYesAction(const Delegate & yesAction)
 {
 	mYesButton->RemoveAllActions();
-	mYesButton->AddAction(ruGUIAction::OnClick, yesAction);
-	mYesButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
+	mYesButton->AddAction(GUIAction::OnClick, yesAction);
+	mYesButton->AddAction(GUIAction::OnClick, [this] { Close(); });
 }
 
-void ModalWindow::SetNoAction(const ruDelegate & noAction)
+void ModalWindow::SetNoAction(const Delegate & noAction)
 {
 	mNoButton->RemoveAllActions();
-	mNoButton->AddAction(ruGUIAction::OnClick, noAction);
-	mNoButton->AddAction(ruGUIAction::OnClick, [this] { Close(); });
+	mNoButton->AddAction(GUIAction::OnClick, noAction);
+	mNoButton->AddAction(GUIAction::OnClick, [this] { Close(); });
 }
 
 void ModalWindow::Close()

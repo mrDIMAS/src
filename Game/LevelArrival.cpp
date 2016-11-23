@@ -30,7 +30,7 @@ LevelArrival::LevelArrival(unique_ptr<Game> & game, const unique_ptr<PlayerTrans
 	//////////////////////////////////////////////////////////////////////////
 	// Find entities
 
-	mLiftLamp = std::dynamic_pointer_cast<ruLight>(GetUniqueObject("LiftLamp"));
+	mLiftLamp = std::dynamic_pointer_cast<ILight>(GetUniqueObject("LiftLamp"));
 	mLiftLamp->Hide();
 
 	mTutorialZone1 = GetUniqueObject("TutorialZone1");
@@ -48,22 +48,24 @@ LevelArrival::LevelArrival(unique_ptr<Game> & game, const unique_ptr<PlayerTrans
 	// Player noticements
 	mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objective1"));
 
-	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition() + ruVector3(0, 1, 0));
+	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition() + Vector3(0, 1, 0));
 
 	//////////////////////////////////////////////////////////////////////////
 	// Load sounds
 
-	AddSound(mPowerDownSound = ruSound::Load2D("data/sounds/powerdown.ogg"));
+	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
+
+	AddSound(mPowerDownSound = soundSystem->LoadSound2D("data/sounds/powerdown.ogg"));
 	mPowerDownSound->SetVolume(0.7);
 
-	AddSound(mMetalWhineSound = ruSound::Load2D("data/sounds/metal_whining.ogg"));
+	AddSound(mMetalWhineSound = soundSystem->LoadSound2D("data/sounds/metal_whining.ogg"));
 	mMetalWhineSound->SetVolume(0.95);
 
-	AddSound(mMetalStressSound = ruSound::Load2D("data/sounds/metal_stress1.ogg"));
-	AddSound(mLiftFallSound = ruSound::Load2D("data/sounds/lift_fall.ogg"));
+	AddSound(mMetalStressSound = soundSystem->LoadSound2D("data/sounds/metal_stress1.ogg"));
+	AddSound(mLiftFallSound = soundSystem->LoadSound2D("data/sounds/lift_fall.ogg"));
 	mLiftFallSound->SetVolume(1.25f);
 
-	AddSound(mWindSound = ruSound::Load2D("data/sounds/wind.ogg"));
+	AddSound(mWindSound = soundSystem->LoadSound2D("data/sounds/wind.ogg"));
 	mWindSound->SetVolume(0.5f);
 	mWindSound->Play();
 
@@ -78,46 +80,48 @@ LevelArrival::LevelArrival(unique_ptr<Game> & game, const unique_ptr<PlayerTrans
 		AddButton(make_shared<Button>(GetUniqueObject("Lift1GoUpFloor1"), "Call", [this] { mLift->GoUp(); }));
 	}
 
-	ruSound::SetAudioReverb(15);
+	soundSystem->SetReverbPreset(ReverbPreset::Forest);
 
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient1.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient2.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient3.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient4.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient5.ogg"));
-	AddAmbientSound(ruSound::Load3D("data/sounds/ambient/forest/forestambient6.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/forest/forestambient1.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/forest/forestambient2.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/forest/forestambient3.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/forest/forestambient4.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/forest/forestambient5.ogg"));
+	AddAmbientSound(soundSystem->LoadSound3D("data/sounds/ambient/forest/forestambient6.ogg"));
 
-	AddSound(mWoodHitSound = ruSound::Load2D("data/sounds/woodhit.ogg"));
+	AddSound(mWoodHitSound = soundSystem->LoadSound2D("data/sounds/woodhit.ogg"));
 
+
+	auto renderer = mGame->GetEngine()->GetRenderer();
 	mPlayer->mpCamera->mCamera->SetSkybox(
-		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonUp2048.png"),
-		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonRight2048.png"),
-		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonLeft2048.png"),
-		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonFront2048.png"),
-		ruTexture::Request("data/textures/skyboxes/FullMoon/FullMoonBack2048.png")
+		renderer->GetTexture("data/textures/skyboxes/FullMoon/FullMoonUp2048.png"),
+		renderer->GetTexture("data/textures/skyboxes/FullMoon/FullMoonRight2048.png"),
+		renderer->GetTexture("data/textures/skyboxes/FullMoon/FullMoonLeft2048.png"),
+		renderer->GetTexture("data/textures/skyboxes/FullMoon/FullMoonFront2048.png"),
+		renderer->GetTexture("data/textures/skyboxes/FullMoon/FullMoonBack2048.png")
 	);
 
 	mStages["LiftCrashed"] = false;
 
 	// add light switches
-	vector<shared_ptr<ruLight>> lights;
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("ClockHouseLight1")));
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("ClockHouseLight2")));
-	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch1"), lights, false)));
+	vector<shared_ptr<ILight>> lights;
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("ClockHouseLight1")));
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("ClockHouseLight2")));
+	AddLightSwitch(make_shared<LightSwitch>(GetUniqueObject("LightSwitch1"), lights, false));
 
 	lights.clear();
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("EntranceLight1")));
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("EntranceLight2")));
-	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch2"), lights, false)));
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("EntranceLight1")));
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("EntranceLight2")));
+	AddLightSwitch(make_shared<LightSwitch>(GetUniqueObject("LightSwitch2"), lights, false));
 
 	lights.clear();
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("RoadLight2")));
-	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch3"), lights, false)));
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("RoadLight2")));
+	AddLightSwitch(make_shared<LightSwitch>(GetUniqueObject("LightSwitch3"), lights, false));
 
 	lights.clear();
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("MineLight1")));
-	lights.push_back(std::dynamic_pointer_cast<ruLight>(GetUniqueObject("MineLight2")));
-	AddLightSwitch(shared_ptr<LightSwitch>(new LightSwitch(GetUniqueObject("LightSwitch4"), lights, false)));
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("MineLight1")));
+	lights.push_back(dynamic_pointer_cast<ILight>(GetUniqueObject("MineLight2")));
+	AddLightSwitch(make_shared<LightSwitch>(GetUniqueObject("LightSwitch4"), lights, false));
 
 	// every action series disabled by default
 	mLiftCrashSeries.AddAction(0.0f, [this] { ActLiftCrash_PowerDown(); });
@@ -133,9 +137,9 @@ LevelArrival::LevelArrival(unique_ptr<Game> & game, const unique_ptr<PlayerTrans
 
 
 	auto fogMesh = GetUniqueObject("Fog");
-	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), ruVector3(0.5, 0.5, 0.7), 0.2);
+	mFog = mGame->GetEngine()->GetSceneFactory()->CreateFog(fogMesh->GetAABBMin(), fogMesh->GetAABBMax(), Vector3(0.5, 0.5, 0.7), 0.2);
 	mFog->SetPosition(fogMesh->GetPosition());
-	mFog->SetSpeed(ruVector3(0.0005, 0, 0.0005));
+	mFog->SetSpeed(Vector3(0.0005, 0, 0.0005));
 	mFog->Attach(mScene);
 
 	DoneInitialization();
@@ -163,31 +167,31 @@ void LevelArrival::DoScenario()
 	mLift->Update();
 
 	// force disable hdr
-	//ruRenderer::SetHDREnabled(false);
+	//IRenderer::SetHDREnabled(false);
 
 	if(mPlayer->IsInsideZone(mTutorialZone1)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone2)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls2"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls2"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone3)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls3"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls3"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone4)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls4"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls4"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone5)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls5"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls5"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone6)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls6"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls6"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone7)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls7"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls7"));
 	}
 	if(mPlayer->IsInsideZone(mTutorialZone8)) {
-		mPlayer->GetHUD()->SetAction(ruInput::Key::None, mLocalization.GetString("tutorialControls8"));
+		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("tutorialControls8"));
 	}
 
 	auto itemForUse = mPlayer->GetInventory()->GetItemSelectedForUse();
@@ -209,7 +213,7 @@ void LevelArrival::DoScenario()
 	}
 
 	if(!mStages["LiftCrashed"]) {
-		mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.05, 0.05, 0.05));
+		mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.05, 0.05, 0.05));
 		PlayAmbientSounds();
 		if(mPlayer->IsInsideZone(mLiftStopZone)) {
 			mLift->SetPaused(true);
@@ -220,7 +224,7 @@ void LevelArrival::DoScenario()
 	} else {
 		// fully dark
 		mPlayer->TurnOffFakeLight();
-		mGame->GetEngine()->GetRenderer()->SetAmbientColor(ruVector3(0.0, 0.0, 0.0));
+		mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.0, 0.0, 0.0));
 		for(int i = 0; i < mGame->GetEngine()->GetSceneFactory()->GetPointLightCount(); ++i) {
 			mGame->GetEngine()->GetSceneFactory()->GetPointLight(i)->Hide();
 		}

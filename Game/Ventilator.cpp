@@ -4,11 +4,11 @@
 void Ventilator::DoTurn()
 {
 	mAngle += mTurnSpeed;
-	mBody->SetRotation(ruQuaternion(mTurnAxis, mAngle));
+	mBody->SetRotation(Quaternion(mTurnAxis, mAngle));
 	mEngineSound->Play();
 }
 
-Ventilator::Ventilator(shared_ptr<ruSceneNode> obj, float ts, ruVector3 axis, shared_ptr<ruSound> snd)
+Ventilator::Ventilator(shared_ptr<ISceneNode> obj, float ts, Vector3 axis, shared_ptr<ISound> snd)
 {
 	mBody = obj;
 	mTurnSpeed = ts;

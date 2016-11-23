@@ -20,27 +20,27 @@ private:
 	shared_ptr<Ventilator> mpFan1;
 	shared_ptr<Ventilator> mpFan2;
 
-	shared_ptr<ruSound> mLeverSound;
-	shared_ptr<ruSound> mBurnSound;
-	shared_ptr<ruSound> mSteamHissSound;
+	shared_ptr<ISound> mLeverSound;
+	shared_ptr<ISound> mBurnSound;
+	shared_ptr<ISound> mSteamHissSound;
 
-	shared_ptr<ruParticleSystem > mSteamPS;
-	shared_ptr<ruParticleSystem > mThermitePS;
-	shared_ptr<ruSceneNode> mExtremeSteamBlock;
-	shared_ptr<ruSceneNode> mZoneExtremeSteamHurt;
-	shared_ptr<ruSceneNode> fuseModel[3];
-	shared_ptr<ruSceneNode> powerLever;
-	shared_ptr<ruSceneNode> mPowerLeverOffModel;
-	shared_ptr<ruSceneNode> mPowerLeverOnModel;
-	shared_ptr<ruPointLight>mPowerLamp;
-	shared_ptr<ruSceneNode> mPowerLeverSnd;
-	shared_ptr<ruSceneNode> mSmallSteamPosition;
+	shared_ptr<IParticleSystem > mSteamPS;
+	shared_ptr<IParticleSystem > mThermitePS;
+	shared_ptr<ISceneNode> mExtremeSteamBlock;
+	shared_ptr<ISceneNode> mZoneExtremeSteamHurt;
+	shared_ptr<ISceneNode> fuseModel[3];
+	shared_ptr<ISceneNode> powerLever;
+	shared_ptr<ISceneNode> mPowerLeverOffModel;
+	shared_ptr<ISceneNode> mPowerLeverOnModel;
+	shared_ptr<IPointLight>mPowerLamp;
+	shared_ptr<ISceneNode> mPowerLeverSnd;
+	shared_ptr<ISceneNode> mSmallSteamPosition;
 
-	ruAnimation mMeshAnimation;
-	ruAnimation mMeshLockAnimation;
+	Animation mMeshAnimation;
+	Animation mMeshLockAnimation;
 
-	shared_ptr<ruSceneNode> mDoorUnderFloor;
-	shared_ptr<ruSceneNode> mZoneNewLevelLoad;
+	shared_ptr<ISceneNode> mDoorUnderFloor;
+	shared_ptr<ISceneNode> mZoneNewLevelLoad;
 
 	shared_ptr<Keypad> mKeypad1;
 	shared_ptr<Door> mKeypad1DoorToUnlock;
@@ -48,7 +48,7 @@ private:
 	shared_ptr<Keypad> mKeypad2;
 	shared_ptr<Door> mKeypad2DoorToUnlock;
 
-	shared_ptr<ruFog> mFog;
+	shared_ptr<IFog> mFog;
 
 	shared_ptr<Keypad> mKeypad3;
 	shared_ptr<Door> mKeypad3DoorToUnlock;
@@ -66,14 +66,14 @@ private:
 	bool mPowerOn;
 	bool mSteamDisabled;
 
-	shared_ptr<ruSceneNode> mThermiteSmall;
-	shared_ptr<ruSceneNode> mThermiteBig;
-	shared_ptr<ruSceneNode> mMeshLock;
-	shared_ptr<ruSceneNode> mThermitePlace;
-	shared_ptr<ruSceneNode> mMeshToSewers;
-	shared_ptr<ruSceneNode> mEnemySpawnPosition;
-	shared_ptr<ruSceneNode> mRadioHurtZone;
-	ItemPlace * mThermiteItemPlace;
+	shared_ptr<ISceneNode> mThermiteSmall;
+	shared_ptr<ISceneNode> mThermiteBig;
+	shared_ptr<ISceneNode> mMeshLock;
+	shared_ptr<ISceneNode> mThermitePlace;
+	shared_ptr<ISceneNode> mMeshToSewers;
+	shared_ptr<ISceneNode> mEnemySpawnPosition;
+	shared_ptr<ISceneNode> mRadioHurtZone;
+	unique_ptr<ItemPlace> mThermiteItemPlace;
 
 	void CreatePowerUpSequence();
 	void UpdatePowerupSequence();

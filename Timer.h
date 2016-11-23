@@ -21,7 +21,7 @@
 
 #pragma once
 
-class Timer : public ruTimer {
+class Timer : public ITimer {
 private:
 	LARGE_INTEGER mFreq;
 	double mLastTime;

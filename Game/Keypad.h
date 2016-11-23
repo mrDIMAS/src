@@ -6,24 +6,22 @@
 
 class Keypad {
 private:
-	friend class Level;
-	shared_ptr<ruSceneNode> mKeypad;
-	shared_ptr<ruSceneNode> mKeys[10];
-	shared_ptr<ruSceneNode> mKeyCancel;
+	shared_ptr<ISceneNode> mKeypad;
+	shared_ptr<ISceneNode> mKeys[10];
+	shared_ptr<ISceneNode> mKeyCancel;
 	weak_ptr<Door> mDoorToUnlock;
 	string mCurrentCode;
 	string mCodeToUnlock;
 	bool mKeyState[10];
-	ruVector3 mKeysInitialPosition[10];
-	ruVector3 mKeysPressedOffsets[10];
-	shared_ptr<ruSound> mButtonPushSound;
-	shared_ptr<ruSound> mButtonPopSound;
-	void Reset();
-	explicit Keypad(shared_ptr<ruSceneNode> keypad, shared_ptr<ruSceneNode> key0, shared_ptr<ruSceneNode> key1, shared_ptr<ruSceneNode> key2, shared_ptr<ruSceneNode> key3,
-		shared_ptr<ruSceneNode> key4, shared_ptr<ruSceneNode> key5, shared_ptr<ruSceneNode> key6, shared_ptr<ruSceneNode> key7, shared_ptr<ruSceneNode> key8, shared_ptr<ruSceneNode> key9,
-		shared_ptr<ruSceneNode> keyCancel, weak_ptr<Door> doorToUnlock, string codeToUnlock);
-
-	void Update();
+	Vector3 mKeysInitialPosition[10];
+	Vector3 mKeysPressedOffsets[10];
+	shared_ptr<ISound> mButtonPushSound;
+	shared_ptr<ISound> mButtonPopSound;
 public:
+	void Reset();
+	void Update();
+	explicit Keypad(shared_ptr<ISceneNode> keypad, shared_ptr<ISceneNode> key0, shared_ptr<ISceneNode> key1, shared_ptr<ISceneNode> key2, shared_ptr<ISceneNode> key3,
+		shared_ptr<ISceneNode> key4, shared_ptr<ISceneNode> key5, shared_ptr<ISceneNode> key6, shared_ptr<ISceneNode> key7, shared_ptr<ISceneNode> key8, shared_ptr<ISceneNode> key9,
+		shared_ptr<ISceneNode> keyCancel, weak_ptr<Door> doorToUnlock, string codeToUnlock);
 	~Keypad();
 };

@@ -47,36 +47,36 @@ private:
 	}
 
 
-	shared_ptr<ruSceneNode> mScreamerZone;
-	shared_ptr<ruSceneNode> mScreamerZone2;
-	shared_ptr<ruSceneNode> mConcreteWall;
-	shared_ptr<ruSceneNode> mDeathZone;
-	shared_ptr<ruSceneNode> mDetonator;
-	shared_ptr<ruSceneNode> mFindItemsZone;
-	shared_ptr<ruSceneNode> mNewLevelZone;
-	shared_ptr<ruSceneNode> mStoneFallZone;
-	shared_ptr<ruSceneNode> mWireModels[4];
-	shared_ptr<ruSceneNode> mDetonatorModels[4];
-	shared_ptr<ruSceneNode> mExplosivesModels[4];
-	shared_ptr<ruSceneNode> mExplosivesDummy[4];
-	shared_ptr<ruSceneNode> mExplosionFlashPosition;
-	shared_ptr<ruPointLight> mExplosionFlashLight;
-	shared_ptr<ruParticleSystem > mExplosionDustParticleSystem;
-	shared_ptr<ruSceneNode> mLiftButton;
-	shared_ptr<ruSceneNode> mExplodedWall;
+	shared_ptr<ISceneNode> mScreamerZone;
+	shared_ptr<ISceneNode> mScreamerZone2;
+	shared_ptr<ISceneNode> mConcreteWall;
+	shared_ptr<ISceneNode> mDeathZone;
+	shared_ptr<ISceneNode> mDetonator;
+	shared_ptr<ISceneNode> mFindItemsZone;
+	shared_ptr<ISceneNode> mNewLevelZone;
+	shared_ptr<ISceneNode> mStoneFallZone;
+	shared_ptr<ISceneNode> mWireModels[4];
+	shared_ptr<ISceneNode> mDetonatorModels[4];
+	shared_ptr<ISceneNode> mExplosivesModels[4];
+	shared_ptr<ISceneNode> mExplosivesDummy[4];
+	shared_ptr<ISceneNode> mExplosionFlashPosition;
+	shared_ptr<IPointLight> mExplosionFlashLight;
+	shared_ptr<IParticleSystem > mExplosionDustParticleSystem;
+	shared_ptr<ISceneNode> mLiftButton;
+	shared_ptr<ISceneNode> mExplodedWall;
 
 	shared_ptr<ItemPlace> mDetonatorPlace[4];
 
-	shared_ptr<ruSound> mAlertSound;
-	shared_ptr<ruSound> mExplosionSound;
+	shared_ptr<ISound> mAlertSound;
+	shared_ptr<ISound> mExplosionSound;
 
-	shared_ptr<ruTimer> mExplosionTimer;
-	shared_ptr<ruTimer> mBeepSoundTimer;
+	shared_ptr<ITimer> mExplosionTimer;
+	shared_ptr<ITimer> mBeepSoundTimer;
 
 	bool mDetonatorActivated;
 
 	int mReadyExplosivesCount;
-	shared_ptr<ruFog> mFog;
+	shared_ptr<IFog> mFog;
 	float mBeepSoundTiming;
 
 	unique_ptr<LightAnimator> mExplosionFlashAnimator;

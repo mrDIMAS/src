@@ -23,3 +23,15 @@
 #include "Renderer.h"
 #include "Cursor.h"
 
+Cursor::Cursor(const Vector2 & size, const Vector2 & scale, const shared_ptr<Texture>& texture) :
+	mVisible(true),
+	mSize(size.x * scale.x, size.y * scale.y),
+	mTexture(texture) {
+
+}
+
+void Cursor::SetVisible(bool state) {
+	mVisible = state;
+	ShowCursor(state);
+	pD3D->ShowCursor(state);
+}

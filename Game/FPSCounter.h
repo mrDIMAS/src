@@ -4,7 +4,7 @@
 
 class FPSCounter {
 public:
-	shared_ptr<ruTimer> timer;
+	shared_ptr<ITimer> timer;
 	int frameCounter;
 	int fps;
 

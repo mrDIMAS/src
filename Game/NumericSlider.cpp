@@ -3,7 +3,7 @@
 #include "NumericSlider.h"
 #include "GUIProperties.h"
 
-Slider::Slider(const shared_ptr<ruGUIScene> & scene, float x, float y, float minimum, float maximum, float step, shared_ptr<ruTexture> buttonImage, const string & text)
+Slider::Slider(const shared_ptr<IGUIScene> & scene, float x, float y, float minimum, float maximum, float step, shared_ptr<ITexture> buttonImage, const string & text)
 {
 	float buttonWidth = 32;
 	float buttonHeight = 32;
@@ -18,14 +18,14 @@ Slider::Slider(const shared_ptr<ruGUIScene> & scene, float x, float y, float min
 
 	mfStep = step;
 
-	mGUIText = scene->CreateText(text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Left);
-	mGUIValueText = scene->CreateText(" ", x + captionWidth + buttonWidth * 1.25f, y + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
+	mGUIText = scene->CreateText(text, x, y + textHeight / 2, captionWidth, textHeight, pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Left);
+	mGUIValueText = scene->CreateText(" ", x + captionWidth + buttonWidth * 1.25f, y + textHeight / 2, 3.15f * buttonWidth, 16, pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
 
-	mGUIIncreaseButton = scene->CreateButton(x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
-	mGUIIncreaseButton->AddAction(ruGUIAction::OnClick, [this] { OnIncreaseClick(); });
+	mGUIIncreaseButton = scene->CreateButton(x + captionWidth + 4.0f * buttonWidth, y, buttonWidth, buttonHeight, buttonImage, ">", pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
+	mGUIIncreaseButton->AddAction(GUIAction::OnClick, [this] { OnIncreaseClick(); });
 
-	mGUIDecreaseButton = scene->CreateButton(x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, ruTextAlignment::Center);
-	mGUIDecreaseButton->AddAction(ruGUIAction::OnClick, [this] { OnDecreaseClick(); });
+	mGUIDecreaseButton = scene->CreateButton(x + captionWidth + buttonWidth, y, buttonWidth, buttonHeight, buttonImage, "<", pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Center);
+	mGUIDecreaseButton->AddAction(GUIAction::OnClick, [this] { OnDecreaseClick(); });
 }
 
 int Slider::GetWidth()
@@ -54,18 +54,18 @@ Slider::~Slider()
 
 }
 
-void Slider::SetChangeAction(const ruDelegate & action)
+void Slider::SetChangeAction(const Delegate & action)
 {
 	mGUIIncreaseButton->RemoveAllActions();
-	mGUIIncreaseButton->AddAction(ruGUIAction::OnClick, [this] { OnIncreaseClick(); });
-	mGUIIncreaseButton->AddAction(ruGUIAction::OnClick, action);
+	mGUIIncreaseButton->AddAction(GUIAction::OnClick, [this] { OnIncreaseClick(); });
+	mGUIIncreaseButton->AddAction(GUIAction::OnClick, action);
 
 	mGUIDecreaseButton->RemoveAllActions();
-	mGUIDecreaseButton->AddAction(ruGUIAction::OnClick, [this] { OnDecreaseClick(); });
-	mGUIDecreaseButton->AddAction(ruGUIAction::OnClick, action);
+	mGUIDecreaseButton->AddAction(GUIAction::OnClick, [this] { OnDecreaseClick(); });
+	mGUIDecreaseButton->AddAction(GUIAction::OnClick, action);
 }
 
-void Slider::AttachTo(shared_ptr<ruGUINode> node)
+void Slider::AttachTo(shared_ptr<IGUINode> node)
 {
 	mGUIIncreaseButton->Attach(node);
 	mGUIDecreaseButton->Attach(node);

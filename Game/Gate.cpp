@@ -50,7 +50,7 @@ void Gate::Close() {
 	mCloseAnim.SetEnabled(true);
 }
 
-shared_ptr<ruSceneNode> Gate::GetNode() const {
+shared_ptr<ISceneNode> Gate::GetNode() const {
 	return mGate;
 }
 
@@ -58,25 +58,25 @@ Gate::State Gate::GetState() const {
 	return mState;
 }
 
-Gate::Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, shared_ptr<ruSceneNode> buttonClose, shared_ptr<ruSceneNode> buttonOpen2, shared_ptr<ruSceneNode> buttonClose2) {
+Gate::Gate(shared_ptr<ISceneNode> gate, shared_ptr<ISceneNode> buttonOpen, shared_ptr<ISceneNode> buttonClose, shared_ptr<ISceneNode> buttonOpen2, shared_ptr<ISceneNode> buttonClose2) {
 	mGate = gate;
 
 	mLocked = false;
 
 	int frameCount = mGate->GetTotalAnimationFrameCount();
 
-	mOpenAnim = ruAnimation(0, frameCount / 2, 3);
+	mOpenAnim = Animation(0, frameCount / 2, 3);
 	mOpenAnim.AddFrameListener(0, [this] { mBeginSound->Play(); mState = State::Opening; });
 	mOpenAnim.AddFrameListener(2, [this] { mIdleSound->Play(); });
 	mOpenAnim.AddFrameListener(frameCount / 2, [this] { mEndSound->Play(); mState = State::Opened; mIdleSound->Stop(); });
 
-	mCloseAnim = ruAnimation(frameCount / 2, frameCount, 3);
+	mCloseAnim = Animation(frameCount / 2, frameCount, 3);
 	mCloseAnim.AddFrameListener(frameCount / 2, [this] {mBeginSound->Play(); mState = State::Closing; });
 	mCloseAnim.AddFrameListener(frameCount / 2 + 2, [this] { mIdleSound->Play(); });
 	mCloseAnim.AddFrameListener(frameCount - 2, [this] { mEndSound->Play();	mState = State::Closed;	mIdleSound->Stop(); });
 
 	for(int i = 0; i < 4; i++) {
-		mButtonPushAnim[i] = ruAnimation(0, frameCount, 0.1);
+		mButtonPushAnim[i] = Animation(0, frameCount, 0.1);
 		mButtonPushAnim[i].AddFrameListener(frameCount / 2, [this] { mButtonSound->Play(); });
 	}
 
@@ -98,17 +98,19 @@ Gate::Gate(shared_ptr<ruSceneNode> gate, shared_ptr<ruSceneNode> buttonOpen, sha
 
 	mState = State::Closed;
 
-	mBeginSound = ruSound::Load3D("data/sounds/door_open_start.ogg");
+	auto soundSystem = gate->GetFactory()->GetEngineInterface()->GetSoundSystem();
+
+	mBeginSound = soundSystem->LoadSound3D("data/sounds/door_open_start.ogg");
 	mBeginSound->Attach(mGate);
 
-	mIdleSound = ruSound::Load3D("data/sounds/door_open_idle.ogg");
+	mIdleSound = soundSystem->LoadSound3D("data/sounds/door_open_idle.ogg");
 	mIdleSound->Attach(mGate);
 	mIdleSound->SetLoop(true);
 
-	mEndSound = ruSound::Load3D("data/sounds/door_open_end.ogg");
+	mEndSound = soundSystem->LoadSound3D("data/sounds/door_open_end.ogg");
 	mEndSound->Attach(mGate);
 
-	mButtonSound = ruSound::Load3D("data/sounds/button.ogg");
+	mButtonSound = soundSystem->LoadSound3D("data/sounds/button.ogg");
 }
 
 Gate::~Gate() {

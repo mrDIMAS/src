@@ -24,21 +24,21 @@
 #include "AABB.h"
 
 void AABB::BuildPoints( ) {
-	mPoints[ 0 ] = ruVector3( mMin.x, mMin.y, mMin.z );
-	mPoints[ 1 ] = ruVector3( mMin.x, mMin.y, mMax.z );
-	mPoints[ 2 ] = ruVector3( mMax.x, mMin.y, mMax.z );
-	mPoints[ 3 ] = ruVector3( mMax.x, mMin.y, mMin.z );
-	mPoints[ 4 ] = ruVector3( mMin.x, mMax.y, mMin.z );
-	mPoints[ 5 ] = ruVector3( mMin.x, mMax.y, mMax.z );
-	mPoints[ 6 ] = ruVector3( mMax.x, mMax.y, mMax.z );
-	mPoints[ 7 ] = ruVector3( mMax.x, mMax.y, mMin.z );
+	mPoints[ 0 ] = Vector3( mMin.x, mMin.y, mMin.z );
+	mPoints[ 1 ] = Vector3( mMin.x, mMin.y, mMax.z );
+	mPoints[ 2 ] = Vector3( mMax.x, mMin.y, mMax.z );
+	mPoints[ 3 ] = Vector3( mMax.x, mMin.y, mMin.z );
+	mPoints[ 4 ] = Vector3( mMin.x, mMax.y, mMin.z );
+	mPoints[ 5 ] = Vector3( mMin.x, mMax.y, mMax.z );
+	mPoints[ 6 ] = Vector3( mMax.x, mMax.y, mMax.z );
+	mPoints[ 7 ] = Vector3( mMax.x, mMax.y, mMin.z );
 }
 
 float AABB::Squared( float x ) {
 	return x * x;
 }
 
-AABB::AABB( const ruVector3 & min, const ruVector3 & max ) : mMin( min ), mMax( max ) {
+AABB::AABB( const Vector3 & min, const Vector3 & max ) : mMin( min ), mMax( max ) {
 	BuildPoints( );
 }
 
@@ -47,8 +47,8 @@ AABB::AABB( ) {
 }
 
 AABB::AABB( const vector< Vertex > & vertices ) {
-	mMax = ruVector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
-	mMin = ruVector3( FLT_MAX, FLT_MAX, FLT_MAX );
+	mMax = Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	mMin = Vector3( FLT_MAX, FLT_MAX, FLT_MAX );
 
 	for ( auto & vert : vertices ) {
 		auto & v = vert.mPosition;
@@ -63,12 +63,12 @@ AABB::AABB( const vector< Vertex > & vertices ) {
 	BuildPoints( );
 }
 
-bool AABB::IsIntersectSphere( const ruVector3 & aabbOffset, const ruVector3 & position, float radius ) {
+bool AABB::IsIntersectSphere( const Vector3 & aabbOffset, const Vector3 & position, float radius ) {
 	float r2 = radius * radius;
 	float dmin = 0;
 
-	ruVector3 max = mMax + aabbOffset;
-	ruVector3 min = mMin + aabbOffset;
+	Vector3 max = mMax + aabbOffset;
+	Vector3 min = mMin + aabbOffset;
 
 	if ( position.x < min.x ) {
 		dmin += Squared( position.x - min.x );

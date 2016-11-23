@@ -3,7 +3,7 @@
 #include "SceneNode.h"
 #include "SceneFactory.h"
 
-Fog::Fog(SceneFactory * factory, const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density) :
+Fog::Fog(SceneFactory * factory, const Vector3 & min, const Vector3 & max, const Vector3 & color, float density) :
 	SceneNode(factory),
 	mColor(color),
 	mMin(min),

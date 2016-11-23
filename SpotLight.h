@@ -23,7 +23,7 @@
 
 #include "Light.h"
 
-class SpotLight : public virtual ruSpotLight, public Light {
+class SpotLight : public virtual ISpotLight, public Light {
 private:
 	friend class SceneFactory;
 
@@ -37,7 +37,7 @@ private:
 	shared_ptr<Texture> mSpotTexture;
 	D3DXMATRIX mSpotViewProjectionMatrix;
 public:
-	static shared_ptr<Texture> msDefaultSpotTexture;
+
 	SpotLight(SceneFactory * factory);
 	~SpotLight();
 	float GetInnerAngle() const;
@@ -45,12 +45,12 @@ public:
 	float GetCosHalfInnerAngle();
 	float GetCosHalfOuterAngle();
 	void SetConeAngles(float theInner, float theOuter);
-	void SetSpotTexture(shared_ptr<ruTexture> texture);
+	void SetSpotTexture(shared_ptr<ITexture> texture);
 	void BuildSpotProjectionMatrixAndFrustum();
 	D3DXMATRIX GetViewProjectionMatrix();
 	shared_ptr<Texture> GetSpotTexture();
 	Frustum & GetFrustum();
 
 	// API Methods
-	virtual bool IsSeePoint(const ruVector3 & point) override final;
+	virtual bool IsSeePoint(const Vector3 & point) override final;
 };

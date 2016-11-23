@@ -33,75 +33,75 @@ using namespace std;
 /* shared_ptr\<.*\> .* */
 void main() {
 	try {
-		auto engine = ruEngine::Create(0, 0, 0, 0);
+		auto engine = IEngine::Create(0, 0, 0, 0);
 
-		ruPointLight::SetPointDefaultTexture(ruCubeTexture::Request("data/textures/generic/pointCube.dds"));
-		ruSpotLight::SetSpotDefaultTexture(ruTexture::Request("data/textures/generic/spotlight.jpg"));
+		IPointLight::SetPointDefaultTexture(ICubeTexture::Request("data/textures/generic/pointCube.dds"));
+		ISpotLight::SetSpotDefaultTexture(ITexture::Request("data/textures/generic/spotlight.jpg"));
 
-		shared_ptr<ruSceneNode> cameraPivot = engine->GetSceneFactory()->CreateSceneNode();
+		shared_ptr<ISceneNode> cameraPivot = engine->GetSceneFactory()->CreateSceneNode();
 		cameraPivot->SetCapsuleBody(6, 2);
-		cameraPivot->SetAngularFactor(ruVector3(0, 0, 0));
-		cameraPivot->SetPosition(ruVector3(0, 5, 0));
+		cameraPivot->SetAngularFactor(Vector3(0, 0, 0));
+		cameraPivot->SetPosition(Vector3(0, 5, 0));
 
-		shared_ptr<ruCamera> camera = engine->GetSceneFactory()->CreateCamera(60);
+		shared_ptr<ICamera> camera = engine->GetSceneFactory()->CreateCamera(60);
 		camera->Attach(cameraPivot);
 
 		camera->SetSkybox(
-			ruTexture::Request("data/textures/skyboxes/test/red_sky_u.jpg"),
-			ruTexture::Request("data/textures/skyboxes/test/red_sky_l.jpg"),
-			ruTexture::Request("data/textures/skyboxes/test/red_sky_r.jpg"),
-			ruTexture::Request("data/textures/skyboxes/test/red_sky_f.jpg"),
-			ruTexture::Request("data/textures/skyboxes/test/red_sky_b.jpg")
+			ITexture::Request("data/textures/skyboxes/test/red_sky_u.jpg"),
+			ITexture::Request("data/textures/skyboxes/test/red_sky_l.jpg"),
+			ITexture::Request("data/textures/skyboxes/test/red_sky_r.jpg"),
+			ITexture::Request("data/textures/skyboxes/test/red_sky_f.jpg"),
+			ITexture::Request("data/textures/skyboxes/test/red_sky_b.jpg")
 		);
 
-		camera->SetPosition(ruVector3(0, 6, 0));
+		camera->SetPosition(Vector3(0, 6, 0));
 
-		shared_ptr<ruSceneNode> node = engine->GetSceneFactory()->LoadScene("data/newFormat.scene");
-		shared_ptr<ruLight> lit = dynamic_pointer_cast<ruLight>(engine->GetSceneFactory()->FindByName("Omni002"));
+		shared_ptr<ISceneNode> node = engine->GetSceneFactory()->LoadScene("data/newFormat.scene");
+		shared_ptr<ILight> lit = dynamic_pointer_cast<ILight>(engine->GetSceneFactory()->FindByName("Omni002"));
 		node->FindChild("Box021")->SetBlurAmount(1.0f);
 
 		float pitchTo = 0, yawTo = 0;
 		float pitch = 0, yaw = 0;
 		int cameraNum = 0;
 
-		shared_ptr<ruFont> font = engine->CreateBitmapFont(12, "data/fonts/font5.ttf");
-		shared_ptr<ruFont> font2 = engine->CreateBitmapFont(16, "data/fonts/font5.ttf");
-		shared_ptr<ruFont> font3 = engine->CreateBitmapFont(20, "data/fonts/font5.ttf");
+		shared_ptr<IFont> font = engine->CreateBitmapFont(12, "data/fonts/font5.ttf");
+		shared_ptr<IFont> font2 = engine->CreateBitmapFont(16, "data/fonts/font5.ttf");
+		shared_ptr<IFont> font3 = engine->CreateBitmapFont(20, "data/fonts/font5.ttf");
 
 		int counter = 0;
 		int fps = 0;
 
 
-		shared_ptr<ruParticleSystem> streamParticleEmitter = engine->GetSceneFactory()->CreateParticleSystem(256);
-		streamParticleEmitter->SetPosition(ruVector3(10, 0, 10));
-		streamParticleEmitter->SetTexture(ruTexture::Request("data/textures/particles/p1.png"));
-		streamParticleEmitter->SetType(ruParticleSystem::Type::Stream);
-		streamParticleEmitter->SetSpeedDeviation(ruVector3(-0.01, 0.0, -0.01), ruVector3(0.01, 0.8, 0.01));
+		shared_ptr<IParticleSystem> streamParticleEmitter = engine->GetSceneFactory()->CreateParticleSystem(256);
+		streamParticleEmitter->SetPosition(Vector3(10, 0, 10));
+		streamParticleEmitter->SetTexture(ITexture::Request("data/textures/particles/p1.png"));
+		streamParticleEmitter->SetType(IParticleSystem::Type::Stream);
+		streamParticleEmitter->SetSpeedDeviation(Vector3(-0.01, 0.0, -0.01), Vector3(0.01, 0.8, 0.01));
 		streamParticleEmitter->SetBoundingRadius(50);
 		streamParticleEmitter->SetLightingEnabled(true);
 
-		shared_ptr<ruTimer> timer = ruTimer::Create();
-		shared_ptr<ruTimer> perfTimer = ruTimer::Create();
+		shared_ptr<ITimer> timer = ITimer::Create();
+		shared_ptr<ITimer> perfTimer = ITimer::Create();
 
 		int perfTime = 0;
 
-		engine->GetRenderer()->SetCursor(ruTexture::Request("data/gui/cursor.tga"), 32, 32);
+		engine->GetRenderer()->SetCursor(ITexture::Request("data/gui/cursor.tga"), 32, 32);
 
-		shared_ptr<ruGUIScene> guiScene = engine->CreateGUIScene();
+		shared_ptr<IGUIScene> guiScene = engine->CreateGUIScene();
 
 		guiScene->SetOpacity(0.5f);
 
-		shared_ptr<ruText> fpsText = guiScene->CreateText(u8"Русский текст тоже рисуется! Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake! ", 0, 0, 100, 100, font, ruVector3(255, 255, 255), ruTextAlignment::Left, 150);
-		//shared_ptr<ruText> fpsText = guiScene->CreateText("The Mine", 0, 0, 100, 100, font, ruVector3(255, 255, 255), ruTextAlignment::Left, 150);
+		shared_ptr<IText> fpsText = guiScene->CreateText(u8"Русский текст тоже рисуется! Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake! ", 0, 0, 100, 100, font, Vector3(255, 255, 255), TextAlignment::Left, 150);
+		//shared_ptr<IText> fpsText = guiScene->CreateText("The Mine", 0, 0, 100, 100, font, Vector3(255, 255, 255), TextAlignment::Left, 150);
 
-		shared_ptr<ruRect> testrect = guiScene->CreateRect(100, 100, 200, 200, ruTexture::Request("data/gui/inventory/items/detonator.png"));
-		shared_ptr<ruButton> testButton = guiScene->CreateButton(10, 30, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), u8"Русский текст", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
-		shared_ptr<ruButton> testButton2 = guiScene->CreateButton(0, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
+		shared_ptr<IRect> testrect = guiScene->CreateRect(100, 100, 200, 200, ITexture::Request("data/gui/inventory/items/detonator.png"));
+		shared_ptr<IButton> testButton = guiScene->CreateButton(10, 30, 128, 32, ITexture::Request("data/gui/menu/button.tga"), u8"Русский текст", font, Vector3(255, 255, 255), TextAlignment::Center);
+		shared_ptr<IButton> testButton2 = guiScene->CreateButton(0, 100, 128, 32, ITexture::Request("data/gui/menu/button.tga"), "Test", font, Vector3(255, 255, 255), TextAlignment::Center);
 		testButton->Attach(testrect);
 		testButton2->Attach(testrect);
 
-		shared_ptr<ruGUIScene> anotherGUIScene =  engine->CreateGUIScene();
-		shared_ptr<ruButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ruTexture::Request("data/gui/menu/button.tga"), "Test", font, ruVector3(255, 255, 255), ruTextAlignment::Center);
+		shared_ptr<IGUIScene> anotherGUIScene =  engine->CreateGUIScene();
+		shared_ptr<IButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ITexture::Request("data/gui/menu/button.tga"), "Test", font, Vector3(255, 255, 255), TextAlignment::Center);
 
 
 		engine->GetRenderer()->SetSpotLightShadowsEnabled(false);
@@ -110,37 +110,37 @@ void main() {
 		engine->GetRenderer()->SetFXAAEnabled(false);
 		engine->GetRenderer()->SetParallaxEnabled(false);
 
-		shared_ptr<ruSceneNode> cube = engine->GetSceneFactory()->LoadScene("data/cube.scene");
+		shared_ptr<ISceneNode> cube = engine->GetSceneFactory()->LoadScene("data/cube.scene");
 
-		shared_ptr<ruSound> snd = ruSound::LoadMusic("data/music/rf.ogg");
+		shared_ptr<ISound> snd = engine->GetSoundSystem()->LoadMusic("data/music/rf.ogg");
 		snd->SetVolume(0.1);
 
 
 		/*
-		shared_ptr<ruSceneNode> ripper = ruSceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
-		ruAnimation anim = ruAnimation(0, 85, 3, true);
+		shared_ptr<ISceneNode> ripper = ISceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
+		Animation anim = Animation(0, 85, 3, true);
 		anim.SetEnabled(true);
 		ripper->SetAnimation(&anim);
 		ripper->SetBlurAmount(1.0f);
 
-		auto dummyTest = ruSceneNode::LoadFromFile("data/models/character/character.scene");
-		auto dummyAnim = ruAnimation(82, 90, 0.9, true);
-		dummyAnim.SetDirection(ruAnimation::Direction::Reverse);
+		auto dummyTest = ISceneNode::LoadFromFile("data/models/character/character.scene");
+		auto dummyAnim = Animation(82, 90, 0.9, true);
+		dummyAnim.SetDirection(Animation::Direction::Reverse);
 		dummyAnim.SetEnabled(true);
 		dummyTest->SetAnimation(&dummyAnim);
-		dummyTest->SetPosition(ruVector3(1, 0, -3));
+		dummyTest->SetPosition(Vector3(1, 0, -3));
 		*/
 
-		engine->GetRenderer()->SetAmbientColor(ruVector3(.01, .01, .01));
+		engine->GetRenderer()->SetAmbientColor(Vector3(.01, .01, .01));
 
 		auto bone008 = node->FindChild("Bone011");
 		auto bone001 = node->FindChild("Bone004");
 		bone001->Detach();
 
-		auto fog = engine->GetSceneFactory()->CreateFog(ruVector3(-100, -1, -100), ruVector3(100, 5, 100), ruVector3(0.7, 0.7, 0.9), 0.1);
-		fog->SetPosition(ruVector3(0, 0, -20));
+		auto fog = engine->GetSceneFactory()->CreateFog(Vector3(-100, -1, -100), Vector3(100, 5, 100), Vector3(0.7, 0.7, 0.9), 0.1);
+		fog->SetPosition(Vector3(0, 0, -20));
 
-		while(!engine->GetInput()->IsKeyDown(ruInput::Key::Esc)) {
+		while(!engine->GetInput()->IsKeyDown(IInput::Key::Esc)) {
 			//idleAnim.Update();
 			engine->GetInput()->Update();
 
@@ -149,12 +149,12 @@ void main() {
 
 
 
-			if(engine->GetInput()->IsMouseHit(ruInput::MouseButton::Right)) {
-				//ruEngine::SetHDREnabled(!ruEngine::IsHDREnabled());
+			if(engine->GetInput()->IsMouseHit(IInput::MouseButton::Right)) {
+				//IEngine::SetHDREnabled(!IEngine::IsHDREnabled());
 				engine->GetRenderer()->SetSpotLightShadowsEnabled(engine->GetRenderer()->IsSpotLightShadowsEnabled());
 			}
 
-			ruVector3 speed;
+			Vector3 speed;
 
 			pitchTo += engine->GetInput()->GetMouseYSpeed() / 2.0;
 			yawTo += -engine->GetInput()->GetMouseXSpeed() / 2.0;
@@ -162,48 +162,48 @@ void main() {
 			pitch = pitch + (pitchTo - pitch) * 0.2f;
 			yaw = yaw + (yawTo - yaw) * 0.2f;
 
-			ruQuaternion pitchRotation(ruVector3(1, 0, 0), pitch);
-			ruQuaternion yawRotation(ruVector3(0, 1, 0), yaw);
+			Quaternion pitchRotation(Vector3(1, 0, 0), pitch);
+			Quaternion yawRotation(Vector3(0, 1, 0), yaw);
 
-			ruVector3 look = cameraPivot->GetLookVector() * 0.1f;
-			ruVector3 right = cameraPivot->GetRightVector() * 0.1f;
+			Vector3 look = cameraPivot->GetLookVector() * 0.1f;
+			Vector3 right = cameraPivot->GetRightVector() * 0.1f;
 
 			engine->GetPhysics()->Update(1.0f / 60.0f, 10, 1.0f / 60.0f);
 
-			if(engine->GetInput()->IsKeyHit(ruInput::Key::Num1)) {
+			if(engine->GetInput()->IsKeyHit(IInput::Key::Num1)) {
 				testrect->SetVisible(false);
 				engine->GetRenderer()->SetFXAAEnabled(true);
 			}
-			if(engine->GetInput()->IsKeyHit(ruInput::Key::Num2)) {
+			if(engine->GetInput()->IsKeyHit(IInput::Key::Num2)) {
 				testrect->SetVisible(true);
 				engine->GetRenderer()->SetFXAAEnabled(false);
 			}
-			if(engine->GetInput()->IsKeyHit(ruInput::Key::Num3)) {
+			if(engine->GetInput()->IsKeyHit(IInput::Key::Num3)) {
 				node.reset();
 			}
 
-			if(engine->GetInput()->IsMouseHit(ruInput::MouseButton::Left)) {
-				shared_ptr<ruSceneNode> newCube = engine->GetSceneFactory()->CreateSceneNodeDuplicate(cube);
+			if(engine->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
+				shared_ptr<ISceneNode> newCube = engine->GetSceneFactory()->CreateSceneNodeDuplicate(cube);
 				//newCube->Attach( camera );
-				newCube->SetPosition(ruVector3(0, 0, 1));
+				newCube->SetPosition(Vector3(0, 0, 1));
 
 				engine->GetRenderer()->SetSpotLightShadowsEnabled(!engine->GetRenderer()->IsSpotLightShadowsEnabled());
 			}
 
-			if(engine->GetInput()->IsKeyDown(ruInput::Key::W)) {
+			if(engine->GetInput()->IsKeyDown(IInput::Key::W)) {
 				speed = speed + look;
 			}
-			if(engine->GetInput()->IsKeyDown(ruInput::Key::S)) {
+			if(engine->GetInput()->IsKeyDown(IInput::Key::S)) {
 				speed = speed - look;
 			}
-			if(engine->GetInput()->IsKeyDown(ruInput::Key::A)) {
+			if(engine->GetInput()->IsKeyDown(IInput::Key::A)) {
 				speed = speed + right;
 			}
-			if(engine->GetInput()->IsKeyDown(ruInput::Key::D)) {
+			if(engine->GetInput()->IsKeyDown(IInput::Key::D)) {
 				speed = speed - right;
 			}
 
-			if(engine->GetInput()->IsKeyHit(ruInput::Key::Q)) {
+			if(engine->GetInput()->IsKeyHit(IInput::Key::Q)) {
 				cameraNum = 1 - cameraNum;
 
 				/*
@@ -214,7 +214,7 @@ void main() {
 				}*/
 			}
 
-			cameraPivot->Move(speed * ruVector3(500, 1, 500));
+			cameraPivot->Move(speed * Vector3(500, 1, 500));
 			camera->SetRotation(pitchRotation);
 			cameraPivot->SetRotation(yawRotation);
 			//ripper.SetPosition( cameraPivot.GetPosition() );

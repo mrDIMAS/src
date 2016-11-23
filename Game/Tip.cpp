@@ -24,13 +24,13 @@ void Tip::SetNewText(string text)
 	mY.Set(mY.GetMin());
 }
 
-Tip::Tip(const shared_ptr<ruGUIScene> & scene) : mAlpha(255.0f, 0.0f, 255.0f)
+Tip::Tip(const shared_ptr<IGUIScene> & scene) : mAlpha(255.0f, 0.0f, 255.0f)
 {
-	mTimer = ruTimer::Create();
+	mTimer = ITimer::Create();
 	mWidth = 256;
 	mHeight = 32;
 	mX = ruVirtualScreenWidth / 2 - mWidth / 2;
-	mGUIText = scene->CreateText(" ", 0, 0, mWidth, mHeight, pGUIProp->mFont, pGUIProp->mNoticeColor, ruTextAlignment::Center, mAlpha);
+	mGUIText = scene->CreateText(" ", 0, 0, mWidth, mHeight, pGUIProp->mFont, pGUIProp->mNoticeColor, TextAlignment::Center, mAlpha);
 	SetNewText(" ");
 }
 

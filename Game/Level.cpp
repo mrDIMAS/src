@@ -20,7 +20,7 @@ Level::Level(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerT
 
 	// create player
 	if(Level::msCurLevelID != LevelName::Intro && Level::msCurLevelID != LevelName::Ending) {
-		mPlayer = unique_ptr<Player>(new Player(mGame));
+		mPlayer = make_unique<Player>(mGame);
 
 		// restore state
 		if(playerTransfer) {
@@ -32,7 +32,7 @@ Level::Level(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerT
 		}
 	}
 
-	mChaseMusic = ruSound::LoadMusic("data/music/chase.ogg");
+	mChaseMusic = mGame->GetEngine()->GetSoundSystem()->LoadMusic("data/music/chase.ogg");
 }
 
 Level::~Level() {
@@ -46,7 +46,7 @@ void Level::LoadLocalization(string fn) {
 void Level::Hide() {
 	mScene->Hide();
 	for(auto & sWeak : mSounds) {
-		shared_ptr<ruSound> & sound = sWeak.lock();
+		shared_ptr<ISound> & sound = sWeak.lock();
 		if(sound) {
 			sound->Pause();
 		}
@@ -56,7 +56,7 @@ void Level::Hide() {
 void Level::Show() {
 	mScene->Show();
 	for(auto & sWeak : mSounds) {
-		shared_ptr<ruSound> & sound = sWeak.lock();
+		shared_ptr<ISound> & sound = sWeak.lock();
 		if(sound) {
 			if(sound->IsPaused()) {
 				sound->Play();
@@ -69,17 +69,13 @@ bool Level::IsVisible() {
 	return mScene->IsVisible();
 }
 
-
 shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight) {
-	shared_ptr<Lift> lift(new Lift(GetUniqueObject(baseNode)));
-
+	shared_ptr<Lift> lift = make_shared<Lift>(GetUniqueObject(baseNode));
 	lift->SetDestinationPoint(GetUniqueObject(destNode));
 	lift->SetSourcePoint(GetUniqueObject(sourceNode));
 	lift->SetFrontDoors(AddDoor(doorBackLeft, 90), AddDoor(mDoorBackRight, 90));
 	lift->SetBackDoors(AddDoor(doorFrontLeft, 90), AddDoor(doorFrontRight, 90));
-
 	mLiftList.push_back(lift);
-
 	return lift;
 }
 
@@ -100,7 +96,7 @@ const vector<shared_ptr<Door>> & Level::GetDoorList() const {
 }
 
 shared_ptr<Gate> Level::AddGate(const string & nodeName, const string & buttonOpen, const string & buttonClose, const string & buttonOpen2, const string & buttonClose2) {
-	shared_ptr<Gate> gate(new Gate(GetUniqueObject(nodeName), GetUniqueObject(buttonOpen), GetUniqueObject(buttonClose), GetUniqueObject(buttonOpen2), GetUniqueObject(buttonClose2)));
+	shared_ptr<Gate> gate = make_shared<Gate>(GetUniqueObject(nodeName), GetUniqueObject(buttonOpen), GetUniqueObject(buttonClose), GetUniqueObject(buttonOpen2), GetUniqueObject(buttonClose2));
 	mGateList.push_back(gate);
 	return gate;
 }
@@ -110,7 +106,7 @@ const vector<shared_ptr<Gate>> & Level::GetGateList() const {
 }
 
 shared_ptr<Ladder> Level::AddLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint) {
-	shared_ptr<Ladder> ladder(new Ladder(GetUniqueObject(hBegin), GetUniqueObject(hEnd), GetUniqueObject(hEnterZone), GetUniqueObject(hBeginLeavePoint), GetUniqueObject(hEndLeavePoint)));
+	shared_ptr<Ladder> ladder = make_shared<Ladder>(GetUniqueObject(hBegin), GetUniqueObject(hEnd), GetUniqueObject(hEnterZone), GetUniqueObject(hBeginLeavePoint), GetUniqueObject(hEndLeavePoint));
 	mLadderList.push_back(ladder);
 	return ladder;
 }
@@ -125,7 +121,7 @@ shared_ptr<Ladder> Level::FindLadder(const string & name) {
 }
 
 shared_ptr<Door> Level::AddDoor(const string & nodeName, float fMaxAngle) {
-	shared_ptr<Door> door(new Door(GetUniqueObject(nodeName), fMaxAngle));
+	shared_ptr<Door> door = make_shared<Door>(GetUniqueObject(nodeName), fMaxAngle);
 	mDoorList.push_back(door);
 	return door;
 }
@@ -153,9 +149,9 @@ shared_ptr<ItemPlace> Level::FindItemPlace(const string & name) {
 }
 
 shared_ptr<Keypad> Level::AddKeypad(const string & keypad, const string & key0, const string & key1, const string & key2, const string & key3, const string & key4, const string & key5, const string & key6, const string & key7, const string & key8, const string & key9, const string & keyCancel, weak_ptr<Door> doorToUnlock, const string & codeToUnlock) {
-	shared_ptr<Keypad> k(new Keypad(GetUniqueObject(keypad), GetUniqueObject(key0), GetUniqueObject(key1),
+	shared_ptr<Keypad> k = make_shared<Keypad>(GetUniqueObject(keypad), GetUniqueObject(key0), GetUniqueObject(key1),
 		GetUniqueObject(key2), GetUniqueObject(key3), GetUniqueObject(key4), GetUniqueObject(key5), GetUniqueObject(key6),
-		GetUniqueObject(key7), GetUniqueObject(key8), GetUniqueObject(key9), GetUniqueObject(keyCancel), doorToUnlock, codeToUnlock));
+		GetUniqueObject(key7), GetUniqueObject(key8), GetUniqueObject(key9), GetUniqueObject(keyCancel), doorToUnlock, codeToUnlock);
 	mKeypadList.push_back(k);
 	return k;
 }
@@ -169,8 +165,8 @@ void Level::Serialize(SaveFile & s) {
 	int childCount = mScene->GetCountChildren();
 	s & childCount;
 	for(int i = 0; i < childCount; i++) {
-		shared_ptr<ruSceneNode> node = mScene->GetChild(i);
-		shared_ptr<ruLight> light = std::dynamic_pointer_cast<ruLight>(node);
+		shared_ptr<ISceneNode> node = mScene->GetChild(i);
+		shared_ptr<ILight> light = std::dynamic_pointer_cast<ILight>(node);
 
 		auto position = node->GetLocalPosition();
 		auto rotation = node->GetLocalRotation();
@@ -196,7 +192,7 @@ void Level::Serialize(SaveFile & s) {
 				node->Hide();
 			}
 			if(isLight) {
-				std::dynamic_pointer_cast<ruLight>(node)->SetRange(lightRange);
+				std::dynamic_pointer_cast<ILight>(node)->SetRange(lightRange);
 			}
 		}
 	}
@@ -225,7 +221,7 @@ void Level::Serialize(SaveFile & s) {
 	OnSerialize(s);
 }
 
-void Level::AddSound(shared_ptr<ruSound> sound) {
+void Level::AddSound(shared_ptr<ISound> sound) {
 	if(!sound) {
 		throw std::runtime_error("Unable to add ambient sound! Invalid source!");
 	}
@@ -236,7 +232,7 @@ void Level::PlayAmbientSounds() {
 	mAmbSoundSet.DoRandomPlaying();
 }
 
-void Level::AddAmbientSound(shared_ptr<ruSound> sound) {
+void Level::AddAmbientSound(shared_ptr<ISound> sound) {
 	if(!sound) {
 		throw std::runtime_error("Unable to add ambient sound! Invalid source!");
 	}
@@ -244,7 +240,7 @@ void Level::AddAmbientSound(shared_ptr<ruSound> sound) {
 	mAmbSoundSet.AddSound(sound);
 }
 
-shared_ptr<ruSceneNode> Level::GetUniqueObject(const string & name) {
+shared_ptr<ISceneNode> Level::GetUniqueObject(const string & name) {
 	// the point of this behaviour is to reduce number of possible errors during runtime, if some object doesn't exist in the scene( but it must )
 	// game notify user on level loading stage, but not in the game. So this feature is very useful for debugging purposes
 	// also this feature can help to improve some performance by reducing FindXXX calls, which take a lot of time
@@ -254,7 +250,7 @@ shared_ptr<ruSceneNode> Level::GetUniqueObject(const string & name) {
 	if(!mScene) {
 		throw std::runtime_error(StringBuilder("Object ") << name << " can't be found in the empty scene. Load scene first!");
 	}
-	shared_ptr<ruSceneNode> object = mScene->FindChild(name);
+	shared_ptr<ISceneNode> object = mScene->FindChild(name);
 	// each unique object must be presented in the scene, otherwise error will be generated
 	if(!object) {
 		throw std::runtime_error(StringBuilder("Object ") << name << " can't be found in the scene! Game will be closed.");
@@ -319,7 +315,7 @@ void Level::GenericUpdate() {
 void Level::AutoCreateDoorsByNamePattern(const string & namePattern) {
 	std::regex rx(namePattern);
 	for(int i = 0; i < mScene->GetCountChildren(); i++) {
-		shared_ptr<ruSceneNode> child = mScene->GetChild(i);
+		shared_ptr<ISceneNode> child = mScene->GetChild(i);
 		bool ignore = false;
 		for(auto pDoor : mDoorList) {
 			if(pDoor->mDoorNode == child) {
@@ -366,7 +362,7 @@ void Level::DestroyPlayer() {
 	mPlayer.reset();
 }
 
-void Level::AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const ruDelegate & interactAction) {
+void Level::AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const Delegate & interactAction) {
 	io->OnInteract += interactAction;
 	io->SetPickDescription(desc);
 	mInteractiveObjectList.push_back(io);

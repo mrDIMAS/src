@@ -22,13 +22,13 @@
 #include "Precompiled.h"
 #include "Frustum.h"
 
-bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset, const D3DXMATRIX & worldMatrix ) {
+bool Frustum::IsAABBInside( const AABB & aabb, const Vector3 & aabbOffset, const D3DXMATRIX & worldMatrix ) {
 	const float * matrix = &worldMatrix.m[ 0 ][ 0 ];
 
-	ruVector3 aabbPoints[ 8 ];
+	Vector3 aabbPoints[ 8 ];
 
 	for ( int i = 0; i < 8; ++i ) {
-		ruVector3 p = aabb.mPoints[ i ];
+		Vector3 p = aabb.mPoints[ i ];
 		aabbPoints[ i ].x = p.x * matrix[ 0 ] + p.y * matrix[ 4 ] + p.z * matrix[ 8 ];
 		aabbPoints[ i ].y = p.x * matrix[ 1 ] + p.y * matrix[ 5 ] + p.z * matrix[ 9 ];
 		aabbPoints[ i ].z = p.x * matrix[ 2 ] + p.y * matrix[ 6 ] + p.z * matrix[ 10 ];
@@ -49,7 +49,7 @@ bool Frustum::IsAABBInside( const AABB & aabb, const ruVector3 & aabbOffset, con
 	return true;
 }
 
-bool Frustum::IsPointInside( const ruVector3 & point ) {
+bool Frustum::IsPointInside( const Vector3 & point ) {
 	for ( int i = 0; i < 6; i++ ) {
 		if ( mPlanes[ i ].Dot( point ) <= 0 ) {
 			return false;
@@ -59,19 +59,19 @@ bool Frustum::IsPointInside( const ruVector3 & point ) {
 }
 
 void Frustum::Build( D3DXMATRIX vp ) {
-	mPlanes[ 0 ] = ruPlane( vp._14 + vp._11, vp._24 + vp._21, vp._34 + vp._31, vp._44 + vp._41 ).Normalize( ); // Left plane    
-	mPlanes[ 1 ] = ruPlane( vp._14 - vp._11, vp._24 - vp._21, vp._34 - vp._31, vp._44 - vp._41 ).Normalize( ); // Right plane    
-	mPlanes[ 2 ] = ruPlane( vp._14 - vp._12, vp._24 - vp._22, vp._34 - vp._32, vp._44 - vp._42 ).Normalize( ); // Top plane
-	mPlanes[ 3 ] = ruPlane( vp._14 + vp._12, vp._24 + vp._22, vp._34 + vp._32, vp._44 + vp._42 ).Normalize( ); // Bottom plane        
-	mPlanes[ 4 ] = ruPlane( vp._14 - vp._13, vp._24 - vp._23, vp._34 - vp._33, vp._44 - vp._43 ).Normalize( ); // Far plane
-	mPlanes[ 5 ] = ruPlane( vp._13, vp._23, vp._33, vp._43 ).Normalize( ); // Near plane
+	mPlanes[ 0 ] = Plane( vp._14 + vp._11, vp._24 + vp._21, vp._34 + vp._31, vp._44 + vp._41 ).Normalize( ); // Left plane    
+	mPlanes[ 1 ] = Plane( vp._14 - vp._11, vp._24 - vp._21, vp._34 - vp._31, vp._44 - vp._41 ).Normalize( ); // Right plane    
+	mPlanes[ 2 ] = Plane( vp._14 - vp._12, vp._24 - vp._22, vp._34 - vp._32, vp._44 - vp._42 ).Normalize( ); // Top plane
+	mPlanes[ 3 ] = Plane( vp._14 + vp._12, vp._24 + vp._22, vp._34 + vp._32, vp._44 + vp._42 ).Normalize( ); // Bottom plane        
+	mPlanes[ 4 ] = Plane( vp._14 - vp._13, vp._24 - vp._23, vp._34 - vp._33, vp._44 - vp._43 ).Normalize( ); // Far plane
+	mPlanes[ 5 ] = Plane( vp._13, vp._23, vp._33, vp._43 ).Normalize( ); // Near plane
 }
 
 Frustum::Frustum( ) {
 
 }
 
-bool Frustum::IsSphereInside( const ruVector3 & center, const float & radius ) {
+bool Frustum::IsSphereInside( const Vector3 & center, const float & radius ) {
 	for ( int i = 0; i < 6; ++i ) {
 		float fDistance = mPlanes[ i ].Dot( center );
 		if ( fDistance < -radius ) {

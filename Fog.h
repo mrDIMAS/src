@@ -3,17 +3,17 @@
 #include "AABB.h"
 #include "SceneNode.h"
 
-class Fog : public ruFog, public SceneNode {
+class Fog : public IFog, public SceneNode {
 private:
-	ruVector3 mColor;
-	ruVector3 mMin;
-	ruVector3 mMax;
+	Vector3 mColor;
+	Vector3 mMin;
+	Vector3 mMax;
 	float mDensity;
 	AABB mAABB;
-	ruVector3 mSpeed;
-	ruVector3 mOffset;
+	Vector3 mSpeed;
+	Vector3 mOffset;
 public:
-	Fog(SceneFactory * factory, const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density);
+	Fog(SceneFactory * factory, const Vector3 & min, const Vector3 & max, const Vector3 & color, float density);
 
 	AABB & GetAABB() {
 		return mAABB;
@@ -23,33 +23,33 @@ public:
 		mOffset += mSpeed;
 	}
 
-	ruVector3 GetOffset() const {
+	Vector3 GetOffset() const {
 		return mOffset;
 	}
 
 	// API Methods
-	virtual void SetSize(const ruVector3 & min, const ruVector3 & max) override {
+	virtual void SetSize(const Vector3 & min, const Vector3 & max) override {
 		mMax = max;
 		mMin = min;
 	}
-	virtual ruVector3 GetMin() const override {
+	virtual Vector3 GetMin() const override {
 		return mMin;
 	}
-	virtual ruVector3 GetMax() const override {
+	virtual Vector3 GetMax() const override {
 		return mMax;
 	}
 
-	virtual void SetSpeed(const ruVector3 & speed) override {
+	virtual void SetSpeed(const Vector3 & speed) override {
 		mSpeed = speed;
 	}
-	virtual ruVector3 GetSpeed() const override {
+	virtual Vector3 GetSpeed() const override {
 		return mSpeed;
 	}
 
-	virtual void SetColor(const ruVector3 & color) override {
+	virtual void SetColor(const Vector3 & color) override {
 		mColor = color;
 	}
-	virtual ruVector3 GetColor() const override {
+	virtual Vector3 GetColor() const override {
 		return mColor;
 	}
 

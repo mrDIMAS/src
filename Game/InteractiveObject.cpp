@@ -24,7 +24,7 @@ void InteractiveObject::UpdateFlashing()
 	}
 }
 
-InteractiveObject::InteractiveObject(shared_ptr<ruSceneNode> object) : mInteractCountLeft(1), mFlashAlbedo(0.2f), mFlashAlbedoTo(1.0f), mFlashSpeed(0.075f), mFlashDirection(true), mObject(object)
+InteractiveObject::InteractiveObject(shared_ptr<ISceneNode> object) : mInteractCountLeft(1), mFlashAlbedo(0.2f), mFlashAlbedoTo(1.0f), mFlashSpeed(0.075f), mFlashDirection(true), mObject(object)
 {
 	mObject->Freeze();
 }
@@ -60,7 +60,7 @@ void InteractiveObject::Update()
 		}
 	} else {
 		mObject->Hide();
-		mObject->SetPosition(ruVector3(-666.666, -666.666, -666.666));
+		mObject->SetPosition(Vector3(-666.666, -666.666, -666.666));
 	}
 
 	UpdateFlashing();

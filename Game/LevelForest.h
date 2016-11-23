@@ -4,11 +4,11 @@
 
 class LevelForest : public Level {
 private:
-	shared_ptr<ruSound> mWindSound;
+	shared_ptr<ISound> mWindSound;
 	float mWaterFlow;
-	shared_ptr<ruSceneNode> mWater;
-	shared_ptr<ruSceneNode> mZoneEnd;
-	shared_ptr<ruFog> mFog;
+	shared_ptr<ISceneNode> mWater;
+	shared_ptr<ISceneNode> mZoneEnd;
+	shared_ptr<IFog> mFog;
 public:
 	LevelForest(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
 	~LevelForest();

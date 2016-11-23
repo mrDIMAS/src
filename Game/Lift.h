@@ -7,14 +7,11 @@
 
 class Lift {
 private:
-	friend class Level;
-	explicit Lift(shared_ptr<ruSceneNode> base);
-
-	shared_ptr<ruSceneNode> mBaseNode;
-	shared_ptr<ruSceneNode> mSourceNode;
-	shared_ptr<ruSceneNode> mDestNode;
-	shared_ptr<ruSceneNode> mTargetNode;
-	shared_ptr<ruSound> mMotorSound;
+	shared_ptr<ISceneNode> mBaseNode;
+	shared_ptr<ISceneNode> mSourceNode;
+	shared_ptr<ISceneNode> mDestNode;
+	shared_ptr<ISceneNode> mTargetNode;
+	shared_ptr<ISound> mMotorSound;
 	shared_ptr<Door> mDoorFrontLeft;
 	shared_ptr<Door> mDoorFrontRight;
 	shared_ptr<Door> mDoorBackLeft;
@@ -25,9 +22,10 @@ private:
 	float mSpeedMultiplier;
 	bool mLocked;
 public:
+	explicit Lift(shared_ptr<ISceneNode> base);
 	virtual ~Lift();
-	void SetDestinationPoint(shared_ptr<ruSceneNode> destNode);
-	void SetSourcePoint(shared_ptr<ruSceneNode> sourceNode);
+	void SetDestinationPoint(shared_ptr<ISceneNode> destNode);
+	void SetSourcePoint(shared_ptr<ISceneNode> sourceNode);
 	void SetFrontDoors(const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor);
 	void SetBackDoors(const shared_ptr<Door> & leftDoor, const shared_ptr<Door> & rightDoor);
 	bool IsArrived();

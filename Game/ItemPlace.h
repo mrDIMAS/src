@@ -6,11 +6,11 @@
 
 class ItemPlace {
 public:
-	shared_ptr<ruSceneNode> mObject;
+	shared_ptr<ISceneNode> mObject;
 	Item::Type mItemTypeCanBePlaced;
 	Item::Type mItemPlaced;
 public:
-	explicit ItemPlace(shared_ptr<ruSceneNode> obj, Item::Type itemTypeCanBePlaced);
+	explicit ItemPlace(shared_ptr<ISceneNode> obj, Item::Type itemTypeCanBePlaced);
 	virtual ~ItemPlace();
 	bool PlaceItem(Item::Type type);
 	Item::Type GetPlacedItem();

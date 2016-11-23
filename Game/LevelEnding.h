@@ -4,10 +4,10 @@
 
 class LevelEnding : public Level {
 private:
-	shared_ptr<ruGUIScene> mGUIScene;
-	shared_ptr<ruRect> mBackground;
-	shared_ptr<ruText> mEndingText;
-	shared_ptr<ruFont> mLargeFont;
+	shared_ptr<IGUIScene> mGUIScene;
+	shared_ptr<IRect> mBackground;
+	shared_ptr<IText> mEndingText;
+	shared_ptr<IFont> mLargeFont;
 	int mTimer;
 public:
 	LevelEnding(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);

@@ -26,7 +26,7 @@
 class Texture;
 class GUIScene;
 
-class GUINode : public virtual ruGUINode, public std::enable_shared_from_this<GUINode> {
+class GUINode : public virtual IGUINode, public std::enable_shared_from_this<GUINode> {
 protected:
 	friend class GUIScene;
 	explicit GUINode( const weak_ptr<GUIScene> & scene );
@@ -41,12 +41,12 @@ protected:
 	int mLayer;
 	bool mVisible;
 	bool mLastMouseInside;
-	ruVector3 mColor;
+	Vector3 mColor;
 	shared_ptr<Texture> mpTexture;
 	vector<shared_ptr<GUINode>> mChildList;
 	weak_ptr<GUINode> mParent;
-	unordered_map<ruGUIAction, ruEvent> mEventList;
-	bool IsGotAction( ruGUIAction act );
+	unordered_map<GUIAction, Event> mEventList;
+	bool IsGotAction( GUIAction act );
 	bool mIndependentAlpha;
 	virtual void OnClick( );
 	virtual void OnMouseEnter( );
@@ -63,28 +63,28 @@ public:
 	float GetHeight( );
 	shared_ptr<GUINode> GetParent( );
 	bool GotParent( );
-	virtual void SetColor( ruVector3 color );
+	virtual void SetColor( Vector3 color );
 	virtual void SetAlpha( int alpha );
 	virtual void SetSize( float w, float h );
 	virtual void SetVisible( bool visible );
 	virtual bool IsVisible( ) const;
-	virtual shared_ptr<ruTexture> GetTexture( );
-	virtual void SetTexture( const shared_ptr<ruTexture> & pTexture );
-	virtual ruVector2 GetPosition( );
-	virtual ruVector2 GetGlobalPosition( );
+	virtual shared_ptr<ITexture> GetTexture( );
+	virtual void SetTexture( const shared_ptr<ITexture> & pTexture );
+	virtual Vector2 GetPosition( );
+	virtual Vector2 GetGlobalPosition( );
 	virtual void SetIndependentAlpha( bool useIndependent );
 	virtual bool IsIndependentAlpha( ) const;
-	virtual ruVector2 GetSize( );
-	virtual ruVector3 GetColor( );
+	virtual Vector2 GetSize( );
+	virtual Vector3 GetColor( );
 	virtual int GetAlpha( );
 	virtual bool IsMouseInside( );
-	virtual void Attach( const shared_ptr<ruGUINode> & parent );
+	virtual void Attach( const shared_ptr<IGUINode> & parent );
 	virtual void SetPosition( float x, float y );
-	virtual void AddAction( ruGUIAction act, const ruDelegate & delegat );
-	virtual void RemoveAction( ruGUIAction act );
+	virtual void AddAction( GUIAction act, const Delegate & delegat );
+	virtual void RemoveAction( GUIAction act );
 	virtual void RemoveAllActions( );
-	virtual weak_ptr<class ruGUIScene> GetScene( );
+	virtual weak_ptr<class IGUIScene> GetScene( );
 	virtual void SetLayer( int layer );
 	virtual int GetLayer( ) const;
-	virtual void Move( const ruVector2 & speed ) override;
+	virtual void Move( const Vector2 & speed ) override;
 };

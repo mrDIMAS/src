@@ -31,14 +31,22 @@
 #include "Fog.h"
 #include "FastReader.h"
 #include "Engine.h"
+#include "CubeTexture.h"
 
-shared_ptr<ruSceneNode> SceneFactory::CreateSceneNode() {
+
+// API Methods
+
+IEngine * const SceneFactory::GetEngineInterface() const {
+	return mEngine;
+}
+
+shared_ptr<ISceneNode> SceneFactory::CreateSceneNode() {
 	auto sceneNode = make_shared<SceneNode>(this);
 	msNodeList.push_back(sceneNode);
 	return sceneNode;
 }
 
-shared_ptr<ruSceneNode> SceneFactory::CreateSceneNodeDuplicate(shared_ptr<ruSceneNode> src) {
+shared_ptr<ISceneNode> SceneFactory::CreateSceneNodeDuplicate(shared_ptr<ISceneNode> src) {
 	auto source = dynamic_pointer_cast<SceneNode>(src);
 	auto duplicate = dynamic_pointer_cast<SceneNode>(CreateSceneNode());
 	duplicate->mInFrustum = source->mInFrustum;
@@ -88,21 +96,21 @@ shared_ptr<ruSceneNode> SceneFactory::CreateSceneNodeDuplicate(shared_ptr<ruScen
 	return duplicate;
 }
 
-shared_ptr<ruPointLight> SceneFactory::CreatePointLight() {
+shared_ptr<IPointLight> SceneFactory::CreatePointLight() {
 	auto pointLight = make_shared<PointLight>(this);
 	msNodeList.push_back(pointLight);
 	msPointLightList.push_back(pointLight);
 	return pointLight;
 }
 
-shared_ptr<ruSpotLight> SceneFactory::CreateSpotLight() {
+shared_ptr<ISpotLight> SceneFactory::CreateSpotLight() {
 	auto spotLight = make_shared<SpotLight>(this);
 	msNodeList.push_back(spotLight);
 	msSpotLightList.push_back(spotLight);
 	return spotLight;
 }
 
-shared_ptr<ruDirectionalLight> SceneFactory::CreateDirectionalLight() {
+shared_ptr<IDirectionalLight> SceneFactory::CreateDirectionalLight() {
 	auto dirLight = make_shared<DirectionalLight>(this);
 	msNodeList.push_back(dirLight);
 	msDirectionalLightList.push_back(dirLight);
@@ -124,33 +132,41 @@ vector<weak_ptr<SpotLight>> & SceneFactory::GetSpotLightList() {
 	return msSpotLightList;
 }
 
+SceneFactory::SceneFactory(Engine * engine) : mEngine(engine) {
+
+}
+
+Engine * SceneFactory::GetEngine() const {
+	return mEngine;
+}
+
 vector<weak_ptr<SceneNode>> & SceneFactory::GetNodeList() {
 	RemoveUnreferenced(msNodeList);
 	return msNodeList;
 }
 
-shared_ptr<ruCamera> SceneFactory::CreateCamera(float fov) {
+shared_ptr<ICamera> SceneFactory::CreateCamera(float fov) {
 	auto camera = make_shared<Camera>(this, fov);
 	msNodeList.push_back(camera);
 	Camera::msCurrentCamera = camera;
 	return camera;
 }
 
-shared_ptr<ruParticleSystem> SceneFactory::CreateParticleSystem(int particleCount) {
+shared_ptr<IParticleSystem> SceneFactory::CreateParticleSystem(int particleCount) {
 	auto particleSystem = make_shared<ParticleSystem>(this, particleCount);
 	msNodeList.push_back(particleSystem);
 	msParticleEmitters.push_back(particleSystem);
 	return particleSystem;
 }
 
-shared_ptr<ruFog> SceneFactory::CreateFog(const ruVector3 & min, const ruVector3 & max, const ruVector3 & color, float density) {
+shared_ptr<IFog> SceneFactory::CreateFog(const Vector3 & min, const Vector3 & max, const Vector3 & color, float density) {
 	auto fog = make_shared<Fog>(this, min, max, color, density);
 	msNodeList.push_back(fog);
 	msFogList.push_back(fog);
 	return fog;
 }
 
-shared_ptr<ruSceneNode> SceneFactory::FindByName(const string & name) {
+shared_ptr<ISceneNode> SceneFactory::FindByName(const string & name) {
 	for(auto & pWeak : msNodeList) {
 		shared_ptr<SceneNode> & node = pWeak.lock();
 		if(node) {
@@ -162,7 +178,7 @@ shared_ptr<ruSceneNode> SceneFactory::FindByName(const string & name) {
 	return nullptr;
 }
 
-shared_ptr<ruSceneNode> SceneFactory::LoadScene(const string & file) {
+shared_ptr<ISceneNode> SceneFactory::LoadScene(const string & file) {
 	FastReader reader;
 
 	if(!reader.ReadFile(file)) {
@@ -193,7 +209,7 @@ shared_ptr<ruSceneNode> SceneFactory::LoadScene(const string & file) {
 		ParseString(reader.GetString(), node->mProperties);
 		node->mName = reader.GetString();
 		for(int i = 0; i < keyframeCount; i++) {
-			unique_ptr<btTransform> keyframe = unique_ptr<btTransform>(new btTransform);
+			auto keyframe = make_unique<btTransform>();
 			keyframe->setOrigin(reader.GetVector());
 			keyframe->setRotation(reader.GetQuaternion());
 			node->mKeyframeList.push_back(std::move(keyframe));
@@ -212,9 +228,9 @@ shared_ptr<ruSceneNode> SceneFactory::LoadScene(const string & file) {
 			int vertexCount = reader.GetInteger();
 			int indexCount = reader.GetInteger();
 
-			ruVector3 aabbMin = reader.GetBareVector();
-			ruVector3 aabbMax = reader.GetBareVector();
-			ruVector3 aabbCenter = reader.GetBareVector(); // odd
+			Vector3 aabbMin = reader.GetBareVector();
+			Vector3 aabbMax = reader.GetBareVector();
+			Vector3 aabbCenter = reader.GetBareVector(); // odd
 			float aabbRadius = reader.GetFloat(); // odd
 
 			string diffuse = reader.GetString();
@@ -227,7 +243,7 @@ shared_ptr<ruSceneNode> SceneFactory::LoadScene(const string & file) {
 				v.mPosition = reader.GetBareVector();
 				v.mNormal = reader.GetBareVector();
 				v.mTexCoord = reader.GetBareVector2();
-				ruVector2 tc2 = reader.GetBareVector2(); // odd
+				Vector2 tc2 = reader.GetBareVector2(); // odd
 				v.mTangent = reader.GetBareVector();
 
 				mesh->AddVertex(v);
@@ -241,13 +257,13 @@ shared_ptr<ruSceneNode> SceneFactory::LoadScene(const string & file) {
 				mesh->AddTriangle(Triangle(a, b, c));
 			}
 
-			mesh->mDiffuseTexture = Texture::Request(mEngine->GetRenderer()->GetTextureStoragePath() + diffuse);
+			mesh->mDiffuseTexture = dynamic_pointer_cast<Texture>(mEngine->GetRenderer()->GetTexture(mEngine->GetRenderer()->GetTextureStoragePath() + diffuse));
 			if(mesh->GetOpacity() > 0.95f) {
-				mesh->mNormalTexture = Texture::Request(mEngine->GetRenderer()->GetTextureStoragePath() + normal);
+				mesh->mNormalTexture = dynamic_pointer_cast<Texture>(mEngine->GetRenderer()->GetTexture(mEngine->GetRenderer()->GetTextureStoragePath() + normal));
 				// try to load height map
 				string height = diffuse.substr(0, diffuse.find_first_of('.')) + "_height" + diffuse.substr(diffuse.find_first_of('.'));
 				if(FileExist(mEngine->GetRenderer()->GetTextureStoragePath() + height)) {
-					mesh->mHeightTexture = Texture::Request(mEngine->GetRenderer()->GetTextureStoragePath() + height);
+					mesh->mHeightTexture = dynamic_pointer_cast<Texture>(mEngine->GetRenderer()->GetTexture(mEngine->GetRenderer()->GetTextureStoragePath() + height));
 				}
 			}
 			node->AddMesh(mesh);
@@ -356,7 +372,7 @@ int SceneFactory::GetSpotLightCount() {
 	return GetSpotLightList().size();
 }
 
-shared_ptr<ruSpotLight> SceneFactory::GetSpotLight(int n) {
+shared_ptr<ISpotLight> SceneFactory::GetSpotLight(int n) {
 	return GetSpotLightList()[n].lock();
 }
 
@@ -364,7 +380,7 @@ int SceneFactory::GetPointLightCount() {
 	return GetPointLightList().size();
 }
 
-shared_ptr<ruPointLight> SceneFactory::GetPointLight(int n) {
+shared_ptr<IPointLight> SceneFactory::GetPointLight(int n) {
 	return GetPointLightList()[n].lock();
 }
 
@@ -372,16 +388,32 @@ int SceneFactory::GetDirectionalLightCount() {
 	return GetDirectionalLightList().size();
 }
 
-shared_ptr<ruDirectionalLight> SceneFactory::GetDirectionalLight(int n) {
+shared_ptr<IDirectionalLight> SceneFactory::GetDirectionalLight(int n) {
 	return GetDirectionalLightList()[n].lock();
 }
 
-shared_ptr<ruSceneNode> SceneFactory::GetNode(int i) {
+void SceneFactory::SetPointLightDefaultTexture(const shared_ptr<ICubeTexture>& defaultPointTexture) {
+	mDefaultPointCubeTexture = dynamic_pointer_cast<CubeTexture>(defaultPointTexture);
+}
+
+shared_ptr<ICubeTexture> SceneFactory::GetPointLightDefaultTexture() const {
+	return mDefaultPointCubeTexture;
+}
+
+void SceneFactory::SetSpotLightDefaultTexture(const shared_ptr<ITexture>& defaultSpotTexture) {
+	mDefaultSpotTexture = dynamic_pointer_cast<Texture>(defaultSpotTexture);
+}
+
+shared_ptr<ITexture> SceneFactory::GetSpotLightDefaultTexture() const {
+	return mDefaultSpotTexture;
+}
+
+shared_ptr<ISceneNode> SceneFactory::GetNode(int i) {
 	return GetNodeList()[i].lock();
 }
 
-vector<shared_ptr<ruSceneNode>> SceneFactory::GetTaggedObjects(const string & tag) {
-	vector<shared_ptr<ruSceneNode>> tagged;
+vector<shared_ptr<ISceneNode>> SceneFactory::GetTaggedObjects(const string & tag) {
+	vector<shared_ptr<ISceneNode>> tagged;
 	for(auto weakNode : GetNodeList()) {
 		auto node = weakNode.lock();
 		if(node->GetTag() == tag) {

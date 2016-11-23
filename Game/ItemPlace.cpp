@@ -20,7 +20,7 @@ bool ItemPlace::PlaceItem(Item::Type type)
 	return false;
 }
 
-ItemPlace::ItemPlace(shared_ptr<ruSceneNode> obj, Item::Type itemTypeCanBePlaced) :
+ItemPlace::ItemPlace(shared_ptr<ISceneNode> obj, Item::Type itemTypeCanBePlaced) :
 	mItemPlaced(Item::Type::Unknown)
 {
 	mObject = obj;

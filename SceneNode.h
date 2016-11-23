@@ -26,7 +26,7 @@ class SceneFactory;
 
 #include "Engine.h"
 
-class SceneNode : public virtual ruSceneNode, public std::enable_shared_from_this<SceneNode> {
+class SceneNode : public virtual ISceneNode, public std::enable_shared_from_this<SceneNode> {
 protected:
 	SceneFactory * const mFactory;
 	friend class SceneFactory;
@@ -35,14 +35,14 @@ protected:
 	weak_ptr<SceneNode> mScene;
 	vector<shared_ptr<SceneNode>> mChildren;
 	vector<shared_ptr<Mesh>> mMeshList;
-	vector<shared_ptr<ruSound>> mSoundList;
+	vector<shared_ptr<ISound>> mSoundList;
 	vector<unique_ptr<btTransform>> mKeyframeList;
 	map<string, string> mProperties;
 	btTransform mInverseBindTransform;
 	string mTag;
 	string mName;
-	shared_ptr<ruSound> mHitSound;
-	shared_ptr<ruSound> mIdleSound;
+	shared_ptr<ISound> mHitSound;
+	shared_ptr<ISound> mIdleSound;
 	float mAlbedo;
 	float mDepthHack;
 	float mBlurAmount;
@@ -54,10 +54,10 @@ protected:
 	bool mAnimationOverride;
 	bool mIsBone;
 	bool mIsMoving;
-	ruVector3 mLastPosition;
+	Vector3 mLastPosition;
 	bool mCollisionEnabled;
-	ruVector2 mTexCoordFlow;
-	ruContact mContactList[BODY_MAX_CONTACTS];
+	Vector2 mTexCoordFlow;
+	Contact mContactList[BODY_MAX_CONTACTS];
 	int mContactCount;
 	int mTotalFrameCount;
 	void AutoName();
@@ -66,9 +66,9 @@ protected:
 	bool mAnimationBlendingEnabled;
 
 	// animation stuff
-	ruAnimation * mCurrentAnimation;
-	ruAnimation * mLastAnimation;
-	ruAnimation * mTransitionAnimation;
+	Animation * mCurrentAnimation;
+	Animation * mLastAnimation;
+	Animation * mTransitionAnimation;
 	int mTransitionFrames; // in update frames, not animation
 	int mCurrentTransitionFrame;
 
@@ -102,7 +102,7 @@ public:
 	virtual void UpdateSounds();
 	virtual void SetBody(btRigidBody * theBody);
 	virtual void ApplyProperties();
-	virtual void AttachSound(const shared_ptr<ruSound> & sound);
+	virtual void AttachSound(const shared_ptr<ISound> & sound);
 	virtual btTransform GetGlobalTransform() const;
 	virtual D3DXMATRIX GetWorldMatrix();
 	virtual void MakeBone();
@@ -118,70 +118,68 @@ public:
 
 	// API Methods
 	virtual ~SceneNode();
-	virtual SceneFactory * const GetFactory() const override final {
-		return mFactory;
-	}
-	virtual ruKeyFrame GetKeyFrame(int n) const override;
-	virtual void SetTexCoordFlow(const ruVector2 & flow) override;
-	virtual ruVector2 GetTexCoordFlow() const override;
-	virtual ruVector3 GetRotationAxis() override;
+	virtual SceneFactory * const GetFactory() const override final;
+	virtual KeyFrame GetKeyFrame(int n) const override;
+	virtual void SetTexCoordFlow(const Vector2 & flow) override;
+	virtual Vector2 GetTexCoordFlow() const override;
+	virtual Vector3 GetRotationAxis() override;
 	virtual float GetRotationAngle() override;
-	virtual void SetAnimation(ruAnimation * newAnim, bool dontAffectChilds = false) override;
-	virtual ruAnimation * GetCurrentAnimation() override;
-	virtual void SetConvexBody() override;
-	virtual void SetBoxBody() override;
-	virtual void SetSphereBody() override;
-	virtual void SetCylinderBody() override;
-	virtual void SetCapsuleBody(float height, float radius) override;
-	virtual void SetAngularFactor(ruVector3 fact) override;
-	virtual void SetTrimeshBody() override;
-	virtual void Attach(const shared_ptr<ruSceneNode> & parent) override;
+	virtual void SetAnimation(Animation * newAnim, bool dontAffectChilds = false) override;
+	virtual Animation * GetCurrentAnimation() override;
+	virtual void SetConvexBody() override final;
+	virtual void SetBoxBody() override final;
+	virtual void SetSphereBody() override final;
+	virtual void SetCylinderBody() override final;
+	virtual void SetCapsuleBody(float height, float radius) override final;
+	virtual void SetAngularFactor(Vector3 fact) override;
+	virtual void SetTrimeshBody() override final;
+	virtual void Attach(const shared_ptr<ISceneNode> & parent) override;
 	virtual void Detach() override;
-	virtual void AddForce(ruVector3 force) override;
-	virtual void AddForceAtPoint(ruVector3 force, ruVector3 point) override;
-	virtual void AddTorque(ruVector3 torque) override;
-	virtual ruVector3 GetAABBMin() override;
-	virtual ruVector3 GetAABBMax() override;
+	virtual void AddForce(Vector3 force) override;
+	virtual void AddForceAtPoint(Vector3 force, Vector3 point) override;
+	virtual void AddTorque(Vector3 torque) override;
+	virtual Vector3 GetAABBMin() override;
+	virtual Vector3 GetAABBMax() override;
 	virtual int GetTextureCount() override;
-	virtual shared_ptr<ruTexture> GetTexture(int n) override;
+	virtual shared_ptr<ITexture> GetTexture(int n) override;
 	virtual int GetTotalAnimationFrameCount() override;
 	virtual void Freeze() override;
 	virtual bool IsStatic() override;
 	virtual void Unfreeze() override;
-	virtual ruVector3 GetTotalForce() override;
+	virtual Vector3 GetTotalForce() override;
 	virtual BodyType GetBodyType() const override;
 	virtual void Hide() override;
 	virtual void Show() override;
 	virtual bool IsDynamic() override;
 	virtual void SetName(const string & name) override;
 	virtual string GetProperty(string propName) override;
-	virtual void SetLinearFactor(ruVector3 lin) override;
-	virtual ruVector3 GetPosition() const override;
+	virtual void SetLinearFactor(Vector3 lin) override;
+	virtual Vector3 GetPosition() const override;
 	virtual int GetContactCount() override;
-	virtual ruContact GetContact(int num) override;
-	virtual bool IsInsideNode(shared_ptr<ruSceneNode> n) override;
-	virtual shared_ptr<ruSceneNode> GetChild(int i) override;
+	virtual Contact GetContact(int num) override;
+	virtual bool IsInsideNode(shared_ptr<ISceneNode> n) override;
+	virtual shared_ptr<ISceneNode> GetChild(int i) override;
 	virtual int GetCountChildren() override;
 	virtual void SetFriction(float friction) override;
 	virtual void SetDepthHack(float depthHack) override;
-	virtual void SetAnisotropicFriction(ruVector3 aniso) override;
-	virtual void Move(ruVector3 speed) override;
-	virtual void SetVelocity(ruVector3 velocity) override;
-	virtual void SetAngularVelocity(ruVector3 velocity) override;
-	virtual ruVector3 GetEulerAngles() override;
-	virtual ruQuaternion GetLocalRotation() override;
-	virtual void SetPosition(ruVector3 position) override;
+	virtual void SetAnisotropicFriction(Vector3 aniso) override;
+	virtual void Move(Vector3 speed) override;
+	virtual void SetVelocity(Vector3 velocity) override;
+	virtual void SetAngularVelocity(Vector3 velocity) override;
+	virtual Vector3 GetEulerAngles() override;
+	virtual Quaternion GetLocalRotation() override;
+	virtual void SetPosition(Vector3 position) override;
 	virtual void SetDamping(float linearDamping, float angularDamping) override;
-	virtual void SetGravity(const ruVector3 & gravity) override;
+	virtual void SetGravity(const Vector3 & gravity) override;
 	virtual void SetMass(float mass) override;
 	virtual float GetMass() override;
 	virtual bool IsFrozen() override;
-	virtual void SetRotation(ruQuaternion rotation) override;
-	virtual ruVector3 GetLookVector() const override;
-	virtual ruVector3 GetAbsoluteLookVector() override;
+	virtual void SetRotation(Quaternion rotation) override;
+	virtual Vector3 GetLookVector() const override;
+	virtual Vector3 GetAbsoluteLookVector() override;
 	virtual const string GetName() override;
-	virtual ruVector3 GetRightVector() const override;
-	virtual ruVector3 GetUpVector() const override;
+	virtual Vector3 GetRightVector() const override;
+	virtual Vector3 GetUpVector() const override;
 	virtual bool IsVisible() override;
 	virtual bool IsInFrustum() override;
 	virtual void SetAlbedo(float albedo) override;
@@ -191,18 +189,18 @@ public:
 	virtual float GetDepthHack() const override;
 	virtual float GetAlbedo() const override;
 	virtual bool IsBone() const override;
-	virtual ruVector3 GetLocalPosition() override;
-	virtual ruVector3 GetLinearVelocity() override;
-	virtual void SetLocalScale(ruVector3 scale) override;
-	virtual void SetLocalPosition(ruVector3 pos) override;
-	virtual void SetLocalRotation(ruQuaternion rot) override;
-	virtual shared_ptr<ruSceneNode> GetParent() override;
+	virtual Vector3 GetLocalPosition() override;
+	virtual Vector3 GetLinearVelocity() override;
+	virtual void SetLocalScale(Vector3 scale) override;
+	virtual void SetLocalPosition(Vector3 pos) override;
+	virtual void SetLocalRotation(Quaternion rot) override;
+	virtual shared_ptr<ISceneNode> GetParent() override;
 	virtual void SetBlurAmount(float blurAmount) override;
 	virtual float GetBlurAmount() override;
 	virtual int GetMeshCount() const override;
 	virtual void SetCollisionEnabled(bool state) override;
 	virtual bool IsCollisionEnabled() const override;
-	virtual shared_ptr<ruSceneNode> FindChild(const string & name) override;
+	virtual shared_ptr<ISceneNode> FindChild(const string & name) override;
 	virtual void SetShadowCastEnabled(bool state) override;
 	virtual bool IsShadowCastEnabled() const override;
 	virtual void SetVegetation(bool state) override;
