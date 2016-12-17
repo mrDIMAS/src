@@ -1,13 +1,10 @@
 #include "Precompiled.h"
-
 #include "Player.h"
 #include "Menu.h"
 #include "Door.h"
 #include "utils.h"
 #include "Enemy.h"
-#include "SaveWriter.h"
 #include "Level.h"
-
 #include  <random>
 #include  <iterator>
 
@@ -47,6 +44,8 @@ Player::Player(unique_ptr<Game> & game) :
 	mYawWalkOffset(0.0, -30, 30),
 	mHealthRegenTimer(0),
 	mFlashlightEnabled(true),
+	mMouseInvX(false),
+	mMouseInvY(false),
 	mNoiseFactor(0.0f) {
 
 	mLocalization.Load(mGame->GetLocalizationPath() + "player.loc");
@@ -72,6 +71,11 @@ Player::Player(unique_ptr<Game> & game) :
 	//mFlashlight->SetShadowCastEnabled(false); 
 	mFlashlightSwitchSound = soundSystem->LoadSound2D("data/sounds/flashlight_switch.ogg");
 	mFlashlightSwitchSound->Attach(mBody);
+
+	//mFlashLightGI = mGame->GetEngine()->GetSceneFactory()->CreatePointLight();
+	//mFlashLightGI->SetRange(1.5);
+	//mFlashLightGI->SetColor(mFlashlight->GetColor() * 255);
+	//mFlashLightGI->SetDrawFlare(false);
 
 	// fill left arm
 	{
@@ -172,8 +176,6 @@ Player::Player(unique_ptr<Game> & game) :
 
 	// hack
 	mGame->GetMenu()->SyncPlayerControls();
-
-	mAutoSaveTimer = ITimer::Create();
 
 	mPainSound.push_back(soundSystem->LoadSound3D("data/sounds/player/grunt1.ogg"));
 	mPainSound.push_back(soundSystem->LoadSound3D("data/sounds/player/grunt2.ogg"));
@@ -291,10 +293,13 @@ void Player::UpdateInventory() {
 
 void Player::UpdateMouseLook() {
 	if(!mInventory->IsOpened()) {
-		float mouseSpeed = mGame->GetMouseSensitivity() / 2.0f;
-		mPitch.SetTarget(mPitch.GetTarget() + mGame->GetEngine()->GetInput()->GetMouseYSpeed() * mouseSpeed);
+		const float mouseSpeed = mGame->GetMouseSensitivity() / 2.0f;
+		const float signY = mMouseInvY ? -1 : 1;
+		const float signX = mMouseInvX ? -1 : 1;
+
+		mPitch.SetTarget(mPitch.GetTarget() + signY * mGame->GetEngine()->GetInput()->GetMouseYSpeed() * mouseSpeed);
 		if(mLadder.expired()) {
-			mYaw.SetTarget(mYaw.GetTarget() - mGame->GetEngine()->GetInput()->GetMouseXSpeed() * mouseSpeed);
+			mYaw.SetTarget(mYaw.GetTarget() - signX * mGame->GetEngine()->GetInput()->GetMouseXSpeed() * mouseSpeed);
 		}
 	}
 
@@ -727,7 +732,9 @@ void Player::ComputeStealth() {
 
 	mStealthFactor = 0.0f;
 
-	const float d = closestLight ? 1.0f - closestLight->GetPosition().Distance(mBody->GetPosition()) / closestLight->GetRange() : 0.0f;
+	float d = closestLight ? 1.0f - closestLight->GetPosition().Distance(mBody->GetPosition()) / closestLight->GetRange() : 0.0f;
+
+	if(d < 0.15) d = 0.15;
 
 	mStealthFactor += mStealthMode ? d * 0.5f : d;
 	if(mStealthMode) {
@@ -805,12 +812,6 @@ void Player::Update() {
 				mInAir = false;
 			}
 		}
-
-		// this must be placed in other place :)
-		if(mAutoSaveTimer->GetElapsedTimeInSeconds() >= 30) {
-			SaveWriter("autosave.save").SaveWorldState();
-			mAutoSaveTimer->Restart();
-		}
 	} else {
 		mHUD->SetDead(true);
 	}
@@ -875,11 +876,15 @@ void Player::UpdatePicking() {
 		}
 	}
 
+//	mFlashLightGI->SetPosition(pickPosition - (pickPosition - mpCamera->mCamera->GetPosition()).Normalize() * 0.5);
+
 	if(mPickedNode && !mNodeInHands) {
 		mNodeInHands = nullptr;
 
 		const Vector3 ppPos = mPickPoint->GetPosition();
 		const Vector3 dir = ppPos - pickPosition;
+
+		
 
 		const auto pIO = mGame->GetLevel()->FindInteractiveObject(mPickedNode->GetName());
 		if(dir.Length2() < 1.5f) {
@@ -1008,7 +1013,7 @@ void Player::SetHUDVisible(bool state) {
 }
 
 bool Player::IsDead() {
-	return mHealth <= 0.0f;
+	return mHealth <= 0.0f && !mDeadSound->IsPlaying();
 }
 
 void Player::SetPosition(Vector3 position) {

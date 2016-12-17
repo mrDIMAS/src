@@ -2,14 +2,12 @@
 #include "SaveFile.h"
 #include "SmoothFloat.h"
 
-SaveFile::~SaveFile()
-{
+SaveFile::~SaveFile() {
 	mStream.flush();
 	mStream.close();
 }
 
-SaveFile::SaveFile(const string & fileName, bool save) : mSave(save)
-{
+SaveFile::SaveFile(const string & fileName, bool save) : mSave(save) {
 	int flags = save ? (fstream::out | fstream::trunc | fstream::binary) : (fstream::in | fstream::binary);
 	mStream.open(fileName, flags);
 	if(!mStream.good()) {
@@ -17,18 +15,15 @@ SaveFile::SaveFile(const string & fileName, bool save) : mSave(save)
 	}
 }
 
-bool SaveFile::IsSaving() const
-{
+bool SaveFile::IsSaving() const {
 	return mSave;
 }
 
-bool SaveFile::IsLoading() const
-{
+bool SaveFile::IsLoading() const {
 	return !mSave;
 }
 
-void SaveFile::operator & (int & v)
-{
+void SaveFile::operator & (int & v) {
 	if(mSave) {
 		Write(v);
 	} else {
@@ -36,8 +31,7 @@ void SaveFile::operator & (int & v)
 	}
 }
 
-void SaveFile::operator & (float & v)
-{
+void SaveFile::operator & (float & v) {
 	if(mSave) {
 		Write(v);
 	} else {
@@ -45,8 +39,7 @@ void SaveFile::operator & (float & v)
 	}
 }
 
-void SaveFile::operator & (bool & v)
-{
+void SaveFile::operator & (bool & v) {
 	if(mSave) {
 		Write(v);
 	} else {
@@ -54,8 +47,7 @@ void SaveFile::operator & (bool & v)
 	}
 }
 
-void SaveFile::operator & (IInput::Key & v)
-{
+void SaveFile::operator & (IInput::Key & v) {
 	int vi = (int)v;
 	if(mSave) {
 		Write(v);
@@ -65,8 +57,7 @@ void SaveFile::operator & (IInput::Key & v)
 	v = (IInput::Key)vi;
 }
 
-void SaveFile::operator & (string & str)
-{
+void SaveFile::operator & (string & str) {
 	if(mSave) {
 		for(auto symbol : str) {
 			Write(symbol);
@@ -86,34 +77,36 @@ void SaveFile::operator & (string & str)
 	}
 }
 
-void SaveFile::operator & (Quaternion & v)
-{
+void SaveFile::operator & (Quaternion & v) {
 	*this & v.x;
 	*this & v.y;
 	*this & v.z;
 	*this & v.w;
 }
 
-void SaveFile::operator & (Vector3 & v)
-{
+void SaveFile::operator & (Vector3 & v) {
 	*this & v.x;
 	*this & v.y;
 	*this & v.z;
 }
 
-void SaveFile::operator & (Animation & a)
-{
+void SaveFile::operator & (Animation & a) {
 	auto currentFrame = a.GetCurrentFrame();
 	auto enabled = a.IsEnabled();
+	auto interpolator = a.GetInterpolator();
+	int direction = (int)a.GetDirection();
 
 	*this & currentFrame;
 	*this & enabled;
+	*this & interpolator;
+	*this & direction;
 
 	a.SetCurrentFrame(currentFrame);
 	a.SetEnabled(enabled);
+	a.SetDirection((Animation::Direction)direction);
+	a.SetInterpolator(interpolator);
 }
 
-void SaveFile::operator & (SmoothFloat & s)
-{
+void SaveFile::operator & (SmoothFloat & s) {
 	s.Serialize(*this);
 }

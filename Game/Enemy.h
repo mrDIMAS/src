@@ -69,4 +69,7 @@ public:
 	void Serialize(SaveFile & out);
 	virtual void Damage(float dmg) override final;
 	void LookAt(const Vector3 & lookAt);
+	MoveType GetMoveType() const {
+		return mMoveType;
+	}
 };

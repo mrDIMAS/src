@@ -66,26 +66,43 @@ public:
 	const unique_ptr<Enemy> & GetEnemy() const;
 	const unique_ptr<Player> & GetPlayer() const;
 	void DestroyPlayer();
+
+	// interactive objects
 	void AddInteractiveObject(const string & desc, const shared_ptr<InteractiveObject> & io, const Delegate & interactAction);
 	shared_ptr<InteractiveObject> FindInteractiveObject(const string & name);
+
+	// item places
 	void AddItemPlace(const shared_ptr<ItemPlace> & ipc);
 	shared_ptr<ItemPlace> FindItemPlace(const string & name);
-	shared_ptr<Keypad> AddKeypad(const string & keypad, const string & key0, const string & key1, const string & key2, const string & key3, const string & key4, const string & key5, const string & key6, const string & key7, const string & key8, const string & key9, const string & keyCancel, weak_ptr<Door> doorToUnlock, const string & codeToUnlock); 
-	shared_ptr<Door> AddDoor(const string & nodeName, float fMaxAngle);
+
+	// keypads
+	shared_ptr<Keypad> MakeKeypad(const string & keypad, const string & key0, const string & key1, const string & key2, const string & key3, const string & key4, const string & key5, const string & key6, const string & key7, const string & key8, const string & key9, const string & keyCancel, weak_ptr<Door> doorToUnlock, const string & codeToUnlock); 
+
+	// doors
+	shared_ptr<Door> MakeDoor(const string & nodeName, float fMaxAngle, bool closeSoundOnClosed = false, const string & openSound = "data/sounds/door/dooropen.ogg", const string & closeSound = "data/sounds/door/doorclose.ogg");
 	shared_ptr<Door> FindDoor(const string & name);
 	const vector<shared_ptr<Door>> & GetDoorList() const;
-	shared_ptr<Gate> AddGate(const string & nodeName, const string & buttonOpen, const string & buttonClose, const string & buttonOpen2, const string & buttonClose2);
+
+	// gates
+	shared_ptr<Gate> MakeGate(const string & nodeName, const string & buttonOpen, const string & buttonClose, const string & buttonOpen2, const string & buttonClose2);
 	const vector<shared_ptr<Gate>> & GetGateList() const;
-	shared_ptr<Ladder> AddLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint);
+
+	// ladders
+	shared_ptr<Ladder> MakeLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint);
 	shared_ptr<Ladder> FindLadder(const string & name);
 	const vector<shared_ptr<Ladder>> & GetLadderList() const;
+
+	// lifts
+	shared_ptr<Lift> AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight);
+
+
 	void AddLightSwitch(const shared_ptr<LightSwitch> & lswitch);
 	void AddValve(const shared_ptr<Valve> & valve);
-	shared_ptr<Lift> AddLift(const string & baseNode, const string & sourceNode, const string & destNode, const string & doorFrontLeft, const string & doorFrontRight, const string & doorBackLeft, const string & mDoorBackRight);
+	
 	void AddZone(const shared_ptr<Zone> & zone);
-	void AddButton(const shared_ptr<Button> & button);
+	shared_ptr<Button> AddButton(const shared_ptr<Button> & button);
 	void AutoCreateDoorsByNamePattern(const string & namePattern);
-	void AddSound(shared_ptr<ISound> sound);
+	shared_ptr<ISound> AddSound(shared_ptr<ISound> sound);
 	void LoadLocalization(string fn);
 	void AddAmbientSound(shared_ptr<ISound> sound);
 	void PlayAmbientSounds();

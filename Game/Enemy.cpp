@@ -245,9 +245,9 @@ void Enemy::Think() {
 			} else {
 				// just walk
 				if(mForceRun) {
-					SetWalkAnimation();
+					SetRunAnimation();					
 				} else {
-					SetRunAnimation();
+					SetWalkAnimation();
 				}
 			}
 

@@ -9,8 +9,6 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 	mGame(game),
 	mOpen(false),
 	mpSelectedItem(nullptr),
-	mpCombineItemFirst(nullptr),
-	mpCombineItemSecond(nullptr),
 	mpItemForUse(nullptr),
 	mTab(Inventory::Tab::Items) {
 	mLocalization.Load(Game::Instance()->GetLocalizationPath() + "inventory.loc");
@@ -22,6 +20,9 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 	mCellTexture = renderer->GetTexture("data/gui/inventory/item.tga");
 	mButtonTexture = renderer->GetTexture("data/gui/inventory/button.tga");
 	mFont = mGame->GetEngine()->CreateBitmapFont(14, "data/fonts/font5.ttf");
+
+	mPickUpSound = mGame->GetEngine()->GetSoundSystem()->LoadSound2D("data/sounds/backpack.ogg");
+	mPickUpSound->SetVolume(0.6);
 
 	float distMult = 1.1f;
 	int cellSpaceX = distMult * mCellWidth / (float)mCellCountWidth;
@@ -65,27 +66,12 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 	mUseButton = mScene->CreateButton(buttonsX, buttonY, buttonW, buttonH, mButtonTexture, mLocalization.GetString("use"), mFont, pGUIProp->mForeColor, TextAlignment::Center, 255);
 	mUseButton->Attach(mItemsBackground);
 
-	mCombineButton = mScene->CreateButton(buttonsX, buttonY + 1.5f * buttonH, buttonW, buttonH, mButtonTexture, mLocalization.GetString("combine"), mFont, pGUIProp->mForeColor, TextAlignment::Center, 255);
-	mCombineButton->Attach(mItemsBackground);
-
 	// combine items
 	int combineBoxY = buttonY + 3.6f * buttonH;
 	Vector3 combineColor1 = pGUIProp->mForeColor;
 	Vector3 combineColor2 = pGUIProp->mForeColor;
 	int combineBoxSpacing = 5;
 	buttonsX += mCellWidth / 2 - 2 * combineBoxSpacing;
-
-	mFirstCombineItem = mScene->CreateRect(buttonsX + combineBoxSpacing, combineBoxY + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, nullptr);
-	mFirstCombineItem->Attach(mItemsBackground);
-
-	mSecondCombineItem = mScene->CreateRect(buttonsX + combineBoxSpacing, combineBoxY + 1.2f * mCellHeight + combineBoxSpacing, mCellWidth - 2 * combineBoxSpacing, mCellHeight - 2 * combineBoxSpacing, nullptr);
-	mSecondCombineItem->Attach(mItemsBackground);
-
-	mFirstCombineItemCell = mScene->CreateRect(buttonsX, combineBoxY, mCellWidth, mCellHeight, mCellTexture, combineColor1, 255);
-	mFirstCombineItemCell->Attach(mItemsBackground);
-
-	mSecondCombineItemCell = mScene->CreateRect(buttonsX, combineBoxY + 1.2f * mCellHeight, mCellWidth, mCellHeight, mCellTexture, combineColor2, 255);
-	mSecondCombineItemCell->Attach(mItemsBackground);
 
 	mItemCharacteristics = mScene->CreateText(mLocalization.GetString("characteristics"), actionsX, combineBoxY + 1.5f * mCellHeight, 128, combineH, mFont, pGUIProp->mForeColor, TextAlignment::Center);
 	mItemCharacteristics->Attach(mItemsBackground);
@@ -143,14 +129,6 @@ Inventory::Inventory(unique_ptr<Game> & game) :
 void Inventory::SetVisible(bool state) {
 	mOpen = state;
 	mScene->SetVisible(state);
-}
-
-void Inventory::DoCombine() {
-	if(mpCombineItemFirst->Combine(mpCombineItemSecond->GetType())) { // combine successfull
-		mpCombineItemFirst = nullptr;
-		mpCombineItemSecond = nullptr;
-		mpSelectedItem = nullptr;
-	}
 }
 
 void Inventory::Update() {
@@ -211,57 +189,6 @@ void Inventory::Update() {
 	mUseButton->SetAlpha(useAlpha);
 	mUseButton->GetText()->SetAlpha(useAlpha);
 
-	bool canCombine = (mpCombineItemFirst != nullptr && mpCombineItemSecond != nullptr);
-
-	int combineAlpha = canCombine ? 255 : 60;
-	mCombineButton->SetAlpha(combineAlpha);
-	mCombineButton->GetText()->SetAlpha(combineAlpha);
-
-	// draw combine items
-	Vector3 combineColor1 = pGUIProp->mForeColor;
-	Vector3 combineColor2 = pGUIProp->mForeColor;
-	int combineBoxSpacing = 5;
-
-	mFirstCombineItem->SetTexture(nullptr);
-	mSecondCombineItem->SetTexture(nullptr);
-
-	// show first combining item
-	if(mpCombineItemFirst) {
-		mFirstCombineItem->SetVisible(true);
-		mFirstCombineItem->SetTexture(mpCombineItemFirst->GetPictogram());
-		if(mFirstCombineItem->IsMouseInside()) {
-			combineColor1 = Vector3(255, 0, 0);
-			if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
-				mpCombineItemFirst = nullptr;
-			}
-		}
-	} else {
-		mFirstCombineItem->SetVisible(false);
-	};
-	mFirstCombineItemCell->SetColor(combineColor1);
-
-	// show second combining item
-	if(mpCombineItemSecond) {
-		mSecondCombineItem->SetVisible(true);
-		mSecondCombineItem->SetTexture(mpCombineItemSecond->GetPictogram());
-		if(mSecondCombineItem->IsMouseInside()) {
-			combineColor2 = Vector3(255, 0, 0);
-			if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
-				mpCombineItemSecond = nullptr;
-			}
-		}
-	} else {
-		mSecondCombineItem->SetVisible(false);
-	}
-	mSecondCombineItemCell->SetColor(combineColor2);
-
-	// do combine
-	if(mCombineButton->IsHit()) {
-		if(canCombine) {
-			DoCombine();
-		}
-	}
-
 	// use item
 	if(mUseButton->IsHit()) {
 		if(mpSelectedItem) {
@@ -301,11 +228,7 @@ void Inventory::Update() {
 					color = Vector3(0, 200, 0);
 				}
 				mItemCountText[cw][ch]->SetText(StringBuilder() << curItemCount);
-				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
-					mItemCountText[cw][ch]->SetVisible(true);
-				} else {
-					mItemCountText[cw][ch]->SetVisible(false);
-				}
+				mItemCountText[cw][ch]->SetVisible(true);
 			} else {
 				mItemCountText[cw][ch]->SetVisible(false);
 			}
@@ -313,49 +236,33 @@ void Inventory::Update() {
 			Item * pPicked = nullptr;
 			if(mItemCell[cw][ch]->IsMouseInside()) {
 				color = Vector3(255, 0, 0);
-				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
-					pPicked = pItem;
-					if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
-						mpSelectedItem = pItem;
-					}
+				pPicked = pItem;
+				if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Left)) {
+					mpSelectedItem = pItem;
 				}
 			}
 
 			mItemCell[cw][ch]->SetColor(color);
 			if(pPicked) {
 				if(mGame->GetEngine()->GetInput()->IsMouseHit(IInput::MouseButton::Right) && combinePick) {
-					if(mpCombineItemFirst == nullptr) {
-						if(pPicked != mpCombineItemFirst) {
-							mpCombineItemFirst = pPicked;
-						}
-					} else if(mpCombineItemSecond == nullptr) {
-						if(pPicked != mpCombineItemSecond) {
-							mpCombineItemSecond = pPicked;
-						}
-					}
-
 					combinePick = false;
 					mpSelectedItem = nullptr;
 				}
 			}
 			if(pItem) {
-				if(pItem != mpCombineItemFirst && pItem != mpCombineItemSecond) {
-					mItem[cw][ch]->SetVisible(true);
-					mItem[cw][ch]->SetTexture(pItem->GetPictogram());
-					if(pItem == pPicked) {
-						mItemDescription->SetVisible(true);
-						mItemContentType->SetVisible(true);
-						mItemContent->SetVisible(true);
-						mItemVolume->SetVisible(true);
-						mItemMass->SetVisible(true);
-						mItemDescription->SetText(pItem->GetDescription());
-						mItemContentType->SetText(StringBuilder() << mLocalization.GetString("contentType") << ": " << pItem->GetContentType());
-						mItemContent->SetText(StringBuilder() << mLocalization.GetString("content") << ": " << pItem->GetContent());
-						mItemVolume->SetText(StringBuilder() << mLocalization.GetString("volume") << ": " << pItem->GetVolume());
-						mItemMass->SetText(StringBuilder() << mLocalization.GetString("mass") << ": " << pItem->GetMass());
-					}
-				} else {
-					mItem[cw][ch]->SetVisible(false);
+				mItem[cw][ch]->SetVisible(true);
+				mItem[cw][ch]->SetTexture(pItem->GetPictogram());
+				if(pItem == pPicked) {
+					mItemDescription->SetVisible(true);
+					mItemContentType->SetVisible(true);
+					mItemContent->SetVisible(true);
+					mItemVolume->SetVisible(true);
+					mItemMass->SetVisible(true);
+					mItemDescription->SetText(pItem->GetDescription());
+					mItemContentType->SetText(StringBuilder() << mLocalization.GetString("contentType") << ": " << pItem->GetContentType());
+					mItemContent->SetText(StringBuilder() << mLocalization.GetString("content") << ": " << pItem->GetContent());
+					mItemVolume->SetText(StringBuilder() << mLocalization.GetString("volume") << ": " << pItem->GetVolume());
+					mItemMass->SetText(StringBuilder() << mLocalization.GetString("mass") << ": " << pItem->GetMass());
 				}
 			} else {
 				mItem[cw][ch]->SetVisible(false);
@@ -453,11 +360,14 @@ void Inventory::AddItem(Item::Type type) {
 		if(!found) {
 			mItemMap[Item(type)] = 1;
 		}
+
+		mPickUpSound->Play();
 	}
 }
 
 void Inventory::ResetSelectedForUse() {
 	mpItemForUse = nullptr;
+	mpSelectedItem = nullptr;	
 }
 
 Item * Inventory::GetItemSelectedForUse() {

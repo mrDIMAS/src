@@ -20,7 +20,6 @@ private:
 	shared_ptr<Ventilator> mpFan1;
 	shared_ptr<Ventilator> mpFan2;
 
-	shared_ptr<ISound> mLeverSound;
 	shared_ptr<ISound> mBurnSound;
 	shared_ptr<ISound> mSteamHissSound;
 
@@ -30,11 +29,11 @@ private:
 	shared_ptr<ISceneNode> mZoneExtremeSteamHurt;
 	shared_ptr<ISceneNode> fuseModel[3];
 	shared_ptr<ISceneNode> powerLever;
-	shared_ptr<ISceneNode> mPowerLeverOffModel;
-	shared_ptr<ISceneNode> mPowerLeverOnModel;
-	shared_ptr<IPointLight>mPowerLamp;
-	shared_ptr<ISceneNode> mPowerLeverSnd;
 	shared_ptr<ISceneNode> mSmallSteamPosition;
+
+	shared_ptr<ISound> mInsertSound;
+	shared_ptr<ISound> mSwitchSound;
+	Animation mPowerSwitchAnimation;
 
 	Animation mMeshAnimation;
 	Animation mMeshLockAnimation;

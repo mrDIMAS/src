@@ -32,6 +32,9 @@ private:
 	string mLoadSaveGameName;
 	string mSaveGameSlotName;
 	shared_ptr<ISound> mPickSound;
+	int mCameraChangeTime;
+	shared_ptr<ISceneNode> mCameraPos1;
+	shared_ptr<ISceneNode> mCameraPos2;
 	Page mPage;
 	Config mConfig;
 	shared_ptr<ISound> mMusic;
@@ -51,6 +54,8 @@ private:
 	unique_ptr<RadioButton> mSoftParticles;
 	unique_ptr<RadioButton> mVSync;
 	unique_ptr<RadioButton> mDynamicDirectionalLightShadows;
+	unique_ptr<RadioButton> mMouseInversionX;
+	unique_ptr<RadioButton> mMouseInversionY;
 	unique_ptr<ScrollList> mTextureFiltering;
 	unique_ptr<ScrollList> mWindowMode;
 	unique_ptr<ScrollList> mSpotLightShadowMapSize;
@@ -58,6 +63,7 @@ private:
 	unique_ptr<ScrollList> mResolutionList;
 	unique_ptr<ScrollList> mLanguage;
 	shared_ptr<IText> mSettingsApplied;
+	shared_ptr<IText> mLangSettingsApplied;
 	unique_ptr<ScrollList> mDirectionalLightShadowMapSize;
 	unique_ptr<WaitKeyButton> mMoveForwardKey;
 	unique_ptr<WaitKeyButton> mMoveBackwardKey;

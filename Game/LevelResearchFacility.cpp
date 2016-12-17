@@ -17,8 +17,23 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 	LoadLocalization("rf.loc");
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
-	
+
 	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
+
+	auto factory = mGame->GetEngine()->GetSceneFactory();
+
+	// add doors with clockwise direction
+	auto doors = factory->GetTaggedObjects("door");
+	for(auto & d : doors) {
+		auto door = MakeDoor(d->GetName(), 90);
+	}
+
+	// add doors with counterclockwise direction
+	auto rdoors = mGame->GetEngine()->GetSceneFactory()->GetTaggedObjects("rdoor");
+	for(auto & d : rdoors) {
+		auto door = MakeDoor(d->GetName(), 90);
+		door->SetTurnDirection(Door::TurnDirection::Counterclockwise);
+	}
 
 	AddSound(mSteamHissSound = soundSystem->LoadSound3D("data/sounds/steamhiss.ogg"));
 	mSteamHissSound->SetRolloffFactor(5);
@@ -54,6 +69,8 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 	mpFan1 = make_shared<Ventilator>(GetUniqueObject("Fan"), 15, Vector3(0, 1, 0), soundSystem->LoadSound3D("data/sounds/fan.ogg"));
 	mpFan2 = make_shared<Ventilator>(GetUniqueObject("Fan2"), 15, Vector3(0, 1, 0), soundSystem->LoadSound3D("data/sounds/fan.ogg"));
 
+	mInsertSound = soundSystem->LoadSound3D("data/sounds/insert.ogg");
+
 	// create notes
 	{
 		AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note1")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note1Desc"), mLocalization.GetString("note1")); });
@@ -65,7 +82,6 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 		AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note7")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note7Desc"), mLocalization.GetString("note7")); });
 	}
 
-	AddSound(mLeverSound = soundSystem->LoadSound3D("data/sounds/lever.ogg"));
 
 	AddValve(mpSteamValve = make_shared<Valve>(GetUniqueObject("SteamValve"), Vector3(0, 1, 0)));
 	shared_ptr<ISound> steamHis = soundSystem->LoadSound3D("data/sounds/steamhiss_loop.ogg");
@@ -117,29 +133,29 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 
 	// create ladders
 	{
-		AddLadder("LadderBegin", "LadderEnd", "LadderEnter", "LadderBeginLeavePoint", "LadderEndLeavePoint");
-		AddLadder("Ladder3Begin", "Ladder3End", "Ladder3Enter", "Ladder3BeginLeavePoint", "Ladder3EndLeavePoint");
+		MakeLadder("LadderBegin", "LadderEnd", "LadderEnter", "LadderBeginLeavePoint", "LadderEndLeavePoint");
+		MakeLadder("Ladder3Begin", "Ladder3End", "Ladder3Enter", "Ladder3BeginLeavePoint", "Ladder3EndLeavePoint");
 	}
 
 	// create doors 
 	{
-		AddDoor("Door9", 90.0f);
-		AddDoor("Door10", 90.0f);
-		AddDoor("Door11", 90.0f);
-		AddDoor("Door12", 90.0f);
-		AddDoor("Door13", 90.0f);
-		AddDoor("Door14", 90.0f);
-		AddDoor("Door15", 90.0f);
-		AddDoor("Door16", 90.0f);
-		AddDoor("Door17", 90.0f);
-		AddDoor("Door18", 90.0f);
-		AddDoor("Door19", 90.0f);
-		mKeypad3DoorToUnlock = AddDoor("Door4", 90.0f);
-		mKeypad1DoorToUnlock = AddDoor("Door5", 90.0f);
-		mKeypad2DoorToUnlock = AddDoor("Door8", 90.0f);
-		mLabDoorToUnlock = AddDoor("LabDoor", 90);
-		mColliderDoorToUnlock = AddDoor("DoorToCollider", 90);
-		mLockedDoor = AddDoor("LockedDoor", 90);
+		MakeDoor("Door9", 90.0f);
+		MakeDoor("Door10", 90.0f);
+		MakeDoor("Door11", 90.0f);
+		MakeDoor("Door12", 90.0f);
+		MakeDoor("Door13", 90.0f);
+		MakeDoor("Door14", 90.0f);
+		MakeDoor("Door15", 90.0f);
+		MakeDoor("Door16", 90.0f);
+		MakeDoor("Door17", 90.0f);
+		MakeDoor("Door18", 90.0f);
+		MakeDoor("Door19", 90.0f);
+		mKeypad3DoorToUnlock = MakeDoor("Door4", 90.0f);
+		mKeypad1DoorToUnlock = MakeDoor("Door5", 90.0f);
+		mKeypad2DoorToUnlock = MakeDoor("Door8", 90.0f);
+		mLabDoorToUnlock = MakeDoor("LabDoor", 90);
+		mColliderDoorToUnlock = MakeDoor("DoorToCollider", 90);
+		mLockedDoor = MakeDoor("LockedDoor", 90);
 		mLockedDoor->SetLocked(true);
 	}
 
@@ -147,8 +163,6 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 
 	AutoCreateDoorsByNamePattern("Door?([[:digit:]]+)");
 
-	mPowerLamp = std::dynamic_pointer_cast<IPointLight>(GetUniqueObject("PowerLamp"));
-	mPowerLeverSnd = GetUniqueObject("PowerLeverSnd");
 	mSmallSteamPosition = GetUniqueObject("RFSteamPos");
 	mZoneNewLevelLoad = GetUniqueObject("NewLevelLoadZone");
 
@@ -167,11 +181,11 @@ LevelResearchFacility::LevelResearchFacility(unique_ptr<Game> & game, const uniq
 	AddInteractiveObject(Item::GetNameByType(Item::Type::FerrumOxide), make_shared<InteractiveObject>(GetUniqueObject("FerrumOxide")), [this] { mPlayer->AddItem(Item::Type::FerrumOxide); });
 	AddInteractiveObject(Item::GetNameByType(Item::Type::AluminumPowder), make_shared<InteractiveObject>(GetUniqueObject("AluminumPowder")), [this] { mPlayer->AddItem(Item::Type::AluminumPowder); });
 
-	mKeypad1 = AddKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", mKeypad1DoorToUnlock, "3065");
-	mKeypad2 = AddKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", mKeypad2DoorToUnlock, "6497");
-	mKeypad3 = AddKeypad("Keypad3", "Keypad3Key0", "Keypad3Key1", "Keypad3Key2", "Keypad3Key3", "Keypad3Key4", "Keypad3Key5", "Keypad3Key6", "Keypad3Key7", "Keypad3Key8", "Keypad3Key9", "Keypad3KeyCancel", mKeypad3DoorToUnlock, "1487");
-	mLabKeypad = AddKeypad("Keypad4", "Keypad4Key0", "Keypad4Key1", "Keypad4Key2", "Keypad4Key3", "Keypad4Key4", "Keypad4Key5", "Keypad4Key6", "Keypad4Key7", "Keypad4Key8", "Keypad4Key9", "Keypad4KeyCancel", mLabDoorToUnlock, "8279");
-	mColliderKeypad = AddKeypad("Keypad5", "Keypad5Key0", "Keypad5Key1", "Keypad5Key2", "Keypad5Key3", "Keypad5Key4", "Keypad5Key5", "Keypad5Key6", "Keypad5Key7", "Keypad5Key8", "Keypad5Key9", "Keypad5KeyCancel", mColliderDoorToUnlock, "1598");
+	mKeypad1 = MakeKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", mKeypad1DoorToUnlock, "3065");
+	mKeypad2 = MakeKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", mKeypad2DoorToUnlock, "6497");
+	mKeypad3 = MakeKeypad("Keypad3", "Keypad3Key0", "Keypad3Key1", "Keypad3Key2", "Keypad3Key3", "Keypad3Key4", "Keypad3Key5", "Keypad3Key6", "Keypad3Key7", "Keypad3Key8", "Keypad3Key9", "Keypad3KeyCancel", mKeypad3DoorToUnlock, "1487");
+	mLabKeypad = MakeKeypad("Keypad4", "Keypad4Key0", "Keypad4Key1", "Keypad4Key2", "Keypad4Key3", "Keypad4Key4", "Keypad4Key5", "Keypad4Key6", "Keypad4Key7", "Keypad4Key8", "Keypad4Key9", "Keypad4KeyCancel", mLabDoorToUnlock, "8279");
+	mColliderKeypad = MakeKeypad("Keypad5", "Keypad5Key0", "Keypad5Key1", "Keypad5Key2", "Keypad5Key3", "Keypad5Key4", "Keypad5Key5", "Keypad5Key6", "Keypad5Key7", "Keypad5Key8", "Keypad5Key9", "Keypad5KeyCancel", mColliderDoorToUnlock, "1598");
 
 	soundSystem->SetReverbPreset(ReverbPreset::Stonecorridor);
 
@@ -246,7 +260,7 @@ void LevelResearchFacility::DoScenario() {
 	mMeshAnimation.Update();
 	mMeshLockAnimation.Update();
 
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.01, 0.01, 0.01));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.05, 0.05, 0.05));
 
 	if(mPowerOn) {
 		mpFan1->DoTurn();
@@ -402,8 +416,11 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 					bool placed = pFuse->PlaceItem(mPlayer->GetInventory()->GetItemSelectedForUse()->GetType());
 
 					if(placed) {
+						pFuse->mObject->Hide();
 						fuseModel[iFusePlace]->Show();
 						pFuse->SetPlaceType(Item::Type::Unknown);
+						mInsertSound->Play();
+						mInsertSound->SetPosition(pFuse->mObject->GetPosition());
 					}
 				}
 			}
@@ -413,25 +430,15 @@ void LevelResearchFacility::UpdatePowerupSequence() {
 	if(fuseInsertedCount >= 3) {
 		if(mPlayer->mNearestPickedNode == powerLever) {
 			mPlayer->GetHUD()->SetAction(mPlayer->mKeyUse, mPlayer->mLocalization.GetString("powerUp"));
-
 			if(mGame->GetEngine()->GetInput()->IsKeyHit(mPlayer->mKeyUse) && !mPowerOn) {
-
-
-				mPowerLamp->SetColor(Vector3(0, 255, 0));
-
-				mLeverSound->Play();
-
-				mpPowerSparks = make_unique<Sparks>(mPowerLeverSnd, mGame->GetEngine()->GetSoundSystem()->LoadSound3D("data/sounds/sparks.ogg"));
-
-				mPowerLeverOnModel->Show();
-				mPowerLeverOffModel->Hide();
-
 				mPowerOn = true;
-
 				mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveTryToFindExit"));
+				mPowerSwitchAnimation.SetEnabled(true);
 			}
 		}
 	}
+
+	mPowerSwitchAnimation.Update();
 }
 
 void LevelResearchFacility::CreatePowerUpSequence() {
@@ -447,9 +454,14 @@ void LevelResearchFacility::CreatePowerUpSequence() {
 	fuseModel[1] = GetUniqueObject("FuseModel2");
 	fuseModel[2] = GetUniqueObject("FuseModel3");
 
-	mPowerLeverOnModel = GetUniqueObject("PowerSwitchOnModel");
-	mPowerLeverOffModel = GetUniqueObject("PowerSwitchOffModel");
 	powerLever = GetUniqueObject("PowerLever");
+
+	mSwitchSound = mGame->GetEngine()->GetSoundSystem()->LoadSound3D("data/sounds/lever.ogg");
+	mSwitchSound->Attach(powerLever);
+
+	mPowerSwitchAnimation = Animation(0, 30, 1, false);
+	mPowerSwitchAnimation.AddFrameListener(15, [this] { mSwitchSound->Play(); });
+	powerLever->SetAnimation(&mPowerSwitchAnimation);
 
 	fuseInsertedCount = 0;
 

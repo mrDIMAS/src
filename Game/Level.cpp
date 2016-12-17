@@ -3,8 +3,6 @@
 #include "GUIProperties.h"
 #include "Player.h"
 #include "Menu.h"
-#include "SaveLoader.h"
-#include "SaveWriter.h"
 
 LevelName g_initialLevel = LevelName::Undefined;
 LevelName Level::msCurLevelID = LevelName::Undefined;
@@ -73,8 +71,8 @@ shared_ptr<Lift> Level::AddLift(const string & baseNode, const string & sourceNo
 	shared_ptr<Lift> lift = make_shared<Lift>(GetUniqueObject(baseNode));
 	lift->SetDestinationPoint(GetUniqueObject(destNode));
 	lift->SetSourcePoint(GetUniqueObject(sourceNode));
-	lift->SetFrontDoors(AddDoor(doorBackLeft, 90), AddDoor(mDoorBackRight, 90));
-	lift->SetBackDoors(AddDoor(doorFrontLeft, 90), AddDoor(doorFrontRight, 90));
+	lift->SetFrontDoors(MakeDoor(doorBackLeft, 90), MakeDoor(mDoorBackRight, 90));
+	lift->SetBackDoors(MakeDoor(doorFrontLeft, 90), MakeDoor(doorFrontRight, 90));
 	mLiftList.push_back(lift);
 	return lift;
 }
@@ -95,7 +93,7 @@ const vector<shared_ptr<Door>> & Level::GetDoorList() const {
 	return mDoorList;
 }
 
-shared_ptr<Gate> Level::AddGate(const string & nodeName, const string & buttonOpen, const string & buttonClose, const string & buttonOpen2, const string & buttonClose2) {
+shared_ptr<Gate> Level::MakeGate(const string & nodeName, const string & buttonOpen, const string & buttonClose, const string & buttonOpen2, const string & buttonClose2) {
 	shared_ptr<Gate> gate = make_shared<Gate>(GetUniqueObject(nodeName), GetUniqueObject(buttonOpen), GetUniqueObject(buttonClose), GetUniqueObject(buttonOpen2), GetUniqueObject(buttonClose2));
 	mGateList.push_back(gate);
 	return gate;
@@ -105,7 +103,7 @@ const vector<shared_ptr<Gate>> & Level::GetGateList() const {
 	return mGateList;
 }
 
-shared_ptr<Ladder> Level::AddLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint) {
+shared_ptr<Ladder> Level::MakeLadder(const string & hBegin, const string & hEnd, const string & hEnterZone, const string & hBeginLeavePoint, const string & hEndLeavePoint) {
 	shared_ptr<Ladder> ladder = make_shared<Ladder>(GetUniqueObject(hBegin), GetUniqueObject(hEnd), GetUniqueObject(hEnterZone), GetUniqueObject(hBeginLeavePoint), GetUniqueObject(hEndLeavePoint));
 	mLadderList.push_back(ladder);
 	return ladder;
@@ -120,8 +118,8 @@ shared_ptr<Ladder> Level::FindLadder(const string & name) {
 	return shared_ptr<Ladder>(nullptr);
 }
 
-shared_ptr<Door> Level::AddDoor(const string & nodeName, float fMaxAngle) {
-	shared_ptr<Door> door = make_shared<Door>(GetUniqueObject(nodeName), fMaxAngle);
+shared_ptr<Door> Level::MakeDoor(const string & nodeName, float fMaxAngle, bool closeSoundOnClosed, const string & openSound, const string & closeSound) {
+	shared_ptr<Door> door = make_shared<Door>(GetUniqueObject(nodeName), fMaxAngle, closeSoundOnClosed, openSound, closeSound);
 	mDoorList.push_back(door);
 	return door;
 }
@@ -148,7 +146,7 @@ shared_ptr<ItemPlace> Level::FindItemPlace(const string & name) {
 	return shared_ptr<ItemPlace>(nullptr);
 }
 
-shared_ptr<Keypad> Level::AddKeypad(const string & keypad, const string & key0, const string & key1, const string & key2, const string & key3, const string & key4, const string & key5, const string & key6, const string & key7, const string & key8, const string & key9, const string & keyCancel, weak_ptr<Door> doorToUnlock, const string & codeToUnlock) {
+shared_ptr<Keypad> Level::MakeKeypad(const string & keypad, const string & key0, const string & key1, const string & key2, const string & key3, const string & key4, const string & key5, const string & key6, const string & key7, const string & key8, const string & key9, const string & keyCancel, weak_ptr<Door> doorToUnlock, const string & codeToUnlock) {
 	shared_ptr<Keypad> k = make_shared<Keypad>(GetUniqueObject(keypad), GetUniqueObject(key0), GetUniqueObject(key1),
 		GetUniqueObject(key2), GetUniqueObject(key3), GetUniqueObject(key4), GetUniqueObject(key5), GetUniqueObject(key6),
 		GetUniqueObject(key7), GetUniqueObject(key8), GetUniqueObject(key9), GetUniqueObject(keyCancel), doorToUnlock, codeToUnlock);
@@ -221,11 +219,12 @@ void Level::Serialize(SaveFile & s) {
 	OnSerialize(s);
 }
 
-void Level::AddSound(shared_ptr<ISound> sound) {
+shared_ptr<ISound> Level::AddSound(shared_ptr<ISound> sound) {
 	if(!sound) {
-		throw std::runtime_error("Unable to add ambient sound! Invalid source!");
+		throw std::runtime_error("Unable to add sound! Invalid source!");
 	}
 	mSounds.push_back(sound);
+	return sound;
 }
 
 void Level::PlayAmbientSounds() {
@@ -263,6 +262,23 @@ void Level::LoadSceneFromFile(const string & file) {
 	if(!mScene) {
 		throw std::runtime_error(StringBuilder("Unable to load scene from ") << file << "! Game will be closed.");
 	}
+	/*
+
+	auto factory = mGame->GetEngine()->GetSceneFactory();
+
+	// add doors with clockwise direction
+	auto doors = factory->GetTaggedObjects("door");
+	for(auto & d : doors) {
+		auto door = AddDoor(d->GetName(), 90);
+
+	}
+
+	// add doors with counterclockwise direction
+	auto rdoors = mGame->GetEngine()->GetSceneFactory()->GetTaggedObjects("rdoor");
+	for(auto & d : rdoors) {
+		auto door = AddDoor(d->GetName(), 90);
+		door->SetTurnDirection(Door::TurnDirection::Counterclockwise);
+	}*/
 }
 
 void Level::CreateBlankScene() {
@@ -307,7 +323,7 @@ void Level::GenericUpdate() {
 	if(mChaseMusicVolume < 0.0f) {
 		mChaseMusicVolume = 0.0f;
 	}
-
+	
 	mChaseMusicVolume += (mDestChaseMusicVolume - mChaseMusicVolume) * 0.02f;
 	mChaseMusic->SetVolume(mChaseMusicVolume);
 }
@@ -325,7 +341,7 @@ void Level::AutoCreateDoorsByNamePattern(const string & namePattern) {
 		}
 		if(!ignore) {
 			if(regex_match(child->GetName(), rx)) {
-				AddDoor(child->GetName(), 90);
+				MakeDoor(child->GetName(), 90);
 			}
 		}
 	}
@@ -335,8 +351,9 @@ void Level::AddZone(const shared_ptr<Zone> & zone) {
 	mZoneList.push_back(zone);
 }
 
-void Level::AddButton(const shared_ptr<Button> & button) {
+shared_ptr<Button> Level::AddButton(const shared_ptr<Button> & button) {
 	mButtonList.push_back(button);
+	return button;
 }
 
 

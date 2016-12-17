@@ -80,7 +80,7 @@ VS_OUTPUT main(VS_INPUT input) {
 
 	// compute screen vertex position
 	if (useVegetationAnimation) {
-		localPosition.xyz += (0.03f * SmoothTriangleWave(0.05f * g_texCoordFlow.z * localPosition)).xyz;
+		localPosition.xyz += (0.03f * SmoothTriangleWave(float4(0.05f * g_texCoordFlow.z * localPosition))).xyz;
 	}
 	output.position = mul( g_WVP, localPosition );	
 	

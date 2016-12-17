@@ -35,8 +35,8 @@ void main() {
 	try {
 		auto engine = IEngine::Create(0, 0, 0, 0);
 
-		IPointLight::SetPointDefaultTexture(ICubeTexture::Request("data/textures/generic/pointCube.dds"));
-		ISpotLight::SetSpotDefaultTexture(ITexture::Request("data/textures/generic/spotlight.jpg"));
+		engine->GetSceneFactory()->SetPointLightDefaultTexture(engine->GetRenderer()->GetCubeTexture("data/textures/generic/pointCube.dds"));
+		engine->GetSceneFactory()->SetSpotLightDefaultTexture(engine->GetRenderer()->GetTexture("data/textures/generic/spotlight.jpg"));
 
 		shared_ptr<ISceneNode> cameraPivot = engine->GetSceneFactory()->CreateSceneNode();
 		cameraPivot->SetCapsuleBody(6, 2);
@@ -47,11 +47,11 @@ void main() {
 		camera->Attach(cameraPivot);
 
 		camera->SetSkybox(
-			ITexture::Request("data/textures/skyboxes/test/red_sky_u.jpg"),
-			ITexture::Request("data/textures/skyboxes/test/red_sky_l.jpg"),
-			ITexture::Request("data/textures/skyboxes/test/red_sky_r.jpg"),
-			ITexture::Request("data/textures/skyboxes/test/red_sky_f.jpg"),
-			ITexture::Request("data/textures/skyboxes/test/red_sky_b.jpg")
+			engine->GetRenderer()->GetTexture("data/textures/skyboxes/test/red_sky_u.jpg"),
+			engine->GetRenderer()->GetTexture("data/textures/skyboxes/test/red_sky_l.jpg"),
+			engine->GetRenderer()->GetTexture("data/textures/skyboxes/test/red_sky_r.jpg"),
+			engine->GetRenderer()->GetTexture("data/textures/skyboxes/test/red_sky_f.jpg"),
+			engine->GetRenderer()->GetTexture("data/textures/skyboxes/test/red_sky_b.jpg")
 		);
 
 		camera->SetPosition(Vector3(0, 6, 0));
@@ -74,7 +74,7 @@ void main() {
 
 		shared_ptr<IParticleSystem> streamParticleEmitter = engine->GetSceneFactory()->CreateParticleSystem(256);
 		streamParticleEmitter->SetPosition(Vector3(10, 0, 10));
-		streamParticleEmitter->SetTexture(ITexture::Request("data/textures/particles/p1.png"));
+		streamParticleEmitter->SetTexture(engine->GetRenderer()->GetTexture("data/textures/particles/p1.png"));
 		streamParticleEmitter->SetType(IParticleSystem::Type::Stream);
 		streamParticleEmitter->SetSpeedDeviation(Vector3(-0.01, 0.0, -0.01), Vector3(0.01, 0.8, 0.01));
 		streamParticleEmitter->SetBoundingRadius(50);
@@ -85,7 +85,7 @@ void main() {
 
 		int perfTime = 0;
 
-		engine->GetRenderer()->SetCursor(ITexture::Request("data/gui/cursor.tga"), 32, 32);
+		engine->GetRenderer()->SetCursor(engine->GetRenderer()->GetTexture("data/gui/cursor.tga"), 32, 32);
 
 		shared_ptr<IGUIScene> guiScene = engine->CreateGUIScene();
 
@@ -94,14 +94,14 @@ void main() {
 		shared_ptr<IText> fpsText = guiScene->CreateText(u8"Русский текст тоже рисуется! Thisissuperduperlongwordtocrashwordwrap. Some super long text to test word wrapping. It must work for fuck sake! ", 0, 0, 100, 100, font, Vector3(255, 255, 255), TextAlignment::Left, 150);
 		//shared_ptr<IText> fpsText = guiScene->CreateText("The Mine", 0, 0, 100, 100, font, Vector3(255, 255, 255), TextAlignment::Left, 150);
 
-		shared_ptr<IRect> testrect = guiScene->CreateRect(100, 100, 200, 200, ITexture::Request("data/gui/inventory/items/detonator.png"));
-		shared_ptr<IButton> testButton = guiScene->CreateButton(10, 30, 128, 32, ITexture::Request("data/gui/menu/button.tga"), u8"Русский текст", font, Vector3(255, 255, 255), TextAlignment::Center);
-		shared_ptr<IButton> testButton2 = guiScene->CreateButton(0, 100, 128, 32, ITexture::Request("data/gui/menu/button.tga"), "Test", font, Vector3(255, 255, 255), TextAlignment::Center);
+		shared_ptr<IRect> testrect = guiScene->CreateRect(100, 100, 200, 200, engine->GetRenderer()->GetTexture("data/gui/inventory/items/detonator.png"));
+		shared_ptr<IButton> testButton = guiScene->CreateButton(10, 30, 128, 32, engine->GetRenderer()->GetTexture("data/gui/menu/button.tga"), u8"Русский текст", font, Vector3(255, 255, 255), TextAlignment::Center);
+		shared_ptr<IButton> testButton2 = guiScene->CreateButton(0, 100, 128, 32, engine->GetRenderer()->GetTexture("data/gui/menu/button.tga"), "Test", font, Vector3(255, 255, 255), TextAlignment::Center);
 		testButton->Attach(testrect);
 		testButton2->Attach(testrect);
 
 		shared_ptr<IGUIScene> anotherGUIScene =  engine->CreateGUIScene();
-		shared_ptr<IButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, ITexture::Request("data/gui/menu/button.tga"), "Test", font, Vector3(255, 255, 255), TextAlignment::Center);
+		shared_ptr<IButton> testButton233 = anotherGUIScene->CreateButton(300, 100, 128, 32, engine->GetRenderer()->GetTexture("data/gui/menu/button.tga"), "Test", font, Vector3(255, 255, 255), TextAlignment::Center);
 
 
 		engine->GetRenderer()->SetSpotLightShadowsEnabled(false);
@@ -115,21 +115,20 @@ void main() {
 		shared_ptr<ISound> snd = engine->GetSoundSystem()->LoadMusic("data/music/rf.ogg");
 		snd->SetVolume(0.1);
 
-
 		/*
-		shared_ptr<ISceneNode> ripper = ISceneNode::LoadFromFile("data/models/ripper/ripper0.scene");
+		shared_ptr<ISceneNode> ripper = engine->GetSceneFactory()->LoadScene("data/models/ripper/ripper0.scene");
 		Animation anim = Animation(0, 85, 3, true);
 		anim.SetEnabled(true);
 		ripper->SetAnimation(&anim);
 		ripper->SetBlurAmount(1.0f);
-
-		auto dummyTest = ISceneNode::LoadFromFile("data/models/character/character.scene");
-		auto dummyAnim = Animation(82, 90, 0.9, true);
+		*/
+		auto dummyTest = engine->GetSceneFactory()->LoadScene("data/models/character/character.scene");
+		auto dummyAnim = Animation(82, 90, 0.9, false);
 		dummyAnim.SetDirection(Animation::Direction::Reverse);
 		dummyAnim.SetEnabled(true);
 		dummyTest->SetAnimation(&dummyAnim);
 		dummyTest->SetPosition(Vector3(1, 0, -3));
-		*/
+		
 
 		engine->GetRenderer()->SetAmbientColor(Vector3(.01, .01, .01));
 
@@ -141,11 +140,10 @@ void main() {
 		fog->SetPosition(Vector3(0, 0, -20));
 
 		while(!engine->GetInput()->IsKeyDown(IInput::Key::Esc)) {
-			//idleAnim.Update();
 			engine->GetInput()->Update();
 
 			//anim.Update();
-			//dummyAnim.Update();
+			dummyAnim.Update();
 
 
 
@@ -170,6 +168,10 @@ void main() {
 
 			engine->GetPhysics()->Update(1.0f / 60.0f, 10, 1.0f / 60.0f);
 
+			if(engine->GetInput()->IsKeyHit(IInput::Key::Z)) {
+				dummyAnim.SetEnabled(true);
+				dummyAnim.SetDirection(dummyAnim.GetDirection() == Animation::Direction::Forward ? Animation::Direction::Reverse : Animation::Direction::Forward);
+			}
 			if(engine->GetInput()->IsKeyHit(IInput::Key::Num1)) {
 				testrect->SetVisible(false);
 				engine->GetRenderer()->SetFXAAEnabled(true);

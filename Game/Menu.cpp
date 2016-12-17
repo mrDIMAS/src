@@ -3,10 +3,7 @@
 #include "Level.h"
 #include "GUIProperties.h"
 #include "Player.h"
-#include "LevelArrival.h"
 #include "LevelMine.h"
-#include "SaveWriter.h"
-#include "SaveLoader.h"
 #include "Utils.h"
 
 string GetFileCreationDate(const string & pFileName) {
@@ -32,6 +29,7 @@ string GetFileCreationDate(const string & pFileName) {
 
 Menu::Menu(unique_ptr<Game> & game) :
 	mGame(game),
+	mCameraChangeTime(30 * 60),
 	mDistBetweenButtons(68),
 	mVisible(true),
 	mPage(Page::Main),
@@ -45,14 +43,20 @@ Menu::Menu(unique_ptr<Game> & game) :
 	mGUIScene = mGame->GetEngine()->CreateGUIScene();
 	// create camera
 	mpCamera = make_unique<GameCamera>(mGUIScene);
+	mCameraPos1 = mScene->FindChild("Camera");
+	mCameraPos2 = mScene->FindChild("Camera2");
+	mpCamera->mCamera->Attach(mCameraPos1);
 	mCameraFadeActionDone = false;
-	mCameraInitialPosition = mScene->FindChild("Camera")->GetPosition();
+	mCameraInitialPosition = Vector3(0, 0, 0);
 	mCameraAnimationNewOffset = Vector3(0.5, 0.5, 0.5);
-	
+
 	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
 
 	mPickSound = soundSystem->LoadSound2D("data/sounds/menupick.ogg");
-	mMusic = soundSystem->LoadMusic("data/music/menu.ogg");
+	mMusic = soundSystem->LoadMusic3D("data/music/menu.ogg");
+	mMusic->SetPosition(mScene->FindChild("Radio")->GetPosition());
+	mMusic->SetRolloffFactor(0.1);
+	mMusic->SetRoomRolloffFactor(0.1);
 
 	const float buttonHeight = 30;
 	const float buttonWidth = 128;
@@ -329,7 +333,7 @@ Menu::Menu(unique_ptr<Game> & game) :
 		mOptionsCommonCanvas->SetVisible(false);
 		{
 			const int yOffset = (aTabHeight - 1.5 * mDistBetweenButtons) / 2;
-			const int xOffset = aTabWidth / 6.5;
+			int xOffset = 20;
 
 			mFOVSlider = make_unique<Slider>(mGUIScene, xOffset, yOffset - 0.5f * mDistBetweenButtons, 55, 90, 1.0f, renderer->GetTexture("data/gui/menu/smallbutton.tga"), mLocalization.GetString("fov"));
 			mFOVSlider->AttachTo(mOptionsCommonCanvas);
@@ -346,9 +350,20 @@ Menu::Menu(unique_ptr<Game> & game) :
 			mMouseSensivity->AttachTo(mOptionsCommonCanvas);
 			mMouseSensivity->SetChangeAction([this] { mGame->SetMouseSensitivity(mMouseSensivity->GetValue() / 100.0f); });
 
-			mLanguage = make_unique<ScrollList>(mGUIScene, yOffset, xOffset + 1.5 * mDistBetweenButtons, texButton, mLocalization.GetString("language"));
+			mLanguage = make_unique<ScrollList>(mGUIScene, xOffset, yOffset + 1.5 * mDistBetweenButtons, texButton, mLocalization.GetString("language"));
 			mLanguage->AttachTo(mOptionsCommonCanvas);
 			mLanguage->OnChange += [this] { mConfig.SetString("languagePath", StringBuilder("data/lang/") << mLanguage->GetValueString(mLanguage->GetCurrentValue()) << "/"); };
+
+
+			mLangSettingsApplied = mGUIScene->CreateText(mLocalization.GetString("langChange"), 20, 3.3 * mDistBetweenButtons, aTabWidth - 30, aTabHeight - 30, pGUIProp->mFont, Vector3(255, 0, 0), TextAlignment::Left);
+			mLangSettingsApplied->Attach(mOptionsCommonCanvas);
+
+			xOffset += 300;
+			mMouseInversionX = make_unique<RadioButton>(mGUIScene, xOffset, yOffset - 0.5 * mDistBetweenButtons, texButton, mLocalization.GetString("mouseInvX"));
+			mMouseInversionX->AttachTo(mOptionsCommonCanvas);
+
+			mMouseInversionY = make_unique<RadioButton>(mGUIScene, xOffset, yOffset, texButton, mLocalization.GetString("mouseInvY"));
+			mMouseInversionY->AttachTo(mOptionsCommonCanvas);
 
 			int current = 0, i = 0;
 			WIN32_FIND_DATAA fi;
@@ -372,6 +387,8 @@ Menu::Menu(unique_ptr<Game> & game) :
 			mLanguage->SetCurrentValue(current);
 		}
 	}
+
+	mGame->GetEngine()->GetSoundSystem()->SetReverbPreset(ReverbPreset::Auditorium);
 
 	SetAuthorsPageVisible(false);
 	SetPage(Page::Main);
@@ -434,12 +451,14 @@ void Menu::OnExitGameClick() {
 }
 
 void Menu::OnContinueGameClick() {
-	SetPage(Page::Main);
-	if(!mGame->GetLevel()) {
-		mModalWindow->Ask(mLocalization.GetString("continueLastGameQuestion"));
-		mModalWindow->SetYesAction([this] { CameraStartFadeOut([this] { SaveLoader("quickSave.save").RestoreWorldState(); Hide(); }); });
-	} else {
-		CameraStartFadeOut([this] {	Hide(); });
+	if(IsFileExists("quickSave.save")) {
+		SetPage(Page::Main);
+		if(!mGame->GetLevel()) {
+			mModalWindow->Ask(mLocalization.GetString("continueLastGameQuestion"));
+			mModalWindow->SetYesAction([this] { CameraStartFadeOut([this] { mGame->LoadState("quickSave.save"); Hide(); }); });
+		} else {
+			CameraStartFadeOut([this] {	Hide(); });
+		}
 	}
 }
 
@@ -448,7 +467,7 @@ void Menu::DoExitGame() {
 		auto & player = mGame->GetLevel()->GetPlayer();
 		if(player) {
 			if(!player->mDead) {
-				SaveWriter("lastGame.save").SaveWorldState();
+				mGame->SaveState("lastGame.save");
 			}
 		}
 	}
@@ -472,6 +491,7 @@ void Menu::ApplySettings() {
 	renderer->SetDirectionalLightShadowMapSize(atoi(mDirectionalLightShadowMapSize->GetValueString(mDirectionalLightShadowMapSize->GetCurrentValue()).c_str()));
 	renderer->SetDirectionalLightDynamicShadows(mDynamicDirectionalLightShadows->IsChecked());
 	renderer->SetBloomEnabled(mBloom->IsChecked());
+	renderer->SetFXAAEnabled(mFXAAButton->IsChecked());
 }
 
 void Menu::UpdateCamera() {
@@ -497,7 +517,7 @@ void Menu::OnLoadSaveClick() {
 		}
 	}
 	mModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect") << mLoadSaveGameName << "." << mLocalization.GetString("loadSaveQuestion"));
-	mModalWindow->SetYesAction([this] { CameraStartFadeOut([this] { SaveLoader(mLoadSaveGameName).RestoreWorldState();	Hide(); }); });
+	mModalWindow->SetYesAction([this] { CameraStartFadeOut([this] { mGame->LoadState(mLoadSaveGameName); Hide(); }); });
 }
 
 void Menu::OnCreateSaveClick() {
@@ -508,7 +528,7 @@ void Menu::OnCreateSaveClick() {
 		}
 	}
 	mModalWindow->Ask(StringBuilder() << mLocalization.GetString("youSelect") << mSaveGameSlotName << "." << mLocalization.GetString("rewriteSaveQuestion"));
-	mModalWindow->SetYesAction([this] { SaveWriter(mSaveGameSlotName).SaveWorldState(); SetPage(Page::Main); });
+	mModalWindow->SetYesAction([this] { mGame->SaveState(mSaveGameSlotName); SetPage(Page::Main); });
 }
 
 void Menu::OnMusicVolumeChange() {
@@ -533,7 +553,7 @@ void Menu::Update() {
 
 	if(mVisible) {
 		AnimateCamera();
-		mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.1, 0.1, 0.1));
+		mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.05, 0.05, 0.05));
 
 		if(mGame->GetLevel()) {
 			// back to menu by pressing [Esc]
@@ -699,10 +719,13 @@ void Menu::ReadConfig() {
 	mVSync->SetEnabled(mConfig.GetBoolean("vsync"));
 	mPointShadowsButton->SetEnabled(mConfig.GetBoolean("pointShadowsEnabled"));
 	mSoftParticles->SetEnabled(mConfig.GetBoolean("softParticles"));
+	mMouseInversionX->SetEnabled(mConfig.GetBoolean("mouseInvX"));
+	mMouseInversionY->SetEnabled(mConfig.GetBoolean("mouseInvY"));
 
 	// read resolution and verify
 	{
-		string resolution = mConfig.GetString("resolution");
+		string resolution = StringBuilder() << mGame->GetEngine()->GetRenderer()->GetResolutionWidth() << "x" << mGame->GetEngine()->GetRenderer()->GetResolutionHeight() << "@60";
+
 		int num = 0;
 		for(auto res : mResolutionList->GetValues()) {
 			if(res == resolution) {
@@ -734,6 +757,8 @@ void Menu::SyncPlayerControls() {
 			player->mFov.SetMin(mFOVSlider->GetValue());
 			player->mFov.SetMax(mFOVSlider->GetValue() + 5);
 			player->mFov.Set(mFOVSlider->GetValue());
+			player->mMouseInvX = mMouseInversionX->IsChecked();
+			player->mMouseInvY = mMouseInversionY->IsChecked();
 		}
 	}
 }
@@ -756,7 +781,7 @@ void Menu::WriteConfig() {
 	mConfig.SetNumber("keyQuickSave", GetSelectedKey(mQuickSaveKey));
 	mConfig.SetNumber("keyQuickLoad", GetSelectedKey(mQuickLoadKey));
 	mConfig.SetBoolean("spotShadowsEnabled", mSpotShadowsButton->IsChecked());
-	mConfig.SetBoolean("hdrEnabled",mHDRButton->IsChecked());
+	mConfig.SetBoolean("hdrEnabled", mHDRButton->IsChecked());
 	mConfig.SetNumber("keyStealth", GetSelectedKey(mStealthKey));
 	mConfig.SetNumber("textureFiltering", mTextureFiltering->GetCurrentValue());
 	mConfig.SetNumber("keyLookLeft", GetSelectedKey(mLookLeftKey));
@@ -775,6 +800,8 @@ void Menu::WriteConfig() {
 	mConfig.SetString("resolution", mResolutionList->GetValueString(mResolutionList->GetCurrentValue()));
 	mConfig.SetBoolean("pointShadowsEnabled", mPointShadowsButton->IsChecked());
 	mConfig.SetBoolean("softParticles", mSoftParticles->IsChecked());
+	mConfig.SetBoolean("mouseInvX", mMouseInversionX->IsChecked());
+	mConfig.SetBoolean("mouseInvY", mMouseInversionY->IsChecked());
 	mConfig.Save();
 }
 
@@ -799,5 +826,15 @@ void Menu::AnimateCamera() {
 	if((mCameraAnimationOffset - mCameraAnimationNewOffset).Length2() < 0.015) {
 		mCameraAnimationNewOffset = Vector3(frandom(-0.25, 0.25), frandom(-0.25, 0.25), frandom(-0.25, 0.25));
 	}
-	mpCamera->mCamera->SetPosition(mCameraInitialPosition + mCameraAnimationOffset);
+	mpCamera->mCamera->SetPosition(mCameraInitialPosition + mCameraAnimationOffset * 5);
+
+	mCameraChangeTime--;
+	if(mCameraChangeTime <= 0) {
+		mCameraChangeTime = 30 * 60;
+		if(mpCamera->mCamera->GetParent() == mCameraPos1) {
+			mpCamera->mCamera->Attach(mCameraPos2);
+		} else 	if(mpCamera->mCamera->GetParent() == mCameraPos2) {
+			mpCamera->mCamera->Attach(mCameraPos1);
+		}
+	}
 }

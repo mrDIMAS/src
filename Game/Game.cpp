@@ -5,17 +5,16 @@
 #include "GUIProperties.h"
 #include "Level.h"
 #include "LightAnimator.h"
-#include "SaveWriter.h"
-#include "SaveLoader.h"
+#include "SaveFile.h"
 #include "Utils.h"
 #include "SoundMaterial.h"
-#include "LevelArrival.h"
 #include "LevelMine.h"
 #include "LevelResearchFacility.h"
 #include "LevelSewers.h"
 #include "LevelCutsceneIntro.h"
 #include "LevelForest.h"
 #include "LevelEnding.h"
+#include "LevelArrival2.h"
 
 // force OS to use high-performance GPU
 extern "C" {
@@ -58,18 +57,36 @@ void Game::MainLoop() {
 			mMenu->Update();
 
 			if(!mMenu->IsVisible()) {
-				if(mEngine->GetInput()->IsKeyHit(mKeyQuickSave)) {
-					SaveWriter("quickSave.save").SaveWorldState();
-				}
-				if(mEngine->GetInput()->IsKeyHit(mKeyQuickLoad)) {
-					if(IsFileExists("quickSave.save")) {
-						SaveLoader("quickSave.save").RestoreWorldState();
-					}
-				}
 				if(mLevel) {
+					// quick save
+					if(mEngine->GetInput()->IsKeyHit(mKeyQuickSave)) {
+						SaveState("quickSave.save");
+					}
+
+					// quick load
+					if(mEngine->GetInput()->IsKeyHit(mKeyQuickLoad)) {
+						if(IsFileExists("quickSave.save")) {
+							LoadState("quickSave.save");
+						}
+					}
+
+					// autosaving 
+					if(mAutoSaveTimer->GetElapsedTimeInSeconds() >= 60) {
+						if(mLevel->GetPlayer()) {
+							const bool enemyFarEnough = mLevel->GetEnemy() ? mLevel->GetEnemy()->GetCurrentPosition().Distance(mLevel->GetPlayer()->GetCurrentPosition()) > 12.0f : true;
+							const bool notDetected = mLevel->GetEnemy() ? mLevel->GetEnemy()->GetMoveType() != Enemy::MoveType::ChasePlayer : true;
+							if(!mLevel->GetPlayer()->IsDead() && notDetected && enemyFarEnough) {
+								SaveState("autosave.save");
+								mAutoSaveTimer->Restart();
+							}
+						}
+					}
+
+					// level scenario
 					mLevel->GenericUpdate();
 					mLevel->DoScenario();
 
+					// delete level if ended, or if player is dead
 					if(mLevel->mEnded) {
 						mLevel.reset();
 					} else {
@@ -102,6 +119,35 @@ void Game::Shutdown() {
 	mRunning = false;
 }
 
+void Game::LoadState(const string & savefileName) {
+	SaveFile saveFile(savefileName, false);
+	int levNum = 0;
+	saveFile & levNum;
+	// load level
+	LoadLevel((LevelName)levNum);
+	// deserialize it's objects
+	if(mLevel) {
+		mLevel->Serialize(saveFile);
+	}
+}
+
+void Game::SaveState(const string & savefileName) {
+	SaveFile saveFile(savefileName, true);
+	if(mLevel) {
+		bool visible = mLevel->IsVisible();
+		if(!visible) {
+			mLevel->Show();
+		}
+		// oh, those casts...
+		int name = (int)mLevel->mName;
+		saveFile & name;
+		mLevel->Serialize(saveFile);
+		if(!visible) {
+			mLevel->Hide();
+		}
+	}
+}
+
 string Game::GetLocalizationPath() const {
 	return mLocalizationPath;
 }
@@ -114,6 +160,8 @@ Game::~Game() {
 }
 
 void Game::Start() {
+	
+
 	// read config
 	Config cfg("config.cfg");
 	string resolution = cfg.GetString("resolution");
@@ -137,7 +185,7 @@ void Game::Start() {
 	mLoadingScreen = make_unique<LoadingScreen>(Instance(), loc.GetString("loading"));
 	mOverlayScene = mEngine->CreateGUIScene();
 	mFPSText = mOverlayScene->CreateText("FPS", 0, 0, 200, 200, pGUIProp->mFont, pGUIProp->mForeColor, TextAlignment::Left, 100);
-	mEngine->GetRenderer()->SetCursorVisible(true);
+	mAutoSaveTimer = ITimer::Create();
 	UpdateClock();
 	MainLoop();
 }
@@ -173,13 +221,11 @@ void Game::SetQuickLoadKey(const IInput::Key & key) {
 	mKeyQuickLoad = key;
 }
 
-void Game::SetMusicVolume(float vol) // REPLACE THIS OR REMOVE
-{
+void Game::SetMusicVolume(float vol) {
 	mMusicVolume = vol;
 }
 
-float Game::GetMusicVolume() const// REPLACE THIS OR REMOVE
-{
+float Game::GetMusicVolume() const {
 	return mMusicVolume;
 }
 
@@ -232,7 +278,7 @@ void Game::LoadLevel(LevelName name, bool continueFromSave) {
 	}
 
 	if(continueFromSave) {
-		SaveLoader("lastGame.save").RestoreWorldState();
+		LoadState("lastGame.save");
 	}
 
 	if(mLevel->GetPlayer()) {
@@ -291,13 +337,21 @@ void LoadingScreen::Draw() {
 }
 
 int main(int argc, char * argv[]) {
+	ShowWindow(GetConsoleWindow(), FALSE); // console disabled in release
+
+	if(SteamAPI_Init() == false) {
+		return 1;
+	}
+
 	try {
 		Game::MakeInstance();
 		Game::Instance()->Start();
 		Game::DestroyInstance();
 	} catch(std::exception & err) {
+		SteamAPI_Shutdown();
 		MessageBoxA(0, err.what(), "Runtime exception", MB_OK | MB_ICONERROR);
 		return 1;
 	}
+	SteamAPI_Shutdown();
 	return 0;
 }

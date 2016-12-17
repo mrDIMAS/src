@@ -59,7 +59,6 @@ float GetShadow(in float3 lightVector) {
 	
 	return outShadow;
 }
-
 float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
 	// remap normal to [-1.0;+1.0]
 	float3 n = normalize( tex2D( normalSampler, texcoord ).xyz * 2.0f - 1.0f );		
@@ -70,16 +69,19 @@ float4 main( float2 texcoord : TEXCOORD0 ) : COLOR0 {
 	float4 outputColor;	
 	float3 diffuse = tex2D( diffuseSampler, texcoord ).xyz;
 
+	float3 h = normalize( lightVector + (cameraPos - p));
+	float3 specular = 0.4 * pow( saturate( dot( n, h ) ), 80 );
+		
 	if(useDirectionalLighting) {		
-		outputColor = float4( lightColor.xyz * diffuse * max(0, dot(direction, n)), 1.0f);
+		outputColor = float4( (lightColor.xyz * (diffuse + specular))* max(0, dot(direction, n)), 1.0f);
 	} else {		
 		float attenuation = lightIntensity * GetAttenuation( lightVector, lightRange, n );		
-		outputColor = float4( lightColor.xyz * diffuse * attenuation, 1.0f );			
+		outputColor = float4( (lightColor.xyz * (diffuse + specular)) * attenuation, 1.0f );			
 	}
 	
 	if( usePointLighting ) { 
 		// Point lighting		
-		outputColor *= texCUBElod( pointProjectionSampler, float4( lightVector, 0 ) );
+		//outputColor *= texCUBElod( pointProjectionSampler, float4( lightVector, 0 ) );
 		if( useShadows ) {
 			outputColor.rgb *= GetShadow(lightVector);
 		}

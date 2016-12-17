@@ -16,6 +16,7 @@ public:
 		Crowbar,
 		AluminumPowder,
 		FerrumOxide,
+		OilCanister,
 	};
 private:
 	friend class Inventory;
@@ -29,6 +30,7 @@ private:
 	float mContent;
 	string mContentTypeDesc;
 public:
+	int mCount;
 	bool mSingleInstance;
 	explicit Item(Type type);
 	virtual ~Item();

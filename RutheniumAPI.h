@@ -847,6 +847,7 @@ public:
 	virtual shared_ptr<ISound> LoadSound2D(const string & file) = 0;
 	virtual shared_ptr<ISound> LoadSound3D(const string & file) = 0;
 	virtual shared_ptr<ISound> LoadMusic(const string & file) = 0;
+	virtual shared_ptr<ISound> LoadMusic3D(const string & file) = 0;
 };
 
 class IInput {

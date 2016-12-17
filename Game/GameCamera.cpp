@@ -32,7 +32,7 @@ void GameCamera::FadeOut()
 
 GameCamera::GameCamera(const shared_ptr<IGUIScene> & scene, float fov)
 {
-	mCamera = scene->GetEngine()->GetSceneFactory()->CreateCamera(fov);
+	mCamera = Game::Instance()->GetEngine()->GetSceneFactory()->CreateCamera(fov);
 
 	quadAlpha = 0.0f;
 	quadAlphaTo = 0.0f;

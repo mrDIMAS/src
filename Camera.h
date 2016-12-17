@@ -43,7 +43,18 @@ public:
 	explicit PathPoint(const Vector3 & position) : mPoint(position) {
 
 	}
+	template<typename Type>
+	void RemoveUnreferenced(vector<weak_ptr<Type>>& objList) {
+		for(auto iter = objList.begin(); iter != objList.end(); ) {
+			if((*iter).use_count()) {
+				++iter;
+			} else {
+				iter = objList.erase(iter);
+			}
+		}
+	}
 	vector<weak_ptr<PointLight>> & GetListOfVisibleLights() {
+		RemoveUnreferenced(mVisibleLightList);
 		return mVisibleLightList;
 	}
 };

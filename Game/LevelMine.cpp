@@ -32,8 +32,6 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 
 	mStoneFallZone = GetUniqueObject("StoneFallZone");
 
-	mLiftButton = GetUniqueObject("Lift1Screen");
-
 	mNewLevelZone = GetUniqueObject("NewLevel");
 
 	auto soundSystem = mGame->GetEngine()->GetSoundSystem();
@@ -55,8 +53,6 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 	mDetonatorActivated = 0;
 
 	mExplosionFlashAnimator = 0;
-
-
 
 	// Create detonator places
 	AddItemPlace(mDetonatorPlace[0] = make_shared<ItemPlace>(GetUniqueObject("DetonatorPlace1"), Item::Type::Explosives));
@@ -95,17 +91,17 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 
 	mReadyExplosivesCount = 0;
 
-	AddLadder("LadderBegin", "LadderEnd", "LadderEnter", "LadderBeginLeavePoint", "LadderEndLeavePoint");
-	AddDoor("Door1", 90);
-	AddDoor("Door3", 90);
-	AddDoor("DoorToAdministration", 90);
-	AddDoor("Door6", 90);
-	AddDoor("DoorToDirectorsOffice", 90);
-	AddDoor("DoorToResearchFacility", 90);
+	MakeLadder("LadderBegin", "LadderEnd", "LadderEnter", "LadderBeginLeavePoint", "LadderEndLeavePoint");
+	MakeDoor("Door1", 90);
+	MakeDoor("Door3", 90);
+	MakeDoor("DoorToAdministration", 90);
+	MakeDoor("Door6", 90);
+	MakeDoor("DoorToDirectorsOffice", 90);
+	MakeDoor("DoorToResearchFacility", 90);
 
-	AddKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", AddDoor("StorageDoor", 90), "7854");
-	AddKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", AddDoor("DoorToResearchFacility", 90), "1689");
-	AddKeypad("Keypad3", "Keypad3Key0", "Keypad3Key1", "Keypad3Key2", "Keypad3Key3", "Keypad3Key4", "Keypad3Key5", "Keypad3Key6", "Keypad3Key7", "Keypad3Key8", "Keypad3Key9", "Keypad3KeyCancel", AddDoor("DoorMedical", 90), "9632");
+	MakeKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", MakeDoor("StorageDoor", 90), "7854");
+	MakeKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", MakeDoor("DoorToResearchFacility", 90), "1689");
+	MakeKeypad("Keypad3", "Keypad3Key0", "Keypad3Key1", "Keypad3Key2", "Keypad3Key3", "Keypad3Key4", "Keypad3Key5", "Keypad3Key6", "Keypad3Key7", "Keypad3Key8", "Keypad3Key9", "Keypad3KeyCancel", MakeDoor("DoorMedical", 90), "9632");
 
 	mMusic->Play();
 
@@ -138,7 +134,7 @@ LevelMine::LevelMine(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> &
 		p.Get("WayA1"), p.Get("WayC024"), p.Get("WayB012"),
 		p.Get("WayB012"), p.Get("WayD003"), p.Get("WayK005"),
 		p.Get("WayE006"), p.Get("WayF019"), p.Get("WayG007"),
-		p.Get("WayH013"), p.Get("WayA110"), p.Get("WayI009")
+		p.Get("WayH010"), p.Get("WayA110"), p.Get("WayI009")
 	};
 
 	mEnemy = make_unique<Enemy>(mGame, p.mVertexList, patrolPoints);
@@ -176,11 +172,9 @@ void LevelMine::Hide() {
 void LevelMine::DoScenario() {
 	mMusic->Play();
 	mEnemy->Think();
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.01, 0.01, 0.01));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.05, 0.05, 0.05));
 	PlayAmbientSounds();
-	if(mPlayer->mNearestPickedNode == mLiftButton) {
-		mPlayer->GetHUD()->SetAction(IInput::Key::None, mLocalization.GetString("brokenLift"));
-	}
+
 
 	if(!mStages["FindObjectObjectiveSet"]) {
 		if(!mStages["FoundObjectsForExplosion"]) {

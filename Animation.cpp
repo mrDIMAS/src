@@ -24,89 +24,89 @@
 
 #include "SceneNode.h"
 
-Animation::Animation( ) :
-	mLooped( false ),
-	mBeginFrame( 0 ),
-	mEndFrame( 0 ),
-	mCurrentFrame( 0 ),
-	mDuration( 0.0f ),
-	mInterpolator( 0.0f ),
-	mNextFrame( 0 ),
-	mEnabled( false ),
-	mDirection( Animation::Direction::Forward ) {
+Animation::Animation() :
+	mLooped(false),
+	mBeginFrame(0),
+	mEndFrame(0),
+	mCurrentFrame(0),
+	mDuration(0.0f),
+	mInterpolator(0.0f),
+	mNextFrame(0),
+	mEnabled(false),
+	mDirection(Animation::Direction::Forward) {
 
 }
 
-Animation::Animation( int theBeginFrame, int theEndFrame, float theDuration, bool theLooped ) :
-	mCurrentFrame( theBeginFrame ),
-	mNextFrame( theBeginFrame + 1 ),
-	mBeginFrame( theBeginFrame ),
-	mEndFrame( theEndFrame ),
-	mDuration( theDuration ),
-	mLooped( theLooped ),
-	mEnabled( false ),
-	mInterpolator( 0.0f ),
-	mDirection( Animation::Direction::Forward ) {
+Animation::Animation(int theBeginFrame, int theEndFrame, float theDuration, bool theLooped) :
+	mCurrentFrame(theBeginFrame),
+	mNextFrame(theBeginFrame + 1),
+	mBeginFrame(theBeginFrame),
+	mEndFrame(theEndFrame),
+	mDuration(theDuration),
+	mLooped(theLooped),
+	mEnabled(false),
+	mInterpolator(0.0f),
+	mDirection(Animation::Direction::Forward) {
 
 }
 
-Animation::~Animation( ) {
+Animation::~Animation() {
 
 }
 
-void Animation::AddFrameListener( int frameNum, const Delegate & action ) {
-	mFrameListenerList[ frameNum ] = AnimationEvent( );
-	mFrameListenerList[ frameNum ].Event += action;
+void Animation::AddFrameListener(int frameNum, const Delegate & action) {
+	mFrameListenerList[frameNum] = AnimationEvent();
+	mFrameListenerList[frameNum].Event += action;
 }
 
-void Animation::RemoveFrameListeners( int frameNum ) {
-	mFrameListenerList[ frameNum ].Event.Clear( );
+void Animation::RemoveFrameListeners(int frameNum) {
+	mFrameListenerList[frameNum].Event.Clear();
 }
 
-void Animation::Rewind( ) {
-	if ( mDirection == Animation::Direction::Forward ) {
+void Animation::Rewind() {
+	if(mDirection == Animation::Direction::Forward) {
 		mCurrentFrame = mBeginFrame;
 		mNextFrame = mCurrentFrame + 1;
-	} else if ( mDirection == Animation::Direction::Reverse ) {
+	} else if(mDirection == Animation::Direction::Reverse) {
 		mCurrentFrame = mEndFrame;
 		mNextFrame = mCurrentFrame - 1;
 	}
 	mInterpolator = 0.0f;
-	for ( auto & frameActionPair : mFrameListenerList ) {
+	for(auto & frameActionPair : mFrameListenerList) {
 		frameActionPair.second.mDone = false;
 	}
 }
 
-void Animation::Update( float dt ) {
-	if ( mEnabled ) {
-		if ( mInterpolator >= 1.0f ) {
+void Animation::Update(float dt) {
+	if(mEnabled) {
+		if(mInterpolator >= 1.0f) {
 			// forward play
-			if ( mDirection == Animation::Direction::Forward ) {
+			if(mDirection == Animation::Direction::Forward) {
 				++mCurrentFrame;
-				if ( mCurrentFrame > mEndFrame ) {
+				if(mCurrentFrame > mEndFrame) {
 					mCurrentFrame = mBeginFrame;
 					mNextFrame = mCurrentFrame + 1;
-				} else if ( mCurrentFrame == mEndFrame ) {
+				} else if(mCurrentFrame == mEndFrame) {
 					mEnabled = mLooped;
 					mNextFrame = mBeginFrame;
-					DoFramesActions( );
-					for ( auto & frameActionPair : mFrameListenerList ) {
+					DoFramesActions();
+					for(auto & frameActionPair : mFrameListenerList) {
 						frameActionPair.second.mDone = false;
 					}
 				} else {
 					mNextFrame = mCurrentFrame + 1;
 				}
 				// reverse play
-			} else if ( mDirection == Animation::Direction::Reverse ) {
+			} else if(mDirection == Animation::Direction::Reverse) {
 				--mCurrentFrame;
-				if ( mCurrentFrame < mBeginFrame ) {
+				if(mCurrentFrame < mBeginFrame) {
 					mCurrentFrame = mEndFrame;
 					mNextFrame = mCurrentFrame - 1;
-				} else if ( mCurrentFrame == mBeginFrame ) {
+				} else if(mCurrentFrame == mBeginFrame) {
 					mEnabled = mLooped;
 					mNextFrame = mEndFrame;
-					DoFramesActions( );
-					for ( auto & frameActionPair : mFrameListenerList ) {
+					DoFramesActions();
+					for(auto & frameActionPair : mFrameListenerList) {
 						frameActionPair.second.mDone = false;
 					}
 				} else {
@@ -115,109 +115,125 @@ void Animation::Update( float dt ) {
 			}
 			mInterpolator = 0.0f;
 		}
-		if ( mEnabled ) {
-			mInterpolator += dt * ( ( mEndFrame - mBeginFrame ) / mDuration );
-			DoFramesActions( );
+		if(mEnabled) {
+			mInterpolator += dt * ((mEndFrame - mBeginFrame) / mDuration);
+			DoFramesActions();
 		}
 	}
 }
 
-void Animation::DoFramesActions( ) {
-	for ( auto & frameActionPair : mFrameListenerList ) {
-		if ( !frameActionPair.second.mDone ) {
-			if ( mCurrentFrame == frameActionPair.first ) {
-				frameActionPair.second.Event( );
+void Animation::DoFramesActions() {
+	for(auto & frameActionPair : mFrameListenerList) {
+		if(!frameActionPair.second.mDone) {
+			if(mCurrentFrame == frameActionPair.first) {
+				frameActionPair.second.Event();
 				frameActionPair.second.mDone = true;
 			}
 		}
 	}
 }
 
-void Animation::SetCurrentFrame( int frame ) {
+void Animation::SetCurrentFrame(int frame) {
 	mCurrentFrame = frame;
 	// range check
-	if ( mCurrentFrame >= ( mEndFrame - 1 ) ) {
-		mCurrentFrame = ( mEndFrame - 1 );
+	if(mCurrentFrame >= (mEndFrame - 1)) {
+		mCurrentFrame = (mEndFrame - 1);
 	}
-	if ( mCurrentFrame < mBeginFrame ) {
+	if(mCurrentFrame < mBeginFrame) {
 		mCurrentFrame = mBeginFrame;
 	}
 }
 
-void Animation::SetFrameInterval( int begin, int end ) {
+void Animation::SetFrameInterval(int begin, int end) {
 	mBeginFrame = begin;
 	mEndFrame = end;
 	// swap if needed
-	if ( mBeginFrame > mEndFrame ) {
-		std::swap( mBeginFrame, mEndFrame );
+	if(mBeginFrame > mEndFrame) {
+		std::swap(mBeginFrame, mEndFrame);
 	}
 	// range check
-	if ( mBeginFrame < 0 ) {
+	if(mBeginFrame < 0) {
 		mBeginFrame = 0;
 	}
-	if ( mEndFrame < 0 ) {
+	if(mEndFrame < 0) {
 		mEndFrame = 0;
 	}
 }
 
-int Animation::GetCurrentFrame( ) const {
+int Animation::GetCurrentFrame() const {
 	return mCurrentFrame;
 }
 
-int Animation::GetEndFrame( ) const {
+int Animation::GetEndFrame() const {
 	return mEndFrame;
 }
 
-int Animation::GetBeginFrame( ) const {
+int Animation::GetBeginFrame() const {
 	return mBeginFrame;
 }
 
-int Animation::GetNextFrame( ) const {
+int Animation::GetNextFrame() const {
 	return mNextFrame;
 }
 
-void Animation::SetName( const string & newName ) {
+void Animation::SetName(const string & newName) {
 	mName = newName;
 }
 
-float Animation::GetInterpolator( ) const {
+float Animation::GetInterpolator() const {
 	return mInterpolator;
 }
 
-string Animation::GetName( ) const {
+string Animation::GetName() const {
 	return mName;
 }
 
-void Animation::SetDuration( float duration ) {
+void Animation::SetDuration(float duration) {
 	mDuration = duration;
 }
 
-float Animation::GetDuration( ) const {
+float Animation::GetDuration() const {
 	return mDuration;
 }
 
-void Animation::SetEnabled( bool state ) {
+void Animation::SetEnabled(bool state) {
 	mEnabled = state;
 }
 
-bool Animation::IsEnabled( ) const {
+bool Animation::IsEnabled() const {
 	return mEnabled;
 }
 
-Animation::Direction Animation::GetDirection( ) const {
+Animation::Direction Animation::GetDirection() const {
 	return mDirection;
 }
 
-void Animation::SetDirection( const Animation::Direction & direction ) {
+void Animation::SetDirection(const Animation::Direction & direction) {
+	if(mDirection != direction) {
+		if(direction == Animation::Direction::Forward) {
+			if(mCurrentFrame == mBeginFrame && mNextFrame == mEndFrame) {
+				mNextFrame = mCurrentFrame + 1;
+			} else {
+				swap(mNextFrame, mCurrentFrame);
+			}
+		} else if(direction == Animation::Direction::Reverse) {
+			if(mCurrentFrame == mEndFrame && mNextFrame == mBeginFrame) {
+				mNextFrame = mCurrentFrame - 1;
+			} else {
+				swap(mNextFrame, mCurrentFrame);
+			}
+		}
+		
+	}
 	mDirection = direction;
 }
 
-void Animation::SetInterpolator( float interpolator ) {
+void Animation::SetInterpolator(float interpolator) {
 	mInterpolator = interpolator;
-	if ( mInterpolator < 0 ) {
+	if(mInterpolator < 0) {
 		mInterpolator = 0;
 	}
-	if ( mInterpolator > 1.0f ) {
+	if(mInterpolator > 1.0f) {
 		mInterpolator = 1.0f;
 	}
 }

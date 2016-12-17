@@ -28,5 +28,6 @@
 #include <math.h>
 #include <memory>
 #include "Game.h"
+#include "steam_api.h"
 
 using namespace std;

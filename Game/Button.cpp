@@ -4,8 +4,7 @@
 #include "Utils.h"
 #include "Level.h"
 
-void Button::Update()
-{
+void Button::Update() {
 	auto & player = Game::Instance()->GetLevel()->GetPlayer();
 	if(player->mNearestPickedNode == mNode) {
 		player->GetHUD()->SetAction(player->mKeyUse, mText);
@@ -19,13 +18,19 @@ void Button::Update()
 
 Button::Button(const shared_ptr<ISceneNode> & node, const string & text, const Delegate & onPush) :
 	mNode(node),
-	mText(text)
-{
+	mText(text),
+	mEnabled(true) {
 	mPushSound = node->GetFactory()->GetEngineInterface()->GetSoundSystem()->LoadSound3D("data/sounds/button.ogg");
 	mPushSound->Attach(mNode);
 
 	mPushAnimation = Animation(0, mNode->GetTotalAnimationFrameCount() - 1, 0.8f, false);
-	mPushAnimation.AddFrameListener(mNode->GetTotalAnimationFrameCount() / 2, [this] { OnPush(); mPushSound->Play(); });
+	mPushAnimation.AddFrameListener(mNode->GetTotalAnimationFrameCount() / 2,
+		[this] {
+		if(mEnabled) {
+			OnPush();
+		}
+		mPushSound->Play();
+	});
 
 	mNode->SetAnimation(&mPushAnimation);
 

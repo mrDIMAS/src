@@ -10,7 +10,7 @@ LevelForest::LevelForest(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
 	mPlayer->GetHUD()->SetObjective(mLocalization.GetString("objectiveToHighway"));
 
-	mMusic = game->GetEngine()->GetSoundSystem()->LoadMusic("data/music/forest.ogg");
+	mMusic = AddSound(game->GetEngine()->GetSoundSystem()->LoadMusic("data/music/forest.ogg"));
 
 	auto renderer = mGame->GetEngine()->GetRenderer();
 	mPlayer->mpCamera->mCamera->SetSkybox(
@@ -45,7 +45,7 @@ LevelForest::~LevelForest() {
 }
 
 void LevelForest::DoScenario() {
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.1, 0.1, 0.1));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.13, 0.13, 0.18));
 
 	mWater->SetTexCoordFlow(Vector2(0.0, -mWaterFlow));
 	mWaterFlow += 0.00025f;

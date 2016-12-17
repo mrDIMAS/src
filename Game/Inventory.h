@@ -22,8 +22,6 @@ private:
 	bool mOpen;
 	Item* mpItemForUse;
 	Item* mpSelectedItem;
-	Item* mpCombineItemFirst;
-	Item* mpCombineItemSecond;
 	static const int mCellCountWidth = 5;
 	static const int mCellCountHeight = 4;
 	static const int mCellWidth = 64;
@@ -35,11 +33,6 @@ private:
 	shared_ptr<IRect> mItemsBackground;
 	shared_ptr<IText> mItemDescription;
 	shared_ptr<IButton> mUseButton;
-	shared_ptr<IButton> mCombineButton;
-	shared_ptr<IRect> mFirstCombineItem;
-	shared_ptr<IRect> mSecondCombineItem;
-	shared_ptr<IRect> mFirstCombineItemCell;
-	shared_ptr<IRect> mSecondCombineItemCell;
 	shared_ptr<IText> mItemCharacteristics;
 	shared_ptr<IRect> mItem[mCellCountWidth][mCellCountHeight];
 	shared_ptr<IRect> mItemCell[mCellCountWidth][mCellCountHeight];
@@ -50,7 +43,7 @@ private:
 	shared_ptr<IText> mItemVolume;
 	shared_ptr<IButton> mPageItems;
 	shared_ptr<IButton> mPageNotes;
-
+	shared_ptr<ISound> mPickUpSound;
 	shared_ptr<IRect> mNotesBackground;
 	unique_ptr<ScrollList> mNotesList;
 	shared_ptr<IText> mNoteText;
@@ -72,7 +65,6 @@ public:
 	explicit Inventory(unique_ptr<Game> & game);
 	virtual ~Inventory();
 	void Update();
-	void DoCombine();
 	void RemoveItem(Item::Type type, int count);
 	Item * GetItemSelectedForUse();
 	void ResetSelectedForUse();

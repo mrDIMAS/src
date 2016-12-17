@@ -8,9 +8,11 @@ LevelEnding::LevelEnding(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 {
 	CreateBlankScene();
 
+	mCamera = mGame->GetEngine()->GetSceneFactory()->CreateCamera(90);
+	
 	mName = LevelName::Ending;
 	LoadLocalization("ending.loc");
-	mMusic = mGame->GetEngine()->GetSoundSystem()->LoadMusic("data/music/ending.ogg");
+	mMusic = AddSound(mGame->GetEngine()->GetSoundSystem()->LoadMusic("data/music/ending.ogg"));
 
 	mGUIScene = mGame->GetEngine()->CreateGUIScene();
 

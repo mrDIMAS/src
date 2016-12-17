@@ -29,6 +29,9 @@ private:
 	shared_ptr<ILight> mPassLightGreen;
 	shared_ptr<ILight> mPassLightRed;
 
+	shared_ptr<ISceneNode> mEnemyRespawnPosition;
+	shared_ptr<ISceneNode> mSoundCheckPosition;
+
 	shared_ptr<ISound> mWaterPumpSound[3];
 
 	Animation mPumpSwitchAnimation;

@@ -43,4 +43,5 @@ public:
 	virtual shared_ptr<ISound> LoadSound2D(const string & file) override final;
 	virtual shared_ptr<ISound> LoadSound3D(const string & file) override final;
 	virtual shared_ptr<ISound> LoadMusic(const string & file) override final;
+	virtual shared_ptr<ISound> LoadMusic3D(const string & file) override final;
 };

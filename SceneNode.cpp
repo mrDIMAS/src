@@ -315,15 +315,6 @@ void SceneNode::PerformAnimation() {
 	if(!mIsSkinned) {
 		if(mCurrentAnimation) {
 			if(mKeyframeList.size() && !mAnimationOverride) {
-				/*
-				if (current < 0 || current >= mKeyframeList.size()) {
-					throw runtime_error(StringBuilder("Current key frame index is out of range! Node: ") << mName << ", index: " << current << ", range is [0;" << mKeyframeList.size() << "]");
-				}
-				if (next < 0 || next >= mKeyframeList.size()) {
-					throw runtime_error(StringBuilder("Next key frame index is out of range! Node: ") << mName << ", index: " << next << ", range is [0;" << mKeyframeList.size() << "]");
-				}*/
-
-
 				if(mTransitionAnimation && mAnimationBlendingEnabled) {
 					// do transition					
 					float t = (float)mCurrentTransitionFrame / (float)mTransitionFrames;
@@ -397,7 +388,7 @@ std::string SceneNode::GetProperty(string propName) {
 		return propIter->second;
 	}
 
-	return string("(Nothing)");
+	return string("null");
 }
 
 void SceneNode::UpdateSounds() {

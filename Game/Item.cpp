@@ -10,8 +10,8 @@ Item::Item(Type type) :
 	mSingleInstance(false),
 	mContent(1.0f),
 	mMass(1.0f),
-	mVolume(1.0f)
-{
+	mVolume(1.0f),
+	mCount(0) {
 	if(msLocalization.IsEmpty()) {
 		msLocalization.Load(Game::Instance()->GetLocalizationPath() + "items.loc");
 	}
@@ -23,6 +23,11 @@ Item::Item(Type type) :
 		mName = GetNameByType(mType);
 		mPic = renderer->GetTexture("data/gui/inventory/items/detonator.png");
 		mContentTypeDesc = msLocalization.GetString("detonatorContentType");
+	} else if(mType == Type::OilCanister) {
+		mDesc = msLocalization.GetString("canisterDesc");
+		mName = GetNameByType(mType);
+		mPic = renderer->GetTexture("data/gui/inventory/items/canister.png");
+		mContentTypeDesc = msLocalization.GetString("canisterContentType");
 	} else if(mType == Type::Wires) {
 		mDesc = msLocalization.GetString("wiresDesc");
 		mName = GetNameByType(mType);
@@ -67,84 +72,71 @@ Item::Item(Type type) :
 	}
 }
 
-Item::~Item()
-{
+Item::~Item() {
 
 }
 
-const string & Item::GetName() const
-{
+const string & Item::GetName() const {
 	return mName;
 }
 
-const string & Item::GetDescription() const
-{
+const string & Item::GetDescription() const {
 	return mDesc;
 }
 
-void Item::SetContent(float content)
-{
+void Item::SetContent(float content) {
 	mContent = content;
 }
 
-float Item::GetContent() const
-{
+float Item::GetContent() const {
 	return mContent;
 }
 
-shared_ptr<ITexture> Item::GetPictogram() const
-{
+shared_ptr<ITexture> Item::GetPictogram() const {
 	return mPic;
 }
 
-Item::Type Item::GetType() const
-{
+Item::Type Item::GetType() const {
 	return mType;
 }
 
-bool Item::Combine(Item::Type combinerType)
-{
+bool Item::Combine(Item::Type combinerType) {
 	return false;
 }
 
-float Item::GetMass() const
-{
+float Item::GetMass() const {
 	return mMass;
 }
 
-void Item::SetMass(float mass)
-{
+void Item::SetMass(float mass) {
 	mMass = mass;
 }
 
-void Item::SetVolume(float val)
-{
+void Item::SetVolume(float val) {
 	mVolume = val;
 }
 
-float Item::GetVolume() const
-{
+float Item::GetVolume() const {
 	return mVolume;
 }
 
-void Item::SetContentType(const string & contentType)
-{
+void Item::SetContentType(const string & contentType) {
 	mContentTypeDesc = contentType;
 }
 
-const string & Item::GetContentType() const
-{
+const string & Item::GetContentType() const {
 	return mContentTypeDesc;
 }
 
-std::string Item::GetNameByType(Type type)
-{
+std::string Item::GetNameByType(Type type) {
 	if(msLocalization.IsEmpty()) {
 		msLocalization.Load(Game::Instance()->GetLocalizationPath() + "items.loc");
 	}
 	switch(type) {
 	case Type::Detonator:
 		return msLocalization.GetString("detonatorName");
+	case Type::OilCanister:
+		return msLocalization.GetString("canisterName");
 	case Type::Wires:
 		return msLocalization.GetString("wiresName");
 	case Type::Explosives:

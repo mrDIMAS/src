@@ -12,8 +12,7 @@ GUIBar::GUIBar(const shared_ptr<IGUIScene>& scene, const shared_ptr<ITexture>& s
 	mAlphaPause(60),
 	mLeftToRight(leftToRight),
 	mSmooth(false),
-	mTargetValue(value)
-{
+	mTargetValue(value) {
 	mNode = scene->CreateNode();
 	mNode->SetPosition(x, y);
 
@@ -46,8 +45,7 @@ GUIBar::GUIBar(const shared_ptr<IGUIScene>& scene, const shared_ptr<ITexture>& s
 	SetValue(value);
 }
 
-void GUIBar::SetValue(float value)
-{
+void GUIBar::SetValue(float value) {
 	if(mSmooth) {
 		mTargetValue = value;
 		if(mTargetValue > mMaxValue) {
@@ -103,37 +101,31 @@ void GUIBar::SetValue(float value)
 	--mAlphaPause;
 }
 
-float GUIBar::GetValue() const
-{
+float GUIBar::GetValue() const {
 	return mValue;
 }
 
-void GUIBar::SetSmooth(bool value)
-{
+void GUIBar::SetSmooth(bool value) {
 	mSmooth = value;
 }
 
-bool GUIBar::IsSmooth() const
-{
+bool GUIBar::IsSmooth() const {
 	return mSmooth;
 }
 
-void GUIBar::Update()
-{
+void GUIBar::Update() {
 	if(mSmooth) {
 		mValue += (mTargetValue - mValue) * 0.05f;
 	}
 }
 
-shared_ptr<IGUINode>& GUIBar::GetNode()
-{
+shared_ptr<IGUINode>& GUIBar::GetNode() {
 	return mNode;
 }
 
 HUD::HUD(unique_ptr<Game> & game) :
 	mGame(game),
-	mDamageBackgroundAlpha(0)
-{
+	mDamageBackgroundAlpha(0) {
 	mLocalization.Load(Game::Instance()->GetLocalizationPath() + "player.loc");
 
 	mGUIScene = mGame->GetEngine()->CreateGUIScene();
@@ -170,51 +162,42 @@ HUD::HUD(unique_ptr<Game> & game) :
 	SetObjective(mLocalization.GetString("objectiveUnknown"));
 }
 
-void HUD::SetStamina(float value)
-{
+void HUD::SetStamina(float value) {
 	mStaminaBar->SetValue(value);
 }
 
-void HUD::SetHealth(float value)
-{
+void HUD::SetHealth(float value) {
 	mHealthBar->SetValue(value);
 }
 
-void HUD::SetNoise(float value)
-{
+void HUD::SetNoise(float value) {
 	mNoiseBar->SetValue(value);
 }
 
-void HUD::ShowDamage()
-{
+void HUD::ShowDamage() {
 	mDamageBackgroundAlpha = 60;
 }
 
-void HUD::SetObjective(const string & text)
-{
+void HUD::SetObjective(const string & text) {
 	string objectiveText = mLocalization.GetString("currentObjective");
 	objectiveText += text;
 
 	mGoal->SetText(objectiveText);
 }
 
-void HUD::SetStealth(float value)
-{
+void HUD::SetStealth(float value) {
 	mStealthBar->SetValue(value);
 }
 
-void HUD::SetDead(bool dead)
-{
+void HUD::SetDead(bool dead) {
 	mGUIYouDied->SetVisible(dead);
 }
 
-void HUD::SetVisible(bool visible)
-{
+void HUD::SetVisible(bool visible) {
 	mGUIScene->SetVisible(visible);
 }
 
-void HUD::SetAction(IInput::Key keyCode, const string & action)
-{
+void HUD::SetAction(IInput::Key keyCode, const string & action) {
 	string text;
 
 	if(keyCode == IInput::Key::None) {
@@ -227,18 +210,15 @@ void HUD::SetAction(IInput::Key keyCode, const string & action)
 	mGUIActionText->SetVisible(true);
 }
 
-void HUD::SetTip(const string & text)
-{
+void HUD::SetTip(const string & text) {
 	mTip->SetNewText(text);
 }
 
-shared_ptr<IGUIScene> HUD::GetScene() const
-{
+shared_ptr<IGUIScene> HUD::GetScene() const {
 	return mGUIScene;
 }
 
-void HUD::ShowUsedItem(Item * i)
-{
+void HUD::ShowUsedItem(Item * i) {
 	if(i) {
 		mGUIRectItemForUse->SetTexture(i->GetPictogram());
 		mGUIRectItemForUse->SetVisible(true);
@@ -247,8 +227,7 @@ void HUD::ShowUsedItem(Item * i)
 	}
 }
 
-void HUD::SetCursor(bool somethingPicked, bool pickedHasNormalMass, bool somethingInHands, bool inventoryOpen)
-{
+void HUD::SetCursor(bool somethingPicked, bool pickedHasNormalMass, bool somethingInHands, bool inventoryOpen) {
 	if(inventoryOpen) {
 		mGUICursorPut->SetVisible(false);
 		mGUICrosshair->SetVisible(false);
@@ -275,8 +254,7 @@ void HUD::SetCursor(bool somethingPicked, bool pickedHasNormalMass, bool somethi
 	}
 }
 
-void HUD::Update()
-{
+void HUD::Update() {
 	mHealthBar->Update();
 	mStaminaBar->Update();
 	mStealthBar->Update();

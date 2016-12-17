@@ -25,13 +25,13 @@ struct MRT_OUTPUT {
 	float4 diffuseMap : COLOR2;
 };    
     
-float2 ComputeParallaxTextureCoordinates( float3 eyeVec, float2 texCoords ) {
-	const float minLayers = 5.0f;
-	const float maxLayers = 10.0f;
-	const int maxIterations = 10;
-	const float parallaxScale = 0.06f;
+float2 ComputeParallaxTextureCoordinates( float3 eyeVec, float2 texCoords, float3 normal ) {
+	const float minLayers = 8.0f;
+	const float maxLayers = 15.0f;
+	const int maxIterations = 15;
+	const float parallaxScale = 0.05f;
 	
-	float numLayers = lerp( maxLayers, minLayers, abs( dot( float3( 0, 0, 1 ), eyeVec )));
+	float numLayers = lerp( maxLayers, minLayers, abs( dot( normal, eyeVec )));
 	
 	float layerHeight = 1.0f / numLayers;
 	float curLayerHeight = 0.0f;
@@ -64,7 +64,7 @@ MRT_OUTPUT main( PS_INPUT input, float face : VFACE, float2 pixelCoord : VPOS ){
 	float2 texCoord = input.diffuseMapCoord;
 	
 	if( useParallax ) {
-		texCoord = ComputeParallaxTextureCoordinates( normalize(input.eyeInTangent), input.diffuseMapCoord );
+		texCoord = ComputeParallaxTextureCoordinates( normalize(input.eyeInTangent), input.diffuseMapCoord, input.normal );
 	}
 	
 	// get diffuse color
@@ -87,19 +87,16 @@ MRT_OUTPUT main( PS_INPUT input, float face : VFACE, float2 pixelCoord : VPOS ){
 	output.normal = normalize( tex2D( normalSampler, texCoord ) * 2.0 - 1.0f );
 	
 	// construct tangent space matrix
-	float3x3 tangentSpace = float3x3( input.tangent, input.binormal, input.normal );
+	float3x3 tangentSpace = float3x3( input.tangent, input.binormal, input.normal);
 
 	// transform normal from normal map to tangent space
-	output.normal = float4( mul( output.normal.xyz, tangentSpace ), 1.0f );
+	output.normal.xyz = mul( output.normal.xyz, tangentSpace );	
 	
 	// for twosided lighting
 	if( face >= 0 ) {
 		output.normal = -output.normal;
-	}
-	
-	// pack normal to [ 0; 1 ]
-	output.normal = output.normal * 0.5f + 0.5f;
-	
+	}	
+	output.normal.xyz = output.normal.xyz * 0.5 + 0.5;
 	// pass albedo to second passes
 	output.normal.a = albedo;
 		

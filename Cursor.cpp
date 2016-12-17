@@ -27,7 +27,8 @@ Cursor::Cursor(const Vector2 & size, const Vector2 & scale, const shared_ptr<Tex
 	mVisible(true),
 	mSize(size.x * scale.x, size.y * scale.y),
 	mTexture(texture) {
-
+	ShowCursor(false);
+	pD3D->ShowCursor(false);
 }
 
 void Cursor::SetVisible(bool state) {

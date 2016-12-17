@@ -16,11 +16,11 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 
 	mPlayer->SetPosition(GetUniqueObject("PlayerPosition")->GetPosition());
 
-	AddLadder("Ladder3Begin", "Ladder3End", "Ladder3Enter", "Ladder3BeginLeavePoint", "Ladder3EndLeavePoint");
+	MakeLadder("Ladder3Begin", "Ladder3End", "Ladder3Enter", "Ladder3BeginLeavePoint", "Ladder3EndLeavePoint");
 
-	mGate1 = AddGate("SmallGate1", "Button1Open", "Button1Close", "Button1Open2", "Button1Close2");
-	mGate2 = AddGate("SmallGate2", "Button2Open", "Button2Close", "Button2Open2", "Button2Close2");
-	mGateToLift = AddGate("SmallGate3", "Button3Open", "Button3Close", "Button3Open2", "Button3Close2");
+	mGate1 = MakeGate("SmallGate1", "Button1Open", "Button1Close", "Button1Open2", "Button1Close2");
+	mGate2 = MakeGate("SmallGate2", "Button2Open", "Button2Close", "Button2Open2", "Button2Close2");
+	mGateToLift = MakeGate("SmallGate3", "Button3Open", "Button3Close", "Button3Open2", "Button3Close2");
 	mGateToLift->mLocked = true;
 
 	mZoneKnocks = GetUniqueObject("ZoneKnocks");
@@ -38,24 +38,24 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note2")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note2Desc"), mLocalization.GetString("note2")); });
 	AddInteractiveObject("Note", make_shared<InteractiveObject>(GetUniqueObject("Note3")), [this] { mPlayer->GetInventory()->AddReadedNote(mLocalization.GetString("note3Desc"), mLocalization.GetString("note3")); });
 
-	AddDoor("Door1", 90.0f);
-	AddDoor("Door2", 90.0f);
-	AddDoor("Door3", 90.0f);
-	AddDoor("Door4", 90.0f);
-	AddDoor("Door005", 90.0f);
-	AddDoor("Door006", 90.0f);
-	AddDoor("Door007", 90.0f);
-	AddDoor("Door008", 90.0f);
-	AddDoor("Door009", 90.0f);
-	AddDoor("Door010", 90.0f);
-	AddDoor("Door012", 90.0f);
-	AddDoor("Door013", 90.0f);
+	MakeDoor("Door1", 90.0f);
+	MakeDoor("Door2", 90.0f);
+	MakeDoor("Door3", 90.0f);
+	MakeDoor("Door4", 90.0f);
+	MakeDoor("Door005", 90.0f);
+	MakeDoor("Door006", 90.0f);
+	MakeDoor("Door007", 90.0f);
+	MakeDoor("Door008", 90.0f);
+	MakeDoor("Door009", 90.0f);
+	MakeDoor("Door010", 90.0f);
+	MakeDoor("Door012", 90.0f);
+	MakeDoor("Door013", 90.0f);
 
-	mDoorToControl = AddDoor("DoorToControl", 90.0f);
-	mKeypad1 = AddKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", mDoorToControl, "9632");
+	mDoorToControl = MakeDoor("DoorToControl", 90.0f);
+	mKeypad1 = MakeKeypad("Keypad1", "Keypad1Key0", "Keypad1Key1", "Keypad1Key2", "Keypad1Key3", "Keypad1Key4", "Keypad1Key5", "Keypad1Key6", "Keypad1Key7", "Keypad1Key8", "Keypad1Key9", "Keypad1KeyCancel", mDoorToControl, "9632");
 
-	mDoorToCode = AddDoor("DoorToCode", 90.0f);
-	mKeypad2 = AddKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", mDoorToCode, "5486");
+	mDoorToCode = MakeDoor("DoorToCode", 90.0f);
+	mKeypad2 = MakeKeypad("Keypad2", "Keypad2Key0", "Keypad2Key1", "Keypad2Key2", "Keypad2Key3", "Keypad2Key4", "Keypad2Key5", "Keypad2Key6", "Keypad2Key7", "Keypad2Key8", "Keypad2Key9", "Keypad2KeyCancel", mDoorToCode, "5486");
 
 	mEnemySpawnPosition = GetUniqueObject("EnemySpawnPosition");
 
@@ -67,6 +67,8 @@ LevelSewers::LevelSewers(unique_ptr<Game> & game, const unique_ptr<PlayerTransfe
 	mStages["EnemySpawned"] = false;
 	mStages["WaterDrained"] = false;
 	mStages["PumpsActivated"] = false;
+
+	AddSound(mMusic = soundSystem->LoadMusic("data/music/sewers.ogg"));
 
 	mPassLightGreen = dynamic_pointer_cast<ILight>(GetUniqueObject("PassLightGreen"));
 	mPassLightRed = dynamic_pointer_cast<ILight>(GetUniqueObject("PassLightRed"));
@@ -154,6 +156,9 @@ void LevelSewers::CreateEnemy()
 	p.Get("WayH006")->AddEdge(p.Get("WayM1"));
 	p.Get("WayB1")->AddEdge(p.Get("WayL1"));
 
+	mEnemyRespawnPosition = GetUniqueObject("WayG028");
+	mSoundCheckPosition = GetUniqueObject("WayG044");
+
 	vector<shared_ptr<GraphVertex>> patrolPoints = {
 		p.Get("WayF007"), p.Get("WayA050"), p.Get("WayF007"),
 		p.Get("WayB064"), p.Get("WayD008"), p.Get("WayG046"),
@@ -172,6 +177,7 @@ LevelSewers::~LevelSewers()
 
 void LevelSewers::DoScenario()
 {
+	mMusic->Play();
 	// animate water flow
 	mWater->SetTexCoordFlow(Vector2(0.0, -mWaterFlow));
 	mWaterFlow += 0.00025f;
@@ -205,7 +211,8 @@ void LevelSewers::DoScenario()
 					mPumpSwitchAnimation.SetEnabled(true);
 
 					if(mEnemy) {
-						mEnemy->ForceCheckSound(mWaterPumpSound[0]->GetPosition());
+						mEnemy->ForceCheckSound(mSoundCheckPosition->GetPosition());
+						mEnemy->SetPosition(mEnemyRespawnPosition->GetPosition());
 					}
 				}
 			}

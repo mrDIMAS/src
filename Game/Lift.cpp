@@ -11,10 +11,11 @@ Lift::Lift(shared_ptr<ISceneNode> base) :
 	mEngineSoundEnabled(true),
 	mSpeedMultiplier(1.0f),
 	mLocked(false) {
-	mMotorSound = base->GetFactory()->GetEngineInterface()->GetSoundSystem()->LoadSound3D("data/sounds/motor_idle.ogg");
+	mMotorSound = base->GetFactory()->GetEngineInterface()->GetSoundSystem()->LoadSound3D("data/sounds/elevator_loop.ogg");
 	mMotorSound->Attach(mBaseNode);
-	mMotorSound->SetRolloffFactor(30);
-	mMotorSound->SetRoomRolloffFactor(30);
+	mMotorSound->SetRolloffFactor(10);
+	mMotorSound->SetRoomRolloffFactor(10);
+	mMotorSound->SetReferenceDistance(20);
 }
 
 void Lift::Update() {
@@ -33,13 +34,6 @@ void Lift::Update() {
 			distSqr = 1.0f;
 		}
 
-		mMotorSound->SetVolume(distSqr);
-
-		if(mEngineSoundEnabled) {
-			mMotorSound->Play();
-		} else {
-			mMotorSound->Pause();
-		}
 
 		// smooth arriving
 		if(!mArrived) {
@@ -55,9 +49,9 @@ void Lift::Update() {
 
 			if(!mPaused) {
 				mBaseNode->Move(speedVector * speed);
-			} else {
-				mMotorSound->Pause();
 			}
+		} else {
+			mMotorSound->Stop();
 		}
 	} else {
 		throw std::runtime_error("Lift objects are set improperly!");

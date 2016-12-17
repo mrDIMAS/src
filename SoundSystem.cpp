@@ -51,6 +51,13 @@ shared_ptr<ISound> SoundSystem::LoadMusic(const string & file) {
 	return sound;
 }
 
+shared_ptr<ISound> SoundSystem::LoadMusic3D(const string & file) {
+	auto sound = make_shared<CSound>(file, true, true);
+	gSoundList.push_back(sound);
+	sound->mIs3D = false;
+	return sound; 
+}
+
 CSound::CSound(const string & fileName, bool is3D, bool isMusic) : mIs3D(false) {
 	pfHandle = pfCreateSound(pfDataLoad(fileName.c_str(), isMusic), is3D);
 }

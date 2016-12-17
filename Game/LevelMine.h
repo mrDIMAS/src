@@ -62,7 +62,6 @@ private:
 	shared_ptr<ISceneNode> mExplosionFlashPosition;
 	shared_ptr<IPointLight> mExplosionFlashLight;
 	shared_ptr<IParticleSystem > mExplosionDustParticleSystem;
-	shared_ptr<ISceneNode> mLiftButton;
 	shared_ptr<ISceneNode> mExplodedWall;
 
 	shared_ptr<ItemPlace> mDetonatorPlace[4];

@@ -25,17 +25,16 @@ public:
 	bool mLocked;
 	shared_ptr<ISound> mOpenSound;
 	shared_ptr<ISound> mCloseSound;
+	bool mCloseSoundOnClosed;
 public:
-	explicit Door(const shared_ptr<ISceneNode> & hDoor, float fMaxAngle);
+	explicit Door(const shared_ptr<ISceneNode> & hDoor, float fMaxAngle, bool closeSoundOnClosed = false, const string & openSound = "data/sounds/door/dooropen.ogg", const string & closeSound = "data/sounds/door/doorclose.ogg");
 	virtual ~Door();
 	void SwitchState();
 	State GetState();
-	float SetOffsetAngle(float angle)
-	{
+	float SetOffsetAngle(float angle) {
 		mOffsetAngle = angle;
 	}
-	shared_ptr<ISceneNode> GetNode()
-	{
+	shared_ptr<ISceneNode> GetNode() {
 		return mDoorNode;
 	}
 	void SetTurnDirection(TurnDirection direction);

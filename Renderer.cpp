@@ -1280,13 +1280,11 @@ void Renderer::RenderWorld() {
 		if(camera->GetPathSize() > 0) {
 			// sort list of visible light in order to increse distance to camera
 			auto & visLightList = camera->GetNearestPathPoint()->GetListOfVisibleLights();
-			sort
-			(
-				visLightList.begin(),
-				visLightList.end(),
-				[camera](const weak_ptr<PointLight> & lhs, const weak_ptr<PointLight> & rhs) -> bool {
+
+			auto criteria = [camera](const weak_ptr<PointLight> & lhs, const weak_ptr<PointLight> & rhs) -> bool {
 				return (lhs.lock()->GetPosition() - camera->GetPosition()).Length2() < (rhs.lock()->GetPosition() - camera->GetPosition()).Length2();
-			});
+			};
+			sort (visLightList.begin(), visLightList.end(), criteria);
 
 			// select proper shadow map for each light from shadow map cache
 			int lightCounter = 0;
@@ -1394,10 +1392,12 @@ void Renderer::RenderWorld() {
 
 														if(mesh->mAABB.IsIntersectSphere(pOwner->GetPosition(), pLight->GetPosition(), pLight->GetRange()) || pOwner->IsSkinned()) {
 															if((pOwner->IsBone() ? false : pOwner->IsVisible())) {
+																D3DXMATRIX identity; D3DXMatrixIdentity(&identity);
+																D3DXMATRIX wm = pOwner->IsSkinned() ? identity : pOwner->GetWorldMatrix();
 																// Load vertex shader constants
 																gpuFloatRegisterStack.Clear();
-																gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * viewMatrix * projectionMatrix);
-																gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
+																gpuFloatRegisterStack.PushMatrix(wm * viewMatrix * projectionMatrix);
+																gpuFloatRegisterStack.PushMatrix(wm);
 																for(auto bone : mesh->GetBones()) {
 																	shared_ptr<SceneNode> boneNode = bone->mNode.lock();
 																	if(boneNode) {
@@ -1545,10 +1545,12 @@ void Renderer::RenderWorld() {
 									}
 
 									if(pOwner->IsVisible() && pLight->GetFrustum().IsAABBInside(mesh->GetBoundingBox(), pOwner->GetPosition(), pOwner->GetWorldMatrix())) {
+										D3DXMATRIX identity; D3DXMatrixIdentity(&identity);
+										D3DXMATRIX wm = pOwner->IsSkinned() ? identity : pOwner->GetWorldMatrix();
 										// Load vertex shader constants
 										gpuFloatRegisterStack.Clear();
-										gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * pLight->GetViewProjectionMatrix());
-										gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
+										gpuFloatRegisterStack.PushMatrix(wm * pLight->GetViewProjectionMatrix());
+										gpuFloatRegisterStack.PushMatrix(wm);
 										for(auto bone : mesh->GetBones()) {
 											shared_ptr<SceneNode> boneNode = bone->mNode.lock();
 											if(boneNode) {
@@ -1705,10 +1707,13 @@ void Renderer::RenderWorld() {
 								}
 
 								if(pOwner->IsVisible()) {
+									D3DXMATRIX identity; D3DXMatrixIdentity(&identity);
+									D3DXMATRIX wm = pOwner->IsSkinned() ? identity : pOwner->GetWorldMatrix();
+
 									// Load vertex shader constants
 									gpuFloatRegisterStack.Clear();
-									gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix() * (pLight->BuildViewMatrix(camera) * orthoMatrix));
-									gpuFloatRegisterStack.PushMatrix(pOwner->GetWorldMatrix());
+									gpuFloatRegisterStack.PushMatrix(wm * (pLight->BuildViewMatrix(camera) * orthoMatrix));
+									gpuFloatRegisterStack.PushMatrix(wm);
 									for(auto bone : mesh->GetBones()) {
 										shared_ptr<SceneNode> boneNode = bone->mNode.lock();
 										if(boneNode) {
@@ -2902,11 +2907,11 @@ bool Renderer::IsParallaxEnabled() {
 }
 
 void Renderer::SetCursorVisible(bool state) {
+	ShowCursor(state);
+	pD3D->ShowCursor(state);
 	if(mCursor) {
 		mCursor->SetVisible(state);
 	}
-	ShowCursor(state);
-	pD3D->ShowCursor(state);
 }
 
 void Renderer::SetCursor(shared_ptr<ITexture> texture, int w, int h) {

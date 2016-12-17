@@ -51,6 +51,7 @@ public:
 	shared_ptr<ISceneNode> mPickedNode;
 	shared_ptr<IPointLight> mFakeLight;
 	shared_ptr<ISpotLight> mFlashlight;
+	//shared_ptr<IPointLight> mFlashLightGI;
 	shared_ptr<ISound> mFlashlightSwitchSound;
 	SmoothFloat mPitch;
 	SmoothFloat mYaw;
@@ -64,6 +65,8 @@ public:
 	float mLastHealth;
 	float mDeadRotation;
 	float mDestDeadRotation;
+	bool mMouseInvX;
+	bool mMouseInvY;
 	SmoothFloat mYawWalkOffset;
 	Vector3 mSpeed;
 	Vector3 mSpeedTo;
@@ -102,7 +105,6 @@ public:
 	unique_ptr<HUD> mHUD;
 	shared_ptr<ISound> mDeadSound;
 	Vector3 mAirPosition;
-	shared_ptr<ITimer> mAutoSaveTimer;
 	vector<unique_ptr<SoundMaterial>> mSoundMaterialList;
 
 	void UpdateJumping();

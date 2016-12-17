@@ -84,7 +84,7 @@ void LevelIntro::DoScenario()
 	mUAZAnim.Update();
 	mDeerAnim.Update();
 	mCameraAnim1.Update();
-	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.095, 0.095, 0.15));
+	mGame->GetEngine()->GetRenderer()->SetAmbientColor(Vector3(0.15, 0.15, 0.2));
 
 	if(mUAZ->IsInsideNode(mChangeCameraZone1)) {
 		mCamera->mCamera->Attach(mCameraPivot2);

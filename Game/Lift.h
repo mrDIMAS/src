@@ -51,6 +51,7 @@ public:
 				if(IsAllDoorsClosed()) {
 					SetDoorsLocked(true);
 					mTargetNode = mDestNode;
+					mMotorSound->Play();
 				}
 			}
 			mArrived = false;
@@ -63,6 +64,7 @@ public:
 				if(IsAllDoorsClosed()) {
 					SetDoorsLocked(true);
 					mTargetNode = mSourceNode;
+					mMotorSound->Play();
 				}
 			}
 			mArrived = false;

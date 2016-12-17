@@ -30,6 +30,7 @@ public:
 
 class Game {
 private:
+	shared_ptr<ITimer> mAutoSaveTimer;
 	unique_ptr<IEngine> mEngine;
 	unique_ptr<class Level> mLevel;
 	unique_ptr<LoadingScreen> mLoadingScreen;
@@ -55,6 +56,8 @@ public:
 	void UpdateClock();
 	void MainLoop();
 	void Shutdown();
+	void LoadState(const string & savefileName);
+	void SaveState(const string & savefileName);
 	string GetLocalizationPath() const;
 	void SetMouseSensitivity(float sens);
 	float GetMouseSensitivity() const;

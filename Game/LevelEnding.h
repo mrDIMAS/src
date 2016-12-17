@@ -8,6 +8,7 @@ private:
 	shared_ptr<IRect> mBackground;
 	shared_ptr<IText> mEndingText;
 	shared_ptr<IFont> mLargeFont;
+	shared_ptr<ICamera> mCamera;
 	int mTimer;
 public:
 	LevelEnding(unique_ptr<Game> & game, const unique_ptr<PlayerTransfer> & playerTransfer);
